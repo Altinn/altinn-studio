@@ -19,19 +19,14 @@ namespace AltinnCore.UnitTest.Common
         [Fact]
         public void LoadJsonSchemaTest()
         {
-            JsonSchema jsonSchema;
-            using (StreamReader streamReader = new StreamReader("Common/example.schema.json", Encoding.UTF8))
-            {
-                jsonSchema = new JsonSchema();
-                jsonSchema.FromJson(JsonValue.Parse(streamReader.ReadToEnd()), new JsonSerializer());
-            }
-
+            string schemaText = File.ReadAllText("Common/example.schema.json");
+            JsonValue schemaJson = JsonValue.Parse(schemaText);
+            JsonSchema jsonSchema = new JsonSerializer().Deserialize<JsonSchema>(schemaJson);
+              
             JsonValue jsonInstance;
-            using (StreamReader streamReader = new StreamReader("Common/example.json", Encoding.UTF8))
-            {
-                jsonInstance = JsonValue.Parse(streamReader.ReadToEnd());
-            }
-
+            using StreamReader streamReader2 = new StreamReader("Common/example.json", Encoding.UTF8);
+            jsonInstance = JsonValue.Parse(streamReader2.ReadToEnd());
+        
             // Test schema
             var schemaValidationResults = jsonSchema.ValidateSchema();
             Assert.True(schemaValidationResults.IsValid);

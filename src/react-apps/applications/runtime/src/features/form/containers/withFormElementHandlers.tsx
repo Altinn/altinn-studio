@@ -132,7 +132,9 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       return null;
     }
 
-    public toggleClickPopover = (): void => {
+    public toggleClickPopover = (event: React.MouseEvent): void => {
+      event.stopPropagation();
+      event.preventDefault();
       this.setState((prev: IState) => ({
         openPopover: !prev.openPopover,
       }));
@@ -216,7 +218,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
               handleClose={this.closePopover}
               paperProps={{
                 classes: {
-                  paper: classes.helpTextPopoverText,
+                  root: classes.helpTextPopoverPaper,
                 },
               }}
             >

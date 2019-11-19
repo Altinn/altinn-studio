@@ -19,6 +19,10 @@ describe('>>> components/GenericComponent.tsx', () => {
         layout: [
           { type: 'Input', id: 'mockId', hidden: false },
         ],
+        uiConfig: {
+          focus: null,
+          hiddenFields: [],
+        },
       },
       formDataModel: {},
       language: {

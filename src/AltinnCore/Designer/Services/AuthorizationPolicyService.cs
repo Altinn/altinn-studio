@@ -1,12 +1,14 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.Services.Models;
 using Microsoft.Extensions.Options;
+using Microsoft.Rest.TransientFaultHandling;
 
 namespace AltinnCore.Designer.Services
 {
@@ -45,7 +47,15 @@ namespace AltinnCore.Designer.Services
             HttpClient httpClient = GetHttpClientFromHttpClientFactory(deploymentEnvironment);
             string policyFilePath = GetAuthorizationPolicyFilePath(fullCommitId);
             string policyFile = await _giteaApiWrapper.GetFileAsync(org, app, policyFilePath);
-            await httpClient.PostAsJsonAsync($"?org={org}&app={app}", policyFile);
+            StringContent stringContent = new StringContent(policyFile, Encoding.UTF8, "application/xml");
+            HttpResponseMessage response = await httpClient.PostAsync($"?org={org}&app={app}", stringContent);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestWithStatusException(response.ReasonPhrase)
+                {
+                    StatusCode = response.StatusCode
+                };
+            }
         }
 
         private HttpClient GetHttpClientFromHttpClientFactory(EnvironmentModel deploymentEnvironment)
@@ -53,7 +63,6 @@ namespace AltinnCore.Designer.Services
             HttpClient httpClient = _httpClientFactory.CreateClient(deploymentEnvironment.Hostname);
             string uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/authorization/api/v1/policies/";
             httpClient.BaseAddress = new Uri(uri);
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             return httpClient;
         }
