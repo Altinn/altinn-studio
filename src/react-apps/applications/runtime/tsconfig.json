@@ -6,11 +6,6 @@
       "jest"
     ],
     "baseUrl": ".",
-    "paths": {
-      "Shared/*": [
-        "../shared/src/*"
-      ]
-    },
     "outDir": "compiled",
     "module": "commonjs",
     "target": "es5",

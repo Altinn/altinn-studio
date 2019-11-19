@@ -36,7 +36,11 @@ const styles = createStyles({
 export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
   const {classes, logoColor, headerBackgroundColor: headerColor, party, userParty} = props;
   return (
-    <AppBar position={'relative'} classes={{root: classes.altinnAppHeader}} style={{backgroundColor: headerColor}}>
+    <AppBar
+      position={'relative'}
+      classes={{root: classes.altinnAppHeader}}
+      style={{backgroundColor: headerColor, color: logoColor}}
+    >
       <Grid
         container={true}
         className={classes.mainContent}
