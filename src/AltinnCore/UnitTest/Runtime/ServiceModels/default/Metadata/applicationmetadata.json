@@ -13,9 +13,9 @@
         "application/xml"
       ],
       "appLogic": true,
-      "maxCount": 0,
+      "maxCount": 1,
       "minCount": 0,
-      "task": "FormFilling_1"
+      "task": "Task_1"
     },
     {
       "id": "db1fa864-6199-494d-8896-9e3d95801248",

@@ -6,18 +6,17 @@
   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
   xmlns:altinn="http://altinn"
-  xmlns:tjeneste="http://tjeneste"
   xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd"
   targetNamespace="http://bpmn.io/schema/bpmn" >
   <bpmn2:process id="Process_1" isExecutable="false">
     <bpmn2:startEvent id="StartEvent_1">
       <bpmn2:outgoing>SequenceFlow_1</bpmn2:outgoing>
     </bpmn2:startEvent>
-    <bpmn2:task id="FormFilling_1" name="FormFilling" altinn:steptype="data" altinn:egenskap1="egenskap1" altinn:egenskap2="egenskap2">
+    <bpmn2:task id="FormFilling_1" name="Data" altinn:tasktype="data">
       <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
     </bpmn2:task>
-    <bpmn2:task id="Submit_1" name="Submit" altinn:steptype="submit" tjeneste:egenskap1="egenskap1" tjeneste:egenskap2="egenskap2">
+    <bpmn2:task id="Submit_1" name="Submit" altinn:tasktype="submit">
       <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_3</bpmn2:outgoing>
     </bpmn2:task>

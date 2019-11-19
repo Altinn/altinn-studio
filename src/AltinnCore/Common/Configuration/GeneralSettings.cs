@@ -60,7 +60,7 @@ namespace AltinnCore.Common.Configuration
         {
             get
             {
-                return TemplateLocation + "/workflow.bpmn";
+                return TemplateLocation + "/process.bpmn";
             }
         }
 
