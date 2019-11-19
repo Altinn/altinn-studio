@@ -146,16 +146,13 @@ namespace AltinnCore.Common.Services.Implementation
                 Id = "default",
                 AllowedContentTypes = new List<string>() { "application/xml" },
                 AppLogic = new ApplicationLogic() { },
-                TaskId = "FormFilling",
-                AllowedContentType = new List<string>() { "application/xml" },
-                AppLogic = true,
-                Task = "Task_1",
+                TaskId = "Task_1"
             });
             appMetadata.DataTypes.Add(new DataType
             {
                 Id = "ref-data-as-pdf",
-                AllowedContentType = new List<string>() { "application/pdf" },
-                Task = "Task_1",
+                AllowedContentTypes = new List<string>() { "application/pdf" },
+                TaskId = "Task_1",
                 MaxCount = 1,
                 MinCount = 1,
             });
