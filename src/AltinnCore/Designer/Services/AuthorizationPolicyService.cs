@@ -61,7 +61,7 @@ namespace AltinnCore.Designer.Services
         private HttpClient GetHttpClientFromHttpClientFactory(EnvironmentModel deploymentEnvironment)
         {
             HttpClient httpClient = _httpClientFactory.CreateClient(deploymentEnvironment.Hostname);
-            string uri = $"http://localhost:5050/authorization/api/v1/policies/";
+            string uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/authorization/api/v1/policies/";
             httpClient.BaseAddress = new Uri(uri);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
