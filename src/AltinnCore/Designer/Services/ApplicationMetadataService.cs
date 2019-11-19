@@ -24,6 +24,7 @@ namespace AltinnCore.Designer.Services
         private readonly IGitea _giteaApiWrapper;
         private readonly ILogger<ApplicationMetadataService> _logger;
         private readonly ServiceRepositorySettings _serviceRepositorySettings;
+        private readonly PlatformSettings _platformSettings;
         private HttpClient _httpClient;
         private string _fullCommitSha;
         private string _org;
@@ -40,12 +41,14 @@ namespace AltinnCore.Designer.Services
             IHttpClientFactory httpClientFactory,
             IGitea giteaApiWrapper,
             IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<PlatformSettings> platformSettings,
             ILogger<ApplicationMetadataService> logger)
         {
             _httpClientFactory = httpClientFactory;
             _giteaApiWrapper = giteaApiWrapper;
             _logger = logger;
             _serviceRepositorySettings = repositorySettings.Value;
+            _platformSettings = platformSettings.Value;
         }
 
         /// <inheritdoc />
@@ -74,7 +77,7 @@ namespace AltinnCore.Designer.Services
         private HttpClient GetHttpClientFromHttpClientFactory(EnvironmentModel deploymentEnvironment)
         {
             HttpClient httpClient = _httpClientFactory.CreateClient(deploymentEnvironment.Hostname);
-            string uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/storage/api/v1/applications/";
+            string uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/{_platformSettings.ApiStorageApplicationUri}";
             httpClient.BaseAddress = new Uri(uri);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
