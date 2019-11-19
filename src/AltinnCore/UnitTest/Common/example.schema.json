@@ -1,6 +1,4 @@
 {
-  "$schema": "http://json-schema.org/schema#",
-  "$id": "https://altinn-studio.no/schemas/edag.json",
   "title": "EDAG",
   "type": "object",
   "properties": {
