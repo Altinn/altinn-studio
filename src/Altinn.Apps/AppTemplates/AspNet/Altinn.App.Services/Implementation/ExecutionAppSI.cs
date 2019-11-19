@@ -56,16 +56,16 @@ namespace Altinn.App.Services.Implementation
  
             if (resource == _settings.RuleHandlerFileName)
             {
-                if (File.Exists( _settings.UiFolder + resource))
+                if (File.Exists(_settings.AppBasePath + _settings.UiFolder + resource))
                 {
-                    fileContent = File.ReadAllBytes(_settings.UiFolder + resource);
+                    fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.UiFolder + resource);
                 }
             }
             else if (resource == _settings.FormLayoutJSONFileName)
             {
-                if (File.Exists( _settings.UiFolder + resource))
+                if (File.Exists(_settings.AppBasePath + _settings.UiFolder + resource))
                 {
-                    fileContent = File.ReadAllBytes( _settings.UiFolder + resource);
+                    fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.UiFolder + resource);
                 }
             }
             else
@@ -83,9 +83,9 @@ namespace Altinn.App.Services.Implementation
         {
             byte[] fileContent = null;
 
-            if (File.Exists( _settings.ConfigurationFolder + _settings.TextFolder + textResource))
+            if (File.Exists(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder + textResource))
             {
-                fileContent = File.ReadAllBytes( _settings.ConfigurationFolder + _settings.TextFolder + textResource);
+                fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder + textResource);
             }
           
             return fileContent;
@@ -95,7 +95,7 @@ namespace Altinn.App.Services.Implementation
         public Application GetApplication(string org, string app)
         {
             string filedata = string.Empty;
-            string filename = _settings.ConfigurationFolder + _settings.ApplicationMetadataFileName;
+            string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.ApplicationMetadataFileName;
             try
             {
                 if (File.Exists(filename))
@@ -127,7 +127,7 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
-            string filename = _settings.ModelsFolder + dataTypeId +"." +  _settings.ServiceMetadataFileName;
+            string filename = _settings.AppBasePath + _settings.ModelsFolder + dataTypeId +"." +  _settings.ServiceMetadataFileName;
             string filedata = File.ReadAllText(filename, Encoding.UTF8);
             return JsonConvert.DeserializeObject<ServiceMetadata.ServiceMetadata>(filedata);
         }

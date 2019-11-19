@@ -11,8 +11,8 @@
     <None Remove="Data\apps\tdd\auth-level-2\appsettings.json" />
     <None Remove="Data\apps\tdd\auth-level-3\appsettings.Development.json" />
     <None Remove="Data\apps\tdd\auth-level-3\appsettings.json" />
-    <None Remove="Data\apps\tdd\endring-av-navn\configuration\appsettings.Development.json" />
-    <None Remove="Data\apps\tdd\endring-av-navn\configuration\appsettings.json" />
+    <None Remove="Data\apps\tdd\endring-av-navn\config\appsettings.Development.json" />
+    <None Remove="Data\apps\tdd\endring-av-navn\config\appsettings.json" />
     <None Remove="Data\apps\tdd\no-access\appsettings.json" />
   </ItemGroup>
 
