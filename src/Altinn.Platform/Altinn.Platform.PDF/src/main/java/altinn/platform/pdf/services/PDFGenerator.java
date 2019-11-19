@@ -154,7 +154,7 @@ public class PDFGenerator {
 
     String elementType = element.getType();
     // Render content
-    if (elementType.equalsIgnoreCase("paragraph") || elementType.equals("header")) {
+    if (elementType.equalsIgnoreCase("paragraph") || elementType.equalsIgnoreCase("header")) {
       // has no content, ignore
       return;
     }
