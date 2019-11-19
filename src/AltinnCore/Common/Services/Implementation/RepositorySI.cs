@@ -1862,6 +1862,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string appPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             File.Copy(_generalSettings.DefaultAppSnlFile, appPath + fileName);
+            _logger.LogInformation(File.ReadAllText(appPath + fileName));
         }
 
         /// <summary>
