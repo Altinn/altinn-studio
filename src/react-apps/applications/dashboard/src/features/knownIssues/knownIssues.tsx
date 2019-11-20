@@ -72,7 +72,6 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
               ALLOWED_ATTR: ['href', 'target'],
             },
           );
-
           const doc = new DOMParser().parseFromString(safeHTML, 'text/html');
           const knownIssues = ReactHtmlParser(doc.getElementsByTagName('body')[0].innerHTML);
 
