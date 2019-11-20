@@ -200,13 +200,13 @@ namespace AltinnCore.Common.Services.Implementation
                 Id = "default",
                 AllowedContentType = new List<string>() { "application/xml" },
                 AppLogic = true,
-                Task = "FormFilling_1",
+                Task = "Task_1",
             });
             appMetadata.ElementTypes.Add(new Altinn.Platform.Storage.Models.ElementType
             {
                 Id = "ref-data-as-pdf",
                 AllowedContentType = new List<string>() { "application/pdf" },
-                Task = "FormFilling_1",
+                Task = "Task_1",
                 MaxCount = 1,
                 MinCount = 1,
             });
