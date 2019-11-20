@@ -1,5 +1,7 @@
 import { Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
+import DOMPurify = require('dompurify');
+import marked = require('marked');
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnBreadcrumb from '../../../../shared/src/components/AltinnBreadcrumb';
@@ -7,6 +9,7 @@ import AltinnSpinner from '../../../../shared/src/components/AltinnSpinner';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { get } from '../../../../shared/src/utils/networking';
+import { returnElementListFromString } from './../../../../shared/src/utils/returnElementListFromString';
 
 export interface IKnownIssuesComponentProvidedProps {
   classes: any;
@@ -57,18 +60,28 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
 
   public componentDidMount() {
     this._isMounted = true;
-    get(`${'https://cors-anywhere.herokuapp.com/'}https://github.com/Altinn/altinn-studio/blob/master/KNOWNISSUES.md`)
+    get('https://raw.githubusercontent.com/Altinn/altinn-studio/master/KNOWNISSUES.md')
       .then((res) => {
         if (this._isMounted) {
-          const doc = new DOMParser().parseFromString(res, 'text/html');
-          const readme = doc.getElementById('readme').innerHTML;
-          // tslint:disable-next-line:max-line-length
-          const readmeWithoutATags = readme.replace(/<svg [^>]+>/g, '').replace(/<\/svg>/g, '');
+          marked.setOptions({
+            headerIds: false,
+          });
+          const unsafeHTML = marked(res);
+          const safeHTML = DOMPurify.sanitize(unsafeHTML,
+            {
+              ALLOWED_TAGS: ['ul', 'li', 'a', 'p', 'h2'],
+              ALLOWED_ATTR: ['href', 'target'],
+            },
+          );
+
+          const doc = new DOMParser().parseFromString(safeHTML, 'text/html');
+          const knownIssues = returnElementListFromString(doc.getElementsByTagName('body')[0].innerHTML);
 
           this.setState({
-            knownIssues: readmeWithoutATags,
+            knownIssues,
           });
         }
+
       });
   }
 
@@ -91,7 +104,7 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
             {getLanguageFromKey('dashboard.known_issues_header', this.props.language)}
           </Typography>
           {this.state.knownIssues ?
-            <div className={classes.knownIssues} dangerouslySetInnerHTML={{ __html: this.state.knownIssues }} />
+            <div className={classes.knownIssues}>{this.state.knownIssues}</div>
             :
             <div>
               <AltinnSpinner
