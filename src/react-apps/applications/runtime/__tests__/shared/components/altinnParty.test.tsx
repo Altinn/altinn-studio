@@ -3,8 +3,8 @@ import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
+import { IParty } from '../../../../shared/src/types';
 import AltinnParty from '../../../src/shared/components/altinnParty';
-import { IParty } from '../../../src/shared/resources/party';
 
 describe('altinnParty', () => {
   let mountedComponent: ReactWrapper;

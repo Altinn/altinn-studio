@@ -18,15 +18,24 @@ export interface IAltinnAppHeaderProps extends WithStyles<typeof styles> {
 
 const styles = createStyles({
   altinnAppHeader: {
-    marginTop: 33,
     boxShadow: 'none',
     WebkitBoxShadow: 'none',
     MozBoxShadow: 'none',
   },
   mainContent: {
-    marginLeft: '10%',
-    marginRight: '10%',
-    width: 'auto',
+    '@media (min-width:576px)': {
+      maxWidth: 540,
+    },
+    '@media (min-width:760px)': {
+      maxWidth: 720,
+    },
+    '@media (min-width:992px)': {
+      maxWidth: 960,
+    },
+    width: '100%',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    padding: 24,
   },
   appHeaderText: {
     fontSize: 14,

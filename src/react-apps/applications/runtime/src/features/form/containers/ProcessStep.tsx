@@ -179,7 +179,7 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
             logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
             headerBackgroundColor={AltinnAppTheme.altinnPalette.primary.blue}
           />
-        <div className='container'>
+          <div className='container'>
             <div className={classNames('row', {['d-print-none']: isProcessStepsArchived})}>
               <div className='col-xl-10 offset-xl-1 a-p-static'>
                 {this.renderErrorReport()}
