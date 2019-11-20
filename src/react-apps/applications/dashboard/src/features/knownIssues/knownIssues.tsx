@@ -51,7 +51,6 @@ const styles = createStyles({
   },
 });
 
-// tslint:disable-next-line:max-line-length
 export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentProps, IKnownIssuesComponentState> {
   public _isMounted = false;
   public state: IKnownIssuesComponentState = {
@@ -81,8 +80,7 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
             knownIssues,
           });
         }
-
-      });
+    });
   }
 
   public componentWillUnmount() {
