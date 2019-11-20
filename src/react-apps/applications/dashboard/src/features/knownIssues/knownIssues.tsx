@@ -3,13 +3,13 @@ import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styl
 import DOMPurify = require('dompurify');
 import marked = require('marked');
 import * as React from 'react';
+import ReactHtmlParser from 'react-html-parser';
 import { connect } from 'react-redux';
 import AltinnBreadcrumb from '../../../../shared/src/components/AltinnBreadcrumb';
 import AltinnSpinner from '../../../../shared/src/components/AltinnSpinner';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { get } from '../../../../shared/src/utils/networking';
-import { returnElementListFromString } from './../../../../shared/src/utils/returnElementListFromString';
 
 export interface IKnownIssuesComponentProvidedProps {
   classes: any;
@@ -74,7 +74,7 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
           );
 
           const doc = new DOMParser().parseFromString(safeHTML, 'text/html');
-          const knownIssues = returnElementListFromString(doc.getElementsByTagName('body')[0].innerHTML);
+          const knownIssues = ReactHtmlParser(doc.getElementsByTagName('body')[0].innerHTML);
 
           this.setState({
             knownIssues,

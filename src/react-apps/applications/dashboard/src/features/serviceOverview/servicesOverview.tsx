@@ -6,6 +6,7 @@ import classNames from 'classnames';
 import * as DOMPurify from 'dompurify';
 import * as marked from 'marked';
 import * as React from 'react';
+import ReactHtmlParser from 'react-html-parser';
 import { connect } from 'react-redux';
 import AltinnInformationPaper from '../../../../shared/src/components/AltinnInformationPaper';
 import AltinnLink from '../../../../shared/src/components/AltinnLink';
@@ -13,7 +14,6 @@ import AltinnSearchInput from '../../../../shared/src/components/AltinnSearchInp
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { get } from '../../../../shared/src/utils/networking';
 import { CreateNewService } from '../createService/createNewService';
-import { returnElementListFromString } from './../../../../shared/src/utils/returnElementListFromString';
 import { ServicesCategory } from './servicesCategory';
 
 export interface IServicesOverviewComponentProvidedProps {
@@ -142,7 +142,7 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
 
         const doc = new DOMParser().parseFromString(safeHTML, 'text/html');
         if (doc.getElementsByTagName('ul').length > 0) {
-          const majorWeaknessesList = returnElementListFromString(doc.getElementsByTagName('ul')[0].innerHTML);
+          const majorWeaknessesList = ReactHtmlParser(doc.getElementsByTagName('ul')[0].innerHTML);
           this.setState({
             majorIssues: majorWeaknessesList,
           });
