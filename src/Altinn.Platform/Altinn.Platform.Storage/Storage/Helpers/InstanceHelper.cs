@@ -90,7 +90,7 @@ namespace Altinn.Platform.Storage.Helpers
                 {
                     return "FormFilling";
                 }
-                else if (string.IsNullOrEmpty(currentTask) && instance.Process.Ended != null)
+                else if (string.IsNullOrEmpty(currentTask) && instance.Process.Ended != null && instance.Status?.Archived == null)
                 {
                     return "Submit";
                 }

@@ -126,5 +126,60 @@ namespace Altinn.Platform.Storage.UnitTest
             // Assert
             Assert.Equal(instanceGuid, actualId);     
         }
+
+        /// <summary>
+        /// Scenario: Getting sbl status for a given instance when the current task is Task_1
+        /// Expected: The SBL status "FormFilling" is returned
+        /// Success: SBL status is as expected
+        /// </summary>
+        [Fact]
+        public void GetSBLStatusForCurrentTask_TC01()
+        {
+            Instance instance = TestData.Instance_1_Status_1;
+            string sblStatus = InstanceHelper.GetSBLStatusForCurrentTask(instance);
+            Assert.Equal("FormFilling", sblStatus);
+        }
+
+        /// <summary>
+        /// Scenario: Getting sbl status for a given instance when the current task is null
+        /// and the process.ended is not null and the status.archived is null
+        /// Expected: The SBL status "Submit" is returned
+        /// Success: SBL status is as expected
+        /// </summary>
+        [Fact]
+        public void GetSBLStatusForCurrentTask_TC02()
+        {
+            Instance instance = TestData.Instance_1_Status_2;
+            string sblStatus = InstanceHelper.GetSBLStatusForCurrentTask(instance);
+            Assert.Equal("Submit", sblStatus);
+        }
+
+        /// <summary>
+        /// Scenario: Getting sbl status for a given instance when the current task is null
+        /// and the process.ended is not null and the status.archived is not null
+        /// Expected: The SBL status "Archived" is returned
+        /// Success: SBL status is as expected
+        /// </summary>
+        [Fact]
+        public void GetSBLStatusForCurrentTask_TC03()
+        {
+            Instance instance = TestData.Instance_1_Status_3;
+            string sblStatus = InstanceHelper.GetSBLStatusForCurrentTask(instance);
+            Assert.Equal("Archived", sblStatus);
+        }
+
+        /// <summary>
+        /// Scenario: Getting sbl status for a given instance when the process is null
+        /// and the process.ended is null and the status.archived is null
+        /// Expected: The SBL status "default" is returned
+        /// Success: SBL status is as expected
+        /// </summary>
+        [Fact]
+        public void GetSBLStatusForCurrentTask_TC04()
+        {
+            Instance instance = TestData.Instance_1_Status_4;
+            string sblStatus = InstanceHelper.GetSBLStatusForCurrentTask(instance);
+            Assert.Equal("default", sblStatus);
+        }
     }
 }

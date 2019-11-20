@@ -179,6 +179,94 @@ namespace Altinn.Platform.Storage.UnitTest
             Process = CreateProcessState(),
         };
 
+        // instance with "Task_1" as current task
+        public static Instance Instance_1_Status_1 = new Instance()
+        {
+            Id = $"{InstanceOwnerPartyId_1}/9da48824-e0a4-4db6-85ed-61143c0c15d1",
+            AppId = AppId_1,
+            CreatedBy = UserId_1,
+            Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
+            Status = new InstanceStatus
+            {
+            },
+            LastChangedBy = UserId_1,
+            LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
+            Org = Org_1,
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "Task_1"
+                }
+            }
+        };
+
+        // instance with  null as current task and process.ended has value and archived as null
+        public static Instance Instance_1_Status_2 = new Instance()
+        {
+            Id = $"{InstanceOwnerPartyId_1}/9da48824-e0a4-4db6-85ed-61143c0c15d1",
+            AppId = AppId_1,
+            CreatedBy = UserId_1,
+            Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
+            Status = new InstanceStatus
+            {
+            },
+            LastChangedBy = UserId_1,
+            LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
+            Org = Org_1,
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = ""
+                },
+                Ended = Convert.ToDateTime("2019-08-20T19:20:22.2135489Z")
+            }
+        };
+
+        // instance with null as current task and process.ended and archived has values set up
+        public static Instance Instance_1_Status_3 = new Instance()
+        {
+            Id = $"{InstanceOwnerPartyId_1}/9da48824-e0a4-4db6-85ed-61143c0c15d1",
+            AppId = AppId_1,
+            CreatedBy = UserId_1,
+            Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
+            Status = new InstanceStatus
+            {
+                Archived = Convert.ToDateTime("2019-08-20T19:20:22.2135489Z")
+            },
+            LastChangedBy = UserId_1,
+            LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
+            Org = Org_1,
+            Process = new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = ""
+                },
+                Ended = Convert.ToDateTime("2019-08-20T19:20:22.2135489Z")
+            }
+        };
+
+        // instance with process as null
+        public static Instance Instance_1_Status_4 = new Instance()
+        {
+            Id = $"{InstanceOwnerPartyId_1}/9da48824-e0a4-4db6-85ed-61143c0c15d1",
+            AppId = AppId_1,
+            CreatedBy = UserId_1,
+            Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
+            Status = new InstanceStatus
+            {
+            },
+            LastChangedBy = UserId_1,
+            LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
+            Org = Org_1,
+        };
+
         public static List<Instance> InstanceList_App1 = new List<Instance>() { Instance_1_1, Instance_1_2 };
         public static List<Instance> InstanceList_App2 = new List<Instance>() { Instance_2_1, Instance_2_2 };
         public static List<Instance> InstanceList_App3 = new List<Instance>() { Instance_3_1, Instance_3_2 };
