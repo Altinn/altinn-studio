@@ -282,7 +282,7 @@ namespace Altinn.App.Api.Controllers
             }
             else
             {               
-                return Conflict("Cannot complete/close current task {currentTaskId}. Task is not valid!");
+                return Conflict("Cannot complete/close current task {currentTaskId}. The data element(s) assigned to the task is not valid!");
             }
         }
 

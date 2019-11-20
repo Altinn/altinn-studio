@@ -5,10 +5,16 @@ using System.Text;
 namespace AltinnCore.Common.Configuration
 {
     /// <summary>
-    /// Configuratin for platform settings
+    /// Configuration for platform settings
     /// </summary>
     public class PlatformSettings
     {
+        /// <summary>
+        /// Uniform resource identifier for Platform.Storage Applications
+        /// The config value was needed for test purposes
+        /// </summary>
+        public string ApiStorageApplicationUri { get; set; }
+
         /// <summary>
         /// Gets or sets the url for the API storage endpoint
         /// </summary>
@@ -168,6 +174,11 @@ namespace AltinnCore.Common.Configuration
                 return Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthorizationEndpointHost") ?? ApiAuthorizationEndpointHost;
             }
         }
+
+        /// <summary>
+        /// Uniform resource locator for Platform.Authorization policies
+        /// </summary>
+        public string ApiAuthorizationPolicyUri { get; set; }
 
         /// <summary>
         /// Gets or sets the the url for the API PDF

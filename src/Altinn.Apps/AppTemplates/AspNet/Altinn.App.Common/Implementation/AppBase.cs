@@ -23,17 +23,17 @@ namespace Altinn.App.Common.Implementation
             this.logger = logger;
         }
 
-        public object CreateNewAppModel(string dataType)
+        public object CreateNewAppModel(string classRef)
         {
-            throw new NotImplementedException();
+            Type appType = Type.GetType(classRef);
+            return Activator.CreateInstance(appType);
+        }
+        public Type GetAppModelType(string classRef)
+        {
+            return Type.GetType(classRef);
         }
 
-        public async Task OnEndProcess(string endEvent, Instance instance)
-        {
-            logger.LogInformation($"OnEndProcess for {instance.Id}");
-        }
-
-        public async Task OnEndProcessTask(string taskId, Instance instance)
+        public async Task OnEndProcessTask(string taskId, Instance instance)        
         {
             logger.LogInformation($"OnEndProcessTask for {instance.Id}. Locking data elements connected to {taskId}");
 
@@ -49,9 +49,9 @@ namespace Altinn.App.Common.Implementation
             }           
         }
 
-        public Type GetAppModelType(string dataType)
+        public async Task OnEndProcess(string taskId, Instance instance)
         {
-            throw new NotImplementedException();
+            logger.LogInformation($"OnEndProcess for {instance.Id}");
         }
 
         public async Task OnInstantiate(Instance instance)
