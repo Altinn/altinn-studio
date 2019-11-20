@@ -1,6 +1,5 @@
 import classNames = require('classnames');
 import * as React from 'react';
-import '../../styles/CheckboxComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import { makeStyles } from '@material-ui/core/styles';
