@@ -23,6 +23,10 @@ const styles = createStyles({
     MozBoxShadow: 'none',
   },
   mainContent: {
+    width: '100%',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    padding: 24,
     '@media (min-width:576px)': {
       maxWidth: 540,
     },
@@ -32,10 +36,11 @@ const styles = createStyles({
     '@media (min-width:992px)': {
       maxWidth: 960,
     },
-    width: '100%',
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    padding: 24,
+    '@media (min-width:1200px)': {
+      maxWidth: 1056,
+      paddingRight: 0,
+      paddingLeft: 0,
+    },
   },
   appHeaderText: {
     fontSize: 14,
@@ -70,12 +75,12 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
           xs={6}
         >
           <Grid item={true}>
-            {(party.partyId === userParty.partyId) &&
+            {(party && userParty && party.partyId === userParty.partyId) &&
               <Typography className={classes.appHeaderText}>
                 {renderPartyName(userParty)}
               </Typography>
             }
-            {(party.partyId !== userParty.partyId) &&
+            {(party && userParty && party.partyId !== userParty.partyId) &&
               <Grid container={true} direction={'column'} alignItems={'flex-end'}>
                 <Grid item={true}>
                   <Typography className={classes.appHeaderText}>
@@ -91,7 +96,7 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
             }
           </Grid>
           <Grid item={true}>
-            {party.ssn &&
+            {party && party.ssn &&
               <AltinnIcon
                 iconClass={'fa fa-private-circle-big'}
                 iconColor={logoColor}
@@ -99,7 +104,7 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
                 margin={'0px 0px 0px 5px'}
               />
             }
-            {party.orgNumber &&
+            {party && party.orgNumber &&
               <AltinnIcon
                 iconClass={'fa fa-corp-circle-big'}
                 iconColor={logoColor}
