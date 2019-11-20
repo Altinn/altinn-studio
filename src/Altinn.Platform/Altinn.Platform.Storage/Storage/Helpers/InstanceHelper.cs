@@ -16,11 +16,6 @@ namespace Altinn.Platform.Storage.Helpers
         public const string Task1 = "Task_1";
 
         /// <summary>
-        /// Task when the instance is about to be submitted
-        /// </summary>
-        public const string Task2 = "Task_2";
-
-        /// <summary>
         /// Converts to a simpler instance object that includes some application metadata
         /// </summary>
         /// <param name="instances">List of instances to convert.</param>
@@ -95,11 +90,7 @@ namespace Altinn.Platform.Storage.Helpers
                 {
                     return "FormFilling";
                 }
-                else if (currentTask != null && currentTask.Equals(Task2))
-                {
-                    return "Submit";
-                }
-                else if (instance.Process.Ended != null && instance.Status?.Archived != null)
+                else if (string.IsNullOrEmpty(currentTask) && instance.Process.Ended != null && instance.Status?.Archived != null)
                 {
                     return "Archived";
                 }
