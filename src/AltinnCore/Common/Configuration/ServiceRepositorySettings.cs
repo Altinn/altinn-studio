@@ -104,7 +104,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Constant for the location of app metadata
         /// </summary>
-        public const string METADATA_FOLDER_NAME = "App/Metadata/";
+        public const string MODEL_METADATA_FOLDER_PATH = "App/models/";
 
         private const string PACKAGES_LOCATION = "Packages/";
         private const string TEMP_LOCATION = "Temp/";
@@ -626,7 +626,7 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetMetadataPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + METADATA_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + MODEL_METADATA_FOLDER_PATH;
         }
 
         /// <summary>
@@ -674,7 +674,7 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The metadata folder</returns>
         public string GetMetadataFolder()
         {
-            return METADATA_FOLDER_NAME;
+            return MODEL_METADATA_FOLDER_PATH;
         }
 
         /// <summary>

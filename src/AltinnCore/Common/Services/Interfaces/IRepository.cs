@@ -20,31 +20,31 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="serviceMetadata">The <see cref="ServiceMetadata"/> to generate the model based on.</param>
+        /// <param name="serviceMetadata">The <see cref="ModelMetadata"/> to generate the model based on.</param>
         /// <param name="mainXsd">The main XSD for the current app</param>
         /// <returns>A boolean indicating the result</returns>
-        bool CreateModel(string org, string app, ServiceMetadata serviceMetadata, XDocument mainXsd, string fileName);
+        bool CreateModel(string org, string app, ModelMetadata serviceMetadata, XDocument mainXsd, string fileName);
 
         /// <summary>
         /// Method that creates service metadata for a new app
         /// </summary>
-        /// <param name="serviceMetadata">The <see cref="ServiceMetadata"/>.</param>
+        /// <param name="serviceMetadata">The <see cref="ModelMetadata"/>.</param>
         /// <returns>A boolean indicating if creation of service metadata went ok</returns>
-        bool CreateServiceMetadata(ServiceMetadata serviceMetadata);
+        bool CreateServiceMetadata(ModelMetadata serviceMetadata);
 
         /// <summary>
-        /// Returns the <see cref="ServiceMetadata"/> for an app.
+        /// Returns the <see cref="ModelMetadata"/> for an app.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The service metadata for an app.</returns>
-        ServiceMetadata GetServiceMetaData(string org, string app);
+        ModelMetadata GetServiceMetaData(string org, string app);
 
         /// <summary>
         /// List the available apps on local disk
         /// </summary>
         /// <returns>A list of apps</returns>
-        List<ServiceMetadata> GetAvailableServices();
+        List<ModelMetadata> GetAvailableServices();
 
         /// <summary>
         /// Get content of configuration file
@@ -168,9 +168,10 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="serviceMetadata">The serviceMetadata</param>
+        /// <param name="modelMetadata">The serviceMetadata.</param>
+        /// <param name="modelName">The name of the data model.</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        bool UpdateServiceMetadata(string org, string app, ServiceMetadata serviceMetadata);
+        bool UpdateModelMetadata(string org, string app, ModelMetadata modelMetadata, string modelName);
 
         /// <summary>
         /// Updates rules for an app.

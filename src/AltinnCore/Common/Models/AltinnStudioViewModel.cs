@@ -70,6 +70,6 @@ namespace AltinnCore.Common.Models
         /// <summary>
         /// Gets or sets service meta data for the application
         /// </summary>
-        public ServiceMetadata ServiceMetadata { get; set; }
+        public ModelMetadata ServiceMetadata { get; set; }
     }
 }

@@ -6,7 +6,7 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
     /// <summary>
     /// Class representation for the metadata for a service
     /// </summary>
-    public class ServiceMetadata
+    public class ModelMetadata
     {
         /// <summary>
         /// Gets or sets the organization the service belongs to

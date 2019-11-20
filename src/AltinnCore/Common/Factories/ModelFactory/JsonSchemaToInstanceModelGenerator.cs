@@ -68,9 +68,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
         ///  Returns the current service metamodel.
         /// </summary>
         /// <returns>The Service Metadata object which represent the instance model of the Schema</returns>
-        public ServiceMetadata GetServiceMetadata()
+        public ModelMetadata GetModelMetadata()
         {
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<ServiceMetadata>(instanceModel.ToString());
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<ModelMetadata>(instanceModel.ToString());
         }
 
         /// <summary>

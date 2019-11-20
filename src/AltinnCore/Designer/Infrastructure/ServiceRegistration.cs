@@ -37,7 +37,7 @@ namespace AltinnCore.Designer.Infrastructure
 
             // services.AddSingleton<IArchive, ArchiveStudioSI>();
             // services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
-            services.AddSingleton<ICompilation, CompilationSI>();
+            // services.AddSingleton<ICompilation, CompilationSI>();
 
             // services.AddSingleton<IForm, FormStudioSI>();
             services.AddTransient<IRepository, RepositorySI>();

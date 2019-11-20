@@ -49,7 +49,7 @@ namespace Altinn.App.Api.Controllers
         /// Method to retrieve the runtime resources
         /// </summary>
         /// <returns>File content with content type set</returns>
-
+        /// TODO: Figure out if this can be deleted
         [Route("{org}/{app}/api/runtimeresources/{id}/")]
         public IActionResult RuntimeResource(string id)
         {

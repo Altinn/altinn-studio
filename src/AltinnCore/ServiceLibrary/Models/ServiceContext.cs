@@ -57,7 +57,7 @@ namespace AltinnCore.ServiceLibrary.Models
         /// <summary>
         /// Gets or sets the service metadata
         /// </summary>
-        public ServiceMetadata.ServiceMetadata ServiceMetaData { get; set; }
+        public ServiceMetadata.ModelMetadata ServiceMetaData { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the root element in the data model

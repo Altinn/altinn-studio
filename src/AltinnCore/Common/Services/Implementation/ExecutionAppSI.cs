@@ -97,7 +97,8 @@ namespace AltinnCore.Common.Services.Implementation
             var context = new ServiceContext
             {
                 ServiceModelType = GetServiceImplementation(org, app, startAppFlag).GetServiceModelType(),
-                ServiceMetaData = _repository.GetServiceMetaData(org, app),
+
+                // ServiceMetaData = _repository.GetServiceMetaData(org, app),
                 CurrentCulture = CultureInfo.CurrentUICulture.Name,
                 WorkFlow = _repository.GetWorkFlow(org, app),
             };
@@ -147,11 +148,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceMetadata GetServiceMetaData(string org, string app)
+        public ModelMetadata GetServiceMetaData(string org, string app)
         {
             string filename = _settings.BaseResourceFolderContainer + _settings.GetMetadataFolder() + _settings.ServiceMetadataFileName;
             string filedata = File.ReadAllText(filename, Encoding.UTF8);
-            return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
+            return JsonConvert.DeserializeObject<ModelMetadata>(filedata);
         }
 
         /// <inheritdoc/>
