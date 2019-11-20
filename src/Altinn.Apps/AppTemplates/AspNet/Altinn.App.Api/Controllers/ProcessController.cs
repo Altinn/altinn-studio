@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.App.Common.Helpers;
-using Altinn.App.Common.Interface;
 using Altinn.App.Common.Process;
 using Altinn.App.Common.Process.Elements;
+using Altinn.App.Service.Interface;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -274,7 +274,7 @@ namespace Altinn.App.Api.Controllers
                 return nextElementError;
             }
 
-            if (CanCompleteTask(instance))
+            if (await altinnApp.CanEndProcessTask(currentElementId, instance))
             {
                 Instance changedInstance = await UpdateProcessStateToNextElement(org, app, instance, nextElement);
 
@@ -337,9 +337,9 @@ namespace Altinn.App.Api.Controllers
             int counter = 0;
             do
             {
-                if (!CanCompleteTask(instance))
+                if (! await altinnApp.CanEndProcessTask(currentTaskId, instance))
                 {
-                    return Conflict($"Instance is not valid in task {currentTaskId}. Automatic completion of process is stopped");
+                    return Conflict($"Instance is not valid for task {currentTaskId}. Automatic completion of process is stopped");
                 }
 
                 List<string> nextElements = ProcessModel.NextElements(currentTaskId);
@@ -503,22 +503,6 @@ namespace Altinn.App.Api.Controllers
             }
 
             return null;
-        }
-
-        /// <summary>
-        ///  Check if the current task can be completed.
-        /// </summary>        
-        /// <returns>true if validation is OK, false otherwise</returns>
-        private bool CanCompleteTask(Instance instance)
-        {
-            if (instance.Process?.CurrentTask?.Validated != null)
-            {
-                ValidationStatus validationStatus = instance.Process.CurrentTask.Validated;
-
-                return validationStatus.CanCompleteTask;
-            }
-
-            return false;            
         }
 
         private List<InstanceEvent> ChangeProcessStateAndGenerateEvents(Instance instance, string nextElementId)

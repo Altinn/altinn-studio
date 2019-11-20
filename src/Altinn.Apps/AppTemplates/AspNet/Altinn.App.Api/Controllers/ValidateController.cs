@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.App.Common.Helpers;
-using Altinn.App.Common.Interface;
-using Altinn.App.Common.Models;
-using Altinn.App.Common.Validation;
+using Altinn.App.Common.Enums;
+using Altinn.App.Service.Interface;
 using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Enums;
+using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -43,7 +42,8 @@ namespace AltinnCore.Runtime.RestControllers
             IProfile profileService,
             IInstanceEvent eventService,
             IApplication appService,
-            IAltinnApp altinnApp)
+            IAltinnApp altinnApp,
+            IValidation validationService)
         {
             this.instanceService = instanceService;
             this.dataService = dataService;
@@ -60,15 +60,15 @@ namespace AltinnCore.Runtime.RestControllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation</param>
         /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance.</param>
-        /// <param name="instanceId">Unique id to identify the instance</param>
-        [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceId:guid}/validate")]
+        /// <param name="instanceGuid">Unique id to identify the instance</param>
+        [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/validate")]
         public async Task<IActionResult> ValidateInstance(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
-            [FromRoute] Guid instanceId)
+            [FromRoute] Guid instanceGuid)
         {
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceId);
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
                 return NotFound();
@@ -80,6 +80,15 @@ namespace AltinnCore.Runtime.RestControllers
                 throw new ValidationException("Unable to validate instance without a started process.");
             }
 
+            List<ValidationIssue> messages = await ValidateAndUpdateInstance(org, app, instanceOwnerPartyId, instanceGuid, instance, taskId);
+
+            await instanceService.UpdateInstance(instance);
+
+            return Ok(messages);
+        }
+
+        private async Task<List<ValidationIssue>> ValidateAndUpdateInstance(string org, string app, int instanceOwnerPartyId, Guid instanceId, Instance instance, string taskId)
+        {            
             Application application = await appService.GetApplication(org, app);
 
             // Todo. Figure out where to get this from
@@ -131,9 +140,7 @@ namespace AltinnCore.Runtime.RestControllers
                 instance.Process.CurrentTask.Validated = new ValidationStatus { CanCompleteTask = false, Timestamp = DateTime.Now };
             }
 
-            await instanceService.UpdateInstance(instance);
-            
-            return Ok(messages);
+            return messages;
         }
 
         /// <summary>

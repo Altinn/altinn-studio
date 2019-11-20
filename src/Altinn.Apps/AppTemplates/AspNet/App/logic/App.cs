@@ -1,12 +1,11 @@
-using Altinn.App.Common.Interface;
-using Altinn.App.Models;
-using Altinn.App.Services.Enums;
-using Altinn.App.Common.Implementation;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Threading.Tasks;
 using Altinn.App.Services.Interface;
 using Microsoft.Extensions.Logging;
+using Altinn.App.Services.Implementation;
+using Altinn.App.Service.Interface;
+using Altinn.App.Common.Enums;
 
 namespace Altinn.App.AppLogic
 {

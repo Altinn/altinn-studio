@@ -1,4 +1,4 @@
-namespace Altinn.App.Services.Enums
+namespace Altinn.App.Common.Enums
 {
     /// <summary>
     /// Enumeration for all available application events

@@ -1,5 +1,5 @@
-using Altinn.App.Common.Interface;
-using Altinn.App.Services.Enums;
+using Altinn.App.Common.Enums;
+using Altinn.App.Service.Interface;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Altinn.App.Common.Implementation
+namespace Altinn.App.Services.Implementation
 {
     public class AppBase : IAltinnApp
     {
@@ -33,6 +33,29 @@ namespace Altinn.App.Common.Implementation
             return Type.GetType(classRef);
         }
 
+        /// <inheritdoc />
+        public async Task<bool> CanEndProcessTask(string taskId, Instance instance)
+        {
+            // check if the task is validated
+            if (instance.Process?.CurrentTask?.Validated != null)
+            {
+                ValidationStatus validationStatus = instance.Process.CurrentTask.Validated;
+
+                if (validationStatus.CanCompleteTask)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                // validate task
+
+            }            
+
+            return false;
+        }
+
+        /// <inheritdoc />
         public async Task OnEndProcessTask(string taskId, Instance instance)        
         {
             logger.LogInformation($"OnEndProcessTask for {instance.Id}. Locking data elements connected to {taskId}");
@@ -72,6 +95,51 @@ namespace Altinn.App.Common.Implementation
         public async Task OnStartProcessTask(string taskId, Instance instance)
         {
             logger.LogInformation($"OnStartProcess for {instance.Id}"); 
+        }
+
+        object IAltinnApp.CreateNewAppModel(string dataType)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> IAltinnApp.RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState)
+        {
+            throw new NotImplementedException();
+        }
+
+        Type IAltinnApp.GetAppModelType(string dataType)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task IAltinnApp.OnInstantiate(Instance instance)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task IAltinnApp.OnStartProcess(string startEvent, Instance instance)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task IAltinnApp.OnStartProcessTask(string taskId, Instance instance)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> IAltinnApp.CanEndProcessTask(string taskId, Instance instance)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task IAltinnApp.OnEndProcessTask(string taskId, Instance instance)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task IAltinnApp.OnEndProcess(string endEvent, Instance instance)
+        {
+            throw new NotImplementedException();
         }
     }
 }

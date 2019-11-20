@@ -1,23 +1,11 @@
-using Altinn.App.Common.Interface;
+
 using Altinn.App.IntegrationTests;
-using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Interface;
-using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
-using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 

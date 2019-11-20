@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
@@ -8,12 +8,14 @@
     <Description>Package with common functionality for Altinn Apps created in Altinn Studio</Description>
     <PackageProjectUrl>https://github.com/Altinn/altinn-studio</PackageProjectUrl>
     <AssemblyVersion>0.0.9.0</AssemblyVersion>
+    <IsPackable>true</IsPackable>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Altinn.App.Services\Altinn.App.Services.csproj" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.3.8" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>

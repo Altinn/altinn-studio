@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using Altinn.App.Services.Models;
 
-namespace Altinn.App.Common.Helpers
+namespace Altinn.App.Services.Helpers
 {
     /// <summary>
     /// Helper for service Text

@@ -1,7 +1,7 @@
 using Altinn.App.Services.Enums;
 using System.Collections.Generic;
 
-namespace Altinn.App.Services.Models
+namespace Altinn.App.Services.Models.Validation
 {
     /// <summary>
     /// Class containing information about the result of a service validation (single element)
