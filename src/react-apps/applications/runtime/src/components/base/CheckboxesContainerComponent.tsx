@@ -127,14 +127,14 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
           <React.Fragment key={index}>
             <FormControlLabel
               key={index}
-              control={
-                (<StyledCheckbox
+              control={(
+                <StyledCheckbox
                   checked={isOptionSelected(option.value)}
                   onChange={onDataChanged}
                   value={index}
                   name={option.value}
-                />)
-              }
+                />
+              )}
               label={option.value}
             />
             { props.validationMessages &&
