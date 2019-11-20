@@ -1,11 +1,11 @@
+import { FormControlLabel, FormGroup } from '@material-ui/core';
+import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
+import FormControl from '@material-ui/core/FormControl';
+import { makeStyles } from '@material-ui/core/styles';
 import classNames = require('classnames');
 import * as React from 'react';
-import { renderValidationMessagesForComponent } from '../../utils/render';
-import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
-import { makeStyles } from '@material-ui/core/styles';
-import FormControl from '@material-ui/core/FormControl';
-import { FormGroup, FormControlLabel } from '@material-ui/core';
 import altinnTheme from '../../../../shared/src/theme/altinnAppTheme';
+import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface ICheckboxContainerProps {
   id: string;
@@ -50,6 +50,7 @@ const useStyles = makeStyles({
       display: 'block',
       width: 20,
       height: 20,
+      // tslint:disable-next-line: max-line-length
       backgroundImage: "url(\"data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath fill='%23000000' d='M6.564.75l-3.59 3.612-1.538-1.55L0 4.26 2.974 7.25 8 2.193z'/%3E%3C/svg%3E\")",
       content: '""',
     },
@@ -127,12 +128,13 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
             <FormControlLabel
               key={index}
               control={
-                <StyledCheckbox
+                (<StyledCheckbox
                   checked={isOptionSelected(option.value)}
                   onChange={onDataChanged}
                   value={index}
                   name={option.value}
-                />}
+                />)
+              }
               label={option.value}
             />
             { props.validationMessages &&
