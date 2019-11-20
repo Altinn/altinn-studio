@@ -25,7 +25,7 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
           } else {
             return (
               <Grid item={true} key={component.id} xs={12}>
-                <div className='a-form-group'>
+                <div className='form-group a-form-group'>
                   <GenericComponent
                     {...component as ILayoutComponent}
                   />
