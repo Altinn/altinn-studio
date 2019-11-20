@@ -45,7 +45,14 @@ namespace App.IntegrationTests.Mocks.Services
 
         public Task<Instance> UpdateInstance(Instance instance)
         {
-            throw new NotImplementedException();
+            string app = instance.AppId.Split("/")[1];
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+
+            string instancePath = GetInstancePath(app, instance.Org, int.Parse(instance.InstanceOwner.PartyId), instanceGuid);
+            File.WriteAllText(instancePath, instance.ToString());
+
+            return Task.FromResult(instance);
+
         }
 
         private Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)

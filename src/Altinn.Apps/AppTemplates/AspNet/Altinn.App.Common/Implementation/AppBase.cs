@@ -1,27 +1,52 @@
 using Altinn.App.Common.Interface;
 using Altinn.App.Services.Enums;
+using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Altinn.App.Common.Implementation
 {
     public class AppBase : IAltinnApp
     {
+        private readonly Application appMetadata;
+        private readonly IExecution resourceService;
+        private readonly ILogger<AppBase> logger;
+
+        public AppBase(IExecution resourceService, ILogger<AppBase> logger)
+        {
+            this.appMetadata = resourceService.GetApplication("a", "b");
+            this.resourceService = resourceService;
+            this.logger = logger;
+        }
+
         public object CreateNewAppModel(string dataType)
         {
             throw new NotImplementedException();
         }
 
-        public Task OnEndProcess(string endEvent, Instance instance)
+        public async Task OnEndProcess(string endEvent, Instance instance)
         {
-            throw new NotImplementedException();
+            logger.LogInformation($"OnEndProcess for {instance.Id}");
         }
 
-        public Task OnEndProcessTask(string taskId, Instance instance)
+        public async Task OnEndProcessTask(string taskId, Instance instance)
         {
-            throw new NotImplementedException();
+            logger.LogInformation($"OnEndProcessTask for {instance.Id}. Locking data elements connected to {taskId}");
+
+            List<DataType> dataTypesToLock = appMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
+
+            foreach (DataType dataType in dataTypesToLock)
+            {
+                foreach (DataElement dataElement in instance.Data.FindAll(de => de.DataType == dataType.Id))
+                {
+                    dataElement.Locked = true;
+                    logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType}.");
+                }                    
+            }           
         }
 
         public Type GetAppModelType(string dataType)
@@ -29,9 +54,9 @@ namespace Altinn.App.Common.Implementation
             throw new NotImplementedException();
         }
 
-        public Task OnInstantiate(Instance instance)
+        public async Task OnInstantiate(Instance instance)
         {
-            throw new NotImplementedException();
+            logger.LogInformation($"OnInstantiate for {instance.Id}");
         }
 
         public Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null)
@@ -39,14 +64,14 @@ namespace Altinn.App.Common.Implementation
             throw new NotImplementedException();
         }
 
-        public Task OnStartProcess(string startEvent, Instance instance)
+        public async Task OnStartProcess(string startEvent, Instance instance)
         {
-            throw new NotImplementedException();
+            logger.LogInformation($"OnStartProcess for {instance.Id}");
         }
 
-        public Task OnStartProcessTask(string taskId, Instance instance)
+        public async Task OnStartProcessTask(string taskId, Instance instance)
         {
-            throw new NotImplementedException();
+            logger.LogInformation($"OnStartProcess for {instance.Id}"); 
         }
     }
 }

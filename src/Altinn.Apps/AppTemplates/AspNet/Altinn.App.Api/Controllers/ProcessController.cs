@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Common.Helpers;
+using Altinn.App.Common.Interface;
 using Altinn.App.Common.Process;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.Services.Configuration;
@@ -31,6 +32,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IInstance instanceService;
         private readonly IProcess processService;
         private readonly IInstanceEvent eventService;
+        private readonly IAltinnApp altinnApp;
 
         private readonly UserHelper userHelper;
 
@@ -45,13 +47,15 @@ namespace Altinn.App.Api.Controllers
             IProcess processService,
             IInstanceEvent eventService,
             IProfile profileService,
-            IRegister registerService,
-            IOptions<GeneralSettings> generalSettings)
+            IRegister registerService,            
+            IOptions<GeneralSettings> generalSettings,
+            IAltinnApp altinnApp)
         {
             this.logger = logger;
             this.instanceService = instanceService;
             this.processService = processService;
             this.eventService = eventService;
+            this.altinnApp = altinnApp;
 
             userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
@@ -448,7 +452,7 @@ namespace Altinn.App.Api.Controllers
             List<InstanceEvent> events = ChangeProcessStateAndGenerateEvents(instance, nextElementId);
 
             Instance changedInstance = await instanceService.UpdateInstance(instance);
-
+            
             await DispatchEvents(org, app, events);
 
             return changedInstance;
@@ -530,8 +534,9 @@ namespace Altinn.App.Api.Controllers
             DateTime now = DateTime.UtcNow;
             int flow = 1;
 
-            if (IsStartEvent(previousElementId))
+            if (previousElementId == null && instance.Process.StartEvent != null)
             {
+                altinnApp.OnStartProcess(previousElementId, instance);
                 flow = 1;
             }
 
@@ -542,6 +547,7 @@ namespace Altinn.App.Api.Controllers
                     flow = currentState.CurrentTask.Flow.Value;
                 }
 
+                altinnApp.OnEndProcessTask(previousElementId, instance);
                 events.Add(GenerateProcessChangeEvent("process:EndTask", instance, now));
             }
 
@@ -549,8 +555,9 @@ namespace Altinn.App.Api.Controllers
             {
                 currentState.CurrentTask = null;
                 currentState.Ended = now;
-                currentState.EndEvent = nextElementId;                
+                currentState.EndEvent = nextElementId;
 
+                altinnApp.OnEndProcess(nextElementId, instance);
                 events.Add(GenerateProcessChangeEvent("process:EndEvent", instance, now));
             }
             else if (IsTask(nextElementId))
@@ -565,6 +572,7 @@ namespace Altinn.App.Api.Controllers
                     Validated = null,
                 };
 
+                altinnApp.OnStartProcessTask(nextElementId, instance);
                 events.Add(GenerateProcessChangeEvent("process:StartTask", instance, now));
             }
 
