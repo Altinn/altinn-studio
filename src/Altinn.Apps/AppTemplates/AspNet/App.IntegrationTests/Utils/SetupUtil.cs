@@ -1,5 +1,5 @@
-using Altinn.App.Common.Interface;
 using Altinn.App.IntegrationTests;
+using Altinn.App.Service.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
@@ -9,10 +9,8 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Text;
 
 namespace App.IntegrationTestsRef.Utils
 {

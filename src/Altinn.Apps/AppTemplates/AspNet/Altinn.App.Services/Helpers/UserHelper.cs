@@ -8,7 +8,7 @@ using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.App.Common.Helpers
+namespace Altinn.App.Services.Helpers
 {
     /// <summary>
     /// The helper for user functionality

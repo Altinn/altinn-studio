@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Altinn.App.Api.Controllers;
-using Altinn.App.Common.Interface;
+using Altinn.App.Service.Interface;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;

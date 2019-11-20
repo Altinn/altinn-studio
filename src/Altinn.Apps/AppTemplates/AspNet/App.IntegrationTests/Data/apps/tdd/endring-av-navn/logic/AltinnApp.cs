@@ -1,16 +1,13 @@
-using Altinn.App.Common.Implementation;
-using Altinn.App.Common.Interface;
-using Altinn.App.Services.Enums;
+using Altinn.App.Common.Enums;
+using Altinn.App.Service.Interface;
+using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn   
+namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
 {
     public class AltinnApp : AppBase, IAltinnApp
     {
