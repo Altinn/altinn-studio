@@ -10,6 +10,7 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -276,17 +277,36 @@ namespace Altinn.App.Api.Controllers
             {
                 return nextElementError;
             }
-
-            if (await altinnApp.CanEndProcessTask(currentElementId, instance, validationService))
+         
+            if (await CanTaskBeEnded(instance, currentElementId))
             {
                 Instance changedInstance = await UpdateProcessStateToNextElement(org, app, instance, nextElement);
 
                 return Ok(changedInstance.Process);
             }
-            else
-            {               
-                return Conflict("Cannot complete/close current task {currentTaskId}. The data element(s) assigned to the task is not valid!");
+
+            return Conflict($"Cannot complete/close current task {currentElementId}. The data element(s) assigned to the task are not valid!");            
+        }
+
+        private async Task<bool> CanTaskBeEnded(Instance instance, string currentElementId)
+        {
+            bool canEndTask = false;
+
+            List<ValidationIssue> validationIssues = new List<ValidationIssue>();
+
+            // check if 
+            if (instance.Process?.CurrentTask?.Validated == null || !instance.Process.CurrentTask.Validated.CanCompleteTask)
+            {
+                validationIssues = await validationService.ValidateAndUpdateInstance(instance, currentElementId);
+
+                canEndTask = await altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
             }
+            else
+            {
+                canEndTask = await altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
+            }
+
+            return canEndTask;                
         }
 
         /// <summary>
@@ -340,8 +360,8 @@ namespace Altinn.App.Api.Controllers
             int counter = 0;
             do
             {
-                if (! await altinnApp.CanEndProcessTask(currentTaskId, instance, validationService))
-                {
+                if (!await CanTaskBeEnded(instance, currentTaskId))
+                {                 
                     return Conflict($"Instance is not valid for task {currentTaskId}. Automatic completion of process is stopped");
                 }
 

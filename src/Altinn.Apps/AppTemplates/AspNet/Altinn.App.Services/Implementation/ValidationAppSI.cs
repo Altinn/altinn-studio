@@ -57,19 +57,6 @@ namespace Altinn.App.Services.Implementation
             {
                 List<DataElement> elements = instance.Data.Where(d => d.DataType == dataType.Id).ToList();
 
-                if (elements.Count == 0)
-                {
-                    ValidationIssue message = new ValidationIssue
-                    {
-                        InstanceId = instance.Id,                        
-                        Code = ValidationIssueCodes.InstanceCodes.DataElementNotInstantiatedInTask,                        
-                        Severity = ValidationIssueSeverity.Error,
-                        Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.InstanceCodes.DataElementNotInstantiatedInTask, serviceText, null, "nb")
-                    };
-                    messages.Add(message);
-                }
-
                 if (dataType.MaxCount > 0 && dataType.MaxCount < elements.Count)
                 {
                     ValidationIssue message = new ValidationIssue

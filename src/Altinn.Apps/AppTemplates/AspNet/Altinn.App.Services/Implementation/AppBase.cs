@@ -1,6 +1,7 @@
 using Altinn.App.Common.Enums;
 using Altinn.App.Service.Interface;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
@@ -34,54 +35,33 @@ namespace Altinn.App.Services.Implementation
         public abstract object CreateNewAppModel(string dataType);
 
         public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
-
+        
         /// <inheritdoc />
-        public async Task<bool> CanEndProcessTask(string taskId, Instance instance, IValidation validationService)
+        public async Task OnInstantiate(Instance instance)
         {
-            // check if the task is validated
-            if (instance.Process?.CurrentTask?.Validated != null)
-            {
-                ValidationStatus validationStatus = instance.Process.CurrentTask.Validated;
+            logger.LogInformation($"OnInstantiate for {instance.Id}");
 
-                if (validationStatus.CanCompleteTask)
-                {
-                    return true;
-                }
+            if (instance.Process == null)
+            {
+                // start process
+
             }
-            else
-            {
-                // validate task
-                List<Models.Validation.ValidationIssue> issues = await validationService.ValidateAndUpdateInstance(instance, taskId);
-
-                if (issues.Count == 0)
-                {
-                    return true;
-                }
-            }            
-
-            return false;
         }
 
+        /// <inheritdoc />
+        public async Task OnStartProcess(string startEvent, Instance instance)
+        {
+            logger.LogInformation($"OnStartProcess for {instance.Id}");
+        }
 
-
+        /// <inheritdoc />
         public async Task OnEndProcess(string taskId, Instance instance)
         {
             logger.LogInformation($"OnEndProcess for {instance.Id}");
 
+            // Set archived status
             instance.Status ??= new InstanceStatus();
             instance.Status.Archived = DateTime.UtcNow;
-
-        }
-
-        public async Task OnInstantiate(Instance instance)
-        {
-            logger.LogInformation($"OnInstantiate for {instance.Id}");
-        }
-
-        
-        public async Task OnStartProcess(string startEvent, Instance instance)
-        {
-            logger.LogInformation($"OnStartProcess for {instance.Id}");
         }
 
         /// <inheritdoc />
@@ -106,6 +86,31 @@ namespace Altinn.App.Services.Implementation
                     logger.LogInformation($"created data element: {createdDataElement.Id}");
                 }
             }
+        }
+
+
+        /// <inheritdoc />
+        public async Task<bool> CanEndProcessTask(string taskId, Instance instance, List<ValidationIssue> validationIssues)
+        {
+            // check if the task is validated
+            if (instance.Process?.CurrentTask?.Validated != null)
+            {
+                ValidationStatus validationStatus = instance.Process.CurrentTask.Validated;
+
+                if (validationStatus.CanCompleteTask)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if (validationIssues.Count == 0)
+                {
+                    return true;
+                }                
+            }
+
+            return false;
         }
 
         /// <inheritdoc />

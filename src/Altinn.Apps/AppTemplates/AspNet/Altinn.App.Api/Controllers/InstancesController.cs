@@ -269,6 +269,8 @@ namespace Altinn.App.Api.Controllers
 
                 // get the updated instance
                 instance = await instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
+
+                await altinnApp.OnInstantiate(instance);
             }
             catch (Exception dataException)
             {

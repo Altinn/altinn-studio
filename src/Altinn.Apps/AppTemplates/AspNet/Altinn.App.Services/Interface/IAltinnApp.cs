@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Common.Enums;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
@@ -18,7 +20,7 @@ namespace Altinn.App.Service.Interface
         /// Creates a new Instance of the service model
         /// </summary>
         /// <returns>An instance of the service model</returns>
-        object CreateNewAppModel(string dataType);
+        object CreateNewAppModel(string classRef);
 
         /// <summary>
         /// Event that is triggered 
@@ -31,7 +33,7 @@ namespace Altinn.App.Service.Interface
         /// Get the service Type
         /// </summary>
         /// <returns>The Type of the service model for the current service</returns>
-        Type GetAppModelType(string dataType);
+        Type GetAppModelType(string classRef);
 
 
         Task OnInstantiate(Instance instance);
@@ -39,13 +41,13 @@ namespace Altinn.App.Service.Interface
         Task OnStartProcessTask(string taskId, Instance instance);
 
         /// <summary>
-        ///  Check if the current task can be completed.
+        ///  Called before a process task is ended. App can do extra validation logic and add validation issues to collection which will be returned by the controller.
         /// </summary>        
-        /// <returns>true if validation is OK, false otherwise</returns>
-        Task<bool> CanEndProcessTask(string taskId, Instance instance, IValidation validationService);
+        /// <returns>true task can be ended, false otherwise</returns>
+        Task<bool> CanEndProcessTask(string taskId, Instance instance, List<ValidationIssue> validationIssues);
 
         /// <summary>
-        /// Run application logic for end task.
+        /// Is called after the process task is ended. Method can update instance and data element metadata. 
         /// </summary>
         /// <param name="taskId">task id task to end</param>
         /// <param name="instance">instance data</param>

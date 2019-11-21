@@ -20,10 +20,6 @@ namespace Altinn.App.Services.Models.Validation
             /// </summary>
             public static string TooFewDataElementsOfType => nameof(TooFewDataElementsOfType);
 
-            /// <summary>
-            /// Represents a validation issue where an instance are missing required data element in a given task. 
-            /// </summary>
-            public static string DataElementNotInstantiatedInTask => nameof(DataElementNotInstantiatedInTask);
         }
         
         /// <summary>
