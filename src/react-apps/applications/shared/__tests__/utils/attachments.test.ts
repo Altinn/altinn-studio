@@ -178,7 +178,7 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
 
 });
 
-test('mapInstanceAttachments() returns correct attachment array', () => {
+test('getInstancePdf() returns correct attachement', () => {
     const data = [
       {
         id:  '585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
