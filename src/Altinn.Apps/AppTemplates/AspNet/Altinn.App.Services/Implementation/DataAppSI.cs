@@ -255,7 +255,7 @@ namespace Altinn.App.Services.Implementation
         public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string dataType, HttpRequest request)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?dataType={dataType}";
+            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data?dataType={dataType}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             DataElement dataElement;
 
@@ -281,7 +281,7 @@ namespace Altinn.App.Services.Implementation
 
         public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string fileName, Stream stream)
         {          
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
+            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             DataElement dataElement;
 
@@ -315,7 +315,7 @@ namespace Altinn.App.Services.Implementation
         public async Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
+            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
 
             StreamContent content = CreateContentStream(request);
