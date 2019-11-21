@@ -5,7 +5,7 @@ export function mapAttachmentListToAttachments(data: IData[]): IAttachments {
   const attachments: IAttachments = {};
 
   data.forEach((element: IData) => {
-      if (element.elementType === 'default') {
+      if (element.elementType === 'default' || element.elementType === 'ref-data-as-pdf') {
         return;
       }
 

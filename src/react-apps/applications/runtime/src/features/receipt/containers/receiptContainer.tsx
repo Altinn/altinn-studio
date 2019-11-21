@@ -6,10 +6,10 @@ import { RouteChildrenProps, withRouter } from 'react-router';
 import AltinnContentIconReceipt from '../../../../../shared/src/components/atoms/AltinnContentIconReceipt';
 import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
+import { getInstancePdf, mapInstanceAttachments} from '../../../../../shared/src/utils/attachments';
 import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
-import { IInstance } from './../../../../../shared/src/types/index.d';
-import returnInstanceAttachments from './../../../../../shared/src/utils/returnInstanceAttachments';
+import { IAttachment, IInstance } from './../../../../../shared/src/types/index.d';
 import { returnUrlToMessagebox } from './../../../../../shared/src/utils/urlHelper';
 import InstanceDataActions from './../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from './../../../shared/resources/orgs/orgsActions';
@@ -53,6 +53,7 @@ export const returnInstanceMetaDataObject = (
 const ReceiptContainer = (props: IReceiptContainerProps ) => {
   const [appName, setAppName] = React.useState('');
   const [attachments, setAttachments] = useState([]);
+  const [pdf, setPdf] = React.useState<IAttachment>(null);
   const [lastChangedDateTime, setLastChangedDateTime] = useState('');
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
   const [userLanguage, setUserLanguage] = React.useState('nb');
@@ -102,23 +103,17 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
 
   React.useEffect(() => {
     if (instance && instance.data) {
-      const attachmentsResult = returnInstanceAttachments(instance.data);
+      const attachmentsResult = mapInstanceAttachments(instance.data);
       setAttachments(attachmentsResult);
-
-      const defaultDataElementLastChangedDateTime = instance.data
-        .filter((elem) => elem.elementType === 'default')[0]
-        .lastChangedDateTime;
-
-      setLastChangedDateTime(moment(defaultDataElementLastChangedDateTime).format('DD.MM.YYYY / HH:mm'));
+      const pdfElement = getInstancePdf(instance.data);
+      setPdf(pdfElement);
+      const defaultElement = instance.data.find((elem) => elem.elementType === 'default');
+      const defaultDataElementLastChangedDateTime = defaultElement ? defaultElement.lastChangedDateTime : null;
+      if (defaultDataElementLastChangedDateTime) {
+        setLastChangedDateTime(moment(defaultDataElementLastChangedDateTime).format('DD.MM.YYYY / HH:mm'));
+      }
     }
   }, [instance]);
-
-  // TODO: Implement PDF support when implemented
-  // const pdf = [{
-  //   name: 'InnsendtSkjema.pdf',
-  //   iconClass: 'reg reg-attachment',
-  //   url: 'http://url.til.skjema/fil.pdf',
-  // }];
 
   return (
     <>
@@ -137,6 +132,7 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
           subtitleurl={returnUrlToMessagebox(origin)}
           title={`${appName} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
           titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
+          pdf={pdf ? [pdf] : null}
         />
       }
     </>
