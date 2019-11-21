@@ -7,7 +7,7 @@ import AltinnContentLoader from '../../../../../shared/src/components/molecules/
 import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
 import AltinnReceipt from '../../../../../shared/src/components/organisms/AltinnReceipt';
 import theme from '../../../../../shared/src/theme/altinnStudioTheme';
-import { IApplication, IInstance, IParty, IProfile, IAttachment  } from '../../../../../shared/src/types';
+import { IApplication, IAttachment, IInstance, IParty, IProfile  } from '../../../../../shared/src/types';
 import { getInstancePdf, mapInstanceAttachments } from '../../../../../shared/src/utils/attachments';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
