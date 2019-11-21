@@ -64,6 +64,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
       yield call(FormDataActions.submitFormDataFulfilled);
     } else {
       FormValidationActions.updateValidations(validations);
+      return yield call(FormDataActions.submitFormDataRejected, null);
     }
   } catch (err) {
     console.error(err);
