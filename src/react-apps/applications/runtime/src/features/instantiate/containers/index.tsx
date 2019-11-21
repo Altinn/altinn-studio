@@ -4,6 +4,7 @@ import ContentLoader from 'react-content-loader';
 import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
+import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
 import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import { IParty } from '../../../../../shared/src/types';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
@@ -13,7 +14,6 @@ import { post } from '../../../utils/networking';
 import SubscriptionHookError from '../components/subscriptionHookError';
 import InstantiationActions from '../instantiation/actions';
 import { verifySubscriptionHook } from '../resources/verifySubscriptionHook';
-import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
 
 const styles = () => createStyles({
   modal: {
