@@ -18,6 +18,7 @@ const selectFormdataModelConnection = (state: IRuntimeState): IDataModelState =>
 export interface IResponse {
   ruleShouldRun: boolean;
   dataBindingName: string;
+  componentId: string;
   result: string;
 }
 
@@ -41,11 +42,10 @@ function* checkIfRuleShouldRunSaga({
       repeatingContainerId,
       lastUpdatedDataBinding,
     );
-    if (rules.length > 0) {
-      const component = formLayoutState.layout.find((comp: any) => comp.id === lastUpdatedComponentId);
 
+    if (rules.length > 0) {
       yield all(rules.map((rule) => call(FormDataActions.updateFormData, rule.dataBindingName, rule.result,
-        component.id)));
+        rule.componentId)));
     }
 
   } catch (err) {
