@@ -5,6 +5,11 @@ import { getInstanceId } from './instance';
 
 export const getInstanceMetaDataObject = (instance: IInstance, party: IParty,  language: any, organisations: any) => {
   const obj = {} as any;
+
+  if (!instance || !party || !language || !organisations) {
+    return obj;
+  }
+
   let dateSubmitted;
   if (instance.data) {
     const lastChanged = instance.data.filter((elem) => elem.elementType === 'default')[0].lastChangedDateTime;
