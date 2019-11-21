@@ -178,7 +178,7 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
             party={this.props.party}
             userParty={this.props.userParty}
             logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
-            headerBackgroundColor={AltinnAppTheme.altinnPalette.primary.blue}
+            headerBackgroundColor={backgroundColor}
           />
           <div className='container'>
             <div className={classNames('row', {['d-print-none']: isProcessStepsArchived})}>
