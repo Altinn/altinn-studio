@@ -24,7 +24,7 @@ namespace AltinnCore.Runtime.RestControllers
     {
         private readonly IData dataService;
         private readonly IInstance instanceService;
-        private readonly IExecution executionService;
+        private readonly IAppResources appResourcesServices;
         private readonly UserHelper userHelper;
         private readonly IApplication appService;
         private readonly IAltinnApp altinnApp;
@@ -38,7 +38,7 @@ namespace AltinnCore.Runtime.RestControllers
             IRegister registerService,
             IInstance instanceService,
             IData dataService,
-            IExecution executionService,
+            IAppResources appResourcesService,
             IProfile profileService,
             IInstanceEvent eventService,
             IApplication appService,
@@ -47,7 +47,7 @@ namespace AltinnCore.Runtime.RestControllers
         {
             this.instanceService = instanceService;
             this.dataService = dataService;
-            this.executionService = executionService;
+            this.appResourcesServices = appResourcesService;
             this.appService = appService;
             this.validationService = validationService;
             this.userHelper = new UserHelper(profileService, registerService, generalSettings);
@@ -145,9 +145,9 @@ namespace AltinnCore.Runtime.RestControllers
                 ValidationIssue message = new ValidationIssue
                 {
                     Code = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
-                    Scope = element.DataType,
-                    TargetId = element.Id,
+                    InstanceId = instance.Id,
                     Severity = ValidationIssueSeverity.Warning,
+                    DataElementId = element.Id,
                     Description = ServiceTextHelper.GetServiceText(
                         ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceText, null, "nb")
                 };

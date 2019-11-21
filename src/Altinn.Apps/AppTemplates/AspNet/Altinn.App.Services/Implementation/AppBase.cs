@@ -13,14 +13,14 @@ namespace Altinn.App.Services.Implementation
     public abstract class AppBase : IAltinnApp
     {
         private readonly Application appMetadata;
-        private readonly IExecution resourceService;
+        private readonly IAppResources resourceService;
         private readonly ILogger<AppBase> logger;
 
         public AppBase(
-            IExecution resourceService,
+            IAppResources resourceService,
             ILogger<AppBase> logger)
         {
-            this.appMetadata = resourceService.GetApplication("a", "b");
+            this.appMetadata = resourceService.GetApplication();
             this.resourceService = resourceService;
             this.logger = logger;
         }
@@ -51,11 +51,7 @@ namespace Altinn.App.Services.Implementation
 
                 if (issues.Count == 0)
                 {
-                    instance.Process.CurrentTask.Validated = new ValidationStatus
-                    {
-                        Timestamp = DateTime.UtcNow,
-                        CanCompleteTask = true,
-                    };
+                    return true;
                 }
             }            
 
@@ -97,7 +93,9 @@ namespace Altinn.App.Services.Implementation
 
         public async Task OnStartProcessTask(string taskId, Instance instance)
         {
-            logger.LogInformation($"OnStartProcess for {instance.Id}"); 
+            logger.LogInformation($"OnStartProcess for {instance.Id}");
+
+            
         }
         
     }

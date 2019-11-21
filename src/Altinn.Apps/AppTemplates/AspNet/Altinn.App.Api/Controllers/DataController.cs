@@ -25,9 +25,8 @@ namespace Altinn.App.Api.Controllers
         private readonly ILogger<DataController> logger;
         private readonly IData dataService;
         private readonly IInstance instanceService;
-        private readonly IApplication appService;
         private readonly IAltinnApp altinnApp;
-        private readonly IExecution executionService;
+        private readonly IAppResources appResourcesService;
 
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -37,24 +36,21 @@ namespace Altinn.App.Api.Controllers
         /// <param name="logger">logger</param>
         /// <param name="instanceService">instance service to store instances</param>
         /// <param name="dataService">dataservice</param>
-        /// <param name="appService">application service for accessing application metadata.</param>
         /// <param name="altinnApp">The app logic for current service</param>
-        /// <param name="executionService">The execution service</param>
+        /// <param name="appResourcesService">The apps resource service</param>
         public DataController(
             ILogger<DataController> logger,
             IInstance instanceService,
             IData dataService,
-            IApplication appService,
             IAltinnApp altinnApp,
-            IExecution executionService)
+            IAppResources appResourcesService)
         {
             this.logger = logger;
 
             this.instanceService = instanceService;
             this.dataService = dataService;
-            this.appService = appService;
             this.altinnApp = altinnApp;
-            this.executionService = executionService;
+            this.appResourcesService = appResourcesService;
         }
 
         /// <summary>
@@ -83,7 +79,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("Element type must be provided.");
             }
 
-            Application application = executionService.GetApplication(org, app);
+            Application application = appResourcesService.GetApplication();
             if (application == null)
             {
                 return NotFound($"AppId {org}/{app} was not found");
@@ -291,7 +287,7 @@ namespace Altinn.App.Api.Controllers
             object appModel;
 
         
-            string classRef = executionService.GetClassRefForLogicDataType(org, app, dataType);
+            string classRef = appResourcesService.GetClassRefForLogicDataType(org, app, dataType);
             
             if (Request.ContentType == null)
             {
@@ -422,7 +418,7 @@ namespace Altinn.App.Api.Controllers
             
             try
             {
-                Application application = executionService.GetApplication(org, app);
+                Application application = appResourcesService.GetApplication();
                 appLogic = application.DataTypes.Where(e => e.Id == dataType).Select(e => e.AppLogic != null).First();
             }
             catch (Exception)
@@ -448,7 +444,7 @@ namespace Altinn.App.Api.Controllers
         string dataType)
         {
 
-            string appModelclassRef = executionService.GetClassRefForLogicDataType(org, app, dataType);
+            string appModelclassRef = appResourcesService.GetClassRefForLogicDataType(org, app, dataType);
 
              // Get Form Data from data service. Assumes that the data element is form data.
             object appModel = dataService.GetFormData(

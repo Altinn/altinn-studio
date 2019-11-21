@@ -18,7 +18,7 @@ namespace Altinn.App.Services.Implementation
     /// <summary>
     /// App implementation of the execution service needed for executing an Altinn Core Application (Functional term).
     /// </summary>
-    public class ExecutionAppSI : IExecution
+    public class AppResourcesSI : IAppResources
     {
         private readonly AppSettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -29,17 +29,17 @@ namespace Altinn.App.Services.Implementation
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExecutionAppSI"/> class.
+        /// Initializes a new instance of the <see cref="AppResourcesSI"/> class.
         /// </summary>
         /// <param name="settings">The app repository settings.</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
-        public ExecutionAppSI(
+        public AppResourcesSI(
             IOptions<AppSettings> settings,
             IHttpContextAccessor httpContextAccessor,
             IHostingEnvironment hostingEnvironment,
             ILoggerFactory loggerFactory,
-            ILogger<ExecutionAppSI> logger)
+            ILogger<AppResourcesSI> logger)
         {
             _settings = settings.Value;
             _httpContextAccessor = httpContextAccessor;
@@ -53,7 +53,7 @@ namespace Altinn.App.Services.Implementation
         {
             byte[] fileContent = null;
 
-           Application application = GetApplication(org, app);
+           Application application = GetApplication();
  
             if (resource == _settings.RuleHandlerFileName)
             {
@@ -93,7 +93,7 @@ namespace Altinn.App.Services.Implementation
         }
 
 
-        public Application GetApplication(string org, string app)
+        public Application GetApplication()
         {
             string filedata = string.Empty;
             string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.ApplicationMetadataFileName;
@@ -117,7 +117,7 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc/>
         public ServiceMetadata.ServiceMetadata GetServiceMetaData(string org, string app)
         {
-            Application applicationMetadata = GetApplication(org, app);
+            Application applicationMetadata = GetApplication();
 
             string dataTypeId = string.Empty;
             foreach (DataType data in applicationMetadata.DataTypes)
@@ -173,7 +173,7 @@ namespace Altinn.App.Services.Implementation
 
         public string GetClassRefForLogicDataType(string org, string app, string dataType)
         {
-            Application application = GetApplication(org, app);
+            Application application = GetApplication();
             string classRef = string.Empty;
 
             DataType element = application.DataTypes.Single(d => d.Id.Equals(dataType));

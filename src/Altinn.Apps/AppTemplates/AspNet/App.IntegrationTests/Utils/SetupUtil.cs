@@ -42,7 +42,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddSingleton<IApplication, ApplicationMockSI>();
                     services.AddSingleton<IAltinnApp, AltinnApp>();
                     services.AddTransient<IProfile, ProfileMockSI>();
-                    services.AddSingleton<IValidation, ValidationMockSI>();
+                    services.AddSingleton<IValidation, ValidationAppSI>();
                 });
             })
             .CreateClient();

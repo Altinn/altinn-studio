@@ -20,7 +20,7 @@ namespace App.IntegrationTestsRef.AppBase
 
         public AppBaseTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
-            _factory = factory;
+            _factory = factory;            
         }
 
         [Fact]
@@ -57,15 +57,19 @@ namespace App.IntegrationTestsRef.AppBase
             HttpResponseMessage response2 = await client.SendAsync(httpRequestMessage);
 
 
+            DeleteInstance(instance);
+
             string responseContent = await response2.Content.ReadAsStringAsync();
 
             response2.EnsureSuccessStatusCode();
 
             ProcessState processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
 
-
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("formfilling", processState.CurrentTask.ElementId);
+            Assert.Null(processState.CurrentTask);
+            Assert.NotNull(processState.Ended);
+
+            DeleteInstance(instance);
         }
 
         [Fact]
@@ -120,6 +124,11 @@ namespace App.IntegrationTestsRef.AppBase
             Instance result = JsonConvert.DeserializeObject<Instance>(responseContent);
 
             return result;
+        }
+
+        private void DeleteInstance(Instance instance)
+        {
+            TestDataUtil.DeletInstanceAndData(instance.Org, instance.AppId.Split("/")[1], int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split('/')[1]));
         }
 
     }

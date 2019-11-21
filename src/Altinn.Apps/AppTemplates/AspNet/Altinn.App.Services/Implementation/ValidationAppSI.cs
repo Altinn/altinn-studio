@@ -21,23 +21,23 @@ namespace Altinn.App.Services.Implementation
     public class ValidationAppSI : IValidation
     {
         private readonly ILogger logger;
-        private readonly IApplication appMetadataService;
         private readonly IData dataService;
         private readonly IAltinnApp altinnApp;
+        private readonly IAppResources appResourcesService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidationAppSI"/> class.
         /// </summary>
         public ValidationAppSI(
             ILogger<ApplicationAppSI> logger,
-            IApplication appMetadataService,
             IData dataService,
-            IAltinnApp altinnApp)
+            IAltinnApp altinnApp,
+            IAppResources appResourcesService)
         {
             this.logger = logger;
-            this.appMetadataService = appMetadataService;
             this.dataService = dataService;
             this.altinnApp = altinnApp;
+            this.appResourcesService = appResourcesService;
         }
 
         public async Task<System.Collections.Generic.List<ValidationIssue>> ValidateAndUpdateInstance(Instance instance, string taskId)
@@ -47,7 +47,7 @@ namespace Altinn.App.Services.Implementation
 
             logger.LogInformation($"Validation of {instance.Id}");
 
-            Application application = await appMetadataService.GetApplication(org, app);
+            Application application = appResourcesService.GetApplication();
 
             // Todo. Figure out where to get this from
             Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
@@ -57,12 +57,25 @@ namespace Altinn.App.Services.Implementation
             {
                 List<DataElement> elements = instance.Data.Where(d => d.DataType == dataType.Id).ToList();
 
+                if (elements.Count == 0)
+                {
+                    ValidationIssue message = new ValidationIssue
+                    {
+                        InstanceId = instance.Id,                        
+                        Code = ValidationIssueCodes.InstanceCodes.DataElementNotInstantiatedInTask,                        
+                        Severity = ValidationIssueSeverity.Error,
+                        Description = ServiceTextHelper.GetServiceText(
+                            ValidationIssueCodes.InstanceCodes.DataElementNotInstantiatedInTask, serviceText, null, "nb")
+                    };
+                    messages.Add(message);
+                }
+
                 if (dataType.MaxCount > 0 && dataType.MaxCount < elements.Count)
                 {
                     ValidationIssue message = new ValidationIssue
                     {
-                        Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
-                        Scope = "INSTANCE",
+                        InstanceId = instance.Id,
+                        Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,                        
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
                             ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceText, null, "nb")
@@ -74,14 +87,14 @@ namespace Altinn.App.Services.Implementation
                 {
                     ValidationIssue message = new ValidationIssue
                     {
+                        InstanceId = instance.Id,
                         Code = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
-                        Scope = "INSTANCE",
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
                             ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, null, null, "nb")
                     };
                     messages.Add(message);
-                }
+                }                
 
                 foreach (DataElement dataElement in elements)
                 {
@@ -114,9 +127,9 @@ namespace Altinn.App.Services.Implementation
             {
                 ValidationIssue message = new ValidationIssue
                 {
+                    InstanceId = instance.Id,
                     Code = ValidationIssueCodes.DataElementCodes.MissingContentType,
-                    Scope = dataElement.DataType,
-                    TargetId = dataElement.Id,
+                    DataElementId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ServiceTextHelper.GetServiceText(
                         ValidationIssueCodes.DataElementCodes.MissingContentType, serviceText, null, "nb")
@@ -131,9 +144,9 @@ namespace Altinn.App.Services.Implementation
                 {
                     ValidationIssue message = new ValidationIssue
                     {
+                        InstanceId = instance.Id,
+                        DataElementId = dataElement.Id,
                         Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
-                        Scope = dataElement.DataType,
-                        TargetId = dataElement.Id,
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
                             ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceText, null, "nb")
@@ -146,9 +159,9 @@ namespace Altinn.App.Services.Implementation
             {
                 ValidationIssue message = new ValidationIssue
                 {
+                    InstanceId = instance.Id,
+                    DataElementId = dataElement.Id,
                     Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
-                    Scope = dataElement.DataType,
-                    TargetId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ServiceTextHelper.GetServiceText(
                         ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceText, null, "nb")
@@ -170,14 +183,19 @@ namespace Altinn.App.Services.Implementation
 
                 if (isValid)
                 {
-                    messages.AddRange(MapModelStateToIssueList(validationResults, dataElement.Id, dataElement.DataType, serviceText));
+                    messages.AddRange(MapModelStateToIssueList(instance, validationResults, dataElement.Id, dataElement.DataType, serviceText));
                 }
             }
 
             return messages;
         }
 
-        private List<ValidationIssue> MapModelStateToIssueList(List<System.ComponentModel.DataAnnotations.ValidationResult> validationResult, string elementId, string dataType, Dictionary<string, Dictionary<string, string>> serviceText)
+        private List<ValidationIssue> MapModelStateToIssueList(
+            Instance instance,
+            List<System.ComponentModel.DataAnnotations.ValidationResult> validationResult,
+            string elementId,
+            string dataType,
+            Dictionary<string, Dictionary<string, string>> serviceText)
         {
             List<ValidationIssue> messages = new List<ValidationIssue>();
             foreach (System.ComponentModel.DataAnnotations.ValidationResult validationIssue in validationResult)
@@ -186,9 +204,9 @@ namespace Altinn.App.Services.Implementation
                 {                    
                     ValidationIssue message = new ValidationIssue
                     {
-                        Code = validationIssue.ErrorMessage,
-                        Scope = dataType,
-                        TargetId = elementId,
+                        InstanceId = instance.Id,
+                        DataElementId = elementId,
+                        Code = validationIssue.ErrorMessage,                                                
                         Field = string.Join(",", validationIssue.MemberNames),
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(validationIssue.ErrorMessage, serviceText, null, "nb")

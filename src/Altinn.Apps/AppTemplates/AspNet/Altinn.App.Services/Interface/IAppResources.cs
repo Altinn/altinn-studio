@@ -5,7 +5,7 @@ namespace Altinn.App.Services.Interface
     /// <summary>
     /// Interface for execution functionality
     /// </summary>
-    public interface IExecution
+    public interface IAppResources
     {
         /// <summary>
         /// Get the app resource for the given parameters.
@@ -49,7 +49,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The application  metadata for an application.</returns>
-        Application GetApplication(string org, string app);
+        Application GetApplication();
 
         /// <summary>
         /// Gets the prefill json file

@@ -16,16 +16,16 @@ namespace Altinn.App.Services.Models.Validation
         public ValidationIssueSeverity Severity { get; set; }
 
         /// <summary>
-        /// A reference to the type of element the issue is about. E.g.: Instance, DataElement etc.
-        /// </summary>
-        [JsonProperty(PropertyName = "scope")]
-        public string Scope { get; set; }
-
-        /// <summary>
         /// The unique id of the specific element with the identified issue.
         /// </summary>
-        [JsonProperty(PropertyName = "targetId")]
-        public string TargetId { get; set; }
+        [JsonProperty(PropertyName = "instanceId")]
+        public string InstanceId { get; set; }
+
+        /// <summary>
+        /// The uniqe id of the data element of a given instance with the identified issue.
+        /// </summary>
+        [JsonProperty(PropertyName = "dataElementId")]
+        public string DataElementId { get; set; }
 
         /// <summary>
         /// A reference to a property the issue is a bout.
