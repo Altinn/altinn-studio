@@ -173,7 +173,7 @@ namespace AltinnCore.Designer.Controllers
             // TODO: figure out if name of serviceMetadata is essential here.
             Func<ModelMetadata> fetchServiceMetadata =
                 () =>
-                    _repository.GetServiceMetaData(
+                    _repository.GetModelMetadata(
                         serviceIdentifier.Org,
                         serviceIdentifier.Service);
             return Task<ModelMetadata>.Factory.StartNew(fetchServiceMetadata);

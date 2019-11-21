@@ -47,7 +47,7 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The model main page</returns>
         public ActionResult Index(string org, string app)
         {
-            ModelMetadata metadata = _repository.GetServiceMetaData(org, app);
+            ModelMetadata metadata = _repository.GetModelMetadata(org, app);
             return View(metadata);
         }
 
@@ -135,7 +135,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public ActionResult GetJson(string org, string app, bool texts = true, bool restrictions = true, bool attributes = true)
         {
-            ModelMetadata metadata = _repository.GetServiceMetaData(org, app);
+            ModelMetadata metadata = _repository.GetModelMetadata(org, app);
             return Json(metadata, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented });
         }
 
@@ -177,7 +177,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public ActionResult GetModel(string org, string app)
         {
-            return Content(_repository.GetServiceModel(org, app), "text/plain", Encoding.UTF8);
+            return Content(_repository.GetAppModel(org, app), "text/plain", Encoding.UTF8);
         }
 
         /// <summary>

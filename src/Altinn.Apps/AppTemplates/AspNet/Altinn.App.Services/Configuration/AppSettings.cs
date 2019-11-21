@@ -267,19 +267,6 @@ namespace Altinn.App.Services.Configuration
         public string GetModelPath(string org, string app, string developer)
         {
             return  "Models/";
-        }
-
-        /// <summary>
-        /// Gets the full path to the workflow directory
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="developer">the developer for the current app.</param>
-        /// <returns>The full path to the workflow folder, ending with "/"</returns>
-        public string GetWorkflowPath(string org, string app, string developer)
-        {
-            return GetAppPath(org, app, developer) + "Workflow/";
-        }
-
+        } 
     }
 }

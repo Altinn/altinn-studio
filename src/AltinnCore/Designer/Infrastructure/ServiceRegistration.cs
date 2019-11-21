@@ -27,7 +27,6 @@ namespace AltinnCore.Designer.Infrastructure
             // services.AddSingleton<IExecution, ExecutionStudioSI>();
             // services.AddSingleton<IInstance, InstanceStudioSI>();
             // services.AddSingleton<IData, DataStudioSI>();
-            services.AddSingleton<IWorkflow, WorkflowStudioSI>();
 
             // services.AddSingleton<ITestdata, TestdataStudioSI>();
             services.AddSingleton<IDSF, RegisterDSFStudioSI>();

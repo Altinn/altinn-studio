@@ -289,8 +289,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The service metadata for an app.</returns>
-        public ModelMetadata GetServiceMetaData(string org, string app)
+        /// <returns>The model metadata for an app.</returns>
+        public ModelMetadata GetModelMetadata(string org, string app)
         {
             string modelName = GetModelName(org, app);
             string filedata = string.Empty;
@@ -303,7 +303,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError("Something went wrong when fetching serviceMetadata ", ex);
+                _logger.LogError("Something went wrong when fetching modelMetadata ", ex);
                 return JsonConvert.DeserializeObject<ModelMetadata>("{ }");
             }
         }
@@ -823,11 +823,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates the ServiceModel based on XSD
+        /// Creates the model based on XSD
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="modelMetadata">The serviceMetadata to generate the model based on</param>
+        /// <param name="modelMetadata">The modelMetadata to generate the model based on</param>
         /// <param name="mainXsd">The main XSD for the current app</param>
         /// <returns>A value indicating if everything went ok</returns>
         public bool CreateModel(string org, string app, ModelMetadata modelMetadata, XDocument mainXsd, string fileName)
@@ -839,11 +839,11 @@ namespace AltinnCore.Common.Services.Implementation
 
             string classes = modelGenerator.CreateModelFromMetadata(modelMetadata);
 
-            // Load currently stored serviceMetadata
-            ModelMetadata original = GetServiceMetaData(org, app);
+            // Load currently stored modelMetadata
+            ModelMetadata original = GetModelMetadata(org, app);
             string oldRoot = original.Elements != null && original.Elements.Count > 0 ? original.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
 
-            // Update the serviceMetadata with new elements
+            // Update the modelMetadata with new elements
             original.Elements = modelMetadata.Elements;
             string newRoot = original.Elements != null && original.Elements.Count > 0 ? original.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
 
@@ -956,12 +956,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Gets the content of the service model as string.
+        /// Gets the content of the application model as string.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Service model content.</returns>
-        public string GetServiceModel(string org, string app)
+        /// <returns>Application model content.</returns>
+        public string GetAppModel(string org, string app)
         {
             string modelName = GetModelName(org, app);          
 
@@ -980,7 +980,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// List the available apps on local disk.
         /// </summary>
         /// <returns>A list of apps.</returns>
-        public List<ModelMetadata> GetAvailableServices()
+        public List<ModelMetadata> GetAvailableApps()
         {
             List<ModelMetadata> apps = new List<ModelMetadata>();
             string[] orgPaths = null;
@@ -1683,20 +1683,6 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string filename = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
             File.WriteAllText(filename, fileContent, Encoding.UTF8);
-        }
-
-        /// <summary>
-        /// Returns a list of workflow steps
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>A list of workflow steps</returns>
-        public List<WorkFlowStep> GetWorkFlow(string org, string app)
-        {
-            string filename = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkFlowFileName;
-            string textData = File.ReadAllText(filename, Encoding.UTF8);
-
-            return JsonConvert.DeserializeObject<List<WorkFlowStep>>(textData);
         }
 
         /// <summary>

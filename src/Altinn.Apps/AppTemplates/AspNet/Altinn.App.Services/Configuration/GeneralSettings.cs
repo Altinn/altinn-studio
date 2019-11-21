@@ -54,17 +54,6 @@ namespace Altinn.App.Services.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the workflow template.
-        /// </summary>
-        public string WorkflowTemplate
-        {
-            get
-            {
-                return TemplateLocation + "/workflow.bpmn";
-            }
-        }
-
-        /// <summary>
         /// Gets the path to the authorization policy template (XACML).
         /// </summary>
         public string AuthorizationPolicyTemplate

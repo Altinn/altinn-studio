@@ -38,13 +38,13 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The service metadata for an app.</returns>
-        ModelMetadata GetServiceMetaData(string org, string app);
+        ModelMetadata GetModelMetadata(string org, string app);
 
         /// <summary>
         /// List the available apps on local disk
         /// </summary>
         /// <returns>A list of apps</returns>
-        List<ModelMetadata> GetAvailableServices();
+        List<ModelMetadata> GetAvailableApps();
 
         /// <summary>
         /// Get content of configuration file
@@ -97,15 +97,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The content of a service model (c# code and comments)</returns>
-        string GetServiceModel(string org, string app);
-
-        /// <summary>
-        /// Returns the workflow of an app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The list of workflow steps</returns>
-        List<WorkFlowStep> GetWorkFlow(string org, string app);
+        string GetAppModel(string org, string app);
 
         /// <summary>
         /// Delete text resource
