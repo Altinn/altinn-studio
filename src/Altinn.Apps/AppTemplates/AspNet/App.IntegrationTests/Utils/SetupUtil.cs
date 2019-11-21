@@ -1,6 +1,7 @@
 using Altinn.App.IntegrationTests;
 using Altinn.App.Service.Interface;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
 using App.IntegrationTests.Mocks.Services;
@@ -41,6 +42,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddSingleton<IApplication, ApplicationMockSI>();
                     services.AddSingleton<IAltinnApp, AltinnApp>();
                     services.AddTransient<IProfile, ProfileMockSI>();
+                    services.AddSingleton<IValidation, ValidationMockSI>();
                 });
             })
             .CreateClient();

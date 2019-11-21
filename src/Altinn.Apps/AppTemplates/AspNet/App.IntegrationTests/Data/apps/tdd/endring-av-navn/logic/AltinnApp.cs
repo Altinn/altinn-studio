@@ -14,21 +14,20 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
 
         public AltinnApp(IExecution executionService, ILogger<AltinnApp> logger) : base(executionService, logger)
         {
-
         }
 
-        public object CreateNewAppModel(string classRef)
+        public override object CreateNewAppModel(string classRef)
         {
             Type appType = Type.GetType(classRef);
             return Activator.CreateInstance(appType);
         }
 
-        public Type GetAppModelType(string classRef)
+        public override Type GetAppModelType(string classRef)
         {
             return Type.GetType(classRef);
         }
 
-        public Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null)
+        public override Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null)
         {
             return Task.FromResult(true);
         }

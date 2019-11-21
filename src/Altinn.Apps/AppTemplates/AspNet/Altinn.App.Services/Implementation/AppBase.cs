@@ -10,31 +10,29 @@ using System.Threading.Tasks;
 
 namespace Altinn.App.Services.Implementation
 {
-    public class AppBase : IAltinnApp
+    public abstract class AppBase : IAltinnApp
     {
         private readonly Application appMetadata;
         private readonly IExecution resourceService;
         private readonly ILogger<AppBase> logger;
 
-        public AppBase(IExecution resourceService, ILogger<AppBase> logger)
+        public AppBase(
+            IExecution resourceService,
+            ILogger<AppBase> logger)
         {
             this.appMetadata = resourceService.GetApplication("a", "b");
             this.resourceService = resourceService;
             this.logger = logger;
         }
 
-        public object CreateNewAppModel(string classRef)
-        {
-            Type appType = Type.GetType(classRef);
-            return Activator.CreateInstance(appType);
-        }
-        public Type GetAppModelType(string classRef)
-        {
-            return Type.GetType(classRef);
-        }
+        abstract public Type GetAppModelType(string dataType);
+
+        abstract public object CreateNewAppModel(string dataType);
+
+        public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
 
         /// <inheritdoc />
-        public async Task<bool> CanEndProcessTask(string taskId, Instance instance)
+        public async Task<bool> CanEndProcessTask(string taskId, Instance instance, IValidation validationService)
         {
             // check if the task is validated
             if (instance.Process?.CurrentTask?.Validated != null)
@@ -49,7 +47,16 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 // validate task
+                List<Models.Validation.ValidationIssue> issues = await validationService.ValidateAndUpdateInstance(instance, taskId);
 
+                if (issues.Count == 0)
+                {
+                    instance.Process.CurrentTask.Validated = new ValidationStatus
+                    {
+                        Timestamp = DateTime.UtcNow,
+                        CanCompleteTask = true,
+                    };
+                }
             }            
 
             return false;
@@ -82,11 +89,7 @@ namespace Altinn.App.Services.Implementation
             logger.LogInformation($"OnInstantiate for {instance.Id}");
         }
 
-        public Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public async Task OnStartProcess(string startEvent, Instance instance)
         {
             logger.LogInformation($"OnStartProcess for {instance.Id}");
@@ -96,50 +99,6 @@ namespace Altinn.App.Services.Implementation
         {
             logger.LogInformation($"OnStartProcess for {instance.Id}"); 
         }
-
-        object IAltinnApp.CreateNewAppModel(string dataType)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<bool> IAltinnApp.RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState)
-        {
-            throw new NotImplementedException();
-        }
-
-        Type IAltinnApp.GetAppModelType(string dataType)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task IAltinnApp.OnInstantiate(Instance instance)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task IAltinnApp.OnStartProcess(string startEvent, Instance instance)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task IAltinnApp.OnStartProcessTask(string taskId, Instance instance)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<bool> IAltinnApp.CanEndProcessTask(string taskId, Instance instance)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task IAltinnApp.OnEndProcessTask(string taskId, Instance instance)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task IAltinnApp.OnEndProcess(string endEvent, Instance instance)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 }

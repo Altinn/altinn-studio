@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Altinn.App.Common.Enums;
+using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
@@ -32,16 +33,16 @@ namespace Altinn.App.Service.Interface
         /// <returns>The Type of the service model for the current service</returns>
         Type GetAppModelType(string dataType);
 
+
         Task OnInstantiate(Instance instance);
         Task OnStartProcess(string startEvent, Instance instance);
         Task OnStartProcessTask(string taskId, Instance instance);
-
 
         /// <summary>
         ///  Check if the current task can be completed.
         /// </summary>        
         /// <returns>true if validation is OK, false otherwise</returns>
-        Task<bool> CanEndProcessTask(string taskId, Instance instance);
+        Task<bool> CanEndProcessTask(string taskId, Instance instance, IValidation validationService);
 
         /// <summary>
         /// Run application logic for end task.
@@ -49,7 +50,6 @@ namespace Altinn.App.Service.Interface
         /// <param name="taskId">task id task to end</param>
         /// <param name="instance">instance data</param>
         Task OnEndProcessTask(string taskId, Instance instance);
-
 
         Task OnEndProcess(string endEvent, Instance instance);        
 

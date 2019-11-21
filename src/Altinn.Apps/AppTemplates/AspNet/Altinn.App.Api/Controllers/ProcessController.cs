@@ -33,6 +33,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IProcess processService;
         private readonly IInstanceEvent eventService;
         private readonly IAltinnApp altinnApp;
+        private readonly IValidation validationService;
 
         private readonly UserHelper userHelper;
 
@@ -49,13 +50,15 @@ namespace Altinn.App.Api.Controllers
             IProfile profileService,
             IRegister registerService,            
             IOptions<GeneralSettings> generalSettings,
-            IAltinnApp altinnApp)
+            IAltinnApp altinnApp,
+            IValidation validationService)
         {
             this.logger = logger;
             this.instanceService = instanceService;
             this.processService = processService;
             this.eventService = eventService;
             this.altinnApp = altinnApp;
+            this.validationService = validationService;
 
             userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
@@ -274,7 +277,7 @@ namespace Altinn.App.Api.Controllers
                 return nextElementError;
             }
 
-            if (await altinnApp.CanEndProcessTask(currentElementId, instance))
+            if (await altinnApp.CanEndProcessTask(currentElementId, instance, validationService))
             {
                 Instance changedInstance = await UpdateProcessStateToNextElement(org, app, instance, nextElement);
 
@@ -337,7 +340,7 @@ namespace Altinn.App.Api.Controllers
             int counter = 0;
             do
             {
-                if (! await altinnApp.CanEndProcessTask(currentTaskId, instance))
+                if (! await altinnApp.CanEndProcessTask(currentTaskId, instance, validationService))
                 {
                     return Conflict($"Instance is not valid for task {currentTaskId}. Automatic completion of process is stopped");
                 }

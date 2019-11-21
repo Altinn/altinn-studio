@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.App.Common.Enums;
 using Altinn.App.Service.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
@@ -29,6 +28,7 @@ namespace AltinnCore.Runtime.RestControllers
         private readonly UserHelper userHelper;
         private readonly IApplication appService;
         private readonly IAltinnApp altinnApp;
+        private readonly IValidation validationService;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ValidateController"/> class
@@ -49,8 +49,8 @@ namespace AltinnCore.Runtime.RestControllers
             this.dataService = dataService;
             this.executionService = executionService;
             this.appService = appService;
+            this.validationService = validationService;
             this.userHelper = new UserHelper(profileService, registerService, generalSettings);
-
         }
 
         /// <summary>
@@ -80,67 +80,11 @@ namespace AltinnCore.Runtime.RestControllers
                 throw new ValidationException("Unable to validate instance without a started process.");
             }
 
-            List<ValidationIssue> messages = await ValidateAndUpdateInstance(org, app, instanceOwnerPartyId, instanceGuid, instance, taskId);
+            List<ValidationIssue> messages = await validationService.ValidateAndUpdateInstance(instance, taskId);
 
             await instanceService.UpdateInstance(instance);
 
             return Ok(messages);
-        }
-
-        private async Task<List<ValidationIssue>> ValidateAndUpdateInstance(string org, string app, int instanceOwnerPartyId, Guid instanceId, Instance instance, string taskId)
-        {            
-            Application application = await appService.GetApplication(org, app);
-
-            // Todo. Figure out where to get this from
-            Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
-
-            List<ValidationIssue> messages = new List<ValidationIssue>();
-            foreach (DataType dataType in application.DataTypes.Where(et => et.TaskId == taskId))
-            {
-                List<DataElement> elements = instance.Data.Where(d => d.DataType == dataType.Id).ToList();
-
-                if (dataType.MaxCount > 0 && dataType.MaxCount < elements.Count)
-                {
-                    ValidationIssue message = new ValidationIssue
-                    {
-                        Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
-                        Scope = "INSTANCE",
-                        Severity = ValidationIssueSeverity.Error,
-                        Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceText, null, "nb-NO")
-                    };
-                    messages.Add(message);
-                }
-
-                if (dataType.MinCount > 0 && dataType.MinCount > elements.Count)
-                {
-                    ValidationIssue message = new ValidationIssue
-                    {
-                        Code = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
-                        Scope = "INSTANCE",
-                        Severity = ValidationIssueSeverity.Error,
-                        Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, null, null, "nb-NO")
-                    };
-                    messages.Add(message);
-                }
-
-                foreach (DataElement dataElement in elements)
-                {
-                    messages.AddRange(await ValidateDataElement(org, app, instanceOwnerPartyId, instanceId, dataType, dataElement, serviceText));
-                }
-            }
-
-            if (messages.Count == 0)
-            {
-                instance.Process.CurrentTask.Validated = new ValidationStatus { CanCompleteTask = true, Timestamp = DateTime.Now };
-            }
-            else
-            {
-                instance.Process.CurrentTask.Validated = new ValidationStatus { CanCompleteTask = false, Timestamp = DateTime.Now };
-            }
-
-            return messages;
         }
 
         /// <summary>
@@ -193,7 +137,7 @@ namespace AltinnCore.Runtime.RestControllers
                 throw new ValidationException("Unknown element type.");
             }
 
-            messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, dataType, element, serviceText));
+            messages.AddRange(await validationService.ValidateDataElement(instance, dataType, element));
 
             string taskId = instance.Process.CurrentTask.ElementId;
             if (!dataType.TaskId.Equals(taskId, StringComparison.OrdinalIgnoreCase))
@@ -205,109 +149,12 @@ namespace AltinnCore.Runtime.RestControllers
                     TargetId = element.Id,
                     Severity = ValidationIssueSeverity.Warning,
                     Description = ServiceTextHelper.GetServiceText(
-                        ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceText, null, "nb-NO")
+                        ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceText, null, "nb")
                 };
                 messages.Add(message);
             }
 
             return Ok(messages);
-        }
-
-        private async Task<List<ValidationIssue>> ValidateDataElement(string org, string app, int instanceOwnerId, Guid instanceId, DataType dataType, DataElement dataElement, Dictionary<string, Dictionary<string, string>> serviceText)
-        {
-            List<ValidationIssue> messages = new List<ValidationIssue>();
-
-            if (dataElement.ContentType == null)
-            {
-                ValidationIssue message = new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.DataElementCodes.MissingContentType,
-                    Scope = dataElement.DataType,
-                    TargetId = dataElement.Id,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = ServiceTextHelper.GetServiceText(
-                        ValidationIssueCodes.DataElementCodes.MissingContentType, serviceText, null, "nb")
-                };
-                messages.Add(message);
-            }
-            else
-            {
-                string contentTypeWithoutEncoding = dataElement.ContentType.Split(";")[0];
-
-                if (dataType.AllowedContentTypes.All(ct => !ct.Equals(contentTypeWithoutEncoding, StringComparison.OrdinalIgnoreCase)))
-                {
-                    ValidationIssue message = new ValidationIssue
-                    {
-                        Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
-                        Scope = dataElement.DataType,
-                        TargetId = dataElement.Id,
-                        Severity = ValidationIssueSeverity.Error,
-                        Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceText, null, "nb-NO")
-                    };
-                    messages.Add(message);
-                }
-            }
-
-            if (dataType.MaxSize.HasValue && dataType.MaxSize > 0 && (long)dataType.MaxSize * 1024 * 1024 < dataElement.Size)
-            {
-                ValidationIssue message = new ValidationIssue
-                {
-                    Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
-                    Scope = dataElement.DataType,
-                    TargetId = dataElement.Id,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description = ServiceTextHelper.GetServiceText(
-                        ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceText, null, "nb-NO")
-                };
-                messages.Add(message);
-            }
-
-            if (dataType.AppLogic != null)
-            {
-                // TODO. Figure out this datamodel type thing
-                Type modelType = altinnApp.GetAppModelType("default");
-                dynamic data = dataService.GetFormData(instanceId, modelType, org, app, instanceOwnerId, Guid.Parse(dataElement.Id));
-
-                TryValidateModel(data);
-
-                await altinnApp.RunAppEvent(AppEventType.Validation, data, ModelState);
-
-                if (!ModelState.IsValid)
-                {
-                    messages.AddRange(MapModelStateToIssueList(ModelState, dataElement.Id, dataElement.DataType, serviceText));
-                }
-            }
-
-            return messages;
-        }
-
-        private List<ValidationIssue> MapModelStateToIssueList(ModelStateDictionary modelState, string elementId, string dataType, Dictionary<string, Dictionary<string, string>> serviceText)
-        {
-            List<ValidationIssue> messages = new List<ValidationIssue>();
-            foreach (string modelKey in modelState.Keys)
-            {
-                ModelState.TryGetValue(modelKey, out ModelStateEntry entry);
-
-                if (entry != null && entry.ValidationState == ModelValidationState.Invalid)
-                {
-                    foreach (ModelError error in entry.Errors)
-                    {
-                        ValidationIssue message = new ValidationIssue
-                        {
-                            Code = error.ErrorMessage,
-                            Scope = dataType,
-                            TargetId = elementId,
-                            Field = modelKey,
-                            Severity = ValidationIssueSeverity.Error,
-                            Description = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceText, null, "nb-NO")
-                        };
-                        messages.Add(message);
-                    }
-                }
-            }
-
-            return messages;
-        }
+        }            
     }
 }

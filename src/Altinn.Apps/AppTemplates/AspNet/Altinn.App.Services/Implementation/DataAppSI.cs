@@ -132,20 +132,20 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public object GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
+        public async Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            Task<HttpResponseMessage> response = _client.GetAsync(apiUrl);
-            if (response.Result.IsSuccessStatusCode)
+            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+            if (response.IsSuccessStatusCode)
             {
                 XmlSerializer serializer = new XmlSerializer(type);
                 try
                 {
-                    using Stream stream = response.Result.Content.ReadAsStreamAsync().Result;
+                    using Stream stream = await response.Content.ReadAsStreamAsync();
                     
                     return serializer.Deserialize(stream);                    
                 }

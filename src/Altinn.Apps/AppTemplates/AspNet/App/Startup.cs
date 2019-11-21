@@ -63,6 +63,7 @@ namespace Altinn.App
             services.AddTransient<IRegister, RegisterAppSI>();
             services.AddTransient<IReiseApi, ReiseApi>();
             services.AddTransient<IPDP, PDPAppSI>();
+            services.AddSingleton<IValidation, ValidationAppSI>();
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
             services.AddTransient<IAltinnApp, AppLogic.App>();

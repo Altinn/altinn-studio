@@ -48,7 +48,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerPartyId">The instance owner id</param>
         /// <param name="dataId">the data id</param>
-        object GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId);
+        Task<object> GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, Guid dataId);
 
         /// <summary>
         /// Gets the data as is.
