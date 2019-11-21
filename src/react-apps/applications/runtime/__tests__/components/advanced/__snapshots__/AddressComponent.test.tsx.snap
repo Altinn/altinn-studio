@@ -64,7 +64,6 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
       </label>
       <input
         className="form-control disabled"
-        disabled={true}
         readOnly={true}
         value=""
       />

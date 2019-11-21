@@ -289,7 +289,6 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
                     'validation-error': (validations.postPlace.errors.length),
                   })}
                 value={postPlace}
-                disabled={true}
                 readOnly={true}
               />
               {validations ?
