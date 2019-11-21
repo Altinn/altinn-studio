@@ -6,7 +6,6 @@ import { Redirect } from 'react-router-dom';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
 import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import { IParty } from '../../../../../shared/src/types';
-import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
@@ -14,6 +13,7 @@ import { post } from '../../../utils/networking';
 import SubscriptionHookError from '../components/subscriptionHookError';
 import InstantiationActions from '../instantiation/actions';
 import { verifySubscriptionHook } from '../resources/verifySubscriptionHook';
+import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
 
 const styles = () => createStyles({
   modal: {
@@ -45,7 +45,6 @@ function InstantiateContainer(props: IServiceInfoProps) {
   const [instantiating, setInstantiating] = React.useState(false);
 
   const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
-  const language = useSelector((state: IRuntimeState) => state.language.language);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
   const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
@@ -170,7 +169,12 @@ function InstantiateContainer(props: IServiceInfoProps) {
   } else {
     return (
       <>
-        <AltinnAppHeader profile={profile} language={language}/>
+        <AltinnAppHeader
+          logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
+          headerBackgroundColor={AltinnAppTheme.altinnPalette.primary.blue}
+          party={selectedParty}
+          userParty={profile ? profile.party : {} as IParty}
+        />
         {(subscriptionHookValid === null || subscriptionHookValid === true) && renderModalAndLoader()}
         {subscriptionHookValid === false && <SubscriptionHookError textResources={textResources}/>}
       </>
