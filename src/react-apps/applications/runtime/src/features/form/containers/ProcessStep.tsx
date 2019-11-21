@@ -3,10 +3,11 @@ import Box from '@material-ui/core/Box';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
+import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
+import { IParty } from '../../../../../shared/src/types';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
-import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
-import { IProfile } from '../../../shared/resources/profile';
 import { IAltinnWindow, IRuntimeState, ProcessSteps } from '../../../types';
 import { IValidations } from '../../../types/global';
 import ReceiptContainer from '../../receipt/containers/receiptContainer';
@@ -18,9 +19,10 @@ export interface IProcessStepProvidedProps {
 }
 
 export interface IProcessStepProps extends IProcessStepProvidedProps {
-  profile: IProfile;
+  party: IParty;
   language: any;
   errorList: string[];
+  userParty: IParty;
 }
 
 export interface IProcessStepState {
@@ -172,11 +174,13 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
 
     return (
       <div id='processContainer' style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
-        <div className='container'>
           <AltinnAppHeader
-            language={this.props.language}
-            profile={this.props.profile}
+            party={this.props.party}
+            userParty={this.props.userParty}
+            logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
+            headerBackgroundColor={AltinnAppTheme.altinnPalette.primary.blue}
           />
+          <div className='container'>
             <div className={classNames('row', {['d-print-none']: isProcessStepsArchived})}>
               <div className='col-xl-10 offset-xl-1 a-p-static'>
                 {this.renderErrorReport()}
@@ -229,9 +233,10 @@ const getErrorList = (validations: IValidations) => {
 
 const mapStateToProps = (state: IRuntimeState, props: IProcessStepProvidedProps): IProcessStepProps => {
   return {
-    profile: state.profile.profile,
+    userParty: state.profile.profile ? state.profile.profile.party : {} as IParty,
     language: state.language ? state.language.language : {},
     errorList: getErrorList(state.formValidations ? state.formValidations.validations : {}),
+    party: state.party ? state.party.selectedParty : {} as IParty,
     ...props,
   };
 };

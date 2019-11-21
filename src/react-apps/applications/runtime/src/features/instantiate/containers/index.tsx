@@ -5,8 +5,8 @@ import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
 import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
+import { IParty } from '../../../../../shared/src/types';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
-import { IParty } from '../../../shared/resources/party';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
@@ -38,7 +38,7 @@ export interface IServiceInfoProps extends WithStyles<typeof styles> {
 
 function InstantiateContainer(props: IServiceInfoProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
-  const { org, app } = window as IAltinnWindow;
+  const { org, app } = window as Window as IAltinnWindow;
 
   const [subscriptionHookValid, setSubscriptionHookValid] = React.useState(null);
   const [partyValidation, setPartyValidation] = React.useState(null);

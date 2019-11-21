@@ -5,11 +5,11 @@ import { useSelector } from 'react-redux';
 import { Redirect, RouteComponentProps, withRouter } from 'react-router';
 import AltinnCheckBox from '../../../../../shared/src/components/AltinnCheckBox';
 import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
+import { IParty } from '../../../../../shared/src/types';
 import Header from '../../../shared/components/altinnAppHeader';
 import AltinnParty from '../../../shared/components/altinnParty';
 import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
-import { IParty } from '../../../shared/resources/party';
 import PartyActions from '../../../shared/resources/party/partyActions';
 import { IProfile } from '../../../shared/resources/profile';
 import { IRuntimeState } from '../../../types';
@@ -191,7 +191,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
             return null;
           }
         }
-      } catch (err){
+      } catch (err) {
         console.info('Could not parse number from params');
       }
     }

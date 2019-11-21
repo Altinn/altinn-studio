@@ -2,7 +2,6 @@ const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
-const path = require('path');
 
 module.exports = {
   mode: 'production',
@@ -35,9 +34,6 @@ module.exports = {
   },*/
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
-    alias: {
-      Shared: path.resolve(__dirname, '..', 'shared', 'src'),
-    },
   },
   performance: {
     hints: false,
