@@ -11,6 +11,11 @@ namespace Altinn.Platform.Storage.Helpers
     public static class InstanceHelper
     {
         /// <summary>
+        /// Initial task when an instance is instantiated
+        /// </summary>
+        public const string Task1 = "Task_1";
+
+        /// <summary>
         /// Converts to a simpler instance object that includes some application metadata
         /// </summary>
         /// <param name="instances">List of instances to convert.</param>
@@ -35,7 +40,7 @@ namespace Altinn.Platform.Storage.Helpers
                     Org = instance.Org,
                     AppName = instance.AppId.Split('/')[1],
                     Title = appTitles[instance.AppId].ContainsKey(language) ? appTitles[instance.AppId][language] : appTitles[instance.AppId]["nb"],
-                    ProcessCurrentTask = instance.Process?.CurrentTask?.ElementId,
+                    ProcessCurrentTask = GetSBLStatusForCurrentTask(instance),
                     AuthorizedForWrite = true,
                     AllowDelete = true,
                     AllowNewCopy = false,
@@ -69,6 +74,39 @@ namespace Altinn.Platform.Storage.Helpers
             }
 
             return simpleEvents;
+        }
+
+        /// <summary>
+        /// Gets the equivalent sbl status for a given instance status
+        /// </summary>
+        /// <param name="instance">the instance</param>
+        /// <returns>status</returns>
+        public static string GetSBLStatusForCurrentTask(Instance instance)
+        {
+            if (instance.Process != null)
+            {
+                string currentTask = instance.Process.CurrentTask?.ElementId;
+                if (currentTask != null && currentTask.Equals(Task1))
+                {
+                    return "FormFilling";
+                }
+                else if (string.IsNullOrEmpty(currentTask) && instance.Process.Ended != null && instance.Status?.Archived == null)
+                {
+                    return "Submit";
+                }
+                else if (string.IsNullOrEmpty(currentTask) && instance.Process.Ended != null && instance.Status?.Archived != null)
+                {
+                    return "Archived";
+                }
+                else
+                {
+                    return instance.Process.CurrentTask?.ElementId;
+                }
+            }
+            else
+            {
+                return "default";
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { IParty } from '../../../../../shared/src/types';
 import { store } from '../../../store';
-import { IParty } from './';
 import * as GetPartiesActions from './getParties/getPartiesActions';
 import * as SelectPartyActions from './selectParty/selectPartyActions';
 

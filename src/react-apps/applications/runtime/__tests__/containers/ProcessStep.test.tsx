@@ -9,7 +9,7 @@ import configureStore from 'redux-mock-store';
 import { ProcessStep } from '../../src/features/form/containers/ProcessStep';
 import { ProcessSteps } from '../../src/types';
 
-describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
+describe('>>> containers/ProcessStep.tsx', () => {
   let mockHeader: string;
   let mockStore: any;
 
@@ -188,112 +188,5 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
       </MemoryRouter>,
     );
     expect(wrapper.find('.a-modal-header').first().prop('style')).toHaveProperty('backgroundColor', '#F9CAD3');
-  });
-
-  it('no user in state returns null', () => {
-    const createStore = configureStore();
-    const newState = {
-      language: {
-        language: {
-          form_filler: {
-            error_report_header: 'Mock error report',
-          },
-        },
-      },
-      formValidations: {
-        validations: {
-          'mock-component-id': {
-            simpleBinding: {
-              errors: ['mock-error-message'],
-              warnings: ['mock-warning-message'],
-            },
-          },
-        },
-      },
-      profile: {
-        profile: null,
-      },
-      organisationMetaData: {
-        allOrgs: null,
-      },
-      applicationMetadata: {
-        applicationMetadata: null,
-      },
-      instanceData: {
-        instance: null,
-      },
-    };
-    mockStore = createStore(newState);
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <ProcessStep
-            header={mockHeader}
-            step={ProcessSteps.FormFilling}
-          />
-        </Provider>
-      </MemoryRouter>,
-    );
-    expect(wrapper.find('.d-block').first().text()).toEqual('');
-  });
-
-  it('if organisation a different icon should show', () => {
-    const createStore = configureStore();
-    const newState = {
-      language: {
-        language: {
-          form_filler: {
-            error_report_header: 'Mock error report',
-          },
-        },
-      },
-      formValidations: {
-        validations: {
-          'mock-component-id': {
-            simpleBinding: {
-              errors: ['mock-error-message'],
-              warnings: ['mock-warning-message'],
-            },
-          },
-        },
-      },
-      profile: {
-        error: null,
-        profile: {
-          party: {
-            person: {
-              firstName: 'Pål',
-              middleName: null,
-              lastName: 'Revisor',
-            },
-            organisation: {
-              name: 'Tull og Tøys AS',
-            },
-          },
-        },
-      },
-      organisationMetaData: {
-        allOrgs: null,
-      },
-      applicationMetadata: {
-        applicationMetadata: null,
-      },
-      instanceData: {
-        instance: null,
-      },
-    };
-    mockStore = createStore(newState);
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <ProcessStep
-            header={mockHeader}
-            step={ProcessSteps.FormFilling}
-          />
-        </Provider>
-      </MemoryRouter>,
-    );
-    expect(wrapper.find('.d-block').first().text()).toEqual('PÅL REVISOR');
-    expect(wrapper.find('.fa-corp-circle-big').length).toBe(1);
   });
 });

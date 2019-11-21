@@ -1,6 +1,6 @@
 import { Action } from 'redux';
 import { ILayoutComponent, ILayoutGroup } from '../..';
-import { 
+import {
   UPDATE_FOCUS,
   UPDATE_FOCUS_FULFUILLED,
   UPDATE_FOCUS_REJECTED,
@@ -10,7 +10,7 @@ import {
 
 export interface IUpdateFocus extends Action {
   currentComponentId: string;
-  back?: boolean;
+  step?: number;
 }
 
 export interface IUpdateFocusFulfilled extends Action {
@@ -41,11 +41,11 @@ export function updateHiddenComponents(componentsToHide: string[]): IUpdateHidde
   });
 }
 
-export function updateFocus(currentComponentId: string, back?: boolean): IUpdateFocus {
+export function updateFocus(currentComponentId: string, step?: number): IUpdateFocus {
   return ({
     type: UPDATE_FOCUS,
     currentComponentId,
-    back,
+    step,
   });
 }
 

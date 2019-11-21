@@ -47,14 +47,14 @@ export interface IPerson {
   telephoneNumber: string;
   mobileNumber: string;
   mailingAddress: string;
-  mailingPostalCode: string;
+  mailingPostalCode: number;
   mailingPostalCity: string;
-  addressMunicipalNumber: string;
+  addressMunicipalNumber: number;
   addressMunicipalName: string;
   addressStreetName: string;
-  addressHouseNumber: string;
+  addressHouseNumber: number;
   addressHouseLetter: string;
-  addressPostalCode: string;
+  addressPostalCode: number;
   addressCity: string;
 }
 
@@ -117,19 +117,6 @@ export interface IData {
   lastChangedDateTime: Date;
 }
 
-export interface IParty {
-  partyId: number;
-  partyTypeName: number;
-  orgNumber: string;
-  ssn: string;
-  unitType?: any;
-  name?: any;
-  isDeleted: boolean;
-  onlyHierarchyElementWithNoAccess: boolean;
-  person: IPerson;
-  organisation?: IOrganisation;
-}
-
 export interface IOrganisation {
   orgNumber: string;
   name: string;
@@ -144,4 +131,18 @@ export interface IOrganisation {
   mailingPostalCity: string;
   businessPostalCode: string;
   businessPostalCity: string;
+}
+
+export interface IParty {
+  partyId: string;
+  partyTypeName: number;
+  orgNumber: number;
+  ssn: string;
+  unitType: string;
+  name: string;
+  isDeleted: boolean;
+  onlyHierarchyElementWithNoAccess: boolean;
+  person?: IPerson;
+  organisation?: IOrganisation;
+  childParties: IParty[];
 }

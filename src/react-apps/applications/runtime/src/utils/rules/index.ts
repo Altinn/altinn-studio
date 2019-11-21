@@ -77,7 +77,7 @@ export function checkIfRuleShouldRun(
             }
             if (layoutComponent.dataModelBindings[dataBindingKey] ===
               connectionDef.outParams.outParam0) {
-              updatedComponent = component;
+              updatedComponent = layoutElement.id;
               break;
             }
           }
@@ -96,6 +96,7 @@ export function checkIfRuleShouldRun(
             rules.push({
               ruleShouldRun: true,
               dataBindingName: updatedDataBinding.DataBindingName,
+              componentId: updatedComponent,
               result: result.toString(),
             });
           }

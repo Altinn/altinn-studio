@@ -1,3 +1,4 @@
+// tslint:disable: object-literal-key-quotes
 import { AppBar, createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
 import { IParty } from '../../types';
@@ -18,15 +19,29 @@ export interface IAltinnAppHeaderProps extends WithStyles<typeof styles> {
 
 const styles = createStyles({
   altinnAppHeader: {
-    marginTop: 33,
     boxShadow: 'none',
     WebkitBoxShadow: 'none',
     MozBoxShadow: 'none',
   },
   mainContent: {
-    marginLeft: '10%',
-    marginRight: '10%',
-    width: 'auto',
+    width: '100%',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    padding: 24,
+    '@media (min-width:576px)': {
+      maxWidth: 540,
+    },
+    '@media (min-width:760px)': {
+      maxWidth: 720,
+    },
+    '@media (min-width:992px)': {
+      maxWidth: 960,
+    },
+    '@media (min-width:1200px)': {
+      maxWidth: 1056,
+      paddingRight: 0,
+      paddingLeft: 0,
+    },
   },
   appHeaderText: {
     fontSize: 14,
@@ -36,7 +51,11 @@ const styles = createStyles({
 export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
   const {classes, logoColor, headerBackgroundColor: headerColor, party, userParty} = props;
   return (
-    <AppBar position={'relative'} classes={{root: classes.altinnAppHeader}} style={{backgroundColor: headerColor}}>
+    <AppBar
+      position={'relative'}
+      classes={{root: classes.altinnAppHeader}}
+      style={{backgroundColor: headerColor, color: logoColor}}
+    >
       <Grid
         container={true}
         className={classes.mainContent}
@@ -57,12 +76,12 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
           xs={6}
         >
           <Grid item={true}>
-            {(party.partyId === userParty.partyId) &&
+            {(party && userParty && party.partyId === userParty.partyId) &&
               <Typography className={classes.appHeaderText}>
                 {renderPartyName(userParty)}
               </Typography>
             }
-            {(party.partyId !== userParty.partyId) &&
+            {(party && userParty && party.partyId !== userParty.partyId) &&
               <Grid container={true} direction={'column'} alignItems={'flex-end'}>
                 <Grid item={true}>
                   <Typography className={classes.appHeaderText}>
@@ -78,19 +97,19 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
             }
           </Grid>
           <Grid item={true}>
-            {party.ssn &&
+            {party && party.ssn &&
               <AltinnIcon
                 iconClass={'fa fa-private-circle-big'}
                 iconColor={logoColor}
-                iconSize={46}
+                iconSize={31}
                 margin={'0px 0px 0px 5px'}
               />
             }
-            {party.orgNumber &&
+            {party && party.orgNumber &&
               <AltinnIcon
                 iconClass={'fa fa-corp-circle-big'}
                 iconColor={logoColor}
-                iconSize={46}
+                iconSize={31}
                 margin={'0px 0px 0px 5px'}
               />
             }

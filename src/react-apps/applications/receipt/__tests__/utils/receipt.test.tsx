@@ -28,7 +28,7 @@ describe('>>> utils/receipt.test.tsx', () => {
       organisation: {
         name: 'FIRMA AS',
       },
-      orgNumber: '12345',
+      orgNumber: 12345,
     } as IParty;
     mockLanguage = {
       receipt_platform: {
