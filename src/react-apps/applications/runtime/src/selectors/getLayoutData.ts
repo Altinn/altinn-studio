@@ -17,7 +17,11 @@ const layoutFocusSelector = (state: IRuntimeState, props: any) => {
 
 const layoutHiddenSelector = (state: IRuntimeState, props: any) => {
   return state.formLayout.uiConfig.hiddenFields.findIndex((id) => id === props.id) > -1;
-}
+};
+
+const allLayoutHiddenSelector = (state: IRuntimeState) => {
+  return state.formLayout.uiConfig.hiddenFields;
+};
 
 const getLayout = () => {
   return createSelector(
@@ -49,7 +53,17 @@ const getHidden = () => {
   );
 };
 
+const getFirstAutofocusableElement = () => {
+  return createSelector(
+    [layoutSelector, allLayoutHiddenSelector],
+    (layout, hiddenFields) => {
+      return layout.find((elem) => !hiddenFields.includes(elem.id));
+    },
+  );
+};
+
 export const makeGetLayout = getLayout;
 export const makeGetLayoutElement = getLayoutElement;
 export const makeGetFocus = getFocus;
 export const makeGetHidden = getHidden;
+export const makeGetFirstAutofocusableElement = getFirstAutofocusableElement;
