@@ -5,13 +5,14 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
   className="address-component"
 >
   <label
-    className="address-component-label"
+    className="a-form-label title-label"
+    htmlFor="mock-id"
   >
     Adresse
     <span
-      className="address-component-label-smaller"
+      className="label-optional"
     >
-       (
+      (
       general.optional
       )
     </span>
@@ -31,13 +32,14 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
       className="address-component-zipCode"
     >
       <label
-        className="address-component-label"
+        className="a-form-label title-label"
+        htmlFor="mock-id"
       >
         Postnr
         <span
-          className="address-component-label-smaller"
+          className="label-optional"
         >
-           (
+          (
           general.optional
           )
         </span>
@@ -55,12 +57,13 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
       className="address-component-postplace"
     >
       <label
-        className="address-component-label"
+        className="a-form-label title-label"
+        htmlFor="mock-id"
       >
         Poststed
       </label>
       <input
-        className="form-control"
+        className="form-control disabled"
         disabled={true}
         readOnly={true}
         value=""
