@@ -33,6 +33,5 @@ namespace Altinn.App.AppLogic
         {            
             return true;
         }
-
     }
 }
