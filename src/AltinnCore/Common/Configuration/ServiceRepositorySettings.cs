@@ -104,7 +104,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Constant for the location of app metadata
         /// </summary>
-        public const string METADATA_FOLDER_NAME = "App/Metadata/";
+        public const string MODEL_METADATA_FOLDER_PATH = "App/models/";
 
         private const string PACKAGES_LOCATION = "Packages/";
         private const string TEMP_LOCATION = "Temp/";
@@ -201,14 +201,9 @@ namespace AltinnCore.Common.Configuration
         public string ApplicationMetadataFileName { get; set; } = "applicationmetadata.json";
 
         /// <summary>
-        /// Gets or sets the Workflow file name
+        /// Gets or sets the filename for process file
         /// </summary>
-        public string WorkFlowFileName { get; set; } = "workflow.json";
-
-        /// <summary>
-        /// Gets or sets the filename for workflow file
-        /// </summary>
-        public string WorkflowFileName { get; set; } = "process.bpmn";
+        public string ProcessFileName { get; set; } = "process.bpmn";
 
         /// <summary>
         /// Gets or sets React file name
@@ -626,7 +621,7 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetMetadataPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + METADATA_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + MODEL_METADATA_FOLDER_PATH;
         }
 
         /// <summary>
@@ -674,7 +669,7 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The metadata folder</returns>
         public string GetMetadataFolder()
         {
-            return METADATA_FOLDER_NAME;
+            return MODEL_METADATA_FOLDER_PATH;
         }
 
         /// <summary>
@@ -717,18 +712,6 @@ namespace AltinnCore.Common.Configuration
         public string GetImplementationPath(string org, string app, string developer)
         {
             return GetServicePath(org, app, developer) + "Implementation/";
-        }
-
-        /// <summary>
-        /// Gets the full path to the workflow directory
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="developer">the developer for the current app.</param>
-        /// <returns>The full path to the workflow folder, ending with "/"</returns>
-        public string GetWorkflowPath(string org, string app, string developer)
-        {
-            return GetServicePath(org, app, developer) + "Workflow/";
         }
 
         /// <summary>

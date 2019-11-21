@@ -32,7 +32,7 @@ namespace AltinnCore.UnitTest.Common
             var seresParser = new SeresXsdParser(moqRepository.Object);
             XDocument mainXsd = XDocument.Load("Common/xsd/schema-w-recursion.xsd");
 
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
+            ModelMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
 
             string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
 
@@ -54,7 +54,7 @@ namespace AltinnCore.UnitTest.Common
             var seresParser = new SeresXsdParser(moqRepository.Object);
             XDocument mainXsd = XDocument.Load("Common/xsd/schema.xsd");
 
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
+            ModelMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
 
             string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
 
@@ -76,7 +76,7 @@ namespace AltinnCore.UnitTest.Common
             var seresParser = new SeresXsdParser(moqRepository.Object);
             XDocument mainXsd = XDocument.Load("Common/xsd/boligsparingForUngdom_v1_1.xsd");
 
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
+            ModelMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
 
             string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
 
@@ -103,7 +103,7 @@ namespace AltinnCore.UnitTest.Common
             var seresParser = new SeresXsdParser(moqRepository.Object);
             XDocument mainXsd = XDocument.Load("Common/xsd/ServiceModel.xsd");
 
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
+            ModelMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
 
             string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
 
@@ -139,7 +139,7 @@ namespace AltinnCore.UnitTest.Common
             XDocument mainXsd = XDocument.Load(doc);
 
             var seresParser = new SeresXsdParser(moqRepository.Object);
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
+            ModelMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
 
             string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
 
@@ -163,7 +163,7 @@ namespace AltinnCore.UnitTest.Common
             var seresParser = new SeresXsdParser(moqRepository.Object);
             XDocument mainXsd = XDocument.Load("Common/xsd/motorvognavgift-v4.xsd");
 
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
+            ModelMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
 
             string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
 
@@ -185,7 +185,7 @@ namespace AltinnCore.UnitTest.Common
             var seresParser = new SeresXsdParser(moqRepository.Object);
             XDocument mainXsd = XDocument.Load("Common/xsd/Skattemelding_v6.25.xsd");
 
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
+            ModelMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "app", mainXsd, null);
 
             string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
 

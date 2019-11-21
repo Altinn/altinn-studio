@@ -49,13 +49,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// <returns>
         ///     ServiceMetadata object representing the XSD
         /// </returns>
-        public ServiceMetadata ParseXsdToServiceMetadata(
+        public ModelMetadata ParseXsdToServiceMetadata(
             string org,
             string app,
             XDocument xsd,
             Dictionary<string, XDocument> secondaryXsds)
         {
-            var serviceMetadata = new ServiceMetadata
+            var serviceMetadata = new ModelMetadata
             {
                 Elements = new Dictionary<string, ElementMetadata>(),
                 RepositoryName = app,

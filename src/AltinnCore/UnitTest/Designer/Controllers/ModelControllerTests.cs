@@ -24,13 +24,13 @@ namespace AltinnCore.UnitTest.Designer.Controllers
         public void CanUploadIso8859EncodedXmlFiles()
         {
             // Arrange
-            ServiceMetadata serviceMetadata = null;
+            ModelMetadata serviceMetadata = null;
             XDocument xmlDocument = null;
 
             Mock<IRepository> moqRepository = new Mock<IRepository>();
-            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceMetadata>(), It.IsAny<XDocument>(), It.IsAny<string>()))
+            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ModelMetadata>(), It.IsAny<XDocument>(), It.IsAny<string>()))
                 .Returns(true)
-                .Callback<string, string, ServiceMetadata, XDocument>((o, s, m, d) =>
+                .Callback<string, string, ModelMetadata, XDocument>((o, s, m, d) =>
                 {
                     serviceMetadata = m;
                     xmlDocument = d;
@@ -57,7 +57,7 @@ namespace AltinnCore.UnitTest.Designer.Controllers
             Dictionary<string, Dictionary<string, string>> dictionary = null;
 
             Dictionary<string, Dictionary<string, string>> existingDictionary = new Dictionary<string, Dictionary<string, string>>();
-            ServiceMetadata serviceMetadata = null;
+            ModelMetadata serviceMetadata = null;
 
             Mock<IRepository> moqRepository = new Mock<IRepository>();
             moqRepository.Setup(r => r.SaveServiceTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, Dictionary<string, string>>>()))
@@ -68,9 +68,9 @@ namespace AltinnCore.UnitTest.Designer.Controllers
             moqRepository.Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(existingDictionary);
 
-            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceMetadata>(), It.IsAny<XDocument>(), It.IsAny<string>()))
+            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ModelMetadata>(), It.IsAny<XDocument>(), It.IsAny<string>()))
                 .Returns(true)
-                .Callback<string, string, ServiceMetadata, XDocument>((o, s, m, d) =>
+                .Callback<string, string, ModelMetadata, XDocument>((o, s, m, d) =>
                 {
                     serviceMetadata = m;
                 });

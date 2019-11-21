@@ -64,17 +64,6 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the workflow template.
-        /// </summary>
-        public string WorkflowTemplate
-        {
-            get
-            {
-                return TemplateLocation + "/process.bpmn";
-            }
-        }
-
-        /// <summary>
         /// Gets the path to the authorization policy template (XACML).
         /// </summary>
         public string AuthorizationPolicyTemplate

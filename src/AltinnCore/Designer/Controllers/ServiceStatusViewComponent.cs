@@ -42,7 +42,7 @@ namespace AltinnCore.Designer.Controllers
         public async Task<IViewComponentResult> InvokeAsync(
             string org,
             string app,
-            ServiceMetadata serviceMetadata = null,
+            ModelMetadata serviceMetadata = null,
             CodeCompilationResult codeCompilationResult = null)
         {
             var serviceIdentifier = new ServiceIdentifier { Org = org, Service = app };
@@ -131,7 +131,7 @@ namespace AltinnCore.Designer.Controllers
         private ServiceStatusViewModel CreateModel(
             ServiceIdentifier serviceIdentifier,
             CodeCompilationResult compilationResult,
-            ServiceMetadata serviceMetadata)
+            ModelMetadata serviceMetadata)
         {
             var userMessages =
                 CompilationUserMessages(compilationResult)
@@ -148,7 +148,7 @@ namespace AltinnCore.Designer.Controllers
         }
 
         private IEnumerable<ServiceStatusViewModel.UserMessage> ServiceMetadataMessages(
-            ServiceMetadata serviceMetadata)
+            ModelMetadata serviceMetadata)
         {
             if (serviceMetadata == null)
             {
@@ -168,14 +168,15 @@ namespace AltinnCore.Designer.Controllers
             }
         }
 
-        private Task<ServiceMetadata> GetServiceMetadata(ServiceIdentifier serviceIdentifier)
+        private Task<ModelMetadata> GetServiceMetadata(ServiceIdentifier serviceIdentifier)
         {
-            Func<ServiceMetadata> fetchServiceMetadata =
+            // TODO: figure out if name of serviceMetadata is essential here.
+            Func<ModelMetadata> fetchServiceMetadata =
                 () =>
-                    _repository.GetServiceMetaData(
+                    _repository.GetModelMetadata(
                         serviceIdentifier.Org,
                         serviceIdentifier.Service);
-            return Task<ServiceMetadata>.Factory.StartNew(fetchServiceMetadata);
+            return Task<ModelMetadata>.Factory.StartNew(fetchServiceMetadata);
         }
     }
 }
