@@ -203,22 +203,25 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     return validationMessages;
   }
 
+  public renderLabel = (labelKey: string, hideOptional?: boolean) => {
+    const label = getLanguageFromKey(labelKey, this.props.language);
+    return (
+      <label className='a-form-label title-label' htmlFor={this.props.id}>
+        {label}
+        {this.props.required || hideOptional ? null :
+          <span className='label-optional'>({getLanguageFromKey('general.optional', this.props.language)})</span>
+        }
+      </label>
+    );
+  }
+
   public render(): JSX.Element {
     const { address, zipCode, postPlace, careOf, houseNumber } = this.state;
     const validations = this.joinValidationMessages();
 
     return(
       <div className={'address-component'}>
-        <label className={'address-component-label'}>
-          {
-            getLanguageFromKey('ux_editor.modal_configure_address_component_address', this.props.language)
-          }
-          {this.props.required ? null :
-            <span className='address-component-label-smaller'>
-              &nbsp;({getLanguageFromKey('general.optional', this.props.language)})
-            </span>
-          }
-        </label>
+        {this.renderLabel('ux_editor.modal_configure_address_component_address')}
         <input
           className={classNames('form-control',
             {
@@ -238,16 +241,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
         {
           !this.props.simplified &&
           <>
-          <label className={'address-component-label'}>
-          {
-            getLanguageFromKey('ux_editor.modal_configure_address_component_care_of', this.props.language)
-          }
-          <span className={'address-component-label-smaller'}>
-            &nbsp;({
-              getLanguageFromKey('general.optional', this.props.language)
-            })
-          </span>
-          </label>
+          {this.renderLabel('ux_editor.modal_configure_address_component_care_of')}
           <input
             className={classNames('form-control',
               {
@@ -268,16 +262,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
 
           <div className={'address-component-postplace-zipCode'}>
             <div className={'address-component-zipCode'}>
-              <label className={'address-component-label'}>
-                {
-                  getLanguageFromKey('ux_editor.modal_configure_address_component_zip_code', this.props.language)
-                }
-                {this.props.required ? null :
-                  <span className='address-component-label-smaller'>
-                    &nbsp;({getLanguageFromKey('general.optional', this.props.language)})
-                  </span>
-                }
-              </label>
+              {this.renderLabel('ux_editor.modal_configure_address_component_zip_code')}
               <input
                 className={classNames('address-component-small-inputs', 'form-control',
                   {
@@ -297,16 +282,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             </div>
 
             <div className={'address-component-postplace'}>
-              <label className={'address-component-label'}>
-                {
-                  getLanguageFromKey('ux_editor.modal_configure_address_component_post_place', this.props.language)
-                }
-              </label>
+              {this.renderLabel('ux_editor.modal_configure_address_component_post_place', true)}
               <input
-                className={classNames('form-control',
+                className={classNames('form-control disabled',
                   {
                     'validation-error': (validations.postPlace.errors.length),
-                    'disabled': this.props.readOnly,
                   })}
                 value={postPlace}
                 disabled={true}
@@ -320,16 +300,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           </div>
           {  !this.props.simplified &&
             <>
-            <label className={'address-component-label'}>
-              {
-                getLanguageFromKey('ux_editor.modal_configure_address_component_house_number', this.props.language)
-              }
-              <label className={'address-component-label-smaller'}>
-                <span>&nbsp;</span>({
-                  getLanguageFromKey('general.optional', this.props.language)
-                })
-              </label>
-            </label>
+            {this.renderLabel('ux_editor.modal_configure_address_component_house_number')}
             <p>
               {
                 getLanguageFromKey('ux_editor.modal_configure_address_component_house_number_helper',
