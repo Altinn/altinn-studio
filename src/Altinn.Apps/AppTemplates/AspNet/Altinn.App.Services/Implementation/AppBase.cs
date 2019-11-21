@@ -51,12 +51,6 @@ namespace Altinn.App.Services.Implementation
 
                 if (issues.Count == 0)
                 {
-                    instance.Process.CurrentTask.Validated = new ValidationStatus
-                    {
-                        Timestamp = DateTime.UtcNow,
-                        CanCompleteTask = true,
-                    };
-
                     return true;
                 }
             }            

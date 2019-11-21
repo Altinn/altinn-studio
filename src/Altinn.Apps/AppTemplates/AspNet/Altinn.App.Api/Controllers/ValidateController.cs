@@ -145,9 +145,9 @@ namespace AltinnCore.Runtime.RestControllers
                 ValidationIssue message = new ValidationIssue
                 {
                     Code = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
-                    Scope = element.DataType,
-                    TargetId = element.Id,
+                    InstanceId = instance.Id,
                     Severity = ValidationIssueSeverity.Warning,
+                    DataElementId = element.Id,
                     Description = ServiceTextHelper.GetServiceText(
                         ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceText, null, "nb")
                 };
