@@ -56,6 +56,16 @@ namespace App.IntegrationTests.Mocks.Services
             throw new NotImplementedException();
         }
 
+        public async Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type)
+        {
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+            string app = instance.AppId.Split("/")[1];
+            string org = instance.Org;
+            int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
+
+            return await InsertFormData(dataToSerialize, instanceGuid, type, org, app, instanceOwnerId, dataType);
+        }
+
         public async Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, string dataType)
         {
             Guid dataGuid = Guid.NewGuid();
@@ -63,7 +73,7 @@ namespace App.IntegrationTests.Mocks.Services
 
             Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
 
-            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType };
+            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = "application/xml", };
            
             try
             {

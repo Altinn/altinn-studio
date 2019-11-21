@@ -171,7 +171,7 @@ namespace Altinn.App.Services.Implementation
 
             if (dataType.AppLogic != null)
             {                
-                Type modelType = altinnApp.GetAppModelType(dataElement.DataType);
+                Type modelType = altinnApp.GetAppModelType(dataType.AppLogic.ClassRef);
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
                 string app = instance.AppId.Split("/")[0];
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
@@ -181,7 +181,7 @@ namespace Altinn.App.Services.Implementation
                 List<System.ComponentModel.DataAnnotations.ValidationResult> validationResults = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
                 bool isValid = Validator.TryValidateObject(data, context, validationResults, true);          
 
-                if (isValid)
+                if (!isValid)
                 {
                     messages.AddRange(MapModelStateToIssueList(instance, validationResults, dataElement.Id, dataElement.DataType, serviceText));
                 }

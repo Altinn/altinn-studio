@@ -42,20 +42,15 @@ namespace App.IntegrationTestsRef.AppBase
             string instancePath = $"/tdd/endring-av-navn/instances/{instance.Id}";
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{instancePath}/process/start")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{instancePath}/process/start");
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             string responseC = await response.Content.ReadAsStringAsync();
 
             response.EnsureSuccessStatusCode();
 
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next")
-            {
-            };
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
             HttpResponseMessage response2 = await client.SendAsync(httpRequestMessage);
-
 
             DeleteInstance(instance);
 
@@ -79,18 +74,37 @@ namespace App.IntegrationTestsRef.AppBase
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713/process/completeProcess")
-            {
-            };
 
+
+            Instance instance = await CreateInstance();
+            string instancePath = $"/tdd/endring-av-navn/instances/{instance.Id}";
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{instancePath}/process/start");
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string responseC = await response.Content.ReadAsStringAsync();
+
+            response.EnsureSuccessStatusCode();
+
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/completeProcess");
+            response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
 
             ProcessState processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
 
-
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("formfilling", processState.CurrentTask.ElementId);
+            Assert.Null(processState.CurrentTask);
+            Assert.NotNull(processState.Ended);
+
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}");
+            response = await client.SendAsync(httpRequestMessage);
+
+            Instance archivedInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
+
+            Assert.NotNull(archivedInstance);
+            Assert.NotNull(archivedInstance.Status.Archived);
+
+            DeleteInstance(instance);
         }
 
         private async Task<Instance> CreateInstance()

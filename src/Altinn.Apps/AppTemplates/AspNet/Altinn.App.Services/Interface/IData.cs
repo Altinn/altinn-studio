@@ -26,6 +26,8 @@ namespace Altinn.App.Services.Interface
         /// <param name="dataType">The data type to create, must be a valid data type defined in application metadata</param>
         Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, string dataType);
 
+        Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type);
+
         /// <summary>
         /// updates the form data
         /// </summary>

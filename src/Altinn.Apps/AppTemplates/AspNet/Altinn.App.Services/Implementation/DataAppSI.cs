@@ -61,8 +61,18 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public async Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerPartyId, string dataType)
         {
-            string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceGuid}";
-            string apiUrl = $"instances/{instanceIdentifier}/data?dataType={dataType ?? FORM_ID}";
+            Instance instance = new Instance
+            {
+                Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            };
+
+            return await InsertFormData<T>(instance, dataType, dataToSerialize, type);
+        }
+
+        public async Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type)
+        {
+          
+            string apiUrl = $"instances/{instance.Id}/data?dataType={dataType ?? FORM_ID}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             DataElement dataElement;
@@ -77,13 +87,13 @@ namespace Altinn.App.Services.Implementation
             Task<HttpResponseMessage> response = _client.PostAsync(apiUrl, streamContent);
             if (!response.Result.IsSuccessStatusCode)
             {
-                _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instanceGuid, response.Result.StatusCode);
+                _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instance.Id, response.Result.StatusCode);
                 return null;
             }
 
             string instanceData = await response.Result.Content.ReadAsStringAsync();
             dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
-            
+
             return dataElement;
         }
 

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Altinn.App.Services.Implementation
@@ -15,19 +16,22 @@ namespace Altinn.App.Services.Implementation
         private readonly Application appMetadata;
         private readonly IAppResources resourceService;
         private readonly ILogger<AppBase> logger;
+        private readonly IData dataService;
 
         public AppBase(
             IAppResources resourceService,
-            ILogger<AppBase> logger)
+            ILogger<AppBase> logger,
+            IData dataService)
         {
             this.appMetadata = resourceService.GetApplication();
             this.resourceService = resourceService;
             this.logger = logger;
+            this.dataService = dataService;
         }
 
-        abstract public Type GetAppModelType(string dataType);
+        public abstract Type GetAppModelType(string dataType);
 
-        abstract public object CreateNewAppModel(string dataType);
+        public abstract object CreateNewAppModel(string dataType);
 
         public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
 
@@ -58,26 +62,15 @@ namespace Altinn.App.Services.Implementation
             return false;
         }
 
-        /// <inheritdoc />
-        public async Task OnEndProcessTask(string taskId, Instance instance)        
-        {
-            logger.LogInformation($"OnEndProcessTask for {instance.Id}. Locking data elements connected to {taskId}");
 
-            List<DataType> dataTypesToLock = appMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
-
-            foreach (DataType dataType in dataTypesToLock)
-            {
-                foreach (DataElement dataElement in instance.Data.FindAll(de => de.DataType == dataType.Id))
-                {
-                    dataElement.Locked = true;
-                    logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType}.");
-                }                    
-            }           
-        }
 
         public async Task OnEndProcess(string taskId, Instance instance)
         {
             logger.LogInformation($"OnEndProcess for {instance.Id}");
+
+            instance.Status ??= new InstanceStatus();
+            instance.Status.Archived = DateTime.UtcNow;
+
         }
 
         public async Task OnInstantiate(Instance instance)
@@ -91,12 +84,45 @@ namespace Altinn.App.Services.Implementation
             logger.LogInformation($"OnStartProcess for {instance.Id}");
         }
 
+        /// <inheritdoc />
         public async Task OnStartProcessTask(string taskId, Instance instance)
         {
-            logger.LogInformation($"OnStartProcess for {instance.Id}");
+            logger.LogInformation($"OnStartProcessTask for {instance.Id}");
 
-            
+            foreach (DataType dataType in appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
+            {
+                logger.LogInformation($"autocreate data element: {dataType.Id}");
+
+                DataElement dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
+
+                if (dataElement == null)
+                {
+                    dynamic data = CreateNewAppModel(dataType.AppLogic.ClassRef);
+                    Type type = GetAppModelType(dataType.AppLogic.ClassRef);
+
+                    DataElement createdDataElement = await dataService.InsertFormData(instance, dataType.Id, data, type);
+                    instance.Data.Add(createdDataElement);
+
+                    logger.LogInformation($"created data element: {createdDataElement.Id}");
+                }
+            }
         }
-        
+
+        /// <inheritdoc />
+        public async Task OnEndProcessTask(string taskId, Instance instance)
+        {
+            logger.LogInformation($"OnEndProcessTask for {instance.Id}. Locking data elements connected to {taskId}");
+
+            List<DataType> dataTypesToLock = appMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
+
+            foreach (DataType dataType in dataTypesToLock)
+            {
+                foreach (DataElement dataElement in instance.Data.FindAll(de => de.DataType == dataType.Id))
+                {
+                    dataElement.Locked = true;
+                    logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType}.");
+                }
+            }
+        }
     }
 }
