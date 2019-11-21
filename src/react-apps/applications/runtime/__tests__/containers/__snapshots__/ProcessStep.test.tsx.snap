@@ -173,9 +173,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
         >
           <p
             className="MuiTypography-root AltinnAppHeader-appHeaderText-3 MuiTypography-body1"
-          >
-            OLA PRIVATPERSON
-          </p>
+          />
         </div>
         <div
           className="MuiGrid-root MuiGrid-item"
