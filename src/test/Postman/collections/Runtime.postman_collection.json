@@ -34,7 +34,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"UserName\": \"at21testuser\",\r\n    \"UserPassword\": \"Altinn123\"\r\n}\r\n",
+							"raw": "{\r\n    \"UserName\": \"{{testUserName}}\",\r\n    \"UserPassword\": \"Altinn123\"\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -313,534 +313,6 @@
 								"instances",
 								"{{instanceOwnerId}}",
 								"{{instanceId}}"
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "Process",
-			"item": [
-				{
-					"name": "POST Start Process",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "709bf4db-92f0-4803-b802-cd5605187d00",
-								"exec": [
-									"pm.test(\"Runtime - Process - Start Process - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "96e7672d-c81f-4cfa-a81b-b8866aeef7cd",
-								"exec": [
-									"pm.environment.set(\"processElementId\",\"\");"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/start",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"process",
-								"start"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "POST Start Process again - Negative",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "709bf4db-92f0-4803-b802-cd5605187d00",
-								"exec": [
-									"pm.test(\"Runtime - Process - Start Process again - negative test - Status - 409\", function () {\r",
-									"    pm.response.to.have.status(409);\r",
-									"    pm.expect(pm.response.text()).contains('Process is already started');\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/start",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"process",
-								"start"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GET Current Process",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
-								"exec": [
-									"pm.test(\"Runtime - Process - Get Current Process - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"    var jsonData = pm.response.json();\r",
-									"    var elementId = jsonData.currentTask.elementId;\r",
-									"    pm.environment.set(\"processElementId\", elementId);\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"process"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "PUT Move process to same element  - Negative",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "a4bf7083-3188-447c-aafe-64b383b1693a",
-								"exec": [
-									"pm.test(\"Runtime - Process - Start Process again - negative test - Status - 409\", function () {\r",
-									"    pm.response.to.have.status(409);\r",
-									"    pm.expect(pm.response.text()).contains('Cannot change process');\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next?elementId={{processElementId}}",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"process",
-								"next"
-							],
-							"query": [
-								{
-									"key": "elementId",
-									"value": "{{processElementId}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GET Next Process",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "ebe6fdbe-764b-4809-93f3-7869055f3f52",
-								"exec": [
-									"pm.test(\"Runtime - Process - Get Next Process - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"    var jsonData = pm.response.json();\r",
-									"    var nextProcessElementId = jsonData[0];\r",
-									"    pm.environment.set(\"processElementId\", nextProcessElementId);\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"process",
-								"next"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GET Instances with process filters",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
-								"exec": [
-									"pm.test(\"Platform - Storage - Instances - Get Instances with Process filter - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&process.currentTask=FormFilling",
-							"protocol": "https",
-							"host": [
-								"platform",
-								"{{envUrl}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"instances"
-							],
-							"query": [
-								{
-									"key": "appId",
-									"value": "{{org}}/{{app}}"
-								},
-								{
-									"key": "process.currentTask",
-									"value": "FormFilling"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "PUT Next Process",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "94e0d202-99c7-4371-91e9-412910df847a",
-								"exec": [
-									"pm.test(\"Runtime - Instances - Move instance to next process - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next?elementId={{processElementId}}",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"process",
-								"next"
-							],
-							"query": [
-								{
-									"key": "elementId",
-									"value": "{{processElementId}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "PUT Complete Process",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
-								"exec": [
-									"pm.test(\"Runtime - Instances - Complete process - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeProcess",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"process",
-								"completeProcess"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "PUT Complete Process again - Negative",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
-								"exec": [
-									"pm.test(\"Runtime - Instances - Complete process again - negative test - Status - 409\", function () {\r",
-									"    pm.response.to.have.status(409);\r",
-									"    pm.expect(pm.response.text()).contains(\"cannot be restarted\");\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeProcess",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"process",
-								"completeProcess"
 							]
 						}
 					},
@@ -1322,6 +794,534 @@
 								"{{instanceId}}",
 								"data",
 								"{{dataGuid}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Process",
+			"item": [
+				{
+					"name": "POST Start Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "709bf4db-92f0-4803-b802-cd5605187d00",
+								"exec": [
+									"pm.test(\"Runtime - Process - Start Process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "96e7672d-c81f-4cfa-a81b-b8866aeef7cd",
+								"exec": [
+									"pm.environment.set(\"processElementId\",\"\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/start",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Start Process again - Negative",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "709bf4db-92f0-4803-b802-cd5605187d00",
+								"exec": [
+									"pm.test(\"Runtime - Process - Start Process again - negative test - Status - 409\", function () {\r",
+									"    pm.response.to.have.status(409);\r",
+									"    pm.expect(pm.response.text()).contains('Process is already started');\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/start",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Current Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
+								"exec": [
+									"pm.test(\"Runtime - Process - Get Current Process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var elementId = jsonData.currentTask.elementId;\r",
+									"    pm.environment.set(\"processElementId\", elementId);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Move process to same element  - Negative",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a4bf7083-3188-447c-aafe-64b383b1693a",
+								"exec": [
+									"pm.test(\"Runtime - Process - Start Process again - negative test - Status - 409\", function () {\r",
+									"    pm.response.to.have.status(409);\r",
+									"    pm.expect(pm.response.text()).contains('Cannot change process');\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next?elementId={{processElementId}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"next"
+							],
+							"query": [
+								{
+									"key": "elementId",
+									"value": "{{processElementId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Instances with process filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"exec": [
+									"pm.test(\"Platform - Storage - Instances - Get Instances with Process filter - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&process.currentTask={{processElementId}}",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances"
+							],
+							"query": [
+								{
+									"key": "appId",
+									"value": "{{org}}/{{app}}"
+								},
+								{
+									"key": "process.currentTask",
+									"value": "{{processElementId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Next Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ebe6fdbe-764b-4809-93f3-7869055f3f52",
+								"exec": [
+									"pm.test(\"Runtime - Process - Get Next Process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var nextProcessElementId = jsonData[0];\r",
+									"    pm.environment.set(\"processElementId\", nextProcessElementId);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"next"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Next Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "94e0d202-99c7-4371-91e9-412910df847a",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Move instance to next process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next?elementId={{processElementId}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"next"
+							],
+							"query": [
+								{
+									"key": "elementId",
+									"value": "{{processElementId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Complete Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Complete process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeProcess",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"completeProcess"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Complete Process again - Negative",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Complete process again - negative test - Status - 409\", function () {\r",
+									"    pm.response.to.have.status(409);\r",
+									"    pm.expect(pm.response.text()).contains(\"cannot be restarted\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeProcess",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"completeProcess"
 							]
 						}
 					},

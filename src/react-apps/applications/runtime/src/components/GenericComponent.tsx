@@ -8,10 +8,11 @@ import FormDataActions from '../features/form/data/actions';
 import { IFormData } from '../features/form/data/reducer';
 import FormDynamicsActions from '../features/form/dynamics/actions';
 import { IDataModelBindings, ILayoutComponent, ILayoutEntry, ITextResourceBindings } from '../features/form/layout';
+import FormLayoutActions from '../features/form/layout/actions/index';
 import RuleActions from '../features/form/rules/actions';
 import ValidationActions from '../features/form/validation/actions';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
-import { makeGetHidden, makeGetLayoutElement } from '../selectors/getLayoutData';
+import { makeGetFocus, makeGetHidden, makeGetLayoutElement } from '../selectors/getLayoutData';
 import { IAltinnWindow, IRuntimeState } from '../types';
 import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
@@ -28,6 +29,7 @@ export const GenericComponent = (props: IGenericComponentProps) => {
   const GetFormDataSelector = makeGetFormDataSelector();
   const GetLayoutElementSelector = makeGetLayoutElement();
   const GetHiddenSelector = makeGetHidden();
+  const GetFocusSelector = makeGetFocus();
 
   const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
   const formData: IFormData = useSelector((state: IRuntimeState) => GetFormDataSelector(state, props));
@@ -37,6 +39,7 @@ export const GenericComponent = (props: IGenericComponentProps) => {
   const layoutElement: ILayoutEntry = useSelector((state: IRuntimeState) => GetLayoutElementSelector(state, props));
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, props));
+  const shouldFocus: boolean = useSelector((state: IRuntimeState) => GetFocusSelector(state, props));
 
   const handleDataUpdate = (value: any, key: string = 'simpleBinding') => {
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
@@ -56,6 +59,10 @@ export const GenericComponent = (props: IGenericComponentProps) => {
       (element) => element.DataBindingName === props.dataModelBindings[key],
     );
     RuleActions.checkIfRuleShouldRun(props.id, dataModelElement, value);
+  };
+
+  const handleFocusUpdate = (id: string, step?: number) => {
+    FormLayoutActions.updateFocus(id, step ? step : 0);
   };
 
   const getTextResource = (resourceKey: string): string => {
@@ -100,10 +107,12 @@ export const GenericComponent = (props: IGenericComponentProps) => {
       {...props}
       title={getLanguageFromKey(props.textResourceBindings.title, textResources)}
       handleDataChange={handleDataUpdate}
+      handleFocusUpdate={handleFocusUpdate}
       getTextResource={getTextResource}
       formData={getFormData()}
       isValid={isValid}
       language={language}
+      shouldFocus={shouldFocus}
     />
   );
 

@@ -25,6 +25,8 @@ namespace AltinnCore.UnitTest.Runtime
     /// </summary>
     public class ProcessControllerTest
     {
+        private string processModel = "Runtime/data/DataAndSubmitTasks.bpmn";
+        private string simpleProcessDefinition = "Runtime/data/SingleDataTask.bpmn";
         private readonly string instanceOwnerId = "20000004";
         private readonly string userId = "44";
         private readonly string authenticationLevel = "1";
@@ -68,6 +70,55 @@ namespace AltinnCore.UnitTest.Runtime
             Assert.NotNull(state.Started);
             Assert.NotNull(state.CurrentTask);
             Assert.Equal("FormFilling_1", state.CurrentTask.ElementId);
+        }
+
+        /// <summary>
+        /// Start process and check state
+        /// </summary>
+        [Fact]
+        public void StartSimpleProcess()
+        {
+            processModel = simpleProcessDefinition;
+
+            ProcessController processController = NewProcessController(MockContext(), null);
+
+            ActionResult<ProcessState> result = processController.StartProcess(org, app, int.Parse(instanceOwnerId), instanceGuid, null).Result;
+
+            ProcessState state = (ProcessState)((OkObjectResult)result.Result).Value;
+
+            Assert.NotNull(state);
+            Assert.NotNull(state.Started);
+            Assert.NotNull(state.CurrentTask);
+            Assert.Equal("Task_1", state.CurrentTask.ElementId);
+        }
+
+        /// <summary>
+        /// Start process and check state
+        /// </summary>
+        [Fact]
+        public void CompleteSimpleProcess()
+        {
+            processModel = simpleProcessDefinition;
+
+            ProcessState processState = new ProcessState
+            {
+                Started = DateTime.UtcNow,
+                CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "Task_1",
+                }
+            };
+
+            ProcessController processController = NewProcessController(MockContext(), processState);
+
+            ActionResult<ProcessState> result = processController.CompleteProcess(org, app, int.Parse(instanceOwnerId), instanceGuid).Result;
+
+            ProcessState state = (ProcessState)((OkObjectResult)result.Result).Value;
+
+            Assert.NotNull(state);
+            Assert.NotNull(state.Ended);
+            Assert.Null(state.CurrentTask);
+            Assert.Equal("EndEvent_1", state.EndEvent);
         }
 
         /// <summary>
@@ -225,7 +276,7 @@ namespace AltinnCore.UnitTest.Runtime
             Mock<IProcess> processServiceMock = new Mock<IProcess>();
             processServiceMock
                 .Setup(p => p.GetProcessDefinition(org, app))
-                .Returns(File.OpenRead("Runtime/data/workflow.bpmn"));
+                .Returns(File.OpenRead(processModel));
 
             Mock<IInstanceEvent> eventServiceMock = new Mock<IInstanceEvent>();
             eventServiceMock

@@ -3,7 +3,10 @@ import { createStyles, withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 import classNames from 'classnames';
+import * as DOMPurify from 'dompurify';
+import * as marked from 'marked';
 import * as React from 'react';
+import ReactHtmlParser from 'react-html-parser';
 import { connect } from 'react-redux';
 import AltinnInformationPaper from '../../../../shared/src/components/AltinnInformationPaper';
 import AltinnLink from '../../../../shared/src/components/AltinnLink';
@@ -28,7 +31,7 @@ export interface IServicesOverviewComponentProps extends IServicesOverviewCompon
 export interface IServicesOverviewComponentState {
   selectedOwners: string[];
   searchString: string;
-  majorIssues: string;
+  majorIssues: JSX.Element[];
 }
 
 const styles = createStyles({
@@ -122,17 +125,30 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
 
   public componentDidMount() {
     this._isMounted = true;
-    get(`${'https://cors-anywhere.herokuapp.com/'}https://github.com/Altinn/altinn-studio/blob/master/KNOWNISSUES.md`)
-      .then((res) => {
-        if (this._isMounted) {
-          const doc = new DOMParser().parseFromString(res, 'text/html');
-          if (doc.getElementById('readme').getElementsByTagName('ul').length > 0) {
-            this.setState({
-              majorIssues: doc.getElementById('readme').getElementsByTagName('ul')[0].innerHTML,
-            });
-          }
+    get('https://raw.githubusercontent.com/Altinn/altinn-studio/master/KNOWNISSUES.md')
+    .then((res) => {
+      if (this._isMounted) {
+        marked.setOptions({
+          headerIds: false,
+        });
+
+        const unsafeHTML = marked(res);
+        const safeHTML = DOMPurify.sanitize(unsafeHTML,
+          {
+            ALLOWED_TAGS: ['ul', 'li', 'a'],
+            ALLOWED_ATTR: ['href', 'target'],
+          },
+        );
+
+        const doc = new DOMParser().parseFromString(safeHTML, 'text/html');
+        if (doc.getElementsByTagName('ul').length > 0) {
+          const majorWeaknessesList = ReactHtmlParser(doc.getElementsByTagName('ul')[0].innerHTML);
+          this.setState({
+            majorIssues: majorWeaknessesList,
+          });
         }
-      });
+      }
+    });
   }
 
   public componentWillUnmount() {
@@ -201,7 +217,9 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
               <Typography className={classes.font_16}>
                 {getLanguageFromKey('dashboard.known_issues_subheader', this.props.language)}
               </Typography>
-              <Typography className={classes.paperList} dangerouslySetInnerHTML={{ __html: this.state.majorIssues }} />
+
+              <Typography className={classes.paperList} component={'ul'}>{this.state.majorIssues}</Typography>
+
               <AltinnLink
                 url={knownIssuesUrl}
                 linkTxt={getLanguageFromKey('dashboard.known_issues_link', this.props.language)}

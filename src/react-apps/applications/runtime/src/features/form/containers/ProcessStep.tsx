@@ -69,7 +69,8 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
   public renderNavBar = () => {
     return (
       <div className='a-modal-navbar'>
-        {this.props.step === ProcessSteps.FormFilling &&
+        {/* Hide this button for the time being, ref. issue https://github.com/altinn/altinn-studio/issues/2500 */}
+        {/* {this.props.step === ProcessSteps.FormFilling &&
           <button
             type='button'
             className='a-modal-back a-js-tabable-popover'
@@ -83,7 +84,7 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
               {getLanguageFromKey('general.back', this.props.language)}
             </span>
           </button>
-        }
+        } */}
         <button
           type='button'
           className='a-modal-close a-js-tabable-popover'
