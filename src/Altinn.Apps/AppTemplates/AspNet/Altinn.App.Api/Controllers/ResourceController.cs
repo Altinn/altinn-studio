@@ -1,11 +1,9 @@
-using System;
 using System.Globalization;
 using System.IO;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -14,15 +12,15 @@ namespace Altinn.App.Api.Controllers
     /// </summary>
     public class ResourceController : ControllerBase
     {
-        private readonly IExecution _execution;
+        private readonly IAppResources appResourceService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ResourceController"/> class
         /// </summary>
-        /// <param name="executionService">The execution service</param>
-        public ResourceController(IExecution executionService)
+        /// <param name="appResourcesService">The execution service</param>
+        public ResourceController(IAppResources appResourcesService)
         {
-            _execution = executionService;
+            this.appResourceService = appResourcesService;
         }
 
         /// <summary>
@@ -35,7 +33,7 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/resource/{id}")]
         public IActionResult Index(string org, string app, string id)
         {
-            byte[] fileContent = _execution.GetAppResource(org, app, id);
+            byte[] fileContent = appResourceService.GetAppResource(org, app, id);
 
             if (fileContent != null)
             {
@@ -53,7 +51,7 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/runtimeresources/{id}/")]
         public IActionResult RuntimeResource(string id)
         {
-            byte[] fileContent = _execution.GetRuntimeResource(id);
+            byte[] fileContent = appResourceService.GetRuntimeResource(id);
 
             if (fileContent != null)
             {
@@ -75,14 +73,14 @@ namespace Altinn.App.Api.Controllers
             string defaultLang = "nb";
             string culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
             string id = $"resource.{culture}.json";
-            byte[] fileContent = _execution.GetText(org, app, id);
+            byte[] fileContent = appResourceService.GetText(org, app, id);
             if (fileContent != null)
             {
               return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
             }
 
             id = $"resource.{defaultLang}.json";
-            fileContent = _execution.GetText(org, app, id);
+            fileContent = appResourceService.GetText(org, app, id);
             if (fileContent != null)
             {
               return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
@@ -104,7 +102,7 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/metadata/{id}")]
         public ActionResult ServiceMetaData([FromRoute] string org, [FromRoute] string app, [FromRoute] string id)
         {
-            ServiceMetadata metadata = _execution.GetServiceMetaData(org, app);
+            ServiceMetadata metadata = appResourceService.GetServiceMetaData(org, app);
             return Ok(metadata);
         }
   }

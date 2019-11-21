@@ -63,9 +63,10 @@ namespace App.IntegrationTestsRef.AppBase
 
             ProcessState processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
 
-
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("formfilling", processState.CurrentTask.ElementId);
+            Assert.Null(processState.CurrentTask);
+            Assert.NotNull(processState.Ended);
+
         }
 
         [Fact]

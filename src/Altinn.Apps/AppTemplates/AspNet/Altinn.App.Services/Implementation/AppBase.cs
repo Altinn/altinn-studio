@@ -13,11 +13,11 @@ namespace Altinn.App.Services.Implementation
     public abstract class AppBase : IAltinnApp
     {
         private readonly Application appMetadata;
-        private readonly IExecution resourceService;
+        private readonly IAppResources resourceService;
         private readonly ILogger<AppBase> logger;
 
         public AppBase(
-            IExecution resourceService,
+            IAppResources resourceService,
             ILogger<AppBase> logger)
         {
             this.appMetadata = resourceService.GetApplication("a", "b");
@@ -56,6 +56,8 @@ namespace Altinn.App.Services.Implementation
                         Timestamp = DateTime.UtcNow,
                         CanCompleteTask = true,
                     };
+
+                    return true;
                 }
             }            
 

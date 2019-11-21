@@ -5,7 +5,7 @@ namespace Altinn.App.Services.Interface
     /// <summary>
     /// Interface for execution functionality
     /// </summary>
-    public interface IExecution
+    public interface IAppResources
     {
         /// <summary>
         /// Get the app resource for the given parameters.
