@@ -175,7 +175,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("The path parameter 'app' cannot be empty");
             }
 
-            Application application = appResourcesService.GetApplication(org, app);
+            Application application = appResourcesService.GetApplication();
             if (application == null)
             {
                 return NotFound($"AppId {org}/{app} was not found");

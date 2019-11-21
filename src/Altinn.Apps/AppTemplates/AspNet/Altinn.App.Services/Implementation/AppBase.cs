@@ -20,7 +20,7 @@ namespace Altinn.App.Services.Implementation
             IAppResources resourceService,
             ILogger<AppBase> logger)
         {
-            this.appMetadata = resourceService.GetApplication("a", "b");
+            this.appMetadata = resourceService.GetApplication();
             this.resourceService = resourceService;
             this.logger = logger;
         }
@@ -93,7 +93,9 @@ namespace Altinn.App.Services.Implementation
 
         public async Task OnStartProcessTask(string taskId, Instance instance)
         {
-            logger.LogInformation($"OnStartProcess for {instance.Id}"); 
+            logger.LogInformation($"OnStartProcess for {instance.Id}");
+
+            
         }
         
     }

@@ -53,7 +53,7 @@ namespace Altinn.App.Services.Implementation
         {
             byte[] fileContent = null;
 
-           Application application = GetApplication(org, app);
+           Application application = GetApplication();
  
             if (resource == _settings.RuleHandlerFileName)
             {
@@ -93,7 +93,7 @@ namespace Altinn.App.Services.Implementation
         }
 
 
-        public Application GetApplication(string org, string app)
+        public Application GetApplication()
         {
             string filedata = string.Empty;
             string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.ApplicationMetadataFileName;
@@ -117,7 +117,7 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc/>
         public ServiceMetadata.ServiceMetadata GetServiceMetaData(string org, string app)
         {
-            Application applicationMetadata = GetApplication(org, app);
+            Application applicationMetadata = GetApplication();
 
             string dataTypeId = string.Empty;
             foreach (DataType data in applicationMetadata.DataTypes)
@@ -173,7 +173,7 @@ namespace Altinn.App.Services.Implementation
 
         public string GetClassRefForLogicDataType(string org, string app, string dataType)
         {
-            Application application = GetApplication(org, app);
+            Application application = GetApplication();
             string classRef = string.Empty;
 
             DataType element = application.DataTypes.Single(d => d.Id.Equals(dataType));

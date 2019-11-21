@@ -79,7 +79,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("Element type must be provided.");
             }
 
-            Application application = appResourcesService.GetApplication(org, app);
+            Application application = appResourcesService.GetApplication();
             if (application == null)
             {
                 return NotFound($"AppId {org}/{app} was not found");
@@ -418,7 +418,7 @@ namespace Altinn.App.Api.Controllers
             
             try
             {
-                Application application = appResourcesService.GetApplication(org, app);
+                Application application = appResourcesService.GetApplication();
                 appLogic = application.DataTypes.Where(e => e.Id == dataType).Select(e => e.AppLogic != null).First();
             }
             catch (Exception)

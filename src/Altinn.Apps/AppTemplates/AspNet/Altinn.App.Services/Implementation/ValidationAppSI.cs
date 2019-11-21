@@ -47,7 +47,7 @@ namespace Altinn.App.Services.Implementation
 
             logger.LogInformation($"Validation of {instance.Id}");
 
-            Application application = appResourcesService.GetApplication(org, app);
+            Application application = appResourcesService.GetApplication();
 
             // Todo. Figure out where to get this from
             Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
