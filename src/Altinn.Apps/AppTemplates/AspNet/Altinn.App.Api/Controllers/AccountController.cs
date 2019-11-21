@@ -31,7 +31,7 @@ namespace Altinn.App.Api.Controllers
         public IActionResult Login(string goToUrl)
         {
             _logger.LogInformation($"Account login - gotourl - {goToUrl}");
-            return Redirect($"{_platformSettings.GetApiAuthenticationEndpoint}authentication?goto={goToUrl}");
+            return Redirect($"{_platformSettings.ApiAuthenticationEndpoint}authentication?goto={goToUrl}");
         }
     }
 }
