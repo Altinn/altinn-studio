@@ -14,7 +14,7 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly ILogger _logger;
         private readonly IProfile _profile;
-        private readonly IExecution _execution;
+        private readonly IAppResources _appResourcesService;
         
         private static readonly string ER_KEY = "ER";
         private static readonly string DSF_KEY = "DSF";
@@ -27,18 +27,18 @@ namespace Altinn.App.Services.Implementation
         /// </summary>
         /// <param name="logger">The logger</param>
         /// <param name="profile">Te profile service</param>
-        /// <param name="execution">The execution service</param>
-        public PrefillSI(ILogger<PrefillSI> logger, IProfile profile, IExecution execution)
+        /// <param name="appResourcesService">The execution service</param>
+        public PrefillSI(ILogger<PrefillSI> logger, IProfile profile, IAppResources appResourcesService)
         {
             _logger = logger;
             _profile = profile;
-            _execution = execution;
+            _appResourcesService = appResourcesService;
         }
 
         /// <inheritdoc/>
         public async Task PrefillDataModel(PrefillContext prefillContext, object dataModel)
         {
-            string jsonConfig = _execution.GetPrefillJson(prefillContext.Org, prefillContext.App);
+            string jsonConfig = _appResourcesService.GetPrefillJson(prefillContext.Org, prefillContext.App);
             if (jsonConfig == null || jsonConfig == string.Empty)
             {
                 return;

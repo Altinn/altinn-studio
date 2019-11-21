@@ -24,7 +24,7 @@ namespace Altinn.App.Services.Implementation
 
         private IData _dataService;
         private IRegister _registerService;
-        private readonly IExecution _executionService;
+        private readonly IAppResources _appResourcesService;
         private JsonSerializer _camelCaseSerializer;
         private string pdfElementType = "ref-data-as-pdf";
         private string pdfFileName = "receipt.pdf";
@@ -41,14 +41,14 @@ namespace Altinn.App.Services.Implementation
             IHttpClientAccessor httpClientAccessor,
             IData dataService,
             IRegister registerService,
-            IExecution executionService)
+            IAppResources appResourcesService)
         {
             _logger = logger;
             _pdfClient = httpClientAccessor.PdfClient;
             _storageClient = httpClientAccessor.StorageClient;
             _dataService = dataService;
             _registerService = registerService;
-            _executionService = executionService;
+            _appResourcesService = appResourcesService;
             _camelCaseSerializer = JsonSerializer.Create(
                 new JsonSerializerSettings
                 {
@@ -69,8 +69,8 @@ namespace Altinn.App.Services.Implementation
             await dataStream.ReadAsync(dataAsBytes);
             string encodedXml = System.Convert.ToBase64String(dataAsBytes);
 
-            byte[] formLayout = _executionService.GetAppResource(org, app, "FormLayout.json");            
-            byte[] textResources = _executionService.GetText(org, app, "resource.nb.json");
+            byte[] formLayout = _appResourcesService.GetAppResource(org, app, "FormLayout.json");            
+            byte[] textResources = _appResourcesService.GetText(org, app, "resource.nb.json");
             
             string formLayoutString = GetUTF8String(formLayout);
             string textResourcesString = GetUTF8String(textResources);
