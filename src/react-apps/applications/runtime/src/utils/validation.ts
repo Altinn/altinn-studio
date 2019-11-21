@@ -344,7 +344,7 @@ export function mapDataElementValidationToRedux(validations: IValidationIssue[],
       let found = false;
       Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
         // tslint:disable-next-line: max-line-length
-        if (componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === validation.field.toLowerCase()) {
+        if (validation.field && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === validation.field.toLowerCase()) {
           found = true;
           if (!componentValidations[dataModelBindingKey]) {
             componentValidations[dataModelBindingKey] = {errors: [], warnings: []};
