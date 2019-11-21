@@ -101,7 +101,7 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
               <AltinnIcon
                 iconClass={'fa fa-private-circle-big'}
                 iconColor={logoColor}
-                iconSize={46}
+                iconSize={31}
                 margin={'0px 0px 0px 5px'}
               />
             }
@@ -109,7 +109,7 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
               <AltinnIcon
                 iconClass={'fa fa-corp-circle-big'}
                 iconColor={logoColor}
-                iconSize={46}
+                iconSize={31}
                 margin={'0px 0px 0px 5px'}
               />
             }
