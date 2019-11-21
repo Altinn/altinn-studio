@@ -6,7 +6,7 @@ import { RouteChildrenProps, withRouter } from 'react-router';
 import AltinnContentIconReceipt from '../../../../../shared/src/components/atoms/AltinnContentIconReceipt';
 import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
-import { mapInstanceAttachments, getInstancePdf} from '../../../../../shared/src/utils/attachments';
+import { getInstancePdf, mapInstanceAttachments} from '../../../../../shared/src/utils/attachments';
 import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
 import { IAttachment, IInstance } from './../../../../../shared/src/types/index.d';
@@ -76,8 +76,7 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
       !allOrgs ||
       !profile ||
       !instance ||
-      !lastChangedDateTime ||
-      !pdf
+      !lastChangedDateTime
     );
   };
 
@@ -133,7 +132,7 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
           subtitleurl={returnUrlToMessagebox(origin)}
           title={`${appName} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
           titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
-          pdf={[pdf]}
+          pdf={pdf ? [pdf] : null}
         />
       }
     </>
