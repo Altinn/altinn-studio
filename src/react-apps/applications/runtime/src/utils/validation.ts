@@ -91,8 +91,7 @@ export function validateFormComponents(
   formLayout.forEach((component: any) => {
     if (!component.hidden) {
       if (component.type === 'FileUpload') {
-        if (component.minNumberOfAttachments > 0 && numberOfAttachments < 1 ||
-          attachments[component.id].length < component.minNumberOfAttachments) {
+        if (attachments[component.id] && attachments[component.id].length < component.minNumberOfAttachments) {
           validations[component.id] = {};
           const componentValidations: IComponentValidations = {
             [fieldKey]: {
