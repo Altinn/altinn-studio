@@ -2,7 +2,7 @@ import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../shared/sr
 import { IFormData } from '../features/form/data/reducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
 import { IValidationIssue, Severity } from '../types';
-import { IComponentValidations, IDataModelFieldElement, IValidations, IFormComponent } from '../types/global';
+import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 
 export function min(value: number, test: number): boolean {
