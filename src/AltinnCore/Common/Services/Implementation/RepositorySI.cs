@@ -549,7 +549,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the XSD object as a string</returns>
         public string GetXsdModel(string org, string app)
         {
-            string modelName = GetModelName(org, app); 
+            string modelName = GetModelName(org, app);
             string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"{modelName}.xsd";
             string filedata = null;
 
@@ -569,7 +569,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the Json Schema object as a string</returns>
         public string GetJsonSchemaModel(string org, string app)
         {
-            string modelName = GetModelName(org, app); 
+            string modelName = GetModelName(org, app);
             string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"{modelName}.schema.json";
             string filedata = null;
 
@@ -963,7 +963,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Application model content.</returns>
         public string GetAppModel(string org, string app)
         {
-            string modelName = GetModelName(org, app);          
+            string modelName = GetModelName(org, app);
 
             string filedata = string.Empty;
             string filename = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"{modelName}.cs";
@@ -1551,18 +1551,15 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<AltinnCoreFile> coreFiles = new List<AltinnCoreFile>();
 
-            string[] jsFiles = Directory.GetFiles(_settings.GetDynamicsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-            foreach (string file in jsFiles)
+            string rulehandlerPath = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            AltinnCoreFile ruleFile = new AltinnCoreFile
             {
-                AltinnCoreFile corefile = new AltinnCoreFile
-                {
-                    FilePath = file,
-                    FileName = Path.GetFileName(file),
-                    LastChanged = File.GetLastWriteTime(file),
-                };
+                FilePath = rulehandlerPath,
+                FileName = Path.GetFileName(rulehandlerPath),
+                LastChanged = File.GetLastWriteTime(rulehandlerPath),
+            };
 
-                coreFiles.Add(corefile);
-            }
+            coreFiles.Add(ruleFile);
 
             return coreFiles;
         }
@@ -1681,8 +1678,17 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="fileContent">The file content</param>
         public void SaveResourceFile(string org, string app, string fileName, string fileContent)
         {
-            string filename = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
-            File.WriteAllText(filename, fileContent, Encoding.UTF8);
+            if (fileName.Contains(_settings.RuleHandlerFileName, StringComparison.OrdinalIgnoreCase))
+            {
+                string filename = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                File.WriteAllText(filename, fileContent, Encoding.UTF8);
+            }
+            else
+            {
+                string filename = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
+                File.WriteAllText(filename, fileContent, Encoding.UTF8);
+            }
+            
         }
 
         /// <summary>
