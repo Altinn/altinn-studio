@@ -86,7 +86,6 @@ export function validateFormComponents(
   language: any,
 ) {
   const validations: any = {};
-  const numberOfAttachments = attachments ? Object.keys(attachments).length : 0;
   const fieldKey = 'simpleBinding';
   formLayout.forEach((component: any) => {
     if (!component.hidden) {
