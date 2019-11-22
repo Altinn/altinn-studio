@@ -10,6 +10,15 @@ namespace App.IntegrationTests.Utils
     {
 
 
+        public static void PrepareInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        {
+            string instancePath = GetInstancePath(org, app, instanceOwnerId, instanceGuid);
+
+            string preInstancePath = instancePath.Replace(".json", ".pretest.json");
+
+            File.Copy(preInstancePath, instancePath);
+        }
+
         public static void DeletInstanceAndData(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
            DeleteDataForInstance(org, app, instanceOwnerId, instanceGuid);

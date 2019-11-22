@@ -49,10 +49,10 @@ namespace App.IntegrationTests.Mocks.Services
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
             string instancePath = GetInstancePath(app, instance.Org, int.Parse(instance.InstanceOwner.PartyId), instanceGuid);
-            File.WriteAllText(instancePath, instance.ToString());
-
+           
+            File.WriteAllText(instancePath, JsonConvert.SerializeObject(instance));
+            
             return Task.FromResult(instance);
-
         }
 
         private Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)
