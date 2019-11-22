@@ -59,8 +59,6 @@ function Receipt(props: WithStyles<typeof styles>) {
     try {
       const response = await Axios.get<IInstance>(getInstanceMetadataUrl());
       setInstance(response.data);
-    } catch (error)  {
-      console.error(error);
     }
   };
 
@@ -107,7 +105,7 @@ function Receipt(props: WithStyles<typeof styles>) {
   React.useEffect(() => {
     if (instance) {
       setAttachments(mapInstanceAttachments(instance.data));
-      setPdf(getInstancePdf(instance.data));
+      setPdf(getInstancePdf(instance.data, true));
     }
     if (!application && instance) {
       fetchApplication();
