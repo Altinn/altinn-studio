@@ -4,7 +4,6 @@ import altinn.platform.pdf.models.AltinnOrg;
 import altinn.platform.pdf.models.AltinnOrgs;
 import altinn.platform.pdf.services.BasicLogger;
 import com.google.gson.Gson;
-import jdk.internal.jline.internal.Log;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
