@@ -2,7 +2,7 @@ import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../shared/sr
 import { IFormData } from '../features/form/data/reducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
 import { IValidationIssue, Severity } from '../types';
-import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
+import { IComponentValidations, IDataModelFieldElement, IValidations, IFormComponent } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 
 export function min(value: number, test: number): boolean {
@@ -90,7 +90,7 @@ export function validateFormComponents(
   formLayout.forEach((component: any) => {
     if (!component.hidden) {
       if (component.type === 'FileUpload') {
-        if (attachments[component.id] && attachments[component.id].length < component.minNumberOfAttachments) {
+        if (!attachmentsValid(attachments, component)) {
           validations[component.id] = {};
           const componentValidations: IComponentValidations = {
             [fieldKey]: {
@@ -109,6 +109,15 @@ export function validateFormComponents(
     }
   });
   return validations;
+}
+
+function attachmentsValid(attachments: any, component: any): boolean {
+  return (
+    component.minNumberOfAttachments === 0 ||
+    (attachments &&
+      attachments[component.id] &&
+      attachments[component.id].length >= component.minNumberOfAttachments)
+  );
 }
 
 /*
