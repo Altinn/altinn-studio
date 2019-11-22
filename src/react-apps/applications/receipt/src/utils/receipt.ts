@@ -18,9 +18,9 @@ export const getInstanceMetaDataObject = (instance: IInstance, party: IParty,  l
   obj[getLanguageFromKey('receipt_platform.date_sent', language)] = dateSubmitted;
   let sender: string = '';
   if (party && party.ssn) {
-    sender = `${party.person.ssn}-${party.person.name}`;
+    sender = `${party.ssn}-${party.name}`;
   } else if (party && party.orgNumber) {
-    sender = `${party.orgNumber}-${party.organisation.name}`;
+    sender = `${party.orgNumber}-${party.name}`;
   }
   obj[getLanguageFromKey('receipt_platform.sender', language)] = sender;
   obj[getLanguageFromKey('receipt_platform.receiver', language)] = getOrganisationDisplayName(instance, organisations);
