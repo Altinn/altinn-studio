@@ -109,10 +109,6 @@ function Receipt(props: WithStyles<typeof styles>) {
       setAttachments(mapInstanceAttachments(instance.data));
       setPdf(getInstancePdf(instance.data, true));
     }
-    if (instance) {
-      setAttachments(mapInstanceAttachments(instance.data));
-      setPdf(getInstancePdf(instance.data, true));
-    }
     if (!application && instance) {
       fetchApplication();
     }
