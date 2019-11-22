@@ -135,7 +135,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
                   name={option.value}
                 />
               )}
-              label={option.value}
+              label={option.label}
             />
             { props.validationMessages &&
               this.isOptionSelected(option.value) &&
