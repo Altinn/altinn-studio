@@ -2,12 +2,15 @@ package altinn.platform.pdf.utils;
 
 import altinn.platform.pdf.models.AltinnOrg;
 import altinn.platform.pdf.models.AltinnOrgs;
+import altinn.platform.pdf.services.BasicLogger;
 import com.google.gson.Gson;
+import jdk.internal.jline.internal.Log;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.logging.Level;
 
 public class AltinnOrgUtils {
   private static AltinnOrgs altinnOrgs;
@@ -51,7 +54,7 @@ public class AltinnOrgUtils {
         altinnOrgs = gson.fromJson(content.toString(), AltinnOrgs.class);
         con.disconnect();
       } catch (Exception e) {
-        e.printStackTrace();
+        BasicLogger.log(Level.SEVERE, e.getMessage());
       }
     }
 
