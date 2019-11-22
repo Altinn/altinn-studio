@@ -46,7 +46,7 @@ namespace App.IntegrationTests.ApiTests
         /// Test case: Send request to get app
         /// Expected: Response with result permit returns status OK
         /// </summary>
- 
+        [Fact]
         public async Task Data_Get_OK()
         {
             string token = PrincipalUtil.GetToken(1);
@@ -67,7 +67,6 @@ namespace App.IntegrationTests.ApiTests
         /// Test case: Send request to get app
         /// Expected: Response with result deny returns status Forbidden
         /// </summary>
-
         [Fact]
         public async Task Data_Get_Forbidden()
         {
@@ -75,7 +74,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "no-access");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/no-access/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/no-access/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/f0244552-c793-4bdf-b4ab-47d1a7413689")
             {
             };
 
