@@ -1,5 +1,6 @@
 package altinn.platform.pdf.utils;
 
+import altinn.platform.pdf.models.Instance;
 import altinn.platform.pdf.models.TextResourceElement;
 import altinn.platform.pdf.models.TextResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -177,5 +178,22 @@ public class TextUtils {
    */
   public static float getStringWidth(String word, PDFont font, float fontSize) throws IOException {
     return fontSize * font.getStringWidth(word) / 1000;
+  }
+
+  /**
+   * Gets the instance guid from the instance id (instanceOwnerId/InstanceGuid)
+   * @param instanceId the instanceId
+   * @return the instanceGuid
+   */
+  public static String getInstanceGuid(String instanceId) {
+    if (instanceId == null) {
+      return "";
+    }
+
+    if (!instanceId.contains("/")) {
+      return instanceId;
+    }
+
+    return instanceId.split("/")[1];
   }
 }

@@ -29,7 +29,7 @@ namespace AltinnCore.Common.Services.Implementation
         private IRegister _registerService;
         private JsonSerializer _camelCaseSerializer;
         private string pdfElementType = "ref-data-as-pdf";
-        private string pdfFileName = "kvittering.pdf";
+        private string defaultFileName = "kvittering.pdf";
 
         /// <summary>
         /// Creates a new instance of the <see cref="PDFSI"/> class
@@ -123,7 +123,17 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance)
         {
-            using (StreamContent content = CreateStreamContent(pdfStream))
+            string fileName;
+            if (instance.PresentationField != null)
+            {
+                fileName = instance.PresentationField["nb"];
+            }
+            else
+            {
+                fileName = defaultFileName;
+            }
+
+            using (StreamContent content = CreateStreamContent(pdfStream, fileName))
             {
                 return await _dataService.InsertBinaryData(
                     instance.Org,
@@ -131,7 +141,7 @@ namespace AltinnCore.Common.Services.Implementation
                     int.Parse(instance.InstanceOwnerId),
                     Guid.Parse(instance.Id.Split("/")[1]),
                     pdfElementType,
-                    pdfFileName,
+                    fileName,
                     content);
             }
         }
@@ -155,12 +165,12 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        private StreamContent CreateStreamContent(Stream stream)
+        private StreamContent CreateStreamContent(Stream stream, string fileName)
         {
             StreamContent streamContent = new StreamContent(stream);
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
             streamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("form-data");
-            streamContent.Headers.ContentDisposition.FileName = pdfFileName;
+            streamContent.Headers.ContentDisposition.FileName = fileName;
             streamContent.Headers.ContentDisposition.Size = stream.Length;
             return streamContent;
         }
