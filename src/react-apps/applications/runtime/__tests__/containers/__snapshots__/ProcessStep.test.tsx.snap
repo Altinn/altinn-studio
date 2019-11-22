@@ -23,7 +23,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
       className="MuiGrid-root AltinnAppHeader-mainContent-2 MuiGrid-container MuiGrid-align-items-xs-center"
     >
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-grid-xs-6"
+        className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-6"
       >
         <div
           className="MuiGrid-root MuiGrid-item"
@@ -166,7 +166,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
         </div>
       </div>
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-6"
+        className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-6"
       >
         <div
           className="MuiGrid-root MuiGrid-item"
