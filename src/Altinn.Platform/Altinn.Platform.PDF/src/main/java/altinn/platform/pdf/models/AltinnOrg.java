@@ -1,6 +1,5 @@
 package altinn.platform.pdf.models;
 
-import java.util.Dictionary;
 import java.util.HashMap;
 
 public class AltinnOrg {
