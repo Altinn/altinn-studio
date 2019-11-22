@@ -123,7 +123,16 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance)
         {
-            string fileName = instance.PresentationField["nb"] ?? defaultFileName;
+            string fileName;
+            if (instance.PresentationField != null)
+            {
+                fileName = instance.PresentationField["nb"];
+            }
+            else
+            {
+                fileName = defaultFileName;
+            }
+
             using (StreamContent content = CreateStreamContent(pdfStream, fileName))
             {
                 return await _dataService.InsertBinaryData(
