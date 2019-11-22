@@ -123,7 +123,8 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance)
         {
-            using (StreamContent content = CreateStreamContent(pdfStream, instance.PresentationField["nb"]))
+            string fileName = instance.PresentationField["nb"] ?? defaultFileName;
+            using (StreamContent content = CreateStreamContent(pdfStream, fileName))
             {
                 return await _dataService.InsertBinaryData(
                     instance.Org,
@@ -131,7 +132,7 @@ namespace AltinnCore.Common.Services.Implementation
                     int.Parse(instance.InstanceOwnerId),
                     Guid.Parse(instance.Id.Split("/")[1]),
                     pdfElementType,
-                    defaultFileName,
+                    fileName,
                     content);
             }
         }
@@ -155,12 +156,12 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        private StreamContent CreateStreamContent(Stream stream, string FileName)
+        private StreamContent CreateStreamContent(Stream stream, string fileName)
         {
             StreamContent streamContent = new StreamContent(stream);
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
             streamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("form-data");
-            streamContent.Headers.ContentDisposition.FileName = FileName ?? defaultFileName ;
+            streamContent.Headers.ContentDisposition.FileName = fileName;
             streamContent.Headers.ContentDisposition.Size = stream.Length;
             return streamContent;
         }
