@@ -39,6 +39,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
     if (apiMode === 'Complete') {
       validations = Object.assign(validations, emptyFieldsValidations);
     }
+
     if (canFormBeSaved(validations)) {
       // updates the default data element
       const defaultDataElementGuid = state.instanceData.instance.data.find((e) => e.elementType === 'default').id;
@@ -48,7 +49,8 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
         // run validations against the datamodel
         const instanceId = state.instanceData.instance.id;
         const validationResult = yield call(get, getValidationUrl(instanceId, defaultDataElementGuid));
-        if (validationResult && validationResult.length > 0) {
+        if (validationResult && validationResult.length > 0
+          && !(validationResult.length === 1 && validationResult[0].field === null)) {
           // we have validation errors, update validations and return
           const layoutState: ILayoutState = yield select(LayoutSelector);
           const mappedValidations = mapDataElementValidationToRedux(validationResult, layoutState.layout);
@@ -62,6 +64,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
       yield call(FormDataActions.submitFormDataFulfilled);
     } else {
       FormValidationActions.updateValidations(validations);
+      return yield call(FormDataActions.submitFormDataRejected, null);
     }
   } catch (err) {
     console.error(err);
