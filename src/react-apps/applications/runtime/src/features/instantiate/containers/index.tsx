@@ -4,9 +4,9 @@ import ContentLoader from 'react-content-loader';
 import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
+import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
 import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
-import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
-import { IParty } from '../../../shared/resources/party';
+import { IParty } from '../../../../../shared/src/types';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
@@ -38,14 +38,13 @@ export interface IServiceInfoProps extends WithStyles<typeof styles> {
 
 function InstantiateContainer(props: IServiceInfoProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
-  const { org, app } = window as IAltinnWindow;
+  const { org, app } = window as Window as IAltinnWindow;
 
   const [subscriptionHookValid, setSubscriptionHookValid] = React.useState(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
   const [instantiating, setInstantiating] = React.useState(false);
 
   const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
-  const language = useSelector((state: IRuntimeState) => state.language.language);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
   const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
@@ -170,7 +169,12 @@ function InstantiateContainer(props: IServiceInfoProps) {
   } else {
     return (
       <>
-        <AltinnAppHeader profile={profile} language={language}/>
+        <AltinnAppHeader
+          logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
+          headerBackgroundColor={AltinnAppTheme.altinnPalette.primary.blue}
+          party={selectedParty}
+          userParty={profile ? profile.party : {} as IParty}
+        />
         {(subscriptionHookValid === null || subscriptionHookValid === true) && renderModalAndLoader()}
         {subscriptionHookValid === false && <SubscriptionHookError textResources={textResources}/>}
       </>

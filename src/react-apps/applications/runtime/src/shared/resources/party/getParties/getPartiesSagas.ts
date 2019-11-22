@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
-import { IParty } from '../';
+import { IParty } from '../../../../../../shared/src/types';
 import { get } from '../../../../utils/networking';
 import { findSelectedParty } from '../../../../utils/partyUtils';
 import { allPartiesUrl, currentPartyUrl, validPartiesUrl } from '../../../../utils/urlHelper';

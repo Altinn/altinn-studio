@@ -1,4 +1,4 @@
-import { IParty } from '../shared/resources/party/index';
+import { IParty } from '../../../shared/src/types';
 
 function findPartyByPartyId(party: IParty, partyId: string) {
   if (party.partyId === partyId) {
