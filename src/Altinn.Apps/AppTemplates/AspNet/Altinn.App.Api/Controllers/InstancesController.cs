@@ -236,7 +236,12 @@ namespace Altinn.App.Api.Controllers
             catch (Exception partyLookupException)
             {
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
-            }            
+            }
+
+            // TODO. Call PEP to verify if current user is authorized to create a instance for this party-
+            // Action is instansiate. Use claims princial from context. The resource party from above party
+            // The app and org. Call the new method in IPDP service. This API lib need to reference the PEP nuget to make this possible
+            // If this method return false. Return NotAuthorized here
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
