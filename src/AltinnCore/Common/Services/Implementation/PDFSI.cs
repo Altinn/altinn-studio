@@ -122,7 +122,6 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance)
         {
-
             string fileName;
             if (instance.Title != null && instance.Title["nb"] != null && instance.Title["nb"] != string.Empty)
             {
