@@ -3,6 +3,7 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -93,6 +94,11 @@ namespace App.IntegrationTests.Mocks.Services
             response.Response.Add(result);
 
             return Task.FromResult(response);
+        }
+
+        public Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequest xacmlJsonRequest, ClaimsPrincipal user)
+        {
+            throw new NotImplementedException();
         }
     }
 }
