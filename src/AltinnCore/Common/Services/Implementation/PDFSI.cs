@@ -29,7 +29,7 @@ namespace AltinnCore.Common.Services.Implementation
         private IRegister _registerService;
         private JsonSerializer _camelCaseSerializer;
         private string pdfElementType = "ref-data-as-pdf";
-        private string pdfFileName = "kvittering.pdf";
+        private string defaultFileName = "kvittering.pdf";
 
         /// <summary>
         /// Creates a new instance of the <see cref="PDFSI"/> class
@@ -80,7 +80,7 @@ namespace AltinnCore.Common.Services.Implementation
                 TextResources = JsonConvert.DeserializeObject(textResourcesString),
                 Party = await _registerService.GetParty(instanceOwnerId),
                 UserParty = userContext.Party,
-                Instance = instance                
+                Instance = instance
             };
 
             Stream pdfContent;
@@ -122,7 +122,18 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance)
         {
-            using (StreamContent content = CreateStreamContent(pdfStream))
+
+            string fileName;
+            if (instance.Title != null && instance.Title["nb"] != null && instance.Title["nb"] != string.Empty)
+            {
+                fileName = instance.Title["nb"] + ".pdf";
+            }
+            else
+            {
+                fileName = defaultFileName;
+            }
+
+            using (StreamContent content = CreateStreamContent(pdfStream, fileName))
             {
                 return await _dataService.InsertBinaryData(
                     instance.Org,
@@ -130,7 +141,7 @@ namespace AltinnCore.Common.Services.Implementation
                     int.Parse(instance.InstanceOwner.PartyId),
                     Guid.Parse(instance.Id.Split("/")[1]),
                     pdfElementType,
-                    pdfFileName,
+                    fileName,
                     content);
             }
         }
@@ -154,12 +165,12 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        private StreamContent CreateStreamContent(Stream stream)
+        private StreamContent CreateStreamContent(Stream stream, string fileName)
         {
             StreamContent streamContent = new StreamContent(stream);
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
             streamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("form-data");
-            streamContent.Headers.ContentDisposition.FileName = pdfFileName;
+            streamContent.Headers.ContentDisposition.FileName = fileName;
             streamContent.Headers.ContentDisposition.Size = stream.Length;
             return streamContent;
         }
