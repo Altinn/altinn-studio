@@ -11,6 +11,7 @@ Det er noen kjente feil og svakheter i løsningen.
 
 ## Mindre svakheter som er verdt å nevne
 
+- Dersom du sletter en dynamikkregel fra regelfila uten å ha fjernet alle betingede renderingtilkoblinger som benytter regelen vil UI-editor kræsje. Sørg derfor for å slette alle tilkoblinger før du sletter regelen.
 - Det er mulig å endre på (en lokal kopi av) en tjeneste du ikke har skrivetilgang til. Det er dog ikke mulig å dele/lagre disse endringene.
 - Det kan virke tilfeldig hvor i lista et nytt element dukker opp når du legger det til via drag and drop.
 
