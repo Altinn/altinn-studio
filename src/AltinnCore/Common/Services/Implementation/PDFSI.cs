@@ -126,7 +126,7 @@ namespace AltinnCore.Common.Services.Implementation
             string fileName;
             if (instance.PresentationField != null)
             {
-                fileName = instance.PresentationField["nb"];
+                fileName = instance.PresentationField["nb"] + ".pdf";
             }
             else
             {
