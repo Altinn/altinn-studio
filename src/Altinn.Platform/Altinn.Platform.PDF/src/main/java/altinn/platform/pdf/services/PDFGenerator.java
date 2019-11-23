@@ -1,10 +1,7 @@
 package altinn.platform.pdf.services;
 
 import altinn.platform.pdf.models.*;
-import altinn.platform.pdf.utils.FormDataUtils;
-import altinn.platform.pdf.utils.InstanceUtils;
-import altinn.platform.pdf.utils.LayoutUtils;
-import altinn.platform.pdf.utils.TextUtils;
+import altinn.platform.pdf.utils.*;
 
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -171,7 +168,7 @@ public class PDFGenerator {
     currentContent.beginText();
     currentContent.newLineAtOffset(xPoint, yPoint);
     currentContent.setFont(fontBold, headerFontSize);
-    currentContent.showText(instance.getOrg());
+    currentContent.showText(AltinnOrgUtils.getOrgFullNameByShortName(instance.getOrg()) + " - " + InstanceUtils.getInstanceName(instance));
     yPoint -= leading;
     currentContent.endText();
     yPoint -= textFieldMargin;
@@ -191,7 +188,7 @@ public class PDFGenerator {
       submittedBy = "Levert av " + userParty.getName() + " på vegne av " + party.getName();
     }
     List<String> lines = TextUtils.splitTextToLines(submittedBy, font, fontSize, width);
-    lines.add("Referansenummer: " + instance.getId());
+    lines.add("Referansenummer: " + TextUtils.getInstanceGuid(instance.getId()));
     for(String line : lines) {
       currentContent.showText(line);
       currentContent.newLineAtOffset(0, -leading);

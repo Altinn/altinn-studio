@@ -17,7 +17,7 @@ export const mapInstanceAttachments = (data: IData[]): IAttachment[] => {
   }
 };
 
-export const getInstancePdf = (data: IData[]): IAttachment => {
+export const getInstancePdf = (data: IData[], platform?: boolean): IAttachment => {
   if (!data) {
     return null;
   }
@@ -28,9 +28,11 @@ export const getInstancePdf = (data: IData[]): IAttachment => {
     return null;
   }
 
+  const pdfUrl = platform ? pdfElement.dataLinks.platform : pdfElement.dataLinks.apps;
+
   return {
     name: pdfElement.fileName,
-    url: pdfElement.dataLinks.apps,
+    url: pdfUrl,
     iconClass: 'reg reg-attachment',
   };
 };

@@ -107,7 +107,7 @@ function Receipt(props: WithStyles<typeof styles>) {
   React.useEffect(() => {
     if (instance) {
       setAttachments(mapInstanceAttachments(instance.data));
-      setPdf(getInstancePdf(instance.data));
+      setPdf(getInstancePdf(instance.data, true));
     }
     if (!application && instance) {
       fetchApplication();
