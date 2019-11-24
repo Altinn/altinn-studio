@@ -10,7 +10,6 @@ using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Runtime.RestControllers
@@ -22,35 +21,21 @@ namespace AltinnCore.Runtime.RestControllers
     [ApiController]
     public class ValidateController : ControllerBase
     {
-        private readonly IData dataService;
-        private readonly IInstance instanceService;
-        private readonly IAppResources appResourcesServices;
-        private readonly UserHelper userHelper;
-        private readonly IApplication appService;
-        private readonly IAltinnApp altinnApp;
-        private readonly IValidation validationService;
+        private readonly IInstance _instanceService;
+        private readonly IApplication _appService;
+        private readonly IValidation _validationService;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ValidateController"/> class
         /// </summary>
         public ValidateController(
-            IOptions<GeneralSettings> generalSettings,
-            IRegister registerService,
             IInstance instanceService,
-            IData dataService,
-            IAppResources appResourcesService,
-            IProfile profileService,
-            IInstanceEvent eventService,
             IApplication appService,
-            IAltinnApp altinnApp,
             IValidation validationService)
         {
-            this.instanceService = instanceService;
-            this.dataService = dataService;
-            this.appResourcesServices = appResourcesService;
-            this.appService = appService;
-            this.validationService = validationService;
-            this.userHelper = new UserHelper(profileService, registerService, generalSettings);
+            _instanceService = instanceService;
+            _appService = appService;
+            _validationService = validationService;
         }
 
         /// <summary>
@@ -68,7 +53,7 @@ namespace AltinnCore.Runtime.RestControllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
                 return NotFound();
@@ -80,9 +65,9 @@ namespace AltinnCore.Runtime.RestControllers
                 throw new ValidationException("Unable to validate instance without a started process.");
             }
 
-            List<ValidationIssue> messages = await validationService.ValidateAndUpdateInstance(instance, taskId);
+            List<ValidationIssue> messages = await _validationService.ValidateAndUpdateInstance(instance, taskId);
 
-            await instanceService.UpdateInstance(instance);
+            await _instanceService.UpdateInstance(instance);
 
             return Ok(messages);
         }
@@ -104,7 +89,7 @@ namespace AltinnCore.Runtime.RestControllers
             [FromRoute] Guid instanceId,
             [FromRoute] Guid dataGuid)
         {
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
             if (instance == null)
             {
                 return NotFound();
@@ -128,7 +113,7 @@ namespace AltinnCore.Runtime.RestControllers
                 throw new ValidationException("Unable to validate data element.");
             }
 
-            Application application = await appService.GetApplication(org, app);
+            Application application = await _appService.GetApplication(org, app);
 
             DataType dataType = application.DataTypes.FirstOrDefault(et => et.Id == element.DataType);
 
@@ -137,7 +122,7 @@ namespace AltinnCore.Runtime.RestControllers
                 throw new ValidationException("Unknown element type.");
             }
 
-            messages.AddRange(await validationService.ValidateDataElement(instance, dataType, element));
+            messages.AddRange(await _validationService.ValidateDataElement(instance, dataType, element));
 
             string taskId = instance.Process.CurrentTask.ElementId;
             if (!dataType.TaskId.Equals(taskId, StringComparison.OrdinalIgnoreCase))
@@ -155,6 +140,6 @@ namespace AltinnCore.Runtime.RestControllers
             }
 
             return Ok(messages);
-        }            
+        }
     }
 }

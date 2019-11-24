@@ -23,7 +23,6 @@ namespace Altinn.App.Services.Implementation
         private readonly AppSettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHostingEnvironment _hostingEnvironment;
-        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
 
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
@@ -38,13 +37,11 @@ namespace Altinn.App.Services.Implementation
             IOptions<AppSettings> settings,
             IHttpContextAccessor httpContextAccessor,
             IHostingEnvironment hostingEnvironment,
-            ILoggerFactory loggerFactory,
             ILogger<AppResourcesSI> logger)
         {
             _settings = settings.Value;
             _httpContextAccessor = httpContextAccessor;
             _hostingEnvironment = hostingEnvironment;
-            _loggerFactory = loggerFactory;
             _logger = logger;
         }
 
@@ -89,7 +86,6 @@ namespace Altinn.App.Services.Implementation
 
             return fileContent;
         }
-
 
         public Application GetApplication()
         {
