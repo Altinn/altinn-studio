@@ -53,8 +53,6 @@ namespace Altinn.App.Services.Implementation
         {
             byte[] fileContent = null;
 
-           Application application = GetApplication();
- 
             if (resource == _settings.RuleHandlerFileName)
             {
                 if (File.Exists(_settings.AppBasePath + _settings.UiFolder + resource))
@@ -88,7 +86,7 @@ namespace Altinn.App.Services.Implementation
             {
                 fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder + textResource);
             }
-          
+
             return fileContent;
         }
 
@@ -128,7 +126,7 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
-            string filename = _settings.AppBasePath + _settings.ModelsFolder + dataTypeId +"." +  _settings.ServiceMetadataFileName;
+            string filename = _settings.AppBasePath + _settings.ModelsFolder + dataTypeId + "." + _settings.ServiceMetadataFileName;
             string filedata = File.ReadAllText(filename, Encoding.UTF8);
             return JsonConvert.DeserializeObject<ServiceMetadata.ServiceMetadata>(filedata);
         }
