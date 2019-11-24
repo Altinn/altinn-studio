@@ -2,7 +2,7 @@ import { createStyles, Grid, Typography, withStyles, WithStyles } from '@materia
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect, RouteComponentProps, withRouter } from 'react-router';
+import { RouteComponentProps, withRouter } from 'react-router';
 import AltinnCheckBox from '../../../../../shared/src/components/AltinnCheckBox';
 import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import { IParty } from '../../../../../shared/src/types';
@@ -16,6 +16,7 @@ import { IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
 import { capitalizeName } from '../../../utils/stringHelper';
+import NoValidPartiesError from './NoValidPartiesError';
 
 const styles = createStyles({
   partySelectionPage: {
@@ -113,14 +114,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
 
     if (parties.length === 0) {
       return (
-        <Redirect
-          to={{
-            pathname: '/error',
-            state: {
-              message: 'No valid parties',
-            },
-          }}
-        />
+        <NoValidPartiesError />
       );
     }
 
