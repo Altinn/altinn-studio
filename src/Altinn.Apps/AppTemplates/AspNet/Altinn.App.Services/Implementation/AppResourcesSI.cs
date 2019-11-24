@@ -169,7 +169,7 @@ namespace Altinn.App.Services.Implementation
             return filedata;
         }
 
-        public string GetClassRefForLogicDataType(string org, string app, string dataType)
+        public string GetClassRefForLogicDataType(string dataType)
         {
             Application application = GetApplication();
             string classRef = string.Empty;

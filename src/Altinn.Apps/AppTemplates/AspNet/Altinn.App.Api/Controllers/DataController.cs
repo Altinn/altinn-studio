@@ -283,12 +283,12 @@ namespace Altinn.App.Api.Controllers
             string dataType)
         {
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-            
+
             object appModel;
 
-        
-            string classRef = appResourcesService.GetClassRefForLogicDataType(org, app, dataType);
-            
+
+            string classRef = appResourcesService.GetClassRefForLogicDataType(dataType);
+
             if (Request.ContentType == null)
             {
                 appModel = altinnApp.CreateNewAppModel(classRef);
@@ -415,7 +415,7 @@ namespace Altinn.App.Api.Controllers
         private async Task<bool?> RequiresAppLogic(string org, string app, string dataType)
         {
             bool? appLogic = false;
-            
+
             try
             {
                 Application application = appResourcesService.GetApplication();
@@ -444,9 +444,9 @@ namespace Altinn.App.Api.Controllers
         string dataType)
         {
 
-            string appModelclassRef = appResourcesService.GetClassRefForLogicDataType(org, app, dataType);
+            string appModelclassRef = appResourcesService.GetClassRefForLogicDataType(dataType);
 
-             // Get Form Data from data service. Assumes that the data element is form data.
+            // Get Form Data from data service. Assumes that the data element is form data.
             object appModel = dataService.GetFormData(
                 instanceGuid,
                 altinnApp.GetAppModelType(appModelclassRef),
@@ -460,7 +460,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Did not find form data for data element {dataGuid}");
             }
 
-   
+
             // send events to trigger application business logic
             await altinnApp.RunAppEvent(AppEventType.DataRetrieval, appModel);
             await altinnApp.RunAppEvent(AppEventType.Calculation, appModel);
@@ -478,9 +478,10 @@ namespace Altinn.App.Api.Controllers
 
         private async Task<ActionResult> PutFormData(string org, string app, Instance instance, Guid dataGuid, string dataType)
         {
+            string classRef = appResourcesService.GetClassRefForLogicDataType(dataType);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            object serviceModel = ParseContentAndDeserializeServiceModel(altinnApp.GetAppModelType(dataType), out ActionResult contentError);
+            object serviceModel = ParseContentAndDeserializeServiceModel(altinnApp.GetAppModelType(classRef), out ActionResult contentError);
 
             if (contentError != null)
             {
@@ -515,14 +516,14 @@ namespace Altinn.App.Api.Controllers
             DataElement updatedDataElement = await this.dataService.UpdateData(
                 serviceModel,
                 instanceGuid,
-                altinnApp.GetAppModelType(dataType),
+                altinnApp.GetAppModelType(classRef),
                 org,
                 app,
                 instanceOwnerPartyId,
                 dataGuid);
 
             SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, updatedDataElement, Request);
-   
+
             string dataUrl = updatedDataElement.SelfLinks.Apps;
 
             return Created(dataUrl, updatedDataElement);
