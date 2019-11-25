@@ -21,7 +21,7 @@ export default (props) => {
     },
   } = props;
 
-  (window as Window as IAltinnWindow).instanceId = partyId  + '/' + instanceGuid;
+  (window as Window as IAltinnWindow).instanceId = partyId + '/' + instanceGuid;
 
   React.useEffect(() => {
     const { org, app, instanceId } = window as Window as IAltinnWindow;
