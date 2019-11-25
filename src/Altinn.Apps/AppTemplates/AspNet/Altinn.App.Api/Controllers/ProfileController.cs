@@ -42,27 +42,26 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult> GetUser()
         {
             int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext);
-            UserProfile user;
-            if (userId != 0)
+            if (userId == 0)
             {
-                try
-                {
-                    user = await _profile.GetUserProfile(userId);
-
-                    if (user == null)
-                    {
-                        return NotFound();
-                    }
-
-                    return Ok(user);
-                }
-                catch (Exception e)
-                {
-                    return StatusCode(500, e.Message); 
-                }                
+                return BadRequest("The userId is not proviced in the context.");
             }
 
-            return BadRequest("The userId is not proviced in the context.");
+            try
+            {
+                var user = await _profile.GetUserProfile(userId);
+
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(user);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message); 
+            }
         }
     }
 }

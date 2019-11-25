@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static Altinn.Authorization.ABAC.Constants.XacmlConstants;
 
@@ -66,7 +67,10 @@ namespace Altinn.Common.PEP.Helpers
             // Mapping all claims on user to attributes
             foreach (Claim claim in claims)
             {
-                subjectAttributes.Attribute.Add(CreateXacmlJsonAttribute(claim.Type, claim.Value, claim.ValueType, claim.Issuer));
+                if (IsValidUrn(claim.Type))
+                {
+                    subjectAttributes.Attribute.Add(CreateXacmlJsonAttribute(claim.Type, claim.Value, claim.ValueType, claim.Issuer));
+                }
             }
 
             return subjectAttributes;
@@ -102,6 +106,13 @@ namespace Altinn.Common.PEP.Helpers
             xacmlJsonAttribute.Issuer = issuer;
 
             return xacmlJsonAttribute;
+        }
+
+        private static bool IsValidUrn(string value)
+        {
+            Regex regex = new Regex("^urn*");
+
+            return regex.Match(value).Success ? true : false;
         }
     }
 }

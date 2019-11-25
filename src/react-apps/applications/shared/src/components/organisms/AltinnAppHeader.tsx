@@ -63,6 +63,7 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
       >
         <Grid
           container={true}
+          item={true}
           xs={6}
         >
           <Grid item={true}>
@@ -73,6 +74,7 @@ export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
           container={true}
           justify={'flex-end'}
           alignItems={'center'}
+          item={true}
           xs={6}
         >
           <Grid item={true}>
