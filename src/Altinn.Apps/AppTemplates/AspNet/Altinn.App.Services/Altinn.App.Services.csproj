@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <Version>0.0.13-alpha</Version>
+    <Authors>Altinn</Authors>
+    <Company>Altinn</Company>
+    <Description>Common services with Altinn Platform functionality and Altinn Apps functionality</Description>
+    <PackageProjectUrl>https://github.com/Altinn/altinn-studio</PackageProjectUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>0.0.13.0</AssemblyVersion>
+    <IsPackable>true</IsPackable>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Interfaces\**" />
+    <EmbeddedResource Remove="Interfaces\**" />
+    <None Remove="Interfaces\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.3.8" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.14" />
+    <PackageReference Include="JWTCookieAuthentication" Version="1.0.2-alpha" />
+    <PackageReference Include="LibGit2Sharp" Version="0.26.0" />
+    <PackageReference Include="Manatee.Json" Version="10.1.2" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.4.0-beta2-final" />
+  </ItemGroup>
+  
+ <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  
+ <ItemGroup>
+   <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
+ </ItemGroup>
+
+</Project>

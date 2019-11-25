@@ -1,0 +1,31 @@
+replicaCount: 1
+
+image:
+  # Set "repository" name of your image for manual Helm install and upgrade.
+  repository:
+  tag: latest
+  pullPolicy: Always
+  pullSecrets:
+    # Change this to the name of your pull secret
+    - name: acr-secret
+
+service:
+  name: deployment
+  type: ClusterIP
+  externalPort: 80
+  # If your application is running on another port, change only the internal port.
+  internalPort: 5005
+
+ingress:
+  enabled: true
+  annotations:
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  paths:
+    # The first path will automatically be overwritten during deploy
+    # Additional paths needs to be configured manually
+    - path: /servicename
+  hosts:
+  # The first hosts entry host is configured automatically during deployment in Altinn Studio
+  # For manual deploy, or more hosts, configure hosts
+    - example.hostname
