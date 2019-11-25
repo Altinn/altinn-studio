@@ -7,7 +7,6 @@ using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Interfaces;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
@@ -61,7 +60,6 @@ namespace Altinn.App
             services.AddTransient<IInstanceEvent, InstanceEventAppSI>();
             services.AddTransient<IProfile, ProfileAppSI>();
             services.AddTransient<IRegister, RegisterAppSI>();
-            services.AddTransient<IReiseApi, ReiseApi>();
             services.AddTransient<IPDP, PDPAppSI>();
             services.AddSingleton<IValidation, ValidationAppSI>();
 
