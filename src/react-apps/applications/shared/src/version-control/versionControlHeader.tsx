@@ -334,12 +334,12 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     })
     .catch((err) => {
       if (this.state.modalState.isLoading) {
-        this.setState({
+        this.setState((prevState) => ({
           modalState: {
             header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
-            isLoading: !this.state.modalState.isLoading,
+            isLoading: !prevState.modalState.isLoading,
           },
-        });
+        }));
       }
     });
     this.forceRepoStatusCheck();
@@ -396,23 +396,23 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       })
       .catch((err) => {
         if (this.state.modalState.isLoading) {
-          this.setState({
+          this.setState((prevState) => ({
             modalState: {
               header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
-              isLoading: !this.state.modalState.isLoading,
+              isLoading: !prevState.modalState.isLoading,
             },
-          });
+          }));
         }
       });
     })
     .catch((err) => {
       if (this.state.modalState.isLoading) {
-        this.setState({
+        this.setState((prevState) => ({
           modalState: {
             header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
-            isLoading: !this.state.modalState.isLoading,
+            isLoading: !prevState.modalState.isLoading,
           },
-        });
+        }));
       }
     });
   }
