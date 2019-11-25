@@ -133,12 +133,12 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     })
     .catch((err) => {
       if (this.state.modalState.isLoading) {
-        this.setState({
+        this.setState((prevState) => ({
           modalState: {
             header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
-            isLoading: !this.state.modalState.isLoading,
+            isLoading: !prevState.modalState.isLoading,
           },
-        });
+        }));
       }
     });
   }
@@ -233,12 +233,12 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     })
     .catch((err) => {
       if (this.state.modalState.isLoading) {
-        this.setState({
+        this.setState((prevState) => ({
           modalState: {
             header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
-            isLoading: !this.state.modalState.isLoading,
+            isLoading: !prevState.modalState.isLoading,
           },
-        });
+        }));
       }
     });
   }
@@ -291,7 +291,6 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
               },
             });
           }
-
         }
       });
     } else if (this.state.hasPushRight === false) {
@@ -329,6 +328,16 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             descriptionText:
               [getLanguageFromKey('sync_header.sharing_changes_completed_submessage', this.props.language)],
             shouldShowDoneIcon: true,
+          },
+        });
+      }
+    })
+    .catch((err) => {
+      if (this.state.modalState.isLoading) {
+        this.setState({
+          modalState: {
+            header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
+            isLoading: !this.state.modalState.isLoading,
           },
         });
       }
@@ -384,7 +393,27 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             });
           }
         }
+      })
+      .catch((err) => {
+        if (this.state.modalState.isLoading) {
+          this.setState({
+            modalState: {
+              header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
+              isLoading: !this.state.modalState.isLoading,
+            },
+          });
+        }
       });
+    })
+    .catch((err) => {
+      if (this.state.modalState.isLoading) {
+        this.setState({
+          modalState: {
+            header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
+            isLoading: !this.state.modalState.isLoading,
+          },
+        });
+      }
     });
   }
 
