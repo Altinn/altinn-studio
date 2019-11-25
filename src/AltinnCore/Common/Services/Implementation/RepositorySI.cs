@@ -187,14 +187,15 @@ namespace AltinnCore.Common.Services.Implementation
             try
             {
                 string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
-                string filePath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"{modelName}.metadata.json";
+                string modelsFolderPath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                string filePath = modelsFolderPath + $"{modelName}.metadata.json";
 
-                _logger.LogInformation($"// Debug // RepositorySI // Trying to write metadata to filepath: {filePath}");
+                Directory.CreateDirectory(modelsFolderPath);
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
             }
             catch (Exception e)
             {
-                _logger.LogInformation($"// Debug // RepositorySI // Exception when trying to store metadata: {e.GetType()} : {e.Message}");
+                _logger.LogInformation($"An error occurred when trying to store model metadata: {e.GetType()} : {e.Message}");
                 return false;
             }
 
