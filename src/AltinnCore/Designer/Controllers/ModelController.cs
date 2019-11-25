@@ -27,16 +27,18 @@ namespace AltinnCore.Designer.Controllers
     {
         private readonly IRepository _repository;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelController"/> class
         /// </summary>
         /// <param name="repositoryService">The service Repository Service</param>
         /// <param name="loggerFactory"> the logger factory</param>
-        public ModelController(IRepository repositoryService, ILoggerFactory loggerFactory)
+        public ModelController(IRepository repositoryService, ILoggerFactory loggerFactory, ILogger<ModelController> logger)
         {
             _repository = repositoryService;
             _loggerFactory = loggerFactory;
+            _logger = logger;
         }
 
         /// <summary>
@@ -87,6 +89,9 @@ namespace AltinnCore.Designer.Controllers
             HandleTexts(org, app, converter.GetTexts());
 
             string modelName = Path.GetFileNameWithoutExtension(mainFileName);
+
+            _logger.LogInformation($"// Debug // ModelController // Create model for org: {org}, app: {app}, modelName = {modelName}");
+
             if (_repository.CreateModel(org, app, modelMetadata, mainXsd, modelName))
             {
                 return RedirectToAction("Index", new { org, app, modelName });

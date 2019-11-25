@@ -189,6 +189,7 @@ namespace AltinnCore.Common.Services.Implementation
                 string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
                 string filePath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"{modelName}.metadata.json";
 
+                _logger.LogInformation($"// Debug // RepositorySI // Trying to write metadata to filepath: {filePath}");
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
             }
             catch
