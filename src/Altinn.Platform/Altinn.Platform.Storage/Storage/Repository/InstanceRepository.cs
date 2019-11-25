@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -27,7 +29,7 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string _databaseId;
         private readonly ILogger<InstanceRepository> _logger;
 
-        private static DocumentClient _client;
+        private readonly DocumentClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
