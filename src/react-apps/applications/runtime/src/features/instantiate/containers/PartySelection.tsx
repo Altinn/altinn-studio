@@ -2,11 +2,10 @@ import { createStyles, Grid, Typography, withStyles, WithStyles } from '@materia
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect, RouteComponentProps, withRouter } from 'react-router';
+import { RouteComponentProps, withRouter } from 'react-router';
 import AltinnCheckBox from '../../../../../shared/src/components/AltinnCheckBox';
 import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import { IParty } from '../../../../../shared/src/types';
-import Header from '../../../shared/components/altinnAppHeader';
 import AltinnParty from '../../../shared/components/altinnParty';
 import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
@@ -16,17 +15,10 @@ import { IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
 import { capitalizeName } from '../../../utils/stringHelper';
+import InstantiationContainer from './InstantiationContainer';
+import NoValidPartiesError from './NoValidPartiesError';
 
 const styles = createStyles({
-  partySelectionPage: {
-    width: '100%',
-    maxWidth: '1056px',
-    backgroundColor: AltinnAppTheme.altinnPalette.primary.white,
-    display: 'flex',
-    flexDirection: 'column',
-    alignSelf: 'center',
-    padding: 12,
-  },
   partySelectionTitle: {
     fontSize: '3.5rem',
     fontWeight: 200,
@@ -113,14 +105,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
 
     if (parties.length === 0) {
       return (
-        <Redirect
-          to={{
-            pathname: '/error',
-            state: {
-              message: 'No valid parties',
-            },
-          }}
-        />
+        <NoValidPartiesError />
       );
     }
 
@@ -286,16 +271,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   }
 
   return (
-    <Grid
-      container={true}
-      direction={'column'}
-      className={'container ' + classes.partySelectionPage}
-    >
-      <Header
-        language={language}
-        profile={profile}
-        type={'normal'}
-      />
+    <InstantiationContainer>
       <Grid
         container={true}
         direction={'row'}
@@ -384,7 +360,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
         </Grid>
         {renderParties()}
       </Grid>
-    </Grid>
+    </InstantiationContainer>
   );
 });
 

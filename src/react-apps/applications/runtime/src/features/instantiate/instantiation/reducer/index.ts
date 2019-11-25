@@ -43,7 +43,7 @@ const InstantiationReducer: Reducer<IInstantiationState> = (
         },
       });
     }
-    case InstantiateActionTypes.INSTANTIAT_REJECTED: {
+    case InstantiateActionTypes.INSTANTIATE_REJECTED: {
       const { error } = action as IInstantiateRejected;
       return update<IInstantiationState>(state, {
         error: {

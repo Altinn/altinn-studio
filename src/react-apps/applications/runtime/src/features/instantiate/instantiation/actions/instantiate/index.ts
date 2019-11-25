@@ -31,7 +31,7 @@ export interface IInstantiateRejected extends Action {
 
 export function instantiateRejected(error: Error): IInstantiateRejected {
   return {
-    type: ActionTypes.INSTANTIAT_REJECTED,
+    type: ActionTypes.INSTANTIATE_REJECTED,
     error,
   };
 }

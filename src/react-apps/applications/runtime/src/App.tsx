@@ -5,7 +5,6 @@ import AltinnAppTheme from '../../shared/src/theme/altinnAppTheme';
 import FormFiller from './features/form/containers';
 import Instantiate from './features/instantiate/containers';
 import PartySelection from './features/instantiate/containers/PartySelection';
-import StatefullAltinnError from './shared/container/StatefullAltinnError';
 import ApplicationMetadataActions from './shared/resources/applicationMetadata/actions';
 import LanguageActions from './shared/resources/language/languageActions';
 import PartyActions from './shared/resources/party/partyActions';
@@ -73,7 +72,6 @@ export default function() {
         <Route path={'/'} exact={true} component={Instantiate} />
         <Route path={'/partyselection/:errorCode?'} exact={true} component={PartySelection} />
         <Route path={'/instance/:partyId/:instanceGuid'} exact={true} component={FormFiller} />
-        <Route path={'/error'} component={StatefullAltinnError} />
       </Switch>
     </MuiThemeProvider>
   );
