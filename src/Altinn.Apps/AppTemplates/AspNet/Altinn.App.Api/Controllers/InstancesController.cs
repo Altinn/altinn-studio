@@ -29,13 +29,13 @@ namespace Altinn.App.Api.Controllers
     [ApiController]
     public class InstancesController : ControllerBase
     {
-        private readonly ILogger<InstancesController> logger;
-        private readonly IInstance instanceService;
-        private readonly IData dataService;
+        private readonly ILogger<InstancesController> _logger;
+        private readonly IInstance _instanceService;
+        private readonly IData _dataService;
 
-        private readonly IAppResources appResourcesService;
-        private readonly IRegister registerService;
-        private readonly IAltinnApp altinnApp;
+        private readonly IAppResources _appResourcesService;
+        private readonly IRegister _registerService;
+        private readonly IAltinnApp _altinnApp;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -48,12 +48,12 @@ namespace Altinn.App.Api.Controllers
             IAppResources appResourcesService,
             IAltinnApp altinnApp)
         {
-            this.logger = logger;
-            this.instanceService = instanceService;
-            this.dataService = dataService;
-            this.appResourcesService = appResourcesService;
-            this.registerService = registerService;
-            this.altinnApp = altinnApp;
+            _logger = logger;
+            _instanceService = instanceService;
+            _dataService = dataService;
+            _appResourcesService = appResourcesService;
+            _registerService = registerService;
+            _altinnApp = altinnApp;
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Altinn.App.Api.Controllers
         {
             try
             {
-                Instance instance = await instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
                 if (instance == null)
                 {
                     return NotFound();
@@ -127,7 +127,7 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-                Instance updatedInstance = await instanceService.UpdateInstance(instance);
+                Instance updatedInstance = await _instanceService.UpdateInstance(instance);
 
                 if (updatedInstance == null)
                 {
@@ -175,7 +175,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("The path parameter 'app' cannot be empty");
             }
 
-            Application application = appResourcesService.GetApplication();
+            Application application = _appResourcesService.GetApplication();
             if (application == null)
             {
                 return NotFound($"AppId {org}/{app} was not found");
@@ -254,7 +254,7 @@ namespace Altinn.App.Api.Controllers
             Instance instance;
             try
             {
-                instance = await instanceService.CreateInstance(org, app, instanceTemplate);
+                instance = await _instanceService.CreateInstance(org, app, instanceTemplate);
                 if (instance == null)
                 {
                     throw new PlatformClientException("Failure instantiating instance. UnknownError");
@@ -264,7 +264,7 @@ namespace Altinn.App.Api.Controllers
             {
                 string message = $"Failure in multipart prefil. Could not create an instance of {org}/{app} for party {instanceTemplate.InstanceOwner.PartyId}.";
 
-                logger.LogError($"{message} - {instanceException}");
+                _logger.LogError($"{message} - {instanceException}");
                 return StatusCode(500, $"{message} - {instanceException.Message}");
             }
 
@@ -273,14 +273,14 @@ namespace Altinn.App.Api.Controllers
                 await StorePrefillParts(instance, application, parsedRequest.Parts);
 
                 // get the updated instance
-                instance = await instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
+                instance = await _instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
 
-                await altinnApp.OnInstantiate(instance);
+                await _altinnApp.OnInstantiate(instance);
             }
             catch (Exception dataException)
             {
                 string message = $"Failure storing multipart prefil data. Could not create a data element for {instance.Id} of {org}/{app}.";
-                logger.LogError($"{message} - {dataException}");
+                _logger.LogError($"{message} - {dataException}");
 
                 // todo add compensating transaction (delete instance)                
                 return StatusCode(500, $"{message} Exception: {dataException.Message}");
@@ -301,7 +301,7 @@ namespace Altinn.App.Api.Controllers
             {
                 try
                 {
-                    party = await registerService.GetParty(int.Parse(instanceOwner.PartyId));
+                    party = await _registerService.GetParty(int.Parse(instanceOwner.PartyId));
                     if (!string.IsNullOrEmpty(party.SSN))
                     {
                         instanceOwner.PersonNumber = party.SSN;
@@ -315,7 +315,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 catch (Exception e)
                 {
-                    logger.LogWarning($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}");
+                    _logger.LogWarning($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}");
                     throw new PlatformClientException($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}");
                 }
             }
@@ -328,12 +328,12 @@ namespace Altinn.App.Api.Controllers
                     if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                     {
                         lookupNumber = "personNumber";
-                        party = await registerService.LookupParty(instanceOwner.PersonNumber);
+                        party = await _registerService.LookupParty(instanceOwner.PersonNumber);
                     }
                     else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
                     {
                         lookupNumber = "organisationNumber";
-                        party = await registerService.LookupParty(instanceOwner.OrganisationNumber);
+                        party = await _registerService.LookupParty(instanceOwner.OrganisationNumber);
                     }
                     else
                     {
@@ -344,7 +344,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 catch (Exception e)
                 {
-                    logger.LogWarning($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e}");
+                    _logger.LogWarning($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e}");
                     throw new PlatformClientException($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e.Message}");
                 }
             }
@@ -366,12 +366,12 @@ namespace Altinn.App.Api.Controllers
 
                 if (dataType.AppLogic != null)
                 {
-                    logger.LogInformation($"Storing part {part.Name}");
+                    _logger.LogInformation($"Storing part {part.Name}");
 
                     Type type;
                     try
                     {
-                        type = altinnApp.GetAppModelType(dataType.AppLogic.ClassRef);
+                        type = _altinnApp.GetAppModelType(dataType.AppLogic.ClassRef);
                     }
                     catch (Exception altinnAppException)
                     {
@@ -385,7 +385,7 @@ namespace Altinn.App.Api.Controllers
                         throw new InvalidOperationException(errorText);
                     }
 
-                    dataElement = await dataService.InsertFormData(
+                    dataElement = await _dataService.InsertFormData(
                         data,
                         instanceGuid,
                         type,
@@ -396,7 +396,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 else
                 {
-                    dataElement = await dataService.InsertBinaryData(instance.Id, part.Name, part.ContentType, part.FileName, part.Stream);
+                    dataElement = await _dataService.InsertBinaryData(instance.Id, part.Name, part.ContentType, part.FileName, part.Stream);
                 }
 
                 if (dataElement == null)

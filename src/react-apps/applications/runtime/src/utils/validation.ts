@@ -86,13 +86,11 @@ export function validateFormComponents(
   language: any,
 ) {
   const validations: any = {};
-  const numberOfAttachments = attachments ? Object.keys(attachments).length : 0;
   const fieldKey = 'simpleBinding';
   formLayout.forEach((component: any) => {
     if (!component.hidden) {
       if (component.type === 'FileUpload') {
-        if (component.minNumberOfAttachments > 0 && numberOfAttachments < 1 ||
-          attachments[component.id].length < component.minNumberOfAttachments) {
+        if (!attachmentsValid(attachments, component)) {
           validations[component.id] = {};
           const componentValidations: IComponentValidations = {
             [fieldKey]: {
@@ -111,6 +109,15 @@ export function validateFormComponents(
     }
   });
   return validations;
+}
+
+function attachmentsValid(attachments: any, component: any): boolean {
+  return (
+    component.minNumberOfAttachments === 0 ||
+    (attachments &&
+      attachments[component.id] &&
+      attachments[component.id].length >= component.minNumberOfAttachments)
+  );
 }
 
 /*
@@ -345,7 +352,7 @@ export function mapDataElementValidationToRedux(validations: IValidationIssue[],
       let found = false;
       Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
         // tslint:disable-next-line: max-line-length
-        if (componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === validation.field.toLowerCase()) {
+        if (validation.field && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === validation.field.toLowerCase()) {
           found = true;
           if (!componentValidations[dataModelBindingKey]) {
             componentValidations[dataModelBindingKey] = {errors: [], warnings: []};

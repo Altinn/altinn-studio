@@ -63,10 +63,8 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Returns the class ref for a given datatype. Defaults to first applogic type if not prent
         /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="app">The app</param>
         /// <param name="dataType">The datatype</param>
         /// <returns></returns>
-        string GetClassRefForLogicDataType(string org, string app, string dataType);
+        string GetClassRefForLogicDataType(string dataType);
     }
 }

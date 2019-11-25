@@ -23,7 +23,6 @@ namespace Altinn.App.Services.Implementation
         private readonly AppSettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHostingEnvironment _hostingEnvironment;
-        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger _logger;
 
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
@@ -38,13 +37,11 @@ namespace Altinn.App.Services.Implementation
             IOptions<AppSettings> settings,
             IHttpContextAccessor httpContextAccessor,
             IHostingEnvironment hostingEnvironment,
-            ILoggerFactory loggerFactory,
             ILogger<AppResourcesSI> logger)
         {
             _settings = settings.Value;
             _httpContextAccessor = httpContextAccessor;
             _hostingEnvironment = hostingEnvironment;
-            _loggerFactory = loggerFactory;
             _logger = logger;
         }
 
@@ -53,8 +50,6 @@ namespace Altinn.App.Services.Implementation
         {
             byte[] fileContent = null;
 
-           Application application = GetApplication();
- 
             if (resource == _settings.RuleHandlerFileName)
             {
                 if (File.Exists(_settings.AppBasePath + _settings.UiFolder + resource))
@@ -88,10 +83,9 @@ namespace Altinn.App.Services.Implementation
             {
                 fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder + textResource);
             }
-          
+
             return fileContent;
         }
-
 
         public Application GetApplication()
         {
@@ -128,7 +122,7 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
-            string filename = _settings.AppBasePath + _settings.ModelsFolder + dataTypeId +"." +  _settings.ServiceMetadataFileName;
+            string filename = _settings.AppBasePath + _settings.ModelsFolder + dataTypeId + "." + _settings.ServiceMetadataFileName;
             string filedata = File.ReadAllText(filename, Encoding.UTF8);
             return JsonConvert.DeserializeObject<ServiceMetadata.ServiceMetadata>(filedata);
         }
@@ -171,7 +165,7 @@ namespace Altinn.App.Services.Implementation
             return filedata;
         }
 
-        public string GetClassRefForLogicDataType(string org, string app, string dataType)
+        public string GetClassRefForLogicDataType(string dataType)
         {
             Application application = GetApplication();
             string classRef = string.Empty;
