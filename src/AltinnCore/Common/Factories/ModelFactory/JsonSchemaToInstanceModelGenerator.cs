@@ -68,9 +68,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
         ///  Returns the current service metamodel.
         /// </summary>
         /// <returns>The Service Metadata object which represent the instance model of the Schema</returns>
-        public ServiceMetadata GetServiceMetadata()
+        public ModelMetadata GetModelMetadata()
         {
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<ServiceMetadata>(instanceModel.ToString());
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<ModelMetadata>(instanceModel.ToString());
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         }
 
         private JsonObject GenerateInitialReferences()
-        {                                
+        {
             string title = jsonSchema.Title();
 
             if (jsonSchema.Properties() == null)
@@ -99,7 +99,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     firstPropertyName = def.Key;
                 }
 
-                TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema), new HashSet<string>(), jsonSchema);          
+                TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema), new HashSet<string>(), jsonSchema);
             }
 
             return instanceModel;
@@ -111,7 +111,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// <param name="path">the path to expand</param>
         /// <returns>instance modell with new expanded elements</returns>
         public JsonObject ExpandPath(string path)
-        {          
+        {
             JsonObject startPoint = instanceModel.TryGetObject("Elements").TryGetObject(path);
             if (startPoint == null)
             {
@@ -132,7 +132,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 throw new ApplicationException("Path cannot be expanded since type is not a group: " + typeName);
             }
 
-            // Only handle properties below path                
+            // Only handle properties below path
             try
             {
                 foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Properties())
@@ -145,7 +145,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 throw new ApplicationException("Path already expanded or failure in expanding code", e);
             }
 
-            return instanceModel;   
+            return instanceModel;
         }
 
         /// <summary>
@@ -304,7 +304,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 string databindingNameWithoutFirstPropertyName = RemoveStarsFromPath(path).Replace(firstPropertyName + ".", string.Empty);
                 string[] lowerCamelCaseSegments = databindingNameWithoutFirstPropertyName.Split(".").Select(s => char.ToLowerInvariant(s[0]) + s.Substring(1)).ToArray();
                 string dataBindingName = string.Join(".", lowerCamelCaseSegments);
-                result.Add("DataBindingName", dataBindingName);                
+                result.Add("DataBindingName", dataBindingName);
             }
 
             result.Add("XPath", "/" + RemoveStarsFromPath(path).Replace(".", "/"));
@@ -351,7 +351,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string cardinality = "[" + minItems + ".." + maxItems + "]";
             string displayString = RemoveLastStar(path) + " : " + cardinality + " " + SanitizeName(typeName);
             result.Add("DisplayString", displayString);
-           
+
             // TODO ..., XmlSchemaReference
             elements.Add(RemoveStarsFromPath(path), result);
         }
@@ -369,14 +369,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
             JsonValue otherData = propertyType.OtherData;
             if (otherData == null)
             {
-                return result;                
+                return result;
             }
 
             JsonValue texts = otherData.Object.GetValueOrDefault("texts");
-            
+
             if (texts == null)
             {
-                // For some unknown reason Manatee sometimes needs to explicit use this method to extract other data texts 
+                // For some unknown reason Manatee sometimes needs to explicit use this method to extract other data texts
                 TextsKeyword texts2 = propertyType.Get<TextsKeyword>();
                 if (texts2 != null)
                 {
@@ -408,7 +408,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         allTexts.Add(textKey, languageWithText);
                     }
                 }
-            }            
+            }
 
             return result;
         }
@@ -431,14 +431,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
             switch (lang)
             {
                 case "NOB":
-                    langLocale = "nb-NO";
+                    langLocale = "nb";
                     break;
                 case "NNO":
                 case "NON":
-                    langLocale = "nn-NO";
+                    langLocale = "nn";
                     break;
                 case "SME":
-                    langLocale = "se-NO";
+                    langLocale = "se";
                     break;
                 case "EN":
                     langLocale = "en";
@@ -755,7 +755,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                             return "string";
                         }
-                        
+
                     case JsonSchemaType.Boolean:
                         return "boolean";
                     case JsonSchemaType.Number:
@@ -771,7 +771,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             {
                                 return "integer";
                             }
-                        }                        
+                        }
                 }
             }
 
@@ -828,5 +828,5 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             return "Unknown";
         }
-    }    
+    }
 }

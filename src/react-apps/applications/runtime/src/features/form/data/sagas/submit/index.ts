@@ -42,7 +42,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
 
     if (canFormBeSaved(validations)) {
       // updates the default data element
-      const defaultDataElementGuid = state.instanceData.instance.data.find((e) => e.elementType === 'default').id;
+      const defaultDataElementGuid = state.instanceData.instance.data.find((e) => e.dataType === 'default').id;
       yield call(put, dataElementUrl(defaultDataElementGuid), model);
 
       if (apiMode === 'Complete') {

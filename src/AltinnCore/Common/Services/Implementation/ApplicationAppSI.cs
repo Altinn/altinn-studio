@@ -1,6 +1,6 @@
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
@@ -19,7 +19,6 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly IData _data;
         private readonly PlatformSettings _platformSettings;
-        private readonly IWorkflow _workflow;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtCookieOptions _cookieOptions;

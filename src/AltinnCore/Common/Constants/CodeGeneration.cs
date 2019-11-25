@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.Common.Constants
+namespace AltinnCore.Common.Constants
 {
     /// <summary>
     /// Contains constants related to service code generation
@@ -8,7 +8,7 @@
         /// <summary>
         /// Template constant for the namespace for a service
         /// </summary>
-        public const string ServiceNamespaceTemplate = "AltinnCoreServiceImplementation.{0}.{1}";
+        public const string AppNamespaceTemplate = "Altinn.App";
 
         /// <summary>
         /// Default constant for the namespace for a service

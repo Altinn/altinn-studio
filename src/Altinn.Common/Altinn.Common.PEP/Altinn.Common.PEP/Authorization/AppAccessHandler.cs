@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Configuration;
+using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -67,7 +68,7 @@ namespace Altinn.Common.PEP.Authorization
                 return;
             }
 
-            XacmlJsonRequest request = CreateXacmlJsonRequest(context, requirement);
+            XacmlJsonRequest request = DecisionHelper.CreateXacmlJsonRequest(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if(response == null || response.Response == null)
@@ -100,7 +101,7 @@ namespace Altinn.Common.PEP.Authorization
                 if (attributeMinLvAuth != null)
                 {
                     string minAuthenticationLevel = attributeMinLvAuth.Value;
-                    string usersAuthenticationLevel = context.User.Claims.FirstOrDefault(c => c.Type.Equals("AuthenticationLevel")).Value;
+                    string usersAuthenticationLevel = context.User.Claims.FirstOrDefault(c => c.Type.Equals("urn:altinn:minimum-authenticationlevel")).Value;
 
                     // Checks that the user meets the minimum authentication level
                     if (Convert.ToInt32(usersAuthenticationLevel) < Convert.ToInt32(minAuthenticationLevel))
@@ -114,7 +115,7 @@ namespace Altinn.Common.PEP.Authorization
             await Task.CompletedTask;
         }
 
-        private XacmlJsonRequest CreateXacmlJsonRequest(AuthorizationHandlerContext context, AppAccessRequirement requirement)
+        /*private XacmlJsonRequest CreateXacmlJsonRequest(AuthorizationHandlerContext context, AppAccessRequirement requirement)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
 
@@ -178,6 +179,6 @@ namespace Altinn.Common.PEP.Authorization
             xacmlJsonAttribute.Issuer = issuer;
 
             return xacmlJsonAttribute;
-        }
+        }*/
     }
 }

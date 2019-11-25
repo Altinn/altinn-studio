@@ -90,7 +90,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public ActionResult GetTextResources(string org, string app, string id)
         {
-            var result = _repository.GetResource(org, app, id);
+            var result = _repository.GetLanguageResource(org, app, id);
             return Content(result);
         }
 

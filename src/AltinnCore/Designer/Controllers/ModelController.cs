@@ -27,27 +27,29 @@ namespace AltinnCore.Designer.Controllers
     {
         private readonly IRepository _repository;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelController"/> class
         /// </summary>
         /// <param name="repositoryService">The service Repository Service</param>
         /// <param name="loggerFactory"> the logger factory</param>
-        public ModelController(IRepository repositoryService, ILoggerFactory loggerFactory)
+        public ModelController(IRepository repositoryService, ILoggerFactory loggerFactory, ILogger<ModelController> logger)
         {
             _repository = repositoryService;
             _loggerFactory = loggerFactory;
+            _logger = logger;
         }
 
         /// <summary>
-        /// The default action presenting the
+        /// The default action presenting the application model.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model main page</returns>
         public ActionResult Index(string org, string app)
         {
-            ServiceMetadata metadata = _repository.GetServiceMetaData(org, app);
+            ModelMetadata metadata = _repository.GetModelMetadata(org, app);
             return View(metadata);
         }
 
@@ -75,8 +77,6 @@ namespace AltinnCore.Designer.Controllers
 
             XDocument mainXsd = XDocument.Load(reader, LoadOptions.None);
 
-            ServiceMetadata serviceMetadata = null;
-
             xsdMemoryStream.Position = 0;
             reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
 
@@ -84,13 +84,17 @@ namespace AltinnCore.Designer.Controllers
             JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
             JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, app, schemaJsonSchema);
-            serviceMetadata = converter.GetServiceMetadata();
+            ModelMetadata modelMetadata = converter.GetModelMetadata();
 
             HandleTexts(org, app, converter.GetTexts());
 
-            if (_repository.CreateModel(org, app, serviceMetadata, mainXsd))
+            string modelName = Path.GetFileNameWithoutExtension(mainFileName);
+
+            _logger.LogInformation($"// Debug // ModelController // Create model for org: {org}, app: {app}, modelName = {modelName}");
+
+            if (_repository.CreateModel(org, app, modelMetadata, mainXsd, modelName))
             {
-                return RedirectToAction("Index", new { org, app });
+                return RedirectToAction("Index", new { org, app, modelName });
             }
 
             return Json(false);
@@ -136,7 +140,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public ActionResult GetJson(string org, string app, bool texts = true, bool restrictions = true, bool attributes = true)
         {
-            ServiceMetadata metadata = _repository.GetServiceMetaData(org, app);
+            ModelMetadata metadata = _repository.GetModelMetadata(org, app);
             return Json(metadata, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented });
         }
 
@@ -150,16 +154,17 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public ActionResult UpdateServiceMetadata(string org, string app, string serviceMetadata)
         {
-            ServiceMetadata serviceMetadataObject = JsonConvert.DeserializeObject<ServiceMetadata>(serviceMetadata);
+            ModelMetadata serviceMetadataObject = JsonConvert.DeserializeObject<ModelMetadata>(serviceMetadata);
 
             if (!ModelState.IsValid)
             {
-                return BadRequest("Modelstate is invalid");
+                return BadRequest("Model state is invalid");
             }
 
-            if (_repository.UpdateServiceMetadata(org, app, serviceMetadataObject))
+            // TODO: figure out if this is used. Default must be actually set? 
+            if (_repository.UpdateModelMetadata(org, app, serviceMetadataObject, "default"))
             {
-                _repository.CreateModel(org, app, serviceMetadataObject, null);
+                _repository.CreateModel(org, app, serviceMetadataObject, null, null);
                 return Ok("Metadata was saved and model re-generated");
             }
             else
@@ -177,7 +182,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public ActionResult GetModel(string org, string app)
         {
-            return Content(_repository.GetServiceModel(org, app), "text/plain", Encoding.UTF8);
+            return Content(_repository.GetAppModel(org, app), "text/plain", Encoding.UTF8);
         }
 
         /// <summary>

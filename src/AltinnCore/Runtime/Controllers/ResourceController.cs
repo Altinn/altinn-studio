@@ -67,8 +67,8 @@ namespace AltinnCore.Runtime.Controllers
         /// <returns>The text resource file content or 404</returns>
         public IActionResult TextResources(string org, string app)
         {
-            string defaultLang = "nb-NO";
-            string culture = CultureInfo.CurrentUICulture.Name;
+            string defaultLang = "nb";
+            string culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
             string id = $"resource.{culture}.json";
             byte[] fileContent = _execution.GetServiceResource(org, app, id);
             if (fileContent != null)

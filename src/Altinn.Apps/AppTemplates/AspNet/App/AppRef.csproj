@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <AssemblyName>Altinn.App</AssemblyName>
+    <RootNamespace>Altinn.App</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ui\Dynamics\**" />
+    <Content Remove="ui\Dynamics\**" />
+    <EmbeddedResource Remove="ui\Dynamics\**" />
+    <None Remove="ui\Dynamics\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\css\" />
+    <Folder Include="wwwroot\script\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Altinn.Common.PEP" Version="0.0.6-alpha" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Altinn.App.Api\Altinn.App.Api.csproj" />
+    <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
+    <ProjectReference Include="..\Altinn.App.Services\Altinn.App.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config\process\process.bpmn">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JWTValidationCert.cer">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ui\RuleHandler.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -9,11 +9,11 @@ export function mapAttachmentListToAttachments(data: IData[]): IAttachments {
         return;
       }
 
-      if (!attachments[element.elementType]) {
-        attachments[element.elementType] = [];
+      if (!attachments[element.dataType]) {
+        attachments[element.dataType] = [];
       }
 
-      attachments[element.elementType].push(
+      attachments[element.dataType].push(
         {
           uploaded: true,
           deleting: false,

@@ -95,7 +95,7 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> GetMessageBoxInstance(int instanceOwnerPartyId, Guid instanceGuid, [FromQuery] string language)
         {
-            string[] acceptedLanguages = new string[] { "en", "nb", "nn-no" };
+            string[] acceptedLanguages = new string[] { "en", "nb", "nn" };
 
             string languageId = "nb";
 

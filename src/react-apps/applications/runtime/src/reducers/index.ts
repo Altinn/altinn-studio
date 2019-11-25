@@ -21,8 +21,9 @@ import PartyReducer, { IPartyState } from '../shared/resources/party/partyReduce
 import processReducer, { IProcessState } from '../shared/resources/process/processReducer';
 import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
 import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/reducer';
+import IsLoadingReducer, { IIsLoadingState } from './../shared/resources/isLoading/isLoadingReducers';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
@@ -40,6 +41,7 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T1
   organisationMetaData: T15;
   instanceData: T16;
   process: T17;
+  isLoading: T18;
 }
 
 export interface IRuntimeReducers extends IReducers<
@@ -59,29 +61,31 @@ export interface IRuntimeReducers extends IReducers<
   Reducer<IInstantiationState>,
   Reducer<IOrgsState>,
   Reducer<IInstanceDataState>,
-  Reducer<IProcessState>
+  Reducer<IProcessState>,
+  Reducer<IIsLoadingState>
   >,
   ReducersMapObject {
 }
 
 const reducers: IRuntimeReducers = {
-  formLayout: FormLayoutReducer,
-  formData: FormDataReducer,
-  formConfig: FormConfigState,
-  formDataModel: FormDataModel,
-  attachments: AttachmentReducer,
-  formDynamics: FormDynamics,
-  formRules: FormRuleReducer,
-  language: LanguageReducer,
-  textResources: TextResourcesReducer,
-  profile: ProfileReducer,
-  formValidations: ValidationReducer,
-  party: PartyReducer,
   applicationMetadata: ApplicationMetadataReducer,
-  instantiation: InstantiationReducer,
-  organisationMetaData: OrgsReducer,
+  attachments: AttachmentReducer,
+  formConfig: FormConfigState,
+  formData: FormDataReducer,
+  formDataModel: FormDataModel,
+  formDynamics: FormDynamics,
+  formLayout: FormLayoutReducer,
+  formRules: FormRuleReducer,
+  formValidations: ValidationReducer,
   instanceData: InstanceDataReducer,
+  instantiation: InstantiationReducer,
+  isLoading: IsLoadingReducer,
+  language: LanguageReducer,
+  organisationMetaData: OrgsReducer,
+  party: PartyReducer,
   process: processReducer,
+  profile: ProfileReducer,
+  textResources: TextResourcesReducer,
 };
 
 export default combineReducers(reducers);
