@@ -243,7 +243,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 DateTime creationTime = DateTime.UtcNow;
-                string userId = null;
+                string userId = GetUserId();
 
                 Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instance, creationTime, userId);
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
@@ -295,11 +295,11 @@ namespace Altinn.Platform.Storage.Controllers
 
             existingInstance.AppOwner = instance.AppOwner;            
             existingInstance.Process = instance.Process;
-            existingInstance.Status = instance.Status;
+            existingInstance.Status = instance.Status ?? new InstanceStatus();
 
             existingInstance.DueBefore = DateTimeHelper.ConvertToUniversalTime(instance.DueBefore);
             
-            existingInstance.LastChangedBy = User.Identity.Name;
+            existingInstance.LastChangedBy = GetUserId();
             existingInstance.LastChanged = DateTime.UtcNow;
 
             Instance result;
@@ -373,7 +373,7 @@ namespace Altinn.Platform.Storage.Controllers
                 DateTime now = DateTime.UtcNow;
 
                 instance.Status.SoftDeleted = now;
-                instance.LastChangedBy = User.Identity.Name;
+                instance.LastChangedBy = GetUserId();
                 instance.LastChanged = now;
 
                 try
@@ -526,6 +526,11 @@ namespace Altinn.Platform.Storage.Controllers
             string nextQueryString = qb.ToQueryString().Value;
 
             return nextQueryString;
+        }
+
+        private string GetUserId()
+        {
+            return User?.Identity?.Name;
         }
     }
 }
