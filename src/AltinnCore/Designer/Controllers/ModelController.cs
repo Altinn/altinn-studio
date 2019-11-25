@@ -153,7 +153,7 @@ namespace AltinnCore.Designer.Controllers
 
             if (!ModelState.IsValid)
             {
-                return BadRequest("Modelstate is invalid");
+                return BadRequest("Model state is invalid");
             }
 
             // TODO: figure out if this is used. Default must be actually set? 
