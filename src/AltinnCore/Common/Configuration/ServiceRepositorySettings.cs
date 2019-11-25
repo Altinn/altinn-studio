@@ -553,9 +553,6 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets the full path to deployment directory
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetDeploymentFolderName()
         {
@@ -565,9 +562,6 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets the full path to deployment directory
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetAppFolderName()
         {
@@ -575,13 +569,10 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the full path to intergrationtests directory
+        /// Gets the full path to integration tests directory
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetIntergrationTestsFolderName()
+        public string GetIntegrationTestsFolderName()
         {
             return INTERGRATIONTESTS_FOLDER_NAME;
         }
