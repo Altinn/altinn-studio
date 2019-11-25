@@ -81,7 +81,6 @@ namespace AltinnCore.Common.Services.Implementation
         #region Service metadata
         public bool CreateServiceMetadata(ModelMetadata serviceMetadata)
         {
-            string metadataAsJson = JsonConvert.SerializeObject(serviceMetadata);
             string orgPath = null;
             string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
@@ -986,12 +985,12 @@ namespace AltinnCore.Common.Services.Implementation
             string[] orgPaths = null;
 
             orgPaths = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                            ? orgPaths = Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
-                            : orgPaths = Directory.GetDirectories(_settings.RepositoryLocation);
+                            ? Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
+                            : Directory.GetDirectories(_settings.RepositoryLocation);
 
             foreach (string orgPath in orgPaths)
             {
-                string org = Path.GetFileName(orgPath);
+
                 string[] appPaths = Directory.GetDirectories(orgPath);
 
                 foreach (string appPath in appPaths)
