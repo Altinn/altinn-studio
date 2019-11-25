@@ -72,50 +72,6 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     };
   }
 
-  public getStatus(callbackFunc?: any) {
-    const { org, app } = window as IAltinnWindow;
-    const url = `${window.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${app}`;
-    get(url).then((result: any) => {
-      if (this._isMounted) {
-        this.setState({
-          mergeConflict: result.repositoryStatus === 'MergeConflict',
-        });
-        if (callbackFunc) {
-          callbackFunc(result);
-        } else {
-          if (result) {
-            this.setState({
-              changesInMaster: result.behindBy !== 0,
-              changesInLocalRepo: result.contentStatus.length > 0,
-            });
-          }
-        }
-      }
-    });
-  }
-
-  public updateStateOnIntervals() {
-    this.getStatus();
-    this.getLastPush();
-  }
-
-  public getLastPush() {
-    if (!this.state.moreThanAnHourSinceLastPush) {
-      const { org, app } = window as IAltinnWindow;
-      // tslint:disable-next-line:max-line-length
-      const url = `${window.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?org=${org}&repository=${app}`;
-      get(url).then((result: any) => {
-        if (this._isMounted && result) {
-          const diff = new Date().getTime() - new Date(result.comitter.when).getTime();
-          const oneHour = 60 * 60 * 1000;
-          this.setState({
-            moreThanAnHourSinceLastPush: oneHour < diff,
-          });
-        }
-      });
-    }
-  }
-
   public componentDidMount() {
     this._isMounted = true;
     // check status every 5 min
@@ -126,20 +82,6 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     window.addEventListener('message', this.changeToRepoOccured);
   }
 
-  public changeToRepoOccured = (event: any) => {
-    if (event.data === postMessages.filesAreSaved && this._isMounted && !this.state.timeoutIsRunning) {
-      this.setState({
-        timeoutIsRunning: true,
-      });
-      this.timeout = setTimeout(() => {
-        this.setState({
-          timeoutIsRunning: false,
-        });
-        this.getStatus();
-      }, 10000);
-    }
-  }
-
   public componentWillUnmount() {
     clearInterval(this.interval);
     this.source.cancel('ComponentWillUnmount'); // Cancel the getRepoPermissions() get request
@@ -148,7 +90,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public getRepoPermissions = async () => {
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`;
 
     try {
@@ -169,6 +111,74 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     }
   }
 
+  public getStatus(callbackFunc?: any) {
+    const { org, app } = window as Window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${app}`;
+    get(url).then((result: any) => {
+      if (this._isMounted) {
+        this.setState({
+          mergeConflict: result.repositoryStatus === 'MergeConflict',
+        });
+        if (callbackFunc) {
+          callbackFunc(result);
+        } else {
+          if (result) {
+            this.setState({
+              changesInMaster: result.behindBy !== 0,
+              changesInLocalRepo: result.contentStatus.length > 0,
+            });
+          }
+        }
+      }
+    })
+    .catch((err) => {
+      if (this.state.modalState.isLoading) {
+        this.setState((prevState) => ({
+          modalState: {
+            header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
+            isLoading: !prevState.modalState.isLoading,
+          },
+        }));
+      }
+    });
+  }
+
+  public updateStateOnIntervals() {
+    this.getStatus();
+    this.getLastPush();
+  }
+
+  public getLastPush() {
+    if (!this.state.moreThanAnHourSinceLastPush) {
+      const { org, app } = window as Window as IAltinnWindow;
+      // tslint:disable-next-line:max-line-length
+      const url = `${window.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?org=${org}&repository=${app}`;
+      get(url).then((result: any) => {
+        if (this._isMounted && result) {
+          const diff = new Date().getTime() - new Date(result.comitter.when).getTime();
+          const oneHour = 60 * 60 * 1000;
+          this.setState({
+            moreThanAnHourSinceLastPush: oneHour < diff,
+          });
+        }
+      });
+    }
+  }
+
+  public changeToRepoOccured = (event: any) => {
+    if (event.data === postMessages.filesAreSaved && this._isMounted && !this.state.timeoutIsRunning) {
+      this.setState({
+        timeoutIsRunning: true,
+      });
+      this.timeout = setTimeout(() => {
+        this.setState({
+          timeoutIsRunning: false,
+        });
+        this.getStatus();
+      }, 10000);
+    }
+  }
+
   public handleClose = () => {
     if (!this.state.mergeConflict) {
       this.setState({
@@ -186,7 +196,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const url = `${window.location.origin}/designerapi/Repository/Pull?org=${org}&repository=${app}`;
 
     get(url).then((result: any) => {
@@ -220,6 +230,16 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
           });
         }
       }
+    })
+    .catch((err) => {
+      if (this.state.modalState.isLoading) {
+        this.setState((prevState) => ({
+          modalState: {
+            header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
+            isLoading: !prevState.modalState.isLoading,
+          },
+        }));
+      }
     });
   }
 
@@ -230,7 +250,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         modalState: {
           shouldShowDoneIcon: true,
           header: getLanguageFromKey('sync_header.nothing_to_push', this.props.language),
-        },
+        }
       });
     }
     if (this.state.hasPushRight === true) {
@@ -271,7 +291,6 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
               },
             });
           }
-
         }
       });
     } else if (this.state.hasPushRight === false) {
@@ -295,7 +314,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const url = `${window.location.origin}/designerapi/Repository/Push?org=${org}&repository=${app}`;
 
     post(url).then((result: any) => {
@@ -312,6 +331,16 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
           },
         });
       }
+    })
+    .catch((err) => {
+      if (this.state.modalState.isLoading) {
+        this.setState((prevState) => ({
+          modalState: {
+            header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
+            isLoading: !prevState.modalState.isLoading,
+          },
+        }));
+      }
     });
     this.forceRepoStatusCheck();
   }
@@ -325,7 +354,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const options = {
       headers: {
         'Accept': 'application/json',
@@ -364,7 +393,27 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             });
           }
         }
+      })
+      .catch((err) => {
+        if (this.state.modalState.isLoading) {
+          this.setState((prevState) => ({
+            modalState: {
+              header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
+              isLoading: !prevState.modalState.isLoading,
+            },
+          }));
+        }
       });
+    })
+    .catch((err) => {
+      if (this.state.modalState.isLoading) {
+        this.setState((prevState) => ({
+          modalState: {
+            header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
+            isLoading: !prevState.modalState.isLoading,
+          },
+        }));
+      }
     });
   }
 

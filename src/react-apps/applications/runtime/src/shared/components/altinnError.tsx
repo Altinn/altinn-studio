@@ -1,16 +1,19 @@
 import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
+import classNames from 'classnames';
 import * as React from 'react';
+import AltinnAppTheme from '../../../../shared/src/theme/altinnAppTheme';
 import { altinnAppsIllustrationHelpCircleSvgUrl } from '../../../../shared/src/utils/urlHelper';
 
 export interface IAltinnErrorProps extends WithStyles<typeof styles> {
   statusCode: string;
-  title: string;
+  title: string | React.ReactNode;
   content: string | React.ReactNode;
   url?: string;
   urlText?: string;
   urlTextSuffix?: string;
   imageUrl?: string;
   imageAlt?: string;
+  titleFontWeight?: 'medium';
 }
 
 const styles = createStyles({
@@ -27,6 +30,9 @@ const styles = createStyles({
   gridContainer: {
     maxWidth: 750,
   },
+  fontWeightMedium: {
+    fontWeight: AltinnAppTheme.sharedStyles.fontWeight.medium,
+  }
 });
 
 const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
@@ -40,7 +46,9 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
           </Typography>
         </div>
         <div className={classes.contentMargin}>
-          <Typography variant={'h1'}>
+          <Typography
+            variant={'h1'}
+            className={classNames({ [classes.fontWeightMedium]: props.titleFontWeight === 'medium' })}>
             {props.title}
           </Typography>
         </div>

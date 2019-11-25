@@ -1,6 +1,5 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../../store';
-
 import * as InstantiateActions from './instantiate';
 
 export interface IInstantiationActions extends ActionCreatorsMapObject {

@@ -1,4 +1,5 @@
 import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
+import { AxiosError } from 'axios';
 import * as React from 'react';
 import ContentLoader from 'react-content-loader';
 import { useSelector } from 'react-redux';
@@ -7,6 +8,7 @@ import AltinnModal from '../../../../../shared/src/components/AltinnModal';
 import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
 import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import { IParty } from '../../../../../shared/src/types';
+import { checkIfAxiosError } from '../../../../../shared/src/utils/networking';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
@@ -14,6 +16,9 @@ import { post } from '../../../utils/networking';
 import SubscriptionHookError from '../components/subscriptionHookError';
 import InstantiationActions from '../instantiation/actions';
 import { verifySubscriptionHook } from '../resources/verifySubscriptionHook';
+import MissingRolesError from './MissingRolesError';
+import NoValidPartiesError from './NoValidPartiesError';
+import UnknownError from './UnknownError';
 
 const styles = () => createStyles({
   modal: {
@@ -139,17 +144,24 @@ function InstantiateContainer(props: IServiceInfoProps) {
     }
   }, [partyValidation, subscriptionHookValid, instantiating, selectedParty]);
 
-  if (partyValidation !== null && !partyValidation.valid) {
-    if (partyValidation.validParties.length === 0) {
+  if (instantiation.error !== null && checkIfAxiosError(instantiation.error)) {
+    const axiosError = instantiation.error as AxiosError;
+    if (axiosError.response.status === HttpStatusCodes.Forbidden) {
       return (
-        <Redirect
-          to={{
-            pathname: '/error',
-            state: {
-              message: partyValidation.message,
-            },
-          }}
-        />
+        <MissingRolesError />
+      );
+    }
+
+    return (
+      <UnknownError />
+    );
+  }
+
+  if (partyValidation !== null && !partyValidation.valid) {
+    if (partyValidation.validParties !== null &&
+      partyValidation.validParties.length === 0) {
+      return (
+        <NoValidPartiesError />
       );
     } else {
       return (
@@ -157,29 +169,25 @@ function InstantiateContainer(props: IServiceInfoProps) {
       );
     }
   }
-  if (instantiation.error !== null) {
-    return (
-      <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`}/>
-    );
-  }
-  if (instantiation.instanceId !== null && instantiation.error === null) {
+
+  if (instantiation.instanceId !== null) {
     return (
       <Redirect to={`/instance/${instantiation.instanceId}`} />
     );
-  } else {
-    return (
-      <>
-        <AltinnAppHeader
-          logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
-          headerBackgroundColor={AltinnAppTheme.altinnPalette.primary.blue}
-          party={selectedParty}
-          userParty={profile ? profile.party : {} as IParty}
-        />
-        {(subscriptionHookValid === null || subscriptionHookValid === true) && renderModalAndLoader()}
-        {subscriptionHookValid === false && <SubscriptionHookError textResources={textResources}/>}
-      </>
-    );
   }
+
+  return (
+    <>
+      <AltinnAppHeader
+        logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
+        headerBackgroundColor={AltinnAppTheme.altinnPalette.primary.blue}
+        party={selectedParty}
+        userParty={profile ? profile.party : {} as IParty}
+      />
+      {(subscriptionHookValid === null || subscriptionHookValid === true) && renderModalAndLoader()}
+      {subscriptionHookValid === false && <SubscriptionHookError textResources={textResources}/>}
+    </>
+  );
 }
 
 export default withStyles(styles)(InstantiateContainer);
