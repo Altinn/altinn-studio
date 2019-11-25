@@ -243,6 +243,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                 applicationForm.Id = attachmentMetadata.GetValue("id").Value;
                 applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount").Value);
+                applicationForm.MinCount = Convert.ToInt32(attachmentMetadata.GetValue("minCount").Value);
                 applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize").Value);
 
                 DeleteMetadataForAttachment(org, app, attachmentId);
