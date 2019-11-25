@@ -18,7 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Storage.Interface\Altinn.Platform.Storage.Interface.csproj" />
     <ProjectReference Include="..\Storage\Altinn.Platform.Storage.csproj" />
   </ItemGroup>
 
