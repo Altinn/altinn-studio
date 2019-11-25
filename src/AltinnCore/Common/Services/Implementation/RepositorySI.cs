@@ -107,7 +107,7 @@ namespace AltinnCore.Common.Services.Implementation
             // Creates all the files
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.DeploymentLocation, _settings.GetDeploymentFolderName());
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());
-            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.IntegrationTestsLocation, _settings.GetIntergrationTestsFolderName());
+            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.IntegrationTestsLocation, _settings.GetIntegrationTestsFolderName());
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
             UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
@@ -838,16 +838,9 @@ namespace AltinnCore.Common.Services.Implementation
             modelMetadata.RepositoryName = app;
 
             string classes = modelGenerator.CreateModelFromMetadata(modelMetadata);
+            string newRoot = modelMetadata.Elements != null && modelMetadata.Elements.Count > 0 ? modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
 
-            // Load currently stored modelMetadata
-            ModelMetadata original = GetModelMetadata(org, app);
-            string oldRoot = original.Elements != null && original.Elements.Count > 0 ? original.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
-
-            // Update the modelMetadata with new elements
-            original.Elements = modelMetadata.Elements;
-            string newRoot = original.Elements != null && original.Elements.Count > 0 ? original.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
-
-            if (!UpdateModelMetadata(org, app, original, fileName))
+            if (!UpdateModelMetadata(org, app, modelMetadata, fileName))
             {
                 return false;
             }
@@ -902,26 +895,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             // Update the ServiceImplementation class with the correct model type name
-            string serviceImplementationPath = _settings.GetAppLogicPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.AppImplementationFileName;
-            File.WriteAllText(
-                serviceImplementationPath,
-                File.ReadAllText(serviceImplementationPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
-
-            string calculationHandlerPath = _settings.GetCalculationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.CalculationHandlerFileName;
-            File.WriteAllText(
-                calculationHandlerPath,
-                File.ReadAllText(calculationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
-
-            string validationHandlerPath = _settings.GetValidationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ValidationHandlerFileName;
-            File.WriteAllText(
-                validationHandlerPath,
-                File.ReadAllText(validationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
-
-            string instansiationHandlerPath = _settings.GetAppLogicPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.InstantiationHandlerFileName;
-            File.WriteAllText(
-                instansiationHandlerPath,
-                File.ReadAllText(instansiationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
-
             UpdateApplicationWithAppLogicModel(org, app, fileName, "Altinn.App.Models." + newRoot);
 
             return true;
