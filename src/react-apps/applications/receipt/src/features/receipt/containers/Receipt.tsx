@@ -7,7 +7,8 @@ import AltinnContentLoader from '../../../../../shared/src/components/molecules/
 import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
 import AltinnReceipt from '../../../../../shared/src/components/organisms/AltinnReceipt';
 import theme from '../../../../../shared/src/theme/altinnStudioTheme';
-import { IApplication, IAttachment, IData, IInstance, IParty, IProfile  } from '../../../../../shared/src/types';
+import { IApplication, IAttachment, IInstance, IParty, IProfile  } from '../../../../../shared/src/types';
+import { getInstancePdf, mapInstanceAttachments } from '../../../../../shared/src/utils/attachments';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
 import { getInstanceMetaDataObject } from '../../../utils/receipt';
@@ -31,6 +32,8 @@ function Receipt(props: WithStyles<typeof styles>) {
   const [application, setApplication] = React.useState<IApplication>(null);
   const [user, setUser] = React.useState<IProfile>(null);
   const [language, setLanguage] = React.useState(null);
+  const [attachments, setAttachments] = React.useState<IAttachment[]>(null);
+  const [pdf, setPdf] = React.useState<IAttachment>(null);
   const isPrint = useMediaQuery('print');
 
   const fetchParty = async () => {
@@ -88,23 +91,6 @@ function Receipt(props: WithStyles<typeof styles>) {
     }
   };
 
-  const getAttachments = (): IAttachment[] => {
-    if (!instance) {
-      return [];
-    } else {
-      const attachments: IAttachment[] = [];
-      instance.data.forEach((dataElement: IData) => {
-        if (dataElement.elementType !== 'default') {
-          attachments.push({
-          name: dataElement.fileName,
-          url: dataElement.dataLinks.platform,
-          iconClass: 'reg reg-attachment' });
-        }
-      });
-      return attachments;
-    }
-  };
-
   const getTitle = (): string => {
     const applicationTitle = application ? application.title.nb : '';
     return `${applicationTitle} ${getLanguageFromKey('receipt_platform.is_sent', language)}`;
@@ -119,6 +105,10 @@ function Receipt(props: WithStyles<typeof styles>) {
   };
 
   React.useEffect(() => {
+    if (instance) {
+      setAttachments(mapInstanceAttachments(instance.data));
+      setPdf(getInstancePdf(instance.data, true));
+    }
     if (!application && instance) {
       fetchApplication();
     }
@@ -157,7 +147,8 @@ function Receipt(props: WithStyles<typeof styles>) {
             title={getTitle()}
             body={getLanguageFromKey('receipt_platform.helper_text', language)}
             collapsibleTitle={getLanguageFromKey('receipt_platform.attachments', language)}
-            attachments={getAttachments()}
+            attachments={attachments}
+            pdf={pdf ? [pdf] : null}
             instanceMetaDataObject={getInstanceMetaDataObject(instance, party, language, organisations)}
             titleSubmitted={getLanguageFromKey('receipt_platform.sent_content', language)}
           />

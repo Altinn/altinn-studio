@@ -9,13 +9,13 @@ import { ILayoutState } from '../../reducer';
 
 const selectFormLayoutConnection = (state: IRuntimeState): ILayoutState => state.formLayout;
 
-function* updateFocus({ currentComponentId, back }: IUpdateFocus): SagaIterator {
+function* updateFocus({ currentComponentId, step }: IUpdateFocus): SagaIterator {
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
     if (currentComponentId) {
       const currentComponentIndex = formLayoutState.layout
           .findIndex((component: ILayoutComponent) => component.id === currentComponentId);
-      const focusComponentIndex = back ? currentComponentIndex - 1 : currentComponentIndex + 1;
+      const focusComponentIndex = step ? currentComponentIndex + step : currentComponentIndex;
       const focusComponentId = focusComponentIndex > 0 ? formLayoutState.layout[focusComponentIndex].id : null;
       yield call(FormLayoutActions.updateFocusFulfilled, focusComponentId);
     } else {

@@ -18,17 +18,12 @@ describe('>>> utils/receipt.test.tsx', () => {
       org: 'testOrg',
     } as IInstance;
     mockPartyPerson = {
-      person: {
-        ssn: '12345678',
-        name: 'Ola Nordmann',
-      },
+      name: 'Ola Nordmann',
       ssn: '12345678',
     } as IParty;
     mockPartyOrg = {
-      organisation: {
-        name: 'FIRMA AS',
-      },
-      orgNumber: '12345',
+      name: 'FIRMA AS',
+      orgNumber: 12345,
     } as IParty;
     mockLanguage = {
       receipt_platform: {

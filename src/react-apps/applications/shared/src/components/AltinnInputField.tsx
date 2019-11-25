@@ -12,7 +12,7 @@ export interface IAltinnInputFieldComponentProvidedProps {
   inputDescription?: string;
   inputFieldStyling?: object;
   inputHeader?: string;
-  inputValue?: string;
+  inputValue?: string | number;
   isDisabled?: boolean;
   onBlurFunction?: any;
   onBtnClickFunction?: any;

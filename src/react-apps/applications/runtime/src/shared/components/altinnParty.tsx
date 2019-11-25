@@ -3,8 +3,8 @@ import * as React from 'react';
 import { useSelector } from 'react-redux';
 import AltinnCollapsableList from '../../../../shared/src/components/AltinnCollapsableList';
 import altinnTheme from '../../../../shared/src/theme/altinnAppTheme';
+import { IParty } from '../../../../shared/src/types';
 import { IRuntimeState } from '../../types';
-import { IParty } from '../resources/party';
 
 const styles = createStyles({
   partyPaper: {

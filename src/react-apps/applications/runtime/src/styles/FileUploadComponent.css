@@ -27,6 +27,13 @@
   border-style: solid !important;
 }
 
+.file-upload:focus {
+  border-color: #0062ba !important;
+  border-style: solid !important;
+  outline: 2px solid #0062ba;
+  outline-offset: 0px;
+}
+
 .blue-underline {
   border-bottom: 2px solid #1EADF7;
 }

@@ -57,8 +57,10 @@ const LayoutReducer: Reducer<ILayoutState> = (
     case ActionTypes.UPDATE_FOCUS_FULFUILLED: {
       const { focusComponentId } = action as IUpdateFocusFulfilled;
       return update<ILayoutState>(state, {
-        focus: {
-          $set: focusComponentId,
+        uiConfig: {
+          focus: {
+            $set: focusComponentId,
+          },
         },
       });
     }

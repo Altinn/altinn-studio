@@ -1,8 +1,8 @@
 import { SagaIterator } from 'redux-saga';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 
+import { IParty } from '../../../../../../../shared/src/types';
 import InstanceDataActions from '../../../../../shared/resources/instanceData/instanceDataActions';
-import { IParty } from '../../../../../shared/resources/party';
 import { IRuntimeState } from '../../../../../types';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
 import { post } from '../../../../../utils/networking';
