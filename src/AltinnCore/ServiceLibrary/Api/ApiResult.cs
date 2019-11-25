@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.ServiceLibrary.Enums;
 
 namespace AltinnCore.ServiceLibrary.Api
@@ -41,12 +41,12 @@ namespace AltinnCore.ServiceLibrary.Api
         public Instance Instance { get; set; }
 
         /// <summary>
-        /// Gets or sets the url for the next step of the workflow
+        /// Gets or sets the url for the next step of the process
         /// </summary>
         public string NextStepUrl { get; set; }
 
         /// <summary>
-        /// Gets or sets the next state of the workflow
+        /// Gets or sets the next state of the process
         /// </summary>
         public Enums.WorkflowStep NextState { get; set; }
     }

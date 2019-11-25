@@ -22,13 +22,6 @@ services:
       context: .
       dockerfile: src/react-apps/applications/service-development/Dockerfile
 
-  altinn_runtime_app:
-    container_name: altinn-runtime-app
-    image: altinn-runtime-app:latest
-    build:
-      context: .
-      dockerfile: src/react-apps/applications/runtime/Dockerfile
-
   altinn_loadbalancer:
     container_name: altinn-loadbalancer
     image: loadbalancer:latest
@@ -65,6 +58,10 @@ services:
       - GeneralSettings:TemplateLocation=/Templates
       - GeneralSettings:DeploymentLocation=/Templates/deployment
       - GeneralSettings:LanguageFilesLocation=Languages/
+      - GeneralSettings:TemplateLocation=Templates/AspNet
+      - GeneralSettings:DeploymentLocation=Templates/AspNet/deployment
+      - GeneralSettings:AppLocation=Templates/AspNet/App
+      - GeneralSettings:IntegrationTestsLocation=Templates/AspNet/App.IntegrationTests
       - GeneralSettings:AltinnStudioEndpoint=http://altinn3.no/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
     ports:
@@ -76,33 +73,6 @@ services:
     build:
       context: .
       dockerfile: src/AltinnCore/Designer/Dockerfile
-
-  altinn_runtime:
-    container_name: altinn-runtime
-    image: altinncoreruntime:latest
-    restart: always
-    networks:
-      - altinncore_network
-    volumes:
-      - "C:/AltinnCore/Repos:/AltinnCore/Repos"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:5005
-      - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
-      - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1/
-      - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
-      - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000
-      - ServiceRepositorySettings:ShouldFetchFromDatabase=false
-      - GeneralSettings:AltinnStudioEndpoint=http://altinn3.no/
-      - GeneralSettings:LanguageFilesLocation=Languages/
-      - TestdataRepositorySettings:RepositoryLocation=/app/Testdata
-      - TestdataRepositorySettings:DesignerHost=altinn-designer
-      - PlatformSettings:ApiAuthenticationEndpoint=http://localhost:5040/authentication/api/v1/
-    ports:
-      - "5005:5005"
-    build:
-      context: .
-      dockerfile: src/AltinnCore/Runtime/Dockerfile
 
   altinn_repositories:
     container_name: altinn-repositories

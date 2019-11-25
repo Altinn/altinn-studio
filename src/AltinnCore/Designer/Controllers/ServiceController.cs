@@ -41,7 +41,7 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>A view with basic information and all available operations.</returns>
         public IActionResult Index(string org, string app)
         {
-            ServiceMetadata metadata = _repository.GetServiceMetaData(org, app);
+            ModelMetadata metadata = _repository.GetModelMetadata(org, app);
             IList<ServicePackageDetails> packageDetails = _repository.GetServicePackages(org, app);
             AltinnStudioViewModel model = new AltinnStudioViewModel();
             model.Service = app;

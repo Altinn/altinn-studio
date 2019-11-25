@@ -24,13 +24,13 @@ namespace AltinnCore.UnitTest.Designer.Controllers
         public void CanUploadIso8859EncodedXmlFiles()
         {
             // Arrange
-            ServiceMetadata serviceMetadata = null;
+            ModelMetadata serviceMetadata = null;
             XDocument xmlDocument = null;
 
             Mock<IRepository> moqRepository = new Mock<IRepository>();
-            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceMetadata>(), It.IsAny<XDocument>()))
+            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ModelMetadata>(), It.IsAny<XDocument>(), It.IsAny<string>()))
                 .Returns(true)
-                .Callback<string, string, ServiceMetadata, XDocument>((o, s, m, d) =>
+                .Callback<string, string, ModelMetadata, XDocument>((o, s, m, d) =>
                 {
                     serviceMetadata = m;
                     xmlDocument = d;
@@ -57,10 +57,10 @@ namespace AltinnCore.UnitTest.Designer.Controllers
             Dictionary<string, Dictionary<string, string>> dictionary = null;
 
             Dictionary<string, Dictionary<string, string>> existingDictionary = new Dictionary<string, Dictionary<string, string>>();
-            ServiceMetadata serviceMetadata = null;
+            ModelMetadata serviceMetadata = null;
 
             Mock<IRepository> moqRepository = new Mock<IRepository>();
-            moqRepository.Setup(r => r.SaveServiceTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, Dictionary<string, string>>>()))        
+            moqRepository.Setup(r => r.SaveServiceTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, Dictionary<string, string>>>()))
                 .Callback<string, string, Dictionary<string, Dictionary<string, string>>>((o, s, d) =>
                 {
                     dictionary = d;
@@ -68,9 +68,9 @@ namespace AltinnCore.UnitTest.Designer.Controllers
             moqRepository.Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(existingDictionary);
 
-            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceMetadata>(), It.IsAny<XDocument>()))
+            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ModelMetadata>(), It.IsAny<XDocument>(), It.IsAny<string>()))
                 .Returns(true)
-                .Callback<string, string, ServiceMetadata, XDocument>((o, s, m, d) =>
+                .Callback<string, string, ModelMetadata, XDocument>((o, s, m, d) =>
                 {
                     serviceMetadata = m;
                 });
@@ -83,12 +83,12 @@ namespace AltinnCore.UnitTest.Designer.Controllers
 
             Assert.True(serviceMetadata.Elements.ContainsKey("Skjema.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonPostnummerdatadef10441.value"));
 
-            Assert.NotNull(dictionary);        
+            Assert.NotNull(dictionary);
 
-            string lookupValue = dictionary.GetValueOrDefault("10441.KontaktpersonPostnummerdatadef10441.Label").GetValueOrDefault("nb-NO");
+            string lookupValue = dictionary.GetValueOrDefault("10441.KontaktpersonPostnummerdatadef10441.Label").GetValueOrDefault("nb");
 
             // Text should be without extra withespaces
-            Assert.Equal("Postnummer", lookupValue);           
+            Assert.Equal("Postnummer", lookupValue);
         }
 
         private IFormFile AsMockIFormFile(string file)
@@ -111,7 +111,7 @@ namespace AltinnCore.UnitTest.Designer.Controllers
             fileMock.Setup(m => m.OpenReadStream()).Returns(ms);
             fileMock.Setup(m => m.ContentDisposition).Returns(string.Format("inline; filename={0}", fileName));
 
-            return fileMock.Object;           
+            return fileMock.Object;
         }
     }
 }

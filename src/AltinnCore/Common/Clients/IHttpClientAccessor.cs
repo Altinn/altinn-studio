@@ -38,6 +38,6 @@ namespace AltinnCore.Common.Clients
         /// <summary>
         /// An Http pdf client that communicates with the Altinn Platform PDF component.
         /// </summary>
-        HttpClient PdfClient {get; }
+        HttpClient PdfClient { get; }
     }
 }

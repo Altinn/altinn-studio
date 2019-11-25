@@ -9,6 +9,7 @@ RUN npm run gulp build
 FROM mcr.microsoft.com/dotnet/core/sdk:3.0-alpine AS build
 COPY /src/AltinnCore ./AltinnCore/
 COPY --from=generate-designer-js /wwwroot /AltinnCore/Designer/wwwroot
+
 RUN dotnet build AltinnCore/Designer/AltinnCore.Designer.csproj -c Release -o /app_output
 RUN dotnet publish AltinnCore/Designer/AltinnCore.Designer.csproj -c Release -o /app_output
 
@@ -37,7 +38,15 @@ COPY --from=altinn-studio-dashboard /dist/dashboard.js ./wwwroot/designer/js/rea
 COPY --from=altinn-studio-dashboard /dist/dashboard.css ./wwwroot/designer/css/dashboard.css
 COPY --from=generate-runtime-app /applications/runtime/dist/runtime.js ./wwwroot/designer/js/react/runtime.js
 COPY --from=generate-runtime-app /applications/runtime/dist/runtime.css ./wwwroot/designer/css/react/runtime.css
-RUN mv Templates ..
+
+## Copying app template
+COPY /src/Altinn.Apps/AppTemplates/AspNet/App ./Templates/AspNet/App
+COPY /src/Altinn.Apps/AppTemplates/AspNet/App.IntegrationTests ./Templates/AspNet/App.IntegrationTests
+COPY /src/Altinn.Apps/AppTemplates/AspNet/deployment ./Templates/AspNet/deployment
+COPY /src/Altinn.Apps/AppTemplates/AspNet/.gitignore ./Templates/AspNet
+COPY /src/Altinn.Apps/AppTemplates/AspNet/App.sln ./Templates/AspNet
+
+#RUN mv Templates ..
 RUN mv Testdata ..
 
 ENTRYPOINT ["dotnet", "AltinnCore.Designer.dll"]

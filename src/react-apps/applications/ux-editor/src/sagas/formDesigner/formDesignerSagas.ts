@@ -74,9 +74,14 @@ function* addFormComponentSaga({
       saveFormLayoutUrl,
     );
     if (component.type === 'FileUpload') {
-      const { maxNumberOfAttachments, maxFileSizeInMB, validFileEndings } = component as IFormFileUploaderComponent;
+      const {
+        maxNumberOfAttachments,
+        minNumberOfAttachments,
+        maxFileSizeInMB,
+        validFileEndings,
+      } = component as IFormFileUploaderComponent;
       yield call(FormDesignerActionDispatchers.addApplicationMetadata,
-        id, maxNumberOfAttachments, maxFileSizeInMB, validFileEndings);
+        id, maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings);
     }
     return id; // returns created id
   } catch (err) {
@@ -387,11 +392,12 @@ function* updateFormComponentSaga({
     if (updatedComponent.type === 'FileUpload') {
       const {
         maxNumberOfAttachments,
+        minNumberOfAttachments,
         maxFileSizeInMB,
         validFileEndings,
       } = updatedComponent as IFormFileUploaderComponent;
       yield call(FormDesignerActionDispatchers.updateApplicationMetadata,
-        id, maxNumberOfAttachments, maxFileSizeInMB, validFileEndings);
+        id, maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings);
     }
   } catch (err) {
     yield call(FormDesignerActionDispatchers.updateFormComponentRejected, err);
@@ -585,6 +591,7 @@ export function* watchUpdateFormComponentOrderSaga(): SagaIterator {
 export function* addApplicationMetadata({
   id,
   maxFiles,
+  minFiles,
   maxSize,
   fileType,
 }: FormDesignerActions.IAddApplicationMetadataAction): SagaIterator {
@@ -594,6 +601,7 @@ export function* addApplicationMetadata({
       {
         id,
         maxCount: maxFiles,
+        minCount: minFiles,
         maxSize,
         fileType,
       },
@@ -639,6 +647,7 @@ export function* watchDeleteApplicationMetadataSaga(): SagaIterator {
 export function* updateApplicationMetadata({
   id,
   maxFiles,
+  minFiles,
   maxSize,
   fileType,
 }: FormDesignerActions.IAddApplicationMetadataAction): SagaIterator {
@@ -648,6 +657,7 @@ export function* updateApplicationMetadata({
       {
         id,
         maxCount: maxFiles,
+        minCount: minFiles,
         maxSize,
         fileType,
       },

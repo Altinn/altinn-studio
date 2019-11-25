@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Services.Interfaces;
@@ -24,6 +24,7 @@ namespace AltinnCore.Designer.Services
         private readonly IGitea _giteaApiWrapper;
         private readonly ILogger<ApplicationMetadataService> _logger;
         private readonly ServiceRepositorySettings _serviceRepositorySettings;
+        private readonly PlatformSettings _platformSettings;
         private HttpClient _httpClient;
         private string _fullCommitSha;
         private string _org;
@@ -40,12 +41,14 @@ namespace AltinnCore.Designer.Services
             IHttpClientFactory httpClientFactory,
             IGitea giteaApiWrapper,
             IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<PlatformSettings> platformSettings,
             ILogger<ApplicationMetadataService> logger)
         {
             _httpClientFactory = httpClientFactory;
             _giteaApiWrapper = giteaApiWrapper;
             _logger = logger;
             _serviceRepositorySettings = repositorySettings.Value;
+            _platformSettings = platformSettings.Value;
         }
 
         /// <inheritdoc />
@@ -74,7 +77,7 @@ namespace AltinnCore.Designer.Services
         private HttpClient GetHttpClientFromHttpClientFactory(EnvironmentModel deploymentEnvironment)
         {
             HttpClient httpClient = _httpClientFactory.CreateClient(deploymentEnvironment.Hostname);
-            string uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/storage/api/v1/applications/";
+            string uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/{_platformSettings.ApiStorageApplicationUri}";
             httpClient.BaseAddress = new Uri(uri);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -92,9 +95,9 @@ namespace AltinnCore.Designer.Services
 
         private string GetApplicationMetadataFilePath()
         {
-            const string metadataFolderName = ServiceRepositorySettings.METADATA_FOLDER_NAME;
+            const string configFolderPath = ServiceRepositorySettings.CONFIG_FOLDER_PATH;
             string applicationMetadataFileName = _serviceRepositorySettings.ApplicationMetadataFileName;
-            return $"{_fullCommitSha}/{metadataFolderName}{applicationMetadataFileName}";
+            return $"{_fullCommitSha}/{configFolderPath}{applicationMetadataFileName}";
         }
 
         private async Task<Application> GetApplicationMetadataFromStorage()
@@ -123,8 +126,8 @@ namespace AltinnCore.Designer.Services
                 Id = $"{_org}/{_app}",
                 Org = applicationFromRepository.Org,
                 CreatedBy = applicationFromRepository.CreatedBy,
-                CreatedDateTime = applicationFromRepository.CreatedDateTime,
-                ElementTypes = applicationFromRepository.ElementTypes,
+                Created = applicationFromRepository.Created,
+                DataTypes = applicationFromRepository.DataTypes,
                 Title = applicationFromRepository.Title,
                 PartyTypesAllowed = applicationFromRepository.PartyTypesAllowed,
                 VersionId = _fullCommitSha
@@ -136,7 +139,7 @@ namespace AltinnCore.Designer.Services
         {
             application.Title = applicationFromRepository.Title;
             application.VersionId = _fullCommitSha;
-            application.ElementTypes = applicationFromRepository.ElementTypes;
+            application.DataTypes = applicationFromRepository.DataTypes;
             application.PartyTypesAllowed = applicationFromRepository.PartyTypesAllowed;
             await _httpClient.PutAsJsonAsync($"{_org}/{_app}", application);
         }
