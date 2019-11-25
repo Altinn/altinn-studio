@@ -32,7 +32,7 @@ export const getParsedLanguageFromKey = (key: string, language: any, params?: an
     return paramParsed;
   } else {
     const dirty = marked(paramParsed);
-    const clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['a', 'b', 'br'], ALLOWED_ATTR: ['href', 'target', 'rel']});
+    const clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['a', 'b'], ALLOWED_ATTR: ['href', 'target', 'rel']});
     return ReactHtmlParser(clean);
   }
 };

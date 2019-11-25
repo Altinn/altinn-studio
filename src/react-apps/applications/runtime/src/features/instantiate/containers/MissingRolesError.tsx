@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { getParsedLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
+import { getHostname } from '../../../utils/urlHelper';
 import InstantiationErrorPage from './InstantiationErrorPage';
 
 function MissingRolesError() {
@@ -27,32 +28,37 @@ function MissingRolesError() {
       [language.general.customer_service_phone_number]);
   }
 
+  function getCheckRights(hostName: string) {
+    return getParsedLanguageFromKey(
+      'instantiate.authorization_error_check_rights',
+      language,
+      [hostName]);
+  }
+
+  function getErrorInfoRights(hostName: string) {
+    return getParsedLanguageFromKey(
+      'instantiate.authorization_error_info_rights',
+      language,
+      [hostName]);
+  }
+
   function createErrorContent() {
-    const altinnWindow: Window = window;
+    const hostName = getHostname();
+
     const errorRights = getErrorRights();
     const errorChangeParty = <Link to='/partyselection'>{language.party_selection.change_party}</Link>;
     const errorAsk = language.instantiate.authorization_error_ask;
-
-    // environment specific url
-    // https://at02.ai.basefarm.net/ui/Profile
-    const errorCheckRights = getParsedLanguageFromKey(
-      'instantiate.authorization_error_check_rights',
-      language,
-      []);
-
-    // environment specific url
-    // https://www.altinn.no/hjelp/profil/roller-og-rettigheter/
-    const errorMoreInfo = getParsedLanguageFromKey('instantiate.authorization_error_info_rights', language, []);
+    const errorCheckRights = getCheckRights(hostName);
+    const errorMoreInfo = getErrorInfoRights(hostName);
     const errorCustomerService = getCustomerService();
-    const newline = getParsedLanguageFromKey('general.newline', language);
 
     return (
       <>
         <span>{errorRights}({errorChangeParty}). </span>
         <span>{errorAsk} </span>
         <span>{errorCheckRights}</span>
-        {newline}
-        {newline}
+        <br />
+        <br />
         <span>{errorMoreInfo}</span>
         <span>{errorCustomerService}</span>
       </>

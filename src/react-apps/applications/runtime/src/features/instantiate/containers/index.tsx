@@ -174,20 +174,20 @@ function InstantiateContainer(props: IServiceInfoProps) {
     return (
       <Redirect to={`/instance/${instantiation.instanceId}`} />
     );
-  } else {
-    return (
-      <>
-        <AltinnAppHeader
-          logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
-          headerBackgroundColor={AltinnAppTheme.altinnPalette.primary.blue}
-          party={selectedParty}
-          userParty={profile ? profile.party : {} as IParty}
-        />
-        {(subscriptionHookValid === null || subscriptionHookValid === true) && renderModalAndLoader()}
-        {subscriptionHookValid === false && <SubscriptionHookError textResources={textResources}/>}
-      </>
-    );
   }
+
+  return (
+    <>
+      <AltinnAppHeader
+        logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
+        headerBackgroundColor={AltinnAppTheme.altinnPalette.primary.blue}
+        party={selectedParty}
+        userParty={profile ? profile.party : {} as IParty}
+      />
+      {(subscriptionHookValid === null || subscriptionHookValid === true) && renderModalAndLoader()}
+      {subscriptionHookValid === false && <SubscriptionHookError textResources={textResources}/>}
+    </>
+  );
 }
 
 export default withStyles(styles)(InstantiateContainer);

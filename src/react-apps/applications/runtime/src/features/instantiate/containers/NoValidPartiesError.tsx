@@ -2,8 +2,9 @@ import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { getParsedLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
-import { IRuntimeState } from '../../../types';
+import { IAltinnWindow, IRuntimeState } from '../../../types';
 import InstantiationErrorPage from './InstantiationErrorPage';
+import { getHostname } from '../../../utils/urlHelper';
 
 function NoValidPartiesError() {
   const language = useSelector((state: IRuntimeState) => state.language.language);
@@ -78,16 +79,18 @@ function NoValidPartiesError() {
   function createErrorContent() {
     const errorNoAccess = getNoAccessError();
     const errorProperAccess = getAllowedPartiesError();
-    const errorMoreInfo = getParsedLanguageFromKey('instantiate.authorization_error_info_rights', language);
+
+    // TODO: add url to language (more info)
+    const hostName = getHostname();
+    const errorMoreInfo = getParsedLanguageFromKey('instantiate.authorization_error_info_rights', language, [hostName]);
     const errorCustomerService = getCustomerService();
-    const newline = getParsedLanguageFromKey('general.newline', language);
 
     return (
       <>
         <span>{errorNoAccess} </span>
         <span>{errorProperAccess}</span>
-        {newline}
-        {newline}
+        <br />
+        <br />
         <span>{errorMoreInfo} </span>
         <span>{errorCustomerService}</span>
       </>

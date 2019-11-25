@@ -74,3 +74,13 @@ export const getEnvironmentLoginUrl: () => string = () => {
     throw new Error('Unknown domain');
   }
 };
+
+export const getHostname: () => string = () => {
+  // First split away the protocol 'https://' and take the last part. Then split on dots.
+  const domainSplitted: string[] = window.location.host.split('.');
+  if (domainSplitted.length === 5) {
+    return domainSplitted[2];
+  } else if (domainSplitted.length === 4) {
+    return domainSplitted[2];
+  }
+};
