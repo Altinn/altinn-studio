@@ -50,8 +50,9 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpGet("{instanceOwnerPartyId:int}")]
         public async Task<ActionResult> GetMessageBoxInstanceList(int instanceOwnerPartyId, [FromQuery] string state, [FromQuery] string language)
         {
-            string[] allowedStates = new string[] { "active", "archived", "deleted" };
-            string[] acceptedLanguages = new string[] { "en", "nb", "nn-no" };
+            string[] allowedStates = { "active", "archived", "deleted" };
+            string[] acceptedLanguages = { "en", "nb", "nn-no" };
+
             string languageId = "nb";
             state = state.ToLower();
             if (string.IsNullOrWhiteSpace(state) || !allowedStates.Contains(state))
@@ -66,21 +67,16 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerPartyId, state);
 
-            if (allInstances == null)
-            {
-                return NotFound($"Did not find any instances for instanceOwner.PartyId={instanceOwnerPartyId}");
-            }
-
             //// TODO: Authorise instances and filter list
 
-            List<MessageBoxInstance> messageBoxInstances = new List<MessageBoxInstance>();
-            if (allInstances.Count > 0)
+            if (allInstances.Count <= 0)
             {
-                Dictionary<string, Dictionary<string, string>> appTitles = new Dictionary<string, Dictionary<string, string>>();
-                List<string> appIds = allInstances.Select(i => i.AppId).Distinct().ToList();
-                appTitles = await _applicationRepository.GetAppTitles(appIds);
-                messageBoxInstances = InstanceHelper.ConvertToMessageBoxInstance(allInstances, appTitles, languageId);
+                return Ok(new List<MessageBoxInstance>());
             }
+
+            List<string> appIds = allInstances.Select(i => i.AppId).Distinct().ToList();
+            Dictionary<string, Dictionary<string, string>> appTitles = await _applicationRepository.GetAppTitles(appIds);
+            List<MessageBoxInstance> messageBoxInstances = InstanceHelper.ConvertToMessageBoxInstance(allInstances, appTitles, languageId);
 
             return Ok(messageBoxInstances);
         }
@@ -95,8 +91,7 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> GetMessageBoxInstance(int instanceOwnerPartyId, Guid instanceGuid, [FromQuery] string language)
         {
-            string[] acceptedLanguages = new string[] { "en", "nb", "nn-no" };
-
+            string[] acceptedLanguages = { "en", "nb", "nn-no" };
             string languageId = "nb";
 
             if (language != null && acceptedLanguages.Contains(language.ToLower()))
@@ -104,7 +99,7 @@ namespace Altinn.Platform.Storage.Controllers
                 languageId = language;
             }
 
-            string instanceId = instanceOwnerPartyId.ToString() + "/" + instanceGuid.ToString();
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
@@ -113,13 +108,11 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound($"Could not find instance {instanceId}");
             }
 
-            // TODO: authorize
+            //// TODO: Authorise
 
-            // Get title from app metadata
             Dictionary<string, Dictionary<string, string>> appTitle = await _applicationRepository.GetAppTitles(new List<string> { instance.AppId });
 
-            // Simplify instances and return
-            MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance>() { instance }, appTitle, languageId).First();
+            MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance> { instance }, appTitle, languageId).First();
 
             return Ok(messageBoxInstance);
         }
