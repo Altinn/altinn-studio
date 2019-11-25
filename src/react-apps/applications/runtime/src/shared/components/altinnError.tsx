@@ -1,5 +1,5 @@
 import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
-import classNames from 'classNames';
+import classNames from 'classnames';
 import * as React from 'react';
 import AltinnAppTheme from '../../../../shared/src/theme/altinnAppTheme';
 import { altinnAppsIllustrationHelpCircleSvgUrl } from '../../../../shared/src/utils/urlHelper';
@@ -31,7 +31,7 @@ const styles = createStyles({
     maxWidth: 750,
   },
   fontWeightMedium: {
-    fontWeight: AltinnAppTheme.sharedStyles.fontWeight.medium
+    fontWeight: AltinnAppTheme.sharedStyles.fontWeight.medium,
   }
 });
 
