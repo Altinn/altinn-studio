@@ -29,4 +29,25 @@ public class InstanceUtils {
     }
     return list;
   }
+
+  /**
+   * Gets the instance name
+   * @param instance the instance
+   * @return the name, or empty string if not found
+   */
+  public static String getInstanceName(Instance instance) {
+    if (instance == null)  {
+      return "";
+    }
+
+    if (instance.getTitle() != null) {
+      return instance.getTitle().getNb();
+    }
+
+    if (instance.getPresentationField() != null) {
+      return instance.getPresentationField().getNb();
+    }
+
+    return "";
+  }
 }

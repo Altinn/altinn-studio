@@ -15,8 +15,16 @@ public class Instance {
   private String org;
   private String createdDateTime;
   private String lastChangedDateTime;
-  @NotNull
   private PresentationField presentationField;
+  private Title title;
+
+  public Title getTitle() {
+    return title;
+  }
+
+  public void setTitle(Title title) {
+    this.title = title;
+  }
 
   public String getId() {
     return id;
