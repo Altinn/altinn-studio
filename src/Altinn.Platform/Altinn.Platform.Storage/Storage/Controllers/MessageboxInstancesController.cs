@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
 
@@ -64,23 +66,21 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerPartyId, state);
 
-            if (allInstances == null || allInstances.Count == 0)
+            if (allInstances == null)
             {
                 return NotFound($"Did not find any instances for instanceOwner.PartyId={instanceOwnerPartyId}");
             }
 
-            // TODO: authorize instances and filter list
+            //// TODO: Authorise instances and filter list
 
-            // get appId from filteredInstances eventually
-            List<string> appIds = allInstances.Select(i => i.AppId)
-                                    .Distinct()
-                                    .ToList();
-
-            // Get title from app metadata
-            Dictionary<string, Dictionary<string, string>> appTitles = await _applicationRepository.GetAppTitles(appIds);
-
-            // Simplify instances and return
-            List<MessageBoxInstance> messageBoxInstances = InstanceHelper.ConvertToMessageBoxInstance(allInstances, appTitles, languageId);
+            List<MessageBoxInstance> messageBoxInstances = new List<MessageBoxInstance>();
+            if (allInstances.Count > 0)
+            {
+                Dictionary<string, Dictionary<string, string>> appTitles = new Dictionary<string, Dictionary<string, string>>();
+                List<string> appIds = allInstances.Select(i => i.AppId).Distinct().ToList();
+                appTitles = await _applicationRepository.GetAppTitles(appIds);
+                messageBoxInstances = InstanceHelper.ConvertToMessageBoxInstance(allInstances, appTitles, languageId);
+            }
 
             return Ok(messageBoxInstances);
         }

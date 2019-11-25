@@ -118,10 +118,11 @@ namespace Altinn.Platform.Storage.Repository
                 IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
 
                 FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
-                if (!feedResponse.Any())
+                if (feedResponse.Count <= 0)
                 {
                     queryResponse.Count = 0;
                     queryResponse.TotalHits = 0;
+                    queryResponse.Instances = new List<Instance>();
 
                     return queryResponse;
                 }
