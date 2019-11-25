@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Common.Enums;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -36,7 +37,7 @@ namespace Altinn.App.Service.Interface
         Type GetAppModelType(string classRef);
 
 
-        Task OnInstantiate(Instance instance);
+        Task<string> OnInstantiateGetStartEvent(Instance instance);
         Task OnStartProcess(string startEvent, Instance instance);
         Task OnStartProcessTask(string taskId, Instance instance);
 

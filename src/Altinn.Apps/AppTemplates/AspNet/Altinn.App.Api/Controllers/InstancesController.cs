@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
 using Altinn.App.Service.Interface;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -16,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -37,6 +39,9 @@ namespace Altinn.App.Api.Controllers
         private readonly IRegister _registerService;
         private readonly IAltinnApp _altinnApp;
 
+        private readonly IProcess processService;
+        private readonly UserHelper userHelper;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
@@ -46,7 +51,11 @@ namespace Altinn.App.Api.Controllers
             IInstance instanceService,
             IData dataService,
             IAppResources appResourcesService,
-            IAltinnApp altinnApp)
+            IAltinnApp altinnApp,
+            IProcess processService,
+            IProfile profileService,
+            IOptions<GeneralSettings> generalSettings
+            )
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -54,6 +63,9 @@ namespace Altinn.App.Api.Controllers
             _appResourcesService = appResourcesService;
             _registerService = registerService;
             _altinnApp = altinnApp;
+            this.processService = processService;
+
+            userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
 
         /// <summary>
@@ -165,6 +177,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromQuery] int? instanceOwnerPartyId)
         {
+
             if (string.IsNullOrEmpty(org))
             {
                 return BadRequest("The path parameter 'org' cannot be empty");
@@ -274,8 +287,18 @@ namespace Altinn.App.Api.Controllers
 
                 // get the updated instance
                 instance = await _instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
+               
+                string startEvent = await _altinnApp.OnInstantiateGetStartEvent(instance);
 
-                await _altinnApp.OnInstantiate(instance);
+                if (startEvent != null)
+                {
+                    UserContext userContext = userHelper.GetUserContext(HttpContext).Result;
+
+                    Instance instanceStarted = await processService.ProcessStartAndNext(instance, startEvent, userContext);
+
+                    instance = await _instanceService.UpdateInstance(instanceStarted);
+                }
+
             }
             catch (Exception dataException)
             {
