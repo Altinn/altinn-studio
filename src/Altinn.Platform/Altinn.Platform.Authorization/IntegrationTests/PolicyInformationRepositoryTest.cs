@@ -41,7 +41,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 EndpointUri = "https://localhost:8081",
                 PrimaryKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
                 Database = "Storage",
-                InstanceCollection = "instance",
+                InstanceCollection = "instances",
                 ApplicationCollection = "applications"
             });
 
