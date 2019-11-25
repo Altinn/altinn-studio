@@ -136,7 +136,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         this.setState({
           modalState: {
             header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
-            isLoading: false,
+            isLoading: !this.state.modalState.isLoading,
           },
         });
       }
@@ -232,12 +232,11 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       }
     })
     .catch((err) => {
-      console.log('#### cathcing error: ');
       if (this.state.modalState.isLoading) {
         this.setState({
           modalState: {
             header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
-            isLoading: false,
+            isLoading: !this.state.modalState.isLoading,
           },
         });
       }
@@ -251,7 +250,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         modalState: {
           shouldShowDoneIcon: true,
           header: getLanguageFromKey('sync_header.nothing_to_push', this.props.language),
-        },
+        }
       });
     }
     if (this.state.hasPushRight === true) {
