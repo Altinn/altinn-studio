@@ -98,7 +98,6 @@ namespace Altinn.App.Api.Controllers
 
             PartyTypesAllowed partyTypesAllowed = application.PartyTypesAllowed;
             Party partyUserRepresents = null;
-            List<Party> allowedPartiesTheUserCanRepresent = new List<Party>();
 
             // Check if the user can represent the supplied partyId
             if (partyId != user.PartyId)

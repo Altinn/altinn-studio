@@ -97,7 +97,7 @@ namespace Altinn.Common.PEP.Implementation
                 if (attributeMinLvAuth != null)
                 {
                     string minAuthenticationLevel = attributeMinLvAuth.Value;
-                    string usersAuthenticationLevel = user.Claims.FirstOrDefault(c => c.Type.Equals("AuthenticationLevel")).Value;
+                    string usersAuthenticationLevel = user.Claims.FirstOrDefault(c => c.Type.Equals("urn:altinn:minimum-authenticationlevel")).Value;
 
                     // Checks that the user meets the minimum authentication level
                     if (Convert.ToInt32(usersAuthenticationLevel) < Convert.ToInt32(minAuthenticationLevel))

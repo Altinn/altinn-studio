@@ -329,8 +329,8 @@ namespace Altinn.Common.PEP.Authorization
             List<Claim> claims = new List<Claim>();
 
             // type, value, valuetupe, issuer
-            claims.Add(new Claim("name", "Ola", "string", "org"));
-            claims.Add(new Claim("AuthenticationLevel", "2", "string", "org"));
+            claims.Add(new Claim("urn:name", "Ola", "string", "org"));
+            claims.Add(new Claim("urn:altinn:minimum-authenticationlevel", "2", "string", "org"));
 
             ClaimsPrincipal user = new ClaimsPrincipal(
                 new ClaimsIdentity(

@@ -21,7 +21,6 @@ namespace App.IntegrationTests.Mocks.Services
     {
         private readonly IInstance _instanceService;
 
-
         private readonly string OrgAttributeId = "urn:altinn:org";
 
         private readonly string AppAttributeId = "urn:altinn:app";
@@ -51,7 +50,6 @@ namespace App.IntegrationTests.Mocks.Services
                 XacmlContextRequest decisionRequest = XacmlJsonXmlConverter.ConvertRequest(xacmlJsonRequest);
                 decisionRequest = await Enrich(decisionRequest);
 
-
                 Altinn.Authorization.ABAC.PolicyDecisionPoint pdp = new Altinn.Authorization.ABAC.PolicyDecisionPoint();
 
                 XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
@@ -59,7 +57,7 @@ namespace App.IntegrationTests.Mocks.Services
 
                 return XacmlJsonXmlConverter.ConvertResponse(contextResponse);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 string test = "test";
             }
@@ -67,12 +65,15 @@ namespace App.IntegrationTests.Mocks.Services
             return null;
         }
 
+        public Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequest xacmlJsonRequest, ClaimsPrincipal user)
+        {
+            throw new NotImplementedException();
+        }
+
 
         public async Task<XacmlContextRequest> Enrich(XacmlContextRequest request)
         {
-         
-                await EnrichResourceAttributes(request);
-              
+            await EnrichResourceAttributes(request);
 
             return request;
         }
@@ -114,7 +115,6 @@ namespace App.IntegrationTests.Mocks.Services
                     resourcePartyAttributeValue = attribute.AttributeValues.First().Value;
                 }
             }
-
 
             bool resourceAttributeComplete = false;
 
@@ -231,7 +231,6 @@ namespace App.IntegrationTests.Mocks.Services
             }
 
             return attribute;
-
         }
 
         public Task<List<Role>> GetDecisionPointRolesForUser(int coveredByUserId, int offeredByPartyId)
