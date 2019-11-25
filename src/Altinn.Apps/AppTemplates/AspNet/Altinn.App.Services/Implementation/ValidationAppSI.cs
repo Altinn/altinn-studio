@@ -20,10 +20,10 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class ValidationAppSI : IValidation
     {
-        private readonly ILogger logger;
-        private readonly IData dataService;
-        private readonly IAltinnApp altinnApp;
-        private readonly IAppResources appResourcesService;
+        private readonly ILogger _logger;
+        private readonly IData _dataService;
+        private readonly IAltinnApp _altinnApp;
+        private readonly IAppResources _appResourcesService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ValidationAppSI"/> class.
@@ -34,10 +34,10 @@ namespace Altinn.App.Services.Implementation
             IAltinnApp altinnApp,
             IAppResources appResourcesService)
         {
-            this.logger = logger;
-            this.dataService = dataService;
-            this.altinnApp = altinnApp;
-            this.appResourcesService = appResourcesService;
+            _logger = logger;
+            _dataService = dataService;
+            _altinnApp = altinnApp;
+            _appResourcesService = appResourcesService;
         }
 
         public async Task<System.Collections.Generic.List<ValidationIssue>> ValidateAndUpdateInstance(Instance instance, string taskId)
@@ -45,9 +45,9 @@ namespace Altinn.App.Services.Implementation
             string org = instance.Org;
             string app = instance.AppId.Split("/")[1];
 
-            logger.LogInformation($"Validation of {instance.Id}");
+            _logger.LogInformation($"Validation of {instance.Id}");
 
-            Application application = appResourcesService.GetApplication();
+            Application application = _appResourcesService.GetApplication();
 
             // Todo. Figure out where to get this from
             Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
@@ -103,7 +103,7 @@ namespace Altinn.App.Services.Implementation
 
         public async Task<List<ValidationIssue>> ValidateDataElement(Instance instance, DataType dataType, DataElement dataElement)
         {
-            logger.LogInformation($"Validation of data element {dataElement.Id} of instance {instance.Id}");
+            _logger.LogInformation($"Validation of data element {dataElement.Id} of instance {instance.Id}");
 
             // Todo. Figure out where to get this from
             Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
@@ -158,11 +158,11 @@ namespace Altinn.App.Services.Implementation
 
             if (dataType.AppLogic != null)
             {                
-                Type modelType = altinnApp.GetAppModelType(dataType.AppLogic.ClassRef);
+                Type modelType = _altinnApp.GetAppModelType(dataType.AppLogic.ClassRef);
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
                 string app = instance.AppId.Split("/")[0];
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
-                dynamic data = dataService.GetFormData(instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, Guid.Parse(dataElement.Id));
+                dynamic data = _dataService.GetFormData(instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, Guid.Parse(dataElement.Id));
 
                 var context = new ValidationContext(data);
                 List<System.ComponentModel.DataAnnotations.ValidationResult> validationResults = new List<System.ComponentModel.DataAnnotations.ValidationResult>();

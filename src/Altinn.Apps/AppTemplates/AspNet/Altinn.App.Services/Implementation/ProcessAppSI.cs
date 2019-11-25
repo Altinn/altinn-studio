@@ -12,8 +12,8 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class ProcessAppSI : IProcess
     {
-        private readonly AppSettings appSettings;
-        private readonly ILogger<ProcessAppSI> logger;
+        private readonly AppSettings _appSettings;
+        private readonly ILogger<ProcessAppSI> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessAppSI"/> class.
@@ -22,14 +22,14 @@ namespace Altinn.App.Services.Implementation
             IOptions<AppSettings> appSettings,
             ILogger<ProcessAppSI> logger)
         {
-            this.appSettings = appSettings.Value;
-            this.logger = logger;
+            _appSettings = appSettings.Value;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
         public Stream GetProcessDefinition(string org, string app)
         {
-            string bpmnFilePath = appSettings.ConfigurationFolder + appSettings.ProcessFolder + appSettings.ProcessFileName;
+            string bpmnFilePath = _appSettings.ConfigurationFolder + _appSettings.ProcessFolder + _appSettings.ProcessFileName;
 
             try
             {                
@@ -39,7 +39,7 @@ namespace Altinn.App.Services.Implementation
             }
             catch (Exception processDefinitionException)
             {
-                logger.LogError($"Cannot find process definition file for {org}/{app}. Have tried file location {bpmnFilePath}. Exception {processDefinitionException}");
+                _logger.LogError($"Cannot find process definition file for {org}/{app}. Have tried file location {bpmnFilePath}. Exception {processDefinitionException}");
                 throw;
             }            
         }

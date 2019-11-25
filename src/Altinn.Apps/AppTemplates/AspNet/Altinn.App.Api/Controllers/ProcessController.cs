@@ -29,12 +29,12 @@ namespace Altinn.App.Api.Controllers
     public class ProcessController : ControllerBase
     {
         private const int MAX_ITERATIONS_ALLOWED = 1000;
-        private readonly ILogger<ProcessController> logger;
-        private readonly IInstance instanceService;
-        private readonly IProcess processService;
-        private readonly IInstanceEvent eventService;
-        private readonly IAltinnApp altinnApp;
-        private readonly IValidation validationService;
+        private readonly ILogger<ProcessController> _logger;
+        private readonly IInstance _instanceService;
+        private readonly IProcess _processService;
+        private readonly IInstanceEvent _eventService;
+        private readonly IAltinnApp _altinnApp;
+        private readonly IValidation _validationService;
 
         private readonly UserHelper userHelper;
 
@@ -54,12 +54,12 @@ namespace Altinn.App.Api.Controllers
             IAltinnApp altinnApp,
             IValidation validationService)
         {
-            this.logger = logger;
-            this.instanceService = instanceService;
-            this.processService = processService;
-            this.eventService = eventService;
-            this.altinnApp = altinnApp;
-            this.validationService = validationService;
+            _logger = logger;
+            _instanceService = instanceService;
+            _processService = processService;
+            _eventService = eventService;
+            _altinnApp = altinnApp;
+            _validationService = validationService;
 
             userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
@@ -82,7 +82,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceGuid)
         {            
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
 
             if (instance == null)
             {
@@ -114,7 +114,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceGuid,
             [FromQuery] string startEvent = null)
         {
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
             if (instance == null)
             {
                 return NotFound();
@@ -150,7 +150,7 @@ namespace Altinn.App.Api.Controllers
                 return Ok(updatedInstance.Process);
             }
 
-            logger.LogError($"Unknown error. Unable to update next process state for instance {instance.Id}!");
+            _logger.LogError($"Unknown error. Unable to update next process state for instance {instance.Id}!");
             return StatusCode(500, $"Unknown error. Cannot change process state!");
         }
 
@@ -174,7 +174,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
             if (instance == null)
             {
                 return NotFound();
@@ -207,7 +207,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception processException)
             {
-                logger.LogError($"Unable to find next process element for instance {instance.Id} and current task {currentTaskId}. {processException}");
+                _logger.LogError($"Unable to find next process element for instance {instance.Id} and current task {currentTaskId}. {processException}");
                 return Conflict($"Unable to find next process element for instance {instance.Id} and current task {currentTaskId}. Exception was {processException.Message}. Is the process file OK?");
             }
         }
@@ -233,7 +233,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceGuid,
             [FromQuery] string elementId = null)
         {
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
             if (instance == null)
             {
                 return NotFound("Cannot find instance!");
@@ -297,13 +297,13 @@ namespace Altinn.App.Api.Controllers
             // check if 
             if (instance.Process?.CurrentTask?.Validated == null || !instance.Process.CurrentTask.Validated.CanCompleteTask)
             {
-                validationIssues = await validationService.ValidateAndUpdateInstance(instance, currentElementId);
+                validationIssues = await _validationService.ValidateAndUpdateInstance(instance, currentElementId);
 
-                canEndTask = await altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
+                canEndTask = await _altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
             }
             else
             {
-                canEndTask = await altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
+                canEndTask = await _altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
             }
 
             return canEndTask;                
@@ -328,7 +328,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
 
             if (instance == null)
             {
@@ -382,7 +382,7 @@ namespace Altinn.App.Api.Controllers
 
             if (counter > 1000)
             {
-                logger.LogError($"More than {counter} iterations detected in process. Possible loop. Fix app {org}/{app}'s process definition!");
+                _logger.LogError($"More than {counter} iterations detected in process. Possible loop. Fix app {org}/{app}'s process definition!");
                 return StatusCode(500, $"More than {counter} iterations detected in process. Possible loop. Fix app process definition!");
             }
 
@@ -391,7 +391,7 @@ namespace Altinn.App.Api.Controllers
 
         private void LoadProcessModel(string org, string app)
         {
-            using Stream definitions = processService.GetProcessDefinition(org, app);
+            using Stream definitions = _processService.GetProcessDefinition(org, app);
             
             ProcessModel = BpmnReader.Create(definitions);
         }
@@ -459,7 +459,7 @@ namespace Altinn.App.Api.Controllers
                 Started = now,
                 StartEvent = validStartElement,
             };
-            Instance updatedInstance = await instanceService.UpdateInstance(instance);
+            Instance updatedInstance = await _instanceService.UpdateInstance(instance);
             List<InstanceEvent> events = new List<InstanceEvent>
             {
                 GenerateProcessChangeEvent("process:StartEvent", updatedInstance, now)
@@ -474,7 +474,7 @@ namespace Altinn.App.Api.Controllers
         {
             List<InstanceEvent> events = ChangeProcessStateAndGenerateEvents(instance, nextElementId);
 
-            Instance changedInstance = await instanceService.UpdateInstance(instance);
+            Instance changedInstance = await _instanceService.UpdateInstance(instance);
             
             await DispatchEvents(org, app, events);
 
@@ -485,7 +485,7 @@ namespace Altinn.App.Api.Controllers
         {
             foreach (InstanceEvent instanceEvent in events)
             {
-                await eventService.SaveInstanceEvent(instanceEvent, org, app);
+                await _eventService.SaveInstanceEvent(instanceEvent, org, app);
             }
         }
 
@@ -543,7 +543,7 @@ namespace Altinn.App.Api.Controllers
 
             if (previousElementId == null && instance.Process.StartEvent != null)
             {
-                altinnApp.OnStartProcess(previousElementId, instance);
+                _altinnApp.OnStartProcess(previousElementId, instance);
                 flow = 1;
             }
 
@@ -554,7 +554,7 @@ namespace Altinn.App.Api.Controllers
                     flow = currentState.CurrentTask.Flow.Value;
                 }
 
-                altinnApp.OnEndProcessTask(previousElementId, instance);
+                _altinnApp.OnEndProcessTask(previousElementId, instance);
                 events.Add(GenerateProcessChangeEvent("process:EndTask", instance, now));
             }
 
@@ -564,7 +564,7 @@ namespace Altinn.App.Api.Controllers
                 currentState.Ended = now;
                 currentState.EndEvent = nextElementId;
 
-                altinnApp.OnEndProcess(nextElementId, instance);
+                _altinnApp.OnEndProcess(nextElementId, instance);
                 events.Add(GenerateProcessChangeEvent("process:EndEvent", instance, now));
             }
             else if (IsTask(nextElementId))
@@ -579,7 +579,7 @@ namespace Altinn.App.Api.Controllers
                     Validated = null,
                 };
 
-                altinnApp.OnStartProcessTask(nextElementId, instance);
+                _altinnApp.OnStartProcessTask(nextElementId, instance);
                 events.Add(GenerateProcessChangeEvent("process:StartTask", instance, now));
             }
 
