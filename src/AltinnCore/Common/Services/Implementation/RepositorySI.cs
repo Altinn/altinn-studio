@@ -192,8 +192,9 @@ namespace AltinnCore.Common.Services.Implementation
                 _logger.LogInformation($"// Debug // RepositorySI // Trying to write metadata to filepath: {filePath}");
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
             }
-            catch
+            catch (Exception e)
             {
+                _logger.LogInformation($"// Debug // RepositorySI // Exception when trying to store metadata: {e.GetType()} : {e.Message}");
                 return false;
             }
 
