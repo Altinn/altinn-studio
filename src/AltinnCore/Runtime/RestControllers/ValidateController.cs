@@ -203,7 +203,7 @@ namespace AltinnCore.Runtime.RestControllers
                 };
                 messages.Add(message);
             }
-            
+
             return Ok(messages);
         }
 
@@ -262,7 +262,7 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 Type modelType = serviceImplementation.GetServiceModelType();
                 dynamic data = dataService.GetFormData(instanceId, modelType, org, app, instanceOwnerId, Guid.Parse(dataElement.Id));
-                
+
                 serviceImplementation.SetServiceModel(data);
 
                 TryValidateModel(data);
@@ -297,7 +297,7 @@ namespace AltinnCore.Runtime.RestControllers
                             Field = modelKey,
                             Severity = ValidationIssueSeverity.Error,
                             Description = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO")
-                        }; 
+                        };
                         messages.Add(message);
                     }
                 }

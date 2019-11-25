@@ -1,0 +1,83 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Data\apps\tdd\auth-level-2\appsettings.Development.json" />
+    <None Remove="Data\apps\tdd\auth-level-2\appsettings.json" />
+    <None Remove="Data\apps\tdd\auth-level-3\appsettings.Development.json" />
+    <None Remove="Data\apps\tdd\auth-level-3\appsettings.json" />
+    <None Remove="Data\apps\tdd\endring-av-navn\config\appsettings.Development.json" />
+    <None Remove="Data\apps\tdd\endring-av-navn\config\appsettings.json" />
+    <None Remove="Data\apps\tdd\no-access\appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Data\apps\tdd\auth-level-2\appsettings.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\auth-level-2\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\auth-level-3\appsettings.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\auth-level-3\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\endring-av-navn\appsettings.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\endring-av-navn\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\no-access\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.2-alpha" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+    <PackageReference Include="xunit" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\apps\tdd\endring-av-navn\config\authorization\" />
+    <Folder Include="Data\Instances\tdd\endring-av-navn\1000\26133fb5-a9f2-45d4-90b1-f6d93ad40713\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\App\AppRef.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Data\Files\data-element.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\Instances\tdd\endring-av-navn\1000\36133fb5-a9f2-45d4-90b1-f6d93ad40713\36133fb5-a9f2-45d4-90b1-f6d93ad40713.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

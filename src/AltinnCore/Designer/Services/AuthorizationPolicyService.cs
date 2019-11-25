@@ -20,6 +20,7 @@ namespace AltinnCore.Designer.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IGitea _giteaApiWrapper;
         private readonly ServiceRepositorySettings _serviceRepositorySettings;
+        private readonly PlatformSettings _platformSettings;
 
         /// <summary>
         /// Constructor
@@ -30,11 +31,13 @@ namespace AltinnCore.Designer.Services
         public AuthorizationPolicyService(
             IHttpClientFactory httpClientFactory,
             IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<PlatformSettings> platformSettings,
             IGitea giteaApiWrapper)
         {
             _httpClientFactory = httpClientFactory;
             _giteaApiWrapper = giteaApiWrapper;
             _serviceRepositorySettings = repositorySettings.Value;
+            _platformSettings = platformSettings.Value;
         }
 
         /// <inheritdoc />
@@ -61,7 +64,7 @@ namespace AltinnCore.Designer.Services
         private HttpClient GetHttpClientFromHttpClientFactory(EnvironmentModel deploymentEnvironment)
         {
             HttpClient httpClient = _httpClientFactory.CreateClient(deploymentEnvironment.Hostname);
-            string uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/authorization/api/v1/policies/";
+            string uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/{_platformSettings.ApiAuthorizationPolicyUri}";
             httpClient.BaseAddress = new Uri(uri);
 
             return httpClient;

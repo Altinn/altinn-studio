@@ -59,7 +59,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The ServiceMetadata for an app.</returns>
-        ServiceMetadata GetServiceMetaData(string org, string app);
+        ModelMetadata GetServiceMetaData(string org, string app);
 
         /// <summary>
         /// Method that fetches the runtime resources stored in wwwroot

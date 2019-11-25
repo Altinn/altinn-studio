@@ -73,7 +73,7 @@ namespace AltinnCore.Common.Helpers
                     };
                     foreach (ModelError error in entry.Errors)
                     {
-                        apiEntry.Errors.Add(new ApiModelError() { ErrorMessage = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO") });
+                        apiEntry.Errors.Add(new ApiModelError() { ErrorMessage = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb") });
                     }
 
                     apiResult.ModelStateEntries.Add(apiEntry);

@@ -18,6 +18,16 @@ namespace AltinnCore.Common.Configuration
         public string DeploymentLocation { get; set; }
 
         /// <summary>
+        /// Gets or sets the location for the app
+        /// </summary>
+        public string AppLocation { get; set; }
+
+        /// <summary>
+        /// Gets or sets the location for the intergrationtests
+        /// </summary>
+        public string IntegrationTestsLocation { get; set; }
+
+        /// <summary>
         /// Gets or sets the location to search for language files
         /// </summary>
         public string LanguageFilesLocation { get; set; }
@@ -54,24 +64,13 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the workflow template.
-        /// </summary>
-        public string WorkflowTemplate
-        {
-            get
-            {
-                return TemplateLocation + "/process.bpmn";
-            }
-        }
-
-        /// <summary>
         /// Gets the path to the authorization policy template (XACML).
         /// </summary>
         public string AuthorizationPolicyTemplate
         {
             get
             {
-                return TemplateLocation + "/policy.xml";
+                return "App/Config/Authorization/policy.xml";
             }
         }
 
@@ -83,6 +82,17 @@ namespace AltinnCore.Common.Configuration
             get
             {
                 return TemplateLocation + "/CalculationHandler.cs";
+            }
+        }
+
+        /// <summary>
+        /// Gets the path to the app templates
+        /// </summary>
+        public string TemplatePath
+        {
+            get
+            {
+               return TemplateLocation;
             }
         }
 
@@ -116,17 +126,6 @@ namespace AltinnCore.Common.Configuration
             get
             {
                 return TemplateLocation + "/InstantiationHandler.cs";
-            }
-        }
-
-        /// <summary>
-        /// Gets the path to the generated methods template.
-        /// </summary>
-        public string GeneratedMethodsTemplate
-        {
-            get
-            {
-                return TemplateLocation + "/GeneratedMethods.cs";
             }
         }
 
@@ -185,7 +184,7 @@ namespace AltinnCore.Common.Configuration
         public string SBLBaseAdress { get; set; }
 
         /// <summary>
-        /// Get the base adress for SBL from kubernetes environment variables and appsettings is environment variable is not set. 
+        /// Get the base adress for SBL from kubernetes environment variables and appsettings is environment variable is not set.
         /// </summary>
         public string GetSBLBaseAdress
         {
