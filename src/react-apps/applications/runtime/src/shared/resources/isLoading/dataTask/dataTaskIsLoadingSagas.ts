@@ -21,6 +21,6 @@ export function* watcherFinishDataTaskIsloadingSaga(): SagaIterator {
     take(GET_INSTANCEDATA_FULFILLED),
     take(MAP_ATTACHMENTS_FULFILLED),
   ]);
-  console.log('finito');
+
   yield call(IsLoadingActions.finishDataTaskIsloading);
 }
