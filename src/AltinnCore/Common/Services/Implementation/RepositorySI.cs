@@ -990,7 +990,6 @@ namespace AltinnCore.Common.Services.Implementation
 
             foreach (string orgPath in orgPaths)
             {
-
                 string[] appPaths = Directory.GetDirectories(orgPath);
 
                 foreach (string appPath in appPaths)
@@ -1687,7 +1686,7 @@ namespace AltinnCore.Common.Services.Implementation
                 string filename = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
                 File.WriteAllText(filename, fileContent, Encoding.UTF8);
             }
-            
+
         }
 
         /// <summary>
