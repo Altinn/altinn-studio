@@ -90,8 +90,6 @@ namespace AltinnCore.Designer.Controllers
 
             string modelName = Path.GetFileNameWithoutExtension(mainFileName);
 
-            _logger.LogInformation($"// Debug // ModelController // Create model for org: {org}, app: {app}, modelName = {modelName}");
-
             if (_repository.CreateModel(org, app, modelMetadata, mainXsd, modelName))
             {
                 return RedirectToAction("Index", new { org, app, modelName });
