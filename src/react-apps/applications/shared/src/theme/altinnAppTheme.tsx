@@ -128,8 +128,8 @@ const AltinnAppTheme = {
     linkBorderBottom: '1px solid #0062BA',
     mainPaddingLeft: 73,
     fontWeight: {
-      medium: 500,      
-    }
+      medium: 500,
+    },
   },
   typography: {
     htmlFontSize: 16,

@@ -3,8 +3,8 @@ import { useSelector } from 'react-redux';
 import { getParsedLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
-import InstantiationErrorPage from './InstantiationErrorPage';
 import { getHostname } from '../../../utils/urlHelper';
+import InstantiationErrorPage from './InstantiationErrorPage';
 
 function NoValidPartiesError() {
   const language = useSelector((state: IRuntimeState) => state.language.language);

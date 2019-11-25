@@ -4,7 +4,7 @@ const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
 
 module.exports = {
   mode: 'development',
-  devtool: 'source-map',
+  devtool: 'inline-source-map',
   entry: [
     "core-js/modules/es.object.assign",
     "core-js/modules/es.array.find-index",

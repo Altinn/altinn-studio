@@ -1,6 +1,7 @@
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { RouteProps } from 'react-router';
+import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import AltinnError from '../../../shared/components/altinnError';
 import InstantiateContainer from './InstantiationContainer';
 
@@ -35,6 +36,7 @@ function InstantiationErrorPage(props: IInstantiationErrorPageProps) {
                 content={content}
                 statusCode={statusCode}
                 titleFontWeight={'medium'}
+                titleColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
               />
             </Grid>
           </Grid>

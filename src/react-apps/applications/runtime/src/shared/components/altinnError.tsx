@@ -14,6 +14,7 @@ export interface IAltinnErrorProps extends WithStyles<typeof styles> {
   imageUrl?: string;
   imageAlt?: string;
   titleFontWeight?: 'medium';
+  titleColor?: string;
 }
 
 const styles = createStyles({
@@ -32,11 +33,18 @@ const styles = createStyles({
   },
   fontWeightMedium: {
     fontWeight: AltinnAppTheme.sharedStyles.fontWeight.medium,
-  }
+  },
+  titleColor: {
+    color: AltinnAppTheme.altinnPalette.primary.blueDarker,
+  },
 });
 
 const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
   const { classes } = props;
+  const titleClasses = {
+    [classes.fontWeightMedium]: props.titleFontWeight === 'medium',
+    [classes.titleColor]: props.titleColor === AltinnAppTheme.altinnPalette.primary.blueDarker,
+  };
   return (
     <Grid container={true} className={classes.gridContainer}>
       <Grid item={true} md={8}>
@@ -48,7 +56,8 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
         <div className={classes.contentMargin}>
           <Typography
             variant={'h1'}
-            className={classNames({ [classes.fontWeightMedium]: props.titleFontWeight === 'medium' })}>
+            className={classNames(titleClasses)}
+          >
             {props.title}
           </Typography>
         </div>
