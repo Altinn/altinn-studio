@@ -1,6 +1,5 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IDataTaskIsloading } from './dataTask/dataTaskIsLoadingActions';
 import * as DataTaskIsLoadingActionTypes from './dataTask/dataTaskIsLoadingActionTypes';
 
 export interface IIsLoadingState {
