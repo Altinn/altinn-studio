@@ -54,7 +54,7 @@ services:
       - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1/
       - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
       - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000
-      - ServiceRepositorySettings:GiteaLoginUrl=http://altinn3.no/repos/user/login
+      - ServiceRepositorySettings:GiteaLoginUrl=http://altinn3.no/user/login
       - GeneralSettings:TemplateLocation=/Templates
       - GeneralSettings:DeploymentLocation=/Templates/deployment
       - GeneralSettings:LanguageFilesLocation=Languages/

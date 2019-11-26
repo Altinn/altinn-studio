@@ -22,7 +22,7 @@ namespace AltinnCore.Designer.Infrastructure
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                 {
-                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                    options.ExpireTimeSpan = new TimeSpan(0, 2, 0);
                     options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
                 })
                 .AddCookie(options =>

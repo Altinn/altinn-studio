@@ -188,7 +188,7 @@ namespace AltinnCore.Designer.Controllers
                 principal,
                 new AuthenticationProperties
                 {
-                    ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(5),
                     IsPersistent = false,
                     AllowRefresh = false,
                 });
@@ -203,7 +203,7 @@ namespace AltinnCore.Designer.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return LocalRedirect("/repos/user/logout");
+            return LocalRedirect("/user/logout");
         }
 
         /// <summary>
