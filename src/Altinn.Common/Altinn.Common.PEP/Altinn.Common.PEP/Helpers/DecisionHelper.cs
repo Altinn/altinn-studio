@@ -15,6 +15,7 @@ namespace Altinn.Common.PEP.Helpers
     public static class DecisionHelper
     {
         private const string XacmlResourcePartyId = "urn:altinn:partyid";
+        private const string XacmlInstanceId= "urn:altinn:instance-id";
         private const string XacmlResourceOrgId = "urn:altinn:org";
         private const string XacmlResourceAppId = "urn:altinn:app";
         private const string ParamInstanceOwnerId = "instanceOwnerId";
@@ -34,7 +35,7 @@ namespace Altinn.Common.PEP.Helpers
 
             request.AccessSubject.Add(CreateSubjectCategory(user.Claims));
             request.Action.Add(CreateActionCategory(actionType));
-            request.Resource.Add(CreateResourceCategory(org, app, partyId));
+            request.Resource.Add(CreateResourceCategory(org, app, partyId, null));
 
             return request;
         }
@@ -53,7 +54,7 @@ namespace Altinn.Common.PEP.Helpers
 
             request.AccessSubject.Add(CreateSubjectCategory(context.User.Claims));
             request.Action.Add(CreateActionCategory(requirement.ActionType));
-            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerId + "/" + instanceGuid));
+            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerId, instanceGuid));
 
             return request;
         }
@@ -83,12 +84,20 @@ namespace Altinn.Common.PEP.Helpers
             return actionAttributes;
         }
 
-        private static XacmlJsonCategory CreateResourceCategory(string org, string app, string instanceOwnerId)
+        private static XacmlJsonCategory CreateResourceCategory(string org, string app, string instanceOwnerId, string instanceId)
         {
             XacmlJsonCategory resourceAttributes = new XacmlJsonCategory();
             resourceAttributes.Attribute = new List<XacmlJsonAttribute>();
 
-            resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourcePartyId, instanceOwnerId, defaultType, defaultIssuer));
+            if (instanceId == null)
+            {
+                resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourcePartyId, instanceOwnerId, defaultType, defaultIssuer));
+            }
+            else
+            {
+                resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlInstanceId, instanceOwnerId + "/" + instanceId, defaultType, defaultIssuer));
+            }
+            
             resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceOrgId, org, defaultType, defaultIssuer));
             resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceAppId, app, defaultType, defaultIssuer));
 
