@@ -145,7 +145,7 @@
 									"    var jsonData = pm.response.json();\r",
 									"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
 									"    {\r",
-									"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
+									"        pm.environment.set('instanceOwnerId', jsonData.instanceOwner.partyId);\r",
 									"        var instanceId = jsonData.id;\r",
 									"        instanceId = instanceId.toString();\r",
 									"        instanceId = instanceId.split('/');\r",
@@ -181,7 +181,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{org}}/{{app}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
+							"raw": "{\n    \"instanceOwner\": {\n    \t\"partyId\": \"{{instanceOwnerId}}\"\n    },\n    \"appOwner\":{\n    \t\"labels\" : [ \"gr\", \"x2\" ]\n    },\n    \"appId\" : \"{{org}}/{{app}}\",\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\n    \"visibleAfter\": \"2019-05-20T00:00:00Z\",\n    \"title\": { \"nb\": \"Arbeidsmelding\" }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -292,7 +292,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": \"{{instanceOwnerId}}/{{instanceId}}\",\r\n    \"instanceOwnerId\": \"50015432\",\r\n    \"selfLinks\": {\r\n        \"apps\": \"https://tdd.apps.at21.altinn.cloud/tdd/apptest/instances/50015432/791c6963-3d6d-44e9-9481-d81d19bf0b4b\",\r\n        \"platform\": \"http://platform.at21.altinn.cloud/storage/api/v1/instances/50015432/791c6963-3d6d-44e9-9481-d81d19bf0b4b\"\r\n    },\r\n    \"appId\": \"tdd/apptest\",\r\n    \"org\": \"tdd\",\r\n    \"labels\": [\r\n        \"gr\",\r\n        \"asdfg\"\r\n    ],\r\n    \"createdDateTime\": \"2019-10-03T10:57:46.2640542Z\",\r\n    \"lastChangedDateTime\": \"2019-10-03T10:57:46.2640542Z\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": {\r\n        \"nb\": \"Arbeidsmelding\"\r\n    },\r\n    \"instanceState\": {\r\n        \"isDeleted\": false,\r\n        \"isMarkedForHardDelete\": false,\r\n        \"isArchived\": false\r\n    },\r\n    \"data\": []\r\n}",
+							"raw": "{\r\n    \"id\": \"{{instanceOwnerId}}/{{instanceId}}\",\r\n    \"instanceOwner\": {\r\n        \"partyId\": \"{{instanceOwnerId}}\"\r\n    },\r\n    \"appId\": \"{{orf}}/{{app}}\",\r\n    \"org\": \"{{org}}\",\r\n    \"selfLinks\": {\r\n        \"apps\": \"https://ttd.apps.at21.altinn.cloud/ttd/it-works/instances/50012373/29d839f8-9cc6-44a6-b2f3-ba4b28fafe66\",\r\n        \"platform\": \"http://platform.at21.altinn.cloud/storage/api/v1/instances/50012373/29d839f8-9cc6-44a6-b2f3-ba4b28fafe66\"\r\n    },\r\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleAfter\": \"2019-05-20T00:00:00Z\",\r\n    \"title\": {\r\n        \"nb\": \"Arbeidsmelding\"\r\n    },\r\n    \"process\": null,\r\n    \"status\": null,\r\n    \"appOwner\": {\r\n        \"labels\": [\r\n            \"gr\",\r\n            \"asdf\"\r\n        ],\r\n        \"messages\": null,\r\n        \"canBeDeletedAfter\": null\r\n    },\r\n    \"data\": [],\r\n    \"created\": \"2019-11-26T09:59:49.3923233Z\",\r\n    \"createdBy\": null,\r\n    \"lastChanged\": \"2019-11-26T09:59:49.3923233Z\",\r\n    \"lastChangedBy\": null\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -335,9 +335,9 @@
 									"pm.test(\"Runtime - Data - Add Form Data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
 									"    var jsonData = pm.response.json();\r",
-									"    if(pm.expect(jsonData[0].id).not.eql(null))\r",
+									"    if(pm.expect(jsonData.id).not.eql(null))\r",
 									"    {\r",
-									"        pm.environment.set('dataGuid', jsonData[0].id);\r",
+									"        pm.environment.set('dataGuid', jsonData.id);\r",
 									"    }\r",
 									"});\r",
 									""
@@ -368,7 +368,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1243\" spesifikasjonsnummer=\"10702\" blankettnummer=\"RF-1117\" tittel=\"Klage på likningen\" gruppeid=\"5800\">\r\n  <Skattyterinfor-grp-5801 gruppeid=\"5801\">\r\n    <info-grp-5802 gruppeid=\"5802\">\r\n      <OppgavegiverNavnPreutfylt-datadef-25795 orid=\"25795\">test</OppgavegiverNavnPreutfylt-datadef-25795>\r\n    </info-grp-5802>\r\n  </Skattyterinfor-grp-5801>\r\n</Skjema>",
+							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">98274</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>",
 							"options": {
 								"raw": {
 									"language": "xml"
@@ -376,7 +376,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=default",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?dataType=default",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -393,7 +393,7 @@
 							],
 							"query": [
 								{
-									"key": "elementType",
+									"key": "dataType",
 									"value": "default"
 								}
 							]
@@ -479,7 +479,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1243\" spesifikasjonsnummer=\"10702\" blankettnummer=\"RF-1117\" tittel=\"Klage på likningen\" gruppeid=\"5800\">\r\n  <Skattyterinfor-grp-5801 gruppeid=\"5801\">\r\n    <info-grp-5802 gruppeid=\"5802\">\r\n      <OppgavegiverNavnPreutfylt-datadef-25795 orid=\"25795\">test æåø</OppgavegiverNavnPreutfylt-datadef-25795>\r\n    </info-grp-5802>\r\n  </Skattyterinfor-grp-5801>\r\n</Skjema>"
+							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>"
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
@@ -563,9 +563,9 @@
 									"pm.test(\"Runtime - Data - Add attachment - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
 									"    var jsonData = pm.response.json();\r",
-									"    if(pm.expect(jsonData[0].id).not.eql(null))\r",
+									"    if(pm.expect(jsonData.id).not.eql(null))\r",
 									"    {\r",
-									"        pm.environment.set('dataGuid', jsonData[0].id);\r",
+									"        pm.environment.set('dataGuid', jsonData.id);\r",
 									"    }\r",
 									"});\r",
 									""
@@ -611,7 +611,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType={{attachmentElementType}}",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?dataType={{attachmentElementType}}",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -628,7 +628,7 @@
 							],
 							"query": [
 								{
-									"key": "elementType",
+									"key": "dataType",
 									"value": "{{attachmentElementType}}"
 								}
 							]
@@ -699,7 +699,7 @@
 									"    pm.response.to.have.status(201);\r",
 									"    var jsonData = pm.response.json();\r",
 									"    var envDataId = pm.environment.get(\"dataGuid\");\r",
-									"    pm.expect(jsonData[0].id).to.equal(envDataId);\r",
+									"    pm.expect(jsonData.id).to.equal(envDataId);\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1153,15 +1153,15 @@
 					"response": []
 				},
 				{
-					"name": "PUT Next Process",
+					"name": "PUT Next Process -negative",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"id": "94e0d202-99c7-4371-91e9-412910df847a",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Move instance to next process - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
+									"pm.test(\"Runtime - Instances - Move instance to next task - Negative - Status - 409\", function () {\r",
+									"    pm.response.to.have.status(409);\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1188,7 +1188,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next?elementId={{processElementId}}",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -1203,12 +1203,6 @@
 								"{{instanceId}}",
 								"process",
 								"next"
-							],
-							"query": [
-								{
-									"key": "elementId",
-									"value": "{{processElementId}}"
-								}
 							]
 						}
 					},
@@ -1391,7 +1385,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{org}}/{{app}}\",\r\n    \"dueDateTime\": \"2021-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1243\" spesifikasjonsnummer=\"10702\" blankettnummer=\"RF-1117\" tittel=\"Klage på likningen\" gruppeid=\"5800\">\r\n  <Skattyterinfor-grp-5801 gruppeid=\"5801\">\r\n    <info-grp-5802 gruppeid=\"5802\">\r\n      <OppgavegiverNavnPreutfylt-datadef-25795 orid=\"25795\">test</OppgavegiverNavnPreutfylt-datadef-25795>\r\n    </info-grp-5802>\r\n  </Skattyterinfor-grp-5801>\r\n</Skjema>\r\n\r\n--abcdefg--",
+							"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwner\": {\r\n    \t\"partyId\": \"{{instanceOwnerId}}\"\r\n    },\r\n    \"appOwner\":{\r\n    \t\"labels\" : [ \"gr\", \"x2\" ]\r\n    },\r\n    \"appId\" : \"{{org}}/{{app}}\",\r\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleAfter\": \"2019-05-20T00:00:00Z\",\r\n    \"title\": { \"nb\": \"Arbeidsmelding\" }\r\n}\r\n\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">98274</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>\r\n\r\n--abcdefg--",
 							"options": {
 								"raw": {
 									"language": "text"
@@ -1538,7 +1532,7 @@
 									"    var jsonData = pm.response.json();\r",
 									"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
 									"    {\r",
-									"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
+									"        pm.environment.set('instanceOwnerId', jsonData.instanceOwner.partyId);\r",
 									"        var instanceId = jsonData.id;\r",
 									"        instanceId = instanceId.toString();\r",
 									"        instanceId = instanceId.split('/');\r",
@@ -1575,7 +1569,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{org}}/{{app}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
+							"raw": "{\n    \"instanceOwner\": {\n    \t\"partyId\": \"{{instanceOwnerId}}\"\n    },\n    \"appOwner\":{\n    \t\"labels\" : [ \"gr\", \"x2\" ]\n    },\n    \"appId\" : \"{{org}}/{{app}}\",\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\n    \"visibleAfter\": \"2019-05-20T00:00:00Z\",\n    \"title\": { \"nb\": \"Arbeidsmelding\" }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1611,9 +1605,9 @@
 									"if (pm.response.code == 201)\r",
 									"{\r",
 									"    var jsonData = pm.response.json();\r",
-									"    if(pm.expect(jsonData[0].id).not.eql(null))\r",
+									"    if(pm.expect(jsonData.id).not.eql(null))\r",
 									"    {\r",
-									"        pm.environment.set('dataGuid', jsonData[0].id);\r",
+									"        pm.environment.set('dataGuid', jsonData.id);\r",
 									"    }\r",
 									"}\r",
 									""
@@ -1642,7 +1636,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=default",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?dataType=default",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -1659,7 +1653,7 @@
 							],
 							"query": [
 								{
-									"key": "elementType",
+									"key": "dataType",
 									"value": "default"
 								}
 							]
@@ -1846,7 +1840,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1243\" spesifikasjonsnummer=\"10702\" blankettnummer=\"RF-1117\" tittel=\"Klage på likningen\" gruppeid=\"5800\">\r\n  <Skattyterinfor-grp-5801 gruppeid=\"5801\">\r\n    <info-grp-5802 gruppeid=\"5802\">\r\n      <OppgavegiverNavnPreutfylt-datadef-25795 orid=\"25795\">test</OppgavegiverNavnPreutfylt-datadef-25795>\r\n    </info-grp-5802>\r\n  </Skattyterinfor-grp-5801>\r\n</Skjema>",
+							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>",
 							"options": {
 								"raw": {
 									"language": "xml"
@@ -1885,9 +1879,9 @@
 									"if (pm.response.code == 201)\r",
 									"{\r",
 									"    var jsonData = pm.response.json();\r",
-									"    if(pm.expect(jsonData[0].id).not.eql(null))\r",
+									"    if(pm.expect(jsonData.id).not.eql(null))\r",
 									"    {\r",
-									"        pm.environment.set('dataGuid', jsonData[0].id);\r",
+									"        pm.environment.set('dataGuid', jsonData.id);\r",
 									"    }\r",
 									"}"
 								],
@@ -1932,7 +1926,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType={{attachmentElementType}}",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?dataType={{attachmentElementType}}",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -1949,7 +1943,7 @@
 							],
 							"query": [
 								{
-									"key": "elementType",
+									"key": "dataType",
 									"value": "{{attachmentElementType}}"
 								}
 							]
@@ -2070,9 +2064,9 @@
 									"if (pm.response.code == 201)\r",
 									"{\r",
 									"    var jsonData = pm.response.json();\r",
-									"    if(pm.expect(jsonData[0].id).not.eql(null))\r",
+									"    if(pm.expect(jsonData.id).not.eql(null))\r",
 									"    {\r",
-									"        pm.environment.set('dataGuid', jsonData[0].id);\r",
+									"        pm.environment.set('dataGuid', jsonData.id);\r",
 									"    }\r",
 									"}"
 								],
@@ -2117,7 +2111,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType={{attachmentElementType}}",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?dataType={{attachmentElementType}}",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -2134,7 +2128,7 @@
 							],
 							"query": [
 								{
-									"key": "elementType",
+									"key": "dataType",
 									"value": "{{attachmentElementType}}"
 								}
 							]
@@ -2312,68 +2306,6 @@
 								"{{instanceId}}",
 								"process",
 								"next"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "PUT Next Process",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "94e0d202-99c7-4371-91e9-412910df847a",
-								"exec": [
-									"pm.test(\"Runtime - Instances - Move instance to next process - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next?elementId={{processElementId}}",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"process",
-								"next"
-							],
-							"query": [
-								{
-									"key": "elementId",
-									"value": "{{processElementId}}"
-								}
 							]
 						}
 					},
