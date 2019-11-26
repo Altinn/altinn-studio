@@ -105,7 +105,7 @@ dotnet run
 
 Which will build the Designer .net backend and the designer react app, but not listen to changes to the react app.
 
-**Runtime**
+**Runtime (deprecated documentation, new documentation will be available soon)**
 
 Stop the container running Runtime.
 
