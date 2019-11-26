@@ -21,7 +21,13 @@ namespace App.IntegrationTestsRef.Utils
         {
             HttpClient client = factory.WithWebHostBuilder(builder =>
             {
+
                 string path = GetAppPath(org, app);
+
+                builder.ConfigureAppConfiguration((context, conf) =>
+                {
+                    conf.AddJsonFile(path + "appsettings.json");
+                });
 
                 var configuration = new ConfigurationBuilder()
                 .AddJsonFile(path + "appsettings.json")
@@ -30,7 +36,6 @@ namespace App.IntegrationTestsRef.Utils
                 configuration.GetSection("AppSettings:AppBasePath").Value = path;
 
                 IConfigurationSection appSettingSection = configuration.GetSection("AppSettings");
-
 
                 builder.ConfigureTestServices(services =>
                 {
