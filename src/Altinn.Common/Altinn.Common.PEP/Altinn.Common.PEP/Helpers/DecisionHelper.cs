@@ -134,10 +134,10 @@ namespace Altinn.Common.PEP.Helpers
                 throw new ArgumentNullException("user");
             }
 
-            return IsResponseValid(results, user);
+            return ValidatePdpDecision(results, user);
         }
 
-        private static bool IsResponseValid(List<XacmlJsonResult> results, ClaimsPrincipal user)
+        private static bool ValidatePdpDecision(List<XacmlJsonResult> results, ClaimsPrincipal user)
         {
             // We request one thing and then only want one result
             if (results.Count != 1)
