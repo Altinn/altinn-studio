@@ -19,7 +19,6 @@ export interface IAltinnErrorProps extends WithStyles<typeof styles> {
   urlTextSuffix?: string;
   imageUrl?: string;
   imageAlt?: string;
-  titleFontWeight?: 'medium';
   styling?: IAltinnErrorClasses;
 }
 
