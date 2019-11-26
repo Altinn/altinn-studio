@@ -11,6 +11,9 @@ using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Helpers;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -36,6 +39,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IAppResources _appResourcesService;
         private readonly IRegister _registerService;
         private readonly IAltinnApp _altinnApp;
+        private readonly IPDP _pdp;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -46,7 +50,8 @@ namespace Altinn.App.Api.Controllers
             IInstance instanceService,
             IData dataService,
             IAppResources appResourcesService,
-            IAltinnApp altinnApp)
+            IAltinnApp altinnApp,
+            IPDP pdp)
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -54,6 +59,7 @@ namespace Altinn.App.Api.Controllers
             _appResourcesService = appResourcesService;
             _registerService = registerService;
             _altinnApp = altinnApp;
+            _pdp = pdp;
         }
 
         /// <summary>
@@ -242,6 +248,14 @@ namespace Altinn.App.Api.Controllers
             // Action is instansiate. Use claims princial from context. The resource party from above party
             // The app and org. Call the new method in IPDP service. This API lib need to reference the PEP nuget to make this possible
             // If this method return false. Return NotAuthorized here
+            // string org, string app, ClaimsPrincipal user, string actionType, string partyId
+            XacmlJsonRequest request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString());
+            bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
+
+            if (!authorized)
+            {
+                return Forbid("Not Authorized");
+            }
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
