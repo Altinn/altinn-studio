@@ -12,7 +12,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
     public class AltinnApp : AppBase, IAltinnApp
     {
 
-        public AltinnApp(IAppResources appResourcesService, ILogger<AltinnApp> logger, IData dataService) : base(appResourcesService, logger, dataService)
+        public AltinnApp(IAppResources appResourcesService, ILogger<AltinnApp> logger, IData dataService, IProcess processService) : base(appResourcesService, logger, dataService, processService)
         {
         }
 

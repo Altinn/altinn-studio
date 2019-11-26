@@ -27,7 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Altinn.App.Api\Altinn.App.Api.csproj" />
     <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
-    <ProjectReference Include="..\Altinn.App.Services\Altinn.App.Services.csproj" />
+    <ProjectReference Include="..\Altinn.App.PlatformServices\Altinn.App.PlatformServices.csproj" />
   </ItemGroup>
 
   <ItemGroup>

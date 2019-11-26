@@ -148,9 +148,9 @@ namespace Altinn.Platform.Storage.Controllers
             // make sure minimum application values are set
             application.Id = appId;
             application.Org = org;
-            application.CreatedBy = User.Identity.Name;
+            application.CreatedBy = GetUserId();
             application.Created = creationTime;
-            application.LastChangedBy = User.Identity.Name;
+            application.LastChangedBy = GetUserId();
             application.LastChanged = creationTime;
             if (application.ValidFrom == null)
             {
@@ -257,7 +257,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound($"Unable to find application with appId={appId} to update: {e}");
             }
 
-            existingApplication.LastChangedBy = User.Identity.Name;
+            existingApplication.LastChangedBy = GetUserId();
             existingApplication.LastChanged = DateTime.UtcNow;
 
             existingApplication.VersionId = application.VersionId;
@@ -267,12 +267,8 @@ namespace Altinn.Platform.Storage.Controllers
             existingApplication.ProcessId = application.ProcessId;
             existingApplication.MaxSize = application.MaxSize;
             existingApplication.DataTypes = application.DataTypes;
-            if (existingApplication.PartyTypesAllowed == null)
-            {
-                existingApplication.PartyTypesAllowed = new PartyTypesAllowed();
-            }
-
-            existingApplication.PartyTypesAllowed = application.PartyTypesAllowed;
+          
+            existingApplication.PartyTypesAllowed = application.PartyTypesAllowed ?? new PartyTypesAllowed();
 
             try
             {
@@ -326,7 +322,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     DateTime timestamp = DateTime.UtcNow;
 
-                    application.LastChangedBy = User.Identity.Name;
+                    application.LastChangedBy = GetUserId();
                     application.LastChanged = timestamp;
                     application.ValidTo = timestamp;
 
@@ -350,6 +346,11 @@ namespace Altinn.Platform.Storage.Controllers
                 logger.LogError($"Unable to perform request: {e}");
                 return StatusCode(500, $"Unable to perform request: {e}");
             }
+        }
+
+        private string GetUserId()
+        {
+            return User?.Identity?.Name;
         }
     }
 }

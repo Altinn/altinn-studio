@@ -24,10 +24,14 @@ namespace Altinn.Platform.Storage.Helpers
         public static List<MessageBoxInstance> ConvertToMessageBoxInstance(List<Instance> instances, Dictionary<string, Dictionary<string, string>> appTitles, string language)
         {
             List<MessageBoxInstance> messageBoxInstances = new List<MessageBoxInstance>();
+            if (instances == null || instances.Count == 0)
+            {
+                return messageBoxInstances;
+            }
 
             foreach (Instance instance in instances)
             {
-                InstanceStatus status = instance.Status;
+                InstanceStatus status = instance.Status ?? new InstanceStatus();
                 DateTime? visibleAfter = instance.VisibleAfter;
 
                 messageBoxInstances.Add(new MessageBoxInstance()
