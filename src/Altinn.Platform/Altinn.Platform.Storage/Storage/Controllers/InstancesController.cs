@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +29,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly ILogger logger;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -45,7 +47,7 @@ namespace Altinn.Platform.Storage.Controllers
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
-            this.logger = logger;
+            _logger = logger;
         }
 
         /// <summary>
@@ -58,7 +60,7 @@ namespace Altinn.Platform.Storage.Controllers
         public async Task<ActionResult> GetInstanceOwners(int instanceOwnerPartyId)
         {
             List<Instance> result = await _instanceRepository.GetInstancesOfInstanceOwner(instanceOwnerPartyId);
-            if (result == null || result.Count == 0)
+            if (result == null)
             {
                 return NotFound($"Did not find any instances for instanceOwnerPartyId={instanceOwnerPartyId}");
             }
@@ -85,7 +87,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dueBefore">the due before date time</param>
         /// <param name="continuationToken">continuation token</param>
         /// <param name="size">the page size</param>
-        /// <returns>list of all instances for given instanceowner</returns>
+        /// <returns>list of all instances for given instance owner</returns>
         /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
         [HttpGet]
         [ProducesResponseType(typeof(QueryResponse<Instance>), 200)]
@@ -120,17 +122,12 @@ namespace Altinn.Platform.Storage.Controllers
             string url = Request.Path;
             string query = Request.QueryString.Value;
 
-            logger.LogInformation($"uri = {url}{query}");
+            _logger.LogInformation($"uri = {url}{query}");
 
             try
             {
                 InstanceQueryResponse result = await _instanceRepository.GetInstancesOfApplication(queryParams, continuationToken, pageSize);
-
-                if (result.TotalHits == 0)
-                {
-                    return NotFound($"Did not find any instances");
-                }
-
+                
                 if (!string.IsNullOrEmpty(result.Exception))
                 {
                     return BadRequest(result.Exception);
@@ -143,7 +140,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     Instances = result.Instances,
                     Count = result.Instances.Count,
-                    TotalHits = result.TotalHits.Value,
+                    TotalHits = result.TotalHits ?? 0
                 };
 
                 if (continuationToken == null)
@@ -182,7 +179,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError($"Unable to perform query on instances due to: {e}");
+                _logger.LogError($"Unable to perform query on instances due to: {e}");
                 return StatusCode(500, $"Unable to perform query on instances due to: {e.Message}");
             }
         }
@@ -199,10 +196,9 @@ namespace Altinn.Platform.Storage.Controllers
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
-            Instance result;
             try
             {
-                result = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+                Instance result = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
                 AddSelfLinks(Request, result);
 
@@ -248,7 +244,7 @@ namespace Altinn.Platform.Storage.Controllers
                 Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instance, creationTime, userId);
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
                 await DispatchEvent(InstanceEventType.Created.ToString(), storedInstance);
-                logger.LogInformation($"Created instance: {storedInstance.Id}");
+                _logger.LogInformation($"Created instance: {storedInstance.Id}");
 
                 AddSelfLinks(Request, storedInstance);
 
@@ -256,12 +252,12 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception storageException)
             {
-                logger.LogError($"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException}");
+                _logger.LogError($"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException}");
 
                 // compensating action - delete instance
                 await _instanceRepository.Delete(storedInstance);
 
-                logger.LogError($"Deleted instance {storedInstance.Id}");
+                _logger.LogError($"Deleted instance {storedInstance.Id}");
                 return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException.Message}");
             }
         }
@@ -288,7 +284,7 @@ namespace Altinn.Platform.Storage.Controllers
             catch (Exception e)
             {
                 string message = $"Unable to find instance {instanceId} to update: {e}";
-                logger.LogError(message);
+                _logger.LogError(message);
 
                 return NotFound(message);
             }
@@ -316,7 +312,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError($"Unable to update instance object {instanceId}. Due to {e}");
+                _logger.LogError($"Unable to update instance object {instanceId}. Due to {e}");
                 return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
             }
 
@@ -350,12 +346,12 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
                 }
 
-                logger.LogError($"Cannot delete instance {instanceId}. Due to {dce}");
+                _logger.LogError($"Cannot delete instance {instanceId}. Due to {dce}");
                 return StatusCode(500, $"Unknown database exception in delete: {dce}");
             }
             catch (Exception e)
             {
-                logger.LogError($"Cannot delete instance {instanceId}. Due to {e}");
+                _logger.LogError($"Cannot delete instance {instanceId}. Due to {e}");
                 return StatusCode(500, $"Unknown exception in delete: {e}");
             }
 
@@ -369,7 +365,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
                 catch (Exception e)
                 {
-                    logger.LogError($"Unexpected exception in delete: {e}");
+                    _logger.LogError($"Unexpected exception in delete: {e}");
                     return StatusCode(500, $"Unexpected exception in delete: {e.Message}");
                 }
             }
@@ -389,7 +385,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
                 catch (Exception e)
                 {
-                    logger.LogError($"Unexpeced exception when updating instance after soft delete: {e}");
+                    _logger.LogError($"Unexpeced exception when updating instance after soft delete: {e}");
                     return StatusCode(500, $"Unexpected exception when updating instance after soft delete: {e.Message}");
                 }
             }
@@ -404,7 +400,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             string selfLink = $"{request.Scheme}://{request.Host.ToUriComponent()}{request.Path}";
 
-            int start = selfLink.IndexOf("/instances");
+            int start = selfLink.IndexOf("/instances", StringComparison.Ordinal);
             selfLink = selfLink.Substring(0, start) + "/instances";
 
             selfLink += $"/{instance.Id}";

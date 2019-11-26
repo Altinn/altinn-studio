@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
 
@@ -48,8 +50,9 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpGet("{instanceOwnerPartyId:int}")]
         public async Task<ActionResult> GetMessageBoxInstanceList(int instanceOwnerPartyId, [FromQuery] string state, [FromQuery] string language)
         {
-            string[] allowedStates = new string[] { "active", "archived", "deleted" };
-            string[] acceptedLanguages = new string[] { "en", "nb", "nn-no" };
+            string[] allowedStates = { "active", "archived", "deleted" };
+            string[] acceptedLanguages = { "en", "nb", "nn" };
+
             string languageId = "nb";
             state = state.ToLower();
             if (string.IsNullOrWhiteSpace(state) || !allowedStates.Contains(state))
@@ -64,22 +67,15 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerPartyId, state);
 
-            if (allInstances == null || allInstances.Count == 0)
+            //// TODO: Authorise instances and filter list
+
+            if (allInstances.Count <= 0)
             {
-                return NotFound($"Did not find any instances for instanceOwner.PartyId={instanceOwnerPartyId}");
+                return Ok(new List<MessageBoxInstance>());
             }
 
-            // TODO: authorize instances and filter list
-
-            // get appId from filteredInstances eventually
-            List<string> appIds = allInstances.Select(i => i.AppId)
-                                    .Distinct()
-                                    .ToList();
-
-            // Get title from app metadata
+            List<string> appIds = allInstances.Select(i => i.AppId).Distinct().ToList();
             Dictionary<string, Dictionary<string, string>> appTitles = await _applicationRepository.GetAppTitles(appIds);
-
-            // Simplify instances and return
             List<MessageBoxInstance> messageBoxInstances = InstanceHelper.ConvertToMessageBoxInstance(allInstances, appTitles, languageId);
 
             return Ok(messageBoxInstances);
@@ -95,8 +91,7 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> GetMessageBoxInstance(int instanceOwnerPartyId, Guid instanceGuid, [FromQuery] string language)
         {
-            string[] acceptedLanguages = new string[] { "en", "nb", "nn" };
-
+            string[] acceptedLanguages = { "en", "nb", "nn" };
             string languageId = "nb";
 
             if (language != null && acceptedLanguages.Contains(language.ToLower()))
@@ -104,7 +99,7 @@ namespace Altinn.Platform.Storage.Controllers
                 languageId = language;
             }
 
-            string instanceId = instanceOwnerPartyId.ToString() + "/" + instanceGuid.ToString();
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
@@ -113,13 +108,11 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound($"Could not find instance {instanceId}");
             }
 
-            // TODO: authorize
+            //// TODO: Authorise
 
-            // Get title from app metadata
             Dictionary<string, Dictionary<string, string>> appTitle = await _applicationRepository.GetAppTitles(new List<string> { instance.AppId });
 
-            // Simplify instances and return
-            MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance>() { instance }, appTitle, languageId).First();
+            MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance> { instance }, appTitle, languageId).First();
 
             return Ok(messageBoxInstance);
         }
