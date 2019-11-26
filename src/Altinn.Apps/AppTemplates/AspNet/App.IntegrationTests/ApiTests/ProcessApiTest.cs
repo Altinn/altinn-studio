@@ -83,6 +83,30 @@ namespace App.IntegrationTests.ApiTests
             TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
         }
 
+        [Fact]
+        public async Task Proceess_ElementNext_OK()
+        {
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1000/26233fb5-a9f2-45d4-90b1-f6d93ad40713/process/start")
+            {
+            };
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            HttpRequestMessage httpRequestMessage2 = new HttpRequestMessage(HttpMethod.Put, "/tdd/endring-av-navn/instances/1000/26233fb5-a9f2-45d4-90b1-f6d93ad40713/process/next")
+            {
+            };
+
+            HttpResponseMessage response2 = await client.SendAsync(httpRequestMessage2);
+            string responseContent = response2.Content.ReadAsStringAsync().Result;
+
+            Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+        }
 
     }
 }

@@ -18,7 +18,7 @@ namespace Altinn.Common.PEP.Helpers
         private const string XacmlInstanceId= "urn:altinn:instance-id";
         private const string XacmlResourceOrgId = "urn:altinn:org";
         private const string XacmlResourceAppId = "urn:altinn:app";
-        private const string ParamInstanceOwnerId = "instanceOwnerId";
+        private const string ParamInstanceOwnerId = "instanceOwnerPartyId";
         private const string ParamInstanceGuid = "instanceGuid";
         private const string ParamApp = "app";
         private const string ParamOrg = "org";
@@ -84,18 +84,18 @@ namespace Altinn.Common.PEP.Helpers
             return actionAttributes;
         }
 
-        private static XacmlJsonCategory CreateResourceCategory(string org, string app, string instanceOwnerId, string instanceId)
+        private static XacmlJsonCategory CreateResourceCategory(string org, string app, string instanceOwnerId, string instanceGuid)
         {
             XacmlJsonCategory resourceAttributes = new XacmlJsonCategory();
             resourceAttributes.Attribute = new List<XacmlJsonAttribute>();
 
-            if (instanceId == null)
+            if (instanceGuid == null)
             {
                 resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourcePartyId, instanceOwnerId, defaultType, defaultIssuer));
             }
             else
             {
-                resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlInstanceId, instanceOwnerId + "/" + instanceId, defaultType, defaultIssuer));
+                resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlInstanceId, instanceOwnerId + "/" + instanceGuid, defaultType, defaultIssuer));
             }
             
             resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceOrgId, org, defaultType, defaultIssuer));
