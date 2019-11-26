@@ -188,7 +188,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else if (instance.Status.SoftDeleted.HasValue)
             {               
-                instance.LastChangedBy = User.Identity.Name;
+                instance.LastChangedBy = User?.Identity?.Name;
                 instance.LastChanged = DateTime.UtcNow;
                 instance.Status.SoftDeleted = null;
 

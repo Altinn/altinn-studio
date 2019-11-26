@@ -1,5 +1,6 @@
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -98,7 +99,7 @@ namespace App.IntegrationTests.Mocks.Services
 
         public Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequest xacmlJsonRequest, ClaimsPrincipal user)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
     }
 }

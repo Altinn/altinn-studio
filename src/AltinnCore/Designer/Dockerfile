@@ -19,8 +19,6 @@ FROM altinn-studio-service-development:latest AS altinn-studio-service-developme
 # Altinn-Studio Dashboard
 FROM altinn-studio-dashboard:latest AS altinn-studio-dashboard
 
-FROM altinn-runtime-app:latest AS generate-runtime-app
-
 #dotnet:3.0-aspnetcore-runtime
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.0-alpine AS final
 EXPOSE 80
@@ -36,8 +34,6 @@ COPY --from=altinn-studio-service-development /dist/typescript.worker.js ./wwwro
 COPY --from=altinn-studio-service-development /dist/service-development.css ./wwwroot/designer/css/react/service-development.css
 COPY --from=altinn-studio-dashboard /dist/dashboard.js ./wwwroot/designer/js/react/dashboard.js
 COPY --from=altinn-studio-dashboard /dist/dashboard.css ./wwwroot/designer/css/dashboard.css
-COPY --from=generate-runtime-app /applications/runtime/dist/runtime.js ./wwwroot/designer/js/react/runtime.js
-COPY --from=generate-runtime-app /applications/runtime/dist/runtime.css ./wwwroot/designer/css/react/runtime.css
 
 ## Copying app template
 COPY /src/Altinn.Apps/AppTemplates/AspNet/App ./Templates/AspNet/App

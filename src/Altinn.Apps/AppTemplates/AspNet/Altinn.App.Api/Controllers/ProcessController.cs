@@ -103,6 +103,7 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [Authorize(Policy = "InstanceInstantiate")]
         public async Task<ActionResult<ProcessState>> StartProcess(
             [FromRoute] string org,
             [FromRoute] string app,
