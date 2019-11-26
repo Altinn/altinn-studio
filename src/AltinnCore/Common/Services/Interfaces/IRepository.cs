@@ -276,7 +276,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="fileName">The file name</param>
         /// <returns>Content of an implementation file</returns>
-        string GetImplementationFile(string org, string app, string fileName);
+        string GetAppLogic(string org, string app, string fileName);
 
         /// <summary>
         /// Returns content of a resource file
@@ -294,7 +294,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="fileName">The file name</param>
         /// <param name="fileContent">The file content</param>
-        void SaveImplementationFile(string org, string app, string fileName, string fileContent);
+        void SaveAppLogicFile(string org, string app, string fileName, string fileContent);
 
         /// <summary>
         /// Saving a resource file
@@ -304,6 +304,15 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="fileName">The file name</param>
         /// <param name="fileContent">The file content</param>
         void SaveResourceFile(string org, string app, string fileName, string fileContent);
+
+        /// <summary>
+        /// Save rule handler file
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="content">The content of the resource file</param>
+        /// <returns>A boolean indicating if saving was ok</returns>
+        bool SaveRuleHandler(string org, string app, string content);
 
         /// <summary>
         /// Method that stores contents of file path relative to root
