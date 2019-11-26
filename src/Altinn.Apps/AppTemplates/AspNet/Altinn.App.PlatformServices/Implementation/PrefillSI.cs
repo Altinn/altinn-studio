@@ -26,8 +26,8 @@ namespace Altinn.App.Services.Implementation
         /// Creates a new instance of the <see cref="PrefillSI"/> class
         /// </summary>
         /// <param name="logger">The logger</param>
-        /// <param name="profile">Te profile service</param>
-        /// <param name="appResourcesService">The execution service</param>
+        /// <param name="profile">The profile service</param>
+        /// <param name="appResourcesService">The app's resource service</param>
         public PrefillSI(ILogger<PrefillSI> logger, IProfile profile, IAppResources appResourcesService)
         {
             _logger = logger;

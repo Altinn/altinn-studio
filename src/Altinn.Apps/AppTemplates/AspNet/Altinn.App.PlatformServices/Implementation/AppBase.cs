@@ -1,6 +1,7 @@
 using Altinn.App.Common.Enums;
 using Altinn.App.Service.Interface;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -18,16 +19,19 @@ namespace Altinn.App.Services.Implementation
         private readonly IAppResources _resourceService;
         private readonly ILogger<AppBase> _logger;
         private readonly IData _dataService;
+        private readonly IProcess _processService;
 
         public AppBase(
             IAppResources resourceService,
             ILogger<AppBase> logger,
-            IData dataService)
+            IData dataService,
+            IProcess processService)
         {
             _appMetadata = resourceService.GetApplication();
             _resourceService = resourceService;
             _logger = logger;
             _dataService = dataService;
+            _processService = processService;
         }
 
         public abstract Type GetAppModelType(string dataType);
@@ -37,15 +41,17 @@ namespace Altinn.App.Services.Implementation
         public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
         
         /// <inheritdoc />
-        public async Task OnInstantiate(Instance instance)
+        public async Task<string> OnInstantiateGetStartEvent(Instance instance)
         {
             _logger.LogInformation($"OnInstantiate for {instance.Id}");
 
             if (instance.Process == null)
             {
-                // start process
-
+                // return start event              
+                return "StartEvent_1";
             }
+
+            return null;
         }
 
         /// <inheritdoc />
