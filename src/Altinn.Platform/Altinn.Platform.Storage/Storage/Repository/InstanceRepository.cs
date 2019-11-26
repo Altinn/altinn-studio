@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -20,31 +22,32 @@ namespace Altinn.Platform.Storage.Repository
     /// </summary>
     public class InstanceRepository : IInstanceRepository
     {        
-        private readonly Uri collectionUri;
-        private readonly string databaseId;
-        private readonly string collectionId = "instances";
-        private readonly string partitionKey = "/instanceOwner/partyId";
-        private static DocumentClient _client;
-        private readonly AzureCosmosSettings _cosmosettings;
-        private readonly ILogger<InstanceRepository> logger;
+        private const string CollectionId = "instances";
+        private const string PartitionKey = "/instanceOwner/partyId";
+
+        private readonly Uri _collectionUri;
+        private readonly string _databaseId;
+        private readonly ILogger<InstanceRepository> _logger;
+
+        private readonly DocumentClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
         /// </summary>
-        /// <param name="cosmosettings">the configuration settings for cosmos database</param>
+        /// <param name="cosmosSettings">the configuration settings for cosmos database</param>
         /// <param name="logger">the logger</param>
-        public InstanceRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<InstanceRepository> logger)
+        public InstanceRepository(IOptions<AzureCosmosSettings> cosmosSettings, ILogger<InstanceRepository> logger)
         {
-            this.logger = logger;
+            _logger = logger;
 
-            var database = new CosmosDatabaseHandler(cosmosettings.Value);
+            CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosSettings.Value);
 
-            _client = database.CreateDatabaseAndCollection(collectionId);
-            collectionUri = database.CollectionUri;
+            _client = database.CreateDatabaseAndCollection(CollectionId);
+            _collectionUri = database.CollectionUri;
             Uri databaseUri = database.DatabaseUri;
-            databaseId = database.DatabaseName;
+            _databaseId = database.DatabaseName;
 
-            DocumentCollection documentCollection = database.CreateDocumentCollection(collectionId, partitionKey);
+            DocumentCollection documentCollection = database.CreateDocumentCollection(CollectionId, PartitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 databaseUri,
@@ -58,7 +61,7 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(instance);
 
-            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(collectionUri, instance);
+            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, instance);
             Document document = createDocumentResponse.Resource;
             Instance instanceStored = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
@@ -72,12 +75,11 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(item);
 
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id);
+            Uri uri = UriFactory.CreateDocumentUri(_databaseId, CollectionId, item.Id);
 
-            _ = await _client
-                .DeleteDocumentAsync(
-                    uri.ToString(),
-                    new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwner.PartyId) });
+            await _client.DeleteDocumentAsync(
+                uri.ToString(),
+                new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwner.PartyId) });
 
             return true;
         }
@@ -101,7 +103,7 @@ namespace Altinn.Platform.Storage.Repository
                 feedOptions.RequestContinuation = continuationToken;
             }
 
-            IQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(collectionUri, feedOptions);
+            IQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
 
             try
             {
@@ -118,24 +120,25 @@ namespace Altinn.Platform.Storage.Repository
                 IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
 
                 FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
-                if (!feedResponse.Any())
+                if (feedResponse.Count <= 0)
                 {
                     queryResponse.Count = 0;
                     queryResponse.TotalHits = 0;
+                    queryResponse.Instances = new List<Instance>();
 
                     return queryResponse;
                 }
 
                 string nextContinuationToken = feedResponse.ResponseContinuation;
 
-                logger.LogInformation($"continuation token: {nextContinuationToken}");
+                _logger.LogInformation($"continuation token: {nextContinuationToken}");
 
                 // this migth be expensive
                 feedOptions.RequestContinuation = null;
                 int totalHits = queryBuilder.Count();
                 queryResponse.TotalHits = totalHits;
 
-                List<Instance> instances = feedResponse.ToList<Instance>();
+                List<Instance> instances = feedResponse.ToList();
 
                 PostProcess(instances);
 
@@ -145,7 +148,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (Exception e)
             {
-                logger.LogError("error: {e}");
+                _logger.LogError("error: {e}");
                 queryResponse.Exception = e.Message;
             }
 
@@ -442,7 +445,7 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
             string cosmosId = InstanceIdToCosmosId(instanceId);
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosId);
+            Uri uri = UriFactory.CreateDocumentUri(_databaseId, CollectionId, cosmosId);
 
             Instance instance = await _client
                 .ReadDocumentAsync<Instance>(
@@ -466,14 +469,14 @@ namespace Altinn.Platform.Storage.Repository
             };
 
             IQueryable<Instance> filter = _client
-                .CreateDocumentQuery<Instance>(collectionUri, feedOptions)
+                .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                 .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString);
 
-            IDocumentQuery<Instance> query = filter.AsDocumentQuery<Instance>();
+            IDocumentQuery<Instance> query = filter.AsDocumentQuery();
 
             FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
 
-            List<Instance> instances = feedResponse.ToList<Instance>();
+            List<Instance> instances = feedResponse.ToList();
 
             PostProcess(instances);
 
@@ -491,11 +494,11 @@ namespace Altinn.Platform.Storage.Repository
                 PartitionKey = new PartitionKey(instanceOwnerPartyIdString)
             };
 
-            IQueryable<Instance> filter = null;
+            IQueryable<Instance> filter;
 
             if (instanceState.Equals("active"))
             {
-                filter = _client.CreateDocumentQuery<Instance>(collectionUri, feedOptions)
+                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
                         .Where(i => (!i.VisibleAfter.HasValue || i.VisibleAfter <= DateTime.UtcNow))
                         .Where(i => !i.Status.SoftDeleted.HasValue)
@@ -504,14 +507,14 @@ namespace Altinn.Platform.Storage.Repository
             }
             else if (instanceState.Equals("deleted"))
             {
-                filter = _client.CreateDocumentQuery<Instance>(collectionUri, feedOptions)
+                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
                         .Where(i => i.Status.SoftDeleted.HasValue)
                         .Where(i => i.Status.HardDeleted.HasValue);
             }
             else if (instanceState.Equals("archived"))
             {
-                filter = _client.CreateDocumentQuery<Instance>(collectionUri, feedOptions)
+                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                        .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
                        .Where(i => i.Status.Archived.HasValue)
                        .Where(i => !i.Status.SoftDeleted.HasValue)
@@ -522,11 +525,11 @@ namespace Altinn.Platform.Storage.Repository
                 return instances;
             }
 
-            IDocumentQuery<Instance> query = filter.AsDocumentQuery<Instance>();
+            IDocumentQuery<Instance> query = filter.AsDocumentQuery();
 
             FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
 
-            instances = feedResponse.ToList<Instance>();
+            instances = feedResponse.ToList();
 
             PostProcess(instances);
 
@@ -539,7 +542,7 @@ namespace Altinn.Platform.Storage.Repository
             PreProcess(item);
 
             ResourceResponse<Document> createDocumentResponse = await _client
-                .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id), item);
+                .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseId, CollectionId, item.Id), item);
             Document document = createDocumentResponse.Resource;
             Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
