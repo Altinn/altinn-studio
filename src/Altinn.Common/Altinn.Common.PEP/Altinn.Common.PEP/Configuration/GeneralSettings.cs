@@ -1,5 +1,3 @@
-using System;
-
 namespace Altinn.Common.PEP.Configuration
 {
     /// <summary>
