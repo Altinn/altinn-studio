@@ -5,15 +5,14 @@
   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-  xmlns:altinn="http://altinn"
-  xmlns:tjeneste="http://tjeneste"
+  xmlns:altinn="http://altinn.no"
   xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd"
   targetNamespace="http://bpmn.io/schema/bpmn" >
   <bpmn2:process id="Process_1" isExecutable="false">
     <bpmn2:startEvent id="instansiate">
       <bpmn2:outgoing>SequenceFlow_1</bpmn2:outgoing>
     </bpmn2:startEvent>
-    <bpmn2:task id="formfilling" name="FormFilling" altinn:tasktype="data" altinn:egenskap1="egenskap1" altinn:egenskap2="egenskap2">
+    <bpmn2:task id="formfilling" name="FormFilling" altinn:tasktype="data">
       <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
     </bpmn2:task>
