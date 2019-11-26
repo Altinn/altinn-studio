@@ -268,12 +268,11 @@ namespace Altinn.App.Api.Controllers
                 }
             }
 
-            // todo Finne ut hva slags actiontype ut i fra currentTask. Hvis data -> write lag en privat hjelpemetode for dette
             string altinnTaskType = instance.Process.CurrentTask?.AltinnTaskType;
 
             if (altinnTaskType == null)
             {
-                return Conflict($"Instance does not have current task information!");
+                return Conflict($"Instance does not have current altinn task type information!");
             }
 
             string actionType = GetActionType(altinnTaskType);
