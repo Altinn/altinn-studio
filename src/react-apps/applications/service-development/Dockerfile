@@ -24,7 +24,6 @@ COPY ./src/react-apps/applications/service-development/ ./service-development/
 COPY ./src/react-apps/applications/ux-editor/ ./ux-editor/
 WORKDIR /
 RUN npm run build --prefix /applications/service-development
-RUN npm run build --prefix /applications/ux-editor
 
 # Create Service-Development base image
 FROM alpine

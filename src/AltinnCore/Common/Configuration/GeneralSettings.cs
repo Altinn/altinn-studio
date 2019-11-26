@@ -193,6 +193,5 @@ namespace AltinnCore.Common.Configuration
                 return Environment.GetEnvironmentVariable("GeneralSettings_SBLBaseAdress") ?? SBLBaseAdress;
             }
         }
-
     }
 }

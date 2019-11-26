@@ -4,6 +4,7 @@ import * as ActionTypes from '../../formDesignerActionTypes';
 export interface IUpdateApplicationMetadaAction extends Action {
   id: string;
   maxFiles: number;
+  minFiles: number;
   maxSize: number;
   fileType: string;
 }
@@ -15,6 +16,7 @@ export interface IUpdateApplicationMetadaActionRejected extends Action {
 export function updateApplicationMetadaAction(
   id: string,
   maxFiles: number,
+  minFiles: number,
   maxSize: number,
   fileType: string,
 ): IUpdateApplicationMetadaAction {
@@ -22,6 +24,7 @@ export function updateApplicationMetadaAction(
     type: ActionTypes.UPDATE_APPLICATION_METADATA,
     id,
     maxFiles,
+    minFiles,
     maxSize,
     fileType,
   };
