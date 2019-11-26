@@ -295,9 +295,14 @@ namespace Altinn.Platform.Storage.Controllers
 
             existingInstance.AppOwner = instance.AppOwner;            
             existingInstance.Process = instance.Process;
-            existingInstance.Status = instance.Status ?? new InstanceStatus();
+            existingInstance.Status = instance.Status;
+            existingInstance.Title = instance.Title;
 
-            existingInstance.DueBefore = DateTimeHelper.ConvertToUniversalTime(instance.DueBefore);
+            DateTime? dueBefore = DateTimeHelper.ConvertToUniversalTime(instance.DueBefore);
+            existingInstance.DueBefore ??= dueBefore;
+
+            DateTime? visibleAfter = DateTimeHelper.ConvertToUniversalTime(instance.VisibleAfter);
+            existingInstance.VisibleAfter ??= visibleAfter;
             
             existingInstance.LastChangedBy = GetUserId();
             existingInstance.LastChanged = DateTime.UtcNow;
@@ -306,7 +311,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
-                await DispatchEvent(instance.Status.Archived.HasValue ? InstanceEventType.Submited.ToString() : InstanceEventType.Saved.ToString(), result);
+                await DispatchEvent(InstanceEventType.Saved.ToString(), result);
                 AddSelfLinks(Request, result);
             }
             catch (Exception e)
