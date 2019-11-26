@@ -16,10 +16,6 @@ data:
         server altinn-designer:5000;
       }
 
-      upstream runtime {
-        server altinn-runtime:5005;
-      }
-
       upstream repositories {
         server altinn-repositories:3000;
       }
@@ -82,12 +78,6 @@ data:
 
         location /designer/ {
           proxy_pass         	http://designer/designer/;
-          proxy_set_header 	  Host dev.altinn.studio;
-          proxy_set_header 	  X-Forwarded-For $remote_addr;
-        }
-
-        location / {
-          proxy_pass          http://runtime/;
           proxy_set_header 	  Host dev.altinn.studio;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }

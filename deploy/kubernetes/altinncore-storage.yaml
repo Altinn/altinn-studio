@@ -13,19 +13,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: altinn-storage-runtime-repo-volume-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: managed-premium
-  resources:
-    requests:
-      storage: 200Gi
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
   name: altinn-storage-repo-premium-volume-claim
 spec:
   accessModes:
