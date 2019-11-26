@@ -129,33 +129,31 @@ namespace AltinnCore.Common.Services.Implementation
                 Id = ApplicationHelper.GetFormattedApplicationId(org, app),
                 VersionId = null,
                 Org = org,
-
                 Created = DateTime.UtcNow,
                 CreatedBy = developer,
                 LastChanged = DateTime.UtcNow,
-                LastChangedBy = developer
+                LastChangedBy = developer,
+                Title = new Dictionary<string, string> { { "nb", appTitle ?? app } },
+                DataTypes = new List<DataType>
+                {
+                    new DataType
+                    {
+                        Id = "default",
+                        AllowedContentTypes = new List<string>() { "application/xml" },
+                        AppLogic = new ApplicationLogic() { },
+                        TaskId = "Task_1"
+                    },
+                    new DataType
+                    {
+                        Id = "ref-data-as-pdf",
+                        AllowedContentTypes = new List<string>() { "application/pdf" },
+                        TaskId = "Task_1",
+                        MaxCount = 1,
+                        MinCount = 1,
+                    }
+                },
+                PartyTypesAllowed = new PartyTypesAllowed()
             };
-
-            appMetadata.Title = new Dictionary<string, string>();
-            appMetadata.Title.Add("nb", appTitle ?? app);
-
-            appMetadata.DataTypes = new List<DataType>();
-            appMetadata.DataTypes.Add(new DataType
-            {
-                Id = "default",
-                AllowedContentTypes = new List<string>() { "application/xml" },
-                AppLogic = new ApplicationLogic() { },
-                TaskId = "Task_1"
-            });
-            appMetadata.DataTypes.Add(new DataType
-            {
-                Id = "ref-data-as-pdf",
-                AllowedContentTypes = new List<string>() { "application/pdf" },
-                TaskId = "Task_1",
-                MaxCount = 1,
-                MinCount = 1,
-            });
-            appMetadata.PartyTypesAllowed = new PartyTypesAllowed();
 
             string metadata = JsonConvert.SerializeObject(appMetadata);
             string filePath = _settings.GetAppMetadataFilePath(org, app, developer);
@@ -832,6 +830,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="modelMetadata">The modelMetadata to generate the model based on</param>
         /// <param name="mainXsd">The main XSD for the current app</param>
+        /// <param name="fileName">The name of the model metadata file.</param>
         /// <returns>A value indicating if everything went ok</returns>
         public bool CreateModel(string org, string app, ModelMetadata modelMetadata, XDocument mainXsd, string fileName)
         {
@@ -841,7 +840,7 @@ namespace AltinnCore.Common.Services.Implementation
             modelMetadata.RepositoryName = app;
 
             string classes = modelGenerator.CreateModelFromMetadata(modelMetadata);
-            string newRoot = modelMetadata.Elements != null && modelMetadata.Elements.Count > 0 ? modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
+            string root = modelMetadata.Elements != null && modelMetadata.Elements.Count > 0 ? modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
 
             if (!UpdateModelMetadata(org, app, modelMetadata, fileName))
             {
@@ -898,13 +897,13 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             // Update the ServiceImplementation class with the correct model type name
-            UpdateApplicationWithAppLogicModel(org, app, fileName, "Altinn.App.Models." + newRoot);
+            UpdateApplicationWithAppLogicModel(org, app, fileName, "Altinn.App.Models." + root);
 
             return true;
         }
 
         /// <summary>
-        ///  This logic is limited to having one datamodel per app. Needs to be updated for expaned functionality
+        ///  This logic is limited to having one datamodel per app. Needs to be updated for expanded functionality
         /// </summary>
         /// <param name="org">The org</param>
         /// <param name="app">The app</param>
@@ -922,10 +921,7 @@ namespace AltinnCore.Common.Services.Implementation
             DataType logicElement = application.DataTypes.Single(d => d.AppLogic != null);
 
             logicElement.Id = dataTypeId;
-            logicElement.AppLogic = new ApplicationLogic();
-            logicElement.AppLogic.AutoCreate = true;
-            logicElement.AppLogic.ClassRef = classRef;
-
+            logicElement.AppLogic = new ApplicationLogic {AutoCreate = true, ClassRef = classRef};
             UpdateApplication(org, app, application);
 
             return true;
@@ -1024,7 +1020,7 @@ namespace AltinnCore.Common.Services.Implementation
         public RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false)
         {
             string filename = _settings.GetServicePath(org, serviceConfig.RepositoryName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
-            AltinnCore.RepositoryClient.Model.Repository repository = null;
+            RepositoryClient.Model.Repository repository = null;
             RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.RepositoryName, Readme: "Tjenestedata", Description: string.Empty);
 
             if (!repoCreated)
@@ -1037,34 +1033,6 @@ namespace AltinnCore.Common.Services.Implementation
                 if (!File.Exists(filename))
                 {
                     _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
-
-                    // Verify if directory exist. Should Exist if Cloning of new repository worked
-                    if (!new FileInfo(filename).Directory.Exists)
-                    {
-                        // This creates directory
-                        //new FileInfo(filename).Directory.Create();
-                    }
-
-                    Stream fileStream = null;
-
-                    // This creates the config file
-                    /*try
-                    {
-
-                        fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite);
-                        using (StreamWriter streamWriter = new StreamWriter(fileStream))
-                        {
-                            fileStream = null;
-                            streamWriter.WriteLine(JsonConvert.SerializeObject(serviceConfig));
-                        }
-                    }
-                    finally
-                    {
-                        if (fileStream != null)
-                        {
-                            fileStream.Dispose();
-                        }
-                    }*/
                 }
 
                 ModelMetadata metadata = new ModelMetadata
@@ -1074,13 +1042,13 @@ namespace AltinnCore.Common.Services.Implementation
                     RepositoryName = serviceConfig.RepositoryName,
                 };
 
-                // This creats alle files?!
+                // This creates all files?!
                 CreateServiceMetadata(metadata);
                 CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
 
                 if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
                 {
-                    // This creates the language resources file for nb-NO
+                    // This creates the language resources file for nb
                     JObject json = JObject.FromObject(new
                     {
                         language = "nb",
@@ -1663,7 +1631,6 @@ namespace AltinnCore.Common.Services.Implementation
                 string filename = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
                 File.WriteAllText(filename, fileContent, Encoding.UTF8);
             }
-
         }
 
         /// <summary>
