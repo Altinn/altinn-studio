@@ -83,6 +83,30 @@ namespace App.IntegrationTests.ApiTests
             TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
         }
 
+        [Fact]
+        public async Task Proceess_Put_Next_OK()
+        {
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            string token = PrincipalUtil.GetToken(1);
 
+            string instancePath = "/tdd/endring-av-navn/instances/1000/26233fb5-a9f2-45d4-90b1-f6d93ad40713";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{instancePath}/process/start");
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = response.Content.ReadAsStringAsync().Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+        }
     }
 }

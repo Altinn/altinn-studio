@@ -72,17 +72,17 @@ namespace App.IntegrationTestsRef.AppBase
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
-            HttpResponseMessage response2 = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             DeleteInstance(instance);
 
-            string responseContent = await response2.Content.ReadAsStringAsync();
+            string responseContent = await response.Content.ReadAsStringAsync();
 
-            response2.EnsureSuccessStatusCode();
+            response.EnsureSuccessStatusCode();
 
             ProcessState processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
 
-            Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Null(processState.CurrentTask);
             Assert.NotNull(processState.Ended);
 

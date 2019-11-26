@@ -294,7 +294,7 @@ namespace Altinn.App.Api.Controllers
                 {
                     UserContext userContext = userHelper.GetUserContext(HttpContext).Result;
 
-                    Instance instanceStarted = await processService.ProcessStartAndNext(instance, startEvent, userContext);
+                    Instance instanceStarted = await processService.ProcessStartAndGotoNextTask(instance, startEvent, userContext);
 
                     instance = await _instanceService.UpdateInstance(instanceStarted);
                 }

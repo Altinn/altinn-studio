@@ -30,8 +30,8 @@ namespace Altinn.App.Api.Controllers
         private const int MAX_ITERATIONS_ALLOWED = 1000;
         private readonly ILogger<ProcessController> _logger;
         private readonly IInstance _instanceService;
-        private readonly IProcess processService;
-        private readonly IAltinnApp altinnApp;
+        private readonly IProcess _processService;
+        private readonly IAltinnApp _altinnApp;
         private readonly IValidation _validationService;
 
         private readonly UserHelper userHelper;
@@ -53,8 +53,8 @@ namespace Altinn.App.Api.Controllers
         {
             _logger = logger;
             _instanceService = instanceService;
-            this.processService = processService;
-            this.altinnApp = altinnApp;
+            _processService = processService;
+            _altinnApp = altinnApp;
             _validationService = validationService;
 
             userHelper = new UserHelper(profileService, registerService, generalSettings);
@@ -132,8 +132,8 @@ namespace Altinn.App.Api.Controllers
             }
 
             // trigger start event
-            Instance updatedInstance = await processService.ProcessStart(instance, validStartElement, userContext);
-            await altinnApp.OnStartProcess(validStartElement, updatedInstance);
+            Instance updatedInstance = await _processService.ProcessStart(instance, validStartElement, userContext);
+            await _altinnApp.OnStartProcess(validStartElement, updatedInstance);
 
             // trigger next task
             string nextValidElement = processHelper.GetValidNextElementOrError(validStartElement, out ProcessError nextElementError);
@@ -142,7 +142,7 @@ namespace Altinn.App.Api.Controllers
                 return Conflict(nextElementError.Text);
             }
 
-            updatedInstance = processService.ProcessNext(updatedInstance, nextValidElement, processHelper, userContext, out List<InstanceEvent> events);
+            updatedInstance = _processService.ProcessNext(updatedInstance, nextValidElement, processHelper, userContext, out List<InstanceEvent> events);
 
             if (updatedInstance != null)
             {
@@ -283,7 +283,7 @@ namespace Altinn.App.Api.Controllers
             {
                 UserContext userContext = userHelper.GetUserContext(HttpContext).Result;
 
-                Instance changedInstance = processService.ProcessNext(instance, nextElement, processHelper, userContext, out List<InstanceEvent> events);
+                Instance changedInstance = _processService.ProcessNext(instance, nextElement, processHelper, userContext, out List<InstanceEvent> events);
 
                 NotifyAppAboutEvents(changedInstance, events);
                 changedInstance = await _instanceService.UpdateInstance(changedInstance);
@@ -305,11 +305,11 @@ namespace Altinn.App.Api.Controllers
             {
                 validationIssues = await _validationService.ValidateAndUpdateInstance(instance, currentElementId);
 
-                canEndTask = await altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
+                canEndTask = await _altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
             }
             else
             {
-                canEndTask = await altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
+                canEndTask = await _altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
             }
 
             return canEndTask;
@@ -381,7 +381,7 @@ namespace Altinn.App.Api.Controllers
 
                 string nextElement = nextElements.First();
 
-                Instance updatedInstance =  processService.ProcessNext(instance, nextElement, processHelper, userContext, out List<InstanceEvent> events);
+                Instance updatedInstance =  _processService.ProcessNext(instance, nextElement, processHelper, userContext, out List<InstanceEvent> events);
 
                 NotifyAppAboutEvents(updatedInstance, events);
 
@@ -402,7 +402,7 @@ namespace Altinn.App.Api.Controllers
 
         private void LoadProcessModel(string org, string app)
         {
-            using Stream bpmnStream = processService.GetProcessDefinition();
+            using Stream bpmnStream = _processService.GetProcessDefinition();
 
             processHelper = new ProcessHelper(bpmnStream);
         }
@@ -415,19 +415,19 @@ namespace Altinn.App.Api.Controllers
                 switch (processEvent.EventType)
                 {
                     case "process:StartEvent":
-                        altinnApp.OnStartProcess(processEvent.ProcessInfo?.StartEvent, instance);
+                        _altinnApp.OnStartProcess(processEvent.ProcessInfo?.StartEvent, instance);
                         break;
 
                     case "process:StartTask":
-                        altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
+                        _altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
                         break;
 
                     case "process:EndTask":
-                        altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
+                        _altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
                         break;
 
                     case "process:EndEvent":
-                        altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, instance);
+                        _altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, instance);                        
                         break;
                 }
             }          

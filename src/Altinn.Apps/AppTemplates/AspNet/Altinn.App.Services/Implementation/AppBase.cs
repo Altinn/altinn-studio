@@ -19,7 +19,7 @@ namespace Altinn.App.Services.Implementation
         private readonly IAppResources _resourceService;
         private readonly ILogger<AppBase> _logger;
         private readonly IData _dataService;
-        private readonly IProcess processService;
+        private readonly IProcess _processService;
 
         public AppBase(
             IAppResources resourceService,
@@ -31,7 +31,7 @@ namespace Altinn.App.Services.Implementation
             _resourceService = resourceService;
             _logger = logger;
             _dataService = dataService;
-            this.processService = processService;
+            _processService = processService;
         }
 
         public abstract Type GetAppModelType(string dataType);

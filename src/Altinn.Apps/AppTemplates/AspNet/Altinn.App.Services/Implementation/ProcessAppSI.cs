@@ -7,6 +7,7 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,11 +19,10 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class ProcessAppSI : IProcess
     {
-        private readonly AppSettings appSettings;
-        private readonly ILogger<ProcessAppSI> logger;
-        private readonly IInstance instanceService;
-        private readonly IInstanceEvent eventService;
-        private readonly UserHelper userHelper;
+        private readonly AppSettings _appSettings;
+        private readonly ILogger<ProcessAppSI> _logger;
+        private readonly IInstance _instanceService;
+        private readonly IInstanceEvent _eventService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessAppSI"/> class.
@@ -31,23 +31,18 @@ namespace Altinn.App.Services.Implementation
             IOptions<AppSettings> appSettings,
             ILogger<ProcessAppSI> logger,
             IInstanceEvent eventService,
-            IInstance instanceService,
-            IProfile profileService,
-            IRegister registerService,
-            IOptions<GeneralSettings> settings)
+            IInstance instanceService)
         {
-            this.appSettings = appSettings.Value;
-            this.logger = logger;
-            this.eventService = eventService;
-            this.instanceService = instanceService;
-
-            userHelper = new UserHelper(profileService, registerService, settings);
+            _appSettings = appSettings.Value;
+            _logger = logger;
+            _eventService = eventService;
+            _instanceService = instanceService;
         }
 
         /// <inheritdoc/>
         public Stream GetProcessDefinition()
         {
-            string bpmnFilePath = appSettings.ConfigurationFolder + appSettings.ProcessFolder + appSettings.ProcessFileName;
+            string bpmnFilePath = _appSettings.ConfigurationFolder + _appSettings.ProcessFolder + _appSettings.ProcessFileName;
 
             try
             {                
@@ -57,7 +52,7 @@ namespace Altinn.App.Services.Implementation
             }
             catch (Exception processDefinitionException)
             {
-                logger.LogError($"Cannot find process definition file for this app. Have tried file location {bpmnFilePath}. Exception {processDefinitionException}");
+                _logger.LogError($"Cannot find process definition file for this app. Have tried file location {bpmnFilePath}. Exception {processDefinitionException}");
                 throw;
             }            
         }
@@ -73,7 +68,7 @@ namespace Altinn.App.Services.Implementation
                     Started = now,
                     StartEvent = validStartElement,
                 };
-                Instance updatedInstance = await instanceService.UpdateInstance(instance);
+                Instance updatedInstance = await _instanceService.UpdateInstance(instance);
                 List<InstanceEvent> events = new List<InstanceEvent>
                 {
                     GenerateProcessChangeEvent("process:StartEvent", updatedInstance, now, userContext),
@@ -87,7 +82,7 @@ namespace Altinn.App.Services.Implementation
             return instance;
         }
 
-        public async Task<Instance> ProcessStartAndNext(Instance instance, string validStartElement, UserContext userContext)
+        public async Task<Instance> ProcessStartAndGotoNextTask(Instance instance, string validStartElement, UserContext userContext)
         {
             // trigger start event
             Instance updatedInstance = await ProcessStart(instance, validStartElement, userContext);
@@ -111,7 +106,7 @@ namespace Altinn.App.Services.Implementation
         {            
             events = ChangeProcessStateAndGenerateEvents(instance, nextElementId, processModel, userContext);
 
-            Instance changedInstance = instanceService.UpdateInstance(instance).Result;
+            Instance changedInstance = _instanceService.UpdateInstance(instance).Result;
             _ = DispatchEvents(instance, events);
 
             return changedInstance ;
@@ -124,7 +119,7 @@ namespace Altinn.App.Services.Implementation
 
             foreach (InstanceEvent instanceEvent in events)
             {
-                await eventService.SaveInstanceEvent(instanceEvent, org, app);
+                await _eventService.SaveInstanceEvent(instanceEvent, org, app);
             }
         }
 
@@ -163,9 +158,13 @@ namespace Altinn.App.Services.Implementation
                 currentState.EndEvent = nextElementId;
 
                 events.Add(GenerateProcessChangeEvent("process:EndEvent", instance, now, userContext));
+
+                // add submit event (to support Altinn2 SBL)
+                events.Add(GenerateProcessChangeEvent(InstanceEventType.Submited.ToString(), instance, now, userContext));
             }
             else if (processModel.IsTask(nextElementId))
             {
+
                 currentState.CurrentTask = new ProcessElementInfo
                 {
                     Flow = flow + 1,
