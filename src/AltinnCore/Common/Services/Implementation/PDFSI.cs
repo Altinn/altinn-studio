@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Common.Clients;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
@@ -59,10 +59,9 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string app = instance.AppId.Split("/")[1];
             string org = instance.Org;
-            int instanceOwnerId = int.Parse(instance.InstanceOwnerId);
+            int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-            Guid defaultDataElementGuid = Guid.Parse(instance.Data.Find(element => element.ElementType.Equals("default"))?.Id);
-
+            Guid defaultDataElementGuid = Guid.Parse(instance.Data.Find(element => element.DataType.Equals("default"))?.Id);
             Stream dataStream = await _dataService.GetBinaryData(org, app, instanceOwnerId, instanceGuid, defaultDataElementGuid);
             byte[] dataAsBytes = new byte[dataStream.Length];
             dataStream.Read(dataAsBytes);
@@ -124,9 +123,9 @@ namespace AltinnCore.Common.Services.Implementation
         private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance)
         {
             string fileName;
-            if (instance.PresentationField != null)
+            if (instance.Title != null && instance.Title["nb"] != null && instance.Title["nb"] != string.Empty)
             {
-                fileName = instance.PresentationField["nb"] + ".pdf";
+                fileName = instance.Title["nb"] + ".pdf";
             }
             else
             {
@@ -138,7 +137,7 @@ namespace AltinnCore.Common.Services.Implementation
                 return await _dataService.InsertBinaryData(
                     instance.Org,
                     instance.AppId.Split("/")[1],
-                    int.Parse(instance.InstanceOwnerId),
+                    int.Parse(instance.InstanceOwner.PartyId),
                     Guid.Parse(instance.Id.Split("/")[1]),
                     pdfElementType,
                     fileName,

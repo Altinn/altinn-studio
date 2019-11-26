@@ -26,7 +26,7 @@ export const reactErrorPage: string = `${appPath}/#/error`;
 
 export function fileUploadUrl(attachmentType: string, attachmentName: string) {
   return `${appPath}/instances/` +
-  `${altinnWindow.instanceId}/data?elementType=${attachmentType}&attachmentName=${attachmentName}`;
+  `${altinnWindow.instanceId}/data?dataType=${attachmentType}&attachmentName=${attachmentName}`;
 }
 
 export function dataElementUrl(dataGuid: string) {
@@ -45,11 +45,11 @@ export function getStartProcessUrl(instanceId?: string) {
 }
 
 export function getCreateInstancesUrl(partyId: string) {
-  return `${appPath}/instances?instanceOwnerId=${partyId}`;
+  return `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
 }
 
-export function getCreateDataElementUrl(instanceId: string, elementType: string) {
-  return `${appPath}/instances/${instanceId}/data?elementType=${elementType}`;
+export function getCreateDataElementUrl(instanceId: string, dataType: string) {
+  return `${appPath}/instances/${instanceId}/data?dataType=${dataType}`;
 }
 
 export function getValidationUrl(instanceId: string, dataElementId: string) {
@@ -72,5 +72,15 @@ export const getEnvironmentLoginUrl: () => string = () => {
   } else {
     // TODO: what if altinn3?
     throw new Error('Unknown domain');
+  }
+};
+
+export const getHostname: () => string = () => {
+  // First split away the protocol 'https://' and take the last part. Then split on dots.
+  const domainSplitted: string[] = window.location.host.split('.');
+  if (domainSplitted.length === 5) {
+    return domainSplitted[2];
+  } else if (domainSplitted.length === 4) {
+    return domainSplitted[2];
   }
 };

@@ -127,6 +127,9 @@ const AltinnAppTheme = {
     boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
     linkBorderBottom: '1px solid #0062BA',
     mainPaddingLeft: 73,
+    fontWeight: {
+      medium: 500,      
+    }
   },
   typography: {
     htmlFontSize: 16,

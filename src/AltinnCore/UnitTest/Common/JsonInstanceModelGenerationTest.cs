@@ -57,7 +57,7 @@ namespace AltinnCore.UnitTest.Common
             JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
             JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("TestOrg", "ServiceModel", schemaJsonSchema);
-            ServiceMetadata serviceMetadata = converter.GetServiceMetadata();
+            ModelMetadata serviceMetadata = converter.GetModelMetadata();
 
             string actualDatabinding = serviceMetadata.Elements["Skjema.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonPoststeddatadef10442.value"].DataBindingName;
             Assert.Equal("skattyterinforgrp5801.kontaktgrp5803.kontaktpersonPoststeddatadef10442.value", actualDatabinding);           
@@ -75,7 +75,7 @@ namespace AltinnCore.UnitTest.Common
 
             JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("TestOrg", "ServiceModel", schema);
 
-            ServiceMetadata serviceMetadata = converter.GetServiceMetadata();
+            ModelMetadata serviceMetadata = converter.GetModelMetadata();
 
             Assert.NotNull(serviceMetadata);
 
@@ -109,8 +109,8 @@ namespace AltinnCore.UnitTest.Common
                     JsonObject instanceModel = converter.GetInstanceModel();
 
                     // XSD to Json Schema metadata using obsolete SeresXsdParser
-                    ServiceMetadata serviceMetadata = SeresXSDParse(moqRepository, file);
-                    JsonValue serviceMetadataValue = new JsonSerializer().Serialize<ServiceMetadata>(serviceMetadata);
+                    ModelMetadata serviceMetadata = SeresXSDParse(moqRepository, file);
+                    JsonValue serviceMetadataValue = new JsonSerializer().Serialize<ModelMetadata>(serviceMetadata);
 
                     if (!instanceModel["Elements"].Equals(serviceMetadataValue.Object["Elements"]))
                     {
@@ -129,11 +129,11 @@ namespace AltinnCore.UnitTest.Common
             Assert.Equal(0, failCount);
         }
 
-        private static ServiceMetadata SeresXSDParse(Mock<IRepository> moqRepository, string file)
+        private static ModelMetadata SeresXSDParse(Mock<IRepository> moqRepository, string file)
         {
             SeresXsdParser seresParser = new SeresXsdParser(moqRepository.Object);
             XDocument mainXsd = XDocument.Load(file);
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("org", "app", mainXsd, null);
+            ModelMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("org", "app", mainXsd, null);
             return serviceMetadata;
         }
 

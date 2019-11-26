@@ -1,3 +1,4 @@
+import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducers';
 import { IFormConfigState } from '../features/form/config/reducer';
 import { IFormDataState } from '../features/form/data/reducer';
 import { IDataModelState } from '../features/form/datamodell/reducer';
@@ -16,22 +17,23 @@ import { IProfileState } from '../shared/resources/profile/profileReducers';
 import { ITextResourcesState } from '../shared/resources/textResources/reducer';
 
 export interface IRuntimeState {
-  formLayout: ILayoutState;
-  formData: IFormDataState;
-  formConfig: IFormConfigState;
-  formDataModel: IDataModelState;
-  attachments: IAttachmentState;
-  formDynamics: IFormDynamicState;
-  language: ILanguageState;
-  textResources: ITextResourcesState;
-  profile: IProfileState;
-  formValidations: IValidationState;
-  party: IPartyState;
   applicationMetadata: IApplicationMetadataState;
-  instantiation: IInstantiationState;
-  organisationMetaData: IOrgsState;
+  attachments: IAttachmentState;
+  formConfig: IFormConfigState;
+  formData: IFormDataState;
+  formDataModel: IDataModelState;
+  formDynamics: IFormDynamicState;
+  formLayout: ILayoutState;
+  formValidations: IValidationState;
   instanceData: IInstanceDataState;
+  instantiation: IInstantiationState;
+  isLoading: IIsLoadingState;
+  language: ILanguageState;
+  organisationMetaData: IOrgsState;
+  party: IPartyState;
   process: IProcessState;
+  profile: IProfileState;
+  textResources: ITextResourcesState;
 }
 
 export interface IAltinnWindow extends Window {

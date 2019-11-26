@@ -12,7 +12,7 @@
     "lint": "tslint -c ./../tslint.json src/**/*.{ts,tsx} __tests__/**/*.{ts,tsx}",
     "clean": "rimraf dist compiled",
     "format": "prettier-tslint fix src/**/*.{ts,tsx}",
-    "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress",
+    "webpack-watch": "cross-env NODE_ENV=development --mode=development webpack --config webpack.config.development.js --watch --progress",
     "lintfix": "tslint -c tslint.json 'src/**/*.{ts,tsx} --fix"
   },
   "author": "Altinn",

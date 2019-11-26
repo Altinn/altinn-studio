@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Common.Models;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.Models;
@@ -20,31 +20,31 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="serviceMetadata">The <see cref="ServiceMetadata"/> to generate the model based on.</param>
+        /// <param name="serviceMetadata">The <see cref="ModelMetadata"/> to generate the model based on.</param>
         /// <param name="mainXsd">The main XSD for the current app</param>
         /// <returns>A boolean indicating the result</returns>
-        bool CreateModel(string org, string app, ServiceMetadata serviceMetadata, XDocument mainXsd);
+        bool CreateModel(string org, string app, ModelMetadata serviceMetadata, XDocument mainXsd, string fileName);
 
         /// <summary>
         /// Method that creates service metadata for a new app
         /// </summary>
-        /// <param name="serviceMetadata">The <see cref="ServiceMetadata"/>.</param>
+        /// <param name="serviceMetadata">The <see cref="ModelMetadata"/>.</param>
         /// <returns>A boolean indicating if creation of service metadata went ok</returns>
-        bool CreateServiceMetadata(ServiceMetadata serviceMetadata);
+        bool CreateServiceMetadata(ModelMetadata serviceMetadata);
 
         /// <summary>
-        /// Returns the <see cref="ServiceMetadata"/> for an app.
+        /// Returns the <see cref="ModelMetadata"/> for an app.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The service metadata for an app.</returns>
-        ServiceMetadata GetServiceMetaData(string org, string app);
+        ModelMetadata GetModelMetadata(string org, string app);
 
         /// <summary>
         /// List the available apps on local disk
         /// </summary>
         /// <returns>A list of apps</returns>
-        List<ServiceMetadata> GetAvailableServices();
+        List<ModelMetadata> GetAvailableApps();
 
         /// <summary>
         /// Get content of configuration file
@@ -69,9 +69,9 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
+        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>The resource file content</returns>
-        string GetResource(string org, string app, string id);
+        string GetLanguageResource(string org, string app, string id);
 
         /// <summary>
         /// Gets the raw content of a code list
@@ -97,15 +97,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The content of a service model (c# code and comments)</returns>
-        string GetServiceModel(string org, string app);
-
-        /// <summary>
-        /// Returns the workflow of an app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The list of workflow steps</returns>
-        List<WorkFlowStep> GetWorkFlow(string org, string app);
+        string GetAppModel(string org, string app);
 
         /// <summary>
         /// Delete text resource
@@ -130,17 +122,17 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
+        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <param name="resource">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        bool SaveResource(string org, string app, string id, string resource);
+        bool SaveLanguageResource(string org, string app, string id, string resource);
 
         /// <summary>
         /// Deletes the resource for a given language id
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
+        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>A boolean indicating if delete was ok</returns>
         bool DeleteLanguage(string org, string app, string id);
 
@@ -168,9 +160,10 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="serviceMetadata">The serviceMetadata</param>
+        /// <param name="modelMetadata">The serviceMetadata.</param>
+        /// <param name="modelName">The name of the data model.</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        bool UpdateServiceMetadata(string org, string app, ServiceMetadata serviceMetadata);
+        bool UpdateModelMetadata(string org, string app, ModelMetadata modelMetadata, string modelName);
 
         /// <summary>
         /// Updates rules for an app.
@@ -466,7 +459,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation., e.g. "app-name-with-spaces".</param>
         /// <param name="appTitle">The application title in default language (nb), e.g. "App name with spaces"</param>
-        void CreateApplication(string org, string app, string appTitle);
+        void CreateApplicationMetadata(string org, string app, string appTitle);
 
         /// <summary>
         /// Updates application metadata

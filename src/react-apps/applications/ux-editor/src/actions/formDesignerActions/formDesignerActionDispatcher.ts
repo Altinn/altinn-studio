@@ -180,6 +180,7 @@ export interface IFormDesignerActionDispatchers
   addApplicationMetadata: (
     id: string,
     maxFiles: number,
+    minFiles: number,
     maxSize: number,
     fileType: string,
     callback?: (...args: any[]) => any,
@@ -200,6 +201,7 @@ export interface IFormDesignerActionDispatchers
   updateApplicationMetadata: (
     id: string,
     maxFiles: number,
+    minFiles: number,
     maxSize: number,
     fileType: string,
   ) => FormDesignerActions.IUpdateApplicationMetadaAction;

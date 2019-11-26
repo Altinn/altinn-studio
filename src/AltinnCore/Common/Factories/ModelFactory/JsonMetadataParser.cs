@@ -14,7 +14,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
     /// </summary>
     public class JsonMetadataParser
     {
-        private ServiceMetadata _serviceMetadata;
+        private ModelMetadata _serviceMetadata;
 
         /// <summary>
         /// Creates the model from JSON
@@ -39,7 +39,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// </summary>
         /// <param name="serviceMetadata">ServiceMetadata object</param>
         /// <returns>The model code in C#</returns>
-        public string CreateModelFromMetadata(ServiceMetadata serviceMetadata)
+        public string CreateModelFromMetadata(ModelMetadata serviceMetadata)
         {
             _serviceMetadata = serviceMetadata;
 
@@ -67,7 +67,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
-                .AppendLine("namespace " + string.Format(CodeGeneration.ServiceNamespaceTemplate, serviceMetadata.Org, CompileHelper.GetCSharpValidAppId(serviceMetadata.RepositoryName)))
+                .AppendLine("namespace " + string.Format(CodeGeneration.AppNamespaceTemplate + ".Models"))
                 .AppendLine("{")
                 ////Append all classes
                 .Append(string.Concat(classes.Values))

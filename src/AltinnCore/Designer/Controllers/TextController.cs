@@ -81,13 +81,14 @@ namespace AltinnCore.Designer.Controllers
         /// Save a resource file
         /// </summary>
         /// <param name="jsonData">The JSON Data</param>
-        /// <param name="id">The resource language id (for example <code>nb-NO, en</code> )</param>
+        /// <param name="id">The resource language id (for example <code>nb, en</code> )</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A View with update status</returns>
         [HttpPost]
         public IActionResult SaveResource([FromBody]dynamic jsonData, string id, string org, string app)
         {
+            id = id.Split('-')[0];
             JObject json = jsonData;
 
             // Sort resource texts by id
@@ -102,8 +103,8 @@ namespace AltinnCore.Designer.Controllers
                 string appTitle = appTitleToken.Value<string>("value");
                 _repository.UpdateAppTitle(org, app, id, appTitle);
             }
-    
-            _repository.SaveResource(org, app, id, json.ToString());
+
+            _repository.SaveLanguageResource(org, app, id, json.ToString());
 
             return Json(new
             {
@@ -117,7 +118,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
+        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>Deletes a language resource</returns>
         [HttpDelete]
         public IActionResult DeleteLanguage(string org, string app, string id)
@@ -142,12 +143,13 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
+        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>The JSON config</returns>
         [HttpGet]
         public IActionResult GetResource(string org, string app, string id)
         {
-            string resourceJson = _repository.GetResource(org, app, id);
+            id = id.Split('-')[0];
+            string resourceJson = _repository.GetLanguageResource(org, app, id);
             if (string.IsNullOrWhiteSpace(resourceJson))
             {
                 resourceJson = string.Empty;
@@ -166,9 +168,9 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public string GetServiceName(string org, string app)
         {
-            string defaultLang = "nb-NO";
+            string defaultLang = "nb";
             string filename = $"resource.{defaultLang}.json";
-            string serviceResourceDirectoryPath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
+            string serviceResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
             string serviceName = string.Empty;
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -196,9 +198,9 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public void SetServiceName(string org, string app, [FromBody] dynamic serviceName)
         {
-            string defaultLang = "nb-NO";
+            string defaultLang = "nb";
             string filename = $"resource.{defaultLang}.json";
-            string serviceResourceDirectoryPath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
+            string serviceResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
             if (System.IO.File.Exists(serviceResourceDirectoryPath))
             {
                 string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
@@ -210,16 +212,16 @@ namespace AltinnCore.Designer.Controllers
                     textResourceObject.Add("ServiceName", serviceName.serviceName.ToString());
                 }
 
-                _repository.SaveResource(org, app, "nb-NO", JObject.FromObject(textResourceObject).ToString());
+                _repository.SaveLanguageResource(org, app, "nb", JObject.FromObject(textResourceObject).ToString());
             }
             else
             {
                 JObject json = JObject.FromObject(new
                 {
-                    language = "nb-NO",
+                    language = "nb",
                     resources = new[] { new { id = "ServiceName", value = serviceName.serviceName.ToString() } },
                 });
-                _repository.SaveResource(org, app, "nb-NO", json.ToString());
+                _repository.SaveLanguageResource(org, app, "nb", json.ToString());
             }
         }
     }
