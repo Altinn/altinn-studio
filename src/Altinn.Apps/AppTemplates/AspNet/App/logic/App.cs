@@ -13,7 +13,7 @@ namespace Altinn.App.AppLogic
     {
         private readonly ILogger<App> logger;
 
-        public App(IAppResources appResourcesService, ILogger<App> logger, IData dataService) : base(appResourcesService, logger, dataService)
+        public App(IAppResources appResourcesService, ILogger<App> logger, IData dataService, IProcess processService) : base(appResourcesService, logger, dataService, processService)
         {
             this.logger = logger;
         }
