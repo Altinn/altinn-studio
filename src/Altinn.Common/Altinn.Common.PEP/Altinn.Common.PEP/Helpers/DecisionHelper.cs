@@ -15,7 +15,7 @@ namespace Altinn.Common.PEP.Helpers
     public static class DecisionHelper
     {
         private const string XacmlResourcePartyId = "urn:altinn:partyid";
-        private const string XacmlInstanceId= "urn:altinn:instance-id";
+        private const string XacmlInstanceId = "urn:altinn:instance-id";
         private const string XacmlResourceOrgId = "urn:altinn:org";
         private const string XacmlResourceAppId = "urn:altinn:app";
         private const string ParamInstanceOwnerId = "instanceOwnerPartyId";
