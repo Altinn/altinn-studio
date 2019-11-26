@@ -243,7 +243,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 DateTime creationTime = DateTime.UtcNow;
-                string userId = null;
+                string userId = GetUserId();
 
                 Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instance, creationTime, userId);
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
@@ -296,17 +296,22 @@ namespace Altinn.Platform.Storage.Controllers
             existingInstance.AppOwner = instance.AppOwner;            
             existingInstance.Process = instance.Process;
             existingInstance.Status = instance.Status;
+            existingInstance.Title = instance.Title;
 
-            existingInstance.DueBefore = DateTimeHelper.ConvertToUniversalTime(instance.DueBefore);
+            DateTime? dueBefore = DateTimeHelper.ConvertToUniversalTime(instance.DueBefore);
+            existingInstance.DueBefore ??= dueBefore;
+
+            DateTime? visibleAfter = DateTimeHelper.ConvertToUniversalTime(instance.VisibleAfter);
+            existingInstance.VisibleAfter ??= visibleAfter;
             
-            existingInstance.LastChangedBy = User.Identity.Name;
+            existingInstance.LastChangedBy = GetUserId();
             existingInstance.LastChanged = DateTime.UtcNow;
 
             Instance result;
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
-                await DispatchEvent(instance.Status.Archived.HasValue ? InstanceEventType.Submited.ToString() : InstanceEventType.Saved.ToString(), result);
+                await DispatchEvent(InstanceEventType.Saved.ToString(), result);
                 AddSelfLinks(Request, result);
             }
             catch (Exception e)
@@ -373,7 +378,7 @@ namespace Altinn.Platform.Storage.Controllers
                 DateTime now = DateTime.UtcNow;
 
                 instance.Status.SoftDeleted = now;
-                instance.LastChangedBy = User.Identity.Name;
+                instance.LastChangedBy = GetUserId();
                 instance.LastChanged = now;
 
                 try
@@ -526,6 +531,11 @@ namespace Altinn.Platform.Storage.Controllers
             string nextQueryString = qb.ToQueryString().Value;
 
             return nextQueryString;
+        }
+
+        private string GetUserId()
+        {
+            return User?.Identity?.Name;
         }
     }
 }
