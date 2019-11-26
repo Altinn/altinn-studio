@@ -47,12 +47,14 @@ namespace Altinn.App.Api.Controllers
 
             if (application != null)
             {
-                if (application.Org.Equals(org) && application.Id.Contains(app))
+                string wantedAppId = $"{org}/{app}";
+
+                if (application.Id.Equals(wantedAppId))
                 {
                     return Ok(application);
                 }
 
-                return Conflict($"This is {application.Id} and not the app you are looking for {org}/{app}!");
+                return Conflict($"This is {application.Id}, and not the app you are looking for: {wantedAppId}!");
             }
 
             return NotFound();
