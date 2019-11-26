@@ -630,7 +630,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the json object as a string</returns>
         public string GetRuleHandler(string org, string app)
         {
-            string filePath = _settings.GetDynamicsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
+            string filePath = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -692,6 +692,22 @@ namespace AltinnCore.Common.Services.Implementation
             string filePath = _settings.GetFormLayoutPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Save rule handler file to disk
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="content">The content of the resource file</param>
+        /// <returns>A boolean indicating if saving was ok</returns>
+        public bool SaveRuleHandler(string org, string app, string content)
+        {
+            string filePath = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            new FileInfo(filePath).Directory.Create();
+            File.WriteAllText(filePath, content, Encoding.UTF8);
 
             return true;
         }
@@ -1592,15 +1608,15 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns content of an implementation file
+        /// Returns content of an app logic file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="fileName">The file name</param>
         /// <returns>Content of an implementation file</returns>
-        public string GetImplementationFile(string org, string app, string fileName)
+        public string GetAppLogic(string org, string app, string fileName)
         {
-            string filename = _settings.GetImplementationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
+            string filename = _settings.GetAppLogicPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
             string filedata = null;
 
             if (File.Exists(filename))
@@ -1638,9 +1654,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="fileName">The file name</param>
         /// <param name="fileContent">The file content</param>
-        public void SaveImplementationFile(string org, string app, string fileName, string fileContent)
+        public void SaveAppLogicFile(string org, string app, string fileName, string fileContent)
         {
-            string filename = _settings.GetImplementationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
+            string filename = _settings.GetAppLogicPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
             File.WriteAllText(filename, fileContent, Encoding.UTF8);
         }
 
@@ -1653,16 +1669,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="fileContent">The file content</param>
         public void SaveResourceFile(string org, string app, string fileName, string fileContent)
         {
-            if (fileName.Contains(_settings.RuleHandlerFileName, StringComparison.OrdinalIgnoreCase))
-            {
-                string filename = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                File.WriteAllText(filename, fileContent, Encoding.UTF8);
-            }
-            else
-            {
-                string filename = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
-                File.WriteAllText(filename, fileContent, Encoding.UTF8);
-            }
+            string filename = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
+            File.WriteAllText(filename, fileContent, Encoding.UTF8);
 
         }
 
