@@ -158,7 +158,11 @@ public class PDFGenerator {
     else if (elementType.equalsIgnoreCase("fileupload")) {
       // different view for file upload
       renderFileUploadContent(element);
-    } else {
+    }
+    else if (elementType.equalsIgnoreCase("AddressComponent")) {
+      renderAddressComponent(element);
+    }
+    else {
       // all other components rendered equally
       renderLayoutElementContent(element);
     }
@@ -223,16 +227,15 @@ public class PDFGenerator {
     yPoint -= textFieldMargin;
   }
 
-  private void renderLayoutElementContent(FormLayoutElement element) throws IOException {
+  private void renderContent(String content, String id) throws IOException {
     PDTextField textField = new PDTextField(this.form);
-    textField.setPartialName(element.getId());
+    textField.setPartialName(id);
     String defaultAppearance = "/Helv 10 Tf 0 0 0 rg";
     textField.setDefaultAppearance(defaultAppearance);
     textField.setReadOnly(true);
     this.form.getFields().add(textField);
     PDAnnotationWidget widget = textField.getWidgets().get(0);
-    String value = FormDataUtils.getFormDataByKey(element.getDataModelBindings().getSimpleBinding(), this.formData);
-    float rectHeight = TextUtils.getHeightNeededForTextBox(value, font, fontSize, width - 2*textFieldMargin, leading);
+    float rectHeight = TextUtils.getHeightNeededForTextBox(content, font, fontSize, width - 2*textFieldMargin, leading);
     yPoint -= rectHeight;
     PDRectangle rect = new PDRectangle(xPoint, yPoint, width, rectHeight);
     widget.setRectangle(rect);
@@ -245,11 +248,15 @@ public class PDFGenerator {
     // adds rect around widget and ands to page
     widget.setPage(currentPage);
     currentPage.getAnnotations().add(widget);
-    if (TextUtils.splitTextToLines(value, font, fontSize, width - 2*textBoxMargin).size() > 1) {
+    if (TextUtils.splitTextToLines(content, font, fontSize, width - 2*textBoxMargin).size() > 1) {
       textField.setMultiline(true);
     }
     textField.setDoNotScroll(true);
-    textField.setValue(value);
+    textField.setValue(content);
+  }
+
+  private void renderLayoutElementContent(FormLayoutElement element) throws IOException {
+    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData), element.getId());
   }
 
   private void renderFileUploadContent(FormLayoutElement element) throws IOException {
@@ -264,6 +271,33 @@ public class PDFGenerator {
       yPoint -= leading;
     }
     currentContent.endText();
+  }
+
+  private void renderAddressComponent(FormLayoutElement element) throws IOException {
+    renderText("Gateadresse", font, fontSize);
+    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("address"), this.formData), element.getId());
+    yPoint -= componentMargin;
+
+
+    renderText("Postnr", font, fontSize);
+    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("zipCode"), this.formData), element.getId());
+    yPoint -= componentMargin;
+
+    renderText("Poststed", font, fontSize);
+    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("postPlace"), this.formData), element.getId());
+    yPoint -= componentMargin;
+
+
+    if (!element.isSimplified()) {
+      renderText("C/O eller annen tilleggsadresse", font, fontSize);
+      renderText("Om addressen er felles for flere boenhenter må du oppgi bolignummer. Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.", font, fontSize);
+      renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("careOf"), this.formData), element.getId());
+      yPoint -= componentMargin;
+
+      renderText("Bolignummer", font, fontSize);
+      renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("houseNumber"), this.formData), element.getId());
+      yPoint -= componentMargin;
+    }
   }
 }
 

@@ -427,7 +427,7 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetRuleHandlerPath(string org, string app, string developer)
         {
-            return $"{GetServicePath(org, app, developer)}{FORMLAYOUT_RESOURCE_FOLDER_NAME}{RuleHandlerFileName}";
+            return GetServicePath(org, app, developer) + FORMLAYOUT_RESOURCE_FOLDER_NAME + RuleHandlerFileName;
         }
 
         /// <summary>
