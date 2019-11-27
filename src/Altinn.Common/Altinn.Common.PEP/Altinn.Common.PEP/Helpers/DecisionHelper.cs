@@ -18,12 +18,12 @@ namespace Altinn.Common.PEP.Helpers
         private const string XacmlInstanceId = "urn:altinn:instance-id";
         private const string XacmlResourceOrgId = "urn:altinn:org";
         private const string XacmlResourceAppId = "urn:altinn:app";
-        private const string ParamInstanceOwnerId = "instanceOwnerPartyId";
+        private const string ParamInstanceOwnerPartyId = "instanceOwnerPartyId";
         private const string ParamInstanceGuid = "instanceGuid";
         private const string ParamApp = "app";
         private const string ParamOrg = "org";
-        private const string defaultIssuer = "Altinn";
-        private const string defaultType = "string";
+        private const string DefaultIssuer = "Altinn";
+        private const string DefaultType = "string";
 
         public static XacmlJsonRequest CreateXacmlJsonRequest(string org, string app, ClaimsPrincipal user, string actionType, string partyId)
         {
@@ -50,11 +50,11 @@ namespace Altinn.Common.PEP.Helpers
             string instanceGuid = routeData.Values[ParamInstanceGuid] as string;
             string app = routeData.Values[ParamApp] as string;
             string org = routeData.Values[ParamOrg] as string;
-            string instanceOwnerId = routeData.Values[ParamInstanceOwnerId] as string;
+            string instanceOwnerPartyId = routeData.Values[ParamInstanceOwnerPartyId] as string;
 
             request.AccessSubject.Add(CreateSubjectCategory(context.User.Claims));
             request.Action.Add(CreateActionCategory(requirement.ActionType));
-            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerId, instanceGuid));
+            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId, instanceGuid));
 
             return request;
         }
@@ -80,26 +80,26 @@ namespace Altinn.Common.PEP.Helpers
         {
             XacmlJsonCategory actionAttributes = new XacmlJsonCategory();
             actionAttributes.Attribute = new List<XacmlJsonAttribute>();
-            actionAttributes.Attribute.Add(CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType, defaultType, defaultIssuer));
+            actionAttributes.Attribute.Add(CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType, DefaultType, DefaultIssuer));
             return actionAttributes;
         }
 
-        private static XacmlJsonCategory CreateResourceCategory(string org, string app, string instanceOwnerId, string instanceGuid)
+        private static XacmlJsonCategory CreateResourceCategory(string org, string app, string instanceOwnerPartyId, string instanceGuid)
         {
             XacmlJsonCategory resourceAttributes = new XacmlJsonCategory();
             resourceAttributes.Attribute = new List<XacmlJsonAttribute>();
 
             if (instanceGuid == null)
             {
-                resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourcePartyId, instanceOwnerId, defaultType, defaultIssuer));
+                resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourcePartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer));
             }
             else
             {
-                resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlInstanceId, instanceOwnerId + "/" + instanceGuid, defaultType, defaultIssuer));
+                resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlInstanceId, instanceOwnerPartyId + "/" + instanceGuid, DefaultType, DefaultIssuer));
             }
             
-            resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceOrgId, org, defaultType, defaultIssuer));
-            resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceAppId, app, defaultType, defaultIssuer));
+            resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceOrgId, org, DefaultType, DefaultIssuer));
+            resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceAppId, app, DefaultType, DefaultIssuer));
 
             return resourceAttributes;
         }
