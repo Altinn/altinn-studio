@@ -10,6 +10,9 @@ using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Helpers;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -33,6 +36,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IProcess _processService;
         private readonly IAltinnApp _altinnApp;
         private readonly IValidation _validationService;
+        private readonly IPDP _pdp;
 
         private readonly UserHelper userHelper;
 
@@ -49,13 +53,15 @@ namespace Altinn.App.Api.Controllers
             IRegister registerService,
             IOptions<GeneralSettings> generalSettings,
             IAltinnApp altinnApp,
-            IValidation validationService)
+            IValidation validationService,
+            IPDP pdp)
         {
             _logger = logger;
             _instanceService = instanceService;
             _processService = processService;
             _altinnApp = altinnApp;
             _validationService = validationService;
+            _pdp = pdp;
 
             userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
@@ -262,7 +268,24 @@ namespace Altinn.App.Api.Controllers
                 }
             }
 
+            string altinnTaskType = instance.Process.CurrentTask?.AltinnTaskType;
+
+            if (altinnTaskType == null)
+            {
+                return Conflict($"Instance does not have current altinn task type information!");
+            }
+
+            string actionType = GetActionType(altinnTaskType);
+
+            XacmlJsonRequest request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, actionType, instanceOwnerId.ToString());
+            bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
+
             string currentElementId = instance.Process.CurrentTask?.ElementId;
+
+            if (!authorized)
+            {
+                return Forbid("Not Authorized");
+            }
 
             if (currentElementId == null)
             {
@@ -432,6 +455,15 @@ namespace Altinn.App.Api.Controllers
                         break;
                 }
             }          
+        }
+
+        private string GetActionType(string currentTask)
+        {
+            if (currentTask.Equals("data")) {
+                return "write";
+            }
+
+            return null;
         }
     }   
 }
