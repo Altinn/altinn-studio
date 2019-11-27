@@ -33,7 +33,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="validStartEvent"></param>
         /// <param name="userContext"></param>
         /// <returns></returns>
-        Task<Instance> ProcessStartAndGotoNextTask(Instance instance, string validStartEvent, UserContext userContext);
+        Task<List<InstanceEvent>> ProcessStartAndGotoNextTask(Instance instance, string validStartEvent, UserContext userContext);
 
         /// <summary>
         /// Updates the process to the next element id (can be a task or end event)

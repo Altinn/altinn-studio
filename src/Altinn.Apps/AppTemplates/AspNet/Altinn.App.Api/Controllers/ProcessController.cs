@@ -409,7 +409,7 @@ namespace Altinn.App.Api.Controllers
 
                 NotifyAppAboutEvents(updatedInstance, events);
 
-                updatedInstance = await _instanceService.UpdateInstance(updatedInstance);
+                instance = await _instanceService.UpdateInstance(updatedInstance);
 
                 currentTaskId = updatedInstance.Process.CurrentTask?.ElementId;
             }
