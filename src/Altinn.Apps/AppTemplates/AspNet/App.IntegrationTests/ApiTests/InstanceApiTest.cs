@@ -47,6 +47,11 @@ namespace App.IntegrationTests
             Assert.Equal("1000", instance.InstanceOwner.PartyId);
         }
 
+        /// <summary>
+        /// Scenario where the caller uses a reference to a instance that does not exist. Impossible to authorize.
+        /// Returns Foridden
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Instance_Get_NotFound()
         {
@@ -59,7 +64,7 @@ namespace App.IntegrationTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         [Fact]
