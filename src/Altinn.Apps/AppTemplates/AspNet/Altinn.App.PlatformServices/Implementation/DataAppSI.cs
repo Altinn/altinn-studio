@@ -149,13 +149,13 @@ namespace Altinn.App.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+            HttpResponseMessage response = _client.GetAsync(apiUrl).Result;
             if (response.IsSuccessStatusCode)
             {
                 XmlSerializer serializer = new XmlSerializer(type);
                 try
                 {
-                    using Stream stream = await response.Content.ReadAsStreamAsync();
+                    using Stream stream = response.Content.ReadAsStreamAsync().Result;
                     
                     return serializer.Deserialize(stream);                    
                 }
