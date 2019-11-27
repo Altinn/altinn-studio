@@ -22,7 +22,7 @@ environmentVariables:
       value: \"1000\"
     - name: USER_GID
       value: \"1000\"
-  other:
+  staging:
     - name: USER_UID
       value: \"1000\"
     - name: USER_GID
@@ -98,7 +98,8 @@ ingressRoutes:
   - name: altinn-repositories
     namespace: default
     entrypoints:
-      - web
+      # TODO: figure out how to dynamicly add this value
+      - https
     routes:
       - match:
           local: Host(`altinn3.no`) && PathPrefix(`/repos/{.+}`)
@@ -109,4 +110,8 @@ ingressRoutes:
         strategy: RoundRobin
     middlewares:
       - name: strip-repos-prefix
+    tls:
+      options:
+        name: altinn-tls-options
+      secretName: ssl-cert
 

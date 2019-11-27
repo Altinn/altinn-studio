@@ -52,8 +52,8 @@ spec:
             {{- end }}
           {{- else }}
           env:
-            {{- range $variable := .Values.environment.other }}
-              - name: {{ $variable.name }}
+            {{- range $variable := .Values.environmentVariables.staging }}
+            - name: {{ $variable.name }}
               {{- if $variable.value }}
               value: {{ $variable.value }}
               {{- end }}

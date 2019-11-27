@@ -40,5 +40,11 @@ spec:
         - name: {{ $middleware.name }}
     {{- end }}
   {{- end }}
+  {{- if $ingressRoute.tls}}
+  tls:
+    options:
+      name: {{ $ingressRoute.tls.options.name}}
+    secretName: {{ $ingressRoute.tls.secretName}}
+  {{- end }}
 ---
 {{- end }}

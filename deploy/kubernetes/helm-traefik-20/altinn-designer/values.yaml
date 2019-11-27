@@ -21,9 +21,9 @@ environmentVariables:
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
-      value: http://altinn-repositories:3000/api/v1
+      value: http://altinn-repositories:3000/api/v1/
     - name: ServiceRepositorySettings__GiteaLoginUrl
-      value: http://altinn3.no/repos/user/login
+      value: http://altinn3.no/repos/user/login/
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
@@ -64,9 +64,9 @@ environmentVariables:
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
-      value: http://altinn-repositories:3000/api/v1
+      value: http://altinn-repositories:3000/api/v1/
     - name: ServiceRepositorySettings__GiteaLoginUrl
-      value: https://dev.altinn.studio/repos/user/login
+      value: https://dev.altinn.studio/repos/user/login/
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
@@ -107,9 +107,9 @@ environmentVariables:
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
-      value: http://altinn-repositories:3000/api/v1
+      value: http://altinn-repositories:3000/api/v1/
     - name: ServiceRepositorySettings__GiteaLoginUrl
-      value: https://altinn.studio/repos/user/login
+      value: https://altinn.studio/repos/user/login/
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
@@ -150,9 +150,9 @@ environmentVariables:
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
-      value: http://altinn-repositories:3000/api/v1
+      value: http://altinn-repositories:3000/api/v1/
     - name: ServiceRepositorySettings__GiteaLoginUrl
-      value: https://staging.altinn.studio/repos/user/login
+      value: https://staging.altinn.studio/repos/user/login/
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
@@ -217,7 +217,7 @@ ingressRoutes:
   - name: altinn-designer-root
     namespace: default
     entrypoints:
-      - web
+      - https
     routes:
       - match:
           local: Host(`altinn3.no`) && Path(`/`)
@@ -227,10 +227,14 @@ ingressRoutes:
         kind: Rule
         strategy: RoundRobin
     middlewares: []
+    tls:
+      options:
+        name: altinn-tls-options
+      secretName: ssl-cert
   - name: altinn-designer-home
     namespace: default
     entrypoints:
-      - web
+      - https
     routes:
       - match:
           local: Host(`altinn3.no`) && PathPrefix(`/Home`)
@@ -240,10 +244,14 @@ ingressRoutes:
         kind: Rule
         strategy: RoundRobin
     middlewares: []
+    tls:
+      options:
+        name: altinn-tls-options
+      secretName: ssl-cert
   - name: altinn-designer-designer
     namespace: default
     entrypoints:
-      - web
+      - https
     routes:
       - match:
           local: Host(`altinn3.no`) && PathPrefix(`/designer`)
@@ -253,10 +261,14 @@ ingressRoutes:
         kind: Rule
         strategy: RoundRobin
     middlewares: []
+    tls:
+      options:
+        name: altinn-tls-options
+      secretName: ssl-cert
   - name: altinn-designer-repos
     namespace: default
     entrypoints:
-      - web
+      - https
     routes:
       - match:
           local: Host(`altinn3.no`) && (Path(`/repos/`) || Path(`/repos`))
@@ -267,3 +279,8 @@ ingressRoutes:
         strategy: RoundRobin
     middlewares:
       - name: fetch-cookie-and-redirect
+    tls:
+      options:
+        name: altinn-tls-options
+      secretName: ssl-cert
+

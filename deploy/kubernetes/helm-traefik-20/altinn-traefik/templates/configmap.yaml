@@ -19,31 +19,8 @@ data:
       insecure = true
       dashboard = true
       debug = true
-    {{- if .Values.ssl.enabled }}
-    [[tls.certificates]]
-      certFile = "/ssl/certificate.pem"
-      keyFile = "/ssl/certificate.key"
-      stores = ["default"]
-    # [tls.certificates]
-    #   certFile = "/ssl/certificate.pem"
-    #   keyFile = "/ssl/certificate.key"
-    #   stores = ["default"]
-    # [tls.options]
-    #   [tls.options.default]
-    #     minVersion = "VersionTLS12"
-    #   [tls.options.mintls13]
-    #     minVersion = "VersionTLS13"
-    # [entryPoints]
-    #   [entryPoints.https]
-    #     address = ":443"
-    #   [entryPoints.admin]
-    #     address = ":8080"
-    {{- end }}
     [entrypoints]
       [entrypoints.web]
         address = ":80"
       [entrypoints.https]
         address = ":443"
-    [[tls.certificates]]
-      certFile = "/path/to/domain.cert"
-      keyFile = "/path/to/domain.key"
