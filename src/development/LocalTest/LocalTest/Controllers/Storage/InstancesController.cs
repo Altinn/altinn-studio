@@ -3,19 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 
-namespace LocalTest.Controllers.Storage
+namespace Altinn.Platform.Storage.Controllers
 {
+    /// <summary>
+    /// Handles operations for the application instance resource
+    /// </summary>
     [Route("storage/api/v1/instances")]
     [ApiController]
     public class InstancesController : ControllerBase
@@ -25,11 +31,18 @@ namespace LocalTest.Controllers.Storage
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InstancesController"/> class
+        /// </summary>
+        /// <param name="instanceRepository">the instance repository handler</param>
+        /// <param name="instanceEventRepository">the instance event repository service</param>
+        /// <param name="applicationRepository">the application repository handler</param>
+        /// <param name="logger">the logger</param>
         public InstancesController(
-          IInstanceRepository instanceRepository,
-          IInstanceEventRepository instanceEventRepository,
-          IApplicationRepository applicationRepository,
-          ILogger<InstancesController> logger)
+            IInstanceRepository instanceRepository,
+            IInstanceEventRepository instanceEventRepository,
+            IApplicationRepository applicationRepository,
+            ILogger<InstancesController> logger)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
@@ -326,6 +339,16 @@ namespace LocalTest.Controllers.Storage
             {
                 instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
             }
+            catch (DocumentClientException dce)
+            {
+                if (dce.Error.Code.Equals("NotFound"))
+                {
+                    return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
+                }
+
+                _logger.LogError($"Cannot delete instance {instanceId}. Due to {dce}");
+                return StatusCode(500, $"Unknown database exception in delete: {dce}");
+            }
             catch (Exception e)
             {
                 _logger.LogError($"Cannot delete instance {instanceId}. Due to {e}");
@@ -448,6 +471,17 @@ namespace LocalTest.Controllers.Storage
 
                 appInfo = _applicationRepository.FindOne(appId, org).Result;
             }
+            catch (DocumentClientException dce)
+            {
+                if (dce.Error.Code.Equals("NotFound"))
+                {
+                    errorResult = NotFound($"Did not find application with appId={appId}");
+                }
+                else
+                {
+                    errorResult = StatusCode(500, $"Document database error: {dce}");
+                }
+            }
             catch (Exception e)
             {
                 errorResult = StatusCode(500, $"Unable to perform request: {e}");
@@ -501,4 +535,3 @@ namespace LocalTest.Controllers.Storage
         }
     }
 }
-
