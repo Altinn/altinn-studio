@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,6 +9,14 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Security.Cryptography.X509Certificates;
+using AltinnCore.Authentication.JwtCookie;
+using AltinnCore.Authentication.Constants;
+using Altinn.Common.PEP.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using System.IO;
+using LocalTest.Configuration;
+using Microsoft.IdentityModel.Logging;
 
 namespace LocalTest
 {
@@ -24,6 +33,37 @@ namespace LocalTest
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+            services.AddSingleton(Configuration);
+            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<CertificateSettings>(Configuration);
+            services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
+
+            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
+            SecurityKey key = new X509SecurityKey(cert);
+
+            services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
+                .AddJwtCookie(options =>
+                {
+                    var generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = key,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true
+                    };
+                    options.Cookie.Domain = "localhost";
+                    options.Cookie.Name = "AltinnStudioRuntime";
+                });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new AppAccessRequirement("read")));
+                options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new AppAccessRequirement("write")));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -32,6 +72,9 @@ namespace LocalTest
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+
+                // Enable higher level of detail in exceptions related to JWT validation
+                IdentityModelEventSource.ShowPII = true;
             }
             else
             {
@@ -44,6 +87,7 @@ namespace LocalTest
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
