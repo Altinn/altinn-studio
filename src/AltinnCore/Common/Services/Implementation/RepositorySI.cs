@@ -14,6 +14,7 @@ using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Helpers.Extensions;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.RepositoryClient.Model;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
@@ -921,7 +922,7 @@ namespace AltinnCore.Common.Services.Implementation
             DataType logicElement = application.DataTypes.Single(d => d.AppLogic != null);
 
             logicElement.Id = dataTypeId;
-            logicElement.AppLogic = new ApplicationLogic {AutoCreate = true, ClassRef = classRef};
+            logicElement.AppLogic = new ApplicationLogic { AutoCreate = true, ClassRef = classRef };
             UpdateApplication(org, app, application);
 
             return true;
@@ -1021,7 +1022,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string filename = _settings.GetServicePath(org, serviceConfig.RepositoryName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
             RepositoryClient.Model.Repository repository = null;
-            RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.RepositoryName, Readme: "Tjenestedata", Description: string.Empty);
+            CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.RepositoryName, Readme: "Tjenestedata", Description: string.Empty);
 
             if (!repoCreated)
             {
@@ -1042,7 +1043,7 @@ namespace AltinnCore.Common.Services.Implementation
                     RepositoryName = serviceConfig.RepositoryName,
                 };
 
-                // This creates all files?!
+                // This creates all files
                 CreateServiceMetadata(metadata);
                 CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
 
@@ -1235,7 +1236,7 @@ namespace AltinnCore.Common.Services.Implementation
                     ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists"
                     : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists";
 
-                using (Repository repo = new Repository(localOrgRepoFolder))
+                using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localOrgRepoFolder))
                 {
                     // User has a local repo for codelist.
                     return;
