@@ -10,7 +10,7 @@
     "dueBefore": "2019-07-05T00:00:00Z",
     "visibleAAfter": "2019-06-05T00:00:00Z",
     "process": {
-      "currentTask": { "elementId": "data" }
+      "currentTask": { "elementId": "Task_1" }
     },
     "status": {    
     }

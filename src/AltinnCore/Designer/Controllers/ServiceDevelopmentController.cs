@@ -88,16 +88,16 @@ namespace AltinnCore.Designer.Controllers
             switch (fileEditorMode)
             {
                 case FileEditorMode.Implementation:
-                    file = _repository.GetImplementationFile(org, app, fileName);
+                    file = _repository.GetAppLogic(org, app, fileName);
                     break;
                 case FileEditorMode.Calculation:
-                    file = _repository.GetImplementationFile(org, app, "Calculation/" + fileName);
+                    file = _repository.GetAppLogic(org, app, "Calculation/" + fileName);
                     break;
                 case FileEditorMode.Validation:
-                    file = _repository.GetImplementationFile(org, app, "Validation/" + fileName);
+                    file = _repository.GetAppLogic(org, app, "Validation/" + fileName);
                     break;
                 case FileEditorMode.Dynamics:
-                    file = _repository.GetResourceFile(org, app, "Dynamics/" + fileName);
+                    file = _repository.GetRuleHandler(org, app);
                     break;
                 case FileEditorMode.All:
                     file = _repository.GetConfiguration(org, app, fileName);
@@ -141,24 +141,16 @@ namespace AltinnCore.Designer.Controllers
                 switch (fileEditorMode)
                 {
                     case FileEditorMode.Implementation:
-                        if (fileName == "RuleHandler.js")
-                        {
-                            _repository.SaveResourceFile(org, app, fileName, content);
-                        }
-                        else
-                        {
-                            _repository.SaveImplementationFile(org, app, fileName, content);
-                        }
-
+                        _repository.SaveAppLogicFile(org, app, fileName, content);
                         break;
                     case FileEditorMode.Dynamics:
-                        _repository.SaveResourceFile(org, app, "Dynamics/" + fileName, content);
+                        _repository.SaveRuleHandler(org, app, content);
                         break;
                     case FileEditorMode.Calculation:
-                        _repository.SaveImplementationFile(org, app, "Calculation/" + fileName, content);
+                        _repository.SaveAppLogicFile(org, app, "Calculation/" + fileName, content);
                         break;
                     case FileEditorMode.Validation:
-                        _repository.SaveImplementationFile(org, app, "Validation/" + fileName, content);
+                        _repository.SaveAppLogicFile(org, app, "Validation/" + fileName, content);
                         break;
                     case FileEditorMode.All:
                         _repository.SaveConfiguration(org, app, fileName, content);

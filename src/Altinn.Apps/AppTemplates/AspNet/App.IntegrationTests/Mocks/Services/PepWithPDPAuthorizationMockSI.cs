@@ -3,8 +3,11 @@ using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Configuration;
+using Altinn.Common.PEP.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTestsRef.Models;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -21,6 +24,8 @@ namespace App.IntegrationTests.Mocks.Services
     {
         private readonly IInstance _instanceService;
 
+        private readonly GeneralSettings _generalSettings;
+
         private readonly string OrgAttributeId = "urn:altinn:org";
 
         private readonly string AppAttributeId = "urn:altinn:app";
@@ -31,13 +36,14 @@ namespace App.IntegrationTests.Mocks.Services
 
         private readonly string PartyAttributeId = "urn:altinn:partyid";
 
-        private readonly string UserAttributeId = "urn:altinn:user-id";
+        private readonly string UserAttributeId = "urn:altinn:userid";
 
         private readonly string AltinnRoleAttributeId = "urn:altinn:rolecode";
 
-        public PepWithPDPAuthorizationMockSI(IInstance instanceService)
+        public PepWithPDPAuthorizationMockSI(IInstance instanceService, IOptions<GeneralSettings> generalSettings)
         {
             this._instanceService = instanceService;
+            _generalSettings = generalSettings.Value;
         }
 
 
@@ -45,8 +51,6 @@ namespace App.IntegrationTests.Mocks.Services
         {
             try
             {
-                List<XacmlJsonCategory> resources = xacmlJsonRequest.Resource;
-
                 XacmlContextRequest decisionRequest = XacmlJsonXmlConverter.ConvertRequest(xacmlJsonRequest);
                 decisionRequest = await Enrich(decisionRequest);
 
@@ -65,9 +69,15 @@ namespace App.IntegrationTests.Mocks.Services
             return null;
         }
 
-        public Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequest xacmlJsonRequest, ClaimsPrincipal user)
+        public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequest xacmlJsonRequest, ClaimsPrincipal user)
         {
-            throw new NotImplementedException();
+            if (_generalSettings.DisablePEP)
+            {
+                return true;
+            }
+
+            XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
+            return DecisionHelper.ValidateResponse(response.Response, user);
         }
 
 
@@ -141,27 +151,30 @@ namespace App.IntegrationTests.Mocks.Services
             {
                 Instance instanceData = await _instanceService.GetInstance(appAttributeValue, orgAttributeValue, Convert.ToInt32(instanceAttributeValue.Split('/')[0]), new Guid(instanceAttributeValue.Split('/')[1]));
 
-                if (string.IsNullOrEmpty(orgAttributeValue))
+                if (string.IsNullOrEmpty(orgAttributeValue) && instanceData != null)
                 {
                     resourceContextAttributes.Attributes.Add(GetOrgAttribute(instanceData));
                 }
 
-                if (string.IsNullOrEmpty(appAttributeValue))
+                if (string.IsNullOrEmpty(appAttributeValue) && instanceData != null)
                 {
                     resourceContextAttributes.Attributes.Add(GetAppAttribute(instanceData));
                 }
 
-                if (string.IsNullOrEmpty(taskAttributeValue))
+                if (string.IsNullOrEmpty(taskAttributeValue) && instanceData != null && instanceData.Process != null && instanceData.Process.CurrentTask != null)
                 {
                     resourceContextAttributes.Attributes.Add(GetProcessElementAttribute(instanceData));
                 }
 
-                if (string.IsNullOrEmpty(resourcePartyAttributeValue))
+                if (string.IsNullOrEmpty(resourcePartyAttributeValue) && instanceData != null)
                 {
                     resourceContextAttributes.Attributes.Add(GetPartyAttribute(instanceData));
                 }
 
-                resourcePartyAttributeValue = instanceData.InstanceOwner.PartyId;
+                if (instanceData != null)
+                {
+                    resourcePartyAttributeValue = instanceData.InstanceOwner.PartyId;
+                }
             }
 
             await EnrichSubjectAttributes(request, resourcePartyAttributeValue);
@@ -169,6 +182,12 @@ namespace App.IntegrationTests.Mocks.Services
 
         private async Task EnrichSubjectAttributes(XacmlContextRequest request, string resourceParty)
         {
+            // If there is no resource party then it is impossible to enrich roles
+            if (string.IsNullOrEmpty(resourceParty))
+            {
+                return; 
+            }
+
             XacmlContextAttributes subjectContextAttributes = request.GetSubjectAttributes();
 
             int subjectUserId = 0;

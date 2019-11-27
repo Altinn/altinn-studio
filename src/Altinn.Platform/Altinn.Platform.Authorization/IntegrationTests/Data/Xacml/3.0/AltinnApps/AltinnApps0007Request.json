@@ -5,7 +5,7 @@
       {
         "Attribute": [
           {
-            "AttributeId": "urn:altinn:user-id",
+            "AttributeId": "urn:altinn:userid",
             "Value": "1"
           }
         ]

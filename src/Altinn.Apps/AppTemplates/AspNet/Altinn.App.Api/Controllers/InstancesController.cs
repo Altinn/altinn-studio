@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
 using Altinn.App.Service.Interface;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -19,6 +20,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -39,7 +41,10 @@ namespace Altinn.App.Api.Controllers
         private readonly IAppResources _appResourcesService;
         private readonly IRegister _registerService;
         private readonly IAltinnApp _altinnApp;
+        private readonly IProcess _processService;
+        private readonly UserHelper _userHelper;
         private readonly IPDP _pdp;
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -51,7 +56,10 @@ namespace Altinn.App.Api.Controllers
             IData dataService,
             IAppResources appResourcesService,
             IAltinnApp altinnApp,
-            IPDP pdp)
+            IProcess processService,
+            IPDP pdp,
+            IProfile profileService,
+            IOptions<GeneralSettings> generalSettings)
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -59,7 +67,11 @@ namespace Altinn.App.Api.Controllers
             _appResourcesService = appResourcesService;
             _registerService = registerService;
             _altinnApp = altinnApp;
+            _processService = processService;
+
             _pdp = pdp;
+
+            _userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
 
         /// <summary>
@@ -171,6 +183,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromQuery] int? instanceOwnerPartyId)
         {
+
             if (string.IsNullOrEmpty(org))
             {
                 return BadRequest("The path parameter 'org' cannot be empty");
@@ -244,11 +257,6 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
             }
 
-            // TODO. Call PEP to verify if current user is authorized to create a instance for this party-
-            // Action is instansiate. Use claims princial from context. The resource party from above party
-            // The app and org. Call the new method in IPDP service. This API lib need to reference the PEP nuget to make this possible
-            // If this method return false. Return NotAuthorized here
-            // string org, string app, ClaimsPrincipal user, string actionType, string partyId
             XacmlJsonRequest request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString());
             bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
 
@@ -289,7 +297,9 @@ namespace Altinn.App.Api.Controllers
                 // get the updated instance
                 instance = await _instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
 
-                await _altinnApp.OnInstantiate(instance);
+                await StartProcessAndGotoNextTask(instance);
+
+                instance = await _instanceService.UpdateInstance(instance);
             }
             catch (Exception dataException)
             {
@@ -304,6 +314,32 @@ namespace Altinn.App.Api.Controllers
             string url = instance.SelfLinks.Apps;
 
             return Created(url, instance);
+        }
+
+        /// <summary>
+        /// Calls Altinn app to get start event and goto next task
+        /// </summary>
+        /// <param name="instance">instance can be updated by app</param>
+        /// <returns></returns>
+        private async Task StartProcessAndGotoNextTask(Instance instance)
+        {
+            string startEvent = await _altinnApp.OnInstantiateGetStartEvent(instance);
+
+            if (startEvent != null)
+            {
+                UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
+
+                List<InstanceEvent> events = await _processService.ProcessStartAndGotoNextTask(instance, startEvent, userContext);
+
+                foreach (InstanceEvent instanceEvent in events)
+                {
+                    if (instanceEvent.EventType.Equals("process:StartTask"))
+                    {
+                        // make sure app can run event on start task.
+                        await _altinnApp.OnStartProcessTask(instanceEvent.ProcessInfo.CurrentTask.ElementId, instance);
+                    }
+                }
+            }
         }
 
         private async Task<Party> LookupParty(Instance instanceTemplate)

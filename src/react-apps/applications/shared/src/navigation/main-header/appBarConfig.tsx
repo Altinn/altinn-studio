@@ -15,11 +15,6 @@ export const menu = ([
     link: '/text',
   },
   {
-    key: 'Teste',
-    activeSubHeaderSelection: 'Teste',
-    link: '/test',
-  },
-  {
     key: 'Deploy',
     activeSubHeaderSelection: 'Deploy',
     link: '/deploy',

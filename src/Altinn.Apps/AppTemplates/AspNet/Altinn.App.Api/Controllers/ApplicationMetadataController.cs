@@ -16,7 +16,7 @@ namespace Altinn.App.Api.Controllers
     {
         private readonly ILogger _logger;
         private readonly IAuthorization _authorization;
-        private readonly IApplication _application;
+        private readonly IAppResources _appResources;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationMetadataController"/> class
@@ -27,11 +27,11 @@ namespace Altinn.App.Api.Controllers
         public ApplicationMetadataController(
             ILogger<ApplicationMetadataController> logger,
             IAuthorization authorization,
-            IApplication application)
+            IAppResources appResources)
         {
             _logger = logger;
             _authorization = authorization;
-            _application = application;
+            _appResources = appResources;
         }
 
         /// <summary>
@@ -43,8 +43,21 @@ namespace Altinn.App.Api.Controllers
         [HttpGet("{org}/{app}/api/v1/applicationmetadata")]
         public async Task<IActionResult> GetAction(string org, string app)
         {
-            Application application = await _application.GetApplication(org, app);
-            return Ok(application);
+            Application application = _appResources.GetApplication();
+
+            if (application != null)
+            {
+                string wantedAppId = $"{org}/{app}";
+
+                if (application.Id.Equals(wantedAppId))
+                {
+                    return Ok(application);
+                }
+
+                return Conflict($"This is {application.Id}, and not the app you are looking for: {wantedAppId}!");
+            }
+
+            return NotFound();
         }
     }
 }

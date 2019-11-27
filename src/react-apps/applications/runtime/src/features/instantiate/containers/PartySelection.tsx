@@ -10,7 +10,6 @@ import AltinnParty from '../../../shared/components/altinnParty';
 import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import PartyActions from '../../../shared/resources/party/partyActions';
-import { IProfile } from '../../../shared/resources/profile';
 import { IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
@@ -79,7 +78,6 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   const { classes, match } = props;
 
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
-  const profile: IProfile = useSelector((state: IRuntimeState) => state.profile.profile);
   const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
   const appMetadata: IApplicationMetadata = useSelector((state: IRuntimeState) =>
     state.applicationMetadata.applicationMetadata);

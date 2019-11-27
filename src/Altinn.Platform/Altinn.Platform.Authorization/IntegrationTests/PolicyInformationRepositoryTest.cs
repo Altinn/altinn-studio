@@ -40,8 +40,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                 EndpointUri = "https://localhost:8081",
                 PrimaryKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
-                Database = "ServiceEngine",
-                InstanceCollection = "Instance",
+                Database = "Storage",
+                InstanceCollection = "instances",
                 ApplicationCollection = "applications"
             });
 
@@ -83,7 +83,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Get from cosmos a exsisting instance 
+        /// Test case: Get from cosmos a exsisting instance
         /// Expected: GetInstance returns instance that is not null
         /// </summary>
         //[Fact]
@@ -103,7 +103,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Get from cosmos a instance that do not exist 
+        /// Test case: Get from cosmos a instance that do not exist
         /// Expected: GetInstance returns null
         /// </summary>
         //[Fact]
@@ -157,7 +157,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Get from cosmos a exsisting instance 
+        /// Test case: Get from cosmos a exsisting instance
         /// Expected: GetInstance returns instance with same instanceId and instanceOwnerId as sent in
         /// </summary>
        // [Fact]
@@ -178,7 +178,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Get from cosmos an exsisting application 
+        /// Test case: Get from cosmos an exsisting application
         /// Expected: GetInstance returns application that is not null
         /// </summary>
         //[Fact]
@@ -252,8 +252,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Get from cosmos an exsisting application 
-        /// Expected: GetApplication returns application with the same app and org as sent in 
+        /// Test case: Get from cosmos an exsisting application
+        /// Expected: GetApplication returns application with the same app and org as sent in
         /// </summary>
         //[Fact]
         public async Task GetApplication_TC05()
