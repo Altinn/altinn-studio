@@ -154,7 +154,7 @@ class FormDesigner extends React.Component<
     AppDataActionDispatcher.setDesignMode(true);
     ManageServiceConfigurationDispatchers.fetchJsonFile(
       `${window.location.origin}/designer/${
-        appId}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
+        appId}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`);
   }
   public toggleMenu = () => {
     this.setState({

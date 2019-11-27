@@ -64,6 +64,13 @@ namespace Altinn.App.Services.Implementation
                     fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.UiFolder + resource);
                 }
             }
+            else if (resource == _settings.RuleConfigurationJSONFileName)
+            {
+                if (File.Exists(_settings.AppBasePath + _settings.UiFolder + resource))
+                {
+                    fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.UiFolder + resource);
+                }
+            }
             else
             {
                 if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetResourceFolder() + resource))

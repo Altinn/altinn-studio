@@ -57,6 +57,11 @@ namespace AltinnCore.Common.Configuration
         public const string VALIDATION_FOLDER_NAME = "App/logic/Validation/";
 
         /// <summary>
+        /// Constant for the name of rule configuration file
+        /// </summary>
+        public const string RULE_CONFIG_FILE_NAME = "RuleConfiguration.json";
+
+        /// <summary>
         /// Constant for the location of app logic files
         /// </summary>
         public const string APPLOGIC_FOLDER_NAME = "App/logic/";
@@ -429,6 +434,15 @@ namespace AltinnCore.Common.Configuration
         {
             return GetServicePath(org, app, developer) + FORMLAYOUT_RESOURCE_FOLDER_NAME + RuleHandlerFileName;
         }
+        
+        /// <summary>
+        /// Get name of the rule configuration file.
+        /// </summary>
+        /// <returns>The name of the file.</returns>
+        public string GetRuleConfigFileName()
+        {
+            return RULE_CONFIG_FILE_NAME;
+        }
 
         /// <summary>
         /// Gets the full path to the directory where all service packages will be placed
@@ -464,6 +478,18 @@ namespace AltinnCore.Common.Configuration
         public string GetResourcePath(string org, string app, string developer)
         {
             return GetServicePath(org, app, developer) + RESOURCE_FOLDER_NAME;
+        }
+
+        /// <summary>
+        /// Gets the full path to Rule configuration file
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetRuleConfigPath(string org, string app, string developer)
+        {
+            return GetServicePath(org, app, developer) + FORMLAYOUT_RESOURCE_FOLDER_NAME + RULE_CONFIG_FILE_NAME;
         }
 
         /// <summary>
