@@ -14,8 +14,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="config\applicationmetadata.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="wwwroot\css\" />
     <Folder Include="wwwroot\script\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="config\applicationmetadata.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
