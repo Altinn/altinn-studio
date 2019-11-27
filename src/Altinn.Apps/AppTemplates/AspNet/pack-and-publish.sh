@@ -1,6 +1,7 @@
 #!/bin/bash
 
-version=0.0.17-alpha
+version=0.0.20-alpha
+
 key=<key-here>
 
 pwd=`pwd`
