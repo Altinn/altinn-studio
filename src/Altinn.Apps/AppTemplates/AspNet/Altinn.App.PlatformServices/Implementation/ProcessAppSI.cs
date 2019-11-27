@@ -42,7 +42,7 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc/>
         public Stream GetProcessDefinition()
         {
-            string bpmnFilePath = _appSettings.ConfigurationFolder + _appSettings.ProcessFolder + _appSettings.ProcessFileName;
+            string bpmnFilePath = _appSettings.AppBasePath + _appSettings.ConfigurationFolder + _appSettings.ProcessFolder + _appSettings.ProcessFileName;
 
             try
             {                

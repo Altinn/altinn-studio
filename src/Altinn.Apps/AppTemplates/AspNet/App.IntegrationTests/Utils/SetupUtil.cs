@@ -43,7 +43,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddSingleton<IInstance, InstanceMockSI>();
                     services.AddSingleton<IData, DataMockSI>();
                     services.AddSingleton<IRegister, RegisterMockSI>();
-                    services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepAuthorizationMockSI>();
+                    services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
                     services.AddSingleton<IApplication, ApplicationMockSI>();
                     services.AddSingleton<IAltinnApp, AltinnApp>();
                     services.AddTransient<IProfile, ProfileMockSI>();

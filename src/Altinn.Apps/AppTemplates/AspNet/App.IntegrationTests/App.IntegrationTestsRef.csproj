@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
@@ -55,7 +55,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.2-alpha" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
     <PackageReference Include="xunit" Version="2.4.0" />
@@ -63,11 +62,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\apps\tdd\endring-av-navn\config\authorization\" />
     <Folder Include="Data\Instances\tdd\endring-av-navn\1000\26133fb5-a9f2-45d4-90b1-f6d93ad40713\" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Altinn.Platform\Altinn.Platform.Authorization\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj" />
+    <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
     <ProjectReference Include="..\Altinn.App.PlatformServices\Altinn.App.PlatformServices.csproj" />
     <ProjectReference Include="..\App\AppRef.csproj" />
   </ItemGroup>

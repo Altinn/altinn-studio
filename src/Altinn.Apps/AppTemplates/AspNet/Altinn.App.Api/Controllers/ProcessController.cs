@@ -25,7 +25,7 @@ namespace Altinn.App.Api.Controllers
     /// <summary>
     /// Controller for setting and moving process flow of an instance.
     /// </summary>
-    [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceGuid:guid}/process")]
+    [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process")]
     [ApiController]
     [Authorize]
     public class ProcessController : ControllerBase
@@ -71,7 +71,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>the instance's process state</returns>
         [HttpGet]
@@ -81,10 +81,10 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult<ProcessState>> GetProcessState(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
             if (instance == null)
             {
@@ -101,7 +101,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="startEvent">a specific start event id to start the process, must be used if there are more than one start events</param>
         /// <returns>The process state</returns>
@@ -113,13 +113,13 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult<ProcessState>> StartProcess(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromQuery] string startEvent = null)
         {
             UserContext userContext = userHelper.GetUserContext(HttpContext).Result;
 
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
                 return NotFound();
@@ -168,7 +168,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>list of next process element identifiers (tasks or events)</returns>
         [Authorize(Policy = "InstanceRead")]
@@ -179,10 +179,10 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult<List<string>>> GetNextElements(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
                 return NotFound();
@@ -226,7 +226,7 @@ namespace Altinn.App.Api.Controllers
         /// <returns>new process state</returns>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="elementId">the id of the next element to move to. Query parameter is optional,
         /// but must be specified if more than one element can be reached from the current process ellement.</param>
@@ -237,11 +237,11 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult<ProcessState>> NextElement(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromQuery] string elementId = null)
         {
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
                 return NotFound("Cannot find instance!");
@@ -277,7 +277,7 @@ namespace Altinn.App.Api.Controllers
 
             string actionType = GetActionType(altinnTaskType);
 
-            XacmlJsonRequest request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, actionType, instanceOwnerId.ToString());
+            XacmlJsonRequest request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, actionType, instanceOwnerPartyId.ToString());
             bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
 
             string currentElementId = instance.Process.CurrentTask?.ElementId;
@@ -345,7 +345,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>current process status</returns>
         [HttpPut("completeProcess")]
@@ -355,10 +355,10 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult<ProcessState>> CompleteProcess(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
             if (instance == null)
             {
