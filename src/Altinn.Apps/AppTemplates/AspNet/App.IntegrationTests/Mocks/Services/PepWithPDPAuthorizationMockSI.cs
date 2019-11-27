@@ -24,7 +24,7 @@ namespace App.IntegrationTests.Mocks.Services
     {
         private readonly IInstance _instanceService;
 
-        private readonly GeneralSettings _generalSettings;
+        private readonly PepSettings _generalSettings;
 
         private readonly string OrgAttributeId = "urn:altinn:org";
 
@@ -40,7 +40,7 @@ namespace App.IntegrationTests.Mocks.Services
 
         private readonly string AltinnRoleAttributeId = "urn:altinn:rolecode";
 
-        public PepWithPDPAuthorizationMockSI(IInstance instanceService, IOptions<GeneralSettings> generalSettings)
+        public PepWithPDPAuthorizationMockSI(IInstance instanceService, IOptions<PepSettings> generalSettings)
         {
             this._instanceService = instanceService;
             _generalSettings = generalSettings.Value;
