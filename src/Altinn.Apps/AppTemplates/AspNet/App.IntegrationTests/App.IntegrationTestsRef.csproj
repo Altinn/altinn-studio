@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
@@ -67,6 +67,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Altinn.Platform\Altinn.Platform.Authorization\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj" />
+    <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
     <ProjectReference Include="..\Altinn.App.PlatformServices\Altinn.App.PlatformServices.csproj" />
     <ProjectReference Include="..\App\AppRef.csproj" />
   </ItemGroup>
