@@ -2,8 +2,7 @@
 
 version=0.0.20-alpha
 
-#key=<key-here>
-key=oy2mffy63sddojmtyonaebppjcchio7u3dbmant2nl6wi4
+key=<key-here>
 
 pwd=`pwd`
 
