@@ -7,15 +7,20 @@ using System.Threading.Tasks;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
 using Altinn.App.Service.Interface;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Helpers;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -36,6 +41,10 @@ namespace Altinn.App.Api.Controllers
         private readonly IAppResources _appResourcesService;
         private readonly IRegister _registerService;
         private readonly IAltinnApp _altinnApp;
+        private readonly IProcess _processService;
+        private readonly UserHelper _userHelper;
+        private readonly IPDP _pdp;
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -46,7 +55,11 @@ namespace Altinn.App.Api.Controllers
             IInstance instanceService,
             IData dataService,
             IAppResources appResourcesService,
-            IAltinnApp altinnApp)
+            IAltinnApp altinnApp,
+            IProcess processService,
+            IPDP pdp,
+            IProfile profileService,
+            IOptions<GeneralSettings> generalSettings)
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -54,6 +67,11 @@ namespace Altinn.App.Api.Controllers
             _appResourcesService = appResourcesService;
             _registerService = registerService;
             _altinnApp = altinnApp;
+            _processService = processService;
+
+            _pdp = pdp;
+
+            _userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
 
         /// <summary>
@@ -165,6 +183,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] string app,
             [FromQuery] int? instanceOwnerPartyId)
         {
+
             if (string.IsNullOrEmpty(org))
             {
                 return BadRequest("The path parameter 'org' cannot be empty");
@@ -242,6 +261,14 @@ namespace Altinn.App.Api.Controllers
             // Action is instansiate. Use claims princial from context. The resource party from above party
             // The app and org. Call the new method in IPDP service. This API lib need to reference the PEP nuget to make this possible
             // If this method return false. Return NotAuthorized here
+            // string org, string app, ClaimsPrincipal user, string actionType, string partyId
+            XacmlJsonRequest request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString());
+            bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
+
+            if (!authorized)
+            {
+                return Forbid("Not Authorized");
+            }
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
@@ -274,8 +301,18 @@ namespace Altinn.App.Api.Controllers
 
                 // get the updated instance
                 instance = await _instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
+               
+                string startEvent = await _altinnApp.OnInstantiateGetStartEvent(instance);
 
-                await _altinnApp.OnInstantiate(instance);
+                if (startEvent != null)
+                {
+                    UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
+
+                    Instance instanceStarted = await _processService.ProcessStartAndGotoNextTask(instance, startEvent, userContext);
+
+                    instance = await _instanceService.UpdateInstance(instanceStarted);
+                }
+
             }
             catch (Exception dataException)
             {

@@ -137,8 +137,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
       subscriptionHookValid !== null &&
       subscriptionHookValid &&
       !instantiating &&
-      !instantiation.instanceId &&
-      !instantiation.error
+      !instantiation.instanceId
     ) {
       createNewInstance();
     }

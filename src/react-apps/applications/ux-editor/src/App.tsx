@@ -53,7 +53,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     formDesignerActionDispatchers.fetchFormLayout(
       `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`);
     // Load text resources
-    const languageCode = 'nb-NO';
+    const languageCode = 'nb';
     appDataActionDispatcher.loadTextResources(
       `${window.location.origin}/designer/${appId}/UIEditor/GetTextResources/${languageCode}`);
     // Fetch ServiceConfigurations

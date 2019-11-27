@@ -24,9 +24,38 @@ namespace App.IntegrationTestsRef.AppBase
         }
 
         [Fact]
-        public void OnInstantiation_ProcessIsStarted()
+        public async void OnInstantiation_ProcessIsStarted()
         {
-            throw new NotImplementedException();
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+
+            Instance instance = await CreateInstance();
+
+            // 1) Assert that process is started.
+            Assert.NotNull(instance.Process);
+            Assert.NotNull(instance.Process.Started);
+
+            // 2) Get process state from instance (should be the same as returned in 1)
+            string instancePath = $"/tdd/endring-av-navn/instances/{instance.Id}";
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}/process");
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string responseC = await response.Content.ReadAsStringAsync();
+
+            DeleteInstance(instance);
+
+            response.EnsureSuccessStatusCode();
+
+            ProcessState process = JsonConvert.DeserializeObject<ProcessState>(responseC);
+
+            // check process state
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.NotNull(process.Started);
+            Assert.NotNull(process.CurrentTask);
+            Assert.Equal("Task_1", process.CurrentTask.ElementId);            
         }
 
 
@@ -42,21 +71,14 @@ namespace App.IntegrationTestsRef.AppBase
             string instancePath = $"/tdd/endring-av-navn/instances/{instance.Id}";
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{instancePath}/process/start");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-
-            string responseC = await response.Content.ReadAsStringAsync();
-
-            response.EnsureSuccessStatusCode();
-
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
-            HttpResponseMessage response2 = await client.SendAsync(httpRequestMessage);
 
             DeleteInstance(instance);
 
-            string responseContent = await response2.Content.ReadAsStringAsync();
+            string responseContent = await response.Content.ReadAsStringAsync();
 
-            response2.EnsureSuccessStatusCode();
+            response.EnsureSuccessStatusCode();
 
             ProcessState processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
 
@@ -79,15 +101,8 @@ namespace App.IntegrationTestsRef.AppBase
             Instance instance = await CreateInstance();
             string instancePath = $"/tdd/endring-av-navn/instances/{instance.Id}";
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"{instancePath}/process/start");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/completeProcess");
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-
-            string responseC = await response.Content.ReadAsStringAsync();
-
-            response.EnsureSuccessStatusCode();
-
-            httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/completeProcess");
-            response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
 
             ProcessState processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));

@@ -34,7 +34,7 @@ namespace Altinn.App.Common.Process.Elements
         /// <summary>
         /// Gets or sets the outgoing id of a task
         /// </summary>
-        [XmlAttribute("tasktype", Namespace = "http://altinn")]
+        [XmlAttribute("tasktype", Namespace = "http://altinn.no")]
         public string TaskType { get; set; }
     }
 }

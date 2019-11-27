@@ -1,14 +1,13 @@
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Authorization;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using static Altinn.Authorization.ABAC.Constants.XacmlConstants;
 
 namespace Altinn.Common.PEP.Helpers
@@ -111,8 +110,59 @@ namespace Altinn.Common.PEP.Helpers
         private static bool IsValidUrn(string value)
         {
             Regex regex = new Regex("^urn*");
-
             return regex.Match(value).Success ? true : false;
+        }
+
+        public static bool ValidateResponse(List<XacmlJsonResult> results, ClaimsPrincipal user)
+        {
+            if (results == null)
+            {
+                throw new ArgumentNullException("results");
+            }
+
+            if (user == null)
+            {
+                throw new ArgumentNullException("user");
+            }
+
+            return IsResponseValid(results, user);
+        }
+
+        private static bool IsResponseValid(List<XacmlJsonResult> results, ClaimsPrincipal user)
+        {
+            // We request one thing and then only want one result
+            if (results.Count != 1)
+            {
+                return false;
+            }
+
+            // Checks that the result is nothing else than "permit"
+            if (!results.First().Decision.Equals(XacmlContextDecision.Permit.ToString()))
+            {
+                return false;
+            }
+
+            // Checks if the result contains obligation
+            if (results.First().Obligations != null && results.Count > 0)
+            {
+                List<XacmlJsonObligationOrAdvice> obligationList = results.First().Obligations;
+                XacmlJsonAttributeAssignment attributeMinLvAuth = obligationList.Select(a => a.AttributeAssignment.Find(a => a.Category.Equals("urn:altinn:minimum-authenticationlevel"))).FirstOrDefault();
+
+                // Checks if the obligation contains a minimum authentication level attribute
+                if (attributeMinLvAuth != null)
+                {
+                    string minAuthenticationLevel = attributeMinLvAuth.Value;
+                    string usersAuthenticationLevel = user.Claims.FirstOrDefault(c => c.Type.Equals("urn:altinn:authlevel")).Value;
+
+                    // Checks that the user meets the minimum authentication level
+                    if (Convert.ToInt32(usersAuthenticationLevel) < Convert.ToInt32(minAuthenticationLevel))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }

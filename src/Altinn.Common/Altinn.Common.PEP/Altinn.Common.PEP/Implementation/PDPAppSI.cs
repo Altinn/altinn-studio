@@ -1,12 +1,12 @@
-using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Clients;
+using Altinn.Common.PEP.Configuration;
+using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
@@ -22,6 +22,7 @@ namespace Altinn.Common.PEP.Implementation
     {
         private readonly HttpClient _authClient;
         private readonly ILogger _logger;
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthorizationAppSI"/> class
@@ -30,10 +31,12 @@ namespace Altinn.Common.PEP.Implementation
         /// <param name="logger">the handler for logger service</param>
         public PDPAppSI(
                 IHttpClientAccessor httpClientAccessor,
-                ILogger<PDPAppSI> logger)
+                ILogger<PDPAppSI> logger,
+                IOptions<GeneralSettings> generalSettings)
         {
             _authClient = httpClientAccessor.AuthorizationClient;
             _logger = logger;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <inheritdoc/>
@@ -65,49 +68,13 @@ namespace Altinn.Common.PEP.Implementation
         /// <inheritdoc/>
         public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequest xacmlJsonRequest, ClaimsPrincipal user)
         {
+            if (_generalSettings.DisablePEP)
+            {
+                return true;
+            }
+
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
-
-            if (response == null || response.Response == null)
-            {
-                return false; ;
-            }
-
-            List<XacmlJsonResult> results = response.Response;
-
-            // We request one thing and then only want one result
-            if (results.Count != 1)
-            {
-                return false;
-            }
-
-            // Checks that the result is nothing else than "permit"
-            if (!results.First().Decision.Equals(XacmlContextDecision.Permit.ToString()))
-            {
-                // Burde man fortelle hva slags status resultatet i så fall har?
-                return false;
-            }
-
-            // Checks if the result contains obligation
-            if (results.First().Obligations != null && results.Count > 0)
-            {
-                List<XacmlJsonObligationOrAdvice> obligationList = results.First().Obligations;
-                XacmlJsonAttributeAssignment attributeMinLvAuth = obligationList.Select(a => a.AttributeAssignment.Find(a => a.Category.Equals("urn:altinn:minimum-authenticationlevel"))).FirstOrDefault();
-
-                // Checks if the obligation contains a minimum authentication level attribute
-                if (attributeMinLvAuth != null)
-                {
-                    string minAuthenticationLevel = attributeMinLvAuth.Value;
-                    string usersAuthenticationLevel = user.Claims.FirstOrDefault(c => c.Type.Equals("urn:altinn:minimum-authenticationlevel")).Value;
-
-                    // Checks that the user meets the minimum authentication level
-                    if (Convert.ToInt32(usersAuthenticationLevel) < Convert.ToInt32(minAuthenticationLevel))
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
+            return DecisionHelper.ValidateResponse(response.Response, user);
         }
     }
 }
