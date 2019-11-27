@@ -82,7 +82,7 @@ namespace Altinn.App.Services.Implementation
             return instance;
         }
 
-        public async Task<Instance> ProcessStartAndGotoNextTask(Instance instance, string validStartElement, UserContext userContext)
+        public async Task<List<InstanceEvent>> ProcessStartAndGotoNextTask(Instance instance, string validStartElement, UserContext userContext)
         {
             // trigger start event
             Instance updatedInstance = await ProcessStart(instance, validStartElement, userContext);
@@ -97,7 +97,7 @@ namespace Altinn.App.Services.Implementation
 
             updatedInstance = ProcessNext(updatedInstance, nextValidElement, processHelper, userContext, out List<InstanceEvent> events);
 
-            return updatedInstance;
+            return events;
         }
 
 
