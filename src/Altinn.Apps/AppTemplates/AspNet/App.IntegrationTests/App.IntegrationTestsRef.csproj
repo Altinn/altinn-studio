@@ -15,6 +15,7 @@
     <None Remove="Data\apps\tdd\endring-av-navn\config\appsettings.json" />
     <None Remove="Data\apps\tdd\no-access\appsettings.json" />
   </ItemGroup>
+  
 
   <ItemGroup>
     <Content Include="Data\apps\tdd\auth-level-2\appsettings.Development.json">
