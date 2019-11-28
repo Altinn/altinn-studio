@@ -1,8 +1,8 @@
 {
-  "partyId": "10001",
-  "partyTypeName": 2,
-  "orgNumber": "900000001",
-  "ssn": null,
+  "partyId": "12345",
+  "partyTypeName": 1,
+  "orgNumber": "null",
+  "ssn": "01039012345",
   "unitType": "AS",
   "name": "Kari Consulting",
   "isDeleted": false,
