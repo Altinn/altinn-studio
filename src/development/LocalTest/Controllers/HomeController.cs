@@ -83,7 +83,7 @@ namespace LocalTest.Controllers
                 {
                     ExpiresUtc = later,
                     IsPersistent = false,
-                    AllowRefresh = false
+                    AllowRefresh = false,
                 });
 
             return View("Index");

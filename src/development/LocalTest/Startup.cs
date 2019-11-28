@@ -20,6 +20,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IO;
 using LocalTest.Configuration;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.AspNetCore.Http;
 
 namespace LocalTest
 {
@@ -90,6 +91,14 @@ namespace LocalTest
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            var cookiePolicyOptions = new CookiePolicyOptions
+            {
+                MinimumSameSitePolicy = SameSiteMode.None,
+                Secure = CookieSecurePolicy.None
+            };
+
+            app.UseCookiePolicy(cookiePolicyOptions);
 
             app.UseAuthentication();
             app.UseAuthorization();
