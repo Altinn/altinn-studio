@@ -85,6 +85,16 @@ namespace Altinn.App
             X509Certificate2 cert = new X509Certificate2(certPath);
             SecurityKey key = new X509SecurityKey(cert);
 
+            string hostName = string.Empty;
+            if (Environment.GetEnvironmentVariable("GeneralSettings__HostName") != null)
+            {
+                hostName = Environment.GetEnvironmentVariable("GeneralSettings__HostName");
+            }
+            else
+            {
+                hostName = Configuration["GeneralSettings:HostName"];
+            }
+
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(options =>
                 {
@@ -97,8 +107,8 @@ namespace Altinn.App
                         RequireExpirationTime = true,
                         ValidateLifetime = true
                     };
-                    options.Cookie.Domain = "at21.altinn.cloud";
-                    options.Cookie.Name = "AltinnStudioRuntime";
+                    options.Cookie.Domain = hostName;
+                    options.Cookie.Name = Services.Constants.General.RuntimeCookieName;
                 });
 
             services.AddAuthorization(options =>
