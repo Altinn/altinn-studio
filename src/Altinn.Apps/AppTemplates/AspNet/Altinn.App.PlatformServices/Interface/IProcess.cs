@@ -1,3 +1,4 @@
+using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -24,16 +25,17 @@ namespace Altinn.App.Services.Interface
         /// <param name="instance">instance to start process on</param>
         /// <param name="validStartEvent">valid start event identifier</param>
         /// <returns>instance with started process</returns>
-        Task<Instance> ProcessStart(Instance instance, string validStartEvent, UserContext userContext);
+        Task<ProcessResult> ProcessStart(Instance instance, string validStartEvent, UserContext userContext);
 
         /// <summary>
-        /// Starts the process with a valid start element and moves it to its next task. If process is allready started operation is ignored.
+        /// Starts the process with a valid start element and moves it to its next task.
+        /// If process is allready started operation is ignored.
         /// </summary>
         /// <param name="instance"></param>
         /// <param name="validStartEvent"></param>
         /// <param name="userContext"></param>
         /// <returns></returns>
-        Task<List<InstanceEvent>> ProcessStartAndGotoNextTask(Instance instance, string validStartEvent, UserContext userContext);
+        Task<ProcessResult> ProcessStartAndGotoNextTask(Instance instance, string validStartEvent, UserContext userContext);
 
         /// <summary>
         /// Updates the process to the next element id (can be a task or end event)
@@ -42,6 +44,6 @@ namespace Altinn.App.Services.Interface
         /// <param name="nextElementId">valid next element id</param>
         /// <param name="processModel">the process model to get info</param>
         /// <returns>instance with updated process</returns>
-        Instance ProcessNext(Instance instance, string nextElementId, ProcessHelper processModel, UserContext userContext, out List<InstanceEvent> events);
+        Task<ProcessResult> ProcessNext(Instance instance, string nextElementId, ProcessHelper processModel, UserContext userContext);
     }
 }

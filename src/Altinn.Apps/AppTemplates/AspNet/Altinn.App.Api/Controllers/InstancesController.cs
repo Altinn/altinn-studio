@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
+using Altinn.App.PlatformServices.Models;
 using Altinn.App.Service.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
@@ -297,9 +298,15 @@ namespace Altinn.App.Api.Controllers
                 // get the updated instance
                 instance = await _instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
 
-                await StartProcessAndGotoNextTask(instance);
-
-                instance = await _instanceService.UpdateInstance(instance);
+                Instance instanceWithStartedProcess = await StartProcessAndGotoNextTask(instance);
+                if (instanceWithStartedProcess != null)
+                {
+                    instance = instanceWithStartedProcess;
+                }
+                else
+                {
+                    return Conflict($"Unable to start and move process to next task for instance {instance.Id}");
+                }
             }
             catch (Exception dataException)
             {
@@ -321,7 +328,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="instance">instance can be updated by app</param>
         /// <returns></returns>
-        private async Task StartProcessAndGotoNextTask(Instance instance)
+        private async Task<Instance> StartProcessAndGotoNextTask(Instance instance)
         {
             string startEvent = await _altinnApp.OnInstantiateGetStartEvent(instance);
 
@@ -329,17 +336,26 @@ namespace Altinn.App.Api.Controllers
             {
                 UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
 
-                List<InstanceEvent> events = await _processService.ProcessStartAndGotoNextTask(instance, startEvent, userContext);
+                ProcessResult result = await _processService.ProcessStartAndGotoNextTask(instance, startEvent, userContext);
 
-                foreach (InstanceEvent instanceEvent in events)
+                if (result != null)
                 {
-                    if (instanceEvent.EventType.Equals("process:StartTask"))
+                    instance = result.Instance;
+                    foreach (InstanceEvent instanceEvent in result.Events)
                     {
-                        // make sure app can run event on start task.
-                        await _altinnApp.OnStartProcessTask(instanceEvent.ProcessInfo.CurrentTask.ElementId, instance);
+                        if (instanceEvent.EventType.Equals("process:StartTask"))
+                        {
+                            // make sure app can run event on start task.
+                            await _altinnApp.OnStartProcessTask(instanceEvent.ProcessInfo.CurrentTask.ElementId, instance);
+                        }
                     }
-                }
+
+                    // make sure we save the instance after app has handled events
+                    return await _instanceService.UpdateInstance(instance);
+                }                                
             }
+
+            return null;
         }
 
         private async Task<Party> LookupParty(Instance instanceTemplate)
