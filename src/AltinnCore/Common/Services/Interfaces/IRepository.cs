@@ -147,6 +147,15 @@ namespace AltinnCore.Common.Services.Interfaces
         bool SaveCodeList(string org, string app, string name, string codelist);
 
         /// <summary>
+        /// Save the Rules configuration JSON file to disk
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="resource">The content of the resource file</param>
+        /// <returns>A boolean indicating if saving was ok</returns>
+        bool SaveRuleConfigJson(string org, string app, string resource);
+
+        /// <summary>
         /// Method that deletes a code list from disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

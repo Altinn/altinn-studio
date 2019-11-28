@@ -134,6 +134,11 @@ namespace Altinn.App.Services.Configuration
         public string FormLayoutJSONFileName { get; set; } = "FormLayout.json";
 
         /// <summary>
+        /// Gets or sets The name of the rule configuration json file Name
+        /// </summary>
+        public string RuleConfigurationJSONFileName { get; set; } = "RuleConfiguration.json";
+
+        /// <summary>
         /// Gets or sets The name of the ThirdPartyComponents json file Name
         /// </summary>
         public string ThirdPartyComponentsJSONFileName { get; set; } = RESOURCE_FOLDER_NAME + "ThirdPartyComponents.json";
