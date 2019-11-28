@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.App.Common", "Altinn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.App.PlatformServices", "Altinn.App.PlatformServices\Altinn.App.PlatformServices.csproj", "{98E6200A-ED99-418E-B30C-81BA564B509A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC", "..\..\..\Altinn.Platform\Altinn.Platform.Authorization\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj", "{C9ABF5DB-928C-4280-B587-13E6DCE010BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{98E6200A-ED99-418E-B30C-81BA564B509A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98E6200A-ED99-418E-B30C-81BA564B509A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98E6200A-ED99-418E-B30C-81BA564B509A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9ABF5DB-928C-4280-B587-13E6DCE010BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9ABF5DB-928C-4280-B587-13E6DCE010BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9ABF5DB-928C-4280-B587-13E6DCE010BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9ABF5DB-928C-4280-B587-13E6DCE010BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

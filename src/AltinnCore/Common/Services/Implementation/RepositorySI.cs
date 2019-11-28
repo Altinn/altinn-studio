@@ -145,7 +145,9 @@ namespace AltinnCore.Common.Services.Implementation
                 Id = "default",
                 AllowedContentTypes = new List<string>() { "application/xml" },
                 AppLogic = new ApplicationLogic() { },
-                TaskId = "Task_1"
+                TaskId = "Task_1",
+                MaxCount = 1,
+                MinCount = 1,
             });
             appMetadata.DataTypes.Add(new DataType
             {
@@ -153,7 +155,7 @@ namespace AltinnCore.Common.Services.Implementation
                 AllowedContentTypes = new List<string>() { "application/pdf" },
                 TaskId = "Task_1",
                 MaxCount = 1,
-                MinCount = 1,
+                MinCount = 0,
             });
             appMetadata.PartyTypesAllowed = new PartyTypesAllowed();
 
