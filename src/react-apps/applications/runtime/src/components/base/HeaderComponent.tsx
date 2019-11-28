@@ -40,7 +40,7 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
       }
 
       default: {
-        return <h4 id={this.props.id}>{this.props.text}</h4>;
+        return <h4 id={this.props.id} style={this.h4style}>{this.props.text}</h4>;
       }
     }
   }
