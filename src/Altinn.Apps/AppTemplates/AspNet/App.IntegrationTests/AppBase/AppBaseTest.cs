@@ -51,7 +51,7 @@ namespace App.IntegrationTestsRef.AppBase
 
             ProcessState process = JsonConvert.DeserializeObject<ProcessState>(responseC);
 
-            // check process state
+            // check process state and that we are in Task_1
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(process.Started);
             Assert.NotNull(process.CurrentTask);
