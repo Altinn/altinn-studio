@@ -1,0 +1,14 @@
+{
+  "UserId": 12345,
+  "UserName": "Test Testesen",
+  "PhoneNumber": "12345678",
+  "Email": "test@test.com",
+  "PartyId": 12345,
+  "Party": {
+
+  },
+  "UserType": 0,
+  "ProfileSettingPreference": {
+
+  }
+}

@@ -21,6 +21,8 @@ using System.IO;
 using LocalTest.Configuration;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.AspNetCore.Http;
+using LocalTest.Services.Profile.Interface;
+using LocalTest.Services.Profile.Implementation;
 
 namespace LocalTest
 {
@@ -42,6 +44,7 @@ namespace LocalTest
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<CertificateSettings>(Configuration);
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
+            services.AddSingleton<IUserProfiles, UserProfilesWrapper>();
 
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
             SecurityKey key = new X509SecurityKey(cert);
