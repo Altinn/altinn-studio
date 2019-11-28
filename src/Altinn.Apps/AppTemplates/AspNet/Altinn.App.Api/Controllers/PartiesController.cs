@@ -87,12 +87,12 @@ namespace Altinn.App.Api.Controllers
         /// <param name="partyId">The selected partyId</param>
         /// <returns>A validation status</returns>
         [HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]
-        public async Task<IActionResult> ValidateInstantiation(string org, string app, [FromQuery] int partyId)
+        public IActionResult ValidateInstantiation(string org, string app, [FromQuery] int partyId)
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             UserProfile user = _profile.GetUserProfile(userContext.UserId).Result;
             List<Party> partyList = _authorization.GetPartyList(userContext.UserId);
-            Application application = await _application.GetApplication(org, app);
+            Application application = _appResourcesService.GetApplication();
 
             if (application == null)
             {
