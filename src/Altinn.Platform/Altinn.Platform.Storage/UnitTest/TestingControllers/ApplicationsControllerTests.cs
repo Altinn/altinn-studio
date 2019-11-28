@@ -1,22 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Altinn.Platform.Storage.Controllers;
+
 using Xunit;
 
-namespace Altinn.Platform.Storage.IntegrationTest
+namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
     /// <summary>
-    /// Testing valid names
+    /// Represents a collection of unit tests of the <see cref="ApplicationsController"/>.
     /// </summary>
-    public class AppMetadataTests
+    public class ApplicationsControllerTests
     {
         /// <summary>
-        /// Testing valid names.
+        /// Testing that the <see cref="ApplicationsController.IsValidAppId"/> operation successfully identifies valid and invalid app id values.
         /// </summary>
         [Fact]
-        public void HasValidName()
+        public void IsValidAppId_SuccessfullyIdentifiesValidAndInvalidAppIdValues()
         {
             ApplicationsController appController = new ApplicationsController(null, null);
 

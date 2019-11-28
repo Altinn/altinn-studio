@@ -38,9 +38,11 @@ namespace Altinn.Platform.Storage
         public void ConfigureServices(IServiceCollection services)
         {            
             services.AddControllers().AddNewtonsoftJson();
+
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.Configure<GeneralSettings>(Configuration.GetSection("BridgeSettings"));
+
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
@@ -121,13 +123,13 @@ namespace Altinn.Platform.Storage
         /// <returns>Telemetry instrumentation key</returns>
         public string GetApplicationInsightsKeyFromEnvironment()
         {
-            string evironmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
-            if (string.IsNullOrEmpty(evironmentKey))
+            string environmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
+            if (string.IsNullOrEmpty(environmentKey))
             {
                 return null;
             }
 
-            return evironmentKey;
+            return environmentKey;
         }
     }
 }
