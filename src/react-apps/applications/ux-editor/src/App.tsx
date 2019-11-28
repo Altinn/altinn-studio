@@ -59,7 +59,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     // Fetch ServiceConfigurations
     manageServiceConfigurationActionDispatcher.fetchJsonFile(
       `${window.location.origin}/designer/${
-        appId}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
+        appId}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`);
     // Fetch rule connections
     appDataActionDispatcher.fetchRuleModel(
       `${window.location.origin}/designer/${appId}/UIEditor/GetRuleHandler`);

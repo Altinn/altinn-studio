@@ -47,7 +47,7 @@ export default (props) => {
     InstanceDataActions.getInstanceData(partyId, instanceGuid);
 
     FormDynamicActions.fetchFormDynamics(
-      `${window.location.origin}/${org}/${app}/api/resource/ServiceConfigurations.json`,
+      `${window.location.origin}/${org}/${app}/api/resource/RuleConfiguration.json`,
     );
 
     ProfileActions.fetchProfile(

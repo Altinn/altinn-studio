@@ -21,22 +21,22 @@ namespace Altinn.Common.PEP.Authorization
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPDP _pdp;
-        private readonly GeneralSettings _generalSettings;
+        private readonly PepSettings _pepSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppAccessHandler"/> class.
         /// </summary>
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="pdp">The pdp</param>
-        /// <param name="generalSettings">The general settings</param>
+        /// <param name="pepSettings">The settings for pep</param>
         public AppAccessHandler(
             IHttpContextAccessor httpContextAccessor,
             IPDP pdp,
-            IOptions<GeneralSettings> generalSettings)
+            IOptions<PepSettings> pepSettings)
         {
             _httpContextAccessor = httpContextAccessor;
             _pdp = pdp;
-            _generalSettings = generalSettings.Value;
+            _pepSettings = pepSettings.Value;
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Altinn.Common.PEP.Authorization
         /// <returns>A Task</returns>
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AppAccessRequirement requirement)
         {
-            if (_generalSettings.DisablePEP)
+            if (_pepSettings.DisablePEP)
             {
                 context.Succeed(requirement);
                 return;

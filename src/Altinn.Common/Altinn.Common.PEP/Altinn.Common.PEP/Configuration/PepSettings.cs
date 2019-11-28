@@ -3,7 +3,7 @@ namespace Altinn.Common.PEP.Configuration
     /// <summary>
     /// General configuration settings
     /// </summary>
-    public class GeneralSettings
+    public class PepSettings
     {
         /// <summary>
         /// Gets or sets to disable pep er not

@@ -22,21 +22,22 @@ namespace Altinn.Common.PEP.Implementation
     {
         private readonly HttpClient _authClient;
         private readonly ILogger _logger;
-        private readonly GeneralSettings _generalSettings;
+        private readonly PepSettings _pepSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthorizationAppSI"/> class
         /// </summary>
         /// <param name="httpClientAccessor">The Http client accessor</param>
         /// <param name="logger">the handler for logger service</param>
+        /// /// <param name="pepSettings">The settings for pep</param>
         public PDPAppSI(
                 IHttpClientAccessor httpClientAccessor,
                 ILogger<PDPAppSI> logger,
-                IOptions<GeneralSettings> generalSettings)
+                IOptions<PepSettings>pepSettings)
         {
             _authClient = httpClientAccessor.AuthorizationClient;
             _logger = logger;
-            _generalSettings = generalSettings.Value;
+            _pepSettings = pepSettings.Value;
         }
 
         /// <inheritdoc/>
@@ -68,7 +69,7 @@ namespace Altinn.Common.PEP.Implementation
         /// <inheritdoc/>
         public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequest xacmlJsonRequest, ClaimsPrincipal user)
         {
-            if (_generalSettings.DisablePEP)
+            if (_pepSettings.DisablePEP)
             {
                 return true;
             }

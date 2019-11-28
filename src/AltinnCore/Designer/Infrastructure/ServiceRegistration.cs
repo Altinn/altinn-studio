@@ -29,6 +29,8 @@ namespace AltinnCore.Designer.Infrastructure
             services.AddSingleton<IRegister, RegisterStudioSI>();
             services.AddSingleton<IProfile, ProfileStudioSI>();
 
+            // services.AddSingleton<ICompilation, CompilationSI>();
+            // services.AddSingleton<IForm, FormStudioSI>();
             services.AddTransient<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddTransient<ISourceControl, SourceControlSI>();
