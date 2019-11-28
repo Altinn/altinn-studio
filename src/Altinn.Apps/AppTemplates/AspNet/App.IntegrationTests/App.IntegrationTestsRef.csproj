@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
@@ -16,7 +16,6 @@
     <None Remove="Data\apps\tdd\no-access\appsettings.json" />
   </ItemGroup>
   
-
   <ItemGroup>
     <Content Include="Data\apps\tdd\auth-level-2\appsettings.Development.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
