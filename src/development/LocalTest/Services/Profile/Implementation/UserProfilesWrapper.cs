@@ -26,7 +26,6 @@ namespace LocalTest.Services.Profile.Implementation
         {
             UserProfile user = null;
             string path = this._localPlatformSettings.LocalTestingStaticTestDataPath + "Profile/User/" + userId + ".json";
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
             if (File.Exists(path))
             {
                 string content = File.ReadAllText(path);
