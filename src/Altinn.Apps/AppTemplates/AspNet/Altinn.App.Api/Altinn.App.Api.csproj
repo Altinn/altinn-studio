@@ -12,6 +12,7 @@
     <PackageTags>Altinn Studio</PackageTags>
     <IsPackable>true</IsPackable>
     <OutputType>Library</OutputType>
+    <DebugType>Full</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
