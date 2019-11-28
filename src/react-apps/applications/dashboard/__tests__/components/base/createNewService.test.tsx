@@ -117,6 +117,22 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(instance.createRepoNameFromServiceName('1234_-FjernerTallOgSpesialTegnIStartenAvNavn'))
       .toBe('fjernertallogspesialtegnistartenavnavn');
 
+    // Assert removing space at the end of name
+    expect(instance.createRepoNameFromServiceName('Fjerner space på slutten '))
+      .toBe('fjerner-space-paa-slutten');
+
+    // Assert removing _ at the end of name
+    expect(instance.createRepoNameFromServiceName('Fjerner underscore på slutten_'))
+      .toBe('fjerner-underscore-paa-slutten');
+
+    // Assert removing - at the end of name
+    expect(instance.createRepoNameFromServiceName('Fjerner bindestrek på slutten-'))
+      .toBe('fjerner-bindestrek-paa-slutten');
+
+    // Assert removing space, _ and - at the end of name
+    expect(instance.createRepoNameFromServiceName('Fjerner flere ulovlige tegn på slutten_ -? *'))
+      .toBe('fjerner-flere-ulovlige-tegn-paa-slutten');
+
     // Assert spaces
     expect(instance.createRepoNameFromServiceName('1234 Removes Numbers And Inserts Dashes'))
       .toBe('removes-numbers-and-inserts-dashes');
@@ -168,6 +184,10 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     // Assert name with uppercase
     instance.state.repoName = 'ThisIsNotAValidServiceName';
+    expect(instance.validateService()).toBe(false);
+
+    // Assert name that ends with illegar characters
+    instance.state.repoName = 'valid-but-illegal-at-end-';
     expect(instance.validateService()).toBe(false);
 
     // Assert a very long name
@@ -312,6 +332,8 @@ describe('>>> components/base/createNewService.tsx', () => {
     getStub.mockReturnValue(Promise.reject(mockError));
     instance.createNewService();
     expect(instance.state.isLoading).toBe(true);
+    await Promise.resolve();
+    // workaround to resolve promise, making test run
     await Promise.resolve();
     expect(mockPost).toHaveBeenCalled();
     expect(instance._isMounted).toBe(true);

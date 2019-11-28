@@ -328,14 +328,14 @@ namespace Altinn.Platform.Storage.Controllers
                     // update data record
                     data.ContentType = updatedData.ContentType;
                     data.Filename = updatedData.Filename;
-                    data.LastChangedBy = User.Identity.Name;
+                    data.LastChangedBy = GetUserId();
                     data.LastChanged = changedTime;
 
                     instance.LastChanged = changedTime;
 
                     data.Refs = updatedData.Refs;
 
-                    instance.LastChangedBy = User.Identity.Name;
+                    instance.LastChangedBy = GetUserId();
 
                     // store file as blob
                     data.Size = _dataRepository.WriteDataToStorage(theStream, storageFileName).Result;
@@ -493,7 +493,7 @@ namespace Altinn.Platform.Storage.Controllers
                 InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
                 User = new PlatformUser
                 {
-                    UserId = 0, // update when authentication is turned on
+                    UserId = GetUserIdAsInt(), // update when authentication is turned on
                     AuthenticationLevel = 0, // update when authentication is turned on
                 },                
                 ProcessInfo = instance.Process,
@@ -501,6 +501,23 @@ namespace Altinn.Platform.Storage.Controllers
             };
 
             await instanceEventRepository.InsertInstanceEvent(instanceEvent);
+        }
+
+        private string GetUserId()
+        {
+            return User?.Identity?.Name;
+        }
+
+        private int GetUserIdAsInt()
+        {
+            string userId = User?.Identity?.Name;
+            
+            if (int.TryParse(userId, out int result))
+            {
+                return result;
+            }
+
+            return 0;
         }
     }
 }

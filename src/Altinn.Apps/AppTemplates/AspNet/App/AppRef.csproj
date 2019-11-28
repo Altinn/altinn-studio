@@ -14,12 +14,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="config\applicationmetadata.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="wwwroot\css\" />
     <Folder Include="wwwroot\script\" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.PEP" Version="0.0.6-alpha" />
+    <None Include="config\applicationmetadata.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Altinn.Common.PEP" Version="0.0.13-alpha" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.0.0" />
   </ItemGroup>
@@ -27,7 +37,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Altinn.App.Api\Altinn.App.Api.csproj" />
     <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
-    <ProjectReference Include="..\Altinn.App.Services\Altinn.App.Services.csproj" />
+    <ProjectReference Include="..\Altinn.App.PlatformServices\Altinn.App.PlatformServices.csproj" />
   </ItemGroup>
 
   <ItemGroup>

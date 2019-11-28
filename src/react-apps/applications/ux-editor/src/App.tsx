@@ -53,13 +53,13 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     formDesignerActionDispatchers.fetchFormLayout(
       `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`);
     // Load text resources
-    const languageCode = 'nb-NO';
+    const languageCode = 'nb';
     appDataActionDispatcher.loadTextResources(
       `${window.location.origin}/designer/${appId}/UIEditor/GetTextResources/${languageCode}`);
     // Fetch ServiceConfigurations
     manageServiceConfigurationActionDispatcher.fetchJsonFile(
       `${window.location.origin}/designer/${
-        appId}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
+        appId}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`);
     // Fetch rule connections
     appDataActionDispatcher.fetchRuleModel(
       `${window.location.origin}/designer/${appId}/UIEditor/GetRuleHandler`);

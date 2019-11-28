@@ -76,8 +76,8 @@ namespace Altinn.App
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
-            services.Configure<Altinn.Common.PEP.Configuration.GeneralSettings>(Configuration.GetSection("PEPSettings"));
-
+            services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(Configuration.GetSection("PEPSettings"));
+            services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(Startup).Assembly.CodeBase).LocalPath);
             string certPath = Path.Combine(unitTestFolder, @"JWTValidationCert.cer");
@@ -105,6 +105,7 @@ namespace Altinn.App
             {
                 options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new AppAccessRequirement("read")));
                 options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new AppAccessRequirement("write")));
+                options.AddPolicy("InstanceInstantiate", policy => policy.Requirements.Add(new AppAccessRequirement("instantiate")));
             });
         }
 

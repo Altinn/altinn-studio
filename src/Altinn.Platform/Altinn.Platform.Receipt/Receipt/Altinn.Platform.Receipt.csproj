@@ -16,7 +16,7 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="4.0.1-dev-00159" />
     <PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
-    <PackageReference Include="JWTCookieAuthentication" Version="1.0.2-alpha" />
+    <PackageReference Include="JWTCookieAuthentication" Version="1.0.3-alpha" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

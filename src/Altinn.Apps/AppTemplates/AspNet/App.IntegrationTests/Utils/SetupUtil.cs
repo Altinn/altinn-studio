@@ -21,7 +21,13 @@ namespace App.IntegrationTestsRef.Utils
         {
             HttpClient client = factory.WithWebHostBuilder(builder =>
             {
+
                 string path = GetAppPath(org, app);
+
+                builder.ConfigureAppConfiguration((context, conf) =>
+                {
+                    conf.AddJsonFile(path + "appsettings.json");
+                });
 
                 var configuration = new ConfigurationBuilder()
                 .AddJsonFile(path + "appsettings.json")
@@ -31,14 +37,13 @@ namespace App.IntegrationTestsRef.Utils
 
                 IConfigurationSection appSettingSection = configuration.GetSection("AppSettings");
 
-
                 builder.ConfigureTestServices(services =>
                 {
                     services.Configure<AppSettings>(appSettingSection);
                     services.AddSingleton<IInstance, InstanceMockSI>();
                     services.AddSingleton<IData, DataMockSI>();
                     services.AddSingleton<IRegister, RegisterMockSI>();
-                    services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepAuthorizationMockSI>();
+                    services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
                     services.AddSingleton<IApplication, ApplicationMockSI>();
                     services.AddSingleton<IAltinnApp, AltinnApp>();
                     services.AddTransient<IProfile, ProfileMockSI>();

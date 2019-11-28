@@ -34,7 +34,6 @@ function InstantiationErrorPage(props: IInstantiationErrorPageProps) {
                 title={title}
                 content={content}
                 statusCode={statusCode}
-                titleFontWeight={'medium'}
               />
             </Grid>
           </Grid>

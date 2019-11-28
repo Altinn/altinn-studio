@@ -33,7 +33,7 @@ namespace Altinn.Platform.Authorization.Constants
         /// <summary>
         /// xacml string that represents user
         /// </summary>
-        public const string UserAttribute = "urn:altinn:user-id";
+        public const string UserAttribute = "urn:altinn:userid";
 
         /// <summary>
         /// xacml string that represents role

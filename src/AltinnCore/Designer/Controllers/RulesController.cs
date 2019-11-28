@@ -199,7 +199,7 @@ namespace AltinnCore.Designer.Controllers
             }
             else
             {
-                string fileContent = _repository.GetImplementationFile(org, app, name);
+                string fileContent = _repository.GetAppLogic(org, app, name);
                 return Content(fileContent);
             }
         }
@@ -226,7 +226,7 @@ namespace AltinnCore.Designer.Controllers
             }
             else
             {
-                _repository.SaveImplementationFile(org, app, fileName, fileContent);
+                _repository.SaveAppLogicFile(org, app, fileName, fileContent);
             }
 
             return StatusCode(200);

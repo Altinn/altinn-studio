@@ -4,6 +4,12 @@ import * as React from 'react';
 import AltinnAppTheme from '../../../../shared/src/theme/altinnAppTheme';
 import { altinnAppsIllustrationHelpCircleSvgUrl } from '../../../../shared/src/utils/urlHelper';
 
+interface IAltinnErrorClasses {
+  root?: string;
+  title?: string;
+  content?: string;
+}
+
 export interface IAltinnErrorProps extends WithStyles<typeof styles> {
   statusCode: string;
   title: string | React.ReactNode;
@@ -13,7 +19,7 @@ export interface IAltinnErrorProps extends WithStyles<typeof styles> {
   urlTextSuffix?: string;
   imageUrl?: string;
   imageAlt?: string;
-  titleFontWeight?: 'medium';
+  styling?: IAltinnErrorClasses;
 }
 
 const styles = createStyles({
@@ -23,6 +29,10 @@ const styles = createStyles({
   articleText: {
     fontSize: 18,
   },
+  title: {
+    fontWeight: AltinnAppTheme.sharedStyles.fontWeight.medium,
+    color: AltinnAppTheme.altinnPalette.primary.blueDarker,
+  },
   imageContainer: {
     marginTop: 65,
     marginLeft: 10,
@@ -30,15 +40,12 @@ const styles = createStyles({
   gridContainer: {
     maxWidth: 750,
   },
-  fontWeightMedium: {
-    fontWeight: AltinnAppTheme.sharedStyles.fontWeight.medium,
-  }
 });
 
 const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
-  const { classes } = props;
+  const { classes, styling } = props;
   return (
-    <Grid container={true} className={classes.gridContainer}>
+    <Grid container={true} className={`${classes.gridContainer} ${styling.root}`}>
       <Grid item={true} md={8}>
         <div className={classes.contentMargin}>
           <Typography variant={'caption'}>
@@ -48,12 +55,13 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
         <div className={classes.contentMargin}>
           <Typography
             variant={'h1'}
-            className={classNames({ [classes.fontWeightMedium]: props.titleFontWeight === 'medium' })}>
+            className={classNames(classes.title, styling.title)}
+          >
             {props.title}
           </Typography>
         </div>
         <div className={classes.contentMargin}>
-          <Typography classes={{ root: classes.articleText }}>
+          <Typography classes={{ root: classes.articleText }} className={styling.content}>
             {props.content}
           </Typography>
         </div>

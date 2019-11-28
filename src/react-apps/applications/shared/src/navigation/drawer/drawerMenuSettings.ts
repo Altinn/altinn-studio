@@ -16,7 +16,6 @@ export interface IDrawerMenu {
   about: IMenuItem[];
   create: IMenuItem[];
   language: IMenuItem[];
-  test: IMenuItem[];
   [key: string]: IMenuItem[];
 }
 
@@ -40,12 +39,6 @@ export const mainMenuSettings: IMainMenu = {
       activeSubHeaderSelection: 'Språk',
       navLink: '/text',
       menuType: 'language',
-    },
-    {
-      displayText: 'Test',
-      activeSubHeaderSelection: 'Teste',
-      navLink: '/test',
-      menuType: 'test',
     },
   ],
 };
@@ -133,14 +126,6 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
       navLink: '/translate',
       activeLeftMenuSelection: 'Flere språk',
       iconClass: 'fa fa-settings',
-    },
-  ],
-  test: [
-    {
-      displayText: 'Test',
-      navLink: '/test',
-      activeLeftMenuSelection: 'Test',
-      iconClass: 'fa fa-info-circle',
     },
   ],
 };

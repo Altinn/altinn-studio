@@ -6,7 +6,7 @@ export const getSaveFormLayoutUrl = (): string => {
 export const getSaveServiceConfigurationUrl = (): string => {
   const altinnWindow: IAltinnWindow = window as IAltinnWindow;
   /* tslint:disable-next-line:max-line-length */
-  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/SaveJsonFile?fileName=ServiceConfigurations.json`;
+  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/SaveJsonFile?fileName=RuleConfiguration.json`;
 };
 
 export const getAddApplicationMetadataUrl = (): string => {
