@@ -4,7 +4,7 @@
     "anonymousAuthentication": true, 
     "iisExpress": {
       "applicationUrl": "http://localhost:5101",
-      "sslPort": 5100
+      "sslPort": 0
     }
   },
   "profiles": {
@@ -18,7 +18,7 @@
     "LocalTest": {
       "commandName": "Project",
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:5100;http://localhost:5101",
+      "applicationUrl": "http://localhost:5101",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
