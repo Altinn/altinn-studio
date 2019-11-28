@@ -60,8 +60,10 @@ namespace LocalTest
                         RequireExpirationTime = true,
                         ValidateLifetime = true
                     };
-                    options.Cookie.Domain = "localhost";
+                    options.Cookie.Domain = "altinn3local.no";
                     options.Cookie.Name = "AltinnStudioRuntime";
+                    options.Cookie.SameSite = SameSiteMode.None;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
                 });
 
             services.AddAuthorization(options =>
@@ -91,14 +93,6 @@ namespace LocalTest
             app.UseStaticFiles();
 
             app.UseRouting();
-
-            var cookiePolicyOptions = new CookiePolicyOptions
-            {
-                MinimumSameSitePolicy = SameSiteMode.None,
-                Secure = CookieSecurePolicy.None
-            };
-
-            app.UseCookiePolicy(cookiePolicyOptions);
 
             app.UseAuthentication();
             app.UseAuthorization();
