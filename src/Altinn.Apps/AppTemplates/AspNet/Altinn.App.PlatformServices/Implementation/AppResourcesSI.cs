@@ -70,6 +70,10 @@ namespace Altinn.App.Services.Implementation
                 {
                     fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.UiFolder + resource);
                 }
+                else
+                {
+                    fileContent = new byte[0];                         
+                }
             }
             else
             {

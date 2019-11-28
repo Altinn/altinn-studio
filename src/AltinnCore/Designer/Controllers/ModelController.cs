@@ -34,6 +34,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="repositoryService">The service Repository Service</param>
         /// <param name="loggerFactory"> the logger factory</param>
+        /// <param name="logger">the logger.</param>
         public ModelController(IRepository repositoryService, ILoggerFactory loggerFactory, ILogger<ModelController> logger)
         {
             _repository = repositoryService;
@@ -140,35 +141,6 @@ namespace AltinnCore.Designer.Controllers
         {
             ModelMetadata metadata = _repository.GetModelMetadata(org, app);
             return Json(metadata, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented });
-        }
-
-        /// <summary>
-        /// Updates the service metadata and regenerates the service model
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="serviceMetadata">The new service metadata</param>
-        /// <returns>Was the request a success</returns>
-        [HttpPost]
-        public ActionResult UpdateServiceMetadata(string org, string app, string serviceMetadata)
-        {
-            ModelMetadata serviceMetadataObject = JsonConvert.DeserializeObject<ModelMetadata>(serviceMetadata);
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("Model state is invalid");
-            }
-
-            // TODO: figure out if this is used. Default must be actually set? 
-            if (_repository.UpdateModelMetadata(org, app, serviceMetadataObject, "default"))
-            {
-                _repository.CreateModel(org, app, serviceMetadataObject, null, null);
-                return Ok("Metadata was saved and model re-generated");
-            }
-            else
-            {
-                return BadRequest("Failed to update service metadata");
-            }
         }
 
         /// <summary>

@@ -1,11 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>0.0.21.0</AssemblyVersion>
-    <FileVersion>0.0.21.0</FileVersion>
-    <Version>0.0.21-alpha</Version>
+    <AssemblyVersion>0.0.23.0</AssemblyVersion>
+    <FileVersion>0.0.23.0</FileVersion>
+    <Version>0.0.23-alpha</Version>
     <Description>Package that contains API controllers for the standard API for a Altinn App.</Description>
     <Company>Altinn</Company>
     <Authors>Altinn</Authors>
