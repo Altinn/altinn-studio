@@ -64,7 +64,7 @@ namespace LocalTest.Controllers
             };
 
             List<Claim> claims = new List<Claim>();
-            string issuer = "localhost";
+            string issuer = "altinn3local.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
@@ -86,7 +86,7 @@ namespace LocalTest.Controllers
                     AllowRefresh = false,
                 });
 
-            return View("Index");
+            return Redirect($"{_generalSettings.GetBaseUrl}/{org}/{app}");
         }
     }
 }
