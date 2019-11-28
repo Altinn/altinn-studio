@@ -30,5 +30,9 @@ namespace Altinn.Platform.Storage.Configuration
         public string DocumentDbFolder { get; set;  } = "documentdb/";
 
         public string InstanceCollectionFolder { get; set; } = "instances/";
+
+        public string AuthorizationDataFolder { get; set; } = "authorization/";
+
+        public string PartyListFolder { get; set; } = "partylist/";
     }
 }
