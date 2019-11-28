@@ -1,13 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Repository
 {
@@ -18,9 +23,9 @@ namespace Altinn.Platform.Storage.Repository
     {
         private readonly Uri _databaseUri;
         private readonly Uri _collectionUri;
-        private readonly string databaseId;
-        private readonly string collectionId = "dataElements";
-        private readonly string partitionKey = "/instanceGuid";
+        private readonly string _databaseId;
+        private readonly string _collectionId = "dataElements";
+        private readonly string _partitionKey = "/instanceGuid";
         private static DocumentClient _client;
         private readonly AzureStorageConfiguration _storageConfiguration;
         private CloudBlobClient blobClient;
@@ -35,12 +40,12 @@ namespace Altinn.Platform.Storage.Repository
         {
             var database = new CosmosDatabaseHandler(cosmosettings.Value);
 
-            _client = database.CreateDatabaseAndCollection(collectionId);
+            _client = database.CreateDatabaseAndCollection(_collectionId);
             _collectionUri = database.CollectionUri;
             Uri databaseUri = database.DatabaseUri;
-            databaseId = database.DatabaseName;
+            _databaseId = database.DatabaseName;
 
-            DocumentCollection documentCollection = database.CreateDocumentCollection(collectionId, partitionKey);
+            DocumentCollection documentCollection = database.CreateDocumentCollection(_collectionId, _partitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 databaseUri,
@@ -104,6 +109,74 @@ namespace Altinn.Platform.Storage.Repository
             bool result = await blockBlob.DeleteIfExistsAsync();
 
             return result;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<DataElement>> GetDataElementsForInstance(string instanceGuid)
+        {
+            FeedOptions feedOptions = new FeedOptions
+            {
+                PartitionKey = new PartitionKey(instanceGuid),
+                MaxItemCount = 1000,
+            };
+
+            IQueryable<DataElement> filter = _client
+                .CreateDocumentQuery<DataElement>(_collectionUri, feedOptions)
+                .Where(d => d.instanceGuid == instanceGuid);
+
+            IDocumentQuery<DataElement> query = filter.AsDocumentQuery();
+
+            FeedResponse<DataElement> feedResponse = await query.ExecuteNextAsync<DataElement>();
+
+            List<DataElement> instances = feedResponse.ToList();
+
+            return instances;            
+        }
+
+        /// <inheritdoc/>
+        public async Task<DataElement> Insert(DataElement dataElement)
+        {
+            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, dataElement);
+            Document document = createDocumentResponse.Resource;
+            DataElement dataElementStored = JsonConvert.DeserializeObject<DataElement>(document.ToString());
+
+            return dataElementStored;
+        }
+
+        /// <inheritdoc/>
+        public async Task<DataElement> Get(string instanceGuid, string dataElementId)
+        {
+            Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, dataElementId);
+
+            DataElement dataElement = await _client
+                .ReadDocumentAsync<DataElement>(
+                    uri,
+                    new RequestOptions { PartitionKey = new PartitionKey(instanceGuid) });
+
+            return dataElement;
+        }
+
+        /// <inheritdoc/>
+        public async Task<DataElement> Update(DataElement dataElement)
+        {
+            ResourceResponse<Document> createDocumentResponse = await _client
+              .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(_databaseId, _collectionId, dataElement.Id), dataElement);
+            Document document = createDocumentResponse.Resource;
+            DataElement updatedElement = JsonConvert.DeserializeObject<DataElement>(document.ToString());
+
+            return updatedElement;
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> Delete(DataElement dataElement)
+        {
+            Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, dataElement.Id);
+
+            await _client.DeleteDocumentAsync(
+                uri.ToString(),
+                new RequestOptions { PartitionKey = new PartitionKey(dataElement.instanceGuid) });
+
+            return true;
         }
     }
 }
