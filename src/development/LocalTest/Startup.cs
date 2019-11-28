@@ -25,6 +25,7 @@ using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Profile.Implementation;
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.Register.Implementation;
+using LocalTest.Services.Authorization.Implementation;
 
 namespace LocalTest
 {
@@ -50,6 +51,7 @@ namespace LocalTest
             services.AddSingleton<IOrganizations, OrganizationsWrapper>();
             services.AddSingleton<IParties, PartiesWrapper>();
             services.AddSingleton<IPersons, PersonsWrapper>();
+            services.AddSingleton<Altinn.Platform.Authorization.Services.Interface.IParties, PartiesService>();
 
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
             SecurityKey key = new X509SecurityKey(cert);
