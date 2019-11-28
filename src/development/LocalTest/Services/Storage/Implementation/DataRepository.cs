@@ -25,8 +25,8 @@ namespace LocalTest.Services.Storage.Implementation
 
         public Task<Stream> ReadDataFromStorage(string fileName)
         {
-
-            Stream fs = File.OpenRead(@"c:\testdocument.docx");
+            string filePath = GetFilePath(fileName);
+            Stream fs = File.OpenRead(filePath);
 
             System.IO.Stream data = new System.IO.MemoryStream();
 
