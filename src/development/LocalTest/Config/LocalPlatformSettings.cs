@@ -20,6 +20,8 @@ namespace Altinn.Platform.Storage.Configuration
         /// </summary>
         public string AppRepsitoryBasePath { get; set; }
 
+        public string BlobStorageFolder { get; set; } = "blobs/";
+
         /// <summary>
         /// Folder where static test data like profile, authorization, and register data is available for local testing.
         /// </summary>
@@ -28,5 +30,9 @@ namespace Altinn.Platform.Storage.Configuration
         public string DocumentDbFolder { get; set;  } = "documentdb/";
 
         public string InstanceCollectionFolder { get; set; } = "instances/";
+
+        public string AuthorizationDataFolder { get; set; } = "authorization/";
+
+        public string PartyListFolder { get; set; } = "partylist/";
     }
 }
