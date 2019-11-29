@@ -65,12 +65,11 @@ Example
 docker-compose up -d --build altinn_designer
 ```
 
-#### Running Designer and/or Runtime component locally
+### Running solutions locally
 
-The Designer and Runtime components can be run locally when developing/debugging. The rest of the solution (Repository and LoadBalancer) will still have to be running in containers.
-Follow the install steps above if this has not already been done.
+#### Designer
 
-**Designer**
+The Designer component can be run locally when developing/debugging. The rest of the solution (Repository and Loadbalancer) will still have to be running in containers. Follow the install steps above if this has not already been done.
 
 Stop the container running Designer
 
@@ -105,37 +104,80 @@ dotnet run
 
 Which will build the Designer .net backend and the designer react app, but not listen to changes to the react app.
 
-**Runtime (deprecated documentation, new documentation will be available soon)**
+#### Apps
+It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work. 
 
-Stop the container running Runtime.
+_NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command
 
 ```cmd
-docker stop altinn-runtime
+docker-compose down
 ```
 
-Navigate to the Runtime folder. Build and run the code.
+**Setting up local platform services for test**
 
-**Important:** First you must have executed the Designer commands in order to successfully execute both the following command sequences on the Runtime component.
+1. Navigate to the `development` folder in the altinn-studio repo
 
 ```cmd
-cd src/AltinnCore/Runtime
-npm ci
-npm run gulp # first time only
-npm run gulp-develop
+cd src/development
 ```
 
-If you are not going to edit the runtime react app you can use
+2. Start the loadbalancer container that routes between the local platform services and the app
 
 ```cmd
-cd src/AltinnCore/Runtime
-npm ci
-npm run gulp
+docker-compose up -d --build
+```
+
+3. Set path to app folder in local platform services:
+ - Open `appSettings.json` in the `LocalTest` folder, f.ex. in Visual Studio Code
+
+```cmd
+cd LocalTest
+code appSettings.json
+```
+
+ - Change the setting `"AppRepsitoryBasePath"` to the full path to your app on the disk. Save the file.
+
+4. Start the local platform services (make sure you are in the LocalTest folder)
+
+```cmd
 dotnet run
 ```
 
-Which will build the runtime .net backend and runtime react app, but not listen for changes to our react app.
+5. Navigate to the app folder (specified in the step above)
 
-## Building other react apps
+```cmd
+cd \.\<path to app on disk>
+```
+
+- If you need to debug (or run locally) the app front-end:
+  - Open the file `views/Home/Index.cshtml` and change the line 
+
+    ```
+    <script src="https://altinncdn.no/altinn-apps/runtime/js/react/runtime.js"></script>
+    ```
+
+    to
+    
+    ```
+    <script src="http://localhost:8080/runtime.js"></script>
+    ```
+
+    - Build and run the runtime front-end project locally (`altinn-studio/src/react-apps/applications/runtime`):
+    ```cmd
+    npm start
+    ```
+
+6. Start the app locally
+
+```cmd
+dotnet run -p App.csproj
+```
+
+The app and local platform services are now running locally. The app can be accessed on altinn3local.no.
+
+Log in with a test user, using your app name and org name. This will redirect you to the app.
+
+#### Building other react apps
 If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to their respective folders, example `src/react-apps/applications/dashboard` and then run the following build script
 
 ```cmd
@@ -143,10 +185,10 @@ npm run build
 ```
 Some of the react projects also have various other predefined npm tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example `src/react-apps/applications/dashboard/package.json`
 
-## Platform Receipt
+#### Platform Receipt
 The platform receipt component can run locally, both in docker and manually.
 
-### Manual
+**Manual**
 - Open a terminal in `src/Altinn.Platform/Altinn.Platform.Receipt`
 - run `npm install`
 - run `npm run gulp` (if running for the first time, otherwise this can be skipped)
@@ -157,7 +199,7 @@ This will build and run receipt back end, and build and copy the receipt fronten
 The application should now be available at `localhost:5060/receipt/{instanceOwnerId}/{instanceId}`
 The script wil also listen to changes in the receipt react app, rebuild and copy the new react app to the `wwwroot` folder.
 
-### Docker
+**Docker**
 - Open a terminal in `src/Altinn.Platform/Altinn.Platform.Receipt`
 - run `docker compose up`
 - The application should now be available at `localhost:5060/receipt/{instanceOwnerId}/{instanceId}`
