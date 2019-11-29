@@ -1,0 +1,20 @@
+version: '3.6'
+
+networks:
+  altinntestlocal_network:
+    external: false
+
+services:
+  localtest_loadbalancer:
+    container_name: localtest-loadbalancer
+    image: localtest-loadbalancer:latest
+    restart: always
+    networks:
+      - altinntestlocal_network
+    ports:
+      - "80:80"
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+    build:
+      context: ./loadbalancer
