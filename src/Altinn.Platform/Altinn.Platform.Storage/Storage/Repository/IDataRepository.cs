@@ -14,48 +14,48 @@ namespace Altinn.Platform.Storage.Repository
     public interface IDataRepository
     {
         /// <summary>
-        /// Create a new file in blob storage for formdata
+        /// Create a new file in blob storage.
         /// </summary>
-        /// <param name="fileStream">data to be written to the form data file</param>
-        /// <param name="fileName">the filename to be used</param>
+        /// <param name="stream">data to be written to blob storage</param>
+        /// <param name="blobStoragePath">path to save the stream to in blob storage</param>
         /// <returns>the size of the blob</returns>
-        Task<long> WriteDataToStorage(Stream fileStream, string fileName);
+        Task<long> WriteDataToStorage(Stream stream, string blobStoragePath);
 
         /// <summary>
-        /// Gets a formd data file in blob storage
+        /// Reads a data file from blob storage
         /// </summary>
-        /// <param name="fileName">the filename to be used</param>
-        /// <returns></returns>
-        Task<Stream> ReadDataFromStorage(string fileName);
+        /// <param name="blobStoragePath">path to be file to read blob storage</param>
+        /// <returns>the stream with the file</returns>
+        Task<Stream> ReadDataFromStorage(string blobStoragePath);
 
         /// <summary>
         /// Deletes the data element permanently
         /// </summary>
-        /// <param name="fileName">the file to delete</param>
+        /// <param name="blobStoragePath">path to the file to delete</param>
         /// <returns></returns>
-        Task<bool> DeleteDataInStorage(string fileName);
+        Task<bool> DeleteDataInStorage(string blobStoragePath);
 
         /// <summary>
         /// Gets all data elements for a given instance
         /// </summary>
         /// <param name="instanceGuid">the guid of the instance</param>
         /// <returns>list of data elements</returns>
-        Task<List<DataElement>> GetDataElementsForInstance(string instanceGuid);
+        Task<List<DataElement>> ReadAll(Guid instanceGuid);
 
         /// <summary>
-        /// Inserts a dataElement into the repository
+        /// Creates a dataElement into the repository
         /// </summary>
         /// <param name="dataElement">the data element to insert</param>
         /// <returns>the data element with updated id</returns>
-        Task<DataElement> Insert(DataElement dataElement);
+        Task<DataElement> Create(DataElement dataElement);
 
         /// <summary>
-        /// Gets a data element
+        /// Reads a data element metadata object. Not the actual data.
         /// </summary>
         /// <param name="instanceGuid">the instance guid as partitionKey</param>
-        /// <param name="dataElementId">The data element id</param>
+        /// <param name="dataElementId">The data element guid</param>
         /// <returns></returns>
-        Task<DataElement> Get(string instanceGuid, string dataElementId);
+        Task<DataElement> Read(Guid instanceGuid, Guid dataElementId);
 
         /// <summary>
         /// Updates a data element. 
@@ -65,7 +65,7 @@ namespace Altinn.Platform.Storage.Repository
         Task<DataElement> Update(DataElement dataElement);
 
         /// <summary>
-        /// Deletes the data element permanently!
+        /// Deletes the data element metadata object permanently!
         /// </summary>
         /// <param name="dataElement">the element to delete</param>
         /// <returns>true if delete went well.</returns>

@@ -28,6 +28,7 @@ namespace Altinn.Platform.Storage.Repository
         private readonly Uri _collectionUri;
         private readonly string _databaseId;
         private readonly ILogger<InstanceRepository> _logger;
+        private readonly IDataRepository _dataRepository;
 
         private readonly DocumentClient _client;
 
@@ -36,9 +37,14 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="cosmosSettings">the configuration settings for cosmos database</param>
         /// <param name="logger">the logger</param>
-        public InstanceRepository(IOptions<AzureCosmosSettings> cosmosSettings, ILogger<InstanceRepository> logger)
+        /// <param name="dataRepository">the data repository to fetch data elements from</param>
+        public InstanceRepository(
+            IOptions<AzureCosmosSettings> cosmosSettings,
+            ILogger<InstanceRepository> logger,
+            IDataRepository dataRepository)
         {
             _logger = logger;
+            _dataRepository = dataRepository;
 
             CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosSettings.Value);
 
@@ -522,6 +528,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             else
             {
+                // empty list
                 return instances;
             }
 
@@ -566,7 +573,10 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="instance">the instance to preprocess</param>
         private void PostProcess(Instance instance)
         {
+            Guid instanceGuid = Guid.Parse(instance.Id);
             instance.Id = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
+
+            instance.Data = _dataRepository.ReadAll(instanceGuid).Result;
         }
 
         /// <summary>

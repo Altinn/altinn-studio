@@ -112,17 +112,19 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<List<DataElement>> GetDataElementsForInstance(string instanceGuid)
+        public async Task<List<DataElement>> ReadAll(Guid instanceGuid)
         {
+            string instanceKey = instanceGuid.ToString();
+
             FeedOptions feedOptions = new FeedOptions
             {
-                PartitionKey = new PartitionKey(instanceGuid),
-                MaxItemCount = 1000,
+                PartitionKey = new PartitionKey(instanceKey),
+                MaxItemCount = 10000,
             };
 
             IQueryable<DataElement> filter = _client
                 .CreateDocumentQuery<DataElement>(_collectionUri, feedOptions)
-                .Where(d => d.instanceGuid == instanceGuid);
+                .Where(d => d.instanceGuid == instanceKey);
 
             IDocumentQuery<DataElement> query = filter.AsDocumentQuery();
 
@@ -134,7 +136,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<DataElement> Insert(DataElement dataElement)
+        public async Task<DataElement> Create(DataElement dataElement)
         {
             ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, dataElement);
             Document document = createDocumentResponse.Resource;
@@ -144,14 +146,17 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<DataElement> Get(string instanceGuid, string dataElementId)
+        public async Task<DataElement> Read(Guid instanceGuid, Guid dataElementGuid)
         {
-            Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, dataElementId);
+            string instanceKey = instanceGuid.ToString();
+            string dataElementKey = dataElementGuid.ToString();
+
+            Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, dataElementKey);
 
             DataElement dataElement = await _client
                 .ReadDocumentAsync<DataElement>(
                     uri,
-                    new RequestOptions { PartitionKey = new PartitionKey(instanceGuid) });
+                    new RequestOptions { PartitionKey = new PartitionKey(instanceKey) });
 
             return dataElement;
         }
