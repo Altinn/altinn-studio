@@ -76,7 +76,7 @@ namespace Altinn.App
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
-            services.Configure<Altinn.Common.PEP.Configuration.GeneralSettings>(Configuration.GetSection("PEPSettings"));
+            services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(Configuration.GetSection("PEPSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(Startup).Assembly.CodeBase).LocalPath);

@@ -24,7 +24,7 @@ namespace App.IntegrationTests.Mocks.Services
     {
         private readonly IInstance _instanceService;
 
-        private readonly GeneralSettings _generalSettings;
+        private readonly PepSettings _pepSettings;
 
         private readonly string OrgAttributeId = "urn:altinn:org";
 
@@ -40,10 +40,10 @@ namespace App.IntegrationTests.Mocks.Services
 
         private readonly string AltinnRoleAttributeId = "urn:altinn:rolecode";
 
-        public PepWithPDPAuthorizationMockSI(IInstance instanceService, IOptions<GeneralSettings> generalSettings)
+        public PepWithPDPAuthorizationMockSI(IInstance instanceService, IOptions<PepSettings> pepSettings)
         {
             this._instanceService = instanceService;
-            _generalSettings = generalSettings.Value;
+            _pepSettings = pepSettings.Value;
         }
 
 
@@ -71,7 +71,7 @@ namespace App.IntegrationTests.Mocks.Services
 
         public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequest xacmlJsonRequest, ClaimsPrincipal user)
         {
-            if (_generalSettings.DisablePEP)
+            if (_pepSettings.DisablePEP)
             {
                 return true;
             }

@@ -17,9 +17,9 @@ namespace Altinn.Common.PEP.Clients
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpClientAccessor"/> class.
         /// <param name="platformSettings">the platform settings</param>
-        /// <param name="generalSettings">The general settings</param>
+        /// <param name="pepSettings">The settings for pep</param>
         /// </summary>
-        public HttpClientAccessor(IOptions<PlatformSettings> platformSettings, IOptions<GeneralSettings> generalSettings)
+        public HttpClientAccessor(IOptions<PlatformSettings> platformSettings, IOptions<PepSettings> pepSettings)
         {
             _platformSettings = platformSettings.Value;
         }

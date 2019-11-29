@@ -1,0 +1,37 @@
+{{- if not (hasKey .Values.environmentVariables .Values.environment) }}
+  {{ fail "the chosen environment does not exist" }}
+{{- end }}
+{{- if eq .Values.environment production }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    traefik.ingress.kubernetes.io/redirect-regex: '^https://www.altinn.studio/(.*)'
+    traefik.ingress.kubernetes.io/redirect-replacement: 'https://altinn.studio/$1'
+  name: altinn-studio-www-redirect
+  namespace: default
+spec:
+  rules:
+  - host: www.altinn.studio
+    http:
+      paths:
+        - backend:
+            serviceName: altinn-designer
+            servicePort: 3000
+          path: /designer
+        - backend:
+            serviceName: altinn-designer
+            servicePort: 3000
+          path: /Home
+        - backend:
+            serviceName: altinn-designer
+            servicePort: 3000
+          path: /
+        - backend:
+            serviceName: altinn-repositories
+            servicePort: 3000
+          path: /repos
+        - backend:
+            serviceName: altinn-runtime
+            servicePort: 3000
+{{- end }}

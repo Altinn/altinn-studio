@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
+using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
@@ -56,8 +57,11 @@ namespace Altinn.App.Services.Implementation
                 throw;
             }            
         }
-      
-        public async Task<Instance> ProcessStart(Instance instance, string validStartElement, UserContext userContext)
+
+        /// <summary>
+        /// Does not save process. Instance is updated.
+        /// </summary>
+        public async Task<ProcessResult> ProcessStart(Instance instance, string validStartElement, UserContext userContext)
         {
             if (instance.Process == null)
             {
@@ -73,46 +77,85 @@ namespace Altinn.App.Services.Implementation
                 {
                     GenerateProcessChangeEvent("process:StartEvent", updatedInstance, now, userContext),
                 };
+                
+                await DispatchEventsToStorage(instance, events);
 
-                await DispatchEvents(instance, events);
-
-                return updatedInstance;
+                return new ProcessResult
+                {
+                    Instance = updatedInstance,
+                    Events = events,
+                };
             }
 
-            return instance;
+            return null;
         }
 
-        public async Task<List<InstanceEvent>> ProcessStartAndGotoNextTask(Instance instance, string validStartElement, UserContext userContext)
+        /// <summary>
+        /// Start process start and goto next. Returns 
+        /// </summary>
+        public async Task<ProcessResult> ProcessStartAndGotoNextTask(Instance instance, string validStartElement, UserContext userContext)
         {
-            // trigger start event
-            Instance updatedInstance = await ProcessStart(instance, validStartElement, userContext);
+            _logger.LogInformation($"ProcessStartAndGotoNextTask for {instance.Id}");
 
-            ProcessHelper processHelper = new ProcessHelper(GetProcessDefinition());
-            // trigger next task
-            string nextValidElement = processHelper.GetValidNextElementOrError(validStartElement, out ProcessError nextElementError);
-            if (nextElementError != null)
+            // trigger start event
+            ProcessResult startResult = await ProcessStart(instance, validStartElement, userContext);
+
+            if (startResult != null)
             {
-                return null;
+                ProcessHelper processHelper = new ProcessHelper(GetProcessDefinition());
+                // trigger next task
+                string nextValidElement = processHelper.GetValidNextElementOrError(validStartElement, out ProcessError nextElementError);
+                if (nextElementError != null)
+                {
+                    throw new ArgumentException($"Unable to goto next element due to {nextElementError.Code} - {nextElementError.Text}");
+                }
+
+                ProcessResult nextResult = await ProcessNext(startResult.Instance, nextValidElement, processHelper, userContext);
+
+                if (nextResult != null)
+                {
+                    List<InstanceEvent> allEvents = new List<InstanceEvent>();
+                    allEvents.AddRange(startResult.Events);
+                    allEvents.AddRange(nextResult.Events);
+
+                    ProcessResult result = new ProcessResult
+                    {
+                        Instance = nextResult.Instance,
+                        Events = allEvents,
+                    };
+
+                    return result;
+                }
             }
 
-            updatedInstance = ProcessNext(updatedInstance, nextValidElement, processHelper, userContext, out List<InstanceEvent> events);
-
-            return events;
+            return null;
         }
 
+        /// <summary>
+        /// Moves instance's process to nextElement id. Saves the instance and returns it together with process events.
+        /// </summary>
+        public async Task<ProcessResult> ProcessNext(Instance instance, string nextElementId, ProcessHelper processModel, UserContext userContext)
+        {
+            if (instance.Process != null)
+            {
+                List<InstanceEvent> events = ChangeProcessStateAndGenerateEvents(instance, nextElementId, processModel, userContext);
 
+                Instance changedInstance = _instanceService.UpdateInstance(instance).Result;
+                await DispatchEventsToStorage(instance, events);
 
-        public Instance ProcessNext(Instance instance, string nextElementId, ProcessHelper processModel, UserContext userContext, out List<InstanceEvent> events)
-        {            
-            events = ChangeProcessStateAndGenerateEvents(instance, nextElementId, processModel, userContext);
+                ProcessResult result = new ProcessResult
+                {
+                    Instance = changedInstance,
+                    Events = events,
+                };
 
-            Instance changedInstance = _instanceService.UpdateInstance(instance).Result;
-            _ = DispatchEvents(instance, events);
+                return result;
+            }
 
-            return changedInstance ;
+            return null;
         }
 
-        private async Task DispatchEvents(Instance instance, List<InstanceEvent> events)
+        private async Task DispatchEventsToStorage(Instance instance, List<InstanceEvent> events)
         {
             string org = instance.Org;
             string app = instance.AppId.Split("/")[1];

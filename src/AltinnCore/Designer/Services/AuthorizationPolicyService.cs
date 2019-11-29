@@ -28,6 +28,7 @@ namespace AltinnCore.Designer.Services
         /// <param name="httpClientFactory">IHttpClientFactory</param>
         /// <param name="repositorySettings">IOptions of type ServiceRepositorySettings</param>
         /// <param name="giteaApiWrapper">IGitea</param>
+        /// <param name="platformSettings">Platform settings.</param>
         public AuthorizationPolicyService(
             IHttpClientFactory httpClientFactory,
             IOptions<ServiceRepositorySettings> repositorySettings,

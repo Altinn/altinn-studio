@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
+using Altinn.App.PlatformServices.Models;
 using Altinn.App.Service.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
@@ -138,23 +139,16 @@ namespace Altinn.App.Api.Controllers
                 return Conflict(startEventError.Text);
             }
 
-            // trigger start event
-            Instance updatedInstance = await _processService.ProcessStart(instance, validStartElement, userContext);
-            await _altinnApp.OnStartProcess(validStartElement, updatedInstance);
+            // trigger start event and goto next task
+            ProcessResult startResult = await _processService.ProcessStartAndGotoNextTask(instance, validStartElement, userContext);
 
-            // trigger next task
-            string nextValidElement = processHelper.GetValidNextElementOrError(validStartElement, out ProcessError nextElementError);
-            if (nextElementError != null)
+            if (startResult.Instance != null)
             {
-                return Conflict(nextElementError.Text);
-            }
+                NotifyAppAboutEvents(startResult.Instance, startResult.Events);                
 
-            updatedInstance = _processService.ProcessNext(updatedInstance, nextValidElement, processHelper, userContext, out List<InstanceEvent> events);
+                // make sure instance is saved after app has handled the events
+                Instance updatedInstance = await _instanceService.UpdateInstance(startResult.Instance);
 
-            if (updatedInstance != null)
-            {
-                NotifyAppAboutEvents(updatedInstance, events);
-                updatedInstance = await _instanceService.UpdateInstance(updatedInstance);
                 return Ok(updatedInstance.Process);
             }
 
@@ -307,12 +301,15 @@ namespace Altinn.App.Api.Controllers
             {
                 UserContext userContext = userHelper.GetUserContext(HttpContext).Result;
 
-                Instance changedInstance = _processService.ProcessNext(instance, nextElement, processHelper, userContext, out List<InstanceEvent> events);
+                ProcessResult nextResult = await _processService.ProcessNext(instance, nextElement, processHelper, userContext);
+                if (nextResult != null)
+                {
+                    NotifyAppAboutEvents(nextResult.Instance, nextResult.Events);
 
-                NotifyAppAboutEvents(changedInstance, events);
-                changedInstance = await _instanceService.UpdateInstance(changedInstance);
+                    Instance changedInstance = await _instanceService.UpdateInstance(nextResult.Instance);
 
-                return Ok(changedInstance.Process);
+                    return Ok(changedInstance.Process);
+                }
             }
 
             return Conflict($"Cannot complete/close current task {currentElementId}. The data element(s) assigned to the task are not valid!");
@@ -405,13 +402,20 @@ namespace Altinn.App.Api.Controllers
 
                 string nextElement = nextElements.First();
 
-                Instance updatedInstance =  _processService.ProcessNext(instance, nextElement, processHelper, userContext, out List<InstanceEvent> events);
+                ProcessResult nextResult =  await _processService.ProcessNext(instance, nextElement, processHelper, userContext);
 
-                NotifyAppAboutEvents(updatedInstance, events);
+                if (nextResult != null)
+                {
+                    NotifyAppAboutEvents(nextResult.Instance, nextResult.Events);
 
-                instance = await _instanceService.UpdateInstance(updatedInstance);
+                    instance = await _instanceService.UpdateInstance(nextResult.Instance);
 
-                currentTaskId = updatedInstance.Process.CurrentTask?.ElementId;
+                    currentTaskId = instance.Process.CurrentTask?.ElementId;
+                }
+                else
+                {
+                    return Conflict($"Cannot complete process. Unable to move to next element {nextElement}");
+                }
             }
             while (instance.Process.EndEvent == null || counter > MAX_ITERATIONS_ALLOWED);
 

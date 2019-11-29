@@ -11,17 +11,16 @@ namespace ServiceLibrary.Models
         /// <summary>
         /// Gets or sets if the validation was valid
         /// </summary>
-        public bool Valid {get; set;}
+        public bool Valid { get; set; }
 
         /// <summary>
         /// Gets or sets a message
         /// </summary>
-        public string Message {get; set;}
+        public string Message { get; set; }
 
         /// <summary>
         /// Gets or sets a list of parties the user represents that can instantiate
         /// </summary>
-        public List<Party> ValidParties {get; set;}
-
+        public List<Party> ValidParties { get; set; }
     }
 }
