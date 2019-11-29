@@ -27,6 +27,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IApplication _application;
         private readonly IProfile _profile;
         private readonly GeneralSettings _settings;
+        private readonly IAppResources _appResourcesService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PartiesController"/> class
@@ -43,7 +44,8 @@ namespace Altinn.App.Api.Controllers
                     IProfile profileService,
                     IRegister registerService,
                     IApplication application,
-                    IOptions<GeneralSettings> settings)
+                    IOptions<GeneralSettings> settings,
+                    IAppResources appResourcesService)
         {
             _logger = logger;
             _authorization = authorization;
@@ -51,6 +53,7 @@ namespace Altinn.App.Api.Controllers
             _application = application;
             _profile = profileService;
             _settings = settings.Value;
+            _appResourcesService = appResourcesService;
         }
 
         /// <summary>
@@ -68,7 +71,7 @@ namespace Altinn.App.Api.Controllers
 
             if (allowedToInstantiateFilter)
             {
-                Application application = await _application.GetApplication(org, app);
+                Application application = _appResourcesService.GetApplication();
                 List<Party> validParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, application.PartyTypesAllowed);
                 return Ok(validParties);
             }
@@ -84,12 +87,12 @@ namespace Altinn.App.Api.Controllers
         /// <param name="partyId">The selected partyId</param>
         /// <returns>A validation status</returns>
         [HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]
-        public async Task<IActionResult> ValidateInstantiation(string org, string app, [FromQuery] int partyId)
+        public IActionResult ValidateInstantiation(string org, string app, [FromQuery] int partyId)
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             UserProfile user = _profile.GetUserProfile(userContext.UserId).Result;
             List<Party> partyList = _authorization.GetPartyList(userContext.UserId);
-            Application application = await _application.GetApplication(org, app);
+            Application application = _appResourcesService.GetApplication();
 
             if (application == null)
             {
