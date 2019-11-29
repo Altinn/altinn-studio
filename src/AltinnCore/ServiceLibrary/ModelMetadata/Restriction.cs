@@ -1,4 +1,6 @@
-﻿namespace AltinnCore.ServiceLibrary.ServiceMetadata
+using Newtonsoft.Json;
+
+namespace AltinnCore.ServiceLibrary.ServiceMetadata
 {
     /// <summary>
     /// Class representing a service element restriction
@@ -15,11 +17,13 @@
         /// <summary>
         /// Gets or sets base value type
         /// </summary>
+        [JsonProperty(PropertyName = "value")]
         public string Value { get; set; }
-        
+
         /// <summary>
         /// Gets or sets error texts
         /// </summary>
+        [JsonProperty(PropertyName = "errortText")]
         public string ErrortText { get; set; }
     }
 }
