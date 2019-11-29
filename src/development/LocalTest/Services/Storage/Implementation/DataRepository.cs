@@ -36,21 +36,21 @@ namespace LocalTest.Services.Storage.Implementation
             return Task.FromResult(data);
         }
 
-        public Task<long> WriteDataToStorage(Stream dataStream, string fileName)
+        public async Task<long> WriteDataToStorage(Stream dataStream, string fileName)
         {
             string filePath = GetFilePath(fileName);
             Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
-            FileStream fileStream = File.Create(filePath, (int)dataStream.Length);
-            // Initialize the bytes array with the stream length and then fill it with data
-            byte[] bytesInStream = new byte[dataStream.Length];
-            dataStream.Read(bytesInStream, 0, bytesInStream.Length);
-            // Use write method to write to the file specified above
-            fileStream.Write(bytesInStream, 0, bytesInStream.Length);
-            //Close the filestream
-            fileStream.Close();
+            long filesize;
 
-            return Task.FromResult(long.Parse("1337"));
+            using (Stream streamToWriteTo = File.Open(filePath, FileMode.OpenOrCreate))
+            {
+                await dataStream.CopyToAsync(streamToWriteTo);
+                streamToWriteTo.Flush();
+                filesize = streamToWriteTo.Length;
+            }
+
+            return filesize;
         }
 
         private string GetFilePath(string fileName)
