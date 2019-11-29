@@ -574,9 +574,29 @@ namespace Altinn.Platform.Storage.Repository
         private void PostProcess(Instance instance)
         {
             Guid instanceGuid = Guid.Parse(instance.Id);
-            instance.Id = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
+            string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
+            CompensateForPreviouslyStoredInstancesWitDataElements(instance, instanceGuid, instanceId);
+
+            instance.Id = instanceId;
             instance.Data = _dataRepository.ReadAll(instanceGuid).Result;
+        }
+
+        private void CompensateForPreviouslyStoredInstancesWitDataElements(Instance instance, Guid instanceGuid, string instanceId)
+        {
+            if (instance != null && instance.Data != null && instance.Data.Any())
+            {
+                _logger.LogInformation($"Compensating action for {instanceId}");
+                foreach (DataElement dataElement in instance.Data)
+                {
+                    dataElement.instanceGuid = instanceGuid.ToString();
+                    _ = _dataRepository.Create(dataElement);
+                }
+
+                instance.Data.Clear();
+                _ = Update(instance);
+                _logger.LogInformation($"Storing {instance.Data.Count} data elements and updating instance {instanceId}");
+            }
         }
 
         /// <summary>

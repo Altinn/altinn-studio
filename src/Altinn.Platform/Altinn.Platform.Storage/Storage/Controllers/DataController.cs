@@ -127,8 +127,8 @@ namespace Altinn.Platform.Storage.Controllers
                 return errorResult;
             }
 
-            string storageFileName = DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataGuid.ToString());
-            string dataIdString = dataGuid.ToString();
+            string storageFileName =
+                DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataGuid.ToString());
 
             DataElement dataElement = await _dataRepository.Read(instanceGuid, dataGuid);
 
@@ -143,7 +143,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                         if (dataStream == null)
                         {
-                            return NotFound("Unable to read data storage for " + dataIdString);
+                            return NotFound($"Unable to read data element from blob storage for {dataGuid}");
                         }
 
                         return File(dataStream, dataElement.ContentType, dataElement.Filename);

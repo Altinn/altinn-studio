@@ -62,7 +62,7 @@ namespace Altinn.Platform.Storage.Controllers
             state = state.ToLower();
             if (!allowedStates.Contains(state))
             {
-                return BadRequest($"Invalid instance state.Please provide on of: {string.Join(", ", allowedStates)}");
+                return BadRequest($"Invalid instance state. Please provide on of: {string.Join(", ", allowedStates)}");
             }
 
             if (language != null && acceptedLanguages.Contains(language.ToLower()))

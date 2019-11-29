@@ -21,15 +21,14 @@ namespace Altinn.Platform.Storage.Repository
     /// </summary>
     public class DataRepository : IDataRepository
     {
-        private readonly Uri _databaseUri;
         private readonly Uri _collectionUri;
         private readonly string _databaseId;
         private readonly string _collectionId = "dataElements";
         private readonly string _partitionKey = "/instanceGuid";
         private static DocumentClient _client;
         private readonly AzureStorageConfiguration _storageConfiguration;
-        private CloudBlobClient blobClient;
-        private CloudBlobContainer container;
+        private readonly CloudBlobClient _blobClient;
+        private readonly CloudBlobContainer _container;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataRepository"/> class
@@ -59,8 +58,8 @@ namespace Altinn.Platform.Storage.Repository
             StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
             CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
 
-            blobClient = CreateBlobClient(storageCredentials, storageAccount);
-            container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
+            _blobClient = CreateBlobClient(storageCredentials, storageAccount);
+            _container = _blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
         }
 
         private CloudBlobClient CreateBlobClient(StorageCredentials storageCredentials, CloudStorageAccount storageAccount)
@@ -82,7 +81,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<long> WriteDataToStorage(Stream fileStream, string fileName)
         {
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+            CloudBlockBlob blockBlob = _container.GetBlockBlobReference(fileName);
 
             await blockBlob.UploadFromStreamAsync(fileStream);
             blockBlob.FetchAttributes();
@@ -93,7 +92,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<Stream> ReadDataFromStorage(string fileName)
         {
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+            CloudBlockBlob blockBlob = _container.GetBlockBlobReference(fileName);
 
             var memoryStream = new MemoryStream();
             await blockBlob.DownloadToStreamAsync(memoryStream);
@@ -104,7 +103,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<bool> DeleteDataInStorage(string fileName)
         {           
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+            CloudBlockBlob blockBlob = _container.GetBlockBlobReference(fileName);
 
             bool result = await blockBlob.DeleteIfExistsAsync();
 
