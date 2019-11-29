@@ -26,9 +26,8 @@ namespace AltinnCore.ServiceLibrary.Enums
         SubUnit = 4,
 
         /// <summary>
-        /// Party Type is bankrupcy estate
+        /// Party Type is bankruptcy estate
         /// </summary>
         BankruptcyEstate = 5
-
     }
 }

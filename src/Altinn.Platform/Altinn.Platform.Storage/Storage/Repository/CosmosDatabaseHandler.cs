@@ -43,11 +43,6 @@ namespace Altinn.Platform.Storage.Repository
         {
             string databaseId = cosmosSettings.Database;
 
-            if ("ServiceEngine".Equals(databaseId))
-            {
-                databaseId = "altinn3";
-            }
-
             DatabaseName = databaseId;
 
             ConnectionPolicy connectionPolicy = new ConnectionPolicy

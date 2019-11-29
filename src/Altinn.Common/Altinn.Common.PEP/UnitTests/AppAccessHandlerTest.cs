@@ -19,14 +19,14 @@ namespace Altinn.Common.PEP.Authorization
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly Mock<IPDP> _pdpMock;
-        private readonly IOptions<GeneralSettings> _generalSettings;
+        private readonly IOptions<PepSettings> _generalSettings;
         private readonly AppAccessHandler _aah;
 
         public AppAccessHandlerTest()
         {
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _pdpMock = new Mock<IPDP>();
-            _generalSettings = Options.Create(new GeneralSettings());
+            _generalSettings = Options.Create(new PepSettings());
             _generalSettings.Value.DisablePEP = false;
             _aah = new AppAccessHandler(_httpContextAccessorMock.Object, _pdpMock.Object, _generalSettings);
         }

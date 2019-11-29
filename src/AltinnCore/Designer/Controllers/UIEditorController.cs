@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Configuration;
@@ -13,6 +14,7 @@ using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.Controllers
 {
@@ -23,14 +25,19 @@ namespace AltinnCore.Designer.Controllers
     public class UIEditorController : Controller
     {
         private readonly IRepository _repository;
+        private readonly ServiceRepositorySettings _repoSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UIEditorController"/> class.
         /// </summary>
-        /// <param name="repositoryService">The service repository service</param>
-        public UIEditorController(IRepository repositoryService)
+        /// <param name="repositoryService">The application repository service</param>
+        /// <param name="settings">The application repository settings.</param>
+        public UIEditorController(
+            IRepository repositoryService,
+            IOptions<ServiceRepositorySettings> settings)
         {
             _repository = repositoryService;
+            _repoSettings = settings.Value;
         }
 
         /// <summary>
@@ -148,7 +155,14 @@ namespace AltinnCore.Designer.Controllers
                 return BadRequest();
             }
 
-            _repository.SaveJsonFile(org, app, jsonData.ToString(), fileName);
+            if (fileName.Equals(_repoSettings.GetRuleConfigFileName()))
+            {
+                _repository.SaveRuleConfigJson(org, app, jsonData.ToString());
+            }
+            else
+            {
+                _repository.SaveJsonFile(org, app, jsonData.ToString(), fileName);
+            }
 
             return Json(new
             {

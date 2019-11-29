@@ -60,7 +60,7 @@ namespace App.IntegrationTests.ApiTests
 
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(1, events.Count);
+            Assert.Single(events);
         }
 
         [Fact]

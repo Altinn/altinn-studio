@@ -216,6 +216,8 @@ namespace Altinn.Authorization.ABAC.Utils
                 case "anyURI":
                 case XacmlConstants.DataTypes.XMLAnyURI:
                     return XacmlConstants.DataTypes.XMLAnyURI;
+                case XacmlConstants.DataTypes.XMLInteger:
+                    return XacmlConstants.DataTypes.XMLInteger;
                 default:
                     throw new Exception("Not supported");
             }

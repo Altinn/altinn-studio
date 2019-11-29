@@ -136,6 +136,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
   public createRepoNameFromServiceName(serviceName: string) {
     return serviceName
       .replace(/^[0-9 _-]+/, '')
+      .replace(/[^0-9a-zA-Z]+$/, '')
       .replace(/[ ]+/g, '-')
       .replace(/[æÆ]+/g, 'ae')
       .replace(/[øØ]+/g, 'oe')
@@ -143,6 +144,10 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       .replace(/[^0-9a-zA-Z\-]+/g, '-')
       .toLowerCase()
       .substring(0, 100);
+  }
+
+  public validateRepoName = (repoName: string) => {
+    return /^[a-z]+[a-z0-9\-]+[a-z0-9]$/.test(repoName);
   }
 
   public validateService = () => {
@@ -156,7 +161,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       serviceIsValid = false;
     }
 
-    if (this.state.repoName && !/^[a-z]+[a-z0-9\-]*$/.test(this.state.repoName)) {
+    if (this.state.repoName && !this.validateRepoName(this.state.repoName)) {
       this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_has_illegal_characters', this.props.language));
       serviceIsValid = false;
     }
