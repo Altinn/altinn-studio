@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>0.0.25.0</AssemblyVersion>
-    <FileVersion>0.0.25.0</FileVersion>
-    <Version>0.0.25-alpha</Version>
+    <AssemblyVersion>0.0.26.0</AssemblyVersion>
+    <FileVersion>0.0.26.0</FileVersion>
+    <Version>0.0.26-alpha</Version>
     <Description>Package that contains API controllers for the standard API for a Altinn App.</Description>
     <Company>Altinn</Company>
     <Authors>Altinn</Authors>
