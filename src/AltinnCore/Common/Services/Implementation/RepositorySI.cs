@@ -142,7 +142,9 @@ namespace AltinnCore.Common.Services.Implementation
                         Id = "default",
                         AllowedContentTypes = new List<string>() { "application/xml" },
                         AppLogic = new ApplicationLogic() { },
-                        TaskId = "Task_1"
+                        TaskId = "Task_1",
+                        MaxCount = 1,
+                        MinCount = 1,
                     },
                     new DataType
                     {
@@ -150,7 +152,7 @@ namespace AltinnCore.Common.Services.Implementation
                         AllowedContentTypes = new List<string>() { "application/pdf" },
                         TaskId = "Task_1",
                         MaxCount = 1,
-                        MinCount = 1,
+                        MinCount = 0,
                     }
                 },
                 PartyTypesAllowed = new PartyTypesAllowed()
@@ -1013,7 +1015,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     string app = Path.GetFileName(appPath);
 
-                    // TODO: figure out if this code is critical for dashboard. 
+                    // TODO: figure out if this code is critical for dashboard.
                     /*
                     string metadataPath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
                     if (Directory.Exists(metadataPath))
