@@ -1,7 +1,7 @@
 {{- if not (hasKey .Values.environmentVariables .Values.environment) }}
   {{ fail "the chosen environment does not exist" }}
 {{- end }}
-{{- if eq .Values.environment production }}
+{{- if eq .Values.environment "production" }}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
