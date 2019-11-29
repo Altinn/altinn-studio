@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Altinn.App.Services.ServiceMetadata
+namespace Altinn.App.Services.ModelMetadata
 {
     /// <summary>
     /// Class representation for the metadata for a service
     /// </summary>
-    public class ServiceMetadata
+    public class ModelMetadata
     {
         /// <summary>
         /// Gets or sets the organization the service belongs to

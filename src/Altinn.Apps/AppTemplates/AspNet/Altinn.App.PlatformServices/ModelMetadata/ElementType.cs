@@ -1,4 +1,4 @@
-namespace Altinn.App.Services.ServiceMetadata
+namespace Altinn.App.Services.ModelMetadata
 {
     /// <summary>
     /// Enumeration for the different type of service elements

@@ -1,6 +1,6 @@
 using System;
 
-namespace Altinn.App.Services.ServiceMetadata
+namespace Altinn.App.Services.ModelMetadata
 {
     /// <summary>
     /// Entity containing all details about a service package

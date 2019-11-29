@@ -1,6 +1,6 @@
 using System.Xml.Linq;
 
-namespace Altinn.App.Services.ServiceMetadata
+namespace Altinn.App.Services.ModelMetadata
 {
     /// <summary>
     /// Class containing XNamespace and XName for various xml and xsd element 

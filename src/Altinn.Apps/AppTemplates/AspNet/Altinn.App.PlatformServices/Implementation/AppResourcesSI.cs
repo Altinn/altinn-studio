@@ -120,7 +120,7 @@ namespace Altinn.App.Services.Implementation
 
 
         /// <inheritdoc/>
-        public ServiceMetadata.ServiceMetadata GetServiceMetaData(string org, string app)
+        public string GetModelMetaDataJSON(string org, string app)
         {
             Application applicationMetadata = GetApplication();
 
@@ -135,7 +135,8 @@ namespace Altinn.App.Services.Implementation
 
             string filename = _settings.AppBasePath + _settings.ModelsFolder + dataTypeId + "." + _settings.ServiceMetadataFileName;
             string filedata = File.ReadAllText(filename, Encoding.UTF8);
-            return JsonConvert.DeserializeObject<ServiceMetadata.ServiceMetadata>(filedata);
+
+            return filedata;
         }
 
         /// <inheritdoc/>
