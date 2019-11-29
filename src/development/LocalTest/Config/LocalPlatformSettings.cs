@@ -31,6 +31,8 @@ namespace Altinn.Platform.Storage.Configuration
 
         public string InstanceCollectionFolder { get; set; } = "instances/";
 
+        public string InstanceEventsCollectionFolder { get; set; } = "instanceevents/";
+
         public string AuthorizationDataFolder { get; set; } = "authorization/";
 
         public string PartyListFolder { get; set; } = "partylist/";

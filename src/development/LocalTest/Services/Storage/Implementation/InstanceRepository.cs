@@ -55,7 +55,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         public Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
-            string path = GetInstancePath(instanceOwnerPartyId + "/" + instanceId);
+            string path = GetInstancePath(instanceId.Replace("/","_"));
             if (File.Exists(path))
             {
                 string content = System.IO.File.ReadAllText(path);
