@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Configuration;
+using LocalTest.Configuration;
 using LocalTest.Services.Register.Interface;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
