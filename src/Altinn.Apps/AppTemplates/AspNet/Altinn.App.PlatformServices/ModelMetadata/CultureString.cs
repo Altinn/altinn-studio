@@ -11,7 +11,7 @@ using Altinn.App.Services.Extensions;
 
 #endregion
 
-namespace Altinn.App.Services.ServiceMetadata
+namespace Altinn.App.Services.ModelMetadata
 {
     /// <summary>
     /// Culture string

@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Xml.Linq;
-using Altinn.App.Services.ServiceMetadata;
+using Altinn.App.Services.ModelMetadata;
 
 namespace Altinn.App.Services.Extensions
 {
