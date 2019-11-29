@@ -104,37 +104,6 @@ dotnet run
 
 Which will build the Designer .net backend and the designer react app, but not listen to changes to the react app.
 
-**Runtime (deprecated documentation, new documentation will be available soon)**
-
-Stop the container running Runtime.
-
-```cmd
-docker stop altinn-runtime
-```
-
-Navigate to the Runtime folder. Build and run the code.
-
-**Important:** First you must have executed the Designer commands in order to successfully execute both the following command sequences on the Runtime component.
-
-```cmd
-cd src/AltinnCore/Runtime
-npm ci
-npm run gulp # first time only
-npm run gulp-develop
-```
-
-If you are not going to edit the runtime react app you can use
-
-```cmd
-cd src/AltinnCore/Runtime
-npm ci
-npm run gulp
-dotnet run
-```
-
-Which will build the runtime .net backend and runtime react app, but not listen for changes to our react app.
-
-
 #### Apps
 It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work. 
 
