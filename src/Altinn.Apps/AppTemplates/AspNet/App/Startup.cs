@@ -36,7 +36,7 @@ namespace Altinn.App
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add API controllers from Altinn.App.Api 
+            // Add API controllers from Altinn.App.Api
             services.AddControllersWithViews().AddApplicationPart(typeof(InstancesController).Assembly);
 
             // Dot net services
@@ -71,7 +71,7 @@ namespace Altinn.App
                 options.AllowSynchronousIO = true;
             });
 
-            // Application Settings 
+            // Application Settings
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
@@ -92,7 +92,7 @@ namespace Altinn.App
             }
             else
             {
-                hostName = Configuration["GeneralSettings:HostName"];
+                hostName = Configuration["GeneralSettings__HostName"];
             }
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
