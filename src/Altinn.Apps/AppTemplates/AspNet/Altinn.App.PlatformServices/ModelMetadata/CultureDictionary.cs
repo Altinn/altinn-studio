@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 
 #endregion
 
-namespace Altinn.App.Services.ServiceMetadata
+namespace Altinn.App.Services.ModelMetadata
 {
     /// <summary>
     /// A dictionary where the values have cultures

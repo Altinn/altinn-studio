@@ -1,4 +1,4 @@
-using Altinn.App.Services.ServiceMetadata;
+using Altinn.App.Services.ModelMetadata;
 
 namespace Altinn.App.Services.Models
 {
