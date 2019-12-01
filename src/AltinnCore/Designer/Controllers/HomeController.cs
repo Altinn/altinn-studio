@@ -61,6 +61,8 @@ namespace AltinnCore.Designer.Controllers
 
             if (string.IsNullOrEmpty(userName))
             {
+                string giteaCookieKey = _settings.GiteaCookieName;
+                Response.Cookies.Delete(giteaCookieKey);
                 return View("StartPage");
             }
 
