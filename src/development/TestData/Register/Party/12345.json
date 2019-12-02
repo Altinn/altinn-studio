@@ -1,0 +1,13 @@
+{
+  "partyId": "12345",
+  "partyTypeName": 1,
+  "orgNumber": "null",
+  "ssn": "01039012345",
+  "unitType": "AS",
+  "name": "Kari Consulting",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

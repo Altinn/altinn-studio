@@ -2,7 +2,6 @@ using System.Globalization;
 using System.IO;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Api.Controllers
@@ -76,34 +75,31 @@ namespace Altinn.App.Api.Controllers
             byte[] fileContent = _appResourceService.GetText(org, app, id);
             if (fileContent != null)
             {
-              return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
+                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
             }
 
             id = $"resource.{defaultLang}.json";
             fileContent = _appResourceService.GetText(org, app, id);
             if (fileContent != null)
             {
-              return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
+                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
             }
 
             return StatusCode(404);
         }
 
         /// <summary>
-        /// Get the service metadata
+        /// Get the model metadata
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="texts">whether text is set</param>
-        /// <param name="restrictions">whether  restrictions are set</param>
-        /// <param name="attributes">whether attributes are set</param>
-        /// <returns>The service metadata</returns>
+        /// <returns>The model metadata</returns>
         [HttpGet]
         [Route("{org}/{app}/api/metadata/{id}")]
-        public ActionResult ServiceMetaData([FromRoute] string org, [FromRoute] string app, [FromRoute] string id)
+        public ActionResult ModelMetadata([FromRoute] string org, [FromRoute] string app)
         {
-            ServiceMetadata metadata = _appResourceService.GetServiceMetaData(org, app);
+            string metadata = _appResourceService.GetModelMetaDataJSON(org, app);
             return Ok(metadata);
         }
-  }
+    }
 }
