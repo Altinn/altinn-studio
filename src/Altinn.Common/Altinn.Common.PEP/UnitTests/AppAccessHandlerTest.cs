@@ -4,6 +4,7 @@ using Altinn.Common.PEP.Configuration;
 using Altinn.Common.PEP.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using System;
@@ -28,7 +29,7 @@ namespace Altinn.Common.PEP.Authorization
             _pdpMock = new Mock<IPDP>();
             _generalSettings = Options.Create(new PepSettings());
             _generalSettings.Value.DisablePEP = false;
-            _aah = new AppAccessHandler(_httpContextAccessorMock.Object, _pdpMock.Object, _generalSettings);
+            _aah = new AppAccessHandler(_httpContextAccessorMock.Object, _pdpMock.Object, _generalSettings, new Mock<ILogger<AppAccessHandler>>().Object);
         }
 
         /// <summary>

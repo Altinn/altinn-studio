@@ -158,10 +158,10 @@ namespace Altinn.Platform.Authorization.Controllers
 
         private async Task<ActionResult> AuthorizeJsonRequest(XacmlRequestApiModel model)
         {
-            XacmlJsonRequest jsonRequest = null;
-            jsonRequest = (XacmlJsonRequest)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequest));
+            XacmlJsonRequestRoot jsonRequest = null;
+            jsonRequest = (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
 
-            XacmlJsonResponse jsonResponse = await Authorize(jsonRequest);
+            XacmlJsonResponse jsonResponse = await Authorize(jsonRequest.Request);
 
             return Ok(jsonResponse);
         }
