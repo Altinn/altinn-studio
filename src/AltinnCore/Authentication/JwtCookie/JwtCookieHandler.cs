@@ -83,10 +83,8 @@ namespace AltinnCore.Authentication.JwtCookie
                 // If no authorization header found, get the token
                 if (!string.IsNullOrEmpty(authorization))
                 {
-                    Logger.LogInformation($"Getting the token from Authorization header");
                     if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                     {
-                        Logger.LogInformation($"Bearer found");
                         token = authorization.Substring("Bearer ".Length).Trim();
                     }
                 }
@@ -94,8 +92,6 @@ namespace AltinnCore.Authentication.JwtCookie
                 // If the token is not found in authorization header, get the token from cookie
                 if (string.IsNullOrEmpty(token))
                 {
-                    Logger.LogInformation($"Getting the token from cookie");
-
                     // Get the cookie from request
                     token = Options.CookieManager.GetRequestCookie(Context, Options.Cookie.Name);
                 }
@@ -103,7 +99,6 @@ namespace AltinnCore.Authentication.JwtCookie
                 // If no token found, return no result
                 if (string.IsNullOrEmpty(token))
                 {
-                    Logger.LogInformation($"No token found");
                     return AuthenticateResult.NoResult();
                 }
 
@@ -125,9 +120,7 @@ namespace AltinnCore.Authentication.JwtCookie
                 {
                     try
                     {
-                        Logger.LogInformation($"Token to be validated{token}");
                         ClaimsPrincipal principal = validator.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
-                        Logger.LogInformation($"validated token{validatedToken}");
                         JwtCookieValidatedContext jwtCookieValidatedContext = new JwtCookieValidatedContext(Context, Scheme, Options)
                         {
                             Principal = principal,
@@ -146,14 +139,12 @@ namespace AltinnCore.Authentication.JwtCookie
                     }
                     catch (Exception ex)
                     {
-                        Logger.LogInformation($"Token validation Exception {ex}");
                         JwtCookieFailedContext jwtCookieFailedContext = new JwtCookieFailedContext(Context, Scheme, Options)
                         {
                             Exception = ex
                         };
 
                         await Events.AuthenticationFailed(jwtCookieFailedContext);
-                        Logger.LogInformation($"Failecontext result {jwtCookieFailedContext.Result}");
                         if (jwtCookieFailedContext.Result != null)
                         {
                             return jwtCookieFailedContext.Result;
