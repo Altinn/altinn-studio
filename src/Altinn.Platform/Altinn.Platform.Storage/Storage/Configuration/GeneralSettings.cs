@@ -19,5 +19,10 @@ namespace Altinn.Platform.Storage.Configuration
         /// Hostname
         /// </summary>
         public string Hostname { get; set; }
+
+        /// <summary>
+        /// Name of the cookie for runtime
+        /// </summary>
+        public string RuntimeCookieName { get; set; }
     }
 }

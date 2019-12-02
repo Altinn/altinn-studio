@@ -58,7 +58,7 @@ namespace Altinn.Platform.Storage
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                 {
                     options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                    options.Cookie.Name = "AltinnStudioRuntime";
+                    options.Cookie.Name = generalSettings.RuntimeCookieName;
                     options.Cookie.Domain = generalSettings.Hostname;
                     options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
                 });
