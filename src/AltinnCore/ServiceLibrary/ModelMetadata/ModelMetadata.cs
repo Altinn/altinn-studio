@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace AltinnCore.ServiceLibrary.ServiceMetadata
 {
@@ -34,6 +35,7 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
         /// <summary>
         /// Gets or sets all elements for the service (<see cref="ElementMetadata"/>)
         /// </summary>
+        [JsonProperty(PropertyName = "elements")]
         public Dictionary<string, ElementMetadata> Elements { get; set; }
     }
 }

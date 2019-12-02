@@ -60,7 +60,9 @@ namespace AltinnCore.Designer.Controllers
             string userName = _giteaApi.GetUserNameFromUI().Result;
 
             if (string.IsNullOrEmpty(userName))
-            {
+            {                
+                Response.Cookies.Delete(AltinnCore.Common.Constants.General.DesignerCookieName);
+                Response.Cookies.Delete(_settings.GiteaCookieName);
                 return View("StartPage");
             }
 

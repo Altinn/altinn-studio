@@ -163,13 +163,13 @@ namespace Altinn.Platform.Storage
         /// <returns>Telemetry instrumentation key</returns>
         public string GetApplicationInsightsKeyFromEnvironment()
         {
-            string evironmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
-            if (string.IsNullOrEmpty(evironmentKey))
+            string environmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
+            if (string.IsNullOrEmpty(environmentKey))
             {
                 return null;
             }
 
-            return evironmentKey;
+            return environmentKey;
         }
     }
 }
