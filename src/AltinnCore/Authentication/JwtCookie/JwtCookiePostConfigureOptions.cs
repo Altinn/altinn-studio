@@ -1,5 +1,8 @@
+using System;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace AltinnCore.Authentication.JwtCookie
 {
@@ -39,6 +42,17 @@ namespace AltinnCore.Authentication.JwtCookie
             {
                 options.AccessDeniedPath = JwtCookieDefaults.AccessDeniedPath;
             }
+
+            if (!options.MetadataAddress.EndsWith("/", StringComparison.Ordinal))
+            {
+                options.MetadataAddress += "/";
+            }
+
+            options.MetadataAddress += ".well-known/openid-configuration";
+            options.ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+                    options.MetadataAddress,
+                    new OpenIdConnectConfigurationRetriever(),
+                    new HttpDocumentRetriever());
         }
     }
 }

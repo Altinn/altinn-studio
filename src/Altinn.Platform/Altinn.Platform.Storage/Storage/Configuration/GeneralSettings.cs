@@ -11,17 +11,18 @@ namespace Altinn.Platform.Storage.Configuration
     public class GeneralSettings
     {
         /// <summary>
-        /// The endpoint for the bridge
+        /// Open Id Connect Well known endpoint
         /// </summary>
-        public string BridgeRegisterApiEndpoint { get; set; }
+        public string OpenIdWellKnownEndpoint { get; set; }
 
         /// <summary>
-        /// Returns the api base url for the bridge.
+        /// Hostname
         /// </summary>
-        /// <returns></returns>
-        public string GetBridgeRegisterApiEndpoint()
-        {
-            return Environment.GetEnvironmentVariable("GeneralSettings__BridgeRegisterApiEndpoint") ?? BridgeRegisterApiEndpoint;
-        }
+        public string Hostname { get; set; }
+
+        /// <summary>
+        /// Name of the cookie for runtime
+        /// </summary>
+        public string RuntimeCookieName { get; set; }
     }
 }
