@@ -7,7 +7,7 @@ import { FETCH_FORM_DATA_FULFILLED } from './../../../../features/form/data/acti
 import { FETCH_DATA_MODEL_FULFILLED } from './../../../../features/form/datamodell/actions/types';
 import { FETCH_FORM_LAYOUT_FULFILLED } from './../../../../features/form/layout/actions/types';
 import { FETCH_RULE_MODEL_FULFILLED } from './../../../../features/form/rules/actions/types';
-import { FETCH_LANGUAGE_FULFILLED } from './../../language/fetch/fetchLanguageActionTypes';
+// import { FETCH_LANGUAGE_FULFILLED } from './../../language/fetch/fetchLanguageActionTypes';
 import IsLoadingActions from './../isLoadingActions';
 
 export function* watcherFinishDataTaskIsloadingSaga(): SagaIterator {

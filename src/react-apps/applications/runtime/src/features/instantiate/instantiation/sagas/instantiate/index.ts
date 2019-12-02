@@ -3,17 +3,14 @@ import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { IParty } from '../../../../../../../shared/src/types';
 import InstanceDataActions from '../../../../../shared/resources/instanceData/instanceDataActions';
 import { IRuntimeState } from '../../../../../types';
-import { convertDataBindingToModel } from '../../../../../utils/databindings';
 import { post } from '../../../../../utils/networking';
-import { getCreateDataElementUrl, getCreateInstancesUrl, getStartProcessUrl } from '../../../../../utils/urlHelper';
+import { getCreateInstancesUrl } from '../../../../../utils/urlHelper';
 import InstantiationActions from '../../actions';
 import * as InstantiationActionTypes from '../../actions/types';
 import { IInstantiationState } from '../../reducer';
 
 const InstantiatingSelector = ((state: IRuntimeState) => state.instantiation);
 const SelectedPartySelector = ((state: IRuntimeState) => state.party.selectedParty);
-const FormDataSelector = ((state: IRuntimeState) => state.formData.formData);
-const DataModelSelector = ((state: IRuntimeState) => state.formDataModel.dataModel);
 
 function* instantiationSaga(): SagaIterator {
   try {
