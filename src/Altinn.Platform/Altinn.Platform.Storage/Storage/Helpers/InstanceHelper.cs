@@ -34,16 +34,22 @@ namespace Altinn.Platform.Storage.Helpers
                 InstanceStatus status = instance.Status ?? new InstanceStatus();
                 DateTime? visibleAfter = instance.VisibleAfter;
 
-                messageBoxInstances.Add(new MessageBoxInstance()
+                string title = appTitles[instance.AppId].ContainsKey(language) ? appTitles[instance.AppId][language] : appTitles[instance.AppId]["nb"];
+
+                string instanceId = instance.Id.Contains("/") ? instance.Id.Split("/")[1] : instance.Id;
+
+                DateTime createdDateTime = visibleAfter != null && visibleAfter > instance.Created ? (DateTime)visibleAfter : instance.Created.Value;
+
+                messageBoxInstances.Add(new MessageBoxInstance
                 {                    
-                    CreatedDateTime = (visibleAfter != null && visibleAfter > instance.Created) ? (DateTime)visibleAfter : instance.Created.Value,
+                    CreatedDateTime = createdDateTime,
                     DueDateTime = instance.DueBefore,
-                    Id = instance.Id.Contains("/") ? instance.Id.Split("/")[1] : instance.Id,
+                    Id = instanceId,
                     InstanceOwnerId = instance.InstanceOwner.PartyId,
                     LastChangedBy = instance.LastChangedBy,
                     Org = instance.Org,
                     AppName = instance.AppId.Split('/')[1],
-                    Title = appTitles[instance.AppId].ContainsKey(language) ? appTitles[instance.AppId][language] : appTitles[instance.AppId]["nb"],
+                    Title = title,
                     ProcessCurrentTask = GetSBLStatusForCurrentTask(instance),
                     AuthorizedForWrite = true,
                     AllowDelete = true,

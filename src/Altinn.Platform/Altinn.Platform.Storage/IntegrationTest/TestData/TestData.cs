@@ -27,7 +27,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             { "nb", "Test applikasjon 1 bokmål" },
             { "en", "Test application 1 english" },
-            { "nn-NO", "Test applikasjon 1 nynorsk" }
+            { "nn", "Test applikasjon 1 nynorsk" }
         };
 
         private static Dictionary<string, string> appTitles_App2 = new Dictionary<string, string>()
@@ -39,7 +39,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private static Dictionary<string, string> appTitles_App3 = new Dictionary<string, string>()
         {
             { "nb", "Test applikasjon 3 bokmål" },
-            { "nn-NO", "Test applikasjon 3 nynorsk" }
+            { "nn", "Test applikasjon 3 nynorsk" }
         };
 
         private static Application application_1 = new Application()
@@ -69,6 +69,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // Active instance of app 1
         private static readonly Instance Instance_1_1 = new Instance()
         {
+            Id = Guid.NewGuid().ToString(),
             AppId = AppId_1,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
@@ -80,21 +81,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Process = CreateProcessState()
         };
 
-        private static ProcessState CreateProcessState()
-        {
-            return new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo
-                {
-                    ElementId = "FormFilling_1",
-                    Name = "FormFilling",
-                },
-            };
-        }
-
         // Archived instance of app 1
         private static readonly Instance Instance_1_2 = new Instance()
         {
+            Id = Guid.NewGuid().ToString(),
             AppId = AppId_1,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
@@ -112,6 +102,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // Soft deleted instance of app 1
         private static readonly Instance Instance_1_3 = new Instance()
         {
+            Id = Guid.NewGuid().ToString(),
             AppId = AppId_1,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
@@ -130,6 +121,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // Hard deleted instance of app 1
         private static readonly Instance Instance_1_4 = new Instance()
         {
+            Id = Guid.NewGuid().ToString(),
             AppId = AppId_1,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
@@ -149,13 +141,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // 1st instance of application 2
         private static readonly Instance Instance_2_1 = new Instance()
         {
+            Id = Guid.NewGuid().ToString(),
             AppId = AppId_2,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T23:19:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
-            Status = new InstanceStatus
-            {
-            },
+            Status = new InstanceStatus(),
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = org_1,
@@ -165,6 +156,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // 2nd instance of application 2
         private static readonly Instance Instance_2_2 = new Instance()
         {
+            Id = Guid.NewGuid().ToString(),
             AppId = AppId_2,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
@@ -179,6 +171,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // 1st instance of application 3
         private static readonly Instance Instance_3_1 = new Instance()
         {
+            Id = Guid.NewGuid().ToString(),
             AppId = AppId_3,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T17:19:21.7920255Z"),
@@ -192,6 +185,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
         private static readonly Instance Instance_3_2 = new Instance()
         {
+            Id = Guid.NewGuid().ToString(),
             AppId = AppId_3,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T17:21:21.7920255Z"),
@@ -203,15 +197,33 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Process = CreateProcessState(),
         };
 
-        private readonly static List<Instance> InstanceList_App1 = new List<Instance>() { Instance_1_1, Instance_1_2, Instance_1_3 };
-        private readonly static List<Instance> InstanceList_App2 = new List<Instance>() { Instance_2_1, Instance_2_2 };
-        private readonly static List<Instance> InstanceList_App3 = new List<Instance>() { Instance_3_1, Instance_3_2 };
-        private readonly static List<Instance> InstanceList_InstanceOwner1 = new List<Instance>() { Instance_1_1, Instance_1_2, Instance_1_3, Instance_1_4, Instance_2_1, Instance_2_2, Instance_3_1, Instance_3_2 };
+        private static ProcessState CreateProcessState()
+        {
+            return new ProcessState
+            {
+                CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "FormFilling_1",
+                    Name = "FormFilling",
+                },
+            };
+        }
 
-        private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App1 = new Dictionary<string, Dictionary<string, string>>() { { application_1.Id, appTitles_App1 } };
-        private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App2 = new Dictionary<string, Dictionary<string, string>>() { { application_2.Id, appTitles_App2 } };
-        private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App3 = new Dictionary<string, Dictionary<string, string>>() { { application_3.Id, appTitles_App3 } };
-        private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_InstanceList_InstanceOwner1 = new Dictionary<string, Dictionary<string, string>>()
+        private static readonly List<Instance> InstanceList_App1 = new List<Instance>() { Instance_1_1, Instance_1_2, Instance_1_3 };
+        private static readonly List<Instance> InstanceList_App2 = new List<Instance>() { Instance_2_1, Instance_2_2 };
+        private static readonly List<Instance> InstanceList_App3 = new List<Instance>() { Instance_3_1, Instance_3_2 };
+        private static readonly List<Instance> InstanceList_InstanceOwner1 = new List<Instance>() { Instance_1_1, Instance_1_2, Instance_1_3, Instance_1_4, Instance_2_1, Instance_2_2, Instance_3_1, Instance_3_2 };
+
+        public static readonly Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App1 = new Dictionary<string, Dictionary<string, string>>
+            { { application_1.Id, appTitles_App1 } };
+
+        public static readonly Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App2 = new Dictionary<string, Dictionary<string, string>>
+            { { application_2.Id, appTitles_App2 } };
+
+        public static readonly Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App3 = new Dictionary<string, Dictionary<string, string>>
+            { { application_3.Id, appTitles_App3 } };
+
+        private static readonly Dictionary<string, Dictionary<string, string>> AppTitles_InstanceList_InstanceOwner1 = new Dictionary<string, Dictionary<string, string>>()
         {
             { application_1.Id, appTitles_App1 },
             { application_2.Id, appTitles_App2 },

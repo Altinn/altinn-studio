@@ -29,12 +29,12 @@ namespace Altinn.App.Services.Interface
 
 
         /// <summary>
-        /// Returns the ServiceMetadata for an app.
+        /// Returns the model metadata for an app.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The ServiceMetadata for an app.</returns>
-        ServiceMetadata.ServiceMetadata GetServiceMetaData(string org, string app);
+        string GetModelMetaDataJSON(string org, string app);
 
         /// <summary>
         /// Method that fetches the runtime resources stored in wwwroot
