@@ -11,7 +11,7 @@ export interface IApplicationMetadata {
   validTo: string;
   WorkflowId: string;
   maxSize: string;
-  dataTypes: string;
+  dataTypes: any[];
   partyTypesAllowed: IPartyTypesAllowed;
   subscriptionHook: ISubscriptionHook;
 }

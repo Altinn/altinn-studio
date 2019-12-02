@@ -16,7 +16,7 @@ export function* watcherFinishDataTaskIsloadingSaga(): SagaIterator {
     take(FETCH_FORM_CONFIG_FULFILLED),
     take(FETCH_FORM_DATA_FULFILLED),
     take(FETCH_FORM_LAYOUT_FULFILLED),
-    take(FETCH_LANGUAGE_FULFILLED),
+    // take(FETCH_LANGUAGE_FULFILLED), TODO: Fix when new language feature is implemented
     take(FETCH_RULE_MODEL_FULFILLED),
     take(GET_INSTANCEDATA_FULFILLED),
     take(MAP_ATTACHMENTS_FULFILLED),

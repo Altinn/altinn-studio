@@ -9,7 +9,7 @@ export interface IInstanceState {
   isArchived: boolean;
 }
 
-export interface IDataLinks {
+export interface ISelfLinks {
   apps: string;
   platform: string;
 }
@@ -20,11 +20,11 @@ export interface IData {
   fileName: string;
   contentType: string;
   storageUrl: string;
-  dataLinks: IDataLinks;
+  selfLinks: ISelfLinks;
   fileSize: number;
   isLocked: boolean;
-  createdDateTime: Date;
-  lastChangedDateTime: Date;
+  created: Date;
+  lastChanged: Date;
 }
 
 export interface IInstance {
@@ -32,8 +32,8 @@ export interface IInstance {
   instanceOwnerId: string;
   appId: string;
   org: string;
-  createdDateTime: Date;
-  lastChangedDateTime: Date;
+  created: Date;
+  lastChanged: Date;
   instanceState: IInstanceState;
   data: IData[];
 }
@@ -75,23 +75,30 @@ export interface IProfile {
   profileSettingPreference: IProfileSettingPreference;
 }
 
-export interface IElementType {
+export interface IDataType {
   id: string;
-  allowedContentType: string[];
+  allowedContentTypes: string[];
+  appLogic: any;
   maxCount: number;
+  minCount: number;
   shouldSign: boolean;
   shouldEncrypt: boolean;
 }
 
 export interface IApplication {
+  createdBy: string;
+  createdDateTime: string;
+  dataTypes: IDataType[];
   id: string;
-  versionId: string;
+  lastChangedBy: string;
+  lastChangedDateTime: string;
+  maxSize: string;
   org: string;
-  createdDateTime: Date;
-  lastChangedDateTime: Date;
-  title: ITitle;
-  validFrom: Date;
-  elementTypes: IElementType[];
+  title: string;
+  validFrom: string;
+  validTo: string;
+  versionId: string;
+  WorkflowId: string;
 }
 
 export interface ITitle {
@@ -110,7 +117,7 @@ export interface IData {
   fileName: string;
   contentType: string;
   storageUrl: string;
-  dataLinks: IDataLinks;
+  selfLinks: ISelfLinks;
   fileSize: number;
   isLocked: boolean;
   createdDateTime: Date;

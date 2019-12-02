@@ -57,9 +57,9 @@ export class SelectDataModel extends React.Component<
       );
     }
     const selected = this.props.dataModelElements.find(
-      (modelBinding) => modelBinding.DataBindingName === selectedId);
+      (modelBinding) => modelBinding.dataBindingName === selectedId);
     return (
-      Object.keys(selected.Restrictions).length === 0 ? (
+      Object.keys(selected.restrictions).length === 0 ? (
         <li className='a-dotted'>
           <div className='row'>
             <div className='col-12'>
@@ -68,12 +68,12 @@ export class SelectDataModel extends React.Component<
           </div>
         </li>)
         :
-        Object.keys(selected.Restrictions).map(
+        Object.keys(selected.restrictions).map(
           (key: string): React.ReactNode => (
             <li key={key} className='a-dotted'>
               <div className='row'>
                 <div className='col-4'>{key}</div>
-                <div className='col-8'>{selected.Restrictions[key].Value}</div>
+                <div className='col-8'>{selected.restrictions[key].Value}</div>
               </div>
             </li>
           ),
@@ -84,8 +84,8 @@ export class SelectDataModel extends React.Component<
   public render() {
     const dataModelElementNames = [];
     for (const element of this.props.dataModelElements) {
-      if (element.DataBindingName) {
-        dataModelElementNames.push({ value: element.DataBindingName, label: element.DisplayString });
+      if (element.dataBindingName) {
+        dataModelElementNames.push({ value: element.dataBindingName, label: element.displayString });
       }
     }
     return (

@@ -15,7 +15,7 @@ function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): Sag
   try {
     const state: IRuntimeState = yield select();
     const component = getLayoutComponentById(componentId, state.formLayout.layout);
-    const dataModelField = state.formDataModel.dataModel.find((element: any) => element.DataBindingName === field);
+    const dataModelField = state.formDataModel.dataModel.find((element: any) => element.dataBindingName === field);
     const componentValidations: IComponentValidations = validateComponentFormData(
       data,
       dataModelField,

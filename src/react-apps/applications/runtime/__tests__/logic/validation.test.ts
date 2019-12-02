@@ -123,9 +123,9 @@ describe('>>> utils/validations.ts', () => {
 
     mockDataModelFields = [
       {
-        ID: 'dataModelField_1',
-        DataBindingName: 'dataModelField_1',
-        Restrictions: {
+        id: 'dataModelField_1',
+        dataBindingName: 'dataModelField_1',
+        restrictions: {
           min: {
             Value: '0',
             ErrortText: 'must be bigger than 0',
@@ -133,9 +133,9 @@ describe('>>> utils/validations.ts', () => {
         },
       },
       {
-        ID: 'dataModelField_2',
-        DataBindingName: 'dataModelField_2',
-        Restrictions: {
+        id: 'dataModelField_2',
+        dataBindingName: 'dataModelField_2',
+        restrictions: {
           minLength: {
             Value: '10',
             ErrortText: 'length must be bigger than 10',
@@ -143,9 +143,9 @@ describe('>>> utils/validations.ts', () => {
         },
       },
       {
-        ID: 'dataModelField_3',
-        DataBindingName: 'dataModelField_3',
-        Restrictions: {},
+        id: 'dataModelField_3',
+        dataBindingName: 'dataModelField_3',
+        restrictions: {},
       },
     ];
 

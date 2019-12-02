@@ -27,20 +27,6 @@ function* instantiationSaga(): SagaIterator {
       const instanceResponse = yield call(post, getCreateInstancesUrl(selectedParty.partyId));
       const instanceId = instanceResponse.data.id;
 
-      // Creates default data element
-      const dataModel = yield select(DataModelSelector);
-      const formData = yield select(FormDataSelector);
-      const model = convertDataBindingToModel(formData, dataModel);
-      yield call(
-        post,
-        getCreateDataElementUrl(instanceId, 'default'),
-        {headers: {'Content-type': 'application/json'}},
-        model,
-      );
-
-      // Start process
-      yield call(post, getStartProcessUrl(instanceId));
-
       // Fetch new instance metadata
       const splitInstanceId = instanceId.split('/');
       yield call(InstanceDataActions.getInstanceData, splitInstanceId[0], splitInstanceId[1]);
