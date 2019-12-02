@@ -6,7 +6,7 @@ import { mapAttachmentListToAttachments } from '../../../../utils/attachment';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
 import { IData, IInstance } from './../../../../../../shared/src/types';
-import { returnCurrentTaskData } from './../../../../../../shared/src/utils/applicationMetaDataUtils';
+import { getCurrentTaskData } from './../../../../../../shared/src/utils/applicationMetaDataUtils';
 import { IApplicationMetadata } from './../../applicationMetadata';
 
 export function* watchMapAttachmentsSaga(): SagaIterator {
@@ -24,7 +24,7 @@ export function* mapAttachments({
     const instance = yield select(SelectInstance);
     const applicationMetadata = yield select(SelectApplicationMetaData);
 
-    const defaultElement = returnCurrentTaskData(applicationMetadata, instance);
+    const defaultElement = getCurrentTaskData(applicationMetadata, instance);
 
     const attachments: IData[] = yield select(selectAttachments);
     const mappedAttachments: IAttachments = mapAttachmentListToAttachments(attachments, defaultElement.id);

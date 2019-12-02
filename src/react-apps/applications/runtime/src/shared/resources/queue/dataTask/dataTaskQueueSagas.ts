@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { all, call, select, take } from 'redux-saga/effects';
 import { IInstance } from './../../../../../../shared/src/types';
-import { returnCurrentTaskDataTypeId } from './../../../../../../shared/src/utils/applicationMetaDataUtils';
+import { getCurrentTaskDataTypeId } from './../../../../../../shared/src/utils/applicationMetaDataUtils';
 import { IRuntimeState } from './../../../../../src/types';
 import FormDataActions from './../../../../features/form/data/actions';
 import DataModelActions from './../../../../features/form/datamodell/actions';
@@ -37,7 +37,7 @@ export function* startInitialDataTaskQueue(): SagaIterator {
   const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
   const instance: IInstance = yield select(instanceDataSelector);
 
-  const currentTaskDataTypeId = returnCurrentTaskDataTypeId(applicationMetadata, instance);
+  const currentTaskDataTypeId = getCurrentTaskDataTypeId(applicationMetadata, instance);
 
   // org/app/instances/{instanceId}/data/{dataGuid}
   yield call(
@@ -53,6 +53,10 @@ export function* startInitialDataTaskQueue(): SagaIterator {
   yield call(
     FormDynamicsRules.fetchFormDynamics,
     `${window.location.origin}/${org}/${app}/api/resource/RuleConfiguration.json`,
+  );
+
+  yield call(
+    QueueActions.startInitialDataTaskQueueFulfilled,
   );
 }
 

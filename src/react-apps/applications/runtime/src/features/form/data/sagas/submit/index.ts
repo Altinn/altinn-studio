@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
-import { returnCurrentTaskDataTypeId } from '../../../../../../../shared/src/utils/applicationMetaDataUtils';
+import { getCurrentTaskDataTypeId } from '../../../../../../../shared/src/utils/applicationMetaDataUtils';
 import { get, put } from '../../../../../../../shared/src/utils/networking';
 import ProcessDispatcher from '../../../../../shared/resources/process/processDispatcher';
 import { IRuntimeStore } from '../../../../../types/global';
@@ -43,7 +43,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
 
     if (canFormBeSaved(validations)) {
       // updates the default data element
-      const defaultDataElementGuid = returnCurrentTaskDataTypeId(
+      const defaultDataElementGuid = getCurrentTaskDataTypeId(
         state.applicationMetadata.applicationMetadata,
         state.instanceData.instance,
         );

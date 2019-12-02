@@ -6,7 +6,7 @@ import { RouteChildrenProps, withRouter } from 'react-router';
 import AltinnContentIconReceipt from '../../../../../shared/src/components/atoms/AltinnContentIconReceipt';
 import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
-import { returnCurrentTaskData } from '../../../../../shared/src/utils/applicationMetaDataUtils';
+import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationMetaDataUtils';
 import { getInstancePdf, mapInstanceAttachments} from '../../../../../shared/src/utils/attachmentsUtils';
 import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
@@ -104,7 +104,7 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
 
   React.useEffect(() => {
     if (instance && instance.data && applicationMetadata) {
-      const defaultElement = returnCurrentTaskData(applicationMetadata, instance);
+      const defaultElement = getCurrentTaskData(applicationMetadata, instance);
 
       const attachmentsResult = mapInstanceAttachments(instance.data, defaultElement.id);
       setAttachments(attachmentsResult);

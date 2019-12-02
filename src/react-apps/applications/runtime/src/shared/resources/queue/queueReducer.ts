@@ -25,7 +25,13 @@ const queueReducer: Reducer<IQueueState> = (
         },
       });
     }
-    // TODO: START_INITIAL_DATA_TASK_QUEUE_FULFILLED
+    case DataTaskQueueActionTypes.START_INITIAL_DATA_TASK_QUEUE_FULFILLED: {
+      return update<IQueueState>(state, {
+        dataTaskFinished: {
+          $set: true,
+        },
+      });
+    }
     default: { return state; }
   }
 };

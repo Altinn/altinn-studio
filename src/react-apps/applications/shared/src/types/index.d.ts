@@ -88,7 +88,7 @@ export interface IDataType {
 export interface IApplication {
   createdBy: string;
   createdDateTime: string;
-  dataTypes: IDataType[];
+  dataTypes: IDataTypes[];
   id: string;
   lastChangedBy: string;
   lastChangedDateTime: string;
@@ -99,6 +99,16 @@ export interface IApplication {
   validTo: string;
   versionId: string;
   WorkflowId: string;
+}
+
+export interface IDataTypes {
+  id: string;
+  description: string;
+  appLogic: any;
+  taskId: string;
+  maxSize: number;
+  maxCount: number;
+  mincount: number;
 }
 
 export interface ITitle {
