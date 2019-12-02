@@ -32,6 +32,7 @@ namespace AltinnCore.Authentication.JwtCookie
 
         private SigningCredentials _signingCredentials;
         private DateTime _signingCredentialsUpdateTime;
+        private readonly object _signingCredentialsLock = new object();
 
         /// <summary>
         /// The default constructor
@@ -280,31 +281,34 @@ namespace AltinnCore.Authentication.JwtCookie
 
         private SigningCredentials GetSigningCredentials()
         {
-            if (_signingCredentialsUpdateTime > DateTime.Now && _signingCredentials != null)
+            lock (_signingCredentialsLock)
             {
+                if (_signingCredentialsUpdateTime > DateTime.Now && _signingCredentials != null)
+                {
+                    return _signingCredentials;
+                }
+
+                X509Certificate2 cert;
+                if (string.IsNullOrEmpty(_keyVaultSettings.ClientId) || string.IsNullOrEmpty(_keyVaultSettings.ClientSecret))
+                {
+                    cert = new X509Certificate2(_certificateSettings.CertificatePath, _certificateSettings.CertificatePwd);
+                }
+                else
+                {
+                    KeyVaultClient client = KeyVaultSettings.GetClient(_keyVaultSettings.ClientId, _keyVaultSettings.ClientSecret);
+                    CertificateBundle certificate = client.GetCertificateAsync(_keyVaultSettings.SecretUri, _certificateSettings.CertificateName).GetAwaiter().GetResult();
+                    SecretBundle secret = client.GetSecretAsync(certificate.SecretIdentifier.Identifier).GetAwaiter().GetResult();
+                    byte[] pfxBytes = Convert.FromBase64String(secret.Value);
+                    cert = new X509Certificate2(pfxBytes);
+                }
+
+                _signingCredentials = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
+
+                // Reuse the same SigningCredentials for 30 minutes
+                _signingCredentialsUpdateTime = DateTime.Now.AddMinutes(30);
+
                 return _signingCredentials;
             }
-
-            X509Certificate2 cert;
-            if (string.IsNullOrEmpty(_keyVaultSettings.ClientId) || string.IsNullOrEmpty(_keyVaultSettings.ClientSecret))
-            {
-                cert = new X509Certificate2(_certificateSettings.CertificatePath, _certificateSettings.CertificatePwd);
-            }
-            else
-            {
-                KeyVaultClient client = KeyVaultSettings.GetClient(_keyVaultSettings.ClientId, _keyVaultSettings.ClientSecret);
-                CertificateBundle certificate = client.GetCertificateAsync(_keyVaultSettings.SecretUri, _certificateSettings.CertificateName).GetAwaiter().GetResult();
-                SecretBundle secret = client.GetSecretAsync(certificate.SecretIdentifier.Identifier).GetAwaiter().GetResult();
-                byte[] pfxBytes = Convert.FromBase64String(secret.Value);
-                cert = new X509Certificate2(pfxBytes);
-            }
-
-            _signingCredentials = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
-
-            // Reuse the same SigningCredentials for 30 minutes
-            _signingCredentialsUpdateTime = DateTime.Now.AddMinutes(30);
-
-            return _signingCredentials;
         }
 
         private CookieOptions BuildCookieOptions()
