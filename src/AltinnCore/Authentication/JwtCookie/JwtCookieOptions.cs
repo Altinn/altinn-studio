@@ -2,6 +2,8 @@ using System;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AltinnCore.Authentication.JwtCookie
@@ -71,6 +73,11 @@ namespace AltinnCore.Authentication.JwtCookie
         public TokenValidationParameters TokenValidationParameters { get; set; } = new TokenValidationParameters();
 
         /// <summary>
+        /// Gets or sets the discovery endpoint for obtaining metadata
+        /// </summary>
+        public string MetadataAddress { get; set; }
+
+        /// <summary>
         /// Gets or sets if a metadata refresh should be attempted after a SecurityTokenSignatureKeyNotFoundException. This allows for automatic
         /// recovery in the event of a signature key rollover. This is enabled by default.
         /// </summary>
@@ -113,5 +120,11 @@ namespace AltinnCore.Authentication.JwtCookie
         /// login path or logout path, in order to return to the original url after the action is performed.
         /// </summary>
         public string ReturnUrlParameter { get; set; }
+
+        /// <summary>
+        /// Responsible for retrieving, caching, and refreshing the configuration from metadata.
+        /// If not provided, then one will be created using the MetadataAddress and Backchannel properties.
+        /// </summary>
+        public IConfigurationManager<OpenIdConnectConfiguration> ConfigurationManager { get; set; }
     }
 }
