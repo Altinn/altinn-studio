@@ -94,7 +94,7 @@ export interface IApplication {
   lastChangedDateTime: string;
   maxSize: string;
   org: string;
-  title: string;
+  title: ITitle;
   validFrom: string;
   validTo: string;
   versionId: string;
