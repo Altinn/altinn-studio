@@ -7,6 +7,7 @@ using Altinn.Common.PEP.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Common.PEP.Authorization
@@ -22,6 +23,7 @@ namespace Altinn.Common.PEP.Authorization
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPDP _pdp;
         private readonly PepSettings _pepSettings;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppAccessHandler"/> class.
@@ -32,11 +34,13 @@ namespace Altinn.Common.PEP.Authorization
         public AppAccessHandler(
             IHttpContextAccessor httpContextAccessor,
             IPDP pdp,
-            IOptions<PepSettings> pepSettings)
+            IOptions<PepSettings> pepSettings,
+            ILogger<AppAccessHandler> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _pdp = pdp;
             _pepSettings = pepSettings.Value;
+            _logger = logger;
         }
 
         /// <summary>
@@ -54,7 +58,7 @@ namespace Altinn.Common.PEP.Authorization
                 return;
             }
 
-            XacmlJsonRequest request = DecisionHelper.CreateXacmlJsonRequest(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
+            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequestRoot(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response == null)
@@ -72,3 +76,4 @@ namespace Altinn.Common.PEP.Authorization
         }
     }
 }
+
