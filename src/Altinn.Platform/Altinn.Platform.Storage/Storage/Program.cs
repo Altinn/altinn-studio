@@ -43,13 +43,19 @@ namespace Altinn.Platform.Storage
             Host.CreateDefaultBuilder(args)
             .ConfigureWebHostDefaults(webBuilder =>
             {
-                webBuilder.UseStartup<Startup>();
-                webBuilder.UseUrls("http://*:5010");
+                webBuilder.UseStartup<Startup>()
+
+                  // Parameters required for integration with SBL in local development
+                   /* .UseKestrel()
+                    .UseContentRoot(Directory.GetCurrentDirectory())
+                    .UseIISIntegration()*/
+                    .UseUrls("http://*:5010");
+
             })
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
                 string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-                
+
                 string basePathCurrentDirectory = Directory.GetCurrentDirectory();
                 Logger.Information($"Current directory is: {basePathCurrentDirectory}");
 
@@ -64,13 +70,6 @@ namespace Altinn.Platform.Storage
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             });
-
-        // Parameters required for integration with SBL in local development             
-        /*
-            .UseUrls("http://0.0.0.0:5010")
-            .UseKestrel();
-            .UseContentRoot(Directory.GetCurrentDirectory())
-            .UseIISIntegration() */
 
         /// <summary>
         /// Load the configuration settings for the program.
