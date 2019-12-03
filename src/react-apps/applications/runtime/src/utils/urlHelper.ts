@@ -52,8 +52,8 @@ export function getCreateDataElementUrl(instanceId: string, dataType: string) {
   return `${appPath}/instances/${instanceId}/data?dataType=${dataType}`;
 }
 
-export function getValidationUrl(instanceId: string, dataElementId: string) {
-  return `${appPath}/instances/${instanceId}/data/${dataElementId}/validate`;
+export function getValidationUrl(instanceId: string) {
+  return `${appPath}/instances/${instanceId}/validate`;
 }
 
 export function getCompleteProcessUrl() {
