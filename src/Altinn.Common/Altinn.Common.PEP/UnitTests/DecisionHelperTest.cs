@@ -23,7 +23,7 @@ namespace UnitTests
         public void CreateXacmlJsonRequest_TC01()
         {
             // Arrange & Act
-            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonRequest(org, app, CreateUserClaims(false), actionType, partyId);
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonRequest(org, app, CreateUserClaims(false), actionType, partyId, null);
             XacmlJsonRequest request = requestRoot.Request;
 
             // Assert
@@ -40,7 +40,7 @@ namespace UnitTests
         public void CreateXacmlJsonRequest_TC02()
         {
             // Arrange & Act
-            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonRequest(org, app, CreateUserClaims(true), actionType, partyId);
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonRequest(org, app, CreateUserClaims(true), actionType, partyId, null);
             XacmlJsonRequest request = requestRoot.Request;
 
             // Assert

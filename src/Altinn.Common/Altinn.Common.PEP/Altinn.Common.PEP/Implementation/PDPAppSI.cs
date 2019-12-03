@@ -42,7 +42,7 @@ namespace Altinn.Common.PEP.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequest xacmlJsonRequest)
+        public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
             XacmlJsonResponse xacmlJsonResponse = null;
             string apiUrl = $"decision";
@@ -69,7 +69,7 @@ namespace Altinn.Common.PEP.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequest xacmlJsonRequest, ClaimsPrincipal user)
+        public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
         {
             if (_pepSettings.DisablePEP)
             {
