@@ -75,20 +75,11 @@ export interface IProfile {
   profileSettingPreference: IProfileSettingPreference;
 }
 
-export interface IDataType {
-  id: string;
-  allowedContentTypes: string[];
-  appLogic: any;
-  maxCount: number;
-  minCount: number;
-  shouldSign: boolean;
-  shouldEncrypt: boolean;
-}
 
 export interface IApplication {
   createdBy: string;
   createdDateTime: string;
-  dataTypes: IDataTypes[];
+  dataTypes: IDataType[];
   id: string;
   lastChangedBy: string;
   lastChangedDateTime: string;
@@ -101,9 +92,10 @@ export interface IApplication {
   WorkflowId: string;
 }
 
-export interface IDataTypes {
+export interface IDataType {
   id: string;
   description: string;
+  allowedContentTypes: string[];
   appLogic: any;
   taskId: string;
   maxSize: number;

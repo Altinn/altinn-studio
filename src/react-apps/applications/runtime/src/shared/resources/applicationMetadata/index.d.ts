@@ -1,9 +1,9 @@
-import { ITitle, IDataTypes } from "../../../../../shared/src/types";
+import { ITitle, IDataType } from "../../../../../shared/src/types";
 
 export interface IApplicationMetadata {
   createdBy: string;
   createdDateTime: string;
-  dataTypes: IDataTypes[];
+  dataTypes: IDataType[];
   id: string;
   lastChangedBy: string;
   lastChangedDateTime: string;
