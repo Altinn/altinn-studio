@@ -71,7 +71,7 @@ namespace Altinn.Platform.Storage.Repository
             Document document = createDocumentResponse.Resource;
             Instance instanceStored = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
-            PostProcess(instanceStored);
+            await PostProcess(instanceStored);
 
             return instanceStored;
         }
@@ -146,7 +146,7 @@ namespace Altinn.Platform.Storage.Repository
 
                 List<Instance> instances = feedResponse.ToList();
 
-                PostProcess(instances);
+                await PostProcess(instances);
 
                 queryResponse.Instances = instances;
                 queryResponse.ContinuationToken = nextContinuationToken;
@@ -458,7 +458,7 @@ namespace Altinn.Platform.Storage.Repository
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId.ToString()) });
 
-            PostProcess(instance);
+            await PostProcess(instance);
 
             return instance;
         }
@@ -484,7 +484,7 @@ namespace Altinn.Platform.Storage.Repository
 
             List<Instance> instances = feedResponse.ToList();
 
-            PostProcess(instances);
+            await PostProcess(instances);
 
             return instances;
         }
@@ -538,7 +538,7 @@ namespace Altinn.Platform.Storage.Repository
 
             instances = feedResponse.ToList();
 
-            PostProcess(instances);
+            await PostProcess(instances);
 
             return instances;
         }
@@ -553,7 +553,7 @@ namespace Altinn.Platform.Storage.Repository
             Document document = createDocumentResponse.Resource;
             Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
-            PostProcess(instance);
+            await PostProcess(instance);
 
             return instance;
         }
@@ -571,41 +571,25 @@ namespace Altinn.Platform.Storage.Repository
         /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerPartyId}/{instanceGuid} to be used outside cosmos.
         /// </summary>
         /// <param name="instance">the instance to preprocess</param>
-        private void PostProcess(Instance instance)
+        private async Task PostProcess(Instance instance)
         {
             Guid instanceGuid = Guid.Parse(instance.Id);
             string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
-            CompensateForPreviouslyStoredInstancesWitDataElements(instance, instanceGuid, instanceId);
-
             instance.Id = instanceId;
-            instance.Data = _dataRepository.ReadAll(instanceGuid).Result;
-        }
-
-        private void CompensateForPreviouslyStoredInstancesWitDataElements(Instance instance, Guid instanceGuid, string instanceId)
-        {
-            if (instance != null && instance.Data != null && instance.Data.Any())
-            {
-                _logger.LogInformation($"Compensating action for {instanceId}");
-                foreach (DataElement dataElement in instance.Data)
-                {
-                    dataElement.instanceGuid = instanceGuid.ToString();
-                    _ = _dataRepository.Create(dataElement);
-                }
-
-                instance.Data.Clear();
-                _ = Update(instance);
-                _logger.LogInformation($"Storing {instance.Data.Count} data elements and updating instance {instanceId}");
-            }
+            instance.Data = await _dataRepository.ReadAll(instanceGuid);
         }
 
         /// <summary>
         /// Preprosesses a list of instances.
         /// </summary>
         /// <param name="instances">the list of instances</param>
-        private void PostProcess(List<Instance> instances)
+        private async Task PostProcess(List<Instance> instances)
         {
-            instances.ForEach(i => PostProcess(i));
+            foreach (Instance item in instances)
+            {
+                await PostProcess(item);
+            }            
         }
 
         /// <summary>

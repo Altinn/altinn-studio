@@ -414,6 +414,5 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
             return (DocumentClientException)documentClientExceptionInstance;
         }
-
     }
 }
