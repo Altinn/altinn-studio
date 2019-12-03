@@ -1,9 +1,15 @@
 import * as moment from 'moment';
-import { IInstance, IParty } from '../../../shared/src/types';
+import { IApplication, IInstance, IParty } from '../../../shared/src/types';
+import { getCurrentTaskData } from '../../../shared/src/utils/applicationMetaDataUtils';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { getInstanceId } from './instance';
 
-export const getInstanceMetaDataObject = (instance: IInstance, party: IParty,  language: any, organisations: any) => {
+export const getInstanceMetaDataObject = (
+  instance: IInstance,
+  party: IParty,
+  language: any,
+  organisations: any,
+  application: IApplication) => {
   const obj = {} as any;
 
   if (!instance || !party || !language || !organisations) {
@@ -12,7 +18,7 @@ export const getInstanceMetaDataObject = (instance: IInstance, party: IParty,  l
 
   let dateSubmitted;
   if (instance.data) {
-    const lastChanged = instance.data.filter((elem) => elem.elementType === 'default')[0].lastChangedDateTime;
+    const lastChanged = getCurrentTaskData(application, instance).lastChanged;
     dateSubmitted = moment(lastChanged).format('DD.MM.YYYY / HH:mm');
   }
   obj[getLanguageFromKey('receipt_platform.date_sent', language)] = dateSubmitted;
