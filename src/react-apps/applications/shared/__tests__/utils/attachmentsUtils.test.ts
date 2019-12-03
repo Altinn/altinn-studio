@@ -28,7 +28,7 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
       data: [
         {
           id:  '585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
-          elementType:  'default',
+          elementType:  '585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
           fileName:  '585b2f4e-5ecb-417b-9d01-82b6e889e1d1.xml',
           contentType:  'application/Xml',
           storageUrl:  'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
@@ -174,7 +174,7 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
     },
   ];
 
-  expect(mapInstanceAttachments(instance.data as unknown as IData[])).toEqual(attachmentsTestData);
+  expect(mapInstanceAttachments(instance.data as unknown as IData[], '585b2f4e-5ecb-417b-9d01-82b6e889e1d1')).toEqual(attachmentsTestData);
 
 });
 
