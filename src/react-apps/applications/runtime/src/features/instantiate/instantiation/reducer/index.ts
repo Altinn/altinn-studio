@@ -1,9 +1,6 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import {
-  IInstantiateFulfilled,
-  IInstantiateRejected,
-} from '../actions/instantiate';
+import { IInstantiateFulfilled, IInstantiateRejected } from '../actions/instantiate';
 import * as InstantiateActionTypes from '../actions/types';
 
 export interface IInstantiationState {

@@ -82,8 +82,8 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     dataModelElement: IDataModelFieldElement,
     callbackValue: any,
   ): void => {
-    const dataBindingName = this.isRepeating() ? dataModelElement.DataBindingName.replace(this.props.dataModelGroup,
-      this.props.dataModelGroup + `[${this.props.index}]`) : dataModelElement.DataBindingName;
+    const dataBindingName = this.isRepeating() ? dataModelElement.dataBindingName.replace(this.props.dataModelGroup,
+      this.props.dataModelGroup + `[${this.props.index}]`) : dataModelElement.dataBindingName;
     FormFillerActionDispatchers.updateFormData(
       id,
       callbackValue,

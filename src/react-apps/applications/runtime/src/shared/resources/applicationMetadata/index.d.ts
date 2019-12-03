@@ -1,19 +1,21 @@
+import { ITitle, IDataType } from "../../../../../shared/src/types";
+
 export interface IApplicationMetadata {
-  id: string;
-  versionId: string;
-  org: string;
-  createdDateTime: string;
   createdBy: string;
-  lastChangedDateTime: string;
+  createdDateTime: string;
+  dataTypes: IDataType[];
+  id: string;
   lastChangedBy: string;
-  title: string;
-  validFrom: string;
-  validTo: string;
-  WorkflowId: string;
+  lastChangedDateTime: string;
   maxSize: string;
-  dataTypes: string;
+  org: string;
   partyTypesAllowed: IPartyTypesAllowed;
   subscriptionHook: ISubscriptionHook;
+  title: ITitle;
+  validFrom: string;
+  validTo: string;
+  versionId: string;
+  WorkflowId: string;
 }
 
 interface IPartyTypesAllowed {

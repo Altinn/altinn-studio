@@ -27,7 +27,7 @@ const filterFormData = (data: any, model: any[]): any => {
   const filteredResult: any = {};
   Object.keys(data).forEach((key: string) => {
     const formDataKey = getKeyWithoutIndex(key);
-    if (model.find((m) => m.DataBindingName === formDataKey && m.Type === 'Field')) {
+    if (model.find((m) => m.dataBindingName === formDataKey && m.type === 'Field')) {
       filteredResult[key] = data[key];
     }
   });

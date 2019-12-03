@@ -1,11 +1,11 @@
 import { IAttachments } from '../shared/resources/attachments';
 import { IData } from './../../../shared/src/types';
 
-export function mapAttachmentListToAttachments(data: IData[]): IAttachments {
+export function mapAttachmentListToAttachments(data: IData[], defaultElementId: string): IAttachments {
   const attachments: IAttachments = {};
 
   data.forEach((element: IData) => {
-      if (element.elementType === 'default' || element.elementType === 'ref-data-as-pdf') {
+      if (element.id === defaultElementId || element.dataType === 'ref-data-as-pdf') {
         return;
       }
 

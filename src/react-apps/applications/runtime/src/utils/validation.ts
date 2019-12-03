@@ -132,7 +132,7 @@ export function validateComponentFormData(
 ): IComponentValidations {
   const validationErrors: string[] = [];
   const fieldKey = Object.keys(component.dataModelBindings).find((binding: string) =>
-    component.dataModelBindings[binding] === dataModelFieldElement.DataBindingName);
+    component.dataModelBindings[binding] === dataModelFieldElement.dataBindingName);
 
   const componentValidations: IComponentValidations = !existingValidationErrors ?
     {
@@ -142,19 +142,19 @@ export function validateComponentFormData(
       },
     } : existingValidationErrors;
 
-  Object.keys(dataModelFieldElement.Restrictions).forEach((key) => {
-    const validationSuccess = runValidation(key, dataModelFieldElement.Restrictions[key], formData);
+  Object.keys(dataModelFieldElement.restrictions).forEach((key) => {
+    const validationSuccess = runValidation(key, dataModelFieldElement.restrictions[key], formData);
     if (!validationSuccess) {
-      if (dataModelFieldElement.Restrictions[key].ErrortText) {
+      if (dataModelFieldElement.restrictions[key].errortText) {
         validationErrors.push(
-          dataModelFieldElement.Restrictions[key].ErrortText,
+          dataModelFieldElement.restrictions[key].errortText,
         );
       } else {
         validationErrors.push(
           getParsedLanguageFromKey(
             `validation_errors.${key}`,
             language,
-            [dataModelFieldElement.Restrictions[key].Value],
+            [dataModelFieldElement.restrictions[key].value],
           ),
         );
       }
@@ -188,7 +188,7 @@ export function validateFormData(
   const result: IValidations = {};
   Object.keys(formData).forEach((formDataKey) => {
     const dataBindingName = getKeyWithoutIndex(formDataKey);
-    const dataModelFieldElement = dataModelFieldElements.find((e) => e.DataBindingName === dataBindingName);
+    const dataModelFieldElement = dataModelFieldElements.find((e) => e.dataBindingName === dataBindingName);
     if (!dataModelFieldElement) {
       return;
     }
@@ -414,7 +414,7 @@ function runValidation(
 
   // run relevant validation function
   try {
-    return validationFunctions[validationFunction](formFieldValue, validationTest.Value);
+    return validationFunctions[validationFunction](formFieldValue, validationTest.value);
   } catch (error) {
     if (error instanceof TypeError) {
       console.error(

@@ -56,7 +56,7 @@ export const GenericComponent = (props: IGenericComponentProps) => {
       ValidationActions.runSingleFieldValidation(url, dataModelField);
     }
     const dataModelElement = dataModel.find(
-      (element) => element.DataBindingName === props.dataModelBindings[key],
+      (element) => element.dataBindingName === props.dataModelBindings[key],
     );
     RuleActions.checkIfRuleShouldRun(props.id, dataModelElement, value);
   };

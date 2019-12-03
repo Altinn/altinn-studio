@@ -20,6 +20,7 @@ import { processSagas } from '../shared/resources/process/processSagas';
 import ProfileSagas from '../shared/resources/profile/profileSagas';
 import TextResourcesSagas from '../shared/resources/textResources/sagas';
 import IsLoadingSagas from './../shared/resources/isLoading/isLoadingSagas';
+import QueueSagas from './../shared/resources/queue/queueSagas';
 
 function* root(): SagaIterator {
   yield fork(FormConfigSagas);
@@ -40,6 +41,7 @@ function* root(): SagaIterator {
   yield fork(InstanceDataSagas);
   yield fork(processSagas);
   yield fork(IsLoadingSagas);
+  yield fork(QueueSagas);
 }
 
 export const initSagas: () => Task = () => sagaMiddleware.run(root);

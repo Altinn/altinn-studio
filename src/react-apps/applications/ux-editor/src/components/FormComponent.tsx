@@ -193,7 +193,7 @@ const makeMapStateToProps = () => {
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
       (element) =>
-        element.DataBindingName ===
+        element.dataBindingName ===
         state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding),
     connections: state.serviceConfigurations.APIs.connections,
     externalApi: state.serviceConfigurations.APIs.externalApisById,
