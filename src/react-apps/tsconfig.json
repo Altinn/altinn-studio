@@ -19,7 +19,7 @@
     "noUnusedLocals": true
   },
   "include": [
-    "./applications/**/src/**/*",
+    "./applications/**/src/**/*", "utils/convertLangToJson.ts",
   ],
   "exclude": [
     "node_modules",

@@ -22,8 +22,9 @@ import processReducer, { IProcessState } from '../shared/resources/process/proce
 import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
 import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/reducer';
 import IsLoadingReducer, { IIsLoadingState } from './../shared/resources/isLoading/isLoadingReducers';
+import QueueReducer, { IQueueState } from './../shared/resources/queue/queueReducer';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
@@ -42,6 +43,7 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T1
   instanceData: T16;
   process: T17;
   isLoading: T18;
+  queue: T19;
 }
 
 export interface IRuntimeReducers extends IReducers<
@@ -62,7 +64,8 @@ export interface IRuntimeReducers extends IReducers<
   Reducer<IOrgsState>,
   Reducer<IInstanceDataState>,
   Reducer<IProcessState>,
-  Reducer<IIsLoadingState>
+  Reducer<IIsLoadingState>,
+  Reducer<IQueueState>
   >,
   ReducersMapObject {
 }
@@ -85,6 +88,7 @@ const reducers: IRuntimeReducers = {
   party: PartyReducer,
   process: processReducer,
   profile: ProfileReducer,
+  queue: QueueReducer,
   textResources: TextResourcesReducer,
 };
 

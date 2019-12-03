@@ -22,11 +22,11 @@ function* fetchFormDataModelSaga({ url }: IFetchDataModel): SagaIterator {
       ServiceId,
     } = dataModel;
     const dataModelFields: any[] = [];
-    for (const dataModelField in dataModel.Elements) {
+    for (const dataModelField in dataModel.elements) {
       if (!dataModelField) {
         continue;
       }
-      dataModelFields.push(dataModel.Elements[dataModelField]);
+      dataModelFields.push(dataModel.elements[dataModelField]);
     }
     yield call(DataModelActions.fetchDataModelFulfilled, dataModelFields);
     yield call(ConfigActions.fetchFormConfigFulfilled, Org, ServiceName, RepositoryName, ServiceId);

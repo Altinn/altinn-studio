@@ -37,22 +37,22 @@ export function validateDataModel(
   layoutModelElement?: IFormComponent,
 ): any {
   const validationErrors: string[] = [];
-  Object.keys(dataModelFieldElement.Restrictions).forEach((key) => {
+  Object.keys(dataModelFieldElement.restrictions).forEach((key) => {
     if (
-      !runValidation(key, dataModelFieldElement.Restrictions[key], formData)
+      !runValidation(key, dataModelFieldElement.restrictions[key], formData)
     ) {
-      if (dataModelFieldElement.Restrictions[key].ErrortText) {
+      if (dataModelFieldElement.restrictions[key].ErrortText) {
         validationErrors.push(
-          dataModelFieldElement.Restrictions[key].ErrortText,
+          dataModelFieldElement.restrictions[key].ErrortText,
         );
       } else {
         validationErrors.push(
-          `${key}: ${dataModelFieldElement.Restrictions[key].Value}`,
+          `${key}: ${dataModelFieldElement.restrictions[key].Value}`,
         );
       }
     }
   });
-  if ((dataModelFieldElement.MinOccurs === null || dataModelFieldElement.MinOccurs === 1)
+  if ((dataModelFieldElement.minOccurs === null || dataModelFieldElement.minOccurs === 1)
     || (layoutModelElement.required && formData.length)) {
     if (formData.length === 0) {
       validationErrors.push(
@@ -72,7 +72,7 @@ export function validateFormData(
   const result: any = {};
   Object.keys(formData).forEach((formDataKey, index) => {
     const dataBindingName = getKeyWithoutIndex(formDataKey);
-    const dataModelFieldElement = dataModelFieldElements.find((e) => e.DataBindingName === dataBindingName);
+    const dataModelFieldElement = dataModelFieldElements.find((e) => e.dataBindingName === dataBindingName);
     if (!dataModelFieldElement) {
       return;
     }
@@ -94,18 +94,18 @@ export function validateFormData(
 
     const layoutModelElement: IFormComponent = layoutModelElements[layoutModelKey];
 
-    Object.keys(dataModelFieldElement.Restrictions).forEach((restrictionKey) => {
-      if (!runValidation(restrictionKey, dataModelFieldElement.Restrictions[restrictionKey], formData[formDataKey])) {
-        if (dataModelFieldElement.Restrictions[restrictionKey].ErrortText) {
-          validationErrors.push(dataModelFieldElement.Restrictions[restrictionKey].ErrortText);
+    Object.keys(dataModelFieldElement.restrictions).forEach((restrictionKey) => {
+      if (!runValidation(restrictionKey, dataModelFieldElement.restrictions[restrictionKey], formData[formDataKey])) {
+        if (dataModelFieldElement.restrictions[restrictionKey].ErrortText) {
+          validationErrors.push(dataModelFieldElement.restrictions[restrictionKey].ErrortText);
         } else {
           validationErrors.push(
-            `${restrictionKey}: ${dataModelFieldElement.Restrictions[restrictionKey].Value}`);
+            `${restrictionKey}: ${dataModelFieldElement.restrictions[restrictionKey].Value}`);
         }
       }
     });
 
-    if ((dataModelFieldElement.MinOccurs === null || dataModelFieldElement.MinOccurs === 1)
+    if ((dataModelFieldElement.minOccurs === null || dataModelFieldElement.minOccurs === 1)
       || (layoutModelElement && layoutModelElement.required)) {
       if (formData[formDataKey].length === 0) {
         validationErrors.push('Field is required');

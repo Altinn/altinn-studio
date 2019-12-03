@@ -1,6 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
-import { get } from '../../../../utils/networking';
+// import { get } from '../../../../utils/networking';
+import { nb } from '../languages';
 import LanguageActions from './../languageActions';
 import { IFetchLanguage } from './fetchLanguageActions';
 import * as LanguageActionTypes from './fetchLanguageActionTypes';
@@ -10,8 +11,8 @@ export function* fetchLanguageSaga({
   languageCode,
 }: IFetchLanguage): SagaIterator {
   try {
-    const language = yield call(get, url, { params: { languageCode } });
-    yield call(LanguageActions.fetchLanguageFulfilled, language);
+    // const language = yield call(get, url, { params: { languageCode } });
+    yield call(LanguageActions.fetchLanguageFulfilled, nb());
   } catch (err) {
     yield call(LanguageActions.fetchLanguageRecjeted, err);
   }

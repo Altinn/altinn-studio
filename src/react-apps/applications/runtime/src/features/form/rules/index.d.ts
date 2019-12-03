@@ -1,25 +1,25 @@
 export interface IDataModelFieldElement {
-  ID: string;
-  Choices?: any;
-  CustomProperties?: any;
-  DataBindingName: string;
-  FixedValue?: any;
-  IsReadOnly: boolean;
-  IsTagContent: boolean;
-  MaxOccurs: number;
-  MinOccurs: number;
-  Name: string;
-  ParentElement: string;
-  Restrictions: any;
-  Texts: any;
-  Type: string;
-  TypeName?: string;
-  XName?: string;
-  XPath: string;
-  XsdValueType?: string;
-  DisplayString: string;
-  XmlSchemaXPath: string;
-  JsonSchemaPointer: string;
+  choices?: any;
+  customProperties?: any;
+  dataBindingName: string;
+  displayString: string;
+  fixedValue?: any;
+  id: string;
+  isReadOnly: boolean;
+  isTagContent: boolean;
+  jsonSchemaPointer: string;
+  maxOccurs: number;
+  minOccurs: number;
+  name: string;
+  parentElement: string;
+  restrictions: any;
+  texts: any;
+  type: string;
+  typeName?: string;
+  xmlSchemaXPath: string;
+  xName?: string;
+  xPath: string;
+  xsdValueType?: string;
 }
 
 export interface IRuleModelFieldElement {

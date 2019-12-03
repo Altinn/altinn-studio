@@ -40,7 +40,7 @@ export function checkIfRuleShouldRun(
         continue;
       }
 
-      if (connectionDef.inputParams[inputParam] === lastUpdatedDataBinding.DataBindingName) {
+      if (connectionDef.inputParams[inputParam] === lastUpdatedDataBinding.dataBindingName) {
         shouldRunFunction = true;
       }
     }
@@ -60,7 +60,7 @@ export function checkIfRuleShouldRun(
         }, {});
         const result = (window as any).ruleHandlerObject[functionToRun](newObj);
         const updatedDataBinding: IDataModelFieldElement = formDataModelState.dataModel.find(
-          (element: IDataModelFieldElement) => element.DataBindingName === connectionDef.outParams.outParam0);
+          (element: IDataModelFieldElement) => element.dataBindingName === connectionDef.outParams.outParam0);
         let updatedComponent: string;
         for (const component in formLayoutState.layout) {
           if (!component) {
@@ -90,12 +90,12 @@ export function checkIfRuleShouldRun(
           } else {
             /* if (isPartOfRepeatingGroup) {
               updatedDataBinding = { ...updatedDataBinding };
-              updatedDataBinding.DataBindingName =
-                updatedDataBinding.DataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
+              updatedDataBinding.dataBindingName =
+                updatedDataBinding.dataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
             } */
             rules.push({
               ruleShouldRun: true,
-              dataBindingName: updatedDataBinding.DataBindingName,
+              dataBindingName: updatedDataBinding.dataBindingName,
               componentId: updatedComponent,
               result: result.toString(),
             });
