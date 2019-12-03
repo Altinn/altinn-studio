@@ -42,26 +42,26 @@ namespace Altinn.Platform.Storage
         {            
             services.AddControllers(config =>
             {
-                AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
-                    .AddAuthenticationSchemes(JwtCookieDefaults.AuthenticationScheme)
-                    .RequireAuthenticatedUser()
-                    .Build();
-                config.Filters.Add(new AuthorizeFilter(policy));
+                ////AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
+                ////    .AddAuthenticationSchemes(JwtCookieDefaults.AuthenticationScheme)
+                ////    .RequireAuthenticatedUser()
+                ////    .Build();
+                ////config.Filters.Add(new AuthorizeFilter(policy));
             }).AddNewtonsoftJson();
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
 
-            GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+            ////GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
 
-            services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
-                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
-                {
-                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                    options.Cookie.Name = generalSettings.RuntimeCookieName;
-                    options.Cookie.Domain = generalSettings.Hostname;
-                    options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
-                });
+            ////services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
+            ////    .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
+            ////    {
+            ////        options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+            ////        options.Cookie.Name = generalSettings.RuntimeCookieName;
+            ////        options.Cookie.Domain = generalSettings.Hostname;
+            ////        options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+            ////    });
 
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
@@ -78,27 +78,27 @@ namespace Altinn.Platform.Storage
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Platform Storage", Version = "v1" });
-                c.AddSecurityDefinition(JwtCookieDefaults.AuthenticationScheme, new OpenApiSecurityScheme
-                {
-                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\". Remember to add \"Bearer\" to the input below before your token.",
-                    Name = "Authorization",
-                    In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
-                });
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Id = JwtCookieDefaults.AuthenticationScheme,
-                                Type = ReferenceType.SecurityScheme
-                            }
-                        },
-                        new string[] { }
-                    }
-                });
+                ////c.AddSecurityDefinition(JwtCookieDefaults.AuthenticationScheme, new OpenApiSecurityScheme
+                ////{
+                ////    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\". Remember to add \"Bearer\" to the input below before your token.",
+                ////    Name = "Authorization",
+                ////    In = ParameterLocation.Header,
+                ////    Type = SecuritySchemeType.ApiKey,
+                ////});
+                ////c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                ////{
+                ////    {
+                ////        new OpenApiSecurityScheme
+                ////        {
+                ////            Reference = new OpenApiReference
+                ////            {
+                ////                Id = JwtCookieDefaults.AuthenticationScheme,
+                ////                Type = ReferenceType.SecurityScheme
+                ////            }
+                ////        },
+                ////        new string[] { }
+                ////    }
+                ////});
                 try
                 {
                     c.IncludeXmlComments(GetXmlCommentsPathForControllers());
@@ -150,7 +150,7 @@ namespace Altinn.Platform.Storage
 
             // app.UseHttpsRedirection();
             app.UseRouting();
-            app.UseAuthentication();
+            ////app.UseAuthentication();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
