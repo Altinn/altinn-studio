@@ -110,16 +110,15 @@ function Receipt(props: WithStyles<typeof styles>) {
   };
 
   React.useEffect(() => {
-    if (instance) {
+    if (instance && application) {
       const defaultElement = returnCurrentTaskData(application, instance);
-
       setAttachments(mapInstanceAttachments(instance.data, defaultElement.id));
       setPdf(getInstancePdf(instance.data, true));
     }
     if (!application && instance) {
       fetchApplication();
     }
-  }, [instance]);
+  }, [instance, application]);
 
   React.useEffect(() => {
     fetchInstance();
