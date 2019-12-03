@@ -1,7 +1,7 @@
 // tslint:disable: max-line-length
 import 'jest';
 import { IData } from '../../src/types';
-import {getInstancePdf, mapInstanceAttachments} from '../../src/utils/attachments';
+import {getInstancePdf, mapInstanceAttachments} from '../../src/utils/attachmentsUtils';
 
 test('mapInstanceAttachments() returns correct attachment array', () => {
   const instance = {
