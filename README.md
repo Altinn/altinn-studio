@@ -107,6 +107,8 @@ dotnet run
 Which will build the Designer .net backend and the designer react app, but not listen to changes to the react app.
 
 #### Apps
+> If you only need to develop and debug App-Frontend, you can follow the description in 5) (only) and deploy the app to any test environment. The App-Frontend will be loaded from your local webpack-dev-server.
+
 It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.
 
 _NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command
