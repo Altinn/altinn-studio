@@ -2,7 +2,7 @@ using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Repositories;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Logging;
@@ -174,7 +174,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Assert
             Assert.Equal(INSTANCE_ID, instance.Id);
-            Assert.Equal(INSTANCE_OWNER_ID.ToString(), instance.InstanceOwnerId);
+            Assert.Equal(INSTANCE_OWNER_ID.ToString(), instance.InstanceOwner.PartyId);
         }
 
         /// <summary>

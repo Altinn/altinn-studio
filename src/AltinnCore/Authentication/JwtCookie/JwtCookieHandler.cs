@@ -1,5 +1,6 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Encodings.Web;
@@ -104,15 +105,28 @@ namespace AltinnCore.Authentication.JwtCookie
 
                 OpenIdConnectConfiguration configuration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
 
-                TokenValidationParameters validationParameters = new TokenValidationParameters
+                if (Options.TokenValidationParameters == null)
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKeys = configuration.SigningKeys,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    RequireExpirationTime = true,
-                    ValidateLifetime = true
-                };
+                    Options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKeys = configuration.SigningKeys,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true
+                    };
+                }
+
+                TokenValidationParameters validationParameters = Options.TokenValidationParameters.Clone();
+                if (configuration != null)
+                {
+                    var issuers = new[] { configuration.Issuer };
+                    validationParameters.ValidIssuers = validationParameters.ValidIssuers?.Concat(issuers) ?? issuers;
+
+                    validationParameters.IssuerSigningKeys = validationParameters.IssuerSigningKeys?.Concat(configuration.SigningKeys)
+                                                             ?? configuration.SigningKeys;
+                }
 
                 JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
 
