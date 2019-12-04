@@ -1,11 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Constants;
-using AltinnCore.Designer.Infrastructure.Authentication;
-using AltinnCore.Designer.TypedHttpClients.AltinnAuthentication;
+using System.Reflection;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -13,10 +9,8 @@ using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Core;
 using Serilog.Extensions.Logging;
@@ -86,8 +80,11 @@ namespace AltinnCore.Designer
                             keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
                         SetTelemetry(secretBundle.Value);
 
-                        SecretBundle secretCertificateBundle = keyVaultClient.GetSecretAsync(keyVaultEndpoint, "JWTCertificate").GetAwaiter().GetResult();
-                        config.Properties.Add("GeneralSettings:MaskinportenCertificate", secretCertificateBundle.Value);
+                        SecretBundle secretCertificateBundle = keyVaultClient.GetSecretAsync(keyVaultEndpoint, "Register-enheten-Bronnoysund").GetAwaiter().GetResult();
+                        config.AddInMemoryCollection(new List<KeyValuePair<string, string>>
+                        {
+                            new KeyValuePair<string, string>("GeneralSettings:MaskinportenCertificate", secretCertificateBundle.Value)
+                        });
                     }
                     catch (Exception vaultException)
                     {
@@ -98,6 +95,11 @@ namespace AltinnCore.Designer
                 if (hostingEnvironment.IsDevelopment() && basePath != "/")
                 {
                     config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: true);
+                    Assembly assembly = Assembly.Load(new AssemblyName(hostingEnvironment.ApplicationName));
+                    if (assembly != null)
+                    {
+                        config.AddUserSecrets(assembly, true);
+                    }
                 }
             })
             .ConfigureLogging((hostingContext, logging) =>

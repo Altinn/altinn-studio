@@ -20,7 +20,7 @@ namespace AltinnCore.Designer.Services
     {
         private readonly X509Certificate2 _certificate;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IAltinnAuthenticationService _altinnAuthenticationService;
+        private readonly IAltinnAuthenticationClient _altinnAuthenticationClient;
         private readonly GeneralSettings _generalSettings;
 
         /// <summary>
@@ -28,17 +28,17 @@ namespace AltinnCore.Designer.Services
         /// </summary>
         /// <param name="options">IOptionsMonitor of type GeneralSettings</param>
         /// <param name="httpClientFactory">IHttpClientFactory</param>
-        /// <param name="altinnAuthenticationService">IAltinnAuthenticationService</param>
+        /// <param name="altinnAuthenticationClient">IAltinnAuthenticationClient</param>
         public PlatformAuthenticator(
             IOptionsMonitor<GeneralSettings> options,
             IHttpClientFactory httpClientFactory,
-            IAltinnAuthenticationService altinnAuthenticationService)
+            IAltinnAuthenticationClient altinnAuthenticationClient)
         {
             _generalSettings = options.CurrentValue;
             byte[] pfxBytes = Convert.FromBase64String(_generalSettings.MaskinportenCertificate);
             _certificate = new X509Certificate2(pfxBytes);
             _httpClientFactory = httpClientFactory;
-            _altinnAuthenticationService = altinnAuthenticationService;
+            _altinnAuthenticationClient = altinnAuthenticationClient;
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace AltinnCore.Designer.Services
         public async Task<string> GetConvertedTokenAsync()
         {
             AccessTokenModel maskinportenToken = await CreateMaskinportenTokenAsync();
-            return await _altinnAuthenticationService.ConvertTokenAsync(maskinportenToken.AccessToken);
+            return await _altinnAuthenticationClient.ConvertTokenAsync(maskinportenToken.AccessToken);
         }
 
         private async Task<AccessTokenModel> CreateMaskinportenTokenAsync()

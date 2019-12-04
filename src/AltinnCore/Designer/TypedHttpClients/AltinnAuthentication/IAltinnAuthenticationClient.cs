@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
 {
     /// <summary>
-    /// IAltinnAuthenticationService
+    /// IAltinnAuthenticationClient
     /// </summary>
-    public interface IAltinnAuthenticationService
+    public interface IAltinnAuthenticationClient
     {
         /// <summary>
         /// Converts a token

@@ -45,6 +45,7 @@ namespace AltinnCore.Designer.Infrastructure
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
             services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
             services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
+            services.AddTransient<IPlatformAuthenticator, PlatformAuthenticator>();
 
             return services;
         }

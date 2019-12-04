@@ -16,15 +16,15 @@ namespace AltinnCore.Designer.Controllers
     [Route("/designer/api/v1/")]
     public class PipelinesController : ControllerBase
     {
-        private readonly IAzureDevOpsBuildService _buildService;
+        private readonly IAzureDevOpsBuildClient _buildClient;
 
         /// <summary>
         /// Constructor
         /// </summary>
         public PipelinesController(
-            IAzureDevOpsBuildService buildService)
+            IAzureDevOpsBuildClient buildClient)
         {
-            _buildService = buildService;
+            _buildClient = buildClient;
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace AltinnCore.Designer.Controllers
                 return BadRequest();
             }
 
-            Build build = await _buildService.Get(buildId);
+            Build build = await _buildClient.Get(buildId);
             await releaseService.UpdateAsync(new ReleaseEntity
             {
                 Build = new BuildEntity
@@ -68,7 +68,7 @@ namespace AltinnCore.Designer.Controllers
             [FromServices] IDeploymentService deploymentService)
         {
             string buildId = model.Resource.BuildNumber;
-            Build build = await _buildService.Get(buildId);
+            Build build = await _buildClient.Get(buildId);
             await deploymentService.UpdateAsync(new DeploymentEntity
             {
                 Build = new BuildEntity

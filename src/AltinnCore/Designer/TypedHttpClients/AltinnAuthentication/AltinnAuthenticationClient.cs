@@ -2,15 +2,13 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using AltinnCore.Common.Configuration;
-using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
 {
     /// <summary>
-    /// AltinnAuthenticationService
+    /// AltinnAuthenticationClient
     /// </summary>
-    public class AltinnAuthenticationService : IAltinnAuthenticationService
+    public class AltinnAuthenticationClient : IAltinnAuthenticationClient
     {
         private readonly HttpClient _httpClient;
 
@@ -18,7 +16,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
         /// Constructor
         /// </summary>
         /// <param name="httpClient">HttpClient</param>
-        public AltinnAuthenticationService(HttpClient httpClient)
+        public AltinnAuthenticationClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
@@ -26,15 +24,14 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
         /// <inheritdoc/>
         public async Task<string> ConvertTokenAsync(string token)
         {
-            return await SendToken(token, "refresh");
-        }
-
-        private async Task<string> SendToken(string token, string requestUri)
-        {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            /*
+             * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
+             * because the endpoint is built up in that way
+             */
             HttpRequestMessage message = new HttpRequestMessage
             {
-                RequestUri = new Uri(requestUri)
+                RequestUri = new Uri($"{_httpClient.BaseAddress}convert") // TODO Move 'convert' out to config
             };
             HttpResponseMessage response = await _httpClient.SendAsync(message);
             return await response.Content.ReadAsStringAsync();

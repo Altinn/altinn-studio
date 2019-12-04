@@ -8,6 +8,8 @@ using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.TypedHttpClients.AltinnAuthentication;
+using AltinnCore.Designer.TypedHttpClients.AltinnAuthorization;
+using AltinnCore.Designer.TypedHttpClients.AltinnStorage;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.DelegatingHandlers;
 using Microsoft.AspNetCore.Http;
@@ -31,9 +33,14 @@ namespace AltinnCore.Designer.TypedHttpClients
         {
             services.AddHttpClient();
             services.AddTransient<EnsureSuccessHandler>();
+            services.AddTransient<PlatformBearerTokenHandler>();
             services.AddAzureDevOpsTypedHttpClient(config);
             services.AddGiteaTypedHttpClient(config);
             services.AddAltinnAuthenticationTypedHttpClient(config);
+            services.AddAuthenticatedAltinnPlatformTypedHttpClient
+                <IAltinnStorageAppMetadataClient, AltinnStorageAppMetadataClient>();
+            services.AddAuthenticatedAltinnPlatformTypedHttpClient
+                <IAltinnAuthorizationPolicyClient, AltinnAuthorizationPolicyClient>();
 
             return services;
         }
@@ -42,7 +49,7 @@ namespace AltinnCore.Designer.TypedHttpClients
         {
             AzureDevOpsSettings azureDevOpsSettings = config.GetSection("Integrations:AzureDevOpsSettings").Get<AzureDevOpsSettings>();
             string token = config["AccessTokenDevOps"];
-            return services.AddHttpClient<IAzureDevOpsBuildService, AzureDevOpsBuildService>(client =>
+            return services.AddHttpClient<IAzureDevOpsBuildClient, AzureDevOpsBuildClient>(client =>
             {
                 client.BaseAddress = new Uri($"{azureDevOpsSettings.BaseUri}build/builds/");
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -69,12 +76,22 @@ namespace AltinnCore.Designer.TypedHttpClients
                     });
 
         private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(this IServiceCollection services, IConfiguration config)
-            => services.AddHttpClient<IAltinnAuthenticationService, AltinnAuthenticationService>((sp, httpClient) =>
+            => services.AddHttpClient<IAltinnAuthenticationClient, AltinnAuthenticationClient>((sp, httpClient) =>
                 {
                     PlatformSettings platformSettings = config.GetSection("PlatformSettings").Get<PlatformSettings>();
                     httpClient.BaseAddress = new Uri(platformSettings.ApiAuthenticationEndpoint);
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 })
+                .AddHttpMessageHandler<EnsureSuccessHandler>();
+
+        private static IHttpClientBuilder AddAuthenticatedAltinnPlatformTypedHttpClient<TInterface, TImplementation>(this IServiceCollection services)
+            where TImplementation : class, TInterface
+            where TInterface : class
+            => services.AddHttpClient<TInterface, TImplementation>((sp, httpClient) =>
+                {
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddHttpMessageHandler<PlatformBearerTokenHandler>()
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
     }
 }
