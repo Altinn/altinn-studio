@@ -115,5 +115,15 @@ namespace Altinn.App.Services.Interface
         /// <param name="stream">the stream to stream</param>
         /// <returns></returns>
         Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream);
+
+
+        /// <summary>
+        /// Updates the data element information.
+        /// </summary>
+        /// <param name="instanceId">The instance id</param>
+        /// <param name="dataElement">The data element with values to update</param>
+        /// <returns></returns>
+        Task<DataElement> Update(string instanceId, DataElement dataElement);
+
     }
 }

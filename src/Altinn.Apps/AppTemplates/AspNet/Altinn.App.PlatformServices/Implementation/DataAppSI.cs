@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -349,6 +350,28 @@ namespace Altinn.App.Services.Implementation
             }
 
             return content;
+        }
+
+        /// <inheritdoc />
+        public async Task<DataElement> Update(string instanceId, DataElement dataElement)
+        {
+            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data/{dataElement.Id}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+
+            StringContent content = new StringContent(dataElement.ToString(), Encoding.UTF8, "application/json");
+
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            HttpResponseMessage response = await _client.PutAsync(apiUrl, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                DataElement result = JsonConvert.DeserializeObject<DataElement> (await response.Content.ReadAsStringAsync());
+
+                return result;
+            }
+
+            return null;
         }
     }
 }

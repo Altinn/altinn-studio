@@ -184,7 +184,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             List<DataElement> dataList = await _dataRepository.ReadAll(instanceGuid);
-            
+
             return Ok(dataList);
         }
 
@@ -201,7 +201,7 @@ namespace Altinn.Platform.Storage.Controllers
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(typeof(DataElement), 201)]
-        public async Task<IActionResult> CreateAndUploadData(int instanceOwnerPartyId, Guid instanceGuid, string dataType, [FromQuery(Name ="refs")]List<Guid> refs = null)
+        public async Task<IActionResult> CreateAndUploadData(int instanceOwnerPartyId, Guid instanceGuid, string dataType, [FromQuery(Name = "refs")]List<Guid> refs = null)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
@@ -342,7 +342,39 @@ namespace Altinn.Platform.Storage.Controllers
                 return UnprocessableEntity($"Could not process attached file");
             }
 
-            return StatusCode(500, $"Storage url does not match with instance metadata");            
+            return StatusCode(500, $"Storage url does not match with instance metadata");
+        }
+
+        /// <summary>
+        /// Updates the data element with a new downConfirmed date.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">the instance owner party id</param>
+        /// <param name="instanceGuid">the instance guid</param>
+        /// <param name="dataGuid">the data guid</param>
+        /// <returns>the updated data element</returns>
+        // "/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/confirmDownload"
+        [HttpPut("{dataGuid}/confirmDownload")]        
+        [ProducesResponseType(typeof(DataElement), 200)]
+        [DisableFormValueModelBinding]
+        public async Task<IActionResult> ConfirmDownload(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
+        {
+            DataElement dataElement = await _dataRepository.Read(instanceGuid, dataGuid);
+
+            List<DateTime> downloaded = dataElement.AppOwner?.Downloaded;
+            if (downloaded == null || !downloaded.Any())
+            {
+                return Conflict($"Data element {instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid} is not downloaded by app owner. Please download first.");
+            }
+
+            dataElement.AppOwner ??= new ApplicationOwnerDataState();
+
+            dataElement.AppOwner.DownloadConfirmed ??= new List<DateTime>();
+
+            dataElement.AppOwner.DownloadConfirmed.Add(DateTime.UtcNow);
+
+            DataElement updatedElement = await _dataRepository.Update(dataElement);
+
+            return Ok(updatedElement);
         }
 
         /// <summary>
