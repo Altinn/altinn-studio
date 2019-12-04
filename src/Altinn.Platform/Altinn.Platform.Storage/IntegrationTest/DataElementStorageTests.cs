@@ -103,6 +103,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string json = await getResponse.Content.ReadAsStringAsync();            
 
             Assert.Equal("true", json);
+
+            getResponse = await client.GetAsync($"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.instanceGuid}");
+            getResponse.EnsureSuccessStatusCode();
+
+            Instance instance = JsonConvert.DeserializeObject<Instance>(await getResponse.Content.ReadAsStringAsync());
+
+            Assert.Empty(instance.Data);
         }
 
         /// <summary>
