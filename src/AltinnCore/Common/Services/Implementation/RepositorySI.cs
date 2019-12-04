@@ -209,6 +209,7 @@ namespace AltinnCore.Common.Services.Implementation
             try
             {
                 DataType formMetadata = JsonConvert.DeserializeObject<DataType>(applicationMetadata);
+                formMetadata.TaskId = "Task_1";
                 Application existingApplicationMetadata = GetApplication(org, app);
                 existingApplicationMetadata.DataTypes.Add(formMetadata);
 
