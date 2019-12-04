@@ -12,7 +12,7 @@ module.exports = {
     "./src/index.tsx"
   ],
   output: {
-    filename: "runtime.js",
+    filename: "altinn-app-frontend.js",
     // chunkFilename: '[name].bundle.js'
   },
   /* optimization: {
@@ -100,7 +100,7 @@ module.exports = {
       filename: 'index.html'
     }),
     new MiniCssExtractPlugin({
-      filename: "runtime.css",
+      filename: "altinn-app-frontend.css",
     }),
     new CheckerPlugin(),
   ],
