@@ -6,7 +6,7 @@ const path = require('path');
 
 module.exports = {
   mode: 'development',
-  devtool: 'eval',
+  devtool: 'inline-source-map',
   entry: [
     "core-js/modules/es.object.assign",
     "core-js/modules/es.array.find-index",

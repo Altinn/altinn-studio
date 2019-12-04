@@ -40,12 +40,12 @@ describe('>>> features/language saga', () => {
     expect(generator.next().done).toBeTruthy();
   });
 
-  it('+++ should dispatch action "LANGUAGE_DATA.FETCH_LANGUAGE_FULFILLED" with result from language API', () => {
-    const mockResponse = { runtime: { some_key: 'test' } };
-    const generator = fetchLanguageSaga(LanguageActions.fetchLanguage(mockUrl, mockLanguageCode));
-    generator.next();
-    expect(generator.next(mockResponse).value)
-      .toEqual(call(LanguageActions.fetchLanguageFulfilled, mockResponse));
-    expect(generator.next().done).toBeTruthy();
-  });
+  // it('+++ should dispatch action "LANGUAGE_DATA.FETCH_LANGUAGE_FULFILLED" with result from language API', () => {
+  //   const mockResponse = { runtime: { some_key: 'test' } };
+  //   const generator = fetchLanguageSaga(LanguageActions.fetchLanguage(mockUrl, mockLanguageCode));
+  //   generator.next();
+  //   expect(generator.next(mockResponse).value)
+  //     .toEqual(call(LanguageActions.fetchLanguageFulfilled, mockResponse));
+  //   expect(generator.next().done).toBeTruthy();
+  // });
 });

@@ -6,7 +6,8 @@ import { RouteChildrenProps, withRouter } from 'react-router';
 import AltinnContentIconReceipt from '../../../../../shared/src/components/atoms/AltinnContentIconReceipt';
 import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
-import { getInstancePdf, mapInstanceAttachments} from '../../../../../shared/src/utils/attachments';
+import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationMetaDataUtils';
+import { getInstancePdf, mapInstanceAttachments} from '../../../../../shared/src/utils/attachmentsUtils';
 import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
 import { IAttachment, IInstance } from './../../../../../shared/src/types/index.d';
@@ -102,18 +103,20 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   }, [applicationMetadata, userLanguage]);
 
   React.useEffect(() => {
-    if (instance && instance.data) {
-      const attachmentsResult = mapInstanceAttachments(instance.data);
+    if (instance && instance.data && applicationMetadata) {
+      const defaultElement = getCurrentTaskData(applicationMetadata, instance);
+
+      const attachmentsResult = mapInstanceAttachments(instance.data, defaultElement.id);
       setAttachments(attachmentsResult);
       const pdfElement = getInstancePdf(instance.data);
       setPdf(pdfElement);
-      const defaultElement = instance.data.find((elem) => elem.elementType === 'default');
-      const defaultDataElementLastChangedDateTime = defaultElement ? defaultElement.lastChangedDateTime : null;
+
+      const defaultDataElementLastChangedDateTime = defaultElement ? defaultElement.lastChanged : null;
       if (defaultDataElementLastChangedDateTime) {
         setLastChangedDateTime(moment(defaultDataElementLastChangedDateTime).format('DD.MM.YYYY / HH:mm'));
       }
     }
-  }, [instance]);
+  }, [instance, applicationMetadata]);
 
   return (
     <>

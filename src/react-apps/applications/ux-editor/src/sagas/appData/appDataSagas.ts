@@ -11,11 +11,11 @@ function* fetchDataModelSaga({
   try {
     const dataModel = yield call(get, url);
     const dataModelFields: IDataModelFieldElement[] = [];
-    for (const dataModelField in dataModel.Elements) {
+    for (const dataModelField in dataModel.elements) {
       if (!dataModelField) {
         continue;
       }
-      dataModelFields.push(dataModel.Elements[dataModelField]);
+      dataModelFields.push(dataModel.elements[dataModelField]);
     }
     yield call(
       AppDataActionDispatchers.fetchDataModelFulfilled,

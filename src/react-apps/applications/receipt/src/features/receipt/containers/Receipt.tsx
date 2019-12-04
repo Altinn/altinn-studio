@@ -8,7 +8,8 @@ import AltinnAppHeader from '../../../../../shared/src/components/organisms/Alti
 import AltinnReceipt from '../../../../../shared/src/components/organisms/AltinnReceipt';
 import theme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { IApplication, IAttachment, IInstance, IParty, IProfile  } from '../../../../../shared/src/types';
-import { getInstancePdf, mapInstanceAttachments } from '../../../../../shared/src/utils/attachments';
+import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationMetaDataUtils';
+import { getInstancePdf, mapInstanceAttachments } from '../../../../../shared/src/utils/attachmentsUtils';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
 import { getInstanceMetaDataObject } from '../../../utils/receipt';
@@ -105,14 +106,15 @@ function Receipt(props: WithStyles<typeof styles>) {
   };
 
   React.useEffect(() => {
-    if (instance) {
-      setAttachments(mapInstanceAttachments(instance.data));
+    if (instance && application) {
+      const defaultElement = getCurrentTaskData(application, instance);
+      setAttachments(mapInstanceAttachments(instance.data, defaultElement.id));
       setPdf(getInstancePdf(instance.data, true));
     }
     if (!application && instance) {
       fetchApplication();
     }
-  }, [instance]);
+  }, [instance, application]);
 
   React.useEffect(() => {
     fetchInstance();
@@ -149,7 +151,7 @@ function Receipt(props: WithStyles<typeof styles>) {
             collapsibleTitle={getLanguageFromKey('receipt_platform.attachments', language)}
             attachments={attachments}
             pdf={pdf ? [pdf] : null}
-            instanceMetaDataObject={getInstanceMetaDataObject(instance, party, language, organisations)}
+            instanceMetaDataObject={getInstanceMetaDataObject(instance, party, language, organisations, application)}
             titleSubmitted={getLanguageFromKey('receipt_platform.sent_content', language)}
           />
         }

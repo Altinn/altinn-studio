@@ -258,7 +258,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
             }
 
-            XacmlJsonRequest request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString());
+            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString(), null);
             bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
 
             if (!authorized)

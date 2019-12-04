@@ -1,15 +1,15 @@
-import { IAttachment, IData } from './../types/index';
+import { IAttachment, IData } from '../types/index';
 
-export const mapInstanceAttachments = (data: IData[]): IAttachment[] => {
+export const mapInstanceAttachments = (data: IData[], defaultElementId: string): IAttachment[] => {
   if (!data) {
     return [];
   } else {
     const tempAttachments: IAttachment[] = [];
     data.forEach((dataElement: IData) => {
-      if (dataElement.elementType !== 'default' && dataElement.elementType !== 'ref-data-as-pdf') {
+      if (dataElement.id !== defaultElementId && dataElement.dataType !== 'ref-data-as-pdf') {
         tempAttachments.push({
         name: dataElement.fileName,
-        url: dataElement.dataLinks.apps,
+        url: dataElement.selfLinks.apps,
         iconClass: 'reg reg-attachment' });
       }
     });
@@ -22,13 +22,13 @@ export const getInstancePdf = (data: IData[], platform?: boolean): IAttachment =
     return null;
   }
 
-  const pdfElement = data.find((element) => element.elementType === 'ref-data-as-pdf');
+  const pdfElement = data.find((element) => element.dataType === 'ref-data-as-pdf');
 
   if (!pdfElement) {
     return null;
   }
 
-  const pdfUrl = platform ? pdfElement.dataLinks.platform : pdfElement.dataLinks.apps;
+  const pdfUrl = platform ? pdfElement.selfLinks.platform : pdfElement.selfLinks.apps;
 
   return {
     name: pdfElement.fileName,

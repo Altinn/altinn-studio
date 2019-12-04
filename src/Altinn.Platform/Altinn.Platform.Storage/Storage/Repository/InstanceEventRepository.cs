@@ -17,13 +17,11 @@ namespace Altinn.Platform.Storage.Repository
     /// </summary>
     public class InstanceEventRepository : IInstanceEventRepository
     {
-        private readonly Uri _databaseUri;
         private readonly Uri _collectionUri;
         private readonly string databaseId;
-        private readonly string collectionId = "instanceEvents";
+        private readonly string _collectionId = "instanceEvents";
         private readonly string partitionKey = "/instanceId";
         private static DocumentClient _client;
-        private readonly AzureCosmosSettings _cosmosettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventRepository"/> class
@@ -33,12 +31,12 @@ namespace Altinn.Platform.Storage.Repository
         {
             var database = new CosmosDatabaseHandler(cosmosettings.Value);
 
-            _client = database.CreateDatabaseAndCollection(collectionId);
+            _client = database.CreateDatabaseAndCollection(_collectionId);
             _collectionUri = database.CollectionUri;
             Uri databaseUri = database.DatabaseUri;
             databaseId = database.DatabaseName;
 
-            DocumentCollection documentCollection = database.CreateDocumentCollection(collectionId, partitionKey);
+            DocumentCollection documentCollection = database.CreateDocumentCollection(_collectionId, partitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 databaseUri,
@@ -69,7 +67,7 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<InstanceEvent> GetOneEvent(string instanceId, Guid eventGuid)
         {
             string cosmosId = eventGuid.ToString();
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosId);
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, _collectionId, cosmosId);
 
             InstanceEvent theEvent = await _client
             .ReadDocumentAsync<InstanceEvent>(
@@ -136,7 +134,7 @@ namespace Altinn.Platform.Storage.Repository
 
                 foreach (InstanceEvent instanceEvent in instanceEvents)
                 {
-                    Uri docUri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceEvent.Id.ToString());
+                    Uri docUri = UriFactory.CreateDocumentUri(databaseId, _collectionId, instanceEvent.Id.ToString());
                     await _client.DeleteDocumentAsync(docUri, new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
                     deletedEventsCount++;
                 }
