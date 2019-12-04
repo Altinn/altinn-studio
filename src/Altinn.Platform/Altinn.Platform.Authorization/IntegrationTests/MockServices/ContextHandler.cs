@@ -3,7 +3,7 @@ using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Services.Interface;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Authorization.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -151,7 +151,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                     resourceContextAttributes.Attributes.Add(GetPartyAttribute(instanceData));
                 }
 
-                resourcePartyAttributeValue = instanceData.InstanceOwnerId;
+                resourcePartyAttributeValue = instanceData.InstanceOwner.PartyId;
             }
 
             await EnrichSubjectAttributes(request, resourcePartyAttributeValue);
@@ -208,7 +208,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             XacmlAttribute attribute = new XacmlAttribute(new Uri(PartyAttributeId), false);
             // When Party attribute is missing from input it is good to return it so PEP can get this information
             attribute.IncludeInResult = true;
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.InstanceOwnerId));
+            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.InstanceOwner.PartyId));
             return attribute;
         }
 
