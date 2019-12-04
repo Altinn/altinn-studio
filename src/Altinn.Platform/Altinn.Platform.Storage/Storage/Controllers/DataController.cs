@@ -424,7 +424,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 // check if it has been downloaded
                 List<DateTime> downloaded = element.AppOwner?.Downloaded;
-                if (downloaded == null || !downloaded.Any())
+                if (downloaded == null || downloaded.Count == 0)
                 {
                     return Conflict($"Data element {instanceOwnerPartyId}/{instanceGuid}/data/{element.Id} is not recorded downloaded by app owner. Please download first.");
                 }
