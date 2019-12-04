@@ -1436,6 +1436,7 @@
 										"exec": [
 											"pm.test(\"Platform - Storage - Instance Data - Add Instance Data - Status - 201\", function () {\r",
 											"    pm.response.to.have.status(201);\r",
+											"    pm.environment.set(\"dataId\",pm.response.json().id);\r",
 											"});"
 										],
 										"type": "text/javascript"
