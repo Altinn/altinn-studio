@@ -73,32 +73,37 @@ namespace Altinn.Platform.Storage.Controllers
 
             // check if instance id exist and user is allowed to change the instance data
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            
             if (instance == null)
             {
                 return NotFound("Provided instanceId is unknown to storage service");
             }
 
-            string dataIdString = dataId.ToString();
+            DataElement dataElement = await _dataRepository.Read(instanceGuid, dataId);
 
-            if (instance.Data.Exists(m => m.Id == dataIdString))
+            if (dataElement == null)
+            {
+                return NotFound("Provided dataId is unknown to storage service");
+            }
+
+            // delete blob stored file and data element object 
+            try
             {
                 string storageFileName = DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataId.ToString());
                 bool result = await _dataRepository.DeleteDataInStorage(storageFileName);
 
-                if (result)
-                {
-                    // Update instance record
-                    DataElement data = instance.Data.Find(m => m.Id == dataIdString);
-                    instance.Data.Remove(data);
-                    Instance storedInstance = await _instanceRepository.Update(instance);
+                await _dataRepository.Delete(dataElement);
 
-                    await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, data);
+                await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, dataElement);
 
-                    return Ok(storedInstance);
-                }
+                return Ok(true);
             }
+            catch (Exception deleteException)
+            {
+                _logger.LogError($"Unable to delete data element {dataId} due to {deleteException}");
 
-            return BadRequest();
+                return StatusCode(500, $"Unable to delete data element {dataId} due to {deleteException.Message}");
+            }
         }
 
         /// <summary>

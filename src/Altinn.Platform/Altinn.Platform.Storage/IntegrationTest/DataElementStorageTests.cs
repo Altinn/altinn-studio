@@ -85,6 +85,27 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
+        /// Delete data element.
+        /// </summary>
+        [Fact]
+        public async void Delete_DataElement_Ok()
+        {
+            DataElement dataElement = (await CreateInstanceWithData(1))[0];
+
+            Assert.NotNull(dataElement);
+
+            string dataPathWithDataGuid = $"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.instanceGuid}/data/{dataElement.Id}";
+
+            HttpResponseMessage getResponse = await client.DeleteAsync($"{dataPathWithDataGuid}");
+
+            getResponse.EnsureSuccessStatusCode();
+
+            string json = await getResponse.Content.ReadAsStringAsync();            
+
+            Assert.Equal("true", json);
+        }
+
+        /// <summary>
         /// Adds confirm download to data element.
         /// </summary>
         [Fact]
