@@ -2,6 +2,10 @@ const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
+const webpack = require('webpack');
+const GitRevisionPlugin = require('git-revision-webpack-plugin');
+const gitRevisionPlugin = new GitRevisionPlugin();
+const package = require('./package.json');
 
 module.exports = {
   mode: 'production',
@@ -13,7 +17,7 @@ module.exports = {
     "./src/index.tsx"
   ],
   output: {
-    filename: "runtime.js",
+    filename: "altinn-app-frontend.js",
     // chunkFilename: '[name].bundle.js'
   },
   /*optimization: {
@@ -82,8 +86,11 @@ module.exports = {
       filename: 'index.html'
     }),
     new MiniCssExtractPlugin({
-      filename: "runtime.css",
+      filename: "altinn-app-frontend.css",
     }),
     new UglifyJsPlugin(),
+    new webpack.BannerPlugin({
+      banner: package.name + ', v' + package.version + ', https://github.com/Altinn/altinn-studio/tree/' + gitRevisionPlugin.commithash() + '/src/react-apps/applications/altinn-app-frontend'
+    })
   ],
-}
+};
