@@ -2,6 +2,7 @@ using AltinnCore.Common.Backend;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.Designer.Infrastructure.Authentication;
 using AltinnCore.Designer.Services;
 using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Services.Interfaces;

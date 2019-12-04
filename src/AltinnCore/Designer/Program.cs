@@ -1,5 +1,11 @@
 using System;
 using System.IO;
+using System.Net.Http;
+using System.Security.Cryptography.X509Certificates;
+using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Constants;
+using AltinnCore.Designer.Infrastructure.Authentication;
+using AltinnCore.Designer.TypedHttpClients.AltinnAuthentication;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -7,12 +13,13 @@ using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Core;
 using Serilog.Extensions.Logging;
-using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace AltinnCore.Designer
 {
@@ -21,6 +28,7 @@ namespace AltinnCore.Designer
     /// </summary>
     public static class Program
     {
+        private static string MaskinportenCertificate;
         private static Logger logger = new LoggerConfiguration()
             .WriteTo.Console()
             .CreateLogger();
@@ -30,9 +38,7 @@ namespace AltinnCore.Designer
         /// </summary>
         /// <param name="args">The Arguments</param>
         public static void Main(string[] args)
-        {
-            CreateWebHostBuilder(args).Build().Run();
-        }
+            => CreateWebHostBuilder(args).Build().Run();
 
         /// <summary>
         /// Configure the configuration builder
@@ -79,6 +85,9 @@ namespace AltinnCore.Designer
                         SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
                             keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
                         SetTelemetry(secretBundle.Value);
+
+                        SecretBundle secretCertificateBundle = keyVaultClient.GetSecretAsync(keyVaultEndpoint, "JWTCertificate").GetAwaiter().GetResult();
+                        config.Properties.Add("GeneralSettings:MaskinportenCertificate", secretCertificateBundle.Value);
                     }
                     catch (Exception vaultException)
                     {

@@ -7,6 +7,7 @@ using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Infrastructure.Models;
+using AltinnCore.Designer.TypedHttpClients.AltinnAuthentication;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.DelegatingHandlers;
 using Microsoft.AspNetCore.Http;
@@ -28,12 +29,11 @@ namespace AltinnCore.Designer.TypedHttpClients
         /// <returns>IServiceCollection</returns>
         public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config)
         {
+            services.AddHttpClient();
             services.AddTransient<EnsureSuccessHandler>();
-
             services.AddAzureDevOpsTypedHttpClient(config);
             services.AddGiteaTypedHttpClient(config);
-
-            services.AddHttpClient();
+            services.AddAltinnAuthenticationTypedHttpClient(config);
 
             return services;
         }
@@ -67,5 +67,14 @@ namespace AltinnCore.Designer.TypedHttpClients
                     {
                         AllowAutoRedirect = true
                     });
+
+        private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(this IServiceCollection services, IConfiguration config)
+            => services.AddHttpClient<IAltinnAuthenticationService, AltinnAuthenticationService>((sp, httpClient) =>
+                {
+                    PlatformSettings platformSettings = config.GetSection("PlatformSettings").Get<PlatformSettings>();
+                    httpClient.BaseAddress = new Uri(platformSettings.ApiAuthenticationEndpoint);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddHttpMessageHandler<EnsureSuccessHandler>();
     }
 }
