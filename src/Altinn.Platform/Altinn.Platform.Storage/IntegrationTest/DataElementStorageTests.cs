@@ -88,18 +88,18 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Adds confirm download to data element.
         /// </summary>
         [Fact]
-        public async void Put_ConfirmDownload_Ok()
+        public async void Put_ConfirmDownload_OnADataGuid_Ok()
         {
-            DataElement dataElement = await CreateInstanceWithData();
+            DataElement dataElement = (await CreateInstanceWithData(1))[0];
 
             Assert.NotNull(dataElement);
 
             string instanceId = $"{testInstanceOwnerId}/{dataElement.instanceGuid}";
 
-            string dataPath = $"{versionPrefix}/instances/{instanceId}/data/{dataElement.Id}";
+            string dataPathWithDataGuid = $"{versionPrefix}/instances/{instanceId}/data/{dataElement.Id}";
             HttpContent content = new StringContent(string.Empty);
             
-            HttpResponseMessage getResponse = await client.PutAsync($"{dataPath}/confirmDownload", content);
+            HttpResponseMessage getResponse = await client.PutAsync($"{dataPathWithDataGuid}/confirmDownload", content);
 
             getResponse.EnsureSuccessStatusCode();
 
@@ -110,34 +110,69 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Assert.NotNull(actual.AppOwner.DownloadConfirmed);
         }
 
-        private async Task<DataElement> CreateInstanceWithData()
+        /// <summary>
+        /// Adds confirm download to all elements.
+        /// </summary>
+        [Fact]
+        public async void Put_ConfirmDownload_OnAllData_Ok()
         {
-            object jsonContent = new
-            {
-                universe = 42,
-                årsjul = 365,
-                text = "Fem flotte åer er bedre en to ærlige øl!",
-            };
+            List<DataElement> dataElements = await CreateInstanceWithData(2);
+
+            Assert.NotNull(dataElements);
+
+            string instanceId = $"{testInstanceOwnerId}/{dataElements[0].instanceGuid}";
+
+            string dataPathWithData = $"{versionPrefix}/instances/{instanceId}/data";
+            HttpContent content = new StringContent(string.Empty);
+
+            HttpResponseMessage getResponse = await client.PutAsync($"{dataPathWithData}/confirmDownload", content);
+
+            getResponse.EnsureSuccessStatusCode();
+
+            string json = await getResponse.Content.ReadAsStringAsync();
+            List<DataElement> actual = JsonConvert.DeserializeObject<List<DataElement>>(json);
+
+            Assert.Equal(2, actual.Count);
+            Assert.NotNull(actual[0].AppOwner.DownloadConfirmed);
+            Assert.NotNull(actual[1].AppOwner.DownloadConfirmed);
+        }
+
+        private async Task<List<DataElement>> CreateInstanceWithData(int count)
+        {
+            List<DataElement> dataElements = new List<DataElement>();
 
             // create instance
             Instance newInstance = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
+          
+            for (int i = 0; i < count; i++)
+            {
+                object jsonContent = new
+                {
+                    number = i,
+                    universe = 42,
+                    årsjul = 365,
+                    text = "Fem flotte åer er bedre en to ærlige øl!",
+                };
 
-            string requestUri = $"{versionPrefix}/instances/{newInstance.Id}/data?dataType={dataType}";
+                string requestUri = $"{versionPrefix}/instances/{newInstance.Id}/data?dataType={dataType}";
 
-            // post the file
-            HttpResponseMessage postResponse = await client.PostAsync(requestUri, jsonContent.AsJson());
+                // post the file
+                HttpResponseMessage postResponse = await client.PostAsync(requestUri, jsonContent.AsJson());
 
-            DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(await postResponse.Content.ReadAsStringAsync());
+                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(await postResponse.Content.ReadAsStringAsync());
 
-            // update downloaded structure on data element
-            dataElement.AppOwner ??= new ApplicationOwnerDataState();
-            dataElement.AppOwner.Downloaded = new List<DateTime>();
-            dataElement.AppOwner.Downloaded.Add(DateTime.UtcNow);
+                // update downloaded structure on data element
+                dataElement.AppOwner ??= new ApplicationOwnerDataState();
+                dataElement.AppOwner.Downloaded = new List<DateTime>();
+                dataElement.AppOwner.Downloaded.Add(DateTime.UtcNow);
 
-            requestUri = $"{versionPrefix}/instances/{newInstance.Id}/mdata/{dataElement.Id}";
-            HttpResponseMessage putResponse = await client.PutAsync(requestUri, dataElement.AsJson());
+                requestUri = $"{versionPrefix}/instances/{newInstance.Id}/dataelements/{dataElement.Id}";
+                HttpResponseMessage putResponse = await client.PutAsync(requestUri, dataElement.AsJson());
 
-            return JsonConvert.DeserializeObject<DataElement>(await putResponse.Content.ReadAsStringAsync());
+                dataElements.Add(JsonConvert.DeserializeObject<DataElement>(await putResponse.Content.ReadAsStringAsync()));
+            }
+
+            return dataElements;
         }
         
         private Application CreateTestApplication()
