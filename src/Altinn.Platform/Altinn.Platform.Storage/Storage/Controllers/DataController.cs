@@ -387,8 +387,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">the instance guid</param>
         /// <param name="dataGuid">the data guid</param>
         /// <returns>the updated data element</returns>
-        // "/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid}/confirmDownload"
-        [HttpPut("data/{dataGuid}/confirmDownload")]        
+        // "/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}/dataelements/{dataGuid}/confirmDownload"
+        [HttpPut("dataelements/{dataGuid}/confirmDownload")]        
         [ProducesResponseType(typeof(DataElement), 200)]
         public async Task<IActionResult> ConfirmDownload(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
         {
@@ -412,7 +412,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">the instance owner party id</param>
         /// <param name="instanceGuid">the instance guid</param>
         /// <returns>A list of data elements with updated confirmed download dates</returns>
-        [HttpPut("data/confirmDownload")]
+        [HttpPut("dataelements/confirmDownload")]
         [ProducesResponseType(typeof(List<DataElement>), 200)]
         public async Task<IActionResult> ConfirmDownloadAll(int instanceOwnerPartyId, Guid instanceGuid)
         {

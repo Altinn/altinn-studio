@@ -124,7 +124,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             string instanceId = $"{testInstanceOwnerId}/{dataElement.instanceGuid}";
 
-            string dataPathWithDataGuid = $"{versionPrefix}/instances/{instanceId}/data/{dataElement.Id}";
+            string dataPathWithDataGuid = $"{versionPrefix}/instances/{instanceId}/dataelements/{dataElement.Id}";
             HttpContent content = new StringContent(string.Empty);
             
             HttpResponseMessage getResponse = await client.PutAsync($"{dataPathWithDataGuid}/confirmDownload", content);
@@ -150,7 +150,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             string instanceId = $"{testInstanceOwnerId}/{dataElements[0].instanceGuid}";
 
-            string dataPathWithData = $"{versionPrefix}/instances/{instanceId}/data";
+            string dataPathWithData = $"{versionPrefix}/instances/{instanceId}/dataelements";
             HttpContent content = new StringContent(string.Empty);
 
             HttpResponseMessage getResponse = await client.PutAsync($"{dataPathWithData}/confirmDownload", content);
