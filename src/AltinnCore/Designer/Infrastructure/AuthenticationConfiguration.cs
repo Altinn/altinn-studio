@@ -1,5 +1,3 @@
-using System;
-using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Designer.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,11 +18,6 @@ namespace AltinnCore.Designer.Infrastructure
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
-                {
-                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                    options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
-                })
                 .AddCookie(options =>
                 {
                     options.AccessDeniedPath = "/Home/NotAuthorized/";

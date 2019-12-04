@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Protocols;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 
@@ -37,7 +39,14 @@ namespace AltinnCore.Authentication.JwtCookie
         /// <param name="clock">The system clock</param>
         /// <param name="keyVaultSettings">The key vault settings</param>
         /// <param name="certSettings">The certification settings</param>
-        public JwtCookieHandler(IOptionsMonitor<JwtCookieOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IOptions<KeyVaultSettings> keyVaultSettings, IOptions<CertificateSettings> certSettings) : base(options, logger, encoder, clock)
+        public JwtCookieHandler(
+            IOptionsMonitor<JwtCookieOptions> options,
+            ILoggerFactory logger,
+            UrlEncoder encoder,
+            ISystemClock clock,
+            IOptions<KeyVaultSettings> keyVaultSettings,
+            IOptions<CertificateSettings> certSettings)
+            : base(options, logger, encoder, clock)
         {
             _keyVaultSettings = keyVaultSettings.Value;
             _certificateSettings = certSettings.Value;
@@ -75,10 +84,8 @@ namespace AltinnCore.Authentication.JwtCookie
                 // If no authorization header found, get the token
                 if (!string.IsNullOrEmpty(authorization))
                 {
-                    Logger.LogInformation($"Getting the token from Authorization header");
                     if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                     {
-                        Logger.LogInformation($"Bearer found");
                         token = authorization.Substring("Bearer ".Length).Trim();
                     }
                 }
@@ -86,8 +93,6 @@ namespace AltinnCore.Authentication.JwtCookie
                 // If the token is not found in authorization header, get the token from cookie
                 if (string.IsNullOrEmpty(token))
                 {
-                    Logger.LogInformation($"Getting the token from cookie");
-
                     // Get the cookie from request
                     token = Options.CookieManager.GetRequestCookie(Context, Options.Cookie.Name);
                 }
@@ -95,23 +100,28 @@ namespace AltinnCore.Authentication.JwtCookie
                 // If no token found, return no result
                 if (string.IsNullOrEmpty(token))
                 {
-                    Logger.LogInformation($"No token found");
                     return AuthenticateResult.NoResult();
-                }               
+                }
 
-                TokenValidationParameters validationParameters = Options.TokenValidationParameters.Clone();
+                OpenIdConnectConfiguration configuration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
+
+                TokenValidationParameters validationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKeys = configuration.SigningKeys,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    RequireExpirationTime = true,
+                    ValidateLifetime = true
+                };
 
                 JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
 
-                SecurityToken validatedToken;
-                ClaimsPrincipal principal;
                 if (validator.CanReadToken(token))
                 {
                     try
                     {
-                        Logger.LogInformation($"Token to be validated{token}");
-                        principal = validator.ValidateToken(token, validationParameters, out validatedToken);
-                        Logger.LogInformation($"validated token{validatedToken}");
+                        ClaimsPrincipal principal = validator.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
                         JwtCookieValidatedContext jwtCookieValidatedContext = new JwtCookieValidatedContext(Context, Scheme, Options)
                         {
                             Principal = principal,
@@ -130,14 +140,12 @@ namespace AltinnCore.Authentication.JwtCookie
                     }
                     catch (Exception ex)
                     {
-                        Logger.LogInformation($"Token validation Exception {ex}");
                         JwtCookieFailedContext jwtCookieFailedContext = new JwtCookieFailedContext(Context, Scheme, Options)
                         {
                             Exception = ex
                         };
 
                         await Events.AuthenticationFailed(jwtCookieFailedContext);
-                        Logger.LogInformation($"Failecontext result {jwtCookieFailedContext.Result}");
                         if (jwtCookieFailedContext.Result != null)
                         {
                             return jwtCookieFailedContext.Result;
@@ -175,14 +183,14 @@ namespace AltinnCore.Authentication.JwtCookie
         /// <param name="user">The user</param>
         /// <param name="properties">The authentication properties</param>
         /// <returns></returns>
-        protected async override Task HandleSignInAsync(ClaimsPrincipal user, AuthenticationProperties properties)
+        protected override async Task HandleSignInAsync(ClaimsPrincipal user, AuthenticationProperties properties)
         {
             if (user == null)
             {
                 throw new ArgumentNullException(nameof(user));
             }
 
-            properties = properties ?? new AuthenticationProperties();
+            properties ??= new AuthenticationProperties();
 
             CookieOptions cookieOptions = BuildCookieOptions();
 
@@ -214,11 +222,11 @@ namespace AltinnCore.Authentication.JwtCookie
 
             if (signInContext.Properties.IsPersistent)
             {
-                var expiresUtc = signInContext.Properties.ExpiresUtc ?? issuedUtc.Add(Options.ExpireTimeSpan);
+                DateTimeOffset expiresUtc = signInContext.Properties.ExpiresUtc ?? issuedUtc.Add(Options.ExpireTimeSpan);
                 signInContext.CookieOptions.Expires = expiresUtc.ToUniversalTime();
             }
 
-            string jwtToken = GenerateToken(user, Options.ExpireTimeSpan);
+            string jwtToken = await GenerateToken(user, Options.ExpireTimeSpan);
 
             Options.CookieManager.AppendResponseCookie(
             Context,
@@ -256,7 +264,7 @@ namespace AltinnCore.Authentication.JwtCookie
         /// <param name="principal">the claims principal</param>
         /// <param name="tokenExipry">validity time span for the token</param>
         /// <returns></returns>
-        public string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
+        public async Task<string> GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
         {
             // authentication successful so generate jwt token
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
@@ -264,7 +272,7 @@ namespace AltinnCore.Authentication.JwtCookie
             {
                 Subject = new ClaimsIdentity(principal.Identity),
                 Expires = DateTime.UtcNow.AddSeconds(tokenExipry.TotalSeconds),
-                SigningCredentials = GetSigningCredentials()
+                SigningCredentials = await GetSigningCredentials()
             };
 
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
@@ -273,8 +281,24 @@ namespace AltinnCore.Authentication.JwtCookie
             return tokenstring;
         }
 
-        private SigningCredentials GetSigningCredentials()
+        private async Task<SigningCredentials> GetSigningCredentials()
         {
+            if (string.IsNullOrEmpty(_keyVaultSettings.ClientId) || string.IsNullOrEmpty(_keyVaultSettings.ClientSecret))
+            {
+                X509Certificate2 cert = new X509Certificate2(_certificateSettings.CertificatePath, _certificateSettings.CertificatePwd);
+                SigningCredentials creds = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
+                return creds;
+            }
+            else
+            {
+                KeyVaultClient client = KeyVaultSettings.GetClient(_keyVaultSettings.ClientId, _keyVaultSettings.ClientSecret);
+                CertificateBundle certificate = await client.GetCertificateAsync(_keyVaultSettings.SecretUri, _certificateSettings.CertificateName);
+                SecretBundle secret = await client.GetSecretAsync(certificate.SecretIdentifier.Identifier);
+                byte[] pfxBytes = Convert.FromBase64String(secret.Value);
+                X509Certificate2 cert = new X509Certificate2(pfxBytes);
+                SigningCredentials creds = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
+                return creds;
+            }
             return SigningCredentialsProvider.GetSigningCredentials(_keyVaultSettings, _certificateSettings);
         }
 

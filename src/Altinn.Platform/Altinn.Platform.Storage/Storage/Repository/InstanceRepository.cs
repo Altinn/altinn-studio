@@ -510,7 +510,7 @@ namespace Altinn.Platform.Storage.Repository
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
                         .Where(i => i.Status.SoftDeleted.HasValue)
-                        .Where(i => i.Status.HardDeleted.HasValue);
+                        .Where(i => !i.Status.HardDeleted.HasValue);
             }
             else if (instanceState.Equals("archived"))
             {

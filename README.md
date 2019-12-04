@@ -3,6 +3,8 @@
 [![Altinn Studio build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-build-designer-image-v2-master?label=Altinn%20Studio)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=18)
 [![Altinn Apps build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-build-runtime-image?label=Altinn%20Apps)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=6)
 
+Altinn Studio is the next generation Altinn application development solution. Together with Altinn Apps and Altinn Platform, it makes a complete application development and hosting platform.
+
 An early test version of Altinn Studio is available at https://altinn.studio.
 
 Use the [documentation](https://docs.altinn.studio/) to get started using Altinn Studio.
@@ -105,7 +107,7 @@ dotnet run
 Which will build the Designer .net backend and the designer react app, but not listen to changes to the react app.
 
 #### Apps
-It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work. 
+It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.
 
 _NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command
 
@@ -150,14 +152,14 @@ cd \.\<path to app on disk>
 ```
 
 - If you need to debug (or run locally) the app front-end:
-  - Open the file `views/Home/Index.cshtml` and change the line 
+  - Open the file `views/Home/Index.cshtml` and change the line
 
     ```
     <script src="https://altinncdn.no/altinn-apps/runtime/js/react/runtime.js"></script>
     ```
 
     to
-    
+
     ```
     <script src="http://localhost:8080/runtime.js"></script>
     ```
