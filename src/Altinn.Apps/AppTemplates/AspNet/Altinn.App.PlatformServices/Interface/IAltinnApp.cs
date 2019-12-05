@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Altinn.App.Common.Enums;
 using Altinn.App.Services.Models;
@@ -60,7 +61,7 @@ namespace Altinn.App.Services.Interface
         /// </summary>
         /// <param name="modelState">The model state</param>
         /// <returns>Task to indicate when validation is completed</returns>
-        Task<bool> RunValidation(ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
+        Task<bool> RunValidation(object instance, Type modelType, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
 
     }
 }

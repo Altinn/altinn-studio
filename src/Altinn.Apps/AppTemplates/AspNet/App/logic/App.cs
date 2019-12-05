@@ -61,9 +61,9 @@ namespace Altinn.App.AppLogic
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task<bool> RunValidation(ICollection<ValidationResult> validationResults)
+        public override async Task<bool> RunValidation(object instance, Type modelType, ICollection<ValidationResult> validationResults)
         {
-            _validationHandler.Validate(validationResults);
+            _validationHandler.Validate(instance, modelType, validationResults);
             return validationResults.Count == 0; ;
         }
     }

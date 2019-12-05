@@ -159,16 +159,16 @@ namespace Altinn.App.Services.Implementation
             {                
                 Type modelType = _altinnApp.GetAppModelType(dataType.AppLogic.ClassRef);
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-                string app = instance.AppId.Split("/")[0];
+                string app = instance.AppId.Split("/")[1];
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
                 dynamic data = _dataService.GetFormData(instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, Guid.Parse(dataElement.Id));
 
                 var context = new ValidationContext(data);
                 List<System.ComponentModel.DataAnnotations.ValidationResult> validationResults = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
-                bool isValidCustom = await _altinnApp.RunValidation(validationResults);
-                bool isValid = Validator.TryValidateObject(data, context, validationResults, true);          
+                bool isValid = await _altinnApp.RunValidation(data.Result, modelType, validationResults);
+                isValid = Validator.TryValidateObject(data, context, validationResults, true) && isValid;          
 
-                if (!isValid || !isValidCustom)
+                if (!isValid)
                 {
                     messages.AddRange(MapModelStateToIssueList(instance, validationResults, dataElement.Id, dataElement.DataType, serviceText));
                 }

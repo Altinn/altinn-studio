@@ -1,7 +1,9 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 
+// using Altinn.App.Models; // Uncomment this line to refer to app model(s)
 using Altinn.App.Services.Interface;
 
 namespace Altinn.App.AppLogic.Validation
@@ -23,11 +25,19 @@ namespace Altinn.App.AppLogic.Validation
         /// </remarks>
         /// <param name="validationResults">Object to contain any validation results</param>
         /// <example>
-        ///  if ([some condition]) {
-        ///      validationResults.Add(new ValidationResult([error message], new List<string>() { [affected field id] } ));
-        ///  }
+        /// if (object.GetType() == typeof([model class name])
+        /// {
+        ///     // Explicitly cast instance to correct model type
+        ///     [model class name] model = ([model class name])object;
+        ///
+        ///     // Perform validations
+        ///     if ([some condition])
+        ///     {
+        ///         validationResults.Add(new ValidationResult([error message], new List<string>() {[affected field id]} ));
+        ///     }
+        /// }
         /// </example>
-        public void Validate(ICollection<ValidationResult> validationResults)
+        public void Validate(object instance, Type modelType, ICollection<ValidationResult> validationResults)
         {
 
         }
