@@ -16,6 +16,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// <summary>
     ///  Tests data service REST api.
     /// </summary>
+    [Collection("Sequential")]
     public class InstancesQueryTests : IClassFixture<PlatformStorageFixture>, IClassFixture<DatabaseFixture>, IClassFixture<CosmosDBFixture>
     {
         private readonly PlatformStorageFixture fixture;

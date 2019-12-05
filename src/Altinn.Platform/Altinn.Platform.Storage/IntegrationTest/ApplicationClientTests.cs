@@ -11,6 +11,7 @@ using Xunit;
 #pragma warning disable CS1591
 namespace Altinn.Platform.Storage.IntegrationTest
 {
+    [Collection("Sequential")]
     public class ApplicationClientTests : IClassFixture<PlatformStorageFixture>, IClassFixture<CosmosDBFixture>, IDisposable
     {
         private readonly PlatformStorageFixture fixture;
