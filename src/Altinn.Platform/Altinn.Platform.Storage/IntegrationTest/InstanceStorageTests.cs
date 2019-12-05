@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -18,7 +21,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// <summary>
     ///  Tests data service REST api.
     /// </summary>
-    public class InstanceStorageTests : IClassFixture<PlatformStorageFixture>, IDisposable
+    [Collection("Sequential")]
+    public class InstanceStorageTests : IClassFixture<PlatformStorageFixture>, IClassFixture<BlobStorageFixture>, IClassFixture<CosmosDBFixture>, IDisposable
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
@@ -28,6 +32,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly string testAppId = "tests/sailor";
         private readonly int testInstanceOwnerId = 500;
         private readonly string dataType = "default";
+        private CloudBlobClient _blobClient;
+        private CloudBlobContainer _blobContainer;
+        private bool blobSetup = false;
 
         private readonly string versionPrefix = "/storage/api/v1";
 
@@ -40,6 +47,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
             this.fixture = fixture;
             this.client = this.fixture.Client;
             this.storageClient = new InstanceClient(this.client);
+
+            // connect to azure blob storage
+            StorageCredentials storageCredentials = new StorageCredentials("devstoreaccount1", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==");
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+
+            StorageUri storageUrl = new StorageUri(new Uri("http://127.0.0.1:10000/devstoreaccount1"));
+            _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
+            _blobContainer = _blobClient.GetContainerReference("servicedata");
 
             CreateTestApplication();
         }
@@ -91,6 +106,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void CreateInstanceReturnsNewIdAndNextGetReturnsSameId()
         {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
             Instance instanceData = new Instance
             {
                 AppId = testAppId,
@@ -127,6 +147,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void GetInstancesAndCheckEncoding()
         {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
             await storageClient.PostInstances(testAppId, testInstanceOwnerId);
 
             string url = $"{versionPrefix}/instances/{testInstanceOwnerId}";
@@ -142,6 +167,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void StoreAForm()
         {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
             object jsonContent = new
             {
                 universe = 42,
@@ -166,6 +196,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void StoreABinaryFileAsAttachment()
         {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
             Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
@@ -180,6 +215,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void StoreABinaryFileByStream()
         {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
             Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
@@ -194,6 +234,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void StoreABinaryFileAsMultipart()
         {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
 
@@ -212,7 +257,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpResponseMessage response = await client.PostAsync(requestUri, fileStreamContent);
 
             response.EnsureSuccessStatusCode();
-        } 
+        }
 
         private Application CreateTestApplication()
         {
@@ -252,23 +297,28 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void GetABinaryFileByStream()
         {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
 
             Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
 
             DataElement dataElement = await storageClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");
-                 
+
             string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
 
             using HttpResponseMessage response2 = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead);
-            
+
             if (response2.IsSuccessStatusCode)
             {
                 using Stream remoteStream = await response2.Content.ReadAsStreamAsync();
                 using var output = File.Create("test.pdf");
-                
-                await remoteStream.CopyToAsync(output);                
+
+                await remoteStream.CopyToAsync(output);
             }
 
             Assert.True(File.Exists("test.pdf"));
@@ -280,23 +330,28 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void StoreAndGetImageFile()
         {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
 
             Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
 
             DataElement dataElement = await storageClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "image.png", "image/png");
-            
+
             string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
 
             using HttpResponseMessage response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead);
-            
+
             if (response.IsSuccessStatusCode)
             {
                 using Stream remoteStream = await response.Content.ReadAsStreamAsync();
-                using FileStream output = File.Create("test.png");                
+                using FileStream output = File.Create("test.png");
 
-                await remoteStream.CopyToAsync(output);                             
+                await remoteStream.CopyToAsync(output);
             }
 
             Assert.True(File.Exists("test.png"));
@@ -308,37 +363,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void UpdateDataFile()
         {
-            string applicationId = testAppId;
-            int instanceOwnerId = testInstanceOwnerId;
-
-            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
-            
-            DataElement dataElement = await storageClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");           
-
-            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
-            
-            string dataFile = "image.png";
-
-            using Stream input = File.OpenRead($"data/{dataFile}");
-          
-            HttpContent fileStreamContent = new StreamContent(input);
-
-            using MultipartFormDataContent dataContent = new MultipartFormDataContent
+            if (!blobSetup)
             {
-                { fileStreamContent, dataType, dataFile }
-            };
+                await EnsureValidStorage();
+            }
 
-            HttpResponseMessage response = await client.PutAsync(requestUri, fileStreamContent);
-
-            response.EnsureSuccessStatusCode();            
-        }
-
-        /// <summary>
-        ///  update an existing data file.
-        /// </summary>
-        [Fact]
-        public async void UpdateDataFile_SetFileName()
-        {
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
 
@@ -351,7 +380,43 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string dataFile = "image.png";
 
             using Stream input = File.OpenRead($"data/{dataFile}");
-            
+
+            HttpContent fileStreamContent = new StreamContent(input);
+
+            using MultipartFormDataContent dataContent = new MultipartFormDataContent
+            {
+                { fileStreamContent, dataType, dataFile }
+            };
+
+            HttpResponseMessage response = await client.PutAsync(requestUri, fileStreamContent);
+
+            response.EnsureSuccessStatusCode();
+        }
+
+        /// <summary>
+        ///  update an existing data file.
+        /// </summary>
+        [Fact]
+        public async void UpdateDataFile_SetFileName()
+        {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
+            string applicationId = testAppId;
+            int instanceOwnerId = testInstanceOwnerId;
+
+            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
+
+            DataElement dataElement = await storageClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");
+
+            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
+
+            string dataFile = "image.png";
+
+            using Stream input = File.OpenRead($"data/{dataFile}");
+
             HttpContent fileStreamContent = new StreamContent(input);
             string contentType = "application/xml";
             string fileName = "Testfile.xml";
@@ -364,9 +429,15 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             response.EnsureSuccessStatusCode();
 
-            DataElement dataElement2 = JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync());         
+            DataElement dataElement2 = JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync());
 
-            Assert.Equal("Testfile.xml", dataElement2.Filename);            
+            Assert.Equal("Testfile.xml", dataElement2.Filename);
+        }
+
+        private async Task EnsureValidStorage()
+        {
+            await _blobContainer.CreateIfNotExistsAsync();
+            blobSetup = true;
         }
     }
 }

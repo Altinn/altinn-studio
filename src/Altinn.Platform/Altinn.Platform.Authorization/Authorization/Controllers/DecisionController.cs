@@ -57,7 +57,7 @@ namespace Altinn.Platform.Authorization.Controllers
                     return await AuthorizeXmlRequest(model);
                 }
             }
-            catch 
+            catch (Exception ex)
             {
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {
@@ -158,7 +158,7 @@ namespace Altinn.Platform.Authorization.Controllers
 
         private async Task<ActionResult> AuthorizeJsonRequest(XacmlRequestApiModel model)
         {
-            XacmlJsonRequestRoot jsonRequest;
+            XacmlJsonRequestRoot jsonRequest = null;
             jsonRequest = (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
 
             XacmlJsonResponse jsonResponse = await Authorize(jsonRequest.Request);

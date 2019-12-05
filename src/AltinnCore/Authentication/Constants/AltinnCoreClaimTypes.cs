@@ -49,5 +49,15 @@ namespace AltinnCore.Authentication.Constants
         /// The authenticate method
         /// </summary>
         public const string AuthenticateMethod = "urn:altinn:authenticatemethod";
+
+        /// <summary>
+        /// The org identifier.
+        /// </summary>
+        public const string Org = "urn:altinn:org";
+
+        /// <summary>
+        /// The org number.
+        /// </summary>
+        public const string OrgNumber = "urn:altinn:orgNumber";
     }
 }
