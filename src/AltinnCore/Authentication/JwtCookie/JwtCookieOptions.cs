@@ -126,5 +126,10 @@ namespace AltinnCore.Authentication.JwtCookie
         /// If not provided, then one will be created using the MetadataAddress and Backchannel properties.
         /// </summary>
         public IConfigurationManager<OpenIdConnectConfiguration> ConfigurationManager { get; set; }
+
+        /// <summary>
+        /// Defines if it is required to have a https metadata adress
+        /// </summary>
+        public bool RequireHttpsMetadata { get; set; } = true;
     }
 }

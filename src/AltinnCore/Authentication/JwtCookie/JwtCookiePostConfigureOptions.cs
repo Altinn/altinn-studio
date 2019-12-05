@@ -49,10 +49,11 @@ namespace AltinnCore.Authentication.JwtCookie
             }
 
             options.MetadataAddress += ".well-known/openid-configuration";
+
             options.ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
                     options.MetadataAddress,
                     new OpenIdConnectConfigurationRetriever(),
-                    new HttpDocumentRetriever());
+                    new HttpDocumentRetriever() { RequireHttps = options.RequireHttpsMetadata }); 
         }
     }
 }
