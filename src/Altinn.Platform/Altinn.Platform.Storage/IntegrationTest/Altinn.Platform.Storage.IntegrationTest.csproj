@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Altinn.Common.PEP" Version="0.0.18-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.3.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.0.0" />
@@ -30,7 +31,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Storage.Interface\Altinn.Platform.Storage.Interface.csproj" />
     <ProjectReference Include="..\Storage\Altinn.Platform.Storage.csproj" />
   </ItemGroup>
 
@@ -54,12 +54,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="data\m1000-instances.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="data\response_deny.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="data\response_permit.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="data\xmlfile.xml">
