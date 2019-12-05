@@ -199,14 +199,6 @@ ingress:
     paths:
       - path: /
   - metadata:
-      name: altinn-designer-cookie-fetcher
-      annotations:
-        traefik.ingress.kubernetes.io/request-modifier: "ReplacePath: /Redirect/FetchCookieAndRedirectHome/"
-        traefik.ingress.kubernetes.io/rule-type: Path
-        traefik.frontend.priority: "900"
-    paths:
-      - path: /repos/
-  - metadata:
       name: altinn-designer-home-path
       annotations:
         traefik.frontend.priority: "800"
