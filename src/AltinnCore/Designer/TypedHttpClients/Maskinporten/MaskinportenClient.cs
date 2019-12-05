@@ -6,69 +6,42 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Designer.Infrastructure.Authentication;
-using AltinnCore.Designer.TypedHttpClients.AltinnAuthentication;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Rest.TransientFaultHandling;
 
-namespace AltinnCore.Designer.Services
+namespace AltinnCore.Designer.TypedHttpClients.Maskinporten
 {
     /// <summary>
-    /// PlatformAuthenticator
+    /// MaskinportenClient
     /// </summary>
-    public class PlatformAuthenticator : IPlatformAuthenticator
+    public class MaskinportenClient : IMaskinportenClient
     {
-        private readonly X509Certificate2 _certificate;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IAltinnAuthenticationClient _altinnAuthenticationClient;
+        private readonly HttpClient _httpClient;
         private readonly GeneralSettings _generalSettings;
+        private readonly X509Certificate2 _certificate;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="options">IOptionsMonitor of type GeneralSettings</param>
-        /// <param name="httpClientFactory">IHttpClientFactory</param>
-        /// <param name="altinnAuthenticationClient">IAltinnAuthenticationClient</param>
-        public PlatformAuthenticator(
+        /// <param name="httpClient">HttpClient</param>
+        public MaskinportenClient(
             IOptionsMonitor<GeneralSettings> options,
-            IHttpClientFactory httpClientFactory,
-            IAltinnAuthenticationClient altinnAuthenticationClient)
+            HttpClient httpClient)
         {
+            _httpClient = httpClient;
             _generalSettings = options.CurrentValue;
             byte[] pfxBytes = Convert.FromBase64String(_generalSettings.MaskinportenCertificate);
             _certificate = new X509Certificate2(pfxBytes);
-            _httpClientFactory = httpClientFactory;
-            _altinnAuthenticationClient = altinnAuthenticationClient;
         }
 
-        /// <summary>
-        /// Gets a converted Maskinporten token from Platform.Authentication
-        /// </summary>
-        /// <returns></returns>
-        public async Task<string> GetConvertedTokenAsync()
-        {
-            AccessTokenModel maskinportenToken = await CreateMaskinportenTokenAsync();
-            return await _altinnAuthenticationClient.ConvertTokenAsync(maskinportenToken.AccessToken);
-        }
-
-        private async Task<AccessTokenModel> CreateMaskinportenTokenAsync()
+        /// <inheritdoc />
+        public async Task<AccessTokenModel> CreateToken()
         {
             string jwtAssertion = GetJwtAssertion();
             FormUrlEncodedContent content = GetUrlEncodedContent(jwtAssertion);
-
-            HttpClient httpClient = _httpClientFactory.CreateClient("maskinporten");
-            httpClient.BaseAddress = new Uri(_generalSettings.MaskinportenBaseAddress);
-            httpClient.Timeout = new TimeSpan(0, 0, 30);
-
-            HttpResponseMessage response = await httpClient.PostAsync("token", content);
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new HttpRequestWithStatusException($"Can not create token in Maskinporten. {response.ReasonPhrase}")
-                {
-                    StatusCode = response.StatusCode
-                };
-            }
-
+            HttpResponseMessage response = await _httpClient.PostAsync("token", content);
             return await response.Content.ReadAsAsync<AccessTokenModel>();
         }
 

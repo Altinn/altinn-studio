@@ -12,6 +12,7 @@ using AltinnCore.Designer.TypedHttpClients.AltinnAuthorization;
 using AltinnCore.Designer.TypedHttpClients.AltinnStorage;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.DelegatingHandlers;
+using AltinnCore.Designer.TypedHttpClients.Maskinporten;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,6 +42,7 @@ namespace AltinnCore.Designer.TypedHttpClients
                 <IAltinnStorageAppMetadataClient, AltinnStorageAppMetadataClient>();
             services.AddAuthenticatedAltinnPlatformTypedHttpClient
                 <IAltinnAuthorizationPolicyClient, AltinnAuthorizationPolicyClient>();
+            services.AddMaskinportenTypedHttpClient(config);
 
             return services;
         }
@@ -78,8 +80,6 @@ namespace AltinnCore.Designer.TypedHttpClients
         private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(this IServiceCollection services, IConfiguration config)
             => services.AddHttpClient<IAltinnAuthenticationClient, AltinnAuthenticationClient>((sp, httpClient) =>
                 {
-                    PlatformSettings platformSettings = config.GetSection("PlatformSettings").Get<PlatformSettings>();
-                    httpClient.BaseAddress = new Uri(platformSettings.ApiAuthenticationEndpoint);
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 })
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
@@ -92,6 +92,15 @@ namespace AltinnCore.Designer.TypedHttpClients
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 })
                 .AddHttpMessageHandler<PlatformBearerTokenHandler>()
+                .AddHttpMessageHandler<EnsureSuccessHandler>();
+
+        private static IHttpClientBuilder AddMaskinportenTypedHttpClient(this IServiceCollection services, IConfiguration config)
+            => services.AddHttpClient<IMaskinportenClient, MaskinportenClient>((sp, httpClient) =>
+                {
+                    GeneralSettings generalSettings = config.GetSection(nameof(GeneralSettings)).Get<GeneralSettings>();
+                    httpClient.BaseAddress = new Uri(generalSettings.MaskinportenBaseAddress);
+                    httpClient.Timeout = new TimeSpan(0, 0, 30); // Could use Polly for this
+                })
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
     }
 }

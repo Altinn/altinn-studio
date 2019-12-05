@@ -15,5 +15,10 @@ namespace AltinnCore.Common.Configuration
         /// Uniform resource locator for Platform.Authorization policies
         /// </summary>
         public string ApiAuthorizationPolicyUri { get; set; }
+
+        /// <summary>
+        /// Uniform resource identifier for Platform.Authentication Applications
+        /// </summary>
+        public string ApiAuthenticationConvertUri { get; set; }
     }
 }

@@ -2,6 +2,8 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using AltinnCore.Common.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
 {
@@ -11,18 +13,22 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
     public class AltinnAuthenticationClient : IAltinnAuthenticationClient
     {
         private readonly HttpClient _httpClient;
+        private readonly PlatformSettings _platformSettings;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="httpClient">HttpClient</param>
-        public AltinnAuthenticationClient(HttpClient httpClient)
+        public AltinnAuthenticationClient(
+            HttpClient httpClient,
+            IOptionsMonitor<PlatformSettings> options)
         {
             _httpClient = httpClient;
+            _platformSettings = options.CurrentValue;
         }
 
         /// <inheritdoc/>
-        public async Task<string> ConvertTokenAsync(string token)
+        public async Task<string> ConvertTokenAsync(string token, Uri uri)
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             /*
@@ -31,7 +37,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
              */
             HttpRequestMessage message = new HttpRequestMessage
             {
-                RequestUri = new Uri($"{_httpClient.BaseAddress}convert") // TODO Move 'convert' out to config
+                RequestUri = new Uri($"{uri.Scheme}://{uri.Host}/{_platformSettings.ApiAuthenticationConvertUri}")
             };
             HttpResponseMessage response = await _httpClient.SendAsync(message);
             return await response.Content.ReadAsStringAsync();

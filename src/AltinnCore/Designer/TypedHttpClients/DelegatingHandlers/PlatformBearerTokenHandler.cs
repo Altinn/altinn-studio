@@ -1,8 +1,10 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using AltinnCore.Designer.Services;
+using AltinnCore.Designer.Infrastructure.Authentication;
+using AltinnCore.Designer.TypedHttpClients.AltinnAuthentication;
+using AltinnCore.Designer.TypedHttpClients.Maskinporten;
 
 namespace AltinnCore.Designer.TypedHttpClients.DelegatingHandlers
 {
@@ -11,15 +13,18 @@ namespace AltinnCore.Designer.TypedHttpClients.DelegatingHandlers
     /// </summary>
     public class PlatformBearerTokenHandler : DelegatingHandler
     {
-        private readonly IPlatformAuthenticator _platformAuthenticator;
+        private readonly IAltinnAuthenticationClient _altinnAuthenticationClient;
+        private readonly IMaskinportenClient _maskinportenClient;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="platformAuthenticator">IPlatformAuthenticator</param>
-        public PlatformBearerTokenHandler(IPlatformAuthenticator platformAuthenticator)
+        public PlatformBearerTokenHandler(
+            IMaskinportenClient maskinportenClient,
+            IAltinnAuthenticationClient altinnAuthenticationClient)
         {
-            _platformAuthenticator = platformAuthenticator;
+            _maskinportenClient = maskinportenClient;
+            _altinnAuthenticationClient = altinnAuthenticationClient;
         }
 
         /// <summary>
@@ -31,8 +36,9 @@ namespace AltinnCore.Designer.TypedHttpClients.DelegatingHandlers
         /// <returns>HttpResponseMessage</returns>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            string token = await _platformAuthenticator.GetConvertedTokenAsync();
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            AccessTokenModel maskinportenToken = await _maskinportenClient.CreateToken();
+            string altinnToken = await _altinnAuthenticationClient.ConvertTokenAsync(maskinportenToken.AccessToken, request.RequestUri);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", altinnToken);
             return await base.SendAsync(request, cancellationToken);
         }
     }

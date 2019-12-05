@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
@@ -12,6 +13,6 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
         /// </summary>
         /// <param name="token">Token to be converted</param>
         /// <returns>converted token</returns>
-        Task<string> ConvertTokenAsync(string token);
+        Task<string> ConvertTokenAsync(string token, Uri uri);
     }
 }
