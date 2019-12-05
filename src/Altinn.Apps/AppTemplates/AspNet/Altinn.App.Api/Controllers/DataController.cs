@@ -301,7 +301,6 @@ namespace Altinn.App.Api.Controllers
                 }
             }
 
-
             // send events to trigger application business logic
             await _altinnApp.RunAppEvent(AppEventType.AppModelCreation, appModel);
 

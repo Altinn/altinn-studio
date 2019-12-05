@@ -262,7 +262,7 @@ namespace Altinn.App.Api.Controllers
 
             if (!authorized)
             {
-                return Forbid("Not Authorized");
+                return Forbid();
             }
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
