@@ -497,18 +497,6 @@ namespace Altinn.App.Api.Controllers
             await _altinnApp.RunAppEvent(AppEventType.DataRetrieval, serviceModel);
             await _altinnApp.RunAppEvent(AppEventType.Calculation, serviceModel);
 
-            try
-            {
-                // Run the model Validation that handles validation defined on the model
-                TryValidateModel(serviceModel);
-
-                // send events to trigger application business logic
-                await _altinnApp.RunAppEvent(AppEventType.Validation, serviceModel);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Validation errors are currently ignored: {ex.Message}");
-            }
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
