@@ -8,13 +8,20 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
-namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
+namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
 {
     public class AltinnApp : AppBase, IAltinnApp
     {
+        private IValidationHandler _validationHandler;
 
-        public AltinnApp(IAppResources appResourcesService, ILogger<AltinnApp> logger, IData dataService, IProcess processService) : base(appResourcesService, logger, dataService, processService)
+        public AltinnApp(
+            IAppResources appResourcesService,
+            ILogger<AltinnApp> logger,
+            IData dataService,
+            IProcess processService,
+            IValidationHandler validationHandler) : base(appResourcesService, logger, dataService, processService)
         {
+            _validationHandler = validationHandler;
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -35,7 +42,8 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
 
         public override Task<bool> RunValidation(object instance, Type modelType, ICollection<ValidationResult> validationResults)
         {
-            return Task.FromResult(true);
+            _validationHandler.Validate(instance, modelType, validationResults);
+            return Task.FromResult(validationResults.Count == 0);
         }
     }
 }
