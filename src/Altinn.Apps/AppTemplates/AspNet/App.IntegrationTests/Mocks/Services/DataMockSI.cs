@@ -163,5 +163,10 @@ namespace App.IntegrationTests.Mocks.Services
         {
             throw new NotImplementedException();
         }
+
+        public Task<DataElement> Update(string instanceId, DataElement dataElement)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
