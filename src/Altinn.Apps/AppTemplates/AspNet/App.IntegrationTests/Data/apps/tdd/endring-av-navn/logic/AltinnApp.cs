@@ -1,5 +1,4 @@
 using Altinn.App.Common.Enums;
-using Altinn.App.Service.Interface;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Microsoft.AspNetCore.Mvc.ModelBinding;

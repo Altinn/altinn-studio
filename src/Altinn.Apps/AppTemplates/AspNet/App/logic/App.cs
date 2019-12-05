@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Altinn.App.Services.Interface;
 using Microsoft.Extensions.Logging;
 using Altinn.App.Services.Implementation;
-using Altinn.App.Service.Interface;
 using Altinn.App.Common.Enums;
 
 namespace Altinn.App.AppLogic

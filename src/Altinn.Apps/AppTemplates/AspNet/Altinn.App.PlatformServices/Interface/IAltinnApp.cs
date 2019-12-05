@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Common.Enums;
-using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace Altinn.App.Service.Interface
+namespace Altinn.App.Services.Interface
 {
     /// <summary>
     /// This interface defines all events a service possible can experience
@@ -54,7 +53,7 @@ namespace Altinn.App.Service.Interface
         /// <param name="instance">instance data</param>
         Task OnEndProcessTask(string taskId, Instance instance);
 
-        Task OnEndProcess(string endEvent, Instance instance);        
+        Task OnEndProcess(string endEvent, Instance instance);
 
     }
 }

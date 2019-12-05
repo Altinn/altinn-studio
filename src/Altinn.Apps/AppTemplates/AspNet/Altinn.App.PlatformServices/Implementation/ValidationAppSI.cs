@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.App.Service.Interface;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;

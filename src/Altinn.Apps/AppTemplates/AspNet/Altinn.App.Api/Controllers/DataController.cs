@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Helpers;
-using Altinn.App.Service.Interface;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
