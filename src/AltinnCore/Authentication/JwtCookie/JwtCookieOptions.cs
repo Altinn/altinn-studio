@@ -70,7 +70,7 @@ namespace AltinnCore.Authentication.JwtCookie
         /// </summary>
         /// <remarks>Contains the types and definitions required for validating a token.</remarks>
         /// <exception cref="ArgumentNullException">if 'value' is null.</exception>
-        public TokenValidationParameters TokenValidationParameters { get; set; }
+        public TokenValidationParameters TokenValidationParameters { get; set; } = new TokenValidationParameters();
 
         /// <summary>
         /// Gets or sets the discovery endpoint for obtaining metadata

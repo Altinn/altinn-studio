@@ -4,8 +4,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Authentication.Controllers;
+using Altinn.Platform.Authentication.IntegrationTests.Fakes;
 using Altinn.Platform.Authentication.Maskinporten;
 using Altinn.Platform.Authentication.Model;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -18,17 +20,17 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
     /// <summary>
     /// Represents a collection of unit test with all integration tests of the <see cref="OpenIdController"/> class.
     /// </summary>
-    public class OpenIdControllerTest : IClassFixture<WebApplicationFactory<Startup>>
+    public class OpenIdControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
-        private readonly WebApplicationFactory<Startup> factory;
+        private readonly WebApplicationFactory<Startup> _factory;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="AuthenticationControllerTest"/> class with the given WebApplicationFactory.
+        /// Initialises a new instance of the <see cref="OpenIdControllerTests"/> class with the given WebApplicationFactory.
         /// </summary>
         /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>
-        public OpenIdControllerTest(WebApplicationFactory<Startup> factory)
+        public OpenIdControllerTests(WebApplicationFactory<Startup> factory)
         {
-            this.factory = factory;
+            _factory = factory;
         }
 
         /// <summary>
@@ -63,7 +65,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             // Arrange
             HttpClient client = GetTestClient();
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/OpenId/.well-known/openid-configuration/jwks");
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/openid/.well-known/openid-configuration/jwks");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(requestMessage);
@@ -85,9 +87,9 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             string projectDir = Directory.GetCurrentDirectory();
             string configPath = Path.Combine(projectDir, "appsettings.json");
 
-            HttpClient client = factory.WithWebHostBuilder(builder =>
+            HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
-                builder.ConfigureTestServices(services => { services.AddSingleton<ISigningKeysRetriever, TestSigningKeysRetriever>(); });
+                builder.ConfigureTestServices(services => { services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>(); });
                 builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
             }).CreateClient();
 
