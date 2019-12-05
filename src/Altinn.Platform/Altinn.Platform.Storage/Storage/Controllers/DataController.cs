@@ -8,6 +8,7 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly IInstanceEventRepository instanceEventRepository;
+        private readonly IInstanceEventRepository _instanceEventRepository;
 
         private readonly ILogger _logger;
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
@@ -53,7 +54,7 @@ namespace Altinn.Platform.Storage.Controllers
             _dataRepository = dataRepository;
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
-            this.instanceEventRepository = instanceEventRepository;
+            _instanceEventRepository = instanceEventRepository;
             _logger = logger;
         }
 
@@ -64,6 +65,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dataId">the instance of the data element</param>
         /// <param name="instanceOwnerPartyId">the owner of the instance</param>
         /// <returns>the data element</returns>
+        [Authorize(Policy = "InstanceWrite")]
         [HttpDelete("data/{dataId:guid}")]
         public async Task<IActionResult> Delete(Guid instanceGuid, Guid dataId, int instanceOwnerPartyId)
         {
@@ -113,6 +115,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">the instanceId</param>
         /// <param name="dataGuid">the data id</param>
         /// <returns>The data file as an asyncronous stream</returns>
+        [Authorize(Policy = "InstanceRead")]
         [HttpGet("data/{dataGuid:guid}")]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(200)]
@@ -170,6 +173,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">the guid of the instance</param>
         /// <returns>The list of data elements</returns>
         /// <!-- GET /instances/{instanceId}/data -->
+        [Authorize(Policy = "InstancRead")]
         [HttpGet("dataelements")]
         [ProducesResponseType(typeof(List<DataElement>), 200)]
         public async Task<IActionResult> GetMany(int instanceOwnerPartyId, Guid instanceGuid)
@@ -202,6 +206,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="refs">an optional array of data element references</param>
         /// <returns>If the request was successful or not</returns>
         /// <!-- POST /instances/{instanceOwnerPartyId}/{instanceGuid}/data?elementType={elementType} -->
+        [Authorize(Policy = "InstanceWrite")]
         [HttpPost("data")]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
@@ -280,6 +285,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="refs">an optional array of data element references</param>
         /// <returns>data element metadata that records the successfull update</returns>
         /// <!-- PUT /instances/{instanceOwnerPartyId}/instanceGuid}/data/{dataId} -->
+        [Authorize(Policy = "InstanceWrite")]
         [HttpPut("data/{dataGuid}")]
         [DisableFormValueModelBinding]
         [ProducesResponseType(typeof(DataElement), 200)]
@@ -362,6 +368,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dataId">the dataId to upload data to</param>
         /// <param name="dataElement">The data element with data to update</param>
         /// <returns>data element metadata that records the successfull update</returns>
+        [Authorize(Policy = "InstanceWrite")]
         [HttpPut("dataelements/{dataId}")]
         [ProducesResponseType(typeof(DataElement), 200)]
         public async Task<IActionResult> Update(
@@ -388,6 +395,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dataGuid">the data guid</param>
         /// <returns>the updated data element</returns>
         // "/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}/dataelements/{dataGuid}/confirmDownload"
+        [Authorize(Policy = "InstanceWrite")]
         [HttpPut("dataelements/{dataGuid}/confirmDownload")]        
         [ProducesResponseType(typeof(DataElement), 200)]
         public async Task<IActionResult> ConfirmDownload(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
@@ -412,6 +420,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">the instance owner party id</param>
         /// <param name="instanceGuid">the instance guid</param>
         /// <returns>A list of data elements with updated confirmed download dates</returns>
+        [Authorize(Policy = "InstanceWrite")]
         [HttpPut("dataelements/confirmDownload")]
         [ProducesResponseType(typeof(List<DataElement>), 200)]
         public async Task<IActionResult> ConfirmDownloadAll(int instanceOwnerPartyId, Guid instanceGuid)
@@ -590,7 +599,7 @@ namespace Altinn.Platform.Storage.Controllers
                 Created = DateTime.UtcNow,
             };
 
-            await instanceEventRepository.InsertInstanceEvent(instanceEvent);
+            await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
         }
 
         private string GetUserId()

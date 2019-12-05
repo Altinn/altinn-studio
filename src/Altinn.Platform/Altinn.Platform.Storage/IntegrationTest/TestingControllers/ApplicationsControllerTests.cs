@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
-
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Controllers;
+using Altinn.Platform.Storage.IntegrationTest.Mocks;
+using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
@@ -54,7 +57,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             string org = "test";
             string appName = "app20";
             string requestUri = $"{BasePath}/applications?appId={org}/{appName}";
-            
+
             Application appInfo = CreateApplication(org, appName);
 
             DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not found", HttpStatusCode.NotFound);
@@ -64,6 +67,8 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             applicationRepository.Setup(s => s.Create(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
 
             HttpClient client = GetTestClient(applicationRepository.Object);
+            string token = PrincipalUtil.GetToken(1);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
             HttpResponseMessage response = await client.PostAsync(requestUri, appInfo.AsJson());
@@ -97,10 +102,12 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             string requestUri = $"{BasePath}/applications?appId={org}/{appName}";
 
             Application appInfo = CreateApplication(org, appName);
-            
+
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
 
             HttpClient client = GetTestClient(applicationRepository.Object);
+            string token = PrincipalUtil.GetToken(1);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
             HttpResponseMessage response = await client.PostAsync(requestUri, appInfo.AsJson());
@@ -128,7 +135,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             string org = "test";
             string appName = "app21";
             string requestUri = $"{BasePath}/applications/{org}/{appName}";
-            
+
             Application appInfo = CreateApplication(org, appName);
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
@@ -136,6 +143,9 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             applicationRepository.Setup(s => s.Update(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
 
             HttpClient client = GetTestClient(applicationRepository.Object);
+
+            string token = PrincipalUtil.GetToken(1);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
             HttpResponseMessage response = await client.DeleteAsync(requestUri);
@@ -160,15 +170,18 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             string org = "test";
             string appName = "app21";
             string requestUri = $"{BasePath}/applications/{org}/{appName}";
-           
+
             Application originalApp = CreateApplication(org, appName);
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
             applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(originalApp);
             applicationRepository.Setup(s => s.Update(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
-            
+
             HttpClient client = GetTestClient(applicationRepository.Object);
-           
+
+            string token = PrincipalUtil.GetToken(1);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             Application updatedApp = CreateApplication(org, appName);
             updatedApp.VersionId = "r34";
             updatedApp.PartyTypesAllowed = new PartyTypesAllowed { BankruptcyEstate = true };
@@ -221,6 +234,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                     services.AddSingleton(dataRepository.Object);
                     services.AddSingleton(instanceRepository.Object);
                     services.AddSingleton(instanceEventRepository.Object);
+                    services.AddSingleton<IPDP, PDPMock>();
                 });
             }).CreateClient();
 

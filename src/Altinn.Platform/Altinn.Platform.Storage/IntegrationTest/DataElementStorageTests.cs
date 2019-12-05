@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
+using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -115,6 +116,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             string dataPathWithDataGuid = $"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.instanceGuid}/data/{dataElement.Id}";
 
+            string token = PrincipalUtil.GetToken(1);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             HttpResponseMessage getResponse = await client.DeleteAsync($"{dataPathWithDataGuid}");
 
             getResponse.EnsureSuccessStatusCode();
@@ -150,7 +154,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             string dataPathWithDataGuid = $"{versionPrefix}/instances/{instanceId}/dataelements/{dataElement.Id}";
             HttpContent content = new StringContent(string.Empty);
-            
+
+            string token = PrincipalUtil.GetToken(1);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpResponseMessage getResponse = await client.PutAsync($"{dataPathWithDataGuid}/confirmDownload", content);
 
             getResponse.EnsureSuccessStatusCode();
@@ -181,7 +187,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             string dataPathWithData = $"{versionPrefix}/instances/{instanceId}/dataelements";
             HttpContent content = new StringContent(string.Empty);
-
+  
+            string token = PrincipalUtil.GetToken(1);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpResponseMessage getResponse = await client.PutAsync($"{dataPathWithData}/confirmDownload", content);
 
             getResponse.EnsureSuccessStatusCode();
@@ -268,6 +276,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             await _blobContainer.CreateIfNotExistsAsync();
             blobSetup = true;
-        }
+        }     
     }
 }
