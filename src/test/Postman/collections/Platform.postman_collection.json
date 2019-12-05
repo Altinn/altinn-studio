@@ -1436,6 +1436,7 @@
 										"exec": [
 											"pm.test(\"Platform - Storage - Instance Data - Add Instance Data - Status - 201\", function () {\r",
 											"    pm.response.to.have.status(201);\r",
+											"    pm.environment.set(\"dataId\",pm.response.json().id);\r",
 											"});"
 										],
 										"type": "text/javascript"
@@ -1517,7 +1518,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/dataelements",
 									"protocol": "https",
 									"host": [
 										"platform",
@@ -1530,7 +1531,7 @@
 										"instances",
 										"{{instanceOwnerId}}",
 										"{{instanceId}}",
-										"data"
+										"dataelements"
 									]
 								}
 							},
@@ -1800,10 +1801,6 @@
 										"exec": [
 											"pm.test(\"Platform - Storage - Instance Data - Delete Attachment Data - Status - 200\", function () {\r",
 											"    pm.response.to.have.status(200);\r",
-											"});\r",
-											"pm.test(\"Platform - Storage - Instance Data - Delete Attachment Data - Status - Content\", function (){\r",
-											"    var jsonData = pm.response.json();\r",
-											"    pm.expect(jsonData.data.length).to.equal(0);\r",
 											"});"
 										],
 										"type": "text/javascript"

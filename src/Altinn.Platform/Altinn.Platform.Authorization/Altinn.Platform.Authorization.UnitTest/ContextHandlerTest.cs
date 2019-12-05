@@ -3,13 +3,12 @@ using Altinn.Platform.Authorization.UnitTest.Util;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
-using Altinn.Platform.Storage.Models;
 using Moq;
-using System;
 using System.Threading.Tasks;
 using Xunit;
 using System.Collections.Generic;
 using Authorization.Interface.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Authorization.UnitTest
 {
