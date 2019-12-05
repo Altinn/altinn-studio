@@ -16,7 +16,7 @@ fixture('GUI service designer tests')
     t.ctx.syncMessage = "Endringene er validert";
     await t
       .useRole(AutoTestUser)
-      .resizeWindow(1280, 610)
+      .maximizeWindow()
   })
 
 test('Drag and drop test', async () => {
@@ -177,4 +177,28 @@ test('Add and delete conditional rendering connections', async () => {
     .click(designer.addedRules.withExactText('biggerThan10'))
     .expect(designer.deleteRulesButton.exists).ok()
     .click(designer.deleteRulesButton)
+});
+
+test('Clone modal functionality', async () => {
+  await t
+    .useRole(AutoTestUser)
+    .navigateTo(app.baseUrl + 'designer/ttd/autotestdeploy#/aboutservice')
+    .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
+    .hover(designer.cloneButton)
+    .click(designer.cloneButton)
+    .expect(designer.readMoreAltinnDocs.exists).ok()
+    .expect(designer.copyUrlRepoButton.exists).ok()
+    .click(designer.copyUrlRepoButton)
+});
+
+
+test('Validation of missing datamodel in clone modal', async () => {
+  await t
+    .useRole(AutoTestUser)
+    .navigateTo(app.baseUrl + 'designer/AutoTest/withoutdatamodel#/uieditor')
+    .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
+    .hover(designer.cloneButton)
+    .click(designer.cloneButton)
+    .expect(designer.dataModellLink.exists).ok()
+    .click(designer.dataModellLink)
 });

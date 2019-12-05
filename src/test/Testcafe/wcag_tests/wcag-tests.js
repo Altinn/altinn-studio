@@ -13,7 +13,7 @@ let dashboard = new DashBoard();
 
 const getLocation = ClientFunction(() => document.location.href);
 
-fixture('WCAG 2.0 tests for Altinn Studio')
+fixture.skip('WCAG 2.0 tests for Altinn Studio')
 	.page(app.baseUrl)
 	.beforeEach(async t => {
 		await t
@@ -21,20 +21,6 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 			.resizeWindow(1536, 864)
 	})
 
-	test('Accessibility testing for preview page', async t => {
-		await t
-			.navigateTo(app.baseUrl + 'designer/ttd/wcag#/test')
-			.switchToIframe(runtime.testBrukerIframe)
-			.expect(runtime.testUsers[0].exists).ok()
-			.hover(runtime.testUsers[0])
-			.click(runtime.testUsers[0])
-			.expect(runtime.startNewButton.exists).ok()
-			.click(runtime.startNewButton)
-			.switchToMainWindow()
-			.expect(runtime.testUserHeader[0].exists).ok()
-		const { error, violations } = await axeCheck(t);
-    await t.expect(violations.length === 0).ok(createReport(violations));
-	});
 
 	test('Accessibility testing for deployment to test environment page', async t => {
 		await t
@@ -42,28 +28,16 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 			.click(designerPage.testeNavigationTab)
 			.hover(designerPage.leftDrawerMenu)
 			.click(designerPage.testeLeftMenuItems[1])
-		const { error, violations } = await axeCheck(t);
+		const axeOptions = { runOnly: { 'type': 'tag', values: ['wcag2a', 'wcag2aa'] } };
+		const { error, violations } = await axeCheck(t, axeOptions);
 		await t.expect(violations.length === 0).ok(createReport(violations));	
 	});
-
-	test('Accessibility testing for party selection page', async t => {
-    await t
-      .navigateTo(app.baseUrl + 'designer/ttd/wcag#/test')
-      .switchToIframe(runtime.testBrukerIframe)
-      .expect(runtime.testUsers[1].exists).ok()
-      .hover(runtime.testUsers[1])
-      .click(runtime.testUsers[1])
-      .expect(runtime.startNewButton.exists).ok()
-      .click(runtime.startNewButton)
-      .switchToMainWindow()      
-			const { error, violations } = await axeCheck(t);
-			await t.expect(violations.length === 0).ok(createReport(violations));	
-		});
 
 	test('Accessibility testing for designer page', async t => {
 		await t
 		  .navigateTo(app.baseUrl + 'designer/ttd/wcag#/test')
-		const { error, violations } = await axeCheck(t);
+		const axeOptions = { runOnly: { 'type': 'tag', values: ['wcag2a', 'wcag2aa'] } };
+		const { error, violations } = await axeCheck(t, axeOptions);
 		await t.expect(violations.length === 0).ok(createReport(violations));	
 	});
 
@@ -78,7 +52,8 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 			.expect(designerPage.omLeftMenuItems[3].visible).ok()
 			.expect(designerPage.omLeftMenuItems[4].visible).ok()
 			.expect(designerPage.omLeftMenuItems[5].visible).ok()
-		const { error, violations } = await axeCheck(t);
+		const axeOptions = { runOnly: { 'type': 'tag', values: ['wcag2a', 'wcag2aa'] } };
+		const { error, violations } = await axeCheck(t, axeOptions);
 		await t.expect(violations.length === 0).ok(createReport(violations));	
 	});
 
@@ -92,7 +67,8 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 			.expect(designerPage.lageLeftMenuItems[2].visible).ok()
 			.expect(designerPage.lageLeftMenuItems[3].visible).ok()
 			.expect(designerPage.lageLeftMenuItems[4].visible).ok()
-		const { error, violations } = await axeCheck(t);
+		const axeOptions = { runOnly: { 'type': 'tag', values: ['wcag2a', 'wcag2aa'] } };
+		const { error, violations } = await axeCheck(t, axeOptions);
 		await t.expect(violations.length === 0).ok(createReport(violations));	
 	});
 
@@ -103,17 +79,8 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 			.hover(designerPage.leftDrawerMenu)
 			.expect(designerPage.spraakLeftMenuItems[0].visible).ok()
 			.expect(designerPage.spraakLeftMenuItems[1].visible).ok()
-		const { error, violations } = await axeCheck(t);
-		await t.expect(violations.length === 0).ok(createReport(violations));	
-	});
-
-	test('Teste tab accessibility test', async t => {
-		await t
-			.navigateTo(app.baseUrl + 'designer/ttd/wcag#/aboutservice')
-			.click(designerPage.testeNavigationTab)
-			.hover(designerPage.leftDrawerMenu)
-			.expect(getLocation()).contains('test');
-		const { error, violations } = await axeCheck(t);
+		const axeOptions = { runOnly: { 'type': 'tag', values: ['wcag2a', 'wcag2aa'] } };
+		const { error, violations } = await axeCheck(t, axeOptions);
 		await t.expect(violations.length === 0).ok(createReport(violations));	
 	});
 
@@ -123,11 +90,15 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 			.click(designerPage.publisereNavigationTab)
 			.hover(designerPage.leftDrawerMenu)
 			.expect(getLocation()).contains('publish');
-		const { error, violations } = await axeCheck(t);
+		const axeOptions = { runOnly: { 'type': 'tag', values: ['wcag2a', 'wcag2aa'] } };
+		const { error, violations } = await axeCheck(t, axeOptions);
 		await t.expect(violations.length === 0).ok(createReport(violations));	
 	});
 
 	test('Accessibility testing for dashboard page', async t => {
-		const { error, violations } = await axeCheck(t);
-		await t.expect(violations.length === 0).ok(createReport(violations));	
+		await t
+			.navigateTo(app.baseUrl)
+		const axeOptions = { runOnly: { 'type': 'tag', values: ['wcag2a', 'wcag2aa'] } };
+		const { error, violations } = await axeCheck(t, axeOptions);
+		await t.expect(violations.length === 0).ok(createReport(violations));
 	});
