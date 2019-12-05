@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Maskinporten;
@@ -14,7 +13,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 namespace Altinn.Platform.Authentication
@@ -44,10 +42,6 @@ namespace Altinn.Platform.Authentication
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            // Configure Authentication
-            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
-            SecurityKey key = new X509SecurityKey(cert);
-
             services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.WriteIndented = true;
@@ -66,15 +60,7 @@ namespace Altinn.Platform.Authentication
                         options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
                         options.Cookie.Name = "AltinnStudioRuntime";
                         options.Cookie.Domain = generalSettings.HostName;
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = key,
-                            ValidateIssuer = false,
-                            ValidateAudience = false,
-                            RequireExpirationTime = true,
-                            ValidateLifetime = true
-                        };
+                        options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
                     });
 
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
