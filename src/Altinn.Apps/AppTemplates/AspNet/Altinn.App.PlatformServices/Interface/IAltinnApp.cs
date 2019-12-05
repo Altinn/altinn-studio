@@ -55,5 +55,12 @@ namespace Altinn.App.Services.Interface
 
         Task OnEndProcess(string endEvent, Instance instance);
 
+        /// <summary>
+        /// Is called to run custom validation events defined by app developer.
+        /// </summary>
+        /// <param name="modelState">The model state</param>
+        /// <returns>Task to indicate when validation is completed</returns>
+        Task<bool> RunValidation(ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
+
     }
 }

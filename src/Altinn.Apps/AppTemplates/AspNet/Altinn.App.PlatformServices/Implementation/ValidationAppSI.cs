@@ -165,9 +165,10 @@ namespace Altinn.App.Services.Implementation
 
                 var context = new ValidationContext(data);
                 List<System.ComponentModel.DataAnnotations.ValidationResult> validationResults = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
+                bool isValidCustom = await _altinnApp.RunValidation(validationResults);
                 bool isValid = Validator.TryValidateObject(data, context, validationResults, true);          
 
-                if (!isValid)
+                if (!isValid || !isValidCustom)
                 {
                     messages.AddRange(MapModelStateToIssueList(instance, validationResults, dataElement.Id, dataElement.DataType, serviceText));
                 }
