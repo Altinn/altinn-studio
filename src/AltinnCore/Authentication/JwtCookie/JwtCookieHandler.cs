@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
@@ -152,10 +151,6 @@ namespace AltinnCore.Authentication.JwtCookie
                         }
 
                         return AuthenticateResult.Fail(jwtCookieFailedContext.Exception);
-
-                        // Logger.TokenValidationFailed(ex);
-
-                        // Todo: Handle refresh of certificat from the token source
                     }
                 }
 
@@ -283,23 +278,7 @@ namespace AltinnCore.Authentication.JwtCookie
 
         private async Task<SigningCredentials> GetSigningCredentials()
         {
-            if (string.IsNullOrEmpty(_keyVaultSettings.ClientId) || string.IsNullOrEmpty(_keyVaultSettings.ClientSecret))
-            {
-                X509Certificate2 cert = new X509Certificate2(_certificateSettings.CertificatePath, _certificateSettings.CertificatePwd);
-                SigningCredentials creds = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
-                return creds;
-            }
-            else
-            {
-                KeyVaultClient client = KeyVaultSettings.GetClient(_keyVaultSettings.ClientId, _keyVaultSettings.ClientSecret);
-                CertificateBundle certificate = await client.GetCertificateAsync(_keyVaultSettings.SecretUri, _certificateSettings.CertificateName);
-                SecretBundle secret = await client.GetSecretAsync(certificate.SecretIdentifier.Identifier);
-                byte[] pfxBytes = Convert.FromBase64String(secret.Value);
-                X509Certificate2 cert = new X509Certificate2(pfxBytes);
-                SigningCredentials creds = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
-                return creds;
-            }
-            return SigningCredentialsProvider.GetSigningCredentials(_keyVaultSettings, _certificateSettings);
+            return await SigningCredentialsProvider.GetSigningCredentials(_keyVaultSettings, _certificateSettings);
         }
 
         private CookieOptions BuildCookieOptions()
