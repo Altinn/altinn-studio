@@ -7,12 +7,15 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Authentication.Controllers;
+using Altinn.Platform.Authentication.IntegrationTests.Fakes;
 using Altinn.Platform.Authentication.Maskinporten;
+using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json;
 
@@ -23,18 +26,18 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
     /// <summary>
     /// Represents a collection of unit test with all integration tests of the <see cref="AuthenticationController"/> class.
     /// </summary>
-    public class AuthenticationControllerTest : IClassFixture<WebApplicationFactory<Startup>>
+    public class AuthenticationControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
         private const string OrganisationIdentity = "OrganisationLogin";
-        private readonly WebApplicationFactory<Startup> factory;
+        private readonly WebApplicationFactory<Startup> _factory;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="AuthenticationControllerTest"/> class with the given WebApplicationFactory.
+        /// Initialises a new instance of the <see cref="AuthenticationControllerTests"/> class with the given WebApplicationFactory.
         /// </summary>
         /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>
-        public AuthenticationControllerTest(WebApplicationFactory<Startup> factory)
+        public AuthenticationControllerTests(WebApplicationFactory<Startup> factory)
         {
-            this.factory = factory;
+            this._factory = factory;
         }
 
         /// <summary>
@@ -87,9 +90,13 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             string projectDir = Directory.GetCurrentDirectory();
             string configPath = Path.Combine(projectDir, "appsettings.json");
 
-            HttpClient client = factory.WithWebHostBuilder(builder =>
+            HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
-                builder.ConfigureTestServices(services => { services.AddSingleton<ISigningKeysRetriever, TestSigningKeysRetriever>(); });
+                builder.ConfigureTestServices(services =>
+                {
+                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
+                    services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
+                });
                 builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
             }).CreateClient();
 

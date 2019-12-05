@@ -150,13 +150,13 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <returns>Ok response with the refreshed token appended.</returns>
         [Authorize]
         [HttpGet("refresh")]
-        public ActionResult RefreshJWTCookie()
+        public async Task<ActionResult> RefreshJWTCookie()
         {
             logger.LogInformation($"Starting to refresh token...");
             ClaimsPrincipal principal = HttpContext.User;
             logger.LogInformation("Refreshing token....");
            
-            string token = jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0));
+            string token = await jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0));
             logger.LogInformation($"End of refreshing token");
             return Ok(token);
         }
@@ -251,7 +251,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 identity.AddClaims(claims);
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-                string token = jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0));
+                string token = await jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0));
 
                 return Ok(token);
             }

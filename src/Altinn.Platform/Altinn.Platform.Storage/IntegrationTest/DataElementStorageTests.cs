@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -18,7 +21,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// <summary>
     ///  Tests data service REST api.
     /// </summary>
-    public class DataElementStorageTests : IClassFixture<PlatformStorageFixture>, IDisposable
+    public class DataElementStorageTests : IClassFixture<PlatformStorageFixture>, IClassFixture<BlobStorageFixture>, IClassFixture<CosmosDBFixture>, IDisposable
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
@@ -28,6 +31,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly string testAppId = "tests/sailor";
         private readonly int testInstanceOwnerId = 500;
         private readonly string dataType = "default";
+        private CloudBlobClient _blobClient;
+        private CloudBlobContainer _blobContainer;
+        private bool blobSetup = false;
 
         private readonly string versionPrefix = "/storage/api/v1";
 
@@ -40,6 +46,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
             this.fixture = fixture;
             this.client = this.fixture.Client;
             this.storageClient = new InstanceClient(this.client);
+
+            // connect to azure blob storage
+            StorageCredentials storageCredentials = new StorageCredentials("devstoreaccount1", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==");
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+
+            StorageUri storageUrl = new StorageUri(new Uri("http://127.0.0.1:10000/devstoreaccount1"));
+            _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
+            _blobContainer = _blobClient.GetContainerReference("servicedata");
 
             CreateTestApplication();
         }
@@ -90,6 +104,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void Delete_DataElement_Ok()
         {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
             DataElement dataElement = (await CreateInstanceWithData(1))[0];
 
             Assert.NotNull(dataElement);
@@ -118,6 +137,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void Put_ConfirmDownload_OnADataGuid_Ok()
         {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
             DataElement dataElement = (await CreateInstanceWithData(1))[0];
 
             Assert.NotNull(dataElement);
@@ -144,6 +168,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void Put_ConfirmDownload_OnAllData_Ok()
         {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
             List<DataElement> dataElements = await CreateInstanceWithData(2);
 
             Assert.NotNull(dataElements);
@@ -233,6 +262,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Application existingApp = appClient.DeleteApplication(testAppId);
 
             return existingApp;
+        }
+
+        private async Task EnsureValidStorage()
+        {
+            await _blobContainer.CreateIfNotExistsAsync();
+            blobSetup = true;
         }
     }
 }
