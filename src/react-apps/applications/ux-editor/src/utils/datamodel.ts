@@ -9,16 +9,16 @@ export function getParentGroup(
   }
 
   let repeatingParentGroup: string;
-  const parentElementPath = dataModelElements[elementName].ParentElement;
+  const parentElementPath = dataModelElements[elementName].parentElement;
   const parentElement = dataModelElements[parentElementPath];
-  if (!parentElement.ParentElement) {
+  if (!parentElement.parentElement) {
     return undefined;
   }
 
-  if (parentElement.MaxOccurs <= 1) {
-    repeatingParentGroup = getParentGroup(dataModelElements, parentElement.ID);
+  if (parentElement.maxOccurs <= 1) {
+    repeatingParentGroup = getParentGroup(dataModelElements, parentElement.id);
   } else {
-    repeatingParentGroup = parentElement.ID;
+    repeatingParentGroup = parentElement.id;
   }
 
   return repeatingParentGroup;
@@ -32,7 +32,7 @@ export function filterDataModelForIntellisense(
     return [];
   }
   const rootElementFilterText = filterText.split('.')[0];
-  const rootElementDataModel = dataModelElements[0].ID.split('.')[0];
+  const rootElementDataModel = dataModelElements[0].id.split('.')[0];
   if (rootElementFilterText.toLowerCase() !== rootElementDataModel.toLowerCase()) {
     filterText = filterText.replace(rootElementFilterText, rootElementDataModel);
   }
@@ -44,18 +44,18 @@ export function filterDataModelForIntellisense(
   if (currentElement) {
     return dataModelElements.filter(
       (element: IDataModelFieldElement) =>
-        (element.Type === 'Field'
-        || element.Type === 'Group')
-        && element.ParentElement
-        && element.ParentElement.toLowerCase() === parentElement
-        && element.Name.toLowerCase().startsWith(currentElement),
+        (element.type === 'Field'
+        || element.type === 'Group')
+        && element.parentElement
+        && element.parentElement.toLowerCase() === parentElement
+        && element.name.toLowerCase().startsWith(currentElement),
       );
   }
 
   return dataModelElements.filter(
     (element: IDataModelFieldElement) =>
-      (element.Type === 'Field' || element.Type === 'Group')
-        && element.ParentElement
-        && element.ParentElement.toLowerCase() === parentElement,
+      (element.type === 'Field' || element.type === 'Group')
+        && element.parentElement
+        && element.parentElement.toLowerCase() === parentElement,
       );
 }

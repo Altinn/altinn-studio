@@ -24,7 +24,7 @@
     <Company>Altinn</Company>
     <Product>JWTCookieAuthentication</Product>
     <AssemblyVersion>1.0.6.0</AssemblyVersion>
-    <FileVersion>1.0.5.0</FileVersion>
+    <FileVersion>1.0.6.0</FileVersion>
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject />

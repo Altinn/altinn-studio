@@ -107,7 +107,7 @@ function* checkIfRuleShouldRunSaga({
         if (formFillerState.formData[inputParamBinding]) {
           numberOfInputFieldsFilledIn++;
         }
-        if (connectionDef.inputParams[inputParam] === lastUpdatedDataBinding.DataBindingName) {
+        if (connectionDef.inputParams[inputParam] === lastUpdatedDataBinding.dataBindingName) {
           shouldRunFunction = true;
         }
       }
@@ -130,7 +130,7 @@ function* checkIfRuleShouldRunSaga({
 
           const result = (window as any).ruleHandlerObject[functionToRun](newObj);
           let updatedDataBinding: IDataModelFieldElement = appDataState.dataModel.model.find(
-            (element: IDataModelFieldElement) => element.DataBindingName === connectionDef.outParams.outParam0);
+            (element: IDataModelFieldElement) => element.dataBindingName === connectionDef.outParams.outParam0);
           let updatedComponent: string;
           for (const component in formDesignerState.layout.components) {
             if (!component) {
@@ -160,12 +160,12 @@ function* checkIfRuleShouldRunSaga({
             } else {
               if (isPartOfRepeatingGroup) {
                 updatedDataBinding = { ...updatedDataBinding };
-                updatedDataBinding.DataBindingName =
-                  updatedDataBinding.DataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
+                updatedDataBinding.dataBindingName =
+                  updatedDataBinding.dataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
               }
               yield call(
                 FormFillerActionDispatchers.updateFormData,
-                updatedComponent, result, updatedDataBinding, updatedDataBinding.DataBindingName);
+                updatedComponent, result, updatedDataBinding, updatedDataBinding.dataBindingName);
             }
           }
         }

@@ -243,7 +243,7 @@ function* apiCheckValue(
     if (!formData[relevantClientParam]) {
       // This space intentionally left empty
     } else {
-      if (connectionDef.clientParams[param] === lastUpdatedDataBinding.DataBindingName) {
+      if (connectionDef.clientParams[param] === lastUpdatedDataBinding.dataBindingName) {
         if (Object.keys(connectionDef.clientParams).length > 1) {
           // This space intentionally left empty
         } else {
@@ -264,14 +264,14 @@ function* apiCheckValue(
               }
               let updatedDataBinding: IDataModelFieldElement =
                 model.find(
-                  (element: IDataModelFieldElement) => element.DataBindingName === dataMapping);
+                  (element: IDataModelFieldElement) => element.dataBindingName === dataMapping);
               let updatedComponent: string;
               for (const component in components) {
                 if (!component) {
                   continue;
                 }
                 for (const dataBindingKey in components[component].dataModelBindings) {
-                  if (components[component].dataModelBindings[dataBindingKey] === updatedDataBinding.DataBindingName) {
+                  if (components[component].dataModelBindings[dataBindingKey] === updatedDataBinding.dataBindingName) {
                     updatedComponent = component;
                     break;
                   }
@@ -285,7 +285,7 @@ function* apiCheckValue(
                 } else {
                   if (isPartOfRepeatingGroup) {
                     updatedDataBinding = { ...updatedDataBinding };
-                    updatedDataBinding.DataBindingName = updatedDataBinding.DataBindingName.replace(
+                    updatedDataBinding.dataBindingName = updatedDataBinding.dataBindingName.replace(
                       dataModelGroup,
                       dataModelGroupWithIndex,
                     );
@@ -294,7 +294,7 @@ function* apiCheckValue(
                     updatedComponent,
                     response[connectionDef.apiResponseMapping[dataMapping].mappingKey],
                     updatedDataBinding,
-                    updatedDataBinding.DataBindingName,
+                    updatedDataBinding.dataBindingName,
                   );
                 }
               }
@@ -316,7 +316,7 @@ function* apiCheckValue(
 }
 
 function getCodeListUri(codeListId: string) {
-  const { org, app } = window as IAltinnWindow;
+  const { org, app } = window as Window as IAltinnWindow;
   const appId = `${org}/${app}`;
   const codeListConfig = appConfig.appConfiguration.getCodeLists(window);
 

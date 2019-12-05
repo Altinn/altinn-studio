@@ -184,11 +184,15 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=lt:2017-12-31";
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=gt:2022-12-31";
 
             HttpResponseMessage response = await client.GetAsync(url);
 
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            QueryResponse<Instance> queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(await response.Content.ReadAsStringAsync());
+
+            Assert.Empty(queryResponse.Instances);
         }
 
         /// <summary>

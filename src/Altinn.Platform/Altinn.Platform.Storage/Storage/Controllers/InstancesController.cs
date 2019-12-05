@@ -398,12 +398,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instance">the instance to annotate</param>
         public static void AddSelfLinks(HttpRequest request, Instance instance)
         {
-            string selfLink = $"{request.Scheme}://{request.Host.ToUriComponent()}{request.Path}";
-
-            int start = selfLink.IndexOf("/instances", StringComparison.Ordinal);
-            selfLink = selfLink.Substring(0, start) + "/instances";
-
-            selfLink += $"/{instance.Id}";
+            string selfLink = ComputeInstanceSelfLink(request, instance);
 
             instance.SelfLinks ??= new ResourceLinks();
             instance.SelfLinks.Platform = selfLink;
@@ -412,11 +407,38 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 foreach (DataElement dataElement in instance.Data)
                 {
-                    dataElement.SelfLinks ??= new ResourceLinks();
-
-                    dataElement.SelfLinks.Platform = $"{selfLink}/data/{dataElement.Id}";
+                    AddDataSelfLinks(selfLink, dataElement);
                 }
             }
+        }
+
+        /// <summary>
+        /// Computes the self link (url) to an instance.
+        /// </summary>
+        /// <param name="request">the http request that has scheme, host and path properties</param>
+        /// <param name="instance">the instance which has the instance id</param>
+        /// <returns>A string that contains the self link url to the instance</returns>
+        public static string ComputeInstanceSelfLink(HttpRequest request, Instance instance)
+        {
+            string selfLink = $"{request.Scheme}://{request.Host.ToUriComponent()}{request.Path}";
+
+            int start = selfLink.IndexOf("/instances", StringComparison.Ordinal);
+            selfLink = selfLink.Substring(0, start) + "/instances";
+
+            selfLink += $"/{instance.Id}";
+            return selfLink;
+        }
+
+        /// <summary>
+        /// Adds a self link to the data element.
+        /// </summary>
+        /// <param name="instanceSelfLink">the url to the parent instance</param>
+        /// <param name="dataElement">the data element to add self link to</param>
+        public static void AddDataSelfLinks(string instanceSelfLink, DataElement dataElement)
+        {
+            dataElement.SelfLinks ??= new ResourceLinks();
+
+            dataElement.SelfLinks.Platform = $"{instanceSelfLink}/data/{dataElement.Id}";
         }
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
