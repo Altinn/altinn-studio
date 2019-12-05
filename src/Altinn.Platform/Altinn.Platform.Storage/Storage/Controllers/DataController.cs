@@ -31,7 +31,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly IInstanceEventRepository _instanceEventRepository;
+        private readonly IInstanceEventRepository instanceEventRepository;
 
         private readonly ILogger _logger;
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
@@ -54,7 +54,7 @@ namespace Altinn.Platform.Storage.Controllers
             _dataRepository = dataRepository;
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
-            _instanceEventRepository = instanceEventRepository;
+            this.instanceEventRepository = instanceEventRepository;
             _logger = logger;
         }
 
@@ -75,7 +75,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             // check if instance id exist and user is allowed to change the instance data
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            
+
             if (instance == null)
             {
                 return NotFound("Provided instanceId is unknown to storage service");
@@ -173,7 +173,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">the guid of the instance</param>
         /// <returns>The list of data elements</returns>
         /// <!-- GET /instances/{instanceId}/data -->
-        [Authorize(Policy = "InstancRead")]
+        [Authorize(Policy = "InstanceRead")]
         [HttpGet("dataelements")]
         [ProducesResponseType(typeof(List<DataElement>), 200)]
         public async Task<IActionResult> GetMany(int instanceOwnerPartyId, Guid instanceGuid)
@@ -396,7 +396,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>the updated data element</returns>
         // "/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}/dataelements/{dataGuid}/confirmDownload"
         [Authorize(Policy = "InstanceWrite")]
-        [HttpPut("dataelements/{dataGuid}/confirmDownload")]        
+        [HttpPut("dataelements/{dataGuid}/confirmDownload")]
         [ProducesResponseType(typeof(DataElement), 200)]
         public async Task<IActionResult> ConfirmDownload(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
         {
@@ -478,13 +478,13 @@ namespace Altinn.Platform.Storage.Controllers
                 string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
 
                 MultipartSection section = null;
-      
+
                 MultipartReader reader = new MultipartReader(boundary, request.Body);
                 section = reader.ReadNextSectionAsync().Result;
 
                 theStream = section.Body;
                 contentType = section.ContentType;
-       
+
                 bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
 
                 if (hasContentDisposition)
@@ -594,12 +594,12 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     UserId = GetUserIdAsInt(), // update when authentication is turned on
                     AuthenticationLevel = 0, // update when authentication is turned on
-                },                
+                },
                 ProcessInfo = instance.Process,
                 Created = DateTime.UtcNow,
             };
 
-            await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
+            await instanceEventRepository.InsertInstanceEvent(instanceEvent);
         }
 
         private string GetUserId()
@@ -610,7 +610,7 @@ namespace Altinn.Platform.Storage.Controllers
         private int GetUserIdAsInt()
         {
             string userId = User?.Identity?.Name;
-            
+
             if (int.TryParse(userId, out int result))
             {
                 return result;

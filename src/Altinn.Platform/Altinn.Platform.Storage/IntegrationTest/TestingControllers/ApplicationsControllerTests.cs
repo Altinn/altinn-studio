@@ -4,8 +4,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text;
 using Altinn.Common.PEP.Interfaces;
-using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.IntegrationTest.Mocks;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
@@ -59,7 +59,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             string requestUri = $"{BasePath}/applications?appId={org}/{appName}";
 
             Application appInfo = CreateApplication(org, appName);
-
+      
             DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not found", HttpStatusCode.NotFound);
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
@@ -71,7 +71,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
-            HttpResponseMessage response = await client.PostAsync(requestUri, appInfo.AsJson());
+            HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(appInfo), Encoding.UTF8, "application/json"));
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -110,7 +110,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
-            HttpResponseMessage response = await client.PostAsync(requestUri, appInfo.AsJson());
+            HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(appInfo), Encoding.UTF8, "application/json"));
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -187,7 +187,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             updatedApp.PartyTypesAllowed = new PartyTypesAllowed { BankruptcyEstate = true };
 
             // Act
-            HttpResponseMessage response = await client.PutAsync(requestUri, updatedApp.AsJson());
+            HttpResponseMessage response = await client.PutAsync(requestUri, new StringContent(JsonConvert.SerializeObject(updatedApp), Encoding.UTF8, "application/json"));
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

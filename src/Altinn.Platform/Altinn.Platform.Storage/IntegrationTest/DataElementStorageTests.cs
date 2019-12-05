@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Clients;
+using Altinn.Platform.Storage.Dupicated.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
@@ -26,7 +26,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
-        private readonly InstanceClient storageClient;
+        private readonly InstanceClient instanceClient;
         private string instanceId;
         private readonly string testOrg = "tests";
         private readonly string testAppId = "tests/sailor";
@@ -35,6 +35,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
         private bool blobSetup = false;
+        private string _invalidToken;
+        private string _validToken;
 
         private readonly string versionPrefix = "/storage/api/v1";
 
@@ -46,7 +48,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             this.fixture = fixture;
             this.client = this.fixture.Client;
-            this.storageClient = new InstanceClient(this.client);
+            this.instanceClient = new InstanceClient(this.client);
 
             // connect to azure blob storage
             StorageCredentials storageCredentials = new StorageCredentials("devstoreaccount1", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==");
@@ -56,6 +58,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
             _blobContainer = _blobClient.GetContainerReference("servicedata");
 
+            _validToken = PrincipalUtil.GetToken(1);
+            _invalidToken = PrincipalUtil.GetToken(2);
             CreateTestApplication();
         }
 
@@ -66,6 +70,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             string requestUri = $"{versionPrefix}/instances?org={testOrg}";
 
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = client.GetAsync(requestUri).Result;
             string content = response.Content.ReadAsStringAsync().Result;
 
@@ -116,9 +121,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             string dataPathWithDataGuid = $"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.instanceGuid}/data/{dataElement.Id}";
 
-            string token = PrincipalUtil.GetToken(1);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage getResponse = await client.DeleteAsync($"{dataPathWithDataGuid}");
 
             getResponse.EnsureSuccessStatusCode();
@@ -155,8 +158,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string dataPathWithDataGuid = $"{versionPrefix}/instances/{instanceId}/dataelements/{dataElement.Id}";
             HttpContent content = new StringContent(string.Empty);
 
-            string token = PrincipalUtil.GetToken(1);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage getResponse = await client.PutAsync($"{dataPathWithDataGuid}/confirmDownload", content);
 
             getResponse.EnsureSuccessStatusCode();
@@ -187,9 +189,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             string dataPathWithData = $"{versionPrefix}/instances/{instanceId}/dataelements";
             HttpContent content = new StringContent(string.Empty);
-  
-            string token = PrincipalUtil.GetToken(1);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage getResponse = await client.PutAsync($"{dataPathWithData}/confirmDownload", content);
 
             getResponse.EnsureSuccessStatusCode();
@@ -207,7 +208,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             List<DataElement> dataElements = new List<DataElement>();
 
             // create instance
-            Instance newInstance = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
+            Instance newInstance = await instanceClient.PostInstances(testAppId, testInstanceOwnerId);
           
             for (int i = 0; i < count; i++)
             {
@@ -222,6 +223,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 string requestUri = $"{versionPrefix}/instances/{newInstance.Id}/data?dataType={dataType}";
 
                 // post the file
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
                 HttpResponseMessage postResponse = await client.PostAsync(requestUri, jsonContent.AsJson());
 
                 DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(await postResponse.Content.ReadAsStringAsync());
@@ -232,6 +234,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 dataElement.AppOwner.Downloaded.Add(DateTime.UtcNow);
 
                 requestUri = $"{versionPrefix}/instances/{newInstance.Id}/dataelements/{dataElement.Id}";
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
                 HttpResponseMessage putResponse = await client.PutAsync(requestUri, dataElement.AsJson());
 
                 dataElements.Add(JsonConvert.DeserializeObject<DataElement>(await putResponse.Content.ReadAsStringAsync()));
@@ -276,6 +279,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             await _blobContainer.CreateIfNotExistsAsync();
             blobSetup = true;
-        }     
+        }
     }
 }

@@ -3,9 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.IntegrationTest.Fixtures;
+using Altinn.Platform.Storage.IntegrationTest.Mocks;
+using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
@@ -29,6 +34,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         private const string BasePath = "/storage/api/v1";
 
         private readonly WebApplicationFactory<Startup> _factory;
+        private string _validToken;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageboxInstancesControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
@@ -37,6 +43,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public MessageboxInstancesControllerTests(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
+            _validToken = PrincipalUtil.GetToken(1);
         }
 
         /// <summary>
@@ -63,6 +70,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App3);
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}?state=active");
@@ -103,6 +111,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App2);
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}?state=active&language=en");
@@ -144,6 +153,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App1);
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}?state=archived");
@@ -187,6 +197,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                 .ReturnsAsync((InstanceEvent r) => r);
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id}/undelete", null);
@@ -226,6 +237,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id}/undelete", null);
@@ -263,6 +275,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instanceGuid}/undelete", null);
@@ -306,6 +319,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                 .ReturnsAsync((InstanceEvent r) => r);
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id}?hard=false");  
@@ -354,6 +368,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                 .ReturnsAsync((InstanceEvent r) => r);
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id}?hard=true");
@@ -386,6 +401,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                     services.AddSingleton(instanceRepository);
                     services.AddSingleton(applicationRepository);
                     services.AddSingleton(instanceEventRepository);
+                    services.AddSingleton<IPDP, PDPMock>();
                 });
             }).CreateClient();
 
