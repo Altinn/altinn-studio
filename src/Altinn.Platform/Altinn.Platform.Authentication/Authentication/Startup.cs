@@ -66,15 +66,7 @@ namespace Altinn.Platform.Authentication
                         options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
                         options.Cookie.Name = "AltinnStudioRuntime";
                         options.Cookie.Domain = generalSettings.HostName;
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = key,
-                            ValidateIssuer = false,
-                            ValidateAudience = false,
-                            RequireExpirationTime = true,
-                            ValidateLifetime = true
-                        };
+                        options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
                     });
 
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();

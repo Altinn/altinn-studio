@@ -2,12 +2,14 @@ using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
+using Altinn.Platform.Authentication.Maskinporten;
+
 using Microsoft.IdentityModel.Tokens;
 
-namespace Altinn.Platform.Authentication.Maskinporten
+namespace Altinn.Platform.Authentication.IntegrationTests.Fakes
 {
     /// <inheritdoc />
-    public class TestSigningKeysRetriever : ISigningKeysRetriever
+    public class SigningKeysRetrieverStub : ISigningKeysRetriever
     {
         /// <inheritdoc />
         public async Task<ICollection<SecurityKey>> GetSigningKeys(string url)
