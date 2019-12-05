@@ -2,17 +2,16 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+
 using AltinnCore.Authentication.Constants;
+using AltinnCore.Authentication.Utils;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
@@ -27,6 +26,7 @@ namespace AltinnCore.Authentication.JwtCookie
     {
         private const string HeaderValueNoCache = "no-cache";
         private const string HeaderValueEpocDate = "Thu, 01 Jan 1970 00:00:00 GMT";
+
         private readonly KeyVaultSettings _keyVaultSettings;
         private readonly CertificateSettings _certificateSettings;
 
@@ -165,14 +165,10 @@ namespace AltinnCore.Authentication.JwtCookie
                         }
 
                         return AuthenticateResult.Fail(jwtCookieFailedContext.Exception);
-
-                        // Logger.TokenValidationFailed(ex);
-
-                        // Todo: Handle refresh of certificat from the token source
                     }
                 }
 
-                return AuthenticateResult.Fail("No SecurityTokenValidator available for token: " + token ?? "[null]");
+                return AuthenticateResult.Fail("No SecurityTokenValidator available for token: " + token);
             }
             catch (Exception ex)
             {
@@ -296,22 +292,7 @@ namespace AltinnCore.Authentication.JwtCookie
 
         private async Task<SigningCredentials> GetSigningCredentials()
         {
-            if (string.IsNullOrEmpty(_keyVaultSettings.ClientId) || string.IsNullOrEmpty(_keyVaultSettings.ClientSecret))
-            {
-                X509Certificate2 cert = new X509Certificate2(_certificateSettings.CertificatePath, _certificateSettings.CertificatePwd);
-                SigningCredentials creds = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
-                return creds;
-            }
-            else
-            {
-                KeyVaultClient client = KeyVaultSettings.GetClient(_keyVaultSettings.ClientId, _keyVaultSettings.ClientSecret);
-                CertificateBundle certificate = await client.GetCertificateAsync(_keyVaultSettings.SecretUri, _certificateSettings.CertificateName);
-                SecretBundle secret = await client.GetSecretAsync(certificate.SecretIdentifier.Identifier);
-                byte[] pfxBytes = Convert.FromBase64String(secret.Value);
-                X509Certificate2 cert = new X509Certificate2(pfxBytes);
-                SigningCredentials creds = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
-                return creds;
-            }
+            return await SigningCredentialsProvider.GetSigningCredentials(_keyVaultSettings, _certificateSettings);
         }
 
         private CookieOptions BuildCookieOptions()
