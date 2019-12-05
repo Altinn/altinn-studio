@@ -103,29 +103,19 @@ namespace AltinnCore.Authentication.JwtCookie
                     return AuthenticateResult.NoResult();
                 }
 
-                OpenIdConnectConfiguration configuration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
-
-                if (Options.TokenValidationParameters == null)
-                {
-                    Options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKeys = configuration.SigningKeys,
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        RequireExpirationTime = true,
-                        ValidateLifetime = true
-                    };
-                }
-
                 TokenValidationParameters validationParameters = Options.TokenValidationParameters.Clone();
-                if (configuration != null)
+                if (Options.ConfigurationManager != null)
                 {
-                    var issuers = new[] { configuration.Issuer };
-                    validationParameters.ValidIssuers = validationParameters.ValidIssuers?.Concat(issuers) ?? issuers;
+                    OpenIdConnectConfiguration configuration = await Options.ConfigurationManager.GetConfigurationAsync(Context.RequestAborted);
 
-                    validationParameters.IssuerSigningKeys = validationParameters.IssuerSigningKeys?.Concat(configuration.SigningKeys)
-                                                             ?? configuration.SigningKeys;
+                    if (configuration != null)
+                    {
+                        var issuers = new[] { configuration.Issuer };
+                        validationParameters.ValidIssuers = validationParameters.ValidIssuers?.Concat(issuers) ?? issuers;
+
+                        validationParameters.IssuerSigningKeys = validationParameters.IssuerSigningKeys?.Concat(configuration.SigningKeys)
+                                                                 ?? configuration.SigningKeys;
+                    }
                 }
 
                 JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();

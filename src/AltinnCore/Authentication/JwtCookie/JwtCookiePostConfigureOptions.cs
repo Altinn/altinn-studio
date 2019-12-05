@@ -43,16 +43,19 @@ namespace AltinnCore.Authentication.JwtCookie
                 options.AccessDeniedPath = JwtCookieDefaults.AccessDeniedPath;
             }
 
-            if (!options.MetadataAddress.EndsWith("/", StringComparison.Ordinal))
+            if (!string.IsNullOrEmpty(options.MetadataAddress))
             {
-                options.MetadataAddress += "/";
-            }
+                if (!options.MetadataAddress.EndsWith("/", StringComparison.Ordinal))
+                {
+                    options.MetadataAddress += "/";
+                }
 
-            options.MetadataAddress += ".well-known/openid-configuration";
-            options.ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+                options.MetadataAddress += ".well-known/openid-configuration";
+                options.ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
                     options.MetadataAddress,
                     new OpenIdConnectConfigurationRetriever(),
                     new HttpDocumentRetriever());
+            }
         }
     }
 }
