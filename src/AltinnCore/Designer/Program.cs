@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using AltinnCore.Common.Configuration;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -80,11 +81,8 @@ namespace AltinnCore.Designer
                             keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
                         SetTelemetry(secretBundle.Value);
 
-                        SecretBundle secretCertificateBundle = keyVaultClient.GetSecretAsync(keyVaultEndpoint, "Register-enheten-Bronnoysund").GetAwaiter().GetResult();
-                        config.AddInMemoryCollection(new List<KeyValuePair<string, string>>
-                        {
-                            new KeyValuePair<string, string>("GeneralSettings:MaskinportenCertificate", secretCertificateBundle.Value)
-                        });
+                        AddMaskinportenCertificate(stageOneConfig, keyVaultClient, keyVaultEndpoint, config);
+                        
                     }
                     catch (Exception vaultException)
                     {
@@ -113,6 +111,24 @@ namespace AltinnCore.Designer
             })
                 .UseStartup<Startup>()
                 .CaptureStartupErrors(true);
+
+        private static void AddMaskinportenCertificate(
+            IConfiguration stageOneConfig,
+            KeyVaultClient keyVaultClient,
+            string keyVaultEndpoint,
+            IConfigurationBuilder config)
+        {
+            SecretBundle maskinportenClientId = keyVaultClient.GetSecretAsync(
+                keyVaultEndpoint, "GeneralSettings--MaskinportenClientId").GetAwaiter().GetResult();
+            string maskinportenCertificateName = stageOneConfig.GetValue<string>("GeneralSettings:MaskinportenCertificateName");
+            SecretBundle secretCertificateBundle = keyVaultClient.GetSecretAsync(
+                keyVaultEndpoint, maskinportenCertificateName).GetAwaiter().GetResult();
+            config.AddInMemoryCollection(new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("GeneralSettings:MaskinportenCertificate", secretCertificateBundle.Value),
+                new KeyValuePair<string, string>("GeneralSettings:MaskinportenClientId", maskinportenClientId.Value)
+            });
+        }
 
         private static void SetTelemetry(string instrumentationKey)
         {

@@ -208,5 +208,10 @@ namespace AltinnCore.Common.Configuration
         /// The certificate for Maskinporten, is set in Program
         /// </summary>
         public string MaskinportenCertificate { get; set; }
+
+        /// <summary>
+        /// The certificate name for Maskinporten
+        /// </summary>
+        public string MaskinportenCertificateName { get; set; }
     }
 }
