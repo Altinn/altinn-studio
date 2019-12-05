@@ -10,6 +10,7 @@
     "clean-node-modules": "lerna exec --concurrency 1 -- rm -rf ./node_modules"
   },
   "devDependencies": {
+    "ini": "1.3.5",
     "lerna": "3.16.4"
   }
 }

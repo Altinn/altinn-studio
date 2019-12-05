@@ -12,9 +12,9 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class PepAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
     {
-        public Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequest xacmlJsonRequest)
+        public Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
-            List<XacmlJsonCategory> resources = xacmlJsonRequest.Resource;
+            List<XacmlJsonCategory> resources = xacmlJsonRequest.Request.Resource;
 
             XacmlJsonAttribute attribute = resources.Select(r => r.Attribute.Find(a => a.Value.Equals("endring-av-navn"))).FirstOrDefault();
 
@@ -97,7 +97,7 @@ namespace App.IntegrationTests.Mocks.Services
             return Task.FromResult(response);
         }
 
-        public Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequest xacmlJsonRequest, ClaimsPrincipal user)
+        public Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
         {
             return Task.FromResult(true);
         }

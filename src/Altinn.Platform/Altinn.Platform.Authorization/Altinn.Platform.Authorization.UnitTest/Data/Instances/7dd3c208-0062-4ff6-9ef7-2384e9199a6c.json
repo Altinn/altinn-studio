@@ -1,6 +1,8 @@
 {
   "id": "7dd3c208-0062-4ff6-9ef7-2384e9199a6c",
-  "instanceOwnerId": "1000",
+  "instanceOwner": {
+    "partyId": "1000"
+  },
   "appId": "tdd/taxreport",
   "org": "tdd",
   "createdDateTime": "2019-10-02T21:11:30.6864735Z",

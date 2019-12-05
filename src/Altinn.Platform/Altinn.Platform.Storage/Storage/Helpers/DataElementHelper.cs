@@ -16,11 +16,19 @@ namespace Altinn.Platform.Storage.Helpers
         public static DataElement CreateDataElement(string dataType, List<Guid> refs, Instance instance, DateTime creationTime, string contentType, string contentFileName, long fileSize, string user)
         {
             string dataId = Guid.NewGuid().ToString();
-            
+
+            string guidFromInstanceId = instance.Id;
+
+            if (guidFromInstanceId != null && guidFromInstanceId.Contains("/"))
+            {
+                guidFromInstanceId = instance.Id.Split("/")[1];
+            }
+
             DataElement newData = new DataElement
             {
                 // update data record
                 Id = dataId,
+                instanceGuid = guidFromInstanceId,
                 DataType = dataType,
                 ContentType = contentType,
                 CreatedBy = user,
@@ -30,14 +38,7 @@ namespace Altinn.Platform.Storage.Helpers
                 LastChanged = creationTime,
                 Size = fileSize,
                 Refs = refs,
-            };
-
-            string guidFromInstanceId = instance.Id;
-
-            if (guidFromInstanceId != null && guidFromInstanceId.Contains("/"))
-            {
-                guidFromInstanceId = instance.Id.Split("/")[1];
-            }
+            };            
 
             string filePath = DataFileName(instance.AppId, guidFromInstanceId, newData.Id);
             newData.BlobStoragePath = filePath;

@@ -9,11 +9,12 @@ describe('>>> utils/receipt.test.tsx', () => {
   let mockLanguage: any;
   let mockOrganisations: any;
   let expectedResult: any;
+  let mockApplication: any;
 
   beforeEach(() => {
     mockInstance = {
       data: [
-        {elementType: 'default', lastChangedDateTime: new Date(2018, 11, 24, 10, 33)} as IData,
+        {dataType: 'default', lastChanged: new Date(2018, 11, 24, 10, 33)} as IData,
       ],
       org: 'testOrg',
     } as IInstance;
@@ -48,15 +49,19 @@ describe('>>> utils/receipt.test.tsx', () => {
       'Mottaker': 'TEST ORG',
       'Referansenummer': 'mockInstanceId',
     };
-
+    mockApplication = {
+      dataTypes: [{appLogic: true, id: 'default'}],
+    };
   });
   it('+++ should return instance metadata object with correct values for person', () => {
-    const result = getInstanceMetaDataObject(mockInstance, mockPartyPerson, mockLanguage, mockOrganisations);
+    // tslint:disable-next-line: max-line-length
+    const result = getInstanceMetaDataObject(mockInstance, mockPartyPerson, mockLanguage, mockOrganisations, mockApplication);
     expect(result).toEqual(expectedResult);
   });
 
   it('+++ should return instance metadata object with correct values for org', () => {
-    const result = getInstanceMetaDataObject(mockInstance, mockPartyOrg, mockLanguage, mockOrganisations);
+    // tslint:disable-next-line: max-line-length
+    const result = getInstanceMetaDataObject(mockInstance, mockPartyOrg, mockLanguage, mockOrganisations, mockApplication);
     const expectedOrgResult = expectedResult;
     expectedOrgResult.Avsender = '12345-FIRMA AS';
     expect(result).toEqual(expectedOrgResult);

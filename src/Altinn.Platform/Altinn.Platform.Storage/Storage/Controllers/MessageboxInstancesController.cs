@@ -54,10 +54,15 @@ namespace Altinn.Platform.Storage.Controllers
             string[] acceptedLanguages = { "en", "nb", "nn" };
 
             string languageId = "nb";
-            state = state.ToLower();
-            if (string.IsNullOrWhiteSpace(state) || !allowedStates.Contains(state))
+            if (string.IsNullOrEmpty(state))
             {
-                return BadRequest("Invalid instance state");
+                return BadRequest($"State is empty. Please provide on of: {string.Join(", ", allowedStates)}");
+            }
+
+            state = state.ToLower();
+            if (!allowedStates.Contains(state))
+            {
+                return BadRequest($"Invalid instance state. Please provide on of: {string.Join(", ", allowedStates)}");
             }
 
             if (language != null && acceptedLanguages.Contains(language.ToLower()))

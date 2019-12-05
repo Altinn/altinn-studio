@@ -586,11 +586,11 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   public getMinOccursFromDataModel = (dataBindingName: string): number => {
     const parentComponent = dataBindingName.replace('.value', '');
     const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) => {
-      const firstPeriod = e.ID.indexOf('.');
-      const elementDataBindingName = e.ID.substr(firstPeriod + 1, e.ID.length - (firstPeriod + 1));
+      const firstPeriod = e.id.indexOf('.');
+      const elementDataBindingName = e.id.substr(firstPeriod + 1, e.id.length - (firstPeriod + 1));
       return elementDataBindingName.toLowerCase() === parentComponent.toLowerCase();
     });
-    return element.MinOccurs;
+    return element.minOccurs;
   }
 
   public handleValidFileEndingsChange = (event: any) => {
