@@ -24,7 +24,10 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
                 }
             };
 
-            StartAndWaitForExit("start");
+            if (Process.GetProcessesByName("Microsoft.Azure.Cosmos.Emulator").Length == 0)
+            {
+                StartAndWaitForExit("start");
+            }      
         }
 
         /// <summary>
@@ -39,6 +42,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
             process.StartInfo.Arguments = arguments;
             process.Start();
             process.WaitForExit(10000);
+
         }
     }
 }
