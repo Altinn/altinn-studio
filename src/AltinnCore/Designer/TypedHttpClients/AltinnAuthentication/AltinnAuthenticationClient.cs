@@ -40,7 +40,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
                 RequestUri = new Uri($"{uri.Scheme}://{uri.Host}/{_platformSettings.ApiAuthenticationConvertUri}")
             };
             HttpResponseMessage response = await _httpClient.SendAsync(message);
-            return await response.Content.ReadAsStringAsync();
+            return await response.Content.ReadAsAsync<string>();
         }
     }
 }
