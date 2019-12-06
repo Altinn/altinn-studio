@@ -15,7 +15,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
     {
         public Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
-            string jsonResponse;
+            string jsonResponse = string.Empty;
 
             if (xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => (a.AttributeId == "urn:altinn:userid" && a.Value == "1")))
             {
