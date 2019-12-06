@@ -189,7 +189,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else if (instance.Status.SoftDeleted.HasValue)
             {               
-                instance.LastChangedBy = User?.Identity?.Name;
+                instance.LastChangedBy = User.GetUserOrOrgId();
                 instance.LastChanged = DateTime.UtcNow;
                 instance.Status.SoftDeleted = null;
 
@@ -201,8 +201,9 @@ namespace Altinn.Platform.Storage.Controllers
                     InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
                     User = new PlatformUser
                     {
-                        UserId = 0, // update when authentication is turned on
-                        AuthenticationLevel = 0, // update when authentication is turned on
+                        UserId = User.GetUserIdAsInt(),
+                        AuthenticationLevel = User.GetAuthenticationLevel(),
+                        OrgId = User.GetOrg(),
                     }
                 };
 
@@ -267,7 +268,7 @@ namespace Altinn.Platform.Storage.Controllers
                 instance.Status.SoftDeleted = now;
             }
 
-            instance.LastChangedBy = User.Identity.Name;
+            instance.LastChangedBy = User.GetUserOrOrgId();
             instance.LastChanged = now;
 
             InstanceEvent instanceEvent = new InstanceEvent
@@ -278,8 +279,9 @@ namespace Altinn.Platform.Storage.Controllers
                 InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
                 User = new PlatformUser
                 {
-                    UserId = 0, // update when authentication is turned on
-                    AuthenticationLevel = 0, // update when authentication is turned on
+                    UserId = User.GetUserIdAsInt(),
+                    AuthenticationLevel = User.GetAuthenticationLevel(),
+                    OrgId = User.GetOrg(),
                 },
             };
 
