@@ -213,5 +213,15 @@ namespace AltinnCore.Common.Configuration
         /// The certificate name for Maskinporten
         /// </summary>
         public string MaskinportenCertificateName { get; set; }
+
+        /// <summary>
+        /// The resource for Maskinporten
+        /// </summary>
+        public string MaskinportenResource { get; set; }
+
+        /// <summary>
+        /// The scopes for Maskinporten
+        /// </summary>
+        public string MaskinportenScopes { get; set; }
     }
 }

@@ -58,9 +58,9 @@ namespace AltinnCore.Designer.TypedHttpClients.Maskinporten
             DateTimeOffset dateTimeOffset = new DateTimeOffset(DateTime.UtcNow);
             JwtPayload payload = new JwtPayload
             {
-                { "aud", "https://oidc-ver2.difi.no/idporten-oidc-provider/" },
-                { "resource", "https://tt02.altinn.no/maskinporten-api/" },
-                { "scope", "altinn:instances.read altinn:instances.write" },
+                { "aud", _generalSettings.MaskinportenBaseAddress },
+                { "resource", _generalSettings.MaskinportenResource },
+                { "scope", _generalSettings.MaskinportenScopes },
                 { "iss",  _generalSettings.MaskinportenClientId},
                 { "exp", dateTimeOffset.ToUnixTimeSeconds() + 10 },
                 { "iat", dateTimeOffset.ToUnixTimeSeconds() },
