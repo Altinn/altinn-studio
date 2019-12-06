@@ -35,13 +35,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
         private bool blobSetup = false;
-        private string _invalidToken;
         private string _validToken;
 
         private readonly string versionPrefix = "/storage/api/v1";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InstanceStorageTests"/> class.
+        /// Initializes a new instance of the <see cref="DataElementStorageTests"/> class.
         /// </summary>
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
         public DataElementStorageTests(PlatformStorageFixture fixture)
@@ -57,9 +56,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             StorageUri storageUrl = new StorageUri(new Uri("http://127.0.0.1:10000/devstoreaccount1"));
             _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
             _blobContainer = _blobClient.GetContainerReference("servicedata");
+            _validToken = PrincipalUtil.GetToken(1);   
 
-            _validToken = PrincipalUtil.GetToken(1);
-            _invalidToken = PrincipalUtil.GetToken(2);
             CreateTestApplication();
         }
 
@@ -175,9 +173,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Assert.Empty(instance.Data);
         }
-
+  
         /// <summary>
-        /// Adds confirm download to data element.
+        /// Scenario:
+        ///   Request to add confirm download to data element.
+        /// Expected:
+        ///   Data element is updated with confirmation of download.
+        /// Success:
+        ///   AppOwner.DownloadConfirmed field is populated on data element. 
         /// </summary>
         [Fact]
         public async void Put_ConfirmDownload_OnADataGuid_Ok()
@@ -209,7 +212,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// Adds confirm download to all elements.
+        /// Scenario:
+        ///   Add confirm download to all data elements on an instance
+        /// Expected:
+        ///   Data elements are updated with confirmation of download.
+        /// Success:
+        ///   AppOwner.DownloadConfirmed field is populated for all data elements. 
         /// </summary>
         [Fact]
         public async void Put_ConfirmDownload_OnAllData_Ok()

@@ -87,6 +87,76 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
         /// <summary>
         /// Scenario:
+        ///   Post a simple but valid Application instance but user has too low authentication level.
+        /// Expected result:
+        ///   Returns HttpStatus Forbidden and no Application instance get returned.
+        /// </summary>
+        [Fact]
+        public async void Post_UserHastooLowAuthLv_ReturnsStatusForbidden()
+        {
+            // Arrange
+            string org = "test";
+            string appName = "app20";
+            string requestUri = $"{BasePath}/applications?appId={org}/{appName}";
+
+            Application appInfo = CreateApplication(org, appName);
+
+            DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not found", HttpStatusCode.NotFound);
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(dex);
+            applicationRepository.Setup(s => s.Create(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+            string token = PrincipalUtil.GetToken(1, 0);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(appInfo), Encoding.UTF8, "application/json"));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            string content = response.Content.ReadAsStringAsync().Result;
+            Assert.True(string.IsNullOrEmpty(content));
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Post a simple but valid Application instance but response is deny.
+        /// Expected result:
+        ///   Returns HttpStatus Forbidden and no Application instance get returned.
+        /// </summary>
+        [Fact]
+        public async void Post_ReponseIsDeny_ReturnsStatusForbidden()
+        {
+            // Arrange
+            string org = "test";
+            string appName = "app20";
+            string requestUri = $"{BasePath}/applications?appId={org}/{appName}";
+
+            Application appInfo = CreateApplication(org, appName);
+
+            DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not found", HttpStatusCode.NotFound);
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(dex);
+            applicationRepository.Setup(s => s.Create(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+            string token = PrincipalUtil.GetToken(2);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(appInfo), Encoding.UTF8, "application/json"));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            string content = response.Content.ReadAsStringAsync().Result;
+            Assert.True(string.IsNullOrEmpty(content));
+        }
+
+        /// <summary>
+        /// Scenario:
         ///   Post a simple application with an invalid id.
         /// Expected result:
         ///   Returns HttpStatus BadRequest with a reason phrase.
@@ -118,6 +188,74 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             string content = response.Content.ReadAsStringAsync().Result;
 
             Assert.Contains("not valid", content);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Soft delete an existing application but user has too low authentication level. 
+        /// Expected result:
+        ///   Returns HttpStatus Forbidden and application will not be updated
+        /// </summary>
+        [Fact]
+        public async void Delete_UserHastooLowAuthLv_ReturnsStatusForbidden()
+        {
+            // Arrange
+            string org = "test";
+            string appName = "app21";
+            string requestUri = $"{BasePath}/applications/{org}/{appName}";
+
+            Application appInfo = CreateApplication(org, appName);
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(appInfo);
+            applicationRepository.Setup(s => s.Update(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+
+            string token = PrincipalUtil.GetToken(1, 0);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.DeleteAsync(requestUri);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            string content = response.Content.ReadAsStringAsync().Result;
+            Assert.True(string.IsNullOrEmpty(content));
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Soft delete an existing application but response is deny.
+        /// Expected result:
+        ///   Returns HttpStatus Forbidden and application will not be updated
+        /// </summary>
+        [Fact]
+        public async void Delete_ResponseIsDeny_ReturnsStatusForbidden()
+        {
+            // Arrange
+            string org = "test";
+            string appName = "app21";
+            string requestUri = $"{BasePath}/applications/{org}/{appName}";
+
+            Application appInfo = CreateApplication(org, appName);
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(appInfo);
+            applicationRepository.Setup(s => s.Update(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+
+            string token = PrincipalUtil.GetToken(2);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.DeleteAsync(requestUri);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            string content = response.Content.ReadAsStringAsync().Result;
+            Assert.True(string.IsNullOrEmpty(content));
         }
 
         /// <summary>
@@ -199,6 +337,76 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             Assert.Equal("r34", application.VersionId);
             Assert.True(application.PartyTypesAllowed.BankruptcyEstate);
             Assert.False(application.PartyTypesAllowed.Person);
+        }
+
+        /// <summary>
+        /// Create an application, read one, update it and get it one more time  but user has too low authentication level.
+        /// </summary>
+        [Fact]
+        public async void GetAndUpdateApplication_AuthLv0_ReturnsStatusForbidden()
+        {
+            // Arrange
+            string org = "test";
+            string appName = "app21";
+            string requestUri = $"{BasePath}/applications/{org}/{appName}";
+
+            Application originalApp = CreateApplication(org, appName);
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(originalApp);
+            applicationRepository.Setup(s => s.Update(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+
+            string token = PrincipalUtil.GetToken(1, 0);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            Application updatedApp = CreateApplication(org, appName);
+            updatedApp.VersionId = "r34";
+            updatedApp.PartyTypesAllowed = new PartyTypesAllowed { BankruptcyEstate = true };
+
+            // Act
+            HttpResponseMessage response = await client.PutAsync(requestUri, new StringContent(JsonConvert.SerializeObject(updatedApp), Encoding.UTF8, "application/json"));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            string content = response.Content.ReadAsStringAsync().Result;
+            Assert.True(string.IsNullOrEmpty(content));
+        }
+
+        /// <summary>
+        /// Create an application, read one, update it and get it one more time  but response is deny.
+        /// </summary>
+        [Fact]
+        public async void GetAndUpdateApplication_ResponseIsDeny_ReturnsStatusForbidden()
+        {
+            // Arrange
+            string org = "test";
+            string appName = "app21";
+            string requestUri = $"{BasePath}/applications/{org}/{appName}";
+
+            Application originalApp = CreateApplication(org, appName);
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            applicationRepository.Setup(s => s.FindOne(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(originalApp);
+            applicationRepository.Setup(s => s.Update(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
+
+            HttpClient client = GetTestClient(applicationRepository.Object);
+
+            string token = PrincipalUtil.GetToken(2);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            Application updatedApp = CreateApplication(org, appName);
+            updatedApp.VersionId = "r34";
+            updatedApp.PartyTypesAllowed = new PartyTypesAllowed { BankruptcyEstate = true };
+
+            // Act
+            HttpResponseMessage response = await client.PutAsync(requestUri, new StringContent(JsonConvert.SerializeObject(updatedApp), Encoding.UTF8, "application/json"));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            string content = response.Content.ReadAsStringAsync().Result;
+            Assert.True(string.IsNullOrEmpty(content));
         }
 
         private static DocumentClientException CreateDocumentClientExceptionForTesting(string message, HttpStatusCode httpStatusCode)

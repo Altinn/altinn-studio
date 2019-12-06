@@ -56,7 +56,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
                 Altinn.Authorization.ABAC.PolicyDecisionPoint pdp = new Altinn.Authorization.ABAC.PolicyDecisionPoint();
 
                 XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
-                string responsePermit = File.ReadAllText("../../../data/Response/response_permit.json");
+
                 XacmlContextResponse contextResponse = pdp.Authorize(decisionRequest, policy);
 
                 return XacmlJsonXmlConverter.ConvertResponse(contextResponse);
