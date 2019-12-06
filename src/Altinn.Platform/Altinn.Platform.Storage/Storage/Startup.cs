@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 namespace Altinn.Platform.Storage
@@ -61,6 +62,14 @@ namespace Altinn.Platform.Storage
                     options.Cookie.Name = generalSettings.RuntimeCookieName;
                     options.Cookie.Domain = generalSettings.Hostname;
                     options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true
+                    };
                 });
 
             services.AddSingleton<IDataRepository, DataRepository>();

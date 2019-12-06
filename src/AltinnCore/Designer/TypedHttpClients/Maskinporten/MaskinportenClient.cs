@@ -61,7 +61,7 @@ namespace AltinnCore.Designer.TypedHttpClients.Maskinporten
                 { "aud", "https://oidc-ver2.difi.no/idporten-oidc-provider/" },
                 { "resource", "https://tt02.altinn.no/maskinporten-api/" },
                 { "scope", "altinn:instances.read altinn:instances.write" },
-                { "iss",  _generalSettings.MaskinportenClientId}, // TODO Put this in secret
+                { "iss",  _generalSettings.MaskinportenClientId},
                 { "exp", dateTimeOffset.ToUnixTimeSeconds() + 10 },
                 { "iat", dateTimeOffset.ToUnixTimeSeconds() },
                 { "jti", Guid.NewGuid().ToString() },
