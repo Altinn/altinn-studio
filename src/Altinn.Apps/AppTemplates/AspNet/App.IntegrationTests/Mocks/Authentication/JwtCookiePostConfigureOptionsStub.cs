@@ -1,21 +1,20 @@
 using System;
+
+using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
-namespace AltinnCore.Authentication.JwtCookie
+namespace Altinn.App.IntegrationTests.Mocks.Authentication
 {
     /// <summary>
-    /// Post configures the Jwt Cookie options
+    /// Represents a stub for the <see cref="JwtCookiePostConfigureOptions"/> class to be used in integration tests.
     /// </summary>
-    public class JwtCookiePostConfigureOptions: IPostConfigureOptions<JwtCookieOptions>
+    public class JwtCookiePostConfigureOptionsStub : IPostConfigureOptions<JwtCookieOptions>
     {
-        /// <summary>
-        /// Invoked to post configure a TOptions instance.
-        /// </summary>
-        /// <param name="name">The name of the options instance being configured.</param>
-        /// <param name="options">The options instance to configure.</param>
+        /// <inheritdoc />
         public void PostConfigure(string name, JwtCookieOptions options)
         {
             if (string.IsNullOrEmpty(options.Cookie.Name))
@@ -49,13 +48,13 @@ namespace AltinnCore.Authentication.JwtCookie
                 {
                     options.MetadataAddress += "/";
                 }
-
-                options.MetadataAddress += ".well-known/openid-configuration";
-                options.ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
-                    options.MetadataAddress,
-                    new OpenIdConnectConfigurationRetriever(),
-                    new HttpDocumentRetriever() { RequireHttps = options.RequireHttpsMetadata });
             }
+
+            options.MetadataAddress += ".well-known/openid-configuration";
+            options.ConfigurationManager = new ConfigurationManagerStub(
+                options.MetadataAddress,
+                new OpenIdConnectConfigurationRetriever(),
+                new HttpDocumentRetriever());
         }
     }
 }
