@@ -48,6 +48,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddSingleton<IAltinnApp, AltinnApp>();
                     services.AddTransient<IProfile, ProfileMockSI>();
                     services.AddSingleton<IValidation, ValidationAppSI>();
+                    services.AddSingleton<IPDF, PDFMockSI>();
                 });
             })
             .CreateClient();
