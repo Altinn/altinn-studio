@@ -4,12 +4,15 @@ using System.Net.Http.Headers;
 using System.Text;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.IntegrationTest.Mocks;
+using Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
@@ -322,6 +325,8 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                     services.AddSingleton(instanceEventRepository.Object);
                     services.AddSingleton(instanceRepository);
                     services.AddSingleton<IPDP, PDPMock>();
+                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
+                    services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
             }).CreateClient();
 

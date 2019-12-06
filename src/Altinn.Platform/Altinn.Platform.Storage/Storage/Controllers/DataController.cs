@@ -32,7 +32,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
-   
+
         private readonly ILogger _logger;
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -608,13 +608,13 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     UserId = User.GetUserIdAsInt(),
                     AuthenticationLevel = User.GetAuthenticationLevel(),
-                    OrgId = User.GetOrg(),                    
+                    OrgId = User.GetOrg(),
                 },
                 ProcessInfo = instance.Process,
                 Created = DateTime.UtcNow,
             };
 
             await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
-        }        
+        }
     }
 }
