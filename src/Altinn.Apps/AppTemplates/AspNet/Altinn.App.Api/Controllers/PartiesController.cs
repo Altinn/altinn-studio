@@ -63,6 +63,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="allowedToInstantiateFilter">when set to true returns parties that are allowed to instantiate</param>
         /// <returns>parties</returns>
+        [Authorize]
         [HttpGet("{org}/{app}/api/v1/parties")]
         public async Task<IActionResult> Get(string org, string app, bool allowedToInstantiateFilter = false)
         {
@@ -86,6 +87,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="partyId">The selected partyId</param>
         /// <returns>A validation status</returns>
+        [Authorize]
         [HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]
         public IActionResult ValidateInstantiation(string org, string app, [FromQuery] int partyId)
         {
@@ -149,6 +151,7 @@ namespace Altinn.App.Api.Controllers
         /// Updates the party the user represents
         /// </summary>
         /// <returns>Status code</returns>
+        [Authorize]
         [HttpPut("{org}/{app}/api/v1/parties/{partyId}")]
         public async Task<IActionResult> UpdateSelectedParty(int partyId)
         {

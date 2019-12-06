@@ -31,7 +31,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
             StartAndWaitForExit("stop");
         }
 
-        void StartAndWaitForExit(string arguments)
+        public void StartAndWaitForExit(string arguments)
         {
             process.StartInfo.Arguments = arguments;
             process.Start();
