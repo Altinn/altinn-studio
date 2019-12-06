@@ -3,10 +3,12 @@ using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Configuration;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -78,6 +80,28 @@ namespace Altinn.Common.PEP.Implementation
 
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
             return DecisionHelper.ValidateResponse(response.Response, user);
+        }
+
+        public async Task<List<Instance>> GetDecisionForMultipleRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
+        {
+            List<Instance> authorizedInstances = new List<Instance>();
+
+            if (_pepSettings.DisablePEP)
+            {
+                return authorizedInstances;
+            }
+
+            XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
+
+            foreach (XacmlJsonResult result in response.Response)
+            {
+                if (DecisionHelper.ValidateDecisionResult(result, user))
+                {
+
+                }
+            }
+
+            return authorizedInstances;
         }
     }
 }

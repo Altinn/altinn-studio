@@ -3,6 +3,7 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using Xunit;
 
@@ -205,6 +206,20 @@ namespace UnitTests
 
             // Act & Assert
             Assert.Throws<ArgumentNullException>(() => DecisionHelper.ValidateResponse(response.Response, null));
+        }
+
+        [Fact]
+        public void CreateXacmlJsonMultipleRequest_TC01()
+        {
+            // Arrange
+            List<string> actionTypes = new List<string> { "read", "write" };
+            List<string> instanceIds = new List<string> { "1", "5", "7" };
+
+            // Act
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonMultipleRequest(org, app, CreateUserClaims(false), actionTypes, partyId, instanceIds);
+
+            // Assert
+            Assert.Equal(6, requestRoot.Request.MultiRequests.RequestReference.Count());
         }
 
         private ClaimsPrincipal CreateUserClaims(bool addExtraClaim)
