@@ -19,15 +19,15 @@ namespace Altinn.App.Services.Implementation
 {
     public class PDFSI : IPDF
     {
-        private ILogger _logger;
-        private HttpClient _pdfClient;
-        private AppSettings _appSettings;
-        private IData _dataService;
-        private IRegister _registerService;
+        private readonly ILogger _logger;
+        private readonly HttpClient _pdfClient;
+        private readonly AppSettings _appSettings;
+        private readonly IData _dataService;
+        private readonly IRegister _registerService;
         private readonly IAppResources _appResourcesService;
-        private JsonSerializer _camelCaseSerializer;
-        private string pdfElementType = "ref-data-as-pdf";
-        private string defaultFileName = "kvittering.pdf";
+        private readonly JsonSerializer _camelCaseSerializer;
+        private readonly string pdfElementType = "ref-data-as-pdf";
+        private readonly string defaultFileName = "kvittering.pdf";
 
         /// <summary>
         /// Creates a new instance of the <see cref="PDFSI"/> class
@@ -39,7 +39,7 @@ namespace Altinn.App.Services.Implementation
         /// <param name="repositoryService">The repository service</param>
         /// <param name="registerService">The register service</param>
         public PDFSI(IOptions<AppSettings> appSettings,
-            ILogger<PrefillSI> logger,
+            ILogger<PDFSI> logger,
             IHttpClientAccessor httpClientAccessor,
             IData dataService,
             IRegister registerService,
@@ -59,7 +59,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task GenerateAndStoreReceiptPDF(Instance instance, UserContext userContext)
+        public async Task GenerateAndStoreReceiptPDF(Instance instance)
         {
             string app = instance.AppId.Split("/")[1];
             string org = instance.Org;
@@ -87,7 +87,6 @@ namespace Altinn.App.Services.Implementation
                 FormLayout = JsonConvert.DeserializeObject(formLayoutString),
                 TextResources = JsonConvert.DeserializeObject(textResourcesString),
                 Party = await _registerService.GetParty(instanceOwnerId),
-                UserParty = userContext.Party,
                 Instance = instance
             };
 

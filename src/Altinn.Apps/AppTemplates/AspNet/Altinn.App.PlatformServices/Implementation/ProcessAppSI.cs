@@ -24,7 +24,6 @@ namespace Altinn.App.Services.Implementation
         private readonly ILogger<ProcessAppSI> _logger;
         private readonly IInstance _instanceService;
         private readonly IInstanceEvent _eventService;
-        private readonly IPDF _pdfService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessAppSI"/> class.
@@ -33,14 +32,12 @@ namespace Altinn.App.Services.Implementation
             IOptions<AppSettings> appSettings,
             ILogger<ProcessAppSI> logger,
             IInstanceEvent eventService,
-            IInstance instanceService,
-            IPDF pdfService)
+            IInstance instanceService)
         {
             _appSettings = appSettings.Value;
             _logger = logger;
             _eventService = eventService;
             _instanceService = instanceService;
-            _pdfService = pdfService;
         }
 
         /// <inheritdoc/>
@@ -143,7 +140,7 @@ namespace Altinn.App.Services.Implementation
             {
                 List<InstanceEvent> events = await ChangeProcessStateAndGenerateEvents(instance, nextElementId, processModel, userContext);
 
-                Instance changedInstance = _instanceService.UpdateInstance(instance).Result;
+                Instance changedInstance = await _instanceService.UpdateInstance(instance);
                 await DispatchEventsToStorage(instance, events);
 
                 ProcessResult result = new ProcessResult
@@ -185,11 +182,6 @@ namespace Altinn.App.Services.Implementation
             if (previousElementId == null && instance.Process.StartEvent != null)
             {
                 flow = 1;
-            }
-
-            if (previousElementId != null && previousElementId.Equals("Task_1"))
-            {
-                await _pdfService.GenerateAndStoreReceiptPDF(instance, userContext);
             }
 
             if (processModel.IsTask(previousElementId))
