@@ -19,11 +19,11 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 
             if (xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => (a.AttributeId == "urn:altinn:userid" && a.Value == "1")))
             {
-                jsonResponse = File.ReadAllText("C:/Repos/altinn-studio/src/Altinn.Platform/Altinn.Platform.Storage/IntegrationTest/data/response_permit.json");
+                jsonResponse = File.ReadAllText("data/response_permit.json");
             }
             else
             {
-                jsonResponse = File.ReadAllText("C:/Repos/altinn-studio/src/Altinn.Platform/Altinn.Platform.Storage/IntegrationTest/data/response_deny.json");
+                jsonResponse = File.ReadAllText("data/response_deny.json");
             }
 
             XacmlJsonResponse response = JsonConvert.DeserializeObject<XacmlJsonResponse>(jsonResponse);
