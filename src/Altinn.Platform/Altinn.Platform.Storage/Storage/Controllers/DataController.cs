@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -33,9 +31,8 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly IInstanceEventRepository instanceEventRepository;
-        private static readonly string AltinnCoreClaimTypesOrg = "urn:altinn:org"; /* AltinnCoreClaimTypes.Org */
-
+        private readonly IInstanceEventRepository _instanceEventRepository;
+   
         private readonly ILogger _logger;
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -57,7 +54,7 @@ namespace Altinn.Platform.Storage.Controllers
             _dataRepository = dataRepository;
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
-            this.instanceEventRepository = instanceEventRepository;
+            _instanceEventRepository = instanceEventRepository;
             _logger = logger;
         }
 
@@ -145,11 +142,12 @@ namespace Altinn.Platform.Storage.Controllers
 
             // check if dataId exists in instance
             if (dataElement != null)
-            {                
-                if (User.HasClaim(x => x.Type == AltinnCoreClaimTypesOrg && x.Value != null))
+            {
+                string orgFromClaim = User.GetOrg();
+
+                if (!string.IsNullOrEmpty(orgFromClaim))
                 {
-                    Claim orgClaim = User.FindFirst(x => x.Type == AltinnCoreClaimTypesOrg);
-                    _logger.LogInformation($"App owner download of {instance.Id}/data/{dataGuid}, {instance.AppId} for {orgClaim.Value}");
+                    _logger.LogInformation($"App owner download of {instance.Id}/data/{dataGuid}, {instance.AppId} for {orgFromClaim}");
 
                     // update downloaded structure on data element
                     dataElement.AppOwner ??= new ApplicationOwnerDataState();
@@ -328,6 +326,11 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound($"Dataid {dataGuid} is not registered in storage");
             }
 
+            if (dataElement.Locked)
+            {
+                return Conflict($"Data element {dataGuid} is locked and cannot be updated");
+            }
+
             string blobStoragePathName = DataElementHelper.DataFileName(
                 instance.AppId,
                 instanceGuid.ToString(),
@@ -347,13 +350,9 @@ namespace Altinn.Platform.Storage.Controllers
                 // update data record
                 dataElement.ContentType = updatedData.ContentType;
                 dataElement.Filename = updatedData.Filename;
-                dataElement.LastChangedBy = GetUserId();
+                dataElement.LastChangedBy = User.GetUserOrOrgId();
                 dataElement.LastChanged = changedTime;
                 dataElement.Refs = updatedData.Refs;
-
-                instance.LastChanged = changedTime;
-
-                instance.LastChangedBy = GetUserId();
 
                 // store file as blob
                 dataElement.Size = _dataRepository.WriteDataToStorage(theStream, blobStoragePathName).Result;
@@ -361,13 +360,12 @@ namespace Altinn.Platform.Storage.Controllers
                 if (dataElement.Size > 0)
                 {
                     // update data element
-                    // Question: Do we need to update instance?
                     DataElement updatedElement = await _dataRepository.Update(dataElement);
-                    AddSelfLinks(instance, dataElement);
+                    AddSelfLinks(instance, updatedElement);
 
-                    await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, dataElement);
+                    await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, updatedElement);
 
-                    return Ok(dataElement);
+                    return Ok(updatedElement);
                 }
 
                 return UnprocessableEntity($"Could not process attached file");
@@ -425,7 +423,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return Conflict($"Data element {instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid} is not recorded downloaded by app owner. Please download first.");
             }
 
-            DataElement updatedElement = await UpdateDataElementConfirmedDate(dataElement, DateTime.UtcNow);
+            DataElement updatedElement = await SetConfirmedDataAndUpdateDataElement(dataElement, DateTime.UtcNow);
 
             return Ok(updatedElement);
         }
@@ -457,14 +455,14 @@ namespace Altinn.Platform.Storage.Controllers
 
             foreach (DataElement element in dataElements)
             {
-                DataElement updatedElement = await UpdateDataElementConfirmedDate(element, DateTime.UtcNow);
+                DataElement updatedElement = await SetConfirmedDataAndUpdateDataElement(element, DateTime.UtcNow);
                 resultElements.Add(updatedElement);
             }
 
             return Ok(resultElements);
         }
 
-        private async Task<DataElement> UpdateDataElementConfirmedDate(DataElement dataElement, DateTime timestamp)
+        private async Task<DataElement> SetConfirmedDataAndUpdateDataElement(DataElement dataElement, DateTime timestamp)
         {
             dataElement.AppOwner ??= new ApplicationOwnerDataState();
             dataElement.AppOwner.DownloadConfirmed ??= new List<DateTime>();
@@ -608,31 +606,15 @@ namespace Altinn.Platform.Storage.Controllers
                 InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
                 User = new PlatformUser
                 {
-                    UserId = GetUserIdAsInt(), // update when authentication is turned on
-                    AuthenticationLevel = 0, // update when authentication is turned on
+                    UserId = User.GetUserIdAsInt(),
+                    AuthenticationLevel = User.GetAuthenticationLevel(),
+                    OrgId = User.GetOrg(),                    
                 },
                 ProcessInfo = instance.Process,
                 Created = DateTime.UtcNow,
             };
 
-            await instanceEventRepository.InsertInstanceEvent(instanceEvent);
-        }
-
-        private string GetUserId()
-        {
-            return User?.Identity?.Name;
-        }
-
-        private int GetUserIdAsInt()
-        {
-            string userId = User?.Identity?.Name;
-
-            if (int.TryParse(userId, out int result))
-            {
-                return result;
-            }
-
-            return 0;
-        }
+            await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
+        }        
     }
 }

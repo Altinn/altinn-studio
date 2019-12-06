@@ -241,6 +241,38 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Assert.NotNull(actual[1].AppOwner.DownloadConfirmed);
         }
 
+        /// <summary>
+        /// Attemt to download a locked data file.
+        /// </summary>
+        [Fact]
+        public async void Put_OnLockedDataElement_ReturnsConflict()
+        {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
+            List<DataElement> dataElements = await CreateInstanceWithData(1);
+
+            DataElement dataElement = dataElements[0];
+            Assert.NotNull(dataElement);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            string instanceId = $"{testInstanceOwnerId}/{dataElement.instanceGuid}";
+            string dataElementResourcePath = $"{versionPrefix}/instances/{instanceId}/dataelements/{dataElement.Id}";
+            string dataResourcePath = $"{versionPrefix}/instances/{instanceId}/data/{dataElement.Id}";
+
+            // Lock and update data element
+            dataElement.Locked = true;            
+            HttpResponseMessage putDataelementResponse = await client.PutAsync($"{dataElementResourcePath}", dataElement.AsJson());
+            putDataelementResponse.EnsureSuccessStatusCode();
+
+            // Attemt to upload data file
+            HttpResponseMessage putDataReponse = await client.PutAsync($"{dataResourcePath}", new StringContent("any content"));
+            
+            Assert.Equal(HttpStatusCode.Conflict, putDataReponse.StatusCode);
+        }
+
         private async Task<List<DataElement>> CreateInstanceWithData(int count, bool setDownload = true)
         {
             List<DataElement> dataElements = new List<DataElement>();
