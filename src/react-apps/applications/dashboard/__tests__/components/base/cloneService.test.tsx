@@ -246,7 +246,7 @@ describe('>>> components/base/cloneService.tsx', () => {
       mountedComponent.find('button#seeSourceCode').simulate('click');
       expect(redirectToCodeSpy).toHaveBeenCalled();
       // tslint:disable-next-line:max-line-length
-      expect(window.location.assign).toHaveBeenCalledWith(`/${mockServices[0].full_name}`);
+      expect(window.location.assign).toHaveBeenCalledWith(`/repos/${mockServices[0].full_name}`);
     });
   });
 
