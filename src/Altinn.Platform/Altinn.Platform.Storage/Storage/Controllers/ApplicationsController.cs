@@ -6,6 +6,7 @@ namespace Altinn.Platform.Storage.Controllers
     using System.Net;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
+    using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Interface.Models;
     using Altinn.Platform.Storage.Repository;
     using Microsoft.AspNetCore.Authorization;
@@ -361,7 +362,7 @@ namespace Altinn.Platform.Storage.Controllers
 
         private string GetUserId()
         {
-            return User?.Identity?.Name;
+            return User.GetUserOrOrgId();
         }
     }
 }
