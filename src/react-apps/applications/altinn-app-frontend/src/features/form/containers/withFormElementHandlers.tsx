@@ -89,13 +89,21 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       if (this.props.textResourceBindings.title) {
         const label: string = this.getTextResource(this.props.textResourceBindings.title);
         return (
-          <label className='a-form-label title-label' htmlFor={this.props.id}>
-            {label}
-            {this.props.required ? null :
-              <span className='label-optional'>({getLanguageFromKey('general.optional', this.props.language)})</span>
-            }
-            {this.renderHelpText()}
-          </label>
+          <>
+            <Grid item={true}>
+              <label className='a-form-label title-label' htmlFor={this.props.id}>
+                {label}
+                {this.props.required ? null :
+                  <span className='label-optional'>
+                    ({getLanguageFromKey('general.optional', this.props.language)})
+                  </span>
+                }
+              </label>
+            </Grid>
+            <Grid item={true}>
+              {this.renderHelpText()}
+            </Grid>
+          </>
         );
       }
 
@@ -120,13 +128,19 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
         const { classes } = this.props;
         const { helpIconRef, openPopover } = this.state;
         return (
-          <i
-            className={`${classes.helpTextIcon} ${openPopover ? 'ai ai-circle-minus' : 'ai ai-circle-plus'}`}
+          <span
             tabIndex={0}
             onClick={this.toggleClickPopover}
             onKeyUp={this.toggleKeypressPopover}
             ref={helpIconRef}
-          />
+            role='button'
+            aria-label={getLanguageFromKey('popover.popover_button_helptext', this.props.language)}
+            aria-hidden={false}
+          >
+            <i
+              className={`${classes.helpTextIcon} ${openPopover ? 'ai ai-circle-minus' : 'ai ai-circle-plus'}`}
+            />
+          </span>
         );
       }
       return null;
@@ -186,11 +200,14 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
                   container={true}
                   direction={'column'}
                 >
-                  <Grid item={true}>
+                  <Grid container={true} item={true} alignItems='center'>
                     {this.renderLabel()}
                   </Grid>
                   <Grid item={true}>
                     {this.renderDescription()}
+                    <Typography variant='srOnly'>
+                      {this.getTextResource(this.props.textResourceBindings.help)}
+                    </Typography>
                   </Grid>
                 </Grid>
               </Grid>
@@ -205,6 +222,8 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
           </Grid>
           {!!helpIconRef &&
             <AltinnPopover
+              ariaLabel={`${getLanguageFromKey('popover.popover_open', this.props.language)}.
+                          ${this.getTextResource(this.props.textResourceBindings.help)}`}
               anchorOrigin={{
                 horizontal: 'right',
                 vertical: 'top',

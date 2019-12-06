@@ -20,6 +20,24 @@
 								],
 								"type": "text/javascript"
 							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "b4c59095-e73f-4b65-9290-a748b25c7357",
+								"exec": [
+									"const jar = pm.cookies.jar();",
+									"var domain = pm.environment.get(\"envUrl\");",
+									"jar.clear(domain, function (error){",
+									"    if(error)",
+									"    {",
+									"        console.log(\"error\",error);",
+									"        ",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
 						}
 					],
 					"request": {

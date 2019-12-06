@@ -11,6 +11,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
+      "applicationUrl": "http://localhost:5101",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -18,9 +19,11 @@
     "LocalTest": {
       "commandName": "Project",
       "launchBrowser": true,
+      "launchUrl": "authentication/swagger",
       "applicationUrl": "http://localhost:5101",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5101/"
       }
     }
   }

@@ -180,6 +180,11 @@ namespace Altinn.Platform.Authentication.Configuration
         }
 
         /// <summary>
+        /// Gets or sets the URL of the Altinn Open ID Connect well-known configuration endpoint.
+        /// </summary>
+        public string OpenIdWellKnownEndpoint { get; set; }
+
+        /// <summary>
         /// Get value from environment variable with key equals "GeneralSettings__" + propertyName or directly from
         /// the property if the environment variable is missing.
         /// </summary>

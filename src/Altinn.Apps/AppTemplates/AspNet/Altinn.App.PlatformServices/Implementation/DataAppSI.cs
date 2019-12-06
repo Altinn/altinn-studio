@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -12,6 +13,7 @@ using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
@@ -174,7 +176,7 @@ namespace Altinn.App.Services.Implementation
         public async Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
-            string apiUrl = $"instances/{instanceIdentifier}/data";
+            string apiUrl = $"instances/{instanceIdentifier}/dataelements";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -349,6 +351,26 @@ namespace Altinn.App.Services.Implementation
             }
 
             return content;
+        }
+
+        /// <inheritdoc />
+        public async Task<DataElement> Update(string instanceId, DataElement dataElement)
+        {
+            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/dataelements/{dataElement.Id}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            HttpResponseMessage response = await _client.PutAsync(apiUrl, dataElement.AsJson());
+
+            if (response.IsSuccessStatusCode)
+            {
+                DataElement result = JsonConvert.DeserializeObject<DataElement> (await response.Content.ReadAsStringAsync());
+
+                return result;
+            }
+
+            return null;
         }
     }
 }

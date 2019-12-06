@@ -19,7 +19,7 @@ using Xunit;
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
     [Collection("Our Test Collection #1")]
-    public class PolicyRetrievalPointTest : IClassFixture<PolicyRetrivevalPointFixture>
+    public class PolicyRetrievalPointTest : IClassFixture<PolicyRetrivevalPointFixture>, IClassFixture<BlobStorageFixture>
     {
         Mock<IOptions<AzureStorageConfiguration>> _storageConfigMock;
         private CloudBlobClient _blobClient;
