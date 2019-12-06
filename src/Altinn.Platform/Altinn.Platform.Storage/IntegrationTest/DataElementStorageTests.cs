@@ -103,12 +103,45 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// Scenario:
-        ///   Request to delete only data element on an instance. 
-        /// Expected:
-        ///   Request is successful and data element is deleted from the instance.
-        /// Success:
-        ///   When fetching the instance after deletion, no data elements should be present. 
+        /// Get data element as org updates download
+        /// </summary>
+        [Fact]
+        public async void Get_DataElement_AsOrg_UpdatesDownloaded_Ok()
+        {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
+            DataElement dataElement = (await CreateInstanceWithData(1, false))[0];
+
+            Assert.NotNull(dataElement);
+
+            string dataPathWithDataGuid = $"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.instanceGuid}/data/{dataElement.Id}";
+
+            // Get data file once as ORG tests
+            string token = PrincipalUtil.GetOrgToken("tests");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpResponseMessage getResponse = await client.GetAsync($"{dataPathWithDataGuid}");
+            getResponse.EnsureSuccessStatusCode();
+            string json = await getResponse.Content.ReadAsStringAsync();
+
+            // Get instance as user to check downloads
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            getResponse = await client.GetAsync($"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.instanceGuid}");
+            getResponse.EnsureSuccessStatusCode();
+
+            Instance instance = JsonConvert.DeserializeObject<Instance>(await getResponse.Content.ReadAsStringAsync());
+
+            Assert.Single(instance.Data);
+
+            DataElement actualDataElement = instance.Data[0];
+
+            Assert.Single(actualDataElement.AppOwner.Downloaded);
+        }
+
+        /// <summary>
+        /// Delete data element.
         /// </summary>
         [Fact]
         public async void Delete_DataElement_Ok()
@@ -215,8 +248,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Assert.NotNull(actual[0].AppOwner.DownloadConfirmed);
             Assert.NotNull(actual[1].AppOwner.DownloadConfirmed);
         }
-     
-        private async Task<List<DataElement>> CreateInstanceWithData(int count)
+
+        private async Task<List<DataElement>> CreateInstanceWithData(int count, bool setDownload = true)
         {
             List<DataElement> dataElements = new List<DataElement>();
 
@@ -241,16 +274,25 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
                 DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(await postResponse.Content.ReadAsStringAsync());
 
-                // update downloaded structure on data element
-                dataElement.AppOwner ??= new ApplicationOwnerDataState();
-                dataElement.AppOwner.Downloaded = new List<DateTime>();
-                dataElement.AppOwner.Downloaded.Add(DateTime.UtcNow);
+                if (setDownload)
+                {
+                    // update downloaded structure on data element
+                    dataElement.AppOwner ??= new ApplicationOwnerDataState();
+                    dataElement.AppOwner.Downloaded = new List<DateTime>
+                    {
+                        DateTime.UtcNow
+                    };
 
-                requestUri = $"{versionPrefix}/instances/{newInstance.Id}/dataelements/{dataElement.Id}";
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
-                HttpResponseMessage putResponse = await client.PutAsync(requestUri, dataElement.AsJson());
+                    requestUri = $"{versionPrefix}/instances/{newInstance.Id}/dataelements/{dataElement.Id}";
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+                    HttpResponseMessage putResponse = await client.PutAsync(requestUri, dataElement.AsJson());
 
-                dataElements.Add(JsonConvert.DeserializeObject<DataElement>(await putResponse.Content.ReadAsStringAsync()));
+                    dataElements.Add(JsonConvert.DeserializeObject<DataElement>(await putResponse.Content.ReadAsStringAsync()));
+                }
+                else
+                {
+                    dataElements.Add(dataElement);
+                }
             }
 
             return dataElements;
