@@ -47,12 +47,12 @@ namespace Altinn.Platform.Storage
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers(config =>
-            {/*
+            {
                 AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
                     .AddAuthenticationSchemes(JwtCookieDefaults.AuthenticationScheme)
                     .RequireAuthenticatedUser()
                     .Build();
-                config.Filters.Add(new AuthorizeFilter(policy));*/
+                config.Filters.Add(new AuthorizeFilter(policy));
             }).AddNewtonsoftJson();
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
@@ -177,7 +177,6 @@ namespace Altinn.Platform.Storage
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

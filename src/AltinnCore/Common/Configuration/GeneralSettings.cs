@@ -193,5 +193,25 @@ namespace AltinnCore.Common.Configuration
                 return Environment.GetEnvironmentVariable("GeneralSettings_SBLBaseAdress") ?? SBLBaseAdress;
             }
         }
+
+        /// <summary>
+        /// The base address for Maskinporten
+        /// </summary>
+        public string MaskinportenBaseAddress { get; set; }
+
+        /// <summary>
+        /// The client id for Maskinporten, is set in Program
+        /// </summary>
+        public string MaskinportenClientId { get; set; }
+
+        /// <summary>
+        /// The certificate for Maskinporten, is set in Program
+        /// </summary>
+        public string MaskinportenCertificate { get; set; }
+
+        /// <summary>
+        /// The certificate name for Maskinporten
+        /// </summary>
+        public string MaskinportenCertificateName { get; set; }
     }
 }
