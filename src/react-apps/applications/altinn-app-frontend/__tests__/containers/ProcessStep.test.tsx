@@ -8,6 +8,7 @@ import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import { ProcessStep } from '../../src/features/form/containers/ProcessStep';
 import { ProcessSteps } from '../../src/types';
+import AltinnAppTheme from '../../../shared/src/theme/altinnAppTheme';
 
 describe('>>> containers/ProcessStep.tsx', () => {
   let mockHeader: string;
@@ -112,7 +113,12 @@ describe('>>> containers/ProcessStep.tsx', () => {
         </Provider>
       </MemoryRouter>,
     );
-    expect(wrapper.find('#processContainer').prop('style')).toHaveProperty('backgroundColor', '#1EAEF7');
+
+    expect(
+      wrapper
+      .find('AltinnAppHeader').prop('headerBackgroundColor'))
+      .toBe(AltinnAppTheme.altinnPalette.primary.blue);
+
   });
 
   it('+++ should render receipt when step is "archived"', () => {
@@ -140,7 +146,12 @@ describe('>>> containers/ProcessStep.tsx', () => {
         </Provider>
       </MemoryRouter>,
     );
-    expect(wrapper.find('#processContainer').prop('style')).toHaveProperty('backgroundColor', '#D4F9E4');
+
+    expect(
+      wrapper
+      .find('AltinnAppHeader').prop('headerBackgroundColor'))
+      .toBe(AltinnAppTheme.altinnPalette.primary.greenLight);
+
   });
 
   it('+++ should map unmappedValidations if there are any and create error report', () => {

@@ -5,8 +5,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
   id="processContainer"
   style={
     Object {
-      "backgroundColor": "#1EAEF7",
-      "height": "calc(100vh - 146px)",
+      "marginBottom": "1rem",
     }
   }
 >
