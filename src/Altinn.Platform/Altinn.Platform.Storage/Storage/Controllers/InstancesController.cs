@@ -527,8 +527,9 @@ namespace Altinn.Platform.Storage.Controllers
                 InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
                 User = new PlatformUser
                 {
-                    UserId = 0, // update when authentication is turned on
-                    AuthenticationLevel = 0, // update when authentication is turned on
+                    UserId = User.GetUserIdAsInt(),
+                    AuthenticationLevel = User.GetAuthenticationLevel(),
+                    OrgId = User.GetOrg(),
                 },
                 
                 ProcessInfo = instance.Process,
@@ -559,7 +560,7 @@ namespace Altinn.Platform.Storage.Controllers
 
         private string GetUserId()
         {
-            return User?.Identity?.Name;
+            return User.GetUserOrOrgId();
         }
     }
 }
