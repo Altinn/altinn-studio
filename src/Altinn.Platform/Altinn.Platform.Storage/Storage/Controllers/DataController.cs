@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -32,6 +34,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IInstanceEventRepository instanceEventRepository;
+        private static readonly string AltinnCoreClaimTypesOrg = "urn:altinn:org"; /* AltinnCoreClaimTypes.Org */
 
         private readonly ILogger _logger;
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
@@ -142,7 +145,20 @@ namespace Altinn.Platform.Storage.Controllers
 
             // check if dataId exists in instance
             if (dataElement != null)
-            {
+            {                
+                if (User.HasClaim(x => x.Type == AltinnCoreClaimTypesOrg && x.Value != null))
+                {
+                    Claim orgClaim = User.FindFirst(x => x.Type == AltinnCoreClaimTypesOrg);
+                    _logger.LogInformation($"App owner download of {instance.Id}/data/{dataGuid}, {instance.AppId} for {orgClaim.Value}");
+
+                    // update downloaded structure on data element
+                    dataElement.AppOwner ??= new ApplicationOwnerDataState();
+                    dataElement.AppOwner.Downloaded ??= new List<DateTime>();
+                    dataElement.AppOwner.Downloaded.Add(DateTime.UtcNow);
+
+                    _ = await _dataRepository.Update(dataElement);
+                }
+
                 if (string.Equals(dataElement.BlobStoragePath, storageFileName))
                 {
                     try
