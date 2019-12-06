@@ -27,28 +27,5 @@ namespace Designer.Controllers
             _httpContextAccessor = httpContextAccessor;
             _settings = repositorySettings.Value;
         }
-
-        /// <summary>
-        /// Method used for setting gitea cookie without path specification and redirecting to Login Home
-        /// </summary>
-        /// <returns> Redirect to login page with gitea cookie </returns>
-        public ActionResult FetchCookieAndRedirectHome()
-        {
-            string giteaCookieKey = _settings.GiteaCookieName;
-            var giteaCookieValue = _httpContextAccessor.HttpContext.Request.Cookies[giteaCookieKey];
-
-            if (giteaCookieValue != null)
-            {
-                CookieOptions cookieOptions = new CookieOptions
-                {
-                    HttpOnly = true
-                };
-
-                Response.Cookies.Append(giteaCookieKey, giteaCookieValue, cookieOptions);
-
-            }
-
-            return RedirectToAction("Login", "Home");
-        }
     }
 }

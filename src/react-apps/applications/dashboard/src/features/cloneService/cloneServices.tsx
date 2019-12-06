@@ -106,7 +106,7 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
 
   public redirectToCode = () => {
     const repoInfo = this.getCurrentRepositoryInfo();
-    window.location.assign(`/${repoInfo.full_name}`);
+    window.location.assign(`/repos/${repoInfo.full_name}`);
   }
 
   public getCurrentRepositoryInfo = () => {

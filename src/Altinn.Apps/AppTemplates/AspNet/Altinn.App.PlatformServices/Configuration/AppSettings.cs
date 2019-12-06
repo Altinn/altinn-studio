@@ -183,6 +183,24 @@ namespace Altinn.App.Services.Configuration
         /// </summary>
         public string RuleHandlerFileName { get; set; } = "RuleHandler.js";
 
+                /// <summary> 
+         /// Open Id Connect Well known endpoint 
+         /// </summary> 
+        public string OpenIdWellKnownEndpoint { get; set; } 
+ 
+ 
+         /// <summary> 
+         /// Hostname 
+         /// </summary> 
+        public string Hostname { get; set; } 
+ 
+ 
+         /// <summary> 
+         /// Name of the cookie for runtime 
+         /// </summary> 
+        public string RuntimeCookieName { get; set; }
+
+
 
         /// <summary>
         /// Gets the styles config element

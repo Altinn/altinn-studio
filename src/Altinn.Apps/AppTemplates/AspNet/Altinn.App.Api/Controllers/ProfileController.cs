@@ -38,6 +38,7 @@ namespace Altinn.App.Api.Controllers
         /// <summary>
         /// Method that returns the user information about the user that is logged in
         /// </summary>
+       [Authorize]
        [HttpGet("user")]
         public async Task<ActionResult> GetUser()
         {
