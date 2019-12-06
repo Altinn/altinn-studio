@@ -35,13 +35,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
         private bool blobSetup = false;
-        private string _invalidToken;
         private string _validToken;
 
         private readonly string versionPrefix = "/storage/api/v1";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InstanceStorageTests"/> class.
+        /// Initializes a new instance of the <see cref="DataElementStorageTests"/> class.
         /// </summary>
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
         public DataElementStorageTests(PlatformStorageFixture fixture)
@@ -57,9 +56,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             StorageUri storageUrl = new StorageUri(new Uri("http://127.0.0.1:10000/devstoreaccount1"));
             _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
             _blobContainer = _blobClient.GetContainerReference("servicedata");
+            _validToken = PrincipalUtil.GetToken(1);   
 
-            _validToken = PrincipalUtil.GetToken(1);
-            _invalidToken = PrincipalUtil.GetToken(2);
             CreateTestApplication();
         }
 
@@ -105,6 +103,44 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
+        /// Get data element as org updates download
+        /// </summary>
+        [Fact]
+        public async void Get_DataElement_AsOrg_UpdatesDownloaded_Ok()
+        {
+            if (!blobSetup)
+            {
+                await EnsureValidStorage();
+            }
+
+            DataElement dataElement = (await CreateInstanceWithData(1, false))[0];
+
+            Assert.NotNull(dataElement);
+
+            string dataPathWithDataGuid = $"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.instanceGuid}/data/{dataElement.Id}";
+
+            // Get data file once as ORG tests
+            string token = PrincipalUtil.GetOrgToken("tests");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpResponseMessage getResponse = await client.GetAsync($"{dataPathWithDataGuid}");
+            getResponse.EnsureSuccessStatusCode();
+            string json = await getResponse.Content.ReadAsStringAsync();
+
+            // Get instance as user to check downloads
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            getResponse = await client.GetAsync($"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.instanceGuid}");
+            getResponse.EnsureSuccessStatusCode();
+
+            Instance instance = JsonConvert.DeserializeObject<Instance>(await getResponse.Content.ReadAsStringAsync());
+
+            Assert.Single(instance.Data);
+
+            DataElement actualDataElement = instance.Data[0];
+
+            Assert.Single(actualDataElement.AppOwner.Downloaded);
+        }
+
+        /// <summary>
         /// Delete data element.
         /// </summary>
         [Fact]
@@ -137,9 +173,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Assert.Empty(instance.Data);
         }
-
+  
         /// <summary>
-        /// Adds confirm download to data element.
+        /// Scenario:
+        ///   Request to add confirm download to data element.
+        /// Expected:
+        ///   Data element is updated with confirmation of download.
+        /// Success:
+        ///   AppOwner.DownloadConfirmed field is populated on data element. 
         /// </summary>
         [Fact]
         public async void Put_ConfirmDownload_OnADataGuid_Ok()
@@ -171,7 +212,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// Adds confirm download to all elements.
+        /// Scenario:
+        ///   Add confirm download to all data elements on an instance
+        /// Expected:
+        ///   Data elements are updated with confirmation of download.
+        /// Success:
+        ///   AppOwner.DownloadConfirmed field is populated for all data elements. 
         /// </summary>
         [Fact]
         public async void Put_ConfirmDownload_OnAllData_Ok()
@@ -203,7 +249,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Assert.NotNull(actual[1].AppOwner.DownloadConfirmed);
         }
 
-        private async Task<List<DataElement>> CreateInstanceWithData(int count)
+        private async Task<List<DataElement>> CreateInstanceWithData(int count, bool setDownload = true)
         {
             List<DataElement> dataElements = new List<DataElement>();
 
@@ -228,16 +274,25 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
                 DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(await postResponse.Content.ReadAsStringAsync());
 
-                // update downloaded structure on data element
-                dataElement.AppOwner ??= new ApplicationOwnerDataState();
-                dataElement.AppOwner.Downloaded = new List<DateTime>();
-                dataElement.AppOwner.Downloaded.Add(DateTime.UtcNow);
+                if (setDownload)
+                {
+                    // update downloaded structure on data element
+                    dataElement.AppOwner ??= new ApplicationOwnerDataState();
+                    dataElement.AppOwner.Downloaded = new List<DateTime>
+                    {
+                        DateTime.UtcNow
+                    };
 
-                requestUri = $"{versionPrefix}/instances/{newInstance.Id}/dataelements/{dataElement.Id}";
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
-                HttpResponseMessage putResponse = await client.PutAsync(requestUri, dataElement.AsJson());
+                    requestUri = $"{versionPrefix}/instances/{newInstance.Id}/dataelements/{dataElement.Id}";
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+                    HttpResponseMessage putResponse = await client.PutAsync(requestUri, dataElement.AsJson());
 
-                dataElements.Add(JsonConvert.DeserializeObject<DataElement>(await putResponse.Content.ReadAsStringAsync()));
+                    dataElements.Add(JsonConvert.DeserializeObject<DataElement>(await putResponse.Content.ReadAsStringAsync()));
+                }
+                else
+                {
+                    dataElements.Add(dataElement);
+                }
             }
 
             return dataElements;
