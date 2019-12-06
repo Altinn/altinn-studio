@@ -26,9 +26,12 @@ namespace Altinn.App
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private readonly IWebHostEnvironment _env;
+
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            _env = env;
         }
 
         public IConfiguration Configuration { get; }
@@ -79,11 +82,7 @@ namespace Altinn.App
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(Configuration.GetSection("PEPSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(Startup).Assembly.CodeBase).LocalPath);
-            string certPath = Path.Combine(unitTestFolder, @"JWTValidationCert.cer");
-
-            X509Certificate2 cert = new X509Certificate2(certPath);
-            SecurityKey key = new X509SecurityKey(cert);
+            AppSettings appSettings = Configuration.GetSection("AppSettings").Get<AppSettings>();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(options =>
@@ -91,7 +90,6 @@ namespace Altinn.App
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = key,
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         RequireExpirationTime = true,
@@ -99,6 +97,11 @@ namespace Altinn.App
                     };
                     options.Cookie.Domain = Configuration["GeneralSettings:HostName"];
                     options.Cookie.Name = Services.Constants.General.RuntimeCookieName;
+                    options.MetadataAddress = Configuration["AppSettings:OpenIdWellKnownEndpoint"];
+                    if (_env.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
                 });
 
             services.AddAuthorization(options =>
