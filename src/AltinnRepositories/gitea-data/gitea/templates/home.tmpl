@@ -6,53 +6,50 @@
 				<img class="logo" src="{{AppSubUrl}}/img/favicon.png" />
 			</div>
 			<div class="hero">
-				<h1 class="ui icon header title">
-					Repositories
-				</h1>
-				<h2>altinn tjenester 3.0</h2>
+				<h1 class="ui header title">Altinn Studio Repos</h1>
 			</div>
 		</div>
 	</div>
-	
-    <div class="ui stackable middle very relaxed page grid">
-        <div class="eight wide center column">
-            <h1 class="hero ui icon header">
-                <i class="octicon octicon-comment-discussion"></i> Samarbeid i teams
-            </h1>
-            <p class="large">
-                <a href=/explore/users">Utviklere</a> kan samarbeide og diskutere, 
-                med tilgang til bl.a. full Git versjonshistorikk, backlog, milepæler, varsler og wiki.
-            </p>
-        </div>
-        <div class="eight wide center column">
-            <h1 class="hero ui icon header">
-                <i class="octicon octicon-organization"></i> Samarbeid på tvers
-            </h1>
-            <p class="large">
-                <a href="/explore/organizations">Organisasjoner</a> kan samarbeide med hverandre om
-                gjenbrukbare løsninger og komponenter.
-            </p>
-        </div>
-    </div>
-    <div class="ui stackable middle very relaxed page grid">
-        <div class="eight wide center column">
-            <h1 class="hero ui icon header">
-                <i class="octicon octicon-tools"></i> Enkel å integrere
-            </h1>
-            <p class="large">
-                <a href="/explore/repos">Tjenestene</a> er tilgjengelige via Git, og i tillegg så er
-                det meste av funksjonalitet tilgjengelig via et <a href="/api/swagger">REST API</a>.
-            </p>
-        </div>
-        <div class="eight wide center column">
-            <h1 class="hero ui icon header">
-                <i class="octicon octicon-code"></i> Åpen kildekode
-            </h1>
-            <p class="large">
-                Repositories vil deles som <a href="https://github.com/altinn/">åpen kildekode på Github</a>,
-                slik at alle som vil kan bidra til å forbedre løsningen.
-            </p>
-        </div>
-    </div>
+
+  <div class="ui stackable middle very relaxed page grid">
+      <div class="eight wide center column">
+          <h1 class="hero ui icon header">
+              <i class="octicon octicon-comment-discussion"></i> Samarbeid i teams
+          </h1>
+          <p class="large">
+              <a href="{{AppSubUrl}}/explore/users">Utviklere</a> kan samarbeide og diskutere,
+              med tilgang til bl.a. full Git versjonshistorikk, backlog, milepæler, varsler og wiki.
+          </p>
+      </div>
+      <div class="eight wide center column">
+          <h1 class="hero ui icon header">
+              <i class="octicon octicon-organization"></i> Samarbeid på tvers
+          </h1>
+          <p class="large">
+              <a href="{{AppSubUrl}}/explore/organizations">Organisasjoner</a> kan samarbeide med hverandre om
+              gjenbrukbare løsninger og komponenter.
+          </p>
+      </div>
+  </div>
+  <div class="ui stackable middle very relaxed page grid">
+      <div class="eight wide center column">
+          <h1 class="hero ui icon header">
+              <i class="octicon octicon-tools"></i> Enkel å integrere
+          </h1>
+          <p class="large">
+              <a href="{{AppSubUrl}}/explore/repos">Appene</a> som utvikles er tilgjengelige via Git, og i tillegg så er
+              det meste av funksjonalitet også eksponert via et <a href="{{AppSubUrl}}/api/swagger">REST API</a>.
+          </p>
+      </div>
+      <div class="eight wide center column">
+          <h1 class="hero ui icon header">
+              <i class="octicon octicon-code"></i> Åpen kildekode
+          </h1>
+          <p class="large">
+              Altinn Studio deles som <a href="https://github.com/Altinn/altinn-studio">åpen kildekode på Github</a>,
+              slik at alle som vil kan bidra til å forbedre løsningen.
+          </p>
+      </div>
+  </div>
 </div>
 {{template "base/footer" .}}

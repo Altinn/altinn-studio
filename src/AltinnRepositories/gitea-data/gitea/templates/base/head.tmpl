@@ -123,7 +123,7 @@
 {{else}}
 	<meta property="og:title" content="{{AppName}}">
 	<meta property="og:type" content="website" />
-	<meta property="og:image" content="{{AppSubUrl}}/img/altinn_logo_header.png" />
+	<meta property="og:image" content="{{AppSubUrl}}/img/favicon.png" />
 	<meta property="og:url" content="{{AppUrl}}" />
 	<meta property="og:description" content="{{MetaDescription}}">
 {{end}}
@@ -141,8 +141,8 @@
 			<div class="ui top secondary stackable main menu following bar light">
 				<div class="ui container" id="navbar">
 					<div class="item brand" style="justify-content: space-between;">
-						<a href="{{AppSubUrl}}/" href="{{AppSubUrl}}/">
-							<img class="ui mini image" src="{{AppSubUrl}}/img/altinn_logo_header.png">
+						<a href="/" title="Altinn Studio {{.i18n.Tr "home"}}">
+							<img class="ui mini image" src="{{AppSubUrl}}/img/favicon.png" alt="Altinn logo">
 						</a>
 						<div class="ui basic icon button mobile-only" id="navbar-expand-toggle">
 							<i class="sidebar icon"></i>
@@ -150,14 +150,18 @@
 					</div>
 
 					{{if .IsSigned}}
-						<a class="item{{if .PageIsDashboard}} active{{end}}" href="{{AppSubUrl}}/">{{.i18n.Tr "dashboard"}}</a>
+            <a class="item{{if .PageIsDashboard}} active{{end}}" href="{{AppSubUrl}}/">{{.i18n.Tr "dashboard"}}</a>
 						<a class="item{{if .PageIsIssues}} active{{end}}" href="{{AppSubUrl}}/issues">{{.i18n.Tr "issues"}}</a>
-						<a class="item{{if .PageIsPulls}} active{{end}}" href="{{AppSubUrl}}/pulls">{{.i18n.Tr "pull_requests"}}</a>
+            <a class="item{{if .PageIsPulls}} active{{end}}" href="{{AppSubUrl}}/pulls">{{.i18n.Tr "pull_requests"}}</a>
 					{{else}}
 						<a class="item{{if .PageIsHome}} active{{end}}" href="{{AppSubUrl}}">{{.i18n.Tr "home"}}</a>
 					{{end}}
 
-					<a class="item{{if .PageIsExplore}} active{{end}}" href="{{AppSubUrl}}/explore/repos">{{.i18n.Tr "explore"}}</a>
+          <a class="item{{if .PageIsExplore}} active{{end}}" href="{{AppSubUrl}}/explore/repos">{{.i18n.Tr "explore"}}</a>
+
+          {{if .Repository}}
+            <a class="item" href="/designer/{{.Repository.Owner.Name}}/{{.Repository.Name}}" title="Åpne i Designer">Designer</a>
+          {{end}}
 
 					{{template "custom/extra_links" .}}
 
@@ -231,7 +235,7 @@
 										<i class="octicon octicon-settings"></i>
 										{{.i18n.Tr "your_settings"}}<!-- Your settings -->
 									</a>
-									<a class="item" target="_blank" rel="noopener noreferrer" href="https://docs.gitea.io">
+									<a class="item" target="_blank" rel="noopener noreferrer" href="https://docs.altinn.studio/teknologi/altinnstudio">
 										<i class="octicon octicon-question"></i>
 										{{.i18n.Tr "help"}}<!-- Help -->
 									</a>
@@ -245,7 +249,7 @@
 									{{end}}
 
 									<div class="divider"></div>
-									<a class="item" href="{{AppSubUrl}}/Home/Logout">
+									<a class="item" href="/Home/Logout">
 										<i class="octicon octicon-sign-out"></i>
 										{{.i18n.Tr "sign_out"}}<!-- Sign Out -->
 									</a>
@@ -255,7 +259,7 @@
 
 					{{else}}
 
-						<a class="item" target="_blank" rel="noopener noreferrer" href="https://docs.gitea.io">{{.i18n.Tr "help"}}</a>
+						<a class="item" target="_blank" rel="noopener noreferrer" href="https://docs.altinn.studio/teknologi/altinnstudio">{{.i18n.Tr "help"}}</a>
 						<div class="right stackable menu">
 							{{if .ShowRegistrationButton}}
 								<a class="item{{if .PageIsSignUp}} active{{end}}" href="{{AppSubUrl}}/user/sign_up">
