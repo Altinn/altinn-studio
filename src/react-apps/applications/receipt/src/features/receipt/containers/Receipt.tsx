@@ -2,8 +2,8 @@ import { createStyles, WithStyles, withStyles } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Axios from 'axios';
 import * as React from 'react';
-import AltinnModal from '../../../../../shared/src/components/AltinnModal';
 import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
+import AltinnModal from '../../../../../shared/src/components/molecules/AltinnModal';
 import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
 import AltinnReceipt from '../../../../../shared/src/components/organisms/AltinnReceipt';
 import theme from '../../../../../shared/src/theme/altinnStudioTheme';
@@ -132,15 +132,15 @@ function Receipt(props: WithStyles<typeof styles>) {
         party={party ? party : {} as IParty}
         userParty={user ? user.party : {} as IParty}
       />
-        <AltinnModal
-          classes={props.classes}
-          isOpen={true}
-          onClose={handleModalClose}
-          hideBackdrop={true}
-          hideCloseIcon={isPrint}
-          printView={isPrint}
-          headerText={getLanguageFromKey('receipt_platform.receipt', language)}
-        >
+      <AltinnModal
+        classes={props.classes}
+        isOpen={true}
+        onClose={handleModalClose}
+        hideBackdrop={true}
+        hideCloseIcon={isPrint}
+        printView={true}
+        headerText={getLanguageFromKey('receipt_platform.receipt', language)}
+      >
         {isLoading() &&
           <AltinnContentLoader/>
         }
@@ -155,7 +155,7 @@ function Receipt(props: WithStyles<typeof styles>) {
             titleSubmitted={getLanguageFromKey('receipt_platform.sent_content', language)}
           />
         }
-        </AltinnModal>
+      </AltinnModal>
     </>
   );
 }
