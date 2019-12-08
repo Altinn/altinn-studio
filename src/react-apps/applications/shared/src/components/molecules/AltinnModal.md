@@ -31,3 +31,31 @@ function PreviewModal({classes}) {
 }
 ;<PreviewModal/>
 ```
+
+### Printview "looks like modal"
+
+This variant displays the modal design, without the modal function.
+
+This can be used in "print view" or to be staticly shown without any "Modal function".
+
+```jsx
+import Typography from '@material-ui/core/Typography';
+
+function PreviewModal({classes}) {
+  return (
+    <>
+      <AltinnModal
+        classes={null}
+        isOpen={null}
+        onClose={null}
+        headerText={'Printview "looks like modal"'}
+        printView={true}
+      >
+        <Typography>Content</Typography>
+      </AltinnModal>
+    </>
+  )
+};
+
+<PreviewModal/>
+```
