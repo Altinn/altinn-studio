@@ -1,14 +1,18 @@
 using Altinn.App.IntegrationTests;
-using Altinn.App.Service.Interface;
+using Altinn.App.IntegrationTests.Mocks.Authentication;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
+using Altinn.Platform.Authentication.Maskinporten;
+using AltinnCore.Authentication.JwtCookie;
 using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
+using App.IntegrationTests.Mocks.Apps.tdd.custom_validation;
 using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTestsRef.Mocks.Services;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System;
 using System.IO;
 using System.Net.Http;
@@ -17,7 +21,11 @@ namespace App.IntegrationTestsRef.Utils
 {
     public static class SetupUtil
     {
-        public static HttpClient GetTestClient(CustomWebApplicationFactory<Altinn.App.Startup> factory, string org, string app)
+        public static HttpClient GetTestClient(
+            CustomWebApplicationFactory<Altinn.App.Startup> factory,
+            string org,
+            string app,
+            bool customValidation = false)
         {
             HttpClient client = factory.WithWebHostBuilder(builder =>
             {
@@ -45,9 +53,23 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddSingleton<IRegister, RegisterMockSI>();
                     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
                     services.AddSingleton<IApplication, ApplicationMockSI>();
-                    services.AddSingleton<IAltinnApp, AltinnApp>();
+                    if (customValidation)
+                    {
+                        services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.custom_validation.AltinnApp>();
+                    }
+                    else
+                    {
+                        services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
+                    }
+
+                    services.AddSingleton<IValidationHandler, ValidationHandler>();
                     services.AddTransient<IProfile, ProfileMockSI>();
                     services.AddSingleton<IValidation, ValidationAppSI>();
+                    services.AddSingleton<IPDF, PDFMockSI>();
+
+                    // Set up mock authentication so that not well known endpoint is used
+                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
+                    services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
             })
             .CreateClient();

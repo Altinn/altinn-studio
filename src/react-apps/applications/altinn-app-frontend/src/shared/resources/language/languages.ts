@@ -16,7 +16,7 @@ export const nb = () => (
       control_submit: 'Kontroller og send inn',
       create_new: 'Opprett ny',
       create: 'Opprett',
-      customer_service_phone_number: '67 00 60 00',
+      customer_service_phone_number: '+47 67 00 60 00',
       delete: 'Slett',
       disabled: 'Deaktivert',
       edit: 'Endre',
@@ -215,7 +215,8 @@ export const nb = () => (
       show_sub_unit: 'Vis underenheter',
     },
     form_filler: {
-      error_report_header: 'Det er et problem',
+      error_report_header: 'Det er feil i skjema',
+      error_report_description: 'Skjemaet inneholder feil eller mangler som hindrer oss fra å sende det inn. Når du har rettet feilene, kan du sende inn skjemaet på nytt.',
       error_required: 'Feltet er påkrevd',
       file_upload_valid_file_format_all: 'alle',
       file_uploader_add_attachment: 'Legg til flere vedlegg',

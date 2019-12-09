@@ -26,7 +26,8 @@ namespace Altinn.App.IntegrationTests
             {
                 Subject = new ClaimsIdentity(principal.Identity),
                 Expires = DateTime.UtcNow.AddSeconds(tokenExipry.TotalSeconds),
-                SigningCredentials = GetSigningCredentials()
+                SigningCredentials = GetSigningCredentials(),
+                Audience = "altinn.no"
             };
 
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);

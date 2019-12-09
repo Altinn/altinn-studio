@@ -8,6 +8,7 @@ import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import { ProcessStep } from '../../src/features/form/containers/ProcessStep';
 import { ProcessSteps } from '../../src/types';
+import AltinnAppTheme from '../../../shared/src/theme/altinnAppTheme';
 
 describe('>>> containers/ProcessStep.tsx', () => {
   let mockHeader: string;
@@ -112,7 +113,12 @@ describe('>>> containers/ProcessStep.tsx', () => {
         </Provider>
       </MemoryRouter>,
     );
-    expect(wrapper.find('#processContainer').prop('style')).toHaveProperty('backgroundColor', '#1EAEF7');
+
+    expect(
+      wrapper
+      .find('AltinnAppHeader').prop('headerBackgroundColor'))
+      .toBe(AltinnAppTheme.altinnPalette.primary.blue);
+
   });
 
   it('+++ should render receipt when step is "archived"', () => {
@@ -140,10 +146,15 @@ describe('>>> containers/ProcessStep.tsx', () => {
         </Provider>
       </MemoryRouter>,
     );
-    expect(wrapper.find('#processContainer').prop('style')).toHaveProperty('backgroundColor', '#D4F9E4');
+
+    expect(
+      wrapper
+      .find('AltinnAppHeader').prop('headerBackgroundColor'))
+      .toBe(AltinnAppTheme.altinnPalette.primary.greenLight);
+
   });
 
-  it('+++ should map unmappedValidations if there are any and create error report', () => {
+  it('+++ should map validations if there are any and create error report', () => {
     const createStore = configureStore();
     const newState = {
       language: {
@@ -187,6 +198,47 @@ describe('>>> containers/ProcessStep.tsx', () => {
         </Provider>
       </MemoryRouter>,
     );
-    expect(wrapper.find('.a-modal-header').first().prop('style')).toHaveProperty('backgroundColor', '#F9CAD3');
+    expect(wrapper.exists('#errorReport')).toBe(true);
+  });
+
+  it('+++ should hide error report when there are no validation errors', () => {
+    const createStore = configureStore();
+    const newState = {
+      language: {
+        language: {
+          form_filler: {
+            error_report_header: 'Mock error report',
+            placeholder_user: 'OLA PRIVATPERSON',
+          },
+        },
+      },
+      formValidations: {
+        validations: {},
+      },
+      profile: {
+        profile: null,
+      },
+      organisationMetaData: {
+        allOrgs: null,
+      },
+      applicationMetadata: {
+        applicationMetadata: null,
+      },
+      instanceData: {
+        instance: null,
+      },
+    };
+    mockStore = createStore(newState);
+    const wrapper = mount(
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <ProcessStep
+            header={mockHeader}
+            step={ProcessSteps.FormFilling}
+          />
+        </Provider>
+      </MemoryRouter>,
+    );
+    expect(wrapper.exists('#errorReport')).toBe(false);
   });
 });
