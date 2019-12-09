@@ -121,7 +121,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
                 href={repositoryUrl}
                 target={'_blank'}
               >
-                Åpne gitea repository
+                Åpne repository
               </a>
             </MenuItem>
           }
