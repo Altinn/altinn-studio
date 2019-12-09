@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{d643f218-0eea-45a0-88e5-36d077b758a8}</ProjectGuid>
   </PropertyGroup>

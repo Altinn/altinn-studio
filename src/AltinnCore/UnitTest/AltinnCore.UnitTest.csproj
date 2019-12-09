@@ -5,6 +5,7 @@
     <IsPackable>false</IsPackable>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{cbb537cf-e66c-4cbd-95c4-a719cc2e581d}</ProjectGuid>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

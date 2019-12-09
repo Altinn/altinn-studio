@@ -41,9 +41,11 @@ namespace Altinn.Platform.Authentication
             WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
+                Logger.Information("Program // CreateWebHostBuilder");
+
                 string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
                 config.SetBasePath(basePath);
-                config.AddJsonFile(basePath + "altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
+                config.AddJsonFile(basePath + "altinn-appsettings/altinn-dbsettings-secret.json", optional: true, reloadOnChange: true);
                 if (basePath == "/")
                 {
                     config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
@@ -55,6 +57,7 @@ namespace Altinn.Platform.Authentication
 
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
+
                 IConfiguration stageOneConfig = config.Build();
                 string appId = stageOneConfig.GetValue<string>("KvSetting:ClientId:0");
                 string tenantId = stageOneConfig.GetValue<string>("KvSetting:TenantId:0");
@@ -63,6 +66,8 @@ namespace Altinn.Platform.Authentication
                 if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(tenantId)
                     && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
                 {
+                    Logger.Information("Configure key vault client");
+
                     AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={appId};TenantId={tenantId};AppKey={appKey}");
                     KeyVaultClient keyVaultClient = new KeyVaultClient(
                         new KeyVaultClient.AuthenticationCallback(

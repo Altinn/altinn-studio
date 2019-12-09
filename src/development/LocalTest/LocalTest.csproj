@@ -2,10 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.3.8" />
+    <PackageReference Include="Altinn.App.PlatformServices" Version="1.0.0-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.0.0" />
     <PackageReference Include="AltinnCore.ServiceLibrary" Version="12.0.0" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.9.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0" />
@@ -15,8 +17,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.0" />
-    <PackageReference Include="Altinn.App.Services" Version="0.0.14-alpha" />
-    <PackageReference Include="Altinn.Common.PEP" Version="0.0.11-alpha" />
+    <PackageReference Include="Altinn.Common.PEP" Version="1.0.0-alpha" />
   </ItemGroup>
 
 </Project>

@@ -4,13 +4,13 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>AltinnCore.Common</RootNamespace>
     <AssemblyName>AltinnCore.Common</AssemblyName>
+    <LangVersion>latest</LangVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{d9ff76f1-2736-4e27-a3ca-6b78633d1890}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.3.8" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.4" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
     <PackageReference Include="Manatee.Json" Version="10.1.2" />

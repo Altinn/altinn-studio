@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <ApplicationIcon />
     <OutputType>Exe</OutputType>
     <StartupObject />
@@ -9,7 +10,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.2.3-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.0.0" />
   </ItemGroup>
 
   <ItemGroup>

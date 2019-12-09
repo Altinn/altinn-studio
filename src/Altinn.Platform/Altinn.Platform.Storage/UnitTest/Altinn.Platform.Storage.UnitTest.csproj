@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{7AD8A36D-CC19-4799-935E-FC99870CE096}</ProjectGuid>
     <AssemblyName>Altinn.Platform.Storage.UnitTest</AssemblyName>
