@@ -1,12 +1,17 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Altinn.Common.PEP.Authorization;
+using Altinn.Common.PEP.Clients;
+using Altinn.Common.PEP.Implementation;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Repository;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,7 +71,12 @@ namespace Altinn.Platform.Storage
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
-            services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();            
+            services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
+            services.AddSingleton<IPDP, PDPAppSI>();
+
+            services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
 
             string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
             if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))

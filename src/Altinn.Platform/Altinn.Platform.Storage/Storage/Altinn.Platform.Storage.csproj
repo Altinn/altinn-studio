@@ -42,6 +42,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Altinn.Common\Altinn.Common.PEP\Altinn.Common.PEP\Altinn.Common.PEP.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Altinn.Platform.Storage.Interface.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

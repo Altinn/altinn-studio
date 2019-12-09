@@ -26,23 +26,6 @@ namespace Altinn.Common.PEP.Helpers
         private const string ParamOrg = "org";
         private const string DefaultIssuer = "Altinn";
         private const string DefaultType = "string";
-        private const string subjectId = "s";
-        private const string actionId = "a";
-        private const string resourceId = "r";
-
-        public static XacmlJsonRequestRoot CreateXacmlJsonMultipleRequest(string org, string app, ClaimsPrincipal user, List<string> actionTypes, string instanceOwnerPartyId, List<Instance> instances)
-        {
-            XacmlJsonRequest request = new XacmlJsonRequest();
-            request.AccessSubject = new List<XacmlJsonCategory>();
-            request.AccessSubject.Add(CreateMultipleSubjectCategory(user.Claims));
-            request.Action = CreateMultipleActionCategory(actionTypes);
-            request.Resource = CreateMultipleResourceCategory(org, app, instanceOwnerPartyId, instances);
-            request.MultiRequests = CreateMultiRequestsCategory(request.AccessSubject, request.Action, request.Resource);
-
-            XacmlJsonRequestRoot jsonRequest = new XacmlJsonRequestRoot() { Request = request };
-
-            return jsonRequest;
-        }
 
         public static XacmlJsonRequestRoot CreateXacmlJsonRequest(string org, string app, ClaimsPrincipal user, string actionType, string instanceOwnerPartyId, string instanceId)
         {
@@ -81,14 +64,6 @@ namespace Altinn.Common.PEP.Helpers
             return jsonRequest;
         }
 
-        private static XacmlJsonCategory CreateMultipleSubjectCategory(IEnumerable<Claim> claims)
-        {
-            XacmlJsonCategory subjectAttributes = CreateSubjectCategory(claims);
-            subjectAttributes.Id = subjectId + "1";
-
-            return subjectAttributes;
-        }
-
         public static XacmlJsonCategory CreateSubjectCategory(IEnumerable<Claim> claims)
         {
             XacmlJsonCategory subjectAttributes = new XacmlJsonCategory();
@@ -113,58 +88,12 @@ namespace Altinn.Common.PEP.Helpers
             return attributes;
         }
 
-        private static List<XacmlJsonCategory> CreateMultipleActionCategory(List<string> actionTypes)
-        {
-            List<XacmlJsonCategory> actionCategories = new List<XacmlJsonCategory>();
-            int counter = 1;
-
-            foreach (string actionType in actionTypes)
-            {
-                XacmlJsonCategory actionCategory;
-                actionCategory = CreateActionCategory(actionType, true);
-                actionCategory.Id = actionId + counter.ToString();
-                actionCategories.Add(actionCategory);
-                counter++;
-            }
-            
-            return actionCategories;
-        }
-
         public static XacmlJsonCategory CreateActionCategory(string actionType, bool includeResult = false)
         {
             XacmlJsonCategory actionAttributes = new XacmlJsonCategory();
             actionAttributes.Attribute = new List<XacmlJsonAttribute>();
             actionAttributes.Attribute.Add(CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType, DefaultType, DefaultIssuer, includeResult));
             return actionAttributes;
-        }
-
-        public static List<XacmlJsonCategory> CreateMultipleResourceCategory(string org, string app, string instanceOwnerPartyId, List<Instance> instances)
-        {
-            List<XacmlJsonCategory> resourcesCategories = new List<XacmlJsonCategory>();
-            int counter = 1;
-
-            foreach (Instance instance in instances)
-            {
-                XacmlJsonCategory resourceCategory = new XacmlJsonCategory();
-                resourceCategory.Attribute = new List<XacmlJsonAttribute>();
-
-                string instanceId = instance.Id;
-                string task = instance.Process?.CurrentTask?.Name ?? "";
-
-                if (!string.IsNullOrWhiteSpace(instanceId))
-                {
-                    resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(XacmlInstanceId, instanceOwnerPartyId + "/" + instanceId, DefaultType, DefaultIssuer, true));
-                }
-                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourcePartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer));
-                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceOrgId, org, DefaultType, DefaultIssuer));
-                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceAppId, app, DefaultType, DefaultIssuer));
-                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceTaskId, task, DefaultType, DefaultIssuer));
-                resourceCategory.Id = resourceId + counter.ToString();
-                resourcesCategories.Add(resourceCategory);
-                counter++;
-            }
-
-            return resourcesCategories;
         }
 
         private static XacmlJsonCategory CreateResourceCategory(string org, string app, string instanceOwnerPartyId, string instanceGuid, bool includeResult = false)
@@ -191,43 +120,7 @@ namespace Altinn.Common.PEP.Helpers
             return resourceCategory;
         }
 
-        public static XacmlJsonMultiRequests CreateMultiRequestsCategory(List<XacmlJsonCategory> subjects, List<XacmlJsonCategory> actions, List<XacmlJsonCategory> resources)
-        {
-            List<string> subjectIds = subjects.Select(s => s.Id).ToList();
-            List<string> actionIds = actions.Select(a => a.Id).ToList();
-            List<string> resourceIds = resources.Select(r => r.Id).ToList();
-
-            XacmlJsonMultiRequests multiRequests = new XacmlJsonMultiRequests();
-            multiRequests.RequestReference = CreateRequestReference(subjectIds, actionIds, resourceIds);
-
-            return multiRequests;
-        }
-
-        public static List<XacmlJsonRequestReference> CreateRequestReference(List<string> subjectIds, List<string> actionIds, List<string> resourceIds)
-        {
-            List<XacmlJsonRequestReference> references = new List<XacmlJsonRequestReference>();
-
-            foreach (string resourceId in resourceIds)
-            {
-                foreach (string actionId in actionIds)
-                {
-                    foreach (string subjectId in subjectIds)
-                    {
-                        XacmlJsonRequestReference reference = new XacmlJsonRequestReference();
-                        List<string> referenceId = new List<string>();
-                        referenceId.Add(subjectId);
-                        referenceId.Add(actionId);
-                        referenceId.Add(resourceId);
-                        reference.ReferenceId = referenceId;
-                        references.Add(reference);
-                    }
-                }
-            }
-
-            return references;
-        }
-
-        private static XacmlJsonAttribute CreateXacmlJsonAttribute(string attributeId, string value, string dataType, string issuer, bool includeResult = false)
+        public static XacmlJsonAttribute CreateXacmlJsonAttribute(string attributeId, string value, string dataType, string issuer, bool includeResult = false)
         {
             XacmlJsonAttribute xacmlJsonAttribute = new XacmlJsonAttribute();
 

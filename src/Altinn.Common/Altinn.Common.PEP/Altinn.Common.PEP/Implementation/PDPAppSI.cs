@@ -82,7 +82,7 @@ namespace Altinn.Common.PEP.Implementation
             return DecisionHelper.ValidateResponse(response.Response, user);
         }
 
-        public async Task<List<Instance>> GetDecisionForMultipleRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
+        /*public async Task<List<Instance>> GetDecisionForMultipleRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
         {
             List<Instance> authorizedInstances = new List<Instance>();
 
@@ -102,6 +102,6 @@ namespace Altinn.Common.PEP.Implementation
             }
 
             return authorizedInstances;
-        }
+        }*/
     }
 }

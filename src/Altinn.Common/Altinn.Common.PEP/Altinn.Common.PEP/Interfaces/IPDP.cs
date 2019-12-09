@@ -21,7 +21,5 @@ namespace Altinn.Common.PEP.Interfaces
         /// <param name="xacmlJsonRequest">The Xacml Json Request</param>
         /// <returns>Returns true if request is permitted and false if not</returns>
         Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user);
-
-        Task<List<Instance>> GetDecisionForMultipleRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user);
     }
 }
