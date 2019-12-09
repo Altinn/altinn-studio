@@ -2,12 +2,13 @@ import { createStyles, WithStyles, withStyles } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Axios from 'axios';
 import * as React from 'react';
-import AltinnModal from '../../../../../shared/src/components/AltinnModal';
 import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
+import AltinnModal from '../../../../../shared/src/components/molecules/AltinnModal';
 import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
 import AltinnReceipt from '../../../../../shared/src/components/organisms/AltinnReceipt';
 import theme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { IApplication, IAttachment, IInstance, IParty, IProfile  } from '../../../../../shared/src/types';
+import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationMetaDataUtils';
 import { getInstancePdf, mapInstanceAttachments } from '../../../../../shared/src/utils/attachmentsUtils';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
@@ -104,22 +105,16 @@ function Receipt(props: WithStyles<typeof styles>) {
     return (!party || !instance || !organisations || !application || !language || !user);
   };
 
-  const returnCurrentTaskData = (appMetaData: IApplication, instanceVar: IInstance) => {
-    const defaultDatatype = appMetaData.dataTypes.find((element) => element.appLogic !== null);
-    return instanceVar.data.find((element) => element.dataType === defaultDatatype.id);
-  };
-
   React.useEffect(() => {
-    if (instance) {
-      const defaultElement = returnCurrentTaskData(application, instance);
-
+    if (instance && application) {
+      const defaultElement = getCurrentTaskData(application, instance);
       setAttachments(mapInstanceAttachments(instance.data, defaultElement.id));
       setPdf(getInstancePdf(instance.data, true));
     }
     if (!application && instance) {
       fetchApplication();
     }
-  }, [instance]);
+  }, [instance, application]);
 
   React.useEffect(() => {
     fetchInstance();
@@ -137,15 +132,16 @@ function Receipt(props: WithStyles<typeof styles>) {
         party={party ? party : {} as IParty}
         userParty={user ? user.party : {} as IParty}
       />
-        <AltinnModal
-          classes={props.classes}
-          isOpen={true}
-          onClose={handleModalClose}
-          hideBackdrop={true}
-          hideCloseIcon={isPrint}
-          printView={isPrint}
-          headerText={getLanguageFromKey('receipt_platform.receipt', language)}
-        >
+      <AltinnModal
+        classes={props.classes}
+        isOpen={true}
+        onClose={handleModalClose}
+        hideBackdrop={true}
+        hideCloseIcon={isPrint}
+        printView={true}
+        closeButtonOutsideModal={true}
+        headerText={getLanguageFromKey('receipt_platform.receipt', language)}
+      >
         {isLoading() &&
           <AltinnContentLoader/>
         }
@@ -156,11 +152,11 @@ function Receipt(props: WithStyles<typeof styles>) {
             collapsibleTitle={getLanguageFromKey('receipt_platform.attachments', language)}
             attachments={attachments}
             pdf={pdf ? [pdf] : null}
-            instanceMetaDataObject={getInstanceMetaDataObject(instance, party, language, organisations)}
+            instanceMetaDataObject={getInstanceMetaDataObject(instance, party, language, organisations, application)}
             titleSubmitted={getLanguageFromKey('receipt_platform.sent_content', language)}
           />
         }
-        </AltinnModal>
+      </AltinnModal>
     </>
   );
 }

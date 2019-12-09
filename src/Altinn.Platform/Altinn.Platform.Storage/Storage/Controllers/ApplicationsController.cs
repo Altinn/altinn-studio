@@ -252,9 +252,14 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 existingApplication = await repository.FindOne(appId, org);
             }
-            catch (Exception e)
+            catch (DocumentClientException dce)
             {
-                return NotFound($"Unable to find application with appId={appId} to update: {e}");
+                if (dce.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return NotFound($"Cannot find application {appId}");
+                }
+
+                return StatusCode(500, $"Unable to find application with appId={appId} to update: {dce.Message}");
             }
 
             existingApplication.LastChangedBy = GetUserId();

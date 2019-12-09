@@ -23,7 +23,8 @@ namespace UnitTests
         public void CreateXacmlJsonRequest_TC01()
         {
             // Arrange & Act
-            XacmlJsonRequest request = DecisionHelper.CreateXacmlJsonRequest(org, app, CreateUserClaims(false), actionType, partyId);
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonRequest(org, app, CreateUserClaims(false), actionType, partyId, null);
+            XacmlJsonRequest request = requestRoot.Request;
 
             // Assert
             Assert.Equal(2, request.AccessSubject[0].Attribute.Count);
@@ -39,7 +40,8 @@ namespace UnitTests
         public void CreateXacmlJsonRequest_TC02()
         {
             // Arrange & Act
-            XacmlJsonRequest request = DecisionHelper.CreateXacmlJsonRequest(org, app, CreateUserClaims(true), actionType, partyId);
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonRequest(org, app, CreateUserClaims(true), actionType, partyId, null);
+            XacmlJsonRequest request = requestRoot.Request;
 
             // Assert
             Assert.Equal(2, request.AccessSubject[0].Attribute.Count);

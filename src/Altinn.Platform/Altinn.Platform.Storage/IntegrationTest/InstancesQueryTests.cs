@@ -16,7 +16,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// <summary>
     ///  Tests data service REST api.
     /// </summary>
-    public class InstancesQueryTests : IClassFixture<PlatformStorageFixture>, IClassFixture<DatabaseFixture>
+    [Collection("Sequential")]
+    public class InstancesQueryTests : IClassFixture<PlatformStorageFixture>, IClassFixture<DatabaseFixture>, IClassFixture<CosmosDBFixture>
     {
         private readonly PlatformStorageFixture fixture;
         private readonly InstanceClient storageClient;
@@ -34,7 +35,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
             this.fixture = fixture;
             this.storageClient = new InstanceClient(this.fixture.CreateClient());
 
+            LoadTestData();
             CreateTestApplication(testAppId);
+
         }        
 
         /// <summary>
@@ -184,11 +187,15 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=lt:2017-12-31";
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=gt:2022-12-31";
 
             HttpResponseMessage response = await client.GetAsync(url);
 
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            QueryResponse<Instance> queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(await response.Content.ReadAsStringAsync());
+
+            Assert.Empty(queryResponse.Instances);
         }
 
         /// <summary>
@@ -439,16 +446,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// Method to load data file with 1000 instances into cosmos db.Undocument the[Fact] line, run
-        ///  the test once, make the fact a comment again and run tests.       
-        /// </summary>
-        // [Fact]
-        public void LoadData()
-        {
-            DatabaseFixture.LoadData(testAppId, storageClient);
-        }
-
-        /// <summary>
         /// Saves data in cosmos db to file.
         /// </summary>
         // [Fact]
@@ -469,6 +466,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
             queryResponse.Self = null;
 
             File.WriteAllText("../../../data/m1000-instances.json", JsonConvert.SerializeObject(queryResponse, Formatting.Indented));          
+        }
+        
+        private void LoadTestData()
+        {
+            DatabaseFixture.LoadData(testAppId, storageClient);
         }
     }
 }

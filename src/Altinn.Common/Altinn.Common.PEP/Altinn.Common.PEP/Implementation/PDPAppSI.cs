@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,7 +42,7 @@ namespace Altinn.Common.PEP.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequest xacmlJsonRequest)
+        public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
             XacmlJsonResponse xacmlJsonResponse = null;
             string apiUrl = $"decision";
@@ -50,6 +51,7 @@ namespace Altinn.Common.PEP.Implementation
             {
                 string requestJson = JsonConvert.SerializeObject(xacmlJsonRequest);
                 StringContent httpContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
+                _authClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 HttpResponseMessage response = _authClient.PostAsync(apiUrl, httpContent).Result;
 
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -67,7 +69,7 @@ namespace Altinn.Common.PEP.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequest xacmlJsonRequest, ClaimsPrincipal user)
+        public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
         {
             if (_pepSettings.DisablePEP)
             {

@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Repositories.Interface;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Logging;
@@ -147,7 +147,7 @@ namespace Altinn.Platform.Authorization.Repositories
         /// <param name="instance">the instance to preprocess</param>
         private void PostProcess(Instance instance)
         {
-            instance.Id = $"{instance.InstanceOwnerId}/{instance.Id}";
+            instance.Id = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
         }
 
         /// <summary>

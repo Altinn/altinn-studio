@@ -17,7 +17,7 @@ using Xunit;
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
     [Collection("Our Test Collection #1")]
-    public class PolicyRepositoryTest : IClassFixture<PolicyRetrivevalPointFixture>
+    public class PolicyRepositoryTest : IClassFixture<PolicyRetrivevalPointFixture>, IClassFixture<BlobStorageFixture>
     {
         Mock<IOptions<AzureStorageConfiguration>> _storageConfigMock;
         private CloudBlobClient _blobClient;
@@ -25,11 +25,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         private const string ORG = "ttd";
         private const string APP = "repository-test-app";
         private readonly PolicyRetrivevalPointFixture _fixture;
+        private readonly BlobStorageFixture _blobFixture;
         private readonly PolicyRepository _pr;
 
-        public PolicyRepositoryTest(PolicyRetrivevalPointFixture fixture)
+        public PolicyRepositoryTest(PolicyRetrivevalPointFixture fixture, BlobStorageFixture blobFixture)
         {
             _fixture = fixture;
+            _blobFixture = blobFixture;
+
             _storageConfigMock = new Mock<IOptions<AzureStorageConfiguration>>();
             _storageConfigMock.Setup(s => s.Value).Returns(new AzureStorageConfiguration()
             {
@@ -146,14 +149,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             // Arrange
             await _blobContainer.CreateIfNotExistsAsync();
             Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
-            _fixture.StartAndWaitForExit("stop");
+            _blobFixture.StartAndWaitForExit("stop");
             await Task.Delay(2000);
 
             // Act & Assert       
             await Assert.ThrowsAsync<StorageException>(() => _pr.WritePolicyAsync($"{ORG}/tc-02-app/policy.xml", dataStream));
 
             // Cleanup
-            _fixture.StartAndWaitForExit("start");
+            _blobFixture.StartAndWaitForExit("start");
             await Task.Delay(2000);
         }
 

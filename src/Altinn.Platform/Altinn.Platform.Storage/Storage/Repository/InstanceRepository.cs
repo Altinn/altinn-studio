@@ -28,6 +28,7 @@ namespace Altinn.Platform.Storage.Repository
         private readonly Uri _collectionUri;
         private readonly string _databaseId;
         private readonly ILogger<InstanceRepository> _logger;
+        private readonly IDataRepository _dataRepository;
 
         private readonly DocumentClient _client;
 
@@ -36,9 +37,14 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="cosmosSettings">the configuration settings for cosmos database</param>
         /// <param name="logger">the logger</param>
-        public InstanceRepository(IOptions<AzureCosmosSettings> cosmosSettings, ILogger<InstanceRepository> logger)
+        /// <param name="dataRepository">the data repository to fetch data elements from</param>
+        public InstanceRepository(
+            IOptions<AzureCosmosSettings> cosmosSettings,
+            ILogger<InstanceRepository> logger,
+            IDataRepository dataRepository)
         {
             _logger = logger;
+            _dataRepository = dataRepository;
 
             CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosSettings.Value);
 
@@ -65,7 +71,7 @@ namespace Altinn.Platform.Storage.Repository
             Document document = createDocumentResponse.Resource;
             Instance instanceStored = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
-            PostProcess(instanceStored);
+            await PostProcess(instanceStored);
 
             return instanceStored;
         }
@@ -140,7 +146,7 @@ namespace Altinn.Platform.Storage.Repository
 
                 List<Instance> instances = feedResponse.ToList();
 
-                PostProcess(instances);
+                await PostProcess(instances);
 
                 queryResponse.Instances = instances;
                 queryResponse.ContinuationToken = nextContinuationToken;
@@ -452,7 +458,7 @@ namespace Altinn.Platform.Storage.Repository
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId.ToString()) });
 
-            PostProcess(instance);
+            await PostProcess(instance);
 
             return instance;
         }
@@ -478,7 +484,7 @@ namespace Altinn.Platform.Storage.Repository
 
             List<Instance> instances = feedResponse.ToList();
 
-            PostProcess(instances);
+            await PostProcess(instances);
 
             return instances;
         }
@@ -522,6 +528,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             else
             {
+                // empty list
                 return instances;
             }
 
@@ -531,7 +538,7 @@ namespace Altinn.Platform.Storage.Repository
 
             instances = feedResponse.ToList();
 
-            PostProcess(instances);
+            await PostProcess(instances);
 
             return instances;
         }
@@ -546,7 +553,7 @@ namespace Altinn.Platform.Storage.Repository
             Document document = createDocumentResponse.Resource;
             Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
-            PostProcess(instance);
+            await PostProcess(instance);
 
             return instance;
         }
@@ -564,18 +571,25 @@ namespace Altinn.Platform.Storage.Repository
         /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerPartyId}/{instanceGuid} to be used outside cosmos.
         /// </summary>
         /// <param name="instance">the instance to preprocess</param>
-        private void PostProcess(Instance instance)
+        private async Task PostProcess(Instance instance)
         {
-            instance.Id = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
+            Guid instanceGuid = Guid.Parse(instance.Id);
+            string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
+
+            instance.Id = instanceId;
+            instance.Data = await _dataRepository.ReadAll(instanceGuid);
         }
 
         /// <summary>
         /// Preprosesses a list of instances.
         /// </summary>
         /// <param name="instances">the list of instances</param>
-        private void PostProcess(List<Instance> instances)
+        private async Task PostProcess(List<Instance> instances)
         {
-            instances.ForEach(i => PostProcess(i));
+            foreach (Instance item in instances)
+            {
+                await PostProcess(item);
+            }            
         }
 
         /// <summary>

@@ -23,6 +23,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
     /// <summary>
     /// Represents a collection of integration tests of the <see cref="ApplicationsController"/>.
     /// </summary>
+    [Collection("Sequential")]
     public class ApplicationsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
         private const string BasePath = "/storage/api/v1";

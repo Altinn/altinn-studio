@@ -25,7 +25,7 @@ namespace Altinn.Common.PEP.Helpers
         private const string DefaultIssuer = "Altinn";
         private const string DefaultType = "string";
 
-        public static XacmlJsonRequest CreateXacmlJsonRequest(string org, string app, ClaimsPrincipal user, string actionType, string partyId)
+        public static XacmlJsonRequestRoot CreateXacmlJsonRequest(string org, string app, ClaimsPrincipal user, string actionType, string instanceOwnerPartyId, string instanceId)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
 
@@ -35,12 +35,14 @@ namespace Altinn.Common.PEP.Helpers
 
             request.AccessSubject.Add(CreateSubjectCategory(user.Claims));
             request.Action.Add(CreateActionCategory(actionType));
-            request.Resource.Add(CreateResourceCategory(org, app, partyId, null));
+            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId, instanceId));
 
-            return request;
+            XacmlJsonRequestRoot jsonRequest = new XacmlJsonRequestRoot() { Request = request };
+
+            return jsonRequest;
         }
 
-        public static XacmlJsonRequest CreateXacmlJsonRequest(AuthorizationHandlerContext context, AppAccessRequirement requirement, RouteData routeData)
+        public static XacmlJsonRequestRoot CreateXacmlJsonRequestRoot(AuthorizationHandlerContext context, AppAccessRequirement requirement, RouteData routeData)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
             request.AccessSubject = new List<XacmlJsonCategory>();
@@ -56,7 +58,9 @@ namespace Altinn.Common.PEP.Helpers
             request.Action.Add(CreateActionCategory(requirement.ActionType));
             request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId, instanceGuid));
 
-            return request;
+            XacmlJsonRequestRoot jsonRequest = new XacmlJsonRequestRoot() { Request = request };
+
+            return jsonRequest;
         }
 
         private static XacmlJsonCategory CreateSubjectCategory(IEnumerable<Claim> claims)
@@ -89,7 +93,11 @@ namespace Altinn.Common.PEP.Helpers
             XacmlJsonCategory resourceAttributes = new XacmlJsonCategory();
             resourceAttributes.Attribute = new List<XacmlJsonAttribute>();
 
-            if (instanceGuid == null)
+            if (string.IsNullOrWhiteSpace(instanceOwnerPartyId))
+            {
+                resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlInstanceId, instanceGuid, DefaultType, DefaultIssuer));
+            }
+            else if (string.IsNullOrWhiteSpace(instanceGuid))
             {
                 resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourcePartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer));
             }

@@ -22,7 +22,7 @@ export const getInstancePdf = (data: IData[], platform?: boolean): IAttachment =
     return null;
   }
 
-  const pdfElement = data.find((element) => element.elementType === 'ref-data-as-pdf');
+  const pdfElement = data.find((element) => element.dataType === 'ref-data-as-pdf');
 
   if (!pdfElement) {
     return null;

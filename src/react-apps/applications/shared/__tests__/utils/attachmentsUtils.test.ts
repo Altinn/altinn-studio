@@ -28,7 +28,7 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
       data: [
         {
           id:  '585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
-          elementType:  '585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
+          dataType:  '585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
           fileName:  '585b2f4e-5ecb-417b-9d01-82b6e889e1d1.xml',
           contentType:  'application/Xml',
           storageUrl:  'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
@@ -44,7 +44,7 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         },
         {
           id:  '03e06136-88be-4866-a216-7959afe46137',
-          elementType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
+          dataType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
           fileName:  '4mb.txt',
           contentType:  'text/plain',
           storageUrl:  'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/03e06136-88be-4866-a216-7959afe46137',
@@ -60,7 +60,7 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         },
         {
           id:  '11943e38-9fc4-43f6-84c4-12e529eebd28',
-          elementType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
+          dataType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
           fileName:  '8mb.txt',
           contentType:  'text/plain',
           storageUrl:  'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/11943e38-9fc4-43f6-84c4-12e529eebd28',
@@ -76,7 +76,7 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         },
         {
           id:  '092f032d-f54f-49c1-ae42-ebc0d10a2fcb',
-          elementType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
+          dataType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
           fileName:  '2mb.txt',
           contentType:  'text/plain',
           storageUrl:  'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/092f032d-f54f-49c1-ae42-ebc0d10a2fcb',
@@ -92,7 +92,7 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         },
         {
           id:  '8698103b-fad1-4665-85c6-bf88a75ad708',
-          elementType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
+          dataType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
           fileName:  '4mb.txt',
           contentType:  'text/plain',
           storageUrl:  'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/8698103b-fad1-4665-85c6-bf88a75ad708',
@@ -108,7 +108,7 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         },
         {
           id:  'e950864d-e304-41ca-a60c-0c5019166df8',
-          elementType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
+          dataType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
           fileName:  '8mb.txt',
           contentType:  'text/plain',
           storageUrl:  'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/e950864d-e304-41ca-a60c-0c5019166df8',
@@ -124,7 +124,7 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
         },
         {
           id:  '005d5bc3-a315-4705-9b06-3788fed86da1',
-          elementType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
+          dataType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
           fileName:  '2mb.txt',
           contentType:  'text/plain',
           storageUrl:  'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/005d5bc3-a315-4705-9b06-3788fed86da1',
@@ -182,7 +182,7 @@ test('getInstancePdf() returns correct attachement', () => {
     const data = [
       {
         id:  '585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
-        elementType:  'ref-data-as-pdf',
+        dataType:  'ref-data-as-pdf',
         fileName:  'kvittering.pdf',
         contentType:  'application/pdf',
         storageUrl:  'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
@@ -198,7 +198,7 @@ test('getInstancePdf() returns correct attachement', () => {
       },
       {
         id:  '005d5bc3-a315-4705-9b06-3788fed86da1',
-        elementType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
+        dataType:  'cca36865-8f2e-4d29-8036-fa33bc4c3c34',
         fileName:  '2mb.txt',
         contentType:  'text/plain',
         storageUrl:  'tjeneste-190814-1426/c1572504-9fb6-4829-9652-3ca9c82dabb9/data/005d5bc3-a315-4705-9b06-3788fed86da1',
