@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>AltinnCore.Common</RootNamespace>
     <AssemblyName>AltinnCore.Common</AssemblyName>
     <!-- SonarCloud needs this -->
@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.3.1" />
     <PackageReference Include="LibGit2Sharp" Version="0.26.1" />
     <PackageReference Include="JWTCookieAuthentication" Version="1.0.3-alpha" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -62,7 +62,7 @@
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp3.0\AltinnCore.Common.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp3.1\AltinnCore.Common.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

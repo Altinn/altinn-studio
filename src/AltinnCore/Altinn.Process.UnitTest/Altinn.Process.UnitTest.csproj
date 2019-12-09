@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{A581FE98-39A1-45DF-B1DE-AFDAC4A165C3}</ProjectGuid>
@@ -11,7 +11,7 @@
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>    
+    </PackageReference>
     <AdditionalFiles Include="..\..\..\stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp3.0\Altinn.Process.UnitTest.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp3.1\Altinn.Process.UnitTest.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,12 +1,15 @@
+using System;
 using System.IO;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Core;
 using Serilog.Extensions.Logging;
 
 namespace Altinn.Platform.Authentication
@@ -16,6 +19,10 @@ namespace Altinn.Platform.Authentication
     /// </summary>
     public static class Program
     {
+        private static readonly Logger Logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger();
+
         /// <summary>
         /// The main method
         /// </summary>
@@ -49,10 +56,10 @@ namespace Altinn.Platform.Authentication
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
                 IConfiguration stageOneConfig = config.Build();
-                string appId = stageOneConfig.GetValue<string>("KvSetting:ClientId");
-                string tenantId = stageOneConfig.GetValue<string>("KvSetting:TenantId");
-                string appKey = stageOneConfig.GetValue<string>("KvSetting:ClientSecret");
-                string keyVaultEndpoint = stageOneConfig.GetValue<string>("KvSetting:SecretUri");
+                string appId = stageOneConfig.GetValue<string>("KvSetting:ClientId:0");
+                string tenantId = stageOneConfig.GetValue<string>("KvSetting:TenantId:0");
+                string appKey = stageOneConfig.GetValue<string>("KvSetting:ClientSecret:0");
+                string keyVaultEndpoint = stageOneConfig.GetValue<string>("KvSetting:SecretUri:0");
                 if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(tenantId)
                     && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
                 {
@@ -62,6 +69,20 @@ namespace Altinn.Platform.Authentication
                             azureServiceTokenProvider.KeyVaultTokenCallback));
                     config.AddAzureKeyVault(
                         keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+
+                    try
+                    {
+                        string appInsightsKey = Startup.VaultApplicationInsightsKey;
+
+                        SecretBundle secretBundle = keyVaultClient
+                            .GetSecretAsync(keyVaultEndpoint, appInsightsKey).Result;
+
+                        Environment.SetEnvironmentVariable(appInsightsKey, secretBundle.Value);
+                    }
+                    catch (Exception vaultException)
+                    {
+                        Logger.Error($"Unable to read application insights key {vaultException}");
+                    }
                 }
             })
             .ConfigureLogging((hostingContext, logging) =>

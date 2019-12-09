@@ -9,11 +9,11 @@ createTestCafe()
     const stream = fs.createWriteStream('junit.xml');
 
     return runner
-      .browsers(['puppeteer'])
+      .browsers(['chrome:headless'])
       .concurrency(1)
       .screenshots('./screenshots', { takeOnFails: true })
       .reporter('junit', stream)
-      .src(['./*_tests/*.js'])
+      .src(['./*tests/*.js'])
       .run({
         skipJsErrors: true,
         skipUncaughtErrors: true,

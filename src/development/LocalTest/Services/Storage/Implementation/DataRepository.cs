@@ -28,22 +28,20 @@ namespace LocalTest.Services.Storage.Implementation
 
             System.IO.Stream data = new System.IO.MemoryStream();
 
-            fs.CopyTo(data);
-            data.Seek(0, SeekOrigin.Begin);
-            byte[] buf = new byte[data.Length];
-            data.Read(buf, 0, buf.Length);
-
-            return Task.FromResult(data);
+            return Task.FromResult(fs);
         }
 
         public async Task<long> WriteDataToStorage(Stream dataStream, string fileName)
         {
             string filePath = GetFilePath(fileName);
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            if (!Directory.Exists(Path.GetDirectoryName(filePath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+            }
 
             long filesize;
 
-            using (Stream streamToWriteTo = File.Open(filePath, FileMode.OpenOrCreate))
+            using (Stream streamToWriteTo = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
                 await dataStream.CopyToAsync(streamToWriteTo);
                 streamToWriteTo.Flush();

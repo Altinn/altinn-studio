@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1-alpine AS build
 
 # Copy common, used for exposing language ini files
 WORKDIR /src/AltinnCore/
@@ -15,7 +15,7 @@ RUN dotnet publish Altinn.Platform.Receipt.csproj -c Release -o /app_output
 # Copy receipt frontend to public folder
 FROM altinn-receipt-react-app:latest AS generate-receipt-react-app
 
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-alpine AS final
 EXPOSE 5060
 WORKDIR /app
 COPY --from=build /app_output .

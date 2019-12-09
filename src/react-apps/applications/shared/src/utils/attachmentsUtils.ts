@@ -8,7 +8,7 @@ export const mapInstanceAttachments = (data: IData[], defaultElementId: string):
     data.forEach((dataElement: IData) => {
       if (dataElement.id !== defaultElementId && dataElement.dataType !== 'ref-data-as-pdf') {
         tempAttachments.push({
-        name: dataElement.fileName,
+        name: dataElement.filename,
         url: dataElement.selfLinks.apps,
         iconClass: 'reg reg-attachment' });
       }
@@ -31,7 +31,7 @@ export const getInstancePdf = (data: IData[], platform?: boolean): IAttachment =
   const pdfUrl = platform ? pdfElement.selfLinks.platform : pdfElement.selfLinks.apps;
 
   return {
-    name: pdfElement.fileName,
+    name: pdfElement.filename,
     url: pdfUrl,
     iconClass: 'reg reg-attachment',
   };

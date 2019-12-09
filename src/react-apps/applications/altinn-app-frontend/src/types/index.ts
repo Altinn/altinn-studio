@@ -51,10 +51,10 @@ export enum ProcessSteps {
 }
 
 export enum Severity {
-  Unspecified = 'Unspecified',
-  Error = 'Error',
-  Warning = 'Warning',
-  Informational = 'Informational',
+  Unspecified = 0,
+  Error =  1,
+  Warning = 2,
+  Informational = 3,
 }
 
 export interface IValidationIssue {

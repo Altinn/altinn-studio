@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Helpers;
-using Altinn.App.Service.Interface;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -496,18 +495,6 @@ namespace Altinn.App.Api.Controllers
             await _altinnApp.RunAppEvent(AppEventType.DataRetrieval, serviceModel);
             await _altinnApp.RunAppEvent(AppEventType.Calculation, serviceModel);
 
-            try
-            {
-                // Run the model Validation that handles validation defined on the model
-                TryValidateModel(serviceModel);
-
-                // send events to trigger application business logic
-                await _altinnApp.RunAppEvent(AppEventType.Validation, serviceModel);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Validation errors are currently ignored: {ex.Message}");
-            }
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
