@@ -6,6 +6,7 @@ using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.Services.Models;
+using AltinnCore.Designer.TypedHttpClients.AltinnAuthentication;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 using AltinnCore.Designer.ViewModels.Request;
@@ -22,7 +23,7 @@ namespace AltinnCore.Designer.Services
     /// </summary>
     public class DeploymentService : IDeploymentService
     {
-        private readonly IAzureDevOpsBuildService _azureDevOpsBuildService;
+        private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
         private readonly ReleaseRepository _releaseRepository;
         private readonly DeploymentRepository _deploymentRepository;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
@@ -36,13 +37,13 @@ namespace AltinnCore.Designer.Services
         /// </summary>
         public DeploymentService(
             IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions,
-            IAzureDevOpsBuildService azureDevOpsBuildService,
+            IAzureDevOpsBuildClient azureDevOpsBuildClient,
             IHttpContextAccessor httpContextAccessor,
             ReleaseRepository releaseRepository,
             DeploymentRepository deploymentRepository,
             IApplicationInformationService applicationInformationService)
         {
-            _azureDevOpsBuildService = azureDevOpsBuildService;
+            _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _releaseRepository = releaseRepository;
             _deploymentRepository = deploymentRepository;
             _applicationInformationService = applicationInformationService;
@@ -128,7 +129,7 @@ namespace AltinnCore.Designer.Services
                 TagName = deploymentEntity.TagName
             };
 
-            return await _azureDevOpsBuildService.QueueAsync(
+            return await _azureDevOpsBuildClient.QueueAsync(
                 queueBuildParameters,
                 _azureDevOpsSettings.DeployDefinitionId);
         }

@@ -1,14 +1,10 @@
-using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.Services.Models;
+using AltinnCore.Designer.TypedHttpClients.AltinnAuthorization;
 using Microsoft.Extensions.Options;
-using Microsoft.Rest.TransientFaultHandling;
 
 namespace AltinnCore.Designer.Services
 {
@@ -17,28 +13,24 @@ namespace AltinnCore.Designer.Services
     /// </summary>
     public class AuthorizationPolicyService : IAuthorizationPolicyService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IGitea _giteaApiWrapper;
+        private readonly IAltinnAuthorizationPolicyClient _authorizationPolicyClient;
         private readonly ServiceRepositorySettings _serviceRepositorySettings;
-        private readonly PlatformSettings _platformSettings;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="httpClientFactory">IHttpClientFactory</param>
         /// <param name="repositorySettings">IOptions of type ServiceRepositorySettings</param>
         /// <param name="giteaApiWrapper">IGitea</param>
-        /// <param name="platformSettings">Platform settings.</param>
+        /// <param name="authorizationPolicyClient">IAltinnAuthorizationPolicyClient</param>
         public AuthorizationPolicyService(
-            IHttpClientFactory httpClientFactory,
             IOptions<ServiceRepositorySettings> repositorySettings,
-            IOptions<PlatformSettings> platformSettings,
-            IGitea giteaApiWrapper)
+            IGitea giteaApiWrapper,
+            IAltinnAuthorizationPolicyClient authorizationPolicyClient)
         {
-            _httpClientFactory = httpClientFactory;
             _giteaApiWrapper = giteaApiWrapper;
+            _authorizationPolicyClient = authorizationPolicyClient;
             _serviceRepositorySettings = repositorySettings.Value;
-            _platformSettings = platformSettings.Value;
         }
 
         /// <inheritdoc />
@@ -48,27 +40,14 @@ namespace AltinnCore.Designer.Services
             string fullCommitId,
             EnvironmentModel deploymentEnvironment)
         {
-            HttpClient httpClient = GetHttpClientFromHttpClientFactory(deploymentEnvironment);
-            string policyFilePath = GetAuthorizationPolicyFilePath(fullCommitId);
-            string policyFile = await _giteaApiWrapper.GetFileAsync(org, app, policyFilePath);
-            StringContent stringContent = new StringContent(policyFile, Encoding.UTF8, "application/xml");
-            HttpResponseMessage response = await httpClient.PostAsync($"?org={org}&app={app}", stringContent);
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new HttpRequestWithStatusException(response.ReasonPhrase)
-                {
-                    StatusCode = response.StatusCode
-                };
-            }
+            string policyFile = await GetAuthorizationPolicyFileFromGitea(org, app, fullCommitId);
+            await _authorizationPolicyClient.SavePolicy(org, app, policyFile, deploymentEnvironment);
         }
 
-        private HttpClient GetHttpClientFromHttpClientFactory(EnvironmentModel deploymentEnvironment)
+        private async Task<string> GetAuthorizationPolicyFileFromGitea(string org, string app, string fullCommitId)
         {
-            HttpClient httpClient = _httpClientFactory.CreateClient(deploymentEnvironment.Hostname);
-            string uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/{_platformSettings.ApiAuthorizationPolicyUri}";
-            httpClient.BaseAddress = new Uri(uri);
-
-            return httpClient;
+            string policyFilePath = GetAuthorizationPolicyFilePath(fullCommitId);
+            return await _giteaApiWrapper.GetFileAsync(org, app, policyFilePath);
         }
 
         private string GetAuthorizationPolicyFilePath(string fullCommitId)
