@@ -12,8 +12,8 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnStorage
         /// <summary>
         /// Gets application metadata for a specific app from Platform.Storage
         /// </summary>
-        /// <param name="org">string</param>
-        /// <param name="app">string</param>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application</param>
         /// <param name="environmentModel">EnvironmentModel</param>
         /// <returns></returns>
         Task<Application> GetApplicationMetadata(string org, string app, EnvironmentModel environmentModel);
@@ -21,8 +21,8 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnStorage
         /// <summary>
         /// Creates application metadata for an application in Platform.Storage
         /// </summary>
-        /// <param name="org">string</param>
-        /// <param name="app">string</param>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application connected to the organisation</param>
         /// <param name="applicationMetadata">Application</param>
         /// <param name="environmentModel">EnvironmentModel</param>
         /// <returns></returns>
@@ -31,8 +31,8 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnStorage
         /// <summary>
         /// Updates application metadata for an application in Platform.Storage
         /// </summary>
-        /// <param name="org">string</param>
-        /// <param name="app">string</param>
+        /// <param name="org">Organisation</param>
+        /// <param name="app">Application connected to the organisation</param>
         /// <param name="applicationMetadata">Application</param>
         /// <param name="environmentModel">EnvironmentModel</param>
         /// <returns></returns>
