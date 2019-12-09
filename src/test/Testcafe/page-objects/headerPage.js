@@ -6,7 +6,7 @@ export default class HeaderPage {
     this.userMenu = Selector('header').find('button');
     this.logOutButton = Selector('a[href="/Home/Logout]"');
     this.navBar = Selector('#navbarSupportedContent');
-    this.openGiteaRepo = Selector('a').withText('Åpne gitea repository');
+    this.openGiteaRepo = Selector('a').withText('Åpne repository');
 
     //Designer related header selectors
     this.designerTab = Selector(".nav-link.nav-item").withText("Designer");
