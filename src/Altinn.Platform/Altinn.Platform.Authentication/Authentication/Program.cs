@@ -1,7 +1,9 @@
+using System;
 using System.IO;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
@@ -62,6 +64,20 @@ namespace Altinn.Platform.Authentication
                             azureServiceTokenProvider.KeyVaultTokenCallback));
                     config.AddAzureKeyVault(
                         keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+
+                    try
+                    {
+                        string appInsightsKey = "ApplicationInsights--InstrumentationKey";
+
+                        SecretBundle secretBundle = keyVaultClient
+                            .GetSecretAsync(keyVaultEndpoint, appInsightsKey).Result;
+
+                        Environment.SetEnvironmentVariable(appInsightsKey, secretBundle.Value);
+                    }
+                    catch (Exception vaultException)
+                    {
+                        Console.WriteLine($"Unable to read application insights key {vaultException}");
+                    }
                 }
             })
             .ConfigureLogging((hostingContext, logging) =>
