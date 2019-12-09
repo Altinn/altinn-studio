@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{3aa4860c-e86b-488f-ae89-b0a28bc1f701}</ProjectGuid>
     <IsPackable>true</IsPackable>
@@ -17,14 +18,14 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <Version>1.0.9-alpha</Version>
+    <Version>2.0.0-alpha</Version>
     <Description>JWTCookieAuthentication is a package for usage of JWT token for authentication both as bearer token and inside cookie</Description>
     <PackageTags>altinn studio, authentication, jwt, JWTCookieAuthentication</PackageTags>
     <PackageId>JWTCookieAuthentication</PackageId>
     <Company>Altinn</Company>
     <Product>JWTCookieAuthentication</Product>
-    <AssemblyVersion>1.0.9.0</AssemblyVersion>
-    <FileVersion>1.0.9.0</FileVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject />

@@ -10,6 +10,7 @@
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
     <MvcRazorExcludeRefAssembliesFromPublish>false</MvcRazorExcludeRefAssembliesFromPublish>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
+    <LangVersion>latest</LangVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{A8CEDA65-1EC3-4D9E-857C-BFCFA796315C}</ProjectGuid>
   </PropertyGroup>
@@ -30,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.3.8" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.0.0" />
     <PackageReference Include="CompilerAttributes" Version="1.1.2" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.8.1" />
