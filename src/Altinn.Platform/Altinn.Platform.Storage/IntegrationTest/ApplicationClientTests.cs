@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using Altinn.Platform.Storage.Dupicated.Clients;
+using Altinn.Platform.Storage.IntegrationTest.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;

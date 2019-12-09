@@ -9,7 +9,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Altinn.Platform.Storage.Dupicated.Clients
+namespace Altinn.Platform.Storage.IntegrationTest.Clients
 {
     /// <summary>
     /// Storage client methods.

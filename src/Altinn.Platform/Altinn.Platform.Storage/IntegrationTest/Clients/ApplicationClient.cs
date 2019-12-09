@@ -5,7 +5,7 @@ using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.Dupicated.Clients
+namespace Altinn.Platform.Storage.IntegrationTest.Clients
 {
     /// <summary>
     /// Client for managing application metadata.

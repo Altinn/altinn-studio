@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Altinn.Platform.Storage.Controllers;
-using Altinn.Platform.Storage.Dupicated.Clients;
+using Altinn.Platform.Storage.IntegrationTest.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
