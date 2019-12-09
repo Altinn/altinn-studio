@@ -154,7 +154,7 @@ namespace Altinn.Platform.Storage.Controllers
                     dataElement.AppOwner.Downloaded ??= new List<DateTime>();
                     dataElement.AppOwner.Downloaded.Add(DateTime.UtcNow);
 
-                    _ = await _dataRepository.Update(dataElement);
+                    await _dataRepository.Update(dataElement);
                 }
 
                 if (string.Equals(dataElement.BlobStoragePath, storageFileName))
