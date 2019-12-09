@@ -192,7 +192,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
           });
           this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_already_exist', this.props.language));
         } else if (result.repositoryCreatedStatus === 201) {
-          window.location.assign(`${altinnWindow.location.origin}/designer/${result.full_name}#/aboutservice`);
+          window.location.assign(`${altinnWindow.location.origin}/designer/${result.full_name}#/about`);
         } else {
           this.setState({
             isLoading: false,

@@ -33,14 +33,15 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
 
   public componentDidMount() {
     const altinnWindow: Window = window;
+
+    fetchServicesActionDispatchers.fetchCurrentUser(
+      `${altinnWindow.location.origin}/designerapi/User/Current`);
+
     fetchLanguageDispatcher.fetchLanguage(
       `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
 
     fetchServicesActionDispatchers.fetchServices(
       `${altinnWindow.location.origin}/designerapi/Repository/Search`);
-
-    fetchServicesActionDispatchers.fetchCurrentUser(
-      `${altinnWindow.location.origin}/designerapi/User/Current`);
 
     fetchServicesActionDispatchers.fetchOrganisations(
       `${altinnWindow.location.origin}/designerapi/Repository/Organizations`);

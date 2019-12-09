@@ -19,7 +19,7 @@ fixture('Navigating the App designer')
     await t
       .useRole(AutoTestUser)
       .maximizeWindow()
-      .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice');
+      .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/about');
   })
   .after(async () => {
   })
@@ -57,7 +57,7 @@ test('Språk tab navigation', async () => {
 
 test('Deploy tab navigation', async () => {
   await t
-    .click(designerPage.deployNavigationTab)    
+    .click(designerPage.deployNavigationTab)
     .expect(getLocation()).contains('deploy');
 });
 
