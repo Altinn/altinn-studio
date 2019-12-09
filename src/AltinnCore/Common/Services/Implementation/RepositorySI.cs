@@ -99,6 +99,7 @@ namespace AltinnCore.Common.Services.Implementation
             // Creates all the files
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.DeploymentLocation, _settings.GetDeploymentFolderName());
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());
+
             // CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.IntegrationTestsLocation, _settings.GetIntegrationTestsFolderName());
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
