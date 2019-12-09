@@ -23,7 +23,6 @@ namespace AltinnCore.Designer
     /// </summary>
     public static class Program
     {
-        private static string MaskinportenCertificate;
         private static Logger logger = new LoggerConfiguration()
             .WriteTo.Console()
             .CreateLogger();

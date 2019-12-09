@@ -22,7 +22,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnStorage
         /// Creates application metadata for an application in Platform.Storage
         /// </summary>
         /// <param name="org">Organisation</param>
-        /// <param name="app">Application</param>
+        /// <param name="app">Application connected to the organisation</param>
         /// <param name="applicationMetadata">Application</param>
         /// <param name="environmentModel">EnvironmentModel</param>
         /// <returns></returns>
@@ -32,7 +32,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnStorage
         /// Updates application metadata for an application in Platform.Storage
         /// </summary>
         /// <param name="org">Organisation</param>
-        /// <param name="app">Application</param>
+        /// <param name="app">Application connected to the organisation</param>
         /// <param name="applicationMetadata">Application</param>
         /// <param name="environmentModel">EnvironmentModel</param>
         /// <returns></returns>
