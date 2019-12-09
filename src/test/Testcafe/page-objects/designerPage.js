@@ -102,6 +102,7 @@ export default class DesignerPage {
     this.latestBuilds = Selector('.MuiGrid-root').withText('Tidligere bygg av applikasjonen').parent(0).sibling(3);
     this.deployButton = Selector('button').withExactText('Deploy ny versjon');
     this.deployVersionDropDown = Selector('#deploy-select-at21');
+    this.noDeployVersionAvailable = Selector('div').withText('Du har ingen versjoner å deploye');
     this.deployVersionOptions = Selector('.select__menu-list');
     this.at21DeployTable = Selector('#deploy-history-table-at21');
     this.deployConfirm = Selector("#deployPopover");
@@ -143,7 +144,7 @@ export default class DesignerPage {
     //rulesmodal
     this.rulesConnectionModal = Selector('span').withExactText('Konfigurer regler');
     this.rulesDropDown = Selector('select').withAttribute('name', 'selectRule');
-    this.rulesList = this.rulesDropDown.find('option');
+    this.rulesList = this.rulesDropDown.find('div');
     this.saveRulesButton = Selector('button').withExactText('Lagre');
     this.deleteRulesButton = Selector('button').withExactText('Slett');
 

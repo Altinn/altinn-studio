@@ -282,7 +282,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string fileName, Stream stream)
-        {          
+        {
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             DataElement dataElement;
@@ -292,7 +292,7 @@ namespace Altinn.App.Services.Implementation
             if (!string.IsNullOrEmpty(fileName))
             {
                 content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse($"attachment; filename={fileName}");
-            }            
+            }
 
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 

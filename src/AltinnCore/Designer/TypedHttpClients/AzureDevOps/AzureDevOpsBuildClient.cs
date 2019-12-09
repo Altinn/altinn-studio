@@ -12,7 +12,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
     /// <summary>
     /// Implementation of IAzureDevOpsService
     /// </summary>
-    public class AzureDevOpsBuildService : IAzureDevOpsBuildService
+    public class AzureDevOpsBuildClient : IAzureDevOpsBuildClient
     {
         private readonly HttpClient _httpClient;
         private readonly GeneralSettings _generalSettings;
@@ -24,7 +24,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
         /// <param name="httpClient">System.Net.Http.HttpClient</param>
         /// <param name="generalSettingsOptions">IOptionsMonitor of Type GeneralSettings</param>
         /// <param name="sourceControl">ISourceControl</param>
-        public AzureDevOpsBuildService(
+        public AzureDevOpsBuildClient(
             HttpClient httpClient,
             IOptionsMonitor<GeneralSettings> generalSettingsOptions,
             ISourceControl sourceControl)

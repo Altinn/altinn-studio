@@ -11,6 +11,8 @@
     <None Remove="Data\apps\tdd\auth-level-2\appsettings.json" />
     <None Remove="Data\apps\tdd\auth-level-3\appsettings.Development.json" />
     <None Remove="Data\apps\tdd\auth-level-3\appsettings.json" />
+    <None Remove="Data\apps\tdd\custom-validation\appsettings.Development.json" />
+    <None Remove="Data\apps\tdd\custom-validation\appsettings.json" />
     <None Remove="Data\apps\tdd\endring-av-navn\config\appsettings.Development.json" />
     <None Remove="Data\apps\tdd\endring-av-navn\config\appsettings.json" />
     <None Remove="Data\apps\tdd\no-access\appsettings.json" />
@@ -33,6 +35,16 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="Data\apps\tdd\auth-level-3\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\custom-validation\appsettings.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\custom-validation\appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

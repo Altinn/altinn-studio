@@ -1,13 +1,11 @@
-using System;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.Services.Models;
+using AltinnCore.Designer.TypedHttpClients.AltinnStorage;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest.TransientFaultHandling;
@@ -20,12 +18,11 @@ namespace AltinnCore.Designer.Services
     /// </summary>
     public class ApplicationMetadataService : IApplicationMetadataService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IGitea _giteaApiWrapper;
         private readonly ILogger<ApplicationMetadataService> _logger;
+        private readonly IAltinnStorageAppMetadataClient _storageAppMetadataClient;
         private readonly ServiceRepositorySettings _serviceRepositorySettings;
-        private readonly PlatformSettings _platformSettings;
-        private HttpClient _httpClient;
+        private EnvironmentModel _deploymentEnvironment;
         private string _fullCommitSha;
         private string _org;
         private string _app;
@@ -33,22 +30,20 @@ namespace AltinnCore.Designer.Services
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="httpClientFactory">IHttpClientFactory</param>
         /// <param name="giteaApiWrapper">IGitea</param>
         /// <param name="repositorySettings">IOptions of type ServiceRepositorySettings</param>
         /// <param name="logger">ILogger of type ApplicationMetadataService</param>
+        /// <param name="storageAppMetadataClient">IAltinnStorageAppMetadataClient</param>
         public ApplicationMetadataService(
-            IHttpClientFactory httpClientFactory,
             IGitea giteaApiWrapper,
             IOptions<ServiceRepositorySettings> repositorySettings,
-            IOptions<PlatformSettings> platformSettings,
-            ILogger<ApplicationMetadataService> logger)
+            ILogger<ApplicationMetadataService> logger,
+            IAltinnStorageAppMetadataClient storageAppMetadataClient)
         {
-            _httpClientFactory = httpClientFactory;
             _giteaApiWrapper = giteaApiWrapper;
             _logger = logger;
+            _storageAppMetadataClient = storageAppMetadataClient;
             _serviceRepositorySettings = repositorySettings.Value;
-            _platformSettings = platformSettings.Value;
         }
 
         /// <inheritdoc />
@@ -60,8 +55,8 @@ namespace AltinnCore.Designer.Services
         {
             _org = org;
             _app = app;
+            _deploymentEnvironment = deploymentEnvironment;
             _fullCommitSha = fullCommitId;
-            _httpClient = GetHttpClientFromHttpClientFactory(deploymentEnvironment);
 
             Application applicationFromRepository = await GetApplicationMetadataFileFromRepository();
             Application application = await GetApplicationMetadataFromStorage();
@@ -72,16 +67,6 @@ namespace AltinnCore.Designer.Services
             }
 
             await UpdateApplicationMetadata(application, applicationFromRepository);
-        }
-
-        private HttpClient GetHttpClientFromHttpClientFactory(EnvironmentModel deploymentEnvironment)
-        {
-            HttpClient httpClient = _httpClientFactory.CreateClient(deploymentEnvironment.Hostname);
-            string uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/{_platformSettings.ApiStorageApplicationUri}";
-            httpClient.BaseAddress = new Uri(uri);
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            return httpClient;
         }
 
         private async Task<Application> GetApplicationMetadataFileFromRepository()
@@ -102,21 +87,23 @@ namespace AltinnCore.Designer.Services
 
         private async Task<Application> GetApplicationMetadataFromStorage()
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"{_org}/{_app}");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return await response.Content.ReadAsAsync<Application>();
+                return await _storageAppMetadataClient.GetApplicationMetadata(_org, _app, _deploymentEnvironment);
             }
-
-            if (response.StatusCode != HttpStatusCode.NotFound)
+            catch (HttpRequestWithStatusException e)
             {
-                throw new HttpRequestWithStatusException(response.ReasonPhrase)
+                /*
+                 * Special exception handling because we want to continue if the exception
+                 * was caused by a 404 (NOT FOUND) HTTP status code.
+                 */
+                if (e.StatusCode == HttpStatusCode.NotFound)
                 {
-                    StatusCode = response.StatusCode
-                };
-            }
+                    return null;
+                }
 
-            return null;
+                throw;
+            }
         }
 
         private async Task CreateApplicationMetadata(Application applicationFromRepository)
@@ -132,7 +119,7 @@ namespace AltinnCore.Designer.Services
                 PartyTypesAllowed = applicationFromRepository.PartyTypesAllowed,
                 VersionId = _fullCommitSha
             };
-            await _httpClient.PostAsJsonAsync($"?appId={_org}/{_app}", appMetadata);
+            await _storageAppMetadataClient.CreateApplicationMetadata(_org, _app, appMetadata, _deploymentEnvironment);
         }
 
         private async Task UpdateApplicationMetadata(Application application, Application applicationFromRepository)
@@ -141,7 +128,7 @@ namespace AltinnCore.Designer.Services
             application.VersionId = _fullCommitSha;
             application.DataTypes = applicationFromRepository.DataTypes;
             application.PartyTypesAllowed = applicationFromRepository.PartyTypesAllowed;
-            await _httpClient.PutAsJsonAsync($"{_org}/{_app}", application);
+            await _storageAppMetadataClient.UpdateApplicationMetadata(_org, _app, application, _deploymentEnvironment);
         }
     }
 }

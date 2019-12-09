@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.8.2" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.0.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.2.0" />
     <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="5.6.0" />
@@ -20,7 +21,7 @@
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.0.1" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="4.0.0" />
-    <PackageReference Include="JWTCookieAuthentication" Version="1.0.6-alpha" />
+    <PackageReference Include="JWTCookieAuthentication" Version="1.0.9-alpha" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

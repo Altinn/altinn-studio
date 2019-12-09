@@ -21,7 +21,7 @@ export interface IProcessStepProvidedProps {
 export interface IProcessStepProps extends IProcessStepProvidedProps {
   party: IParty;
   language: any;
-  errorList: string[];
+  formHasErrors: boolean;
   userParty: IParty;
 }
 
@@ -125,41 +125,41 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
   }
 
   public renderErrorReport = () => {
-    if (!this.props.errorList || this.props.errorList.length === 0) {
+    if (!this.props.formHasErrors) {
       return null;
     }
+
     return (
-      <div className='a-modal-content-target' style={{ marginTop: '55px' }}>
+      <div id='errorReport' className='a-modal-content-target' style={{ marginTop: '55px' }}>
         <div className='a-page a-current-page'>
           <div className='modalPage'>
             <div className='modal-content'>
-              <div
-                className='modal-header a-modal-header'
-                style={{
-                  backgroundColor: '#F9CAD3',
-                  color: 'black',
-                  minHeight: '6rem',
-                }}
-              >
-                <div>
-                  <h3 className='a-fontReg' style={{ marginBottom: 0 }}>
-                    <i className='ai ai-circle-exclamation a-icon' />
-                    <span>
-                      {getLanguageFromKey('form_filler.error_report_header', this.props.language)}
-                    </span>
-                  </h3>
+              <div className='modal-body' style={{paddingBottom: '0px'}}>
+                <div className='a-iconText' style={{minHeight: '60px'}}>
+                  <div className='a-iconText-icon'>
+                    <i
+                      className='ai ai-circle-exclamation a-icon'
+                      style={{
+                        color: '#E23B53',
+                        fontSize: '4em',
+                        marginLeft: '12px',
+                      }}
+                      aria-hidden='true'
+                    />
+                  </div>
+                    <h2 className='a-fontReg' style={{marginBottom: '0px', marginLeft: '12px'}}>
+                      <span className='a-iconText-text-large'>
+                        {getLanguageFromKey('form_filler.error_report_header', this.props.language)}
+                      </span>
+                    </h2>
                 </div>
               </div>
-              <div className='modal-body a-modal-body'>
-                {this.props.errorList ?
-                  this.props.errorList.map((error, index) => {
-                    return (
-                      <ol key={index}>
-                        <li><a>{(index + 1).toString() + '. ' + error}</a></li>
-                      </ol>
-                    );
-                  })
-                  : null}
+              <div className='modal-body a-modal-body' style={{paddingTop: '0px', paddingBottom: '24px'}}>
+                <h4 className='a-fontReg'>
+                  <span>
+                  {getLanguageFromKey('form_filler.error_report_description', this.props.language)}
+                  </span>
+                </h4>
               </div>
             </div>
           </div>
@@ -228,22 +228,33 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
   }
 }
 
-const getErrorList = (validations: IValidations) => {
-  const unmappedValidations = validations.unmapped;
-  if (!unmappedValidations) {
-    return null;
+const getFormHasErrors = (validations: IValidations): boolean => {
+  let hasErrors = false;
+  for (const key in validations) {
+    if (validations.hasOwnProperty(key)) {
+      const validationObject = validations[key];
+      for (const fieldKey in validationObject) {
+        if (validationObject.hasOwnProperty(fieldKey)) {
+          const fieldValidationErrors = validationObject[fieldKey].errors;
+          if (fieldValidationErrors && fieldValidationErrors.length > 0) {
+            hasErrors = true;
+            break;
+          }
+        }
+      }
+      if (hasErrors) {
+        break;
+      }
+    }
   }
-
-  return Object.keys(unmappedValidations).map((validationKey) => {
-    return unmappedValidations[validationKey].errors.join(', ');
-  });
+  return hasErrors;
 };
 
 const mapStateToProps = (state: IRuntimeState, props: IProcessStepProvidedProps): IProcessStepProps => {
   return {
     userParty: state.profile.profile ? state.profile.profile.party : {} as IParty,
     language: state.language ? state.language.language : {},
-    errorList: getErrorList(state.formValidations ? state.formValidations.validations : {}),
+    formHasErrors: getFormHasErrors(state.formValidations.validations),
     party: state.party ? state.party.selectedParty : {} as IParty,
     ...props,
   };

@@ -3,7 +3,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeStore } from '../../../../../types/global';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
-import { put } from '../../../../../utils/networking';
+import { get, put } from '../../../../../utils/networking';
 import { mapApiValidationsToRedux } from '../../../../../utils/validation';
 import Actions from '../../actions';
 import { IRunSingleFieldValidationAction } from '../../actions/singleFieldValidation';
@@ -27,7 +27,7 @@ export function* runSingleFieldValidationSaga({
       yield call(Actions.runSingleFieldValidationFulfilled, validationErrors);
     }
   } catch (err) {
-    yield call(Actions.runSingleFieldValidation, err);
+    yield call(Actions.runSingleFieldValidationRejected, err);
   }
 }
 

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.PlatformServices.Models;
-using Altinn.App.Service.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
@@ -144,7 +143,7 @@ namespace Altinn.App.Api.Controllers
 
             if (startResult.Instance != null)
             {
-                NotifyAppAboutEvents(startResult.Instance, startResult.Events);                
+                await NotifyAppAboutEvents(startResult.Instance, startResult.Events);                
 
                 // make sure instance is saved after app has handled the events
                 Instance updatedInstance = await _instanceService.UpdateInstance(startResult.Instance);
@@ -304,7 +303,7 @@ namespace Altinn.App.Api.Controllers
                 ProcessResult nextResult = await _processService.ProcessNext(instance, nextElement, processHelper, userContext);
                 if (nextResult != null)
                 {
-                    NotifyAppAboutEvents(nextResult.Instance, nextResult.Events);
+                    await NotifyAppAboutEvents(nextResult.Instance, nextResult.Events);
 
                     Instance changedInstance = await _instanceService.UpdateInstance(nextResult.Instance);
 
@@ -406,7 +405,7 @@ namespace Altinn.App.Api.Controllers
 
                 if (nextResult != null)
                 {
-                    NotifyAppAboutEvents(nextResult.Instance, nextResult.Events);
+                    await NotifyAppAboutEvents(nextResult.Instance, nextResult.Events);
 
                     instance = await _instanceService.UpdateInstance(nextResult.Instance);
 
@@ -435,7 +434,7 @@ namespace Altinn.App.Api.Controllers
             processHelper = new ProcessHelper(bpmnStream);
         }
 
-        private void NotifyAppAboutEvents(Instance instance, List<InstanceEvent> events)
+        private async Task NotifyAppAboutEvents(Instance instance, List<InstanceEvent> events)
         {            
             
             foreach (InstanceEvent processEvent in events)
@@ -443,19 +442,19 @@ namespace Altinn.App.Api.Controllers
                 switch (processEvent.EventType)
                 {
                     case "process:StartEvent":
-                        _altinnApp.OnStartProcess(processEvent.ProcessInfo?.StartEvent, instance);
+                        await _altinnApp.OnStartProcess(processEvent.ProcessInfo?.StartEvent, instance);
                         break;
 
                     case "process:StartTask":
-                        _altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
+                        await _altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
                         break;
 
                     case "process:EndTask":
-                        _altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
+                        await _altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
                         break;
 
                     case "process:EndEvent":
-                        _altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, instance);                        
+                        await _altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, instance);                        
                         break;
                 }
             }          

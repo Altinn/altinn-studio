@@ -150,9 +150,6 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         Id = "ref-data-as-pdf",
                         AllowedContentTypes = new List<string>() { "application/pdf" },
-                        TaskId = "Task_1",
-                        MaxCount = 1,
-                        MinCount = 0,
                     }
                 },
                 PartyTypesAllowed = new PartyTypesAllowed()
