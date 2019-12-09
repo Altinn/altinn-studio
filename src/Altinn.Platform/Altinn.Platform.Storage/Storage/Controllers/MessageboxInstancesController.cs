@@ -75,20 +75,15 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerPartyId, state);
 
-            //// TODO: Authorise instances and filter list
-
-            List<MessageBoxInstance> autorizedInstances = await _authorizeInstancesHelper.GetDecisionForMultipleRequest(HttpContext.User, allInstances);
-
             if (allInstances.Count <= 0)
             {
                 return Ok(new List<MessageBoxInstance>());
             }
 
+            List<MessageBoxInstance> autorizedInstances = await _authorizeInstancesHelper.GetDecisionForMultipleRequest(HttpContext.User, allInstances);
             List<string> appIds = autorizedInstances.Select(i => i.AppName).Distinct().ToList();
             Dictionary<string, Dictionary<string, string>> appTitles = await _applicationRepository.GetAppTitles(appIds);
             List<MessageBoxInstance> messageBoxInstances = InstanceHelper.AddTitleToInstances(autorizedInstances, appTitles, languageId);
-
-            //List<MessageBoxInstance> messageBoxInstances = InstanceHelper.ConvertToMessageBoxInstanceList(allInstances, appTitles, languageId);
 
             return Ok(messageBoxInstances);
         }
