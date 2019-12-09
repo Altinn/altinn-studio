@@ -95,10 +95,10 @@ describe('AccessControl', () => {
         classes={{}}
       />);
     const instance = wrapper.instance() as AccessControlContainerClass;
-    instance.handlePartyTypesAllowedChange(PartyTypes.bankruptcy_estate);
+    instance.handlePartyTypesAllowedChange(PartyTypes.bankruptcyEstate);
     instance.handlePartyTypesAllowedChange(PartyTypes.organisation);
     instance.handlePartyTypesAllowedChange(PartyTypes.person);
-    instance.handlePartyTypesAllowedChange(PartyTypes.sub_unit);
+    instance.handlePartyTypesAllowedChange(PartyTypes.subUnit);
     expect(wrapper.state('partyTypesAllowed')).toEqual(newApplicationMetadata.partyTypesAllowed);
   });
 

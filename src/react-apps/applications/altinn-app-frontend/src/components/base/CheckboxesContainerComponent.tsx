@@ -86,7 +86,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   };
 
   const onDataChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newSelected = selected;
+    const newSelected: any = selected;
 
     if (newSelected[event.target.value] === event.target.name) {
       newSelected[event.target.value] = '';

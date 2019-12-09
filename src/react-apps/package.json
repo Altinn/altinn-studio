@@ -11,6 +11,6 @@
   },
   "devDependencies": {
     "ini": "1.3.5",
-    "lerna": "3.16.4"
+    "lerna": "3.18.5"
   }
 }

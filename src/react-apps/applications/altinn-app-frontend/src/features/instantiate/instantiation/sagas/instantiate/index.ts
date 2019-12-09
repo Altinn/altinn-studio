@@ -21,7 +21,7 @@ function* instantiationSaga(): SagaIterator {
       const selectedParty: IParty = yield select(SelectedPartySelector);
 
       // Creates a new instance
-      const instanceResponse = yield call(post, getCreateInstancesUrl(selectedParty.partyId));
+      const instanceResponse: any = yield call(post, getCreateInstancesUrl(selectedParty.partyId));
       const instanceId = instanceResponse.data.id;
 
       // Fetch new instance metadata
