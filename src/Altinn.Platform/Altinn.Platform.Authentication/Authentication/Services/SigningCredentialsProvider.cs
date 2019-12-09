@@ -15,15 +15,18 @@ namespace Altinn.Platform.Authentication.Services
     /// create a <see cref="SigningCredentials"/> instance. If there are no key vault settings available the logic will instead
     /// attempt to find a certificate on the file system.
     /// </summary>
+    /// <remarks>
+    /// This service is intended to be used as a Singleton. Access to the <see cref="SigningCredentials"/> is locked using <see cref="SemaphoreSlim"/>.
+    /// </remarks>
     public class SigningCredentialsProvider : ISigningCredentialsProvider
     {
         private readonly KeyVaultSettings _keyVaultSettings;
         private readonly CertificateSettings _certificateSettings;
 
-        private static SigningCredentials _signingCredentials;
-        private static DateTime _signingCredentialsUpdateTime;
+        private SigningCredentials _signingCredentials;
+        private DateTime _signingCredentialsUpdateTime;
 
-        private static readonly SemaphoreSlim Semaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         /// <summary>
         /// Initialize a new instance of <see cref="SigningCredentialsProvider"/> with settings for accessing a key vault and file system.
@@ -41,7 +44,7 @@ namespace Altinn.Platform.Authentication.Services
         /// <inheritdoc />
         public async Task<SigningCredentials> GetSigningCredentials()
         {
-            await Semaphore.WaitAsync();
+            await _semaphore.WaitAsync();
 
             try
             {
@@ -73,7 +76,7 @@ namespace Altinn.Platform.Authentication.Services
             }
             finally
             {
-                Semaphore.Release();
+                _semaphore.Release();
             }
         }
     }
