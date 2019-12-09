@@ -2,8 +2,8 @@ using System;
 using System.Reflection;
 
 using Altinn.Platform.Authentication.Configuration;
-using Altinn.Platform.Authentication.Maskinporten;
 using Altinn.Platform.Authentication.Repositories;
+using Altinn.Platform.Authentication.Services;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 
@@ -44,7 +44,7 @@ namespace Altinn.Platform.Authentication
         {
             services.AddControllers().AddJsonOptions(options =>
             {
-                options.JsonSerializerOptions.WriteIndented = true;
+                options.JsonSerializerOptions.WriteIndented = false;
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
             services.AddMvc().AddControllersAsServices();
@@ -63,6 +63,7 @@ namespace Altinn.Platform.Authentication
                         options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
                     });
 
+            services.AddSingleton<ISigningCredentialsProvider, SigningCredentialsProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddSingleton<IOrganisationRepository, OrganisationRepository>();
 
