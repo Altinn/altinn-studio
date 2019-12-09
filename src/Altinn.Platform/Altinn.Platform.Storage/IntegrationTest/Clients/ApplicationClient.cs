@@ -27,6 +27,7 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
             _client = client;
             _endpointUri = enpointUrl;
             _validToken = PrincipalUtil.GetToken(1);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
         }
 
         /// <summary>
@@ -64,7 +65,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
         {
             string url = $"{_endpointUri}/{_resourcePrefix}?appId={application.Id}";
       
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = _client.PostAsync(url, content: application.AsJson()).Result;
 
             if (!response.IsSuccessStatusCode)
@@ -89,7 +89,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
 
             string url = $"{_endpointUri}/{_resourcePrefix}/{applicationId}";
 
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = _client.PutAsync(url, application.AsJson()).Result;
 
             if (!response.IsSuccessStatusCode)
@@ -112,7 +111,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
         {
             string url = $"{_endpointUri}/{_resourcePrefix}/{appId}";
 
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = _client.GetAsync(url).Result;
 
             if (!response.IsSuccessStatusCode)
@@ -135,7 +133,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
         {
             string url = $"{_endpointUri}/{_resourcePrefix}/{appId}?hard=true";
 
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = _client.DeleteAsync(url).Result;
 
             if (!response.IsSuccessStatusCode)
