@@ -66,7 +66,7 @@ namespace Altinn.Common.PEP.Authorization
                 throw new ArgumentNullException("response");
             }
 
-            if (!DecisionHelper.ValidateResponse(response.Response, context.User))
+            if (!DecisionHelper.ValidatePdpDecision(response.Response, context.User))
             {
                 context.Fail();
             }

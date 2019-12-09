@@ -24,6 +24,44 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
         public void CreateXacmlJsonMultipleRequest_TC01()
         {
             // Arrange
+            List<string> actionTypes = new List<string> { "read", "write" };
+            List<Instance> instances = CreateInstances();
+
+            // Act
+            XacmlJsonRequestRoot requestRoot = AuthorizeInstancesHelper.CreateXacmlJsonMultipleRequest(CreateUserClaims(false), instances, actionTypes);
+
+            // Assert
+            Assert.Equal(6, requestRoot.Request.MultiRequests.RequestReference.Count());
+            Assert.Single(requestRoot.Request.AccessSubject);
+            Assert.Equal(2, requestRoot.Request.Action.Count());
+            Assert.Equal(3, requestRoot.Request.Resource.Count());
+            Assert.Equal(5, requestRoot.Request.Resource.First().Attribute.Count());
+        }
+
+        private ClaimsPrincipal CreateUserClaims(bool addExtraClaim)
+        {
+            // Create the user
+            List<Claim> claims = new List<Claim>();
+
+            // type, value, valuetype, issuer
+            claims.Add(new Claim("urn:name", "Ola", "string", "org"));
+            claims.Add(new Claim("urn:altinn:authlevel", "2", "string", "org"));
+
+            if (addExtraClaim)
+            {
+                claims.Add(new Claim("a", "a", "string", "a"));
+            }
+
+            ClaimsPrincipal user = new ClaimsPrincipal(
+                new ClaimsIdentity(
+                        claims
+                    ));
+
+            return user;
+        }
+
+        private List<Instance> CreateInstances()
+        {
             List<Instance> instances = new List<Instance>
             {
                 new Instance
@@ -65,37 +103,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
                 }
             };
 
-            // Act
-            XacmlJsonRequestRoot requestRoot = AuthorizeInstancesHelper.CreateXacmlJsonMultipleRequest(CreateUserClaims(false), instances);
-
-            // Assert
-            Assert.Equal(6, requestRoot.Request.MultiRequests.RequestReference.Count());
-            Assert.Single(requestRoot.Request.AccessSubject);
-            Assert.Equal(2, requestRoot.Request.Action.Count());
-            Assert.Equal(3, requestRoot.Request.Resource.Count());
-            Assert.Equal(5, requestRoot.Request.Resource.First().Attribute.Count());
-        }
-
-        private ClaimsPrincipal CreateUserClaims(bool addExtraClaim)
-        {
-            // Create the user
-            List<Claim> claims = new List<Claim>();
-
-            // type, value, valuetype, issuer
-            claims.Add(new Claim("urn:name", "Ola", "string", "org"));
-            claims.Add(new Claim("urn:altinn:authlevel", "2", "string", "org"));
-
-            if (addExtraClaim)
-            {
-                claims.Add(new Claim("a", "a", "string", "a"));
-            }
-
-            ClaimsPrincipal user = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                        claims
-                    ));
-
-            return user;
+            return instances;
         }
     }
 }

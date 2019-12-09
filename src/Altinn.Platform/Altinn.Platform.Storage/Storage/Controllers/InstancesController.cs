@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -30,6 +30,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
+        private readonly AuthorizeInstancesHelper _authorizeInstancesHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -42,12 +43,14 @@ namespace Altinn.Platform.Storage.Controllers
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
-            ILogger<InstancesController> logger)
+            ILogger<InstancesController> logger,
+            IPDP pdp)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
             _logger = logger;
+            _authorizeInstancesHelper = new AuthorizeInstancesHelper(pdp);
         }
 
         /// <summary>
@@ -136,9 +139,11 @@ namespace Altinn.Platform.Storage.Controllers
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
+                List<Instance> authorizedInstances = await _authorizeInstancesHelper.AuthroizeInstances(HttpContext.User, result.Instances);
+
                 QueryResponse<Instance> response = new QueryResponse<Instance>
                 {
-                    Instances = result.Instances,
+                    Instances = authorizedInstances,
                     Count = result.Instances.Count,
                     TotalHits = result.TotalHits ?? 0
                 };

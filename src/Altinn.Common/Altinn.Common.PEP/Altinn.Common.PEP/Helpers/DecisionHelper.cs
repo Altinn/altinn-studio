@@ -135,7 +135,7 @@ namespace Altinn.Common.PEP.Helpers
             return regex.Match(value).Success ? true : false;
         }
 
-        public static bool ValidateResponse(List<XacmlJsonResult> results, ClaimsPrincipal user)
+        public static bool ValidatePdpDecision(List<XacmlJsonResult> results, ClaimsPrincipal user)
         {
             if (results == null)
             {
@@ -147,11 +147,6 @@ namespace Altinn.Common.PEP.Helpers
                 throw new ArgumentNullException("user");
             }
 
-            return ValidatePdpDecision(results, user);
-        }
-
-        private static bool ValidatePdpDecision(List<XacmlJsonResult> results, ClaimsPrincipal user)
-        {
             // We request one thing and then only want one result
             if (results.Count != 1)
             {
