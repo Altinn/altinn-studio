@@ -1,6 +1,7 @@
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
+using Altinn.Platform.Storage.Interface.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -208,15 +209,40 @@ namespace UnitTests
             Assert.Throws<ArgumentNullException>(() => DecisionHelper.ValidateResponse(response.Response, null));
         }
 
+        /// <summary>
+        /// Test case: Send attributes and creates multiple request out of it 
+        /// Expected: All values sent in will be created to attributes
+        /// </summary>
         [Fact]
         public void CreateXacmlJsonMultipleRequest_TC01()
         {
             // Arrange
             List<string> actionTypes = new List<string> { "read", "write" };
-            List<string> instanceIds = new List<string> { "1", "5", "7" };
+            List<Instance> instances = new List<Instance>
+            {
+                new Instance
+                {
+                    Id = "1",
+                    Process = new ProcessState
+                    {
+                        CurrentTask = new ProcessElementInfo
+                        {
+                            Name = "test_task"
+                        }
+                    }
+                },
+                new Instance
+                {
+                    Id = "4"
+                },
+                new Instance
+                {
+                    Id = "7"
+                }
+            };
 
             // Act
-            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonMultipleRequest(org, app, CreateUserClaims(false), actionTypes, partyId, instanceIds, "idk");
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonMultipleRequest(org, app, CreateUserClaims(false), actionTypes, partyId, instances);
 
             // Assert
             Assert.Equal(6, requestRoot.Request.MultiRequests.RequestReference.Count());

@@ -1,6 +1,7 @@
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Authorization;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Routing;
 using System;
@@ -29,13 +30,13 @@ namespace Altinn.Common.PEP.Helpers
         private const string actionId = "a";
         private const string resourceId = "r";
 
-        public static XacmlJsonRequestRoot CreateXacmlJsonMultipleRequest(string org, string app, ClaimsPrincipal user, List<string> actionTypes, string instanceOwnerPartyId, List<string> instanceIds, string task)
+        public static XacmlJsonRequestRoot CreateXacmlJsonMultipleRequest(string org, string app, ClaimsPrincipal user, List<string> actionTypes, string instanceOwnerPartyId, List<Instance> instances)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
             request.AccessSubject = new List<XacmlJsonCategory>();
             request.AccessSubject.Add(CreateMultipleSubjectCategory(user.Claims));
             request.Action = CreateMultipleActionCategory(actionTypes);
-            request.Resource = CreateMultipleResourceCategory(org, app, instanceOwnerPartyId, instanceIds, task);
+            request.Resource = CreateMultipleResourceCategory(org, app, instanceOwnerPartyId, instances);
             request.MultiRequests = CreateMultiRequestsCategory(request.AccessSubject, request.Action, request.Resource);
 
             XacmlJsonRequestRoot jsonRequest = new XacmlJsonRequestRoot() { Request = request };
@@ -137,15 +138,18 @@ namespace Altinn.Common.PEP.Helpers
             return actionAttributes;
         }
 
-        public static List<XacmlJsonCategory> CreateMultipleResourceCategory(string org, string app, string instanceOwnerPartyId, List<string> instanceIds, string task)
+        public static List<XacmlJsonCategory> CreateMultipleResourceCategory(string org, string app, string instanceOwnerPartyId, List<Instance> instances)
         {
             List<XacmlJsonCategory> resourcesCategories = new List<XacmlJsonCategory>();
             int counter = 1;
 
-            foreach (string instanceId in instanceIds)
+            foreach (Instance instance in instances)
             {
                 XacmlJsonCategory resourceCategory = new XacmlJsonCategory();
                 resourceCategory.Attribute = new List<XacmlJsonAttribute>();
+
+                string instanceId = instance.Id;
+                string task = instance.Process?.CurrentTask?.Name ?? "";
 
                 if (!string.IsNullOrWhiteSpace(instanceId))
                 {
