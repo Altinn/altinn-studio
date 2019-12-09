@@ -40,6 +40,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>Application metadata</returns>
+        [Authorize]
         [HttpGet("{org}/{app}/api/v1/applicationmetadata")]
         public async Task<IActionResult> GetAction(string org, string app)
         {

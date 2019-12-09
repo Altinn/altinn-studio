@@ -170,10 +170,18 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
 
   public render() {
     const isProcessStepsArchived = Boolean(this.props.step === ProcessSteps.Archived);
-    const backgroundColor = isProcessStepsArchived ? '#D4F9E4' : '#1EAEF7';
+    let backgroundColor: string;
+
+    if (isProcessStepsArchived) {
+      document.body.style.background = AltinnAppTheme.altinnPalette.primary.greenLight;
+      backgroundColor = AltinnAppTheme.altinnPalette.primary.greenLight;
+    } else {
+      document.body.style.background = AltinnAppTheme.altinnPalette.primary.blue;
+      backgroundColor = AltinnAppTheme.altinnPalette.primary.blue;
+    }
 
     return (
-      <div id='processContainer' style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
+      <div id='processContainer' style={{ marginBottom: '1rem' }}>
           <AltinnAppHeader
             party={this.props.party}
             userParty={this.props.userParty}

@@ -1,7 +1,11 @@
 using Altinn.App.IntegrationTests;
+using Altinn.App.IntegrationTests.Mocks.Authentication;
+using Altinn.App.Service.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
+using Altinn.Platform.Authentication.Maskinporten;
+using AltinnCore.Authentication.JwtCookie;
 using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
 using App.IntegrationTests.Mocks.Apps.tdd.custom_validation;
 using App.IntegrationTests.Mocks.Services;
@@ -9,6 +13,7 @@ using App.IntegrationTestsRef.Mocks.Services;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System;
 using System.IO;
 using System.Net.Http;
@@ -61,6 +66,10 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddSingleton<IValidationHandler, ValidationHandler>();
                     services.AddTransient<IProfile, ProfileMockSI>();
                     services.AddSingleton<IValidation, ValidationAppSI>();
+
+                    // Set up mock authentication so that not well known endpoint is used
+                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
+                    services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
             })
             .CreateClient();

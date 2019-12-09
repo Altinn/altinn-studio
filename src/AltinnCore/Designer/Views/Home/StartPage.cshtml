@@ -7,6 +7,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Altinn Studio</title>
   <link rel="shortcut icon" href="~/designer/img/favicon.ico">
   <!-- CSS -->
   <link rel="stylesheet" href="~/designer/css/bootstrap.min.css" asp-append-version="true">
@@ -53,21 +54,25 @@
   <nav class="navbar navbar-default">
     <div class="container-fluid">
       <div class="navbar-header">
-        <img src="~/designer/img/altinnStudio.png" />
+        <img src="https://altinncdn.no/img/a-logo-blue.svg" alt="Altinn logo" />
       </div>
       <ul class="nav navbar-nav">
-        <li><a class="nav-link" href="repos/user/login">Logg inn <i class="fa fa-fw fa-user-circle" aria-hidden="true"></i></a></li>
+        <li><a class="nav-link" href="repos/user/login?redirect_to=/">Logg inn <i class="fa fa-fw fa-user-circle" aria-hidden="true"></i></a></li>
       </ul>
     </div>
   </nav>
   <div class="row grey-background" style="padding-top:100px">
     <div class="col-12  pt-5 pb-5 text-center">
-      <h1> Velkommen til Altinn studio. Din platform for utvikling av tjenester.</h1>
+      <h1> Velkommen til Altinn Studio!</h1>
+      Din plattform for utvikling av applikasjoner.
     </div>
   </div>
   <div class="row grey-background" style="height:50vh;padding-bottom:20px">
     <div class="col-12 pt-5 text-center">
-      <input type="button" class="btn-lg btn-primary-outline text-center" onclick="location.href='repos/user/login'" value="Logg inn" />
+      <input type="button" class="btn-lg btn-primary-outline text-center" onclick="location.href='repos/user/login?redirect_to=/'" value="Logg inn" />
+      <div>
+        <a href="https://altinn.github.io/docs/altinn-studio/first-time-setup/" target="_blank"><i class="fa fa-help" aria-hidden="true"></i> Opprette bruker?</a>
+      </div>
     </div>
   </div>
 </body>

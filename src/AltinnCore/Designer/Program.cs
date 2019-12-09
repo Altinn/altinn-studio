@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using AltinnCore.Common.Configuration;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -12,7 +15,6 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Extensions.Logging;
-using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace AltinnCore.Designer
 {
@@ -30,9 +32,7 @@ namespace AltinnCore.Designer
         /// </summary>
         /// <param name="args">The Arguments</param>
         public static void Main(string[] args)
-        {
-            CreateWebHostBuilder(args).Build().Run();
-        }
+            => CreateWebHostBuilder(args).Build().Run();
 
         /// <summary>
         /// Configure the configuration builder
@@ -79,6 +79,9 @@ namespace AltinnCore.Designer
                         SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
                             keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
                         SetTelemetry(secretBundle.Value);
+
+                        AddMaskinportenCertificate(stageOneConfig, keyVaultClient, keyVaultEndpoint, config);
+                        
                     }
                     catch (Exception vaultException)
                     {
@@ -89,6 +92,11 @@ namespace AltinnCore.Designer
                 if (hostingEnvironment.IsDevelopment() && basePath != "/")
                 {
                     config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: true);
+                    Assembly assembly = Assembly.Load(new AssemblyName(hostingEnvironment.ApplicationName));
+                    if (assembly != null)
+                    {
+                        config.AddUserSecrets(assembly, true);
+                    }
                 }
             })
             .ConfigureLogging((hostingContext, logging) =>
@@ -102,6 +110,24 @@ namespace AltinnCore.Designer
             })
                 .UseStartup<Startup>()
                 .CaptureStartupErrors(true);
+
+        private static void AddMaskinportenCertificate(
+            IConfiguration stageOneConfig,
+            KeyVaultClient keyVaultClient,
+            string keyVaultEndpoint,
+            IConfigurationBuilder config)
+        {
+            SecretBundle maskinportenClientId = keyVaultClient.GetSecretAsync(
+                keyVaultEndpoint, "GeneralSettings--MaskinportenClientId").GetAwaiter().GetResult();
+            string maskinportenCertificateName = stageOneConfig.GetValue<string>("GeneralSettings:MaskinportenCertificateName");
+            SecretBundle secretCertificateBundle = keyVaultClient.GetSecretAsync(
+                keyVaultEndpoint, maskinportenCertificateName).GetAwaiter().GetResult();
+            config.AddInMemoryCollection(new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("GeneralSettings:MaskinportenCertificate", secretCertificateBundle.Value),
+                new KeyValuePair<string, string>("GeneralSettings:MaskinportenClientId", maskinportenClientId.Value)
+            });
+        }
 
         private static void SetTelemetry(string instrumentationKey)
         {
