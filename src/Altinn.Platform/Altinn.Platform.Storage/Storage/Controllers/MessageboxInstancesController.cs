@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -23,6 +23,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly AuthorizeInstancesHelper _authorizeInstancesHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageBoxInstancesController"/> class
@@ -33,11 +34,13 @@ namespace Altinn.Platform.Storage.Controllers
         public MessageBoxInstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
-            IApplicationRepository applicationRepository)
+            IApplicationRepository applicationRepository,
+            IPDP pdp)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
+            _authorizeInstancesHelper = new AuthorizeInstancesHelper(pdp);
         }
 
         /// <summary>
@@ -74,14 +77,18 @@ namespace Altinn.Platform.Storage.Controllers
 
             //// TODO: Authorise instances and filter list
 
+            List<MessageBoxInstance> autorizedInstances = await _authorizeInstancesHelper.GetDecisionForMultipleRequest(HttpContext.User, allInstances);
+
             if (allInstances.Count <= 0)
             {
                 return Ok(new List<MessageBoxInstance>());
             }
 
-            List<string> appIds = allInstances.Select(i => i.AppId).Distinct().ToList();
+            List<string> appIds = autorizedInstances.Select(i => i.AppName).Distinct().ToList();
             Dictionary<string, Dictionary<string, string>> appTitles = await _applicationRepository.GetAppTitles(appIds);
-            List<MessageBoxInstance> messageBoxInstances = InstanceHelper.ConvertToMessageBoxInstance(allInstances, appTitles, languageId);
+            List<MessageBoxInstance> messageBoxInstances = InstanceHelper.AddTitleToInstances(autorizedInstances, appTitles, languageId);
+
+            //List<MessageBoxInstance> messageBoxInstances = InstanceHelper.ConvertToMessageBoxInstanceList(allInstances, appTitles, languageId);
 
             return Ok(messageBoxInstances);
         }
@@ -117,7 +124,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             Dictionary<string, Dictionary<string, string>> appTitle = await _applicationRepository.GetAppTitles(new List<string> { instance.AppId });
 
-            MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance> { instance }, appTitle, languageId).First();
+            MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstanceList(new List<Instance> { instance }, appTitle, languageId).First();
 
             return Ok(messageBoxInstance);
         }
