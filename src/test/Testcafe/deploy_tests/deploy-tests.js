@@ -41,10 +41,10 @@ fixture('Deploy of app to a test environment tests')
     await t
       .expect(designer.delEndringer.exists).ok({ timeout: 180000 })
       .click(designer.delEndringer)
-      .expect(designer.commitMessageBox.exists).ok()
+      .expect(designer.commitMessageBox.exists).ok({ timeout: 60000 })
       .click(designer.commitMessageBox)
       .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
-      .expect(designer.validerEndringer.exists).ok()
+      .expect(designer.validerEndringer.exists).ok({ timeout: 60000 })
       .click(designer.validerEndringer)
       .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 180000 })
       .click(designer.delEndringerBlueButton)
@@ -113,7 +113,7 @@ test('App cannot be built due to uncommited local changes', async () => {
     .expect(designer.buildButton.exists).notOk()
 });
 
-test.only('User does not have write access to app, and cannot deploy', async () => {
+test('User does not have write access to app, and cannot deploy', async () => {
   await t
     .useRole(NoDeployUser)
     .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/aboutservice')

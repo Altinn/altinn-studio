@@ -144,7 +144,7 @@ export default class DesignerPage {
     //rulesmodal
     this.rulesConnectionModal = Selector('span').withExactText('Konfigurer regler');
     this.rulesDropDown = Selector('select').withAttribute('name', 'selectRule');
-    this.rulesList = this.rulesDropDown.find('option');
+    this.rulesList = this.rulesDropDown.find('div');
     this.saveRulesButton = Selector('button').withExactText('Lagre');
     this.deleteRulesButton = Selector('button').withExactText('Slett');
 

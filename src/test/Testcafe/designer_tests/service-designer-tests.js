@@ -122,8 +122,7 @@ test("Fill out Access control information on an app", async () => {
 
 test("User cannot clone an app that does not have a data model", async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/cannotclone#/uieditor')
-    .click(designer.lageNavigationTab)
+    .navigateTo(app.baseUrl + 'designer/ttd/cannotclone1219#/uieditor')
     .expect(designer.cloneButton.visible).ok()
     .click(designer.cloneButton)
     .expect(designer.dataModelMissing.visible).ok()
@@ -135,7 +134,7 @@ test("User cannot clone an app that does not have a data model", async () => {
 
 test('Configure and delete rules', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/ttd/rulesservice1219#/uieditor')
     .expect(designer.openserviceLogicmenu.exists).ok({ timeout: 5000 })
     .click(designer.openserviceLogicmenu)
     .expect(designer.connectRulesButton.exists).ok()
@@ -143,6 +142,7 @@ test('Configure and delete rules', async () => {
     .expect(designer.rulesConnectionModal.exists).ok({ timeout: 10000 })
     .expect(designer.rulesDropDown.exists).ok()
     .click(designer.rulesDropDown)
+    .expect(designer.rulesList.withText('sum').exists).ok()
     .click(designer.rulesList.withText('sum'))
     .click(designer.saveRulesButton)
     .expect(designer.addedRules.withExactText('sum').exists).ok()
