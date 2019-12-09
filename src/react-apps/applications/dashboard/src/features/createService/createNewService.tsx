@@ -5,11 +5,12 @@ import AltinnButton from '../../../../shared/src/components/AltinnButton';
 import AltinnDropdown from '../../../../shared/src/components/AltinnDropdown';
 import AltinnIconButton from '../../../../shared/src/components/AltinnIconButton';
 import AltinnInputField from '../../../../shared/src/components/AltinnInputField';
-import AltinnModal from '../../../../shared/src/components/AltinnModal';
 import AltinnPopper from '../../../../shared/src/components/AltinnPopper';
 import AltinnSpinner from '../../../../shared/src/components/AltinnSpinner';
+import AltinnModal from '../../../../shared/src/components/molecules/AltinnModal';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { post } from '../../../../shared/src/utils/networking';
+
 export interface ICreateNewServiceProvidedProps {
   classes: any;
 }

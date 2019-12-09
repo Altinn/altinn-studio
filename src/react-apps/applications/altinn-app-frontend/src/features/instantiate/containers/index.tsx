@@ -4,7 +4,7 @@ import * as React from 'react';
 import ContentLoader from 'react-content-loader';
 import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import AltinnModal from '../../../../../shared/src/components/AltinnModal';
+import AltinnModal from '../../../../../shared/src/components/molecules/AltinnModal';
 import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
 import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import { IParty } from '../../../../../shared/src/types';
