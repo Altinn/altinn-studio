@@ -20,6 +20,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
+
 using Moq;
 using Newtonsoft.Json;
 
@@ -90,7 +91,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
 
             Assert.NotNull(principal);            
 
-            Assert.True(principal.HasClaim(c => c.Type == "org"));
+            Assert.True(principal.HasClaim(c => c.Type == "urn:altinn:org"));
         }
 
         /// <summary>

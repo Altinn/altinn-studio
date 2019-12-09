@@ -50,7 +50,7 @@ namespace Altinn.Platform.Authentication
         {
             services.AddControllers().AddJsonOptions(options =>
             {
-                options.JsonSerializerOptions.WriteIndented = false;
+                options.JsonSerializerOptions.WriteIndented = _env.IsDevelopment();
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
             services.AddMvc().AddControllersAsServices();

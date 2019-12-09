@@ -109,7 +109,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 identity.AddClaims(claims);
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-                _logger.LogInformation($"Platform Authentication before signin async");
+                _logger.LogInformation("Platform Authentication before signin async");
                 await SignInAsync(
                     principal,
                     new AuthenticationProperties
@@ -119,7 +119,7 @@ namespace Altinn.Platform.Authentication.Controllers
                         AllowRefresh = false,
                     });
 
-                _logger.LogInformation($"Platform Authentication after signin async");
+                _logger.LogInformation("Platform Authentication after signin async");
                 _logger.LogInformation($"TicketUpdated: {userAuthentication.TicketUpdated}");
 
                 if (userAuthentication.TicketUpdated)
@@ -141,12 +141,12 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet("refresh")]
         public async Task<ActionResult> RefreshJwtCookie()
         {
-            _logger.LogInformation($"Starting to refresh token...");
+            _logger.LogInformation("Starting to refresh token...");
             ClaimsPrincipal principal = HttpContext.User;
             _logger.LogInformation("Refreshing token....");
            
             string token = await GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(_generalSettings.GetJwtCookieValidityTime), 0));
-            _logger.LogInformation($"End of refreshing token");
+            _logger.LogInformation("End of refreshing token");
             return Ok(token);
         }
 
@@ -163,17 +163,17 @@ namespace Altinn.Platform.Authentication.Controllers
 
             if (!string.IsNullOrEmpty(authorization))
             {
-                _logger.LogInformation($"Getting the token from Authorization header");
+                _logger.LogInformation("Getting the token from Authorization header");
                 if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                 {
-                    _logger.LogInformation($"Bearer found");
+                    _logger.LogInformation("Bearer found");
                     originalToken = authorization.Substring("Bearer ".Length).Trim();
                 }
             }
 
             if (string.IsNullOrEmpty(originalToken))
             {
-                _logger.LogInformation($"No token found");
+                _logger.LogInformation("No token found");
                 return Unauthorized();
             }
 
@@ -181,7 +181,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
             if (!validator.CanReadToken(originalToken))
             {
-                _logger.LogInformation($"Unable to read token");
+                _logger.LogInformation("Unable to read token");
                 return Unauthorized();
             }
 
@@ -200,14 +200,14 @@ namespace Altinn.Platform.Authentication.Controllers
                     ValidateLifetime = true
                 };
 
-                ClaimsPrincipal originalPrincipal = validator.ValidateToken(originalToken, validationParameters, out SecurityToken validatedToken);
-                logger.LogInformation($"Token is valid");
+                ClaimsPrincipal originalPrincipal = validator.ValidateToken(originalToken, validationParameters, out _);
+                _logger.LogInformation("Token is valid");
 
                 string orgNumber = GetOrganisationNumberFromConsumerClaim(originalPrincipal);
 
                 if (string.IsNullOrEmpty(orgNumber))
                 {
-                    logger.LogInformation("Invalid consumer claim");
+                    _logger.LogInformation("Invalid consumer claim");
                     return Unauthorized();
                 }
 
@@ -219,7 +219,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
                 string org = _organisationRepository.LookupOrg(orgNumber);
 
-                string issuer = generalSettings.GetPlatformEndpoint;
+                string issuer = _generalSettings.GetPlatformEndpoint;
                 claims.Add(new Claim(AltinnCoreClaimTypes.Org, org, ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.Integer32, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten", ClaimValueTypes.String, issuer));
@@ -237,9 +237,10 @@ namespace Altinn.Platform.Authentication.Controllers
                 identity.AddClaims(claims);
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-                string token = await GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(_generalSettings.GetJwtCookieValidityTime), 0));
+                string serializedToken = await GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(_generalSettings.GetJwtCookieValidityTime), 0));
 
-                return Ok(token);
+                // ToDo: https://stackoverflow.com/questions/19790588/how-do-i-prevent-readasstringasync-returning-a-doubly-escaped-string/19792791#19792791
+                return Ok(serializedToken);
             }
             catch (Exception ex)
             {
