@@ -130,7 +130,7 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
     }
 
     return (
-      <div className='a-modal-content-target' style={{ marginTop: '55px' }}>
+      <div id='errorReport' className='a-modal-content-target' style={{ marginTop: '55px' }}>
         <div className='a-page a-current-page'>
           <div className='modalPage'>
             <div className='modal-content'>
