@@ -65,6 +65,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddSingleton<IValidationHandler, ValidationHandler>();
                     services.AddTransient<IProfile, ProfileMockSI>();
                     services.AddSingleton<IValidation, ValidationAppSI>();
+                    services.AddSingleton<IPDF, PDFMockSI>();
 
                     // Set up mock authentication so that not well known endpoint is used
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();

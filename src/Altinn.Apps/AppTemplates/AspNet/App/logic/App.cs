@@ -20,7 +20,8 @@ namespace Altinn.App.AppLogic
             ILogger<App> logger,
             IData dataService,
             IProcess processService,
-            IValidationHandler validationHandler) : base(appResourcesService, logger, dataService, processService)
+            IPDF pdfService,
+            IValidationHandler validationHandler) : base(appResourcesService, logger, dataService, processService, pdfService)
         {
             _logger = logger;
             _validationHandler = validationHandler;

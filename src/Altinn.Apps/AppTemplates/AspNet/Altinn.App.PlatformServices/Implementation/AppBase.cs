@@ -19,18 +19,21 @@ namespace Altinn.App.Services.Implementation
         private readonly ILogger<AppBase> _logger;
         private readonly IData _dataService;
         private readonly IProcess _processService;
+        private readonly IPDF _pdfService;
 
         public AppBase(
             IAppResources resourceService,
             ILogger<AppBase> logger,
             IData dataService,
-            IProcess processService)
+            IProcess processService,
+            IPDF pdfService)
         {
             _appMetadata = resourceService.GetApplication();
             _resourceService = resourceService;
             _logger = logger;
             _dataService = dataService;
             _processService = processService;
+            _pdfService = pdfService;
         }
 
         public abstract Type GetAppModelType(string dataType);
@@ -64,7 +67,12 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public async Task OnEndProcess(string taskId, Instance instance)
         {
-            _logger.LogInformation($"OnEndProcess for {instance.Id}");
+            _logger.LogInformation($"OnEndProcess for {instance.Id}, taskId: {taskId}");
+
+            if (taskId != null && taskId.Equals("EndEvent_1"))
+            {
+                await _pdfService.GenerateAndStoreReceiptPDF(instance);
+            }
 
             // Set archived status
             instance.Status ??= new InstanceStatus();
