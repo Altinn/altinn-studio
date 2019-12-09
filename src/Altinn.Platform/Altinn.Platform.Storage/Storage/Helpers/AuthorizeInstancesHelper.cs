@@ -5,12 +5,15 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Helpers
 {
-    public static class AuthorizeInstancesHelper
+    public class AuthorizeInstancesHelper
     {
+        private readonly IPDP _pdp;
+
         private const string XacmlResourcePartyId = "urn:altinn:partyid";
         private const string XacmlInstanceId = "urn:altinn:instance-id";
         private const string XacmlResourceOrgId = "urn:altinn:org";
@@ -22,7 +25,12 @@ namespace Altinn.Platform.Storage.Helpers
         private const string ActionId = "a";
         private const string ResourceId = "r";
 
-        public static XacmlJsonRequestRoot CreateXacmlJsonMultipleRequest(string org, string app, ClaimsPrincipal user, List<string> actionTypes, string instanceOwnerPartyId, List<Instance> instances)
+        public AuthorizeInstancesHelper(IPDP pdp)
+        {
+            _pdp = pdp;
+        }
+
+        public XacmlJsonRequestRoot CreateXacmlJsonMultipleRequest(string org, string app, ClaimsPrincipal user, List<string> actionTypes, string instanceOwnerPartyId, List<Instance> instances)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
             request.AccessSubject = new List<XacmlJsonCategory>();
@@ -36,7 +44,7 @@ namespace Altinn.Platform.Storage.Helpers
             return jsonRequest;
         }
 
-        private static XacmlJsonCategory CreateMultipleSubjectCategory(IEnumerable<Claim> claims)
+        private XacmlJsonCategory CreateMultipleSubjectCategory(IEnumerable<Claim> claims)
         {
             XacmlJsonCategory subjectAttributes = DecisionHelper.CreateSubjectCategory(claims);
             subjectAttributes.Id = SubjectId + "1";
@@ -44,7 +52,7 @@ namespace Altinn.Platform.Storage.Helpers
             return subjectAttributes;
         }
 
-        private static List<XacmlJsonCategory> CreateMultipleActionCategory(List<string> actionTypes)
+        private List<XacmlJsonCategory> CreateMultipleActionCategory(List<string> actionTypes)
         {
             List<XacmlJsonCategory> actionCategories = new List<XacmlJsonCategory>();
             int counter = 1;
@@ -61,7 +69,7 @@ namespace Altinn.Platform.Storage.Helpers
             return actionCategories;
         }
 
-        private static List<XacmlJsonCategory> CreateMultipleResourceCategory(string org, string app, string instanceOwnerPartyId, List<Instance> instances)
+        private List<XacmlJsonCategory> CreateMultipleResourceCategory(string org, string app, string instanceOwnerPartyId, List<Instance> instances)
         {
             List<XacmlJsonCategory> resourcesCategories = new List<XacmlJsonCategory>();
             int counter = 1;
@@ -91,7 +99,7 @@ namespace Altinn.Platform.Storage.Helpers
             return resourcesCategories;
         }
 
-        private static XacmlJsonMultiRequests CreateMultiRequestsCategory(List<XacmlJsonCategory> subjects, List<XacmlJsonCategory> actions, List<XacmlJsonCategory> resources)
+        private XacmlJsonMultiRequests CreateMultiRequestsCategory(List<XacmlJsonCategory> subjects, List<XacmlJsonCategory> actions, List<XacmlJsonCategory> resources)
         {
             List<string> subjectIds = subjects.Select(s => s.Id).ToList();
             List<string> actionIds = actions.Select(a => a.Id).ToList();
@@ -103,7 +111,7 @@ namespace Altinn.Platform.Storage.Helpers
             return multiRequests;
         }
 
-        private static List<XacmlJsonRequestReference> CreateRequestReference(List<string> subjectIds, List<string> actionIds, List<string> resourceIds)
+        private List<XacmlJsonRequestReference> CreateRequestReference(List<string> subjectIds, List<string> actionIds, List<string> resourceIds)
         {
             List<XacmlJsonRequestReference> references = new List<XacmlJsonRequestReference>();
 
@@ -125,6 +133,23 @@ namespace Altinn.Platform.Storage.Helpers
             }
 
             return references;
+        }
+
+        public async Task<List<Instance>> GetDecisionForMultipleRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
+        {
+            List<Instance> authorizedInstances = new List<Instance>();
+
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
+
+            foreach (XacmlJsonResult result in response.Response)
+            {
+                if (DecisionHelper.ValidateDecisionResult(result, user))
+                {
+
+                }
+            }
+
+            return authorizedInstances;
         }
     }
 }

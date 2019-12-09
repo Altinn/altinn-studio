@@ -81,27 +81,5 @@ namespace Altinn.Common.PEP.Implementation
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
             return DecisionHelper.ValidateResponse(response.Response, user);
         }
-
-        /*public async Task<List<Instance>> GetDecisionForMultipleRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
-        {
-            List<Instance> authorizedInstances = new List<Instance>();
-
-            if (_pepSettings.DisablePEP)
-            {
-                return authorizedInstances;
-            }
-
-            XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
-
-            foreach (XacmlJsonResult result in response.Response)
-            {
-                if (DecisionHelper.ValidateDecisionResult(result, user))
-                {
-
-                }
-            }
-
-            return authorizedInstances;
-        }*/
     }
 }
