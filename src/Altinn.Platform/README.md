@@ -14,7 +14,7 @@ These instructions will get you a copy of the platform solution up and running o
 
 ### Prerequisites
 
-1. [.NET Core 2.2 SDK](https://dotnet.microsoft.com/download/dotnet-core/2.2#sdk-2.2.105)
+1. [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.1)
 2. Code editor of your choice
 3. Newest [Git](https://git-scm.com/downloads)
 4. [Docker CE](https://www.docker.com/get-docker)
