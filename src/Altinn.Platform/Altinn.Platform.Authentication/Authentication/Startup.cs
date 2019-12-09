@@ -55,7 +55,7 @@ namespace Altinn.Platform.Authentication
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            _logger.LogInformation("ConfirgureServices");
+            _logger.LogInformation("ConfigureServices");
 
             services.AddControllers().AddJsonOptions(options =>
             {
@@ -110,7 +110,10 @@ namespace Altinn.Platform.Authentication
 
                 try
                 {
-                    c.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                    string filePath = GetXmlCommentsPathForControllers();
+                    _logger.LogInformation($"Swagger XML document file: {filePath}");
+
+                    c.IncludeXmlComments(filePath);
                 }
                 catch
                 {
