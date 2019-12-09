@@ -89,7 +89,7 @@ namespace Altinn.Common.PEP.Helpers
             return subjectAttributes;
         }
 
-        private static XacmlJsonCategory CreateSubjectCategory(IEnumerable<Claim> claims)
+        public static XacmlJsonCategory CreateSubjectCategory(IEnumerable<Claim> claims)
         {
             XacmlJsonCategory subjectAttributes = new XacmlJsonCategory();
             subjectAttributes.Attribute = CreateSubjectAttributes(claims);
@@ -130,7 +130,7 @@ namespace Altinn.Common.PEP.Helpers
             return actionCategories;
         }
 
-        private static XacmlJsonCategory CreateActionCategory(string actionType, bool includeResult = false)
+        public static XacmlJsonCategory CreateActionCategory(string actionType, bool includeResult = false)
         {
             XacmlJsonCategory actionAttributes = new XacmlJsonCategory();
             actionAttributes.Attribute = new List<XacmlJsonAttribute>();
@@ -191,7 +191,7 @@ namespace Altinn.Common.PEP.Helpers
             return resourceCategory;
         }
 
-        private static XacmlJsonMultiRequests CreateMultiRequestsCategory(List<XacmlJsonCategory> subjects, List<XacmlJsonCategory> actions, List<XacmlJsonCategory> resources)
+        public static XacmlJsonMultiRequests CreateMultiRequestsCategory(List<XacmlJsonCategory> subjects, List<XacmlJsonCategory> actions, List<XacmlJsonCategory> resources)
         {
             List<string> subjectIds = subjects.Select(s => s.Id).ToList();
             List<string> actionIds = actions.Select(a => a.Id).ToList();
