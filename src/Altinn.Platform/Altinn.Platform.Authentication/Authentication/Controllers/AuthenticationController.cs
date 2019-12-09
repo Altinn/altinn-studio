@@ -201,7 +201,6 @@ namespace Altinn.Platform.Authentication.Controllers
                 ICollection<SecurityKey> signingKeys =
                     await signingKeysRetriever.GetSigningKeys(generalSettings.GetMaskinportenWellKnownConfigEndpoint);
 
-                logger.LogInformation($"Token to be validated {originalToken}");
                 TokenValidationParameters validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -213,7 +212,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 };
 
                 ClaimsPrincipal originalPrincipal = validator.ValidateToken(originalToken, validationParameters, out SecurityToken validatedToken);
-                logger.LogInformation($"validated token{validatedToken}");
+                logger.LogInformation($"Token is valid");
 
                 string orgNumber = GetOrganisationNumberFromConsumerClaim(originalPrincipal);
 
