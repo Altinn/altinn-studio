@@ -83,6 +83,7 @@ namespace Altinn.Platform.Authentication
                         }
                     });
 
+            services.AddSingleton<ISblCookieDecryptionService, SblCookieDecryptionService>();
             services.AddSingleton<ISigningCredentialsProvider, SigningCredentialsProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddSingleton<IOrganisationRepository, OrganisationRepository>();
