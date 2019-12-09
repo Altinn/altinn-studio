@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Constants;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
@@ -14,10 +15,6 @@ namespace Altinn.Platform.Storage.Helpers
     {
         private readonly IPDP _pdp;
 
-        private const string XacmlResourcePartyId = "urn:altinn:partyid";
-        private const string XacmlInstanceId = "urn:altinn:instance-id";
-        private const string XacmlResourceOrgId = "urn:altinn:org";
-        private const string XacmlResourceAppId = "urn:altinn:app";
         private const string XacmlResourceTaskId = "urn:altinn:task";
         private const string XacmlResourceActionId = "urn:oasis:names:tc:xacml:1.0:action:action-id";
         private const string DefaultIssuer = "Altinn";
@@ -31,7 +28,7 @@ namespace Altinn.Platform.Storage.Helpers
             _pdp = pdp;
         }
 
-        private XacmlJsonRequestRoot CreateXacmlJsonMultipleRequest(ClaimsPrincipal user, List<Instance> instances)
+        public static XacmlJsonRequestRoot CreateXacmlJsonMultipleRequest(ClaimsPrincipal user, List<Instance> instances)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
             request.AccessSubject = new List<XacmlJsonCategory>();
@@ -45,7 +42,7 @@ namespace Altinn.Platform.Storage.Helpers
             return jsonRequest;
         }
 
-        private XacmlJsonCategory CreateMultipleSubjectCategory(IEnumerable<Claim> claims)
+        private static XacmlJsonCategory CreateMultipleSubjectCategory(IEnumerable<Claim> claims)
         {
             XacmlJsonCategory subjectAttributes = DecisionHelper.CreateSubjectCategory(claims);
             subjectAttributes.Id = SubjectId + "1";
@@ -53,7 +50,7 @@ namespace Altinn.Platform.Storage.Helpers
             return subjectAttributes;
         }
 
-        private List<XacmlJsonCategory> CreateMultipleActionCategory()
+        private static List<XacmlJsonCategory> CreateMultipleActionCategory()
         {
             List<XacmlJsonCategory> actionCategories = new List<XacmlJsonCategory>();
             List<string> actionTypes = new List<string>
@@ -74,7 +71,7 @@ namespace Altinn.Platform.Storage.Helpers
             return actionCategories;
         }
 
-        private List<XacmlJsonCategory> CreateMultipleResourceCategory(List<Instance> instances)
+        private static List<XacmlJsonCategory> CreateMultipleResourceCategory(List<Instance> instances)
         {
             List<XacmlJsonCategory> resourcesCategories = new List<XacmlJsonCategory>();
             int counter = 1;
@@ -87,17 +84,17 @@ namespace Altinn.Platform.Storage.Helpers
                 string instanceId = instance.Id;
                 string task = instance.Process?.CurrentTask?.Name ?? string.Empty;
                 string instanceOwnerPartyId = instance.InstanceOwner.PartyId;
-                string org = string.Empty;
-                string app = string.Empty;
+                string org = instance.Org;
+                string app = instance.AppId.Split("/")[1];
 
                 if (!string.IsNullOrWhiteSpace(instanceId))
                 {
-                    resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlInstanceId, instanceOwnerPartyId + "/" + instanceId, DefaultType, DefaultIssuer, true));
+                    resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceOwnerPartyId + "/" + instanceId, DefaultType, DefaultIssuer, true));
                 }
 
-                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourcePartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer));
-                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceOrgId, org, DefaultType, DefaultIssuer));
-                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceAppId, app, DefaultType, DefaultIssuer));
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.PartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer));
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.OrgId, org, DefaultType, DefaultIssuer));
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));
                 resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceTaskId, task, DefaultType, DefaultIssuer));
                 resourceCategory.Id = ResourceId + counter.ToString();
                 resourcesCategories.Add(resourceCategory);
@@ -107,7 +104,7 @@ namespace Altinn.Platform.Storage.Helpers
             return resourcesCategories;
         }
 
-        private XacmlJsonMultiRequests CreateMultiRequestsCategory(List<XacmlJsonCategory> subjects, List<XacmlJsonCategory> actions, List<XacmlJsonCategory> resources)
+        private static XacmlJsonMultiRequests CreateMultiRequestsCategory(List<XacmlJsonCategory> subjects, List<XacmlJsonCategory> actions, List<XacmlJsonCategory> resources)
         {
             List<string> subjectIds = subjects.Select(s => s.Id).ToList();
             List<string> actionIds = actions.Select(a => a.Id).ToList();
@@ -119,7 +116,7 @@ namespace Altinn.Platform.Storage.Helpers
             return multiRequests;
         }
 
-        private List<XacmlJsonRequestReference> CreateRequestReference(List<string> subjectIds, List<string> actionIds, List<string> resourceIds)
+        private static List<XacmlJsonRequestReference> CreateRequestReference(List<string> subjectIds, List<string> actionIds, List<string> resourceIds)
         {
             List<XacmlJsonRequestReference> references = new List<XacmlJsonRequestReference>();
 
@@ -155,7 +152,7 @@ namespace Altinn.Platform.Storage.Helpers
             {
                 if (DecisionHelper.ValidateDecisionResult(result, user))
                 {
-                    XacmlJsonAttribute instanceAttribute = result.Category.Select(c => c.Attribute.Find(a => a.AttributeId.Equals(XacmlInstanceId))).FirstOrDefault();
+                    XacmlJsonAttribute instanceAttribute = result.Category.Select(c => c.Attribute.Find(a => a.AttributeId.Equals(AltinnXacmlUrns.InstanceId))).FirstOrDefault();
                     XacmlJsonAttribute actionAttribute = result.Category.Select(c => c.Attribute.Find(a => a.AttributeId.Equals(XacmlResourceActionId))).FirstOrDefault();
                     string instanceId = instanceAttribute.Value.Split('/')[1];
                     string actiontype = actionAttribute.Value;

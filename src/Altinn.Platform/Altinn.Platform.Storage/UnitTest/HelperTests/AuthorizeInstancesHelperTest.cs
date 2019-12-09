@@ -24,7 +24,6 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
         public void CreateXacmlJsonMultipleRequest_TC01()
         {
             // Arrange
-            List<string> actionTypes = new List<string> { "read", "write" };
             List<Instance> instances = new List<Instance>
             {
                 new Instance
@@ -36,20 +35,38 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
                         {
                             Name = "test_task"
                         }
-                    }
+                    },
+                    InstanceOwner = new InstanceOwner
+                    {
+                        PartyId = "1000"
+                    },
+                    AppId = org + "/" + app,
+                    Org = org
                 },
                 new Instance
                 {
-                    Id = "4"
+                    Id = "4",
+                    InstanceOwner = new InstanceOwner
+                    {
+                        PartyId = "1002"
+                    },
+                    AppId = org + "/" + app,
+                    Org = org
                 },
                 new Instance
                 {
-                    Id = "7"
+                    Id = "7",
+                    InstanceOwner = new InstanceOwner
+                    {
+                        PartyId = "1000"
+                    },
+                    AppId = org + "/" + app,
+                    Org = org
                 }
             };
 
             // Act
-            XacmlJsonRequestRoot requestRoot = AuthorizeInstancesHelper.CreateXacmlJsonMultipleRequest(org, app, CreateUserClaims(false), actionTypes, partyId, instances);
+            XacmlJsonRequestRoot requestRoot = AuthorizeInstancesHelper.CreateXacmlJsonMultipleRequest(CreateUserClaims(false), instances);
 
             // Assert
             Assert.Equal(6, requestRoot.Request.MultiRequests.RequestReference.Count());

@@ -1,6 +1,7 @@
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Authorization;
+using Altinn.Common.PEP.Constants;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Routing;
@@ -15,11 +16,6 @@ namespace Altinn.Common.PEP.Helpers
 {
     public static class DecisionHelper
     {
-        private const string XacmlResourcePartyId = "urn:altinn:partyid";
-        private const string XacmlInstanceId = "urn:altinn:instance-id";
-        private const string XacmlResourceOrgId = "urn:altinn:org";
-        private const string XacmlResourceAppId = "urn:altinn:app";
-        private const string XacmlResourceTaskId = "urn:altinn:task";
         private const string ParamInstanceOwnerPartyId = "instanceOwnerPartyId";
         private const string ParamInstanceGuid = "instanceGuid";
         private const string ParamApp = "app";
@@ -103,19 +99,19 @@ namespace Altinn.Common.PEP.Helpers
 
             if (string.IsNullOrWhiteSpace(instanceOwnerPartyId))
             {
-                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(XacmlInstanceId, instanceGuid, DefaultType, DefaultIssuer, includeResult));
+                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceGuid, DefaultType, DefaultIssuer, includeResult));
             }
             else if (string.IsNullOrWhiteSpace(instanceGuid))
             {
-                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourcePartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer, includeResult));
+                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.PartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer, includeResult));
             }
             else
             {
-                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(XacmlInstanceId, instanceOwnerPartyId + "/" + instanceGuid, DefaultType, DefaultIssuer, includeResult));
+                resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceOwnerPartyId + "/" + instanceGuid, DefaultType, DefaultIssuer, includeResult));
             }
             
-            resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceOrgId, org, DefaultType, DefaultIssuer));
-            resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceAppId, app, DefaultType, DefaultIssuer));
+            resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.OrgId, org, DefaultType, DefaultIssuer));
+            resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));
 
             return resourceCategory;
         }
