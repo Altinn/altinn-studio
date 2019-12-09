@@ -63,12 +63,9 @@ namespace Altinn.Platform.Storage.Helpers
             if (User.HasClaim(c => c.Type == AltinnCoreClaimTypesOrgNumber))
             {
                 Claim orgClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypesOrgNumber);
-                if (orgClaim != null)
+                if (orgClaim != null && int.TryParse(orgClaim.Value, out int orgNumber))
                 {
-                    if (int.TryParse(orgClaim.Value, out int orgNumber))
-                    {
-                        return orgNumber;
-                    }
+                    return orgNumber;
                 }
             }
 
@@ -83,12 +80,9 @@ namespace Altinn.Platform.Storage.Helpers
             if (User.HasClaim(c => c.Type == AltinnCoreClaimTypes.UserId))
             {
                 Claim userIdClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypes.UserId);
-                if (userIdClaim != null)
+                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
                 {
-                    if (int.TryParse(userIdClaim.Value, out int userId))
-                    {
-                        return userId;
-                    }
+                    return userId;
                 }
             }
 
@@ -103,12 +97,9 @@ namespace Altinn.Platform.Storage.Helpers
             if (User.HasClaim(c => c.Type == AltinnCoreClaimTypes.AuthenticationLevel))
             {
                 Claim userIdClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypes.AuthenticationLevel);
-                if (userIdClaim != null)
+                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int authenticationLevel))
                 {
-                    if (int.TryParse(userIdClaim.Value, out int authenticationLevel))
-                    {
-                        return authenticationLevel;
-                    }
+                    return authenticationLevel;
                 }
             }
 

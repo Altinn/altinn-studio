@@ -47,7 +47,6 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
                     // Set up mock authentication so that not well known endpoint is used
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
-
                 });
 
             testServer = new TestServer(builder);

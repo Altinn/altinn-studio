@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
 {
+    /// <summary>
+    /// Cosmos DB fixture with automatic start of Cosmos emulator. 
+    /// </summary>
     public class CosmosDBFixture
     {
         private readonly Process process;
@@ -26,7 +29,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
 
             if (Process.GetProcessesByName("Microsoft.Azure.Cosmos.Emulator").Length == 0)
             {
-                StartAndWaitForExit("start");
+                StartAndWaitForExit();
             }      
         }
 
@@ -37,12 +40,13 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
         {
         }
 
-        public void StartAndWaitForExit(string arguments)
+        /// <summary>
+        /// Starts the Cosmos DB Emulator.
+        /// </summary>
+        public void StartAndWaitForExit()
         {
-            process.StartInfo.Arguments = arguments;
             process.Start();
             process.WaitForExit(10000);
-
         }
     }
 }

@@ -40,7 +40,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
             _validToken = PrincipalUtil.GetToken(1);
             LoadTestData();
             CreateTestApplication(_testAppId);
-
         }        
 
         /// <summary>

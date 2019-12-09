@@ -50,7 +50,6 @@ namespace Altinn.Platform.Storage
                     .UseContentRoot(Directory.GetCurrentDirectory())
                     .UseIISIntegration()*/
                     .UseUrls("http://*:5010");
-
             })
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
