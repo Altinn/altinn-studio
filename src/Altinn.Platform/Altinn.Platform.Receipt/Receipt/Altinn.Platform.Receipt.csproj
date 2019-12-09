@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../../AltinnCore/Common/AltinnCore.Common.csproj" />
+    <!--ProjectReference Include="../../../AltinnCore/Common/AltinnCore.Common.csproj" /-->
   </ItemGroup>
 
   <ItemGroup>
