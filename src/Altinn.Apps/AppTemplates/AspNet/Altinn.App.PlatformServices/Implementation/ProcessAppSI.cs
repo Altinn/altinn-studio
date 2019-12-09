@@ -46,7 +46,7 @@ namespace Altinn.App.Services.Implementation
             string bpmnFilePath = _appSettings.AppBasePath + _appSettings.ConfigurationFolder + _appSettings.ProcessFolder + _appSettings.ProcessFileName;
 
             try
-            {                
+            {
                 Stream processModel = File.OpenRead(bpmnFilePath);
 
                 return processModel;
@@ -55,7 +55,7 @@ namespace Altinn.App.Services.Implementation
             {
                 _logger.LogError($"Cannot find process definition file for this app. Have tried file location {bpmnFilePath}. Exception {processDefinitionException}");
                 throw;
-            }            
+            }
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Altinn.App.Services.Implementation
                 {
                     GenerateProcessChangeEvent("process:StartEvent", updatedInstance, now, userContext),
                 };
-                
+
                 await DispatchEventsToStorage(instance, events);
 
                 return new ProcessResult
@@ -91,7 +91,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <summary>
-        /// Start process start and goto next. Returns 
+        /// Start process start and goto next. Returns
         /// </summary>
         public async Task<ProcessResult> ProcessStartAndGotoNextTask(Instance instance, string validStartElement, UserContext userContext)
         {
@@ -138,9 +138,9 @@ namespace Altinn.App.Services.Implementation
         {
             if (instance.Process != null)
             {
-                List<InstanceEvent> events = ChangeProcessStateAndGenerateEvents(instance, nextElementId, processModel, userContext);
+                List<InstanceEvent> events = await ChangeProcessStateAndGenerateEvents(instance, nextElementId, processModel, userContext);
 
-                Instance changedInstance = _instanceService.UpdateInstance(instance).Result;
+                Instance changedInstance = await _instanceService.UpdateInstance(instance);
                 await DispatchEventsToStorage(instance, events);
 
                 ProcessResult result = new ProcessResult
@@ -166,7 +166,7 @@ namespace Altinn.App.Services.Implementation
             }
         }
 
-        private List<InstanceEvent> ChangeProcessStateAndGenerateEvents(Instance instance, string nextElementId, ProcessHelper processModel, UserContext userContext)
+        private async Task<List<InstanceEvent>> ChangeProcessStateAndGenerateEvents(Instance instance, string nextElementId, ProcessHelper processModel, UserContext userContext)
         {
             List<InstanceEvent> events = new List<InstanceEvent>();
 
@@ -244,6 +244,6 @@ namespace Altinn.App.Services.Implementation
             };
 
             return instanceEvent;
-       }       
+       }
     }
 }

@@ -17,12 +17,12 @@ export interface ISelfLinks {
 export interface IData {
   id: string;
   dataType: string;
-  fileName: string;
+  filename: string;
   contentType: string;
   storageUrl: string;
   selfLinks: ISelfLinks;
-  fileSize: number;
-  isLocked: boolean;
+  size: number;
+  locked: boolean;
   created: Date;
   lastChanged: Date;
 }
@@ -116,12 +116,12 @@ export interface IAttachment {
 export interface IData {
   id: string;
   elementType: string;
-  fileName: string;
+  filename: string;
   contentType: string;
   storageUrl: string;
   selfLinks: ISelfLinks;
-  fileSize: number;
-  isLocked: boolean;
+  size: number;
+  locked: boolean;
   createdDateTime: Date;
   lastChangedDateTime: Date;
 }

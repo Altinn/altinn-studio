@@ -15,6 +15,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
+    <UserSecretsId>c958e7e5-da9b-411d-8ee0-70bcfe1f64ed</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <None Update="wwwroot/**/*;Views/**/*;Areas/**/Views;">

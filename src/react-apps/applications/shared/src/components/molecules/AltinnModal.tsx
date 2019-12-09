@@ -11,6 +11,8 @@ export interface IAltinnModalComponentProvidedProps {
   headerText?: any;
   /** Boolean value of the modal being open or not */
   isOpen: boolean;
+  /** Show close-icon outside modal */
+  closeButtonOutsideModal?: boolean;
   /** Callback function for when the modal is closed */
   onClose: any;
   /** Boolean value for hiding the background shower */
@@ -78,6 +80,10 @@ const styles = createStyles({
     color: altinnTheme.altinnPalette.primary.white,
     fontSize: 38,
   },
+  closeButtonOutsideModal: {
+    position: 'relative',
+    top: -60,
+  },
   scroll: {
     overflow: 'overlay',
   },
@@ -97,7 +103,14 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
           <div className={classes.modal}>
             <div className={classes.header}>
               {this.props.hideCloseIcon && this.props.hideCloseIcon === true ? null :
-                <IconButton className={classes.iconBtn} onClick={this.props.onClose}>
+                <IconButton
+                  className={classNames(
+                    classes.iconBtn,
+                    { [classes.closeButtonOutsideModal]: this.props.closeButtonOutsideModal === true},
+                  )}
+                  onClick={this.props.onClose}
+                  disableRipple={true}
+                >
                   <i className={classNames('ai ai-exit-test', classes.iconStyling)} />
                 </IconButton>
               }
@@ -116,7 +129,13 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
         <div className={classes.modal}>
           <div className={classes.header}>
             {this.props.hideCloseIcon && this.props.hideCloseIcon === true ? null :
-              <IconButton className={classes.iconBtn} onClick={this.props.onClose}>
+              <IconButton
+                className={classNames(
+                  classes.iconBtn,
+                  { [classes.closeButtonOutsideModal]: this.props.closeButtonOutsideModal === true},
+                )}
+                onClick={this.props.onClose}
+              >
                 <i className={classNames('ai ai-exit-test', classes.iconStyling)} />
               </IconButton>
             }
