@@ -59,3 +59,30 @@ function PreviewModal({classes}) {
 
 <PreviewModal/>
 ```
+
+### Close button outside modal
+
+Prop: closeButtonOutsideModal === true
+
+```jsx
+import Typography from '@material-ui/core/Typography';
+
+function PreviewModal({classes}) {
+  return (
+    <div style={{backgroundColor: '#1EAEF7', padding: '2rem'}}>
+      <AltinnModal
+        classes={null}
+        isOpen={null}
+        onClose={null}
+        headerText={'Close button outside modal'}
+        printView={true}
+        closeButtonOutsideModal={true}
+      >
+        <Typography>Content</Typography>
+      </AltinnModal>
+    </div>
+  )
+};
+
+<PreviewModal/>
+```
