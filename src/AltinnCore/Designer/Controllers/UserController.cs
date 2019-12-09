@@ -36,10 +36,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <returns>The user object</returns>
         [HttpGet]
-        public AltinnCore.RepositoryClient.Model.User Current()
-        {
-            AltinnCore.RepositoryClient.Model.User user = _giteaApi.GetCurrentUser().Result;
-            return user;
-        }
+        public async Task<AltinnCore.RepositoryClient.Model.User> Current() => await _giteaApi.GetCurrentUser();
     }
 }
