@@ -58,7 +58,7 @@ namespace Altinn.Common.PEP.Authorization
                 return;
             }
 
-            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequestRoot(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
+            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)

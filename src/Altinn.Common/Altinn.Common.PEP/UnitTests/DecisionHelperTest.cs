@@ -216,10 +216,14 @@ namespace UnitTests
             List<string> instanceIds = new List<string> { "1", "5", "7" };
 
             // Act
-            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonMultipleRequest(org, app, CreateUserClaims(false), actionTypes, partyId, instanceIds);
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonMultipleRequest(org, app, CreateUserClaims(false), actionTypes, partyId, instanceIds, "idk");
 
             // Assert
             Assert.Equal(6, requestRoot.Request.MultiRequests.RequestReference.Count());
+            Assert.Single(requestRoot.Request.AccessSubject);
+            Assert.Equal(2, requestRoot.Request.Action.Count());
+            Assert.Equal(3, requestRoot.Request.Resource.Count());
+            Assert.Equal(5, requestRoot.Request.Resource.First().Attribute.Count());
         }
 
         private ClaimsPrincipal CreateUserClaims(bool addExtraClaim)
