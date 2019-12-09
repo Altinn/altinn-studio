@@ -155,7 +155,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
               <Grid item={true} xs={true} container={true} direction='row' alignItems='center' justify='flex-end'>
                 <Grid item={true}>
                   <Hidden smDown>
-                    {org ? org : 'WARNING: NO ORG'}
+                    {org ? org : ''}
                   </Hidden>
                   <Hidden mdUp>
                     <div className={classes.topRightService}>
