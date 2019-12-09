@@ -275,28 +275,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        ///  Checks that the GET returns an instance owners codes
-        /// </summary>
-        [Fact]
-        public async void GetInstancesForInstanceOwner()
-        {
-            HttpClient client = _fixture.CreateClient();
-
-            string url = $"{_versionPrefix}/instances/{_testInstanceOwnerId}";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
-
-            HttpResponseMessage response = await client.GetAsync(url);
-
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-
-            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
-
-            Assert.True(instances.Count >= 1);
-        }
-
-        /// <summary>
         ///  Check that storage returns bad request if illegal query parameter is set.
         /// </summary>
         [Fact]

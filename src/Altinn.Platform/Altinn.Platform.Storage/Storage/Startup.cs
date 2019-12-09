@@ -6,6 +6,7 @@ using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Repository;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Authorization;
@@ -79,8 +80,8 @@ namespace Altinn.Platform.Storage
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new AppAccessRequirement("read")));
-                options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new AppAccessRequirement("write")));
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_READ, policy => policy.Requirements.Add(new AppAccessRequirement("read")));
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_WRITE, policy => policy.Requirements.Add(new AppAccessRequirement("write")));
             });
 
             services.AddSingleton<IDataRepository, DataRepository>();

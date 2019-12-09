@@ -157,7 +157,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             await _instanceClient.PostInstances(testAppId, testInstanceOwnerId);
 
-            string url = $"{versionPrefix}/instances/{testInstanceOwnerId}";
+            string url = $"{versionPrefix}/instances?org={testOrg}&appId={testAppId}&instanceOwner.partyId={testInstanceOwnerId}";
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = await _client.GetAsync(url);
 
