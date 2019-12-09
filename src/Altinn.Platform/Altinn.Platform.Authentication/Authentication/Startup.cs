@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -25,14 +26,20 @@ namespace Altinn.Platform.Authentication
     /// </summary>
     public class Startup
     {
+        /// <summary>
+        /// The key vault key which application insights is stored.
+        /// </summary>
+        public static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey";
+
         private readonly IWebHostEnvironment _env;
+        private readonly ILogger<Startup> _logger;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="Startup"/> class
         /// </summary>
-        /// <param name="configuration">The configuration for the authentication component</param>
-        public Startup(IConfiguration configuration, IWebHostEnvironment env)
+        public Startup(ILogger<Startup> logger, IConfiguration configuration, IWebHostEnvironment env)
         {
+            _logger = logger;
             Configuration = configuration;
             _env = env;
         }
@@ -48,6 +55,8 @@ namespace Altinn.Platform.Authentication
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            _logger.LogInformation("ConfirgureServices");
+
             services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.WriteIndented = true;
@@ -92,6 +101,8 @@ namespace Altinn.Platform.Authentication
                 services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
             }
 
+            _logger.LogInformation($"ApplicationInsightsTelemetryKey = {applicationInsightTelemetryKey}");
+
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
             {
@@ -115,8 +126,12 @@ namespace Altinn.Platform.Authentication
         /// <param name="env">the hosting environment</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            _logger.LogInformation("Configure");
+
             if (env.IsDevelopment())
             {
+                _logger.LogInformation("IsDevelopment");
+
                 app.UseDeveloperExceptionPage();
 
                 // Enable higher level of detail in exceptions related to JWT validation
@@ -159,7 +174,7 @@ namespace Altinn.Platform.Authentication
         /// <returns>Telemetry instrumentation key</returns>
         public string GetApplicationInsightsKeyFromEnvironment()
         {
-            string environmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
+            string environmentKey = Environment.GetEnvironmentVariable(VaultApplicationInsightsKey);
             if (string.IsNullOrEmpty(environmentKey))
             {
                 environmentKey = Environment.GetEnvironmentVariable("APPINSIGHTS_INSTRUMENTATIONKEY");

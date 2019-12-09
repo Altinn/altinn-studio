@@ -67,7 +67,7 @@ namespace Altinn.Platform.Authentication
 
                     try
                     {
-                        string appInsightsKey = "ApplicationInsights--InstrumentationKey";
+                        string appInsightsKey = Startup.VaultApplicationInsightsKey;
 
                         SecretBundle secretBundle = keyVaultClient
                             .GetSecretAsync(keyVaultEndpoint, appInsightsKey).Result;
