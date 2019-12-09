@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Altinn.App.Api.Controllers;
-using Altinn.App.Service.Interface;
+using Altinn.App.AppLogic.Validation;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
@@ -68,6 +68,7 @@ namespace Altinn.App
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
             services.AddTransient<IAltinnApp, AppLogic.App>();
+            services.AddTransient<IValidationHandler, ValidationHandler>();
 
             services.Configure<KestrelServerOptions>(options =>
             {

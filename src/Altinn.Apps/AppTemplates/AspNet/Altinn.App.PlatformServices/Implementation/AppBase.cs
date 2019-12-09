@@ -1,5 +1,4 @@
 using Altinn.App.Common.Enums;
-using Altinn.App.Service.Interface;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
@@ -39,6 +38,8 @@ namespace Altinn.App.Services.Implementation
         public abstract object CreateNewAppModel(string dataType);
 
         public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
+
+        public abstract Task<bool> RunValidation(object instance, Type modelType, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
         
         /// <inheritdoc />
         public async Task<string> OnInstantiateGetStartEvent(Instance instance)
