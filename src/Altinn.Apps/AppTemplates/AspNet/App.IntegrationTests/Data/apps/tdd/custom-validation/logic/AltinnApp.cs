@@ -19,7 +19,8 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
             ILogger<AltinnApp> logger,
             IData dataService,
             IProcess processService,
-            IValidationHandler validationHandler) : base(appResourcesService, logger, dataService, processService)
+            IValidationHandler validationHandler,
+            IPDF pdfService) : base(appResourcesService, logger, dataService, processService, pdfService)
         {
             _validationHandler = validationHandler;
         }

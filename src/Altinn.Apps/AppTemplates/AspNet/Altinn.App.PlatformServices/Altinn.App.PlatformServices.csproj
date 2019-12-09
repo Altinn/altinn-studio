@@ -2,16 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
-    <Version>0.0.33-alpha</Version>
+    <Version>0.0.34-alpha</Version>
     <Authors>Altinn</Authors>
     <Company>Altinn</Company>
     <Description>Common services with Altinn Platform functionality and Altinn Apps functionality</Description>
     <PackageProjectUrl>https://github.com/Altinn/altinn-studio</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>0.0.33.0</AssemblyVersion>
+    <AssemblyVersion>0.0.34.0</AssemblyVersion>
     <IsPackable>true</IsPackable>
     <OutputType>Library</OutputType>
-    <FileVersion>0.0.33.0</FileVersion>
+    <FileVersion>0.0.34.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,11 +29,11 @@
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.4.0-beta2-final" />
   </ItemGroup>
-  
+
  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
-  
+
  <ItemGroup>
    <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
  </ItemGroup>

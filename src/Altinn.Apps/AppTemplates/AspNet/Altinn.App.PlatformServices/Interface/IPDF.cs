@@ -12,6 +12,6 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Generates a pdf receipt
         /// </summary>
-        Task GenerateAndStoreReceiptPDF(Instance instance, UserContext userContext);
+        Task GenerateAndStoreReceiptPDF(Instance instance);
     }
 }
