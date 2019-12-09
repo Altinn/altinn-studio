@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "node .\\testRunner --env=dev",
-    "wcag": "testcafe puppeteer .\\wcag\\wcag.js -r spec"
+    "wcag": "testcafe chrome:headless .\\wcag\\wcag.js -r spec"
   },
   "keywords": [],
   "author": "",
