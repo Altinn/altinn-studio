@@ -4,10 +4,10 @@ Det er noen kjente feil og svakheter i løsningen.
 
 ## Større svakheter
 
-- Vi har nylig gjort endringer som knekker tjenestene. Se [beskrivelse av breaking changes](https://docs.altinn.studio/known-issues/breaking-changes/) for å finne ut hva du må gjøre for å få dem til å virke igjen.
+- Vi har nylig gjort endringer som knekker appene. Se [beskrivelse av breaking changes](https://docs.altinn.studio/known-issues/breaking-changes/) for å finne ut hva du må gjøre for å få dem til å virke igjen.
 - Løsningen er ennå ikke optimalisert for tastaturnavigasjon eller bruk av touchskjermer.
 - Enkelte funksjonaliteter har vesentlige feil som ikke vil bli rettet innenfor MVP. Vi anbefaler at myke valideringer og datovelgeren *ikke* tas i bruk i en produksjonssatt tjeneste før disse feilene er rettet.
-- Dagens app-struktur vil endres innen kort tid for å optimalisere for lokal utvikling. Vi anbefaler at man *ikke* setter i gang utvikling av tjenester som planlegges produksjonssatt før denne endringen er gjort. (For pilotene vil Altinn bidra med konvertering i overgangen til ny struktur.)
+- Dagens app-struktur vil endres innen kort tid for å optimalisere for lokal utvikling. Vi anbefaler at man *ikke* setter i gang utvikling av apper som planlegges produksjonssatt før denne endringen er gjort. (For pilotene vil Altinn bidra med konvertering i overgangen til ny struktur.)
 
 ## Mindre svakheter som er verdt å nevne
 
