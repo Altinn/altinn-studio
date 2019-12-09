@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
     <Version>0.0.34-alpha</Version>
     <Authors>Altinn</Authors>
     <Company>Altinn</Company>

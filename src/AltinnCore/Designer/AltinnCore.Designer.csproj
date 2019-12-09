@@ -10,7 +10,7 @@
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
     <MvcRazorExcludeRefAssembliesFromPublish>false</MvcRazorExcludeRefAssembliesFromPublish>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>latest</LangVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{A8CEDA65-1EC3-4D9E-857C-BFCFA796315C}</ProjectGuid>
   </PropertyGroup>
