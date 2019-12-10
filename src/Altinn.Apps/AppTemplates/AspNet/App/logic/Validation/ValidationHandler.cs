@@ -8,10 +8,11 @@ using Altinn.App.Services.Interface;
 
 namespace Altinn.App.AppLogic.Validation
 {
-    public class ValidationHandler : IValidationHandler
+    public class ValidationHandler
     {
         private IHttpContextAccessor _httpContextAccessor;
-        public ValidationHandler(IHttpContextAccessor httpContextAccessor)
+
+        public ValidationHandler(IHttpContextAccessor httpContextAccessor = null)
         {
             _httpContextAccessor = httpContextAccessor;
         }
@@ -25,7 +26,7 @@ namespace Altinn.App.AppLogic.Validation
         /// </remarks>
         /// <param name="validationResults">Object to contain any validation results</param>
         /// <example>
-        /// if (object.GetType() == typeof([model class name])
+        /// if (instance.GetType() == typeof([model class name])
         /// {
         ///     // Explicitly cast instance to correct model type
         ///     [model class name] model = ([model class name])object;
@@ -37,7 +38,7 @@ namespace Altinn.App.AppLogic.Validation
         ///     }
         /// }
         /// </example>
-        public void Validate(object instance, Type modelType, ICollection<ValidationResult> validationResults)
+        public void Validate(object instance, ICollection<ValidationResult> validationResults)
         {
 
         }

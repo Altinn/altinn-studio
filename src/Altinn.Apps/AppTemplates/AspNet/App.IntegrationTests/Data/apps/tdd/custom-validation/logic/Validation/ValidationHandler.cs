@@ -7,11 +7,11 @@ using Altinn.App.Services.Interface;
 
 namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
 {
-    public class ValidationHandler : IValidationHandler
+    public class ValidationHandler
     {
         private IHttpContextAccessor _httpContextAccessor;
 
-        public ValidationHandler(IHttpContextAccessor httpContextAccessor)
+        public ValidationHandler(IHttpContextAccessor httpContextAccessor = null)
         {
             _httpContextAccessor = httpContextAccessor;
         }
@@ -29,9 +29,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         ///      validationResults.Add(new ValidationResult([error message], new List<string>() { [affected field id] } ));
         ///  }
         /// </example>
-        public void Validate(object instance, Type modelType, ICollection<ValidationResult> validationResults)
+        public void Validate(object instance, ICollection<ValidationResult> validationResults)
         {
-            if (modelType == typeof(Skjema))
+            if (instance.GetType() == typeof(Skjema))
             {
                 Skjema model = (Skjema)instance;
                 if (model.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value == 1234)

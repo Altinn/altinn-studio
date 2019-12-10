@@ -62,7 +62,6 @@ namespace App.IntegrationTestsRef.Utils
                         services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                     }
 
-                    services.AddSingleton<IValidationHandler, ValidationHandler>();
                     services.AddTransient<IProfile, ProfileMockSI>();
                     services.AddSingleton<IValidation, ValidationAppSI>();
                     services.AddSingleton<IPDF, PDFMockSI>();
