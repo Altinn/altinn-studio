@@ -1,0 +1,32 @@
+{
+  "response": [
+    {
+      "decision": "Permit",
+      "status": {
+        "statusMessage": null,
+        "statusDetails": null,
+        "statusCode": {
+          "value": "urn:oasis:names:tc:xacml:1.0:status:ok",
+          "statusCode": null
+        }
+      },
+      "obligations": [
+        {
+          "id": "urn:altinn:obligation:authenticationLevel1",
+          "attributeAssignment": [
+            {
+              "attributeId": "urn:altinn:obligation1-assignment1",
+              "value": "2",
+              "category": "urn:altinn:minimum-authenticationlevel",
+              "dataType": "http://www.w3.org/2001/XMLSchema#integer",
+              "issuer": null
+            }
+          ]
+        }
+      ],
+      "associateAdvice": null,
+      "category": null,
+      "policyIdentifierList": null
+    }
+  ]
+}
