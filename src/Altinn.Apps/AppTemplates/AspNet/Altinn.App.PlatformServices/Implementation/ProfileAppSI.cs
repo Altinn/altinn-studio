@@ -1,11 +1,9 @@
 using System.Net.Http;
-using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
-using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -20,7 +18,7 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JwtCookieOptions _cookieOptions;
+        private readonly AppSettings _settings;
         private readonly HttpClient _client;
 
         /// <summary>
@@ -29,17 +27,17 @@ namespace Altinn.App.Services.Implementation
         /// <param name="logger">the logger</param>
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
-        /// <param name="cookieOptions">The cookie options </param>
+        /// <param name="settings">The application settings.</param>
         /// <param name="httpClientAccessor">The http client accessor </param>
         public ProfileAppSI(
             ILogger<ProfileAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            IOptions<JwtCookieOptions> cookieOptions,
+            IOptionsMonitor<AppSettings> settings,
             IHttpClientAccessor httpClientAccessor)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
-            _cookieOptions = cookieOptions.Value;
+            _settings = settings.CurrentValue;
             _client = httpClientAccessor.ProfileClient;
         }
 
@@ -49,7 +47,7 @@ namespace Altinn.App.Services.Implementation
             UserProfile userProfile = null;
 
             string endpointUrl = $"users/{userId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);
