@@ -68,8 +68,8 @@ namespace Altinn.Platform.Authentication
                     !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
                 {
                     Logger.Information("Configure key vault client");
-                ConnectToKeyVaultAndSetApplicationInsigths(config);
-
+                    ConnectToKeyVaultAndSetApplicationInsigths(config);
+                }
             })
             .ConfigureLogging((hostingContext, logging) =>
             {
