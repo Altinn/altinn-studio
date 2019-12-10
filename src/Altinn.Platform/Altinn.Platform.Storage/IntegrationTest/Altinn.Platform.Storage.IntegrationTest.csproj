@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+      <PackageReference Include="Altinn.Common.PEP" Version="1.0.0-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.0" />
@@ -54,6 +55,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="data\m1000-instances.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="data\response_deny.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="data\response_permit.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="data\xmlfile.xml">

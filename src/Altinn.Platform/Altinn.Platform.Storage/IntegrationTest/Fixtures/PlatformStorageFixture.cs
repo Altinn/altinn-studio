@@ -1,9 +1,15 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Storage.IntegrationTest.Mocks;
+using Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication;
+using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
 {
@@ -33,10 +39,18 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
                 .UseContentRoot(GetContentRootPath())
                 .UseEnvironment("Development")
                 .UseConfiguration(config.Build())
-                .UseStartup<Altinn.Platform.Storage.Startup>();
+                .UseStartup<Altinn.Platform.Storage.Startup>()
+                .ConfigureTestServices(services =>
+                {
+                    services.AddSingleton<IPDP, PDPMock>();
+
+                    // Set up mock authentication so that not well known endpoint is used
+                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
+                    services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
+                });
 
             testServer = new TestServer(builder);
-            Client = testServer.CreateClient();            
+            Client = testServer.CreateClient();
         }
 
         /// <summary>
@@ -45,7 +59,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
         /// <returns></returns>
         public HttpClient CreateClient()
         {
-            return testServer.CreateClient();
+            return Client;
         }
 
         private string GetContentRootPath()

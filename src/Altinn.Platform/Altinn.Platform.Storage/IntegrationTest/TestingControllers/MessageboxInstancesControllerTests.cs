@@ -3,17 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.IntegrationTest.Fixtures;
+using Altinn.Platform.Storage.IntegrationTest.Mocks;
+using Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication;
+using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-
+using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.DependencyInjection;
-
+using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
@@ -29,6 +35,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         private const string BasePath = "/storage/api/v1";
 
         private readonly WebApplicationFactory<Startup> _factory;
+        private string _validToken;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageboxInstancesControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
@@ -37,6 +44,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public MessageboxInstancesControllerTests(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
+            _validToken = PrincipalUtil.GetToken(1);
         }
 
         /// <summary>
@@ -63,6 +71,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App3);
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}?state=active");
@@ -103,6 +112,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App2);
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}?state=active&language=en");
@@ -144,6 +154,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App1);
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}?state=archived");
@@ -187,6 +198,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                 .ReturnsAsync((InstanceEvent r) => r);
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id}/undelete", null);
@@ -201,6 +213,82 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             bool actualResult = JsonConvert.DeserializeObject<bool>(content);
 
             Assert.True(actualResult);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Restore a soft deleted instance in storage but user has too low authentication level. 
+        /// Expected result:
+        ///   The instance is not restored and returns status forbidden. 
+        /// </summary>
+        [Fact]
+        public async void Undelete_UserHasTooLowAuthLv_ReturnsStatusForbidden()
+        {
+            // Arrange
+            TestData testData = new TestData();
+            Instance instance = testData.GetSoftDeletedInstance();
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+
+            Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
+            instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
+            instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).ReturnsAsync((Instance i) => i);
+
+            InstanceEvent instanceEvent = null;
+
+            Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
+            instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
+                .ReturnsAsync((InstanceEvent r) => r);
+
+            HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            string token = PrincipalUtil.GetToken(1, 0);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id}/undelete", null);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            string content = await response.Content.ReadAsStringAsync();
+            Assert.True(string.IsNullOrEmpty(content));
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Restore a soft deleted instance in storage but response is deny.  
+        /// Expected result:
+        ///   The instance is not restored and returns status forbidden. 
+        /// </summary>
+        [Fact]
+        public async void Undelete_ResponseIsDeny_ReturnsStatusForbidden()
+        {
+            // Arrange
+            TestData testData = new TestData();
+            Instance instance = testData.GetSoftDeletedInstance();
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+
+            Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
+            instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
+            instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).ReturnsAsync((Instance i) => i);
+
+            InstanceEvent instanceEvent = null;
+
+            Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
+            instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
+                .ReturnsAsync((InstanceEvent r) => r);
+
+            HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            string token = PrincipalUtil.GetToken(2);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id}/undelete", null);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            string content = await response.Content.ReadAsStringAsync();
+            Assert.True(string.IsNullOrEmpty(content));
         }
 
         /// <summary>
@@ -226,6 +314,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id}/undelete", null);
@@ -263,6 +352,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instanceGuid}/undelete", null);
@@ -306,6 +396,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                 .ReturnsAsync((InstanceEvent r) => r);
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id}?hard=false");  
@@ -322,6 +413,86 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
             Assert.NotNull(instanceEvent);
             Assert.Equal("Deleted", instanceEvent.EventType);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Soft delete an active instance in storage but user has too low authentication level.
+        /// Expected result:
+        ///   Returns status forbidden. 
+        /// </summary>
+        [Fact]
+        public async void Delete_UserHasTooLowAuthLv_ReturnsStatusForbidden()
+        {
+            // Arrange
+            TestData testData = new TestData();
+            Instance instance = testData.GetActiveInstance();
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+
+            Instance storedInstance = null;
+
+            Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
+            instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
+            instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).Callback<Instance>(p => storedInstance = p).ReturnsAsync((Instance i) => i);
+
+            InstanceEvent instanceEvent = null;
+
+            Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
+            instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
+                .ReturnsAsync((InstanceEvent r) => r);
+
+            HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            string token = PrincipalUtil.GetToken(1, 0);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id}?hard=false");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            string content = await response.Content.ReadAsStringAsync();
+            Assert.True(string.IsNullOrEmpty(content));
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Soft delete an active instance in storage but reponse is deny.
+        /// Expected result:
+        ///   Returns status forbidden. 
+        /// </summary>
+        [Fact]
+        public async void Delete_ResponseIsDeny_ReturnsStatusForbidden()
+        {
+            // Arrange
+            TestData testData = new TestData();
+            Instance instance = testData.GetActiveInstance();
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+
+            Instance storedInstance = null;
+
+            Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
+            instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
+            instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).Callback<Instance>(p => storedInstance = p).ReturnsAsync((Instance i) => i);
+
+            InstanceEvent instanceEvent = null;
+
+            Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
+            instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
+                .ReturnsAsync((InstanceEvent r) => r);
+
+            HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            string token = PrincipalUtil.GetToken(2);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id}?hard=false");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            string content = await response.Content.ReadAsStringAsync();
+            Assert.True(string.IsNullOrEmpty(content));
         }
 
         /// <summary>
@@ -354,6 +525,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                 .ReturnsAsync((InstanceEvent r) => r);
 
             HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             // Act
             HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id}?hard=true");
@@ -386,6 +558,9 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                     services.AddSingleton(instanceRepository);
                     services.AddSingleton(applicationRepository);
                     services.AddSingleton(instanceEventRepository);
+                    services.AddSingleton<IPDP, PDPMock>();
+                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
+                    services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
             }).CreateClient();
 
