@@ -59,8 +59,7 @@ namespace Altinn.Platform.Authentication
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
 
-                ConnectToKeyVaultAndSetApplicationInsigths(config);
-
+                ConnectToKeyVaultAndSetApplicationInsights(config);
             })
             .ConfigureLogging((hostingContext, logging) =>
             {
@@ -72,7 +71,7 @@ namespace Altinn.Platform.Authentication
             })
                 .UseStartup<Startup>();
 
-        private static void ConnectToKeyVaultAndSetApplicationInsigths(IConfigurationBuilder config)
+        private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
         {
             IConfiguration stageOneConfig = config.Build();
             KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
