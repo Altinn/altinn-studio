@@ -25,7 +25,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
         {
             string jsonResponse = string.Empty;
 
-            if (xacmlJsonRequest.Request.MultiRequests.RequestReference.Count > 0)
+            if (!(xacmlJsonRequest.Request.MultiRequests == null))
             {
                 jsonResponse = File.ReadAllText("data/response_multi_permit.json");
             }

@@ -43,12 +43,11 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
         {
             try
             {
-                /*
                 List<Instance> ins = client.GetInstancesForOrg(appId.Split("/")[0], 1000).Result;
                 if (ins.Count == 1000)
                 {
                     return;
-                }*/
+                }
             }
             catch
             {
