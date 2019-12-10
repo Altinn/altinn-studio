@@ -4,4 +4,7 @@ extraction:
       maven:
         version: 4.0.0
       build_command: mvn -f ./src/Altinn.Platform/Altinn.Platform.PDF/pom.xml -Pprod package
-
+  csharp:
+    index:
+      dotnet:
+        version: 3.1.100

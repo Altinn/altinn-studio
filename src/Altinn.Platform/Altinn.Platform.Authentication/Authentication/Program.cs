@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Core;
 using Serilog.Extensions.Logging;
 
 namespace Altinn.Platform.Authentication
@@ -18,6 +19,10 @@ namespace Altinn.Platform.Authentication
     /// </summary>
     public static class Program
     {
+        private static readonly Logger Logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger();
+
         /// <summary>
         /// The main method
         /// </summary>
@@ -36,9 +41,11 @@ namespace Altinn.Platform.Authentication
             WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
+                Logger.Information("Program // CreateWebHostBuilder");
+
                 string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
                 config.SetBasePath(basePath);
-                config.AddJsonFile(basePath + "altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
+                config.AddJsonFile(basePath + "altinn-appsettings/altinn-dbsettings-secret.json", optional: true, reloadOnChange: true);
                 if (basePath == "/")
                 {
                     config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
@@ -50,14 +57,17 @@ namespace Altinn.Platform.Authentication
 
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
+
                 IConfiguration stageOneConfig = config.Build();
-                string appId = stageOneConfig.GetValue<string>("KvSetting:ClientId");
-                string tenantId = stageOneConfig.GetValue<string>("KvSetting:TenantId");
-                string appKey = stageOneConfig.GetValue<string>("KvSetting:ClientSecret");
-                string keyVaultEndpoint = stageOneConfig.GetValue<string>("KvSetting:SecretUri");
+                string appId = stageOneConfig.GetValue<string>("KvSetting:ClientId:0");
+                string tenantId = stageOneConfig.GetValue<string>("KvSetting:TenantId:0");
+                string appKey = stageOneConfig.GetValue<string>("KvSetting:ClientSecret:0");
+                string keyVaultEndpoint = stageOneConfig.GetValue<string>("KvSetting:SecretUri:0");
                 if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(tenantId)
                     && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
                 {
+                    Logger.Information("Configure key vault client");
+
                     AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={appId};TenantId={tenantId};AppKey={appKey}");
                     KeyVaultClient keyVaultClient = new KeyVaultClient(
                         new KeyVaultClient.AuthenticationCallback(
@@ -67,7 +77,7 @@ namespace Altinn.Platform.Authentication
 
                     try
                     {
-                        string appInsightsKey = "ApplicationInsights--InstrumentationKey";
+                        string appInsightsKey = Startup.VaultApplicationInsightsKey;
 
                         SecretBundle secretBundle = keyVaultClient
                             .GetSecretAsync(keyVaultEndpoint, appInsightsKey).Result;
@@ -76,7 +86,7 @@ namespace Altinn.Platform.Authentication
                     }
                     catch (Exception vaultException)
                     {
-                        Console.WriteLine($"Unable to read application insights key {vaultException}");
+                        Logger.Error($"Unable to read application insights key {vaultException}");
                     }
                 }
             })

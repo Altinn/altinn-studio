@@ -8,12 +8,17 @@ let app = new App();
 let designer = new DesignerPage();
 let runtime = new RunTimePage();
 
-fixture('Instantiation tests')
+/*
+This fixture is no longer run after the test/preview functionality
+has been removed from Altinn Studio, Selenium tests in the SBL project
+now handle testing of instantiation of Altinn Apps.
+*/
+fixture.skip('Instantiation tests')
   .page(app.baseUrl)
   .beforeEach(async t => {
     await t
       .useRole(AutoTestUser)
-      .resizeWindow(1280, 610)
+      .maximizeWindow()
   })
 
   test("Instantiation of an access controlled app not possible", async () => {

@@ -61,7 +61,6 @@ namespace Altinn.Platform.Receipt
                 });
 
             services.AddSingleton(Configuration);
-            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
         }
 
@@ -71,17 +70,7 @@ namespace Altinn.Platform.Receipt
         /// <param name="app">the application builder.</param>
         /// <param name="env">the hosting environment.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
-            string runtimeMode = string.Empty;
-            if (Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode") != null)
-            {
-                runtimeMode = Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode");
-            }
-            else
-            {
-                runtimeMode = Configuration["GeneralSettings:RuntimeMode"];
-            }
-
+        {        
             string authenticationEndpoint = string.Empty;
             if (Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpoint") != null)
             {
@@ -110,7 +99,7 @@ namespace Altinn.Platform.Receipt
 
                 // you may also check requests path to do this only for specific methods
                 // && request.Path.Value.StartsWith("/specificPath")
-                if (response.StatusCode == (int)HttpStatusCode.Unauthorized && runtimeMode != "AltinnStudio")
+                if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
                 {
                     response.Redirect($"{authenticationEndpoint}authentication?goto={url}");
                 }
