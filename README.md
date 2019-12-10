@@ -23,12 +23,13 @@ These instructions will get you a copy of the project up and running on your loc
 5. [Docker Desktop](https://www.docker.com/products/docker-desktop)
 6. Update hosts file (C:/Windows/System32/drivers/etc/hosts) by adding the following values. On MacOS add the same values to values /private/etc/hosts using cmd `sudo nano /private/etc/hosts`.
 
-```
+```cmd
 localhost altinn3.no
 127.0.0.1 altinn3.no
 localhost altinn3local.no
 127.0.0.1 altinn3local.no
 ```
+
 7. Make sure your C drive is shared with docker, Docker Settings -> Shared Drives <br />
    On MacOS: Change docker-compose.yml (both)
     ```cmd
