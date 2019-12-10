@@ -69,7 +69,6 @@ namespace Altinn.App
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
             services.AddTransient<IAltinnApp, AppLogic.App>();
-            services.AddTransient<IValidationHandler, ValidationHandler>();
 
             services.Configure<KestrelServerOptions>(options =>
             {
