@@ -58,6 +58,13 @@ namespace Altinn.Platform.Profile
             services.AddSingleton(Configuration);
             services.AddSingleton<IUserProfiles, UserProfilesWrapper>();
 
+            if (!string.IsNullOrEmpty(ApplicationInsightsKey))
+            {
+                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+
+                _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
+            }
+
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
             {
