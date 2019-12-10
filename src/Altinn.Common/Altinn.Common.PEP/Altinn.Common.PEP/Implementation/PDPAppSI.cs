@@ -34,7 +34,7 @@ namespace Altinn.Common.PEP.Implementation
         public PDPAppSI(
                 IHttpClientAccessor httpClientAccessor,
                 ILogger<PDPAppSI> logger,
-                IOptions<PepSettings>pepSettings)
+                IOptions<PepSettings> pepSettings)
         {
             _authClient = httpClientAccessor.AuthorizationClient;
             _logger = logger;
@@ -75,14 +75,10 @@ namespace Altinn.Common.PEP.Implementation
             {
                 return true;
             }
-                        
+
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
 
-            if (response?.Response == null)
-            {
-                _logger.LogInformation($"// Altinn PEP // PDPAppSI // PDP decision response received was empty. " +
-                    $"Request sent to platform authorization: {JsonConvert.SerializeObject(xacmlJsonRequest)}");
-            }
+            _logger.LogInformation($"// Altinn PEP // PDPAppSI // Request sent to platform authorization: {JsonConvert.SerializeObject(xacmlJsonRequest)}");
 
             return DecisionHelper.ValidateResponse(response.Response, user);
         }
