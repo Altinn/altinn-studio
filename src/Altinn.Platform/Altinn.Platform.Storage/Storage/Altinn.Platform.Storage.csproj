@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <PackageReference Include="Altinn.Common.PEP" Version="1.0.0-alpha" />
+      <PackageReference Include="Altinn.Common.PEP" Version="1.0.1-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.0.0" />
     <PackageReference Include="AltinnCore.ServiceLibrary" Version="11.0.1" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.0.0-alpha" />
