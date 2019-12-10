@@ -47,6 +47,16 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
+        /// List the repos that the authenticated user owns or has access to
+        /// </summary>
+        /// <returns>List of repos</returns>
+        [HttpGet]
+        public Task<IList<RepositoryModel>> UserRepos()
+        {
+            return _giteaApi.GetUserRepos();
+        }
+
+        /// <summary>
         /// Returns a list over repositories
         /// </summary>
         /// <param name="repositorySearch">The search params</param>
@@ -314,7 +324,7 @@ namespace AltinnCore.Designer.Controllers
                 RepositoryName = repository,
                 ServiceName = appTitle,
             };
-            
+
             IList<ServiceConfiguration> apps = _repository.GetServices(org);
             List<string> appNames = apps.Select(c => c.RepositoryName.ToLower()).ToList();
             bool appAlreadyExist = appNames.Contains(serviceConfiguration.RepositoryName.ToLower());
