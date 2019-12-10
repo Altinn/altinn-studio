@@ -97,7 +97,7 @@ namespace Altinn.App
                         ValidateLifetime = true
                     };
                     options.Cookie.Domain = Configuration["GeneralSettings:HostName"];
-                    options.Cookie.Name = Services.Constants.General.RuntimeCookieName;
+                    options.Cookie.Name = appSettings.RuntimeCookieName;
                     options.MetadataAddress = Configuration["AppSettings:OpenIdWellKnownEndpoint"];
                     if (_env.IsDevelopment())
                     {
