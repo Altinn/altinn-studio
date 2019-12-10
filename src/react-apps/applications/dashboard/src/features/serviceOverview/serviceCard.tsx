@@ -99,7 +99,7 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
                 </Typography>
               </Grid>
               <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
-                <img src={service.owner.avatar_url} title={(service.owner.full_name || service.owner.login)} alt={service.owner.login} className={classNames(classes.avatar)} />
+                <img src={service.owner.avatar_url} title={(service.owner.full_name || service.owner.login)} alt="" className={classNames(classes.avatar)} />
               </Grid>
               <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
                 <i
