@@ -8,7 +8,7 @@ import { IFrame } from '../features/iFrame/iFrameComponent';
 
 export const routes = [
   {
-    path: '/uieditor',
+    path: '/ui-editor',
     exact: true,
     activeSubHeaderSelection: 'Lage',
     activeLeftMenuSelection: 'GUI',
@@ -23,7 +23,7 @@ export const routes = [
     subapp: uieditorApp,
   },
   {
-    path: '/text',
+    path: '/texts',
     exact: true,
     activeSubHeaderSelection: 'Språk',
     activeLeftMenuSelection: 'Tekst',
@@ -41,10 +41,10 @@ export const routes = [
     },
   },
   {
-    path: '/aboutservice',
+    path: '/about',
     exact: true,
     activeSubHeaderSelection: 'Om',
-    activeLeftMenuSelection: 'Om tjenesten',
+    activeLeftMenuSelection: 'Om appen',
     menu: 'about',
     subapp: Administration,
   },

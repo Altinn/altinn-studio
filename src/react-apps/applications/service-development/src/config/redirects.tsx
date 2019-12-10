@@ -1,10 +1,10 @@
 export const redirects = ([
   {
     from: '/',
-    to: '/aboutservice',
+    to: '/about',
   },
   {
-    from: '/create',
-    to: '/uieditor',
+    from: '/edit',
+    to: '/ui-editor',
   },
 ]);

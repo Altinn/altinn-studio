@@ -25,19 +25,19 @@ export const mainMenuSettings: IMainMenu = {
     {
       displayText: 'Om',
       activeSubHeaderSelection: 'Om',
-      navLink: '/aboutservice',
+      navLink: '/about',
       menuType: 'about',
     },
     {
       displayText: 'Lage',
       activeSubHeaderSelection: 'Lage',
-      navLink: '/uieditor',
+      navLink: '/ui-editor',
       menuType: 'create',
     },
     {
       displayText: 'Språk',
       activeSubHeaderSelection: 'Språk',
-      navLink: '/text',
+      navLink: '/texts',
       menuType: 'language',
     },
   ],
@@ -46,9 +46,9 @@ export const mainMenuSettings: IMainMenu = {
 export const leftDrawerMenuSettings: IDrawerMenu = {
   about: [
     {
-      displayText: 'Om tjenesten',
-      navLink: '/aboutservice',
-      activeLeftMenuSelection: 'Om tjenesten',
+      displayText: 'Om appen',
+      navLink: '/about',
+      activeLeftMenuSelection: 'Om appen',
       iconClass: 'fa fa-info-circle',
     },
     {
@@ -58,28 +58,10 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
       iconClass: 'fa fa-others',
     },
     {
-      displayText: 'Produksjon',
-      navLink: '/production',
-      activeLeftMenuSelection: 'Produksjon',
-      iconClass: 'fa fa-settings',
-    },
-    {
-      displayText: 'Versjonshistorikk',
+      displayText: 'Historikk',
       navLink: '/versionhistory',
       activeLeftMenuSelection: 'Versjonshistorikk',
       iconClass: 'fa fa-deadline',
-    },
-    {
-      displayText: 'Om sluttbrukeren',
-      navLink: '/aboutenduser',
-      activeLeftMenuSelection: 'Om sluttbrukeren',
-      iconClass: 'fa fa-info-circle',
-    },
-    {
-      displayText: 'Altinn.no',
-      navLink: '/altinn',
-      activeLeftMenuSelection: 'Altinn',
-      iconClass: 'fa fa-info-circle',
     },
   ],
   create: [
@@ -90,9 +72,9 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
       iconClass: 'fa fa-info-circle',
     },
     {
-      displayText: 'GUI',
-      navLink: '/uieditor',
-      activeLeftMenuSelection: 'GUI',
+      displayText: 'UI-Editor',
+      navLink: '/ui-editor',
+      activeLeftMenuSelection: 'UI-Editor',
       iconClass: 'fa fa-settings',
     },
     {
@@ -116,9 +98,9 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
   ],
   language: [
     {
-      displayText: 'Tekst',
-      navLink: '/text',
-      activeLeftMenuSelection: 'Tekst',
+      displayText: 'Tekster',
+      navLink: '/texts',
+      activeLeftMenuSelection: 'Tekster',
       iconClass: 'fa fa-settings',
     },
     {

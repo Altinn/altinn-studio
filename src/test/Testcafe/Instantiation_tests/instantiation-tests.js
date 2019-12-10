@@ -22,8 +22,8 @@ fixture.skip('Instantiation tests')
   })
 
   test("Instantiation of an access controlled app not possible", async () => {
-    await t      
-      .navigateTo(app.baseUrl + 'designer/ttd/party-selection-app#/uieditor')
+    await t
+      .navigateTo(app.baseUrl + 'designer/ttd/party-selection-app#/ui-editor')
       .expect(designer.testeNavigationTab.exists).ok( {timeout: 120000} )
       .click(designer.testeNavigationTab)
       .switchToIframe(runtime.testBrukerIframe)
@@ -38,7 +38,7 @@ fixture.skip('Instantiation tests')
 
   test("Party Selection page with error message and party list", async () => {
     await t
-      .navigateTo(app.baseUrl + 'designer/ttd/party-selection-app#/uieditor')
+      .navigateTo(app.baseUrl + 'designer/ttd/party-selection-app#/ui-editor')
       .click(designer.testeNavigationTab)
       .switchToIframe(runtime.testBrukerIframe)
       .expect(runtime.testUsers[1].exists).ok()
@@ -54,14 +54,14 @@ fixture.skip('Instantiation tests')
 
   test("Prefill of value from Profile and Register", async () => {
     await t
-      .navigateTo(app.baseUrl + 'designer/AutoTest/prefillautotest#/uieditor')
+      .navigateTo(app.baseUrl + 'designer/AutoTest/prefillautotest#/ui-editor')
       .click(designer.testeNavigationTab)
       .switchToIframe(runtime.testBrukerIframe)
       .click(runtime.testUsers[0])
       .expect(runtime.startNewButton.exists).ok({ timeout: 120000 })
       .click(runtime.startNewButton)
-      .switchToMainWindow()      
+      .switchToMainWindow()
       .expect(runtime.testUserHeader[0].exists).ok({ timeout:120000 })
-      .expect(runtime.inputButton.exists).ok({ timeout: 120000 })      
+      .expect(runtime.inputButton.exists).ok({ timeout: 120000 })
       .expect(runtime.inputButton.withAttribute('value', 'Ola Privatperson').exists).ok({ timeout:120000 })
   });
