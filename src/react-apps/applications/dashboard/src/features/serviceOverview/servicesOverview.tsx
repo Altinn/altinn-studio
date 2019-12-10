@@ -228,9 +228,9 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
             </AltinnInformationPaper>
           </div>
         }
-        <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
+        {/*<Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
           {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
-        </Typography>
+        </Typography>*/}
         {services &&
           <>
             <Grid container={true} direction='row' className={classes.mar_top_50}>
