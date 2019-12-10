@@ -470,7 +470,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         
         private void LoadTestData()
         {
-            DatabaseFixture.LoadData(_testAppId, _instanceClient);
+            //DatabaseFixture.LoadData(_testAppId, _instanceClient);
         }
     }
 }

@@ -141,7 +141,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // 1st instance of application 2
         private static readonly Instance Instance_2_1 = new Instance()
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = "26133fb5-a9f2-45d4-90b1-f6d93ad40713",
             AppId = AppId_2,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T23:19:21.7920255Z"),
@@ -156,7 +156,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // 2nd instance of application 2
         private static readonly Instance Instance_2_2 = new Instance()
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = "6ab8629d-a3d5-4cd0-be51-6c8d671a1683",
             AppId = AppId_2,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),

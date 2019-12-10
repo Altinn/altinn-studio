@@ -153,10 +153,26 @@ namespace Altinn.Platform.Storage.Helpers
             {
                 if (DecisionHelper.ValidateDecisionResult(result, user))
                 {
-                    XacmlJsonAttribute instanceAttribute = result.Category.Select(c => c.Attribute.Find(a => a.AttributeId.Equals(AltinnXacmlUrns.InstanceId))).FirstOrDefault();
-                    XacmlJsonAttribute actionAttribute = result.Category.Select(c => c.Attribute.Find(a => a.AttributeId.Equals(XacmlResourceActionId))).FirstOrDefault();
-                    string instanceId = instanceAttribute.Value.Split('/')[1];
-                    string actiontype = actionAttribute.Value;
+                    string instanceId = string.Empty;
+                    string actiontype = string.Empty;
+
+                    foreach (XacmlJsonCategory category in result.Category)
+                    {
+                        var attributes = category.Attribute;
+
+                        foreach (var attribute in attributes)
+                        {
+                            if (attribute.AttributeId.Equals(XacmlResourceActionId))
+                            {
+                                actiontype = attribute.Value;
+                            }
+
+                            if (attribute.AttributeId.Equals(AltinnXacmlUrns.InstanceId))
+                            {
+                                instanceId = attribute.Value.Split('/')[1];
+                            }
+                        }
+                    }
 
                     Instance instance = instances.FirstOrDefault(i => i.Id == instanceId);
                     MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(instance);

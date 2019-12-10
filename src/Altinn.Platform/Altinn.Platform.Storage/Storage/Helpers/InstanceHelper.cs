@@ -95,11 +95,16 @@ namespace Altinn.Platform.Storage.Helpers
         {
             foreach (MessageBoxInstance instance in instances)
             {
-                string title = appTitles[instance.AppName].ContainsKey(language) ? appTitles[instance.AppName][language] : appTitles[instance.AppName]["nb"];
+                string title = appTitles[GetAppId(instance)].ContainsKey(language) ? appTitles[GetAppId(instance)][language] : appTitles[GetAppId(instance)]["nb"];
                 instance.Title = title;
             }
 
             return instances;
+        }
+
+        public static string GetAppId(MessageBoxInstance instance)
+        {
+            return instance.Org.ToLower() + "/" + instance.AppName;
         }
 
         /// <summary>

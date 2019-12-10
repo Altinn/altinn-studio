@@ -80,10 +80,10 @@ namespace Altinn.Platform.Storage.Controllers
                 return Ok(new List<MessageBoxInstance>());
             }
 
-            //List<MessageBoxInstance> autorizedInstances = await _authorizeInstancesHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
-            List<string> appIds = allInstances.Select(i => i.AppId).Distinct().ToList();
+            List<MessageBoxInstance> autorizedInstances = await _authorizeInstancesHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
+            List<string> appIds = autorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
             Dictionary<string, Dictionary<string, string>> appTitles = await _applicationRepository.GetAppTitles(appIds);
-            List<MessageBoxInstance> messageBoxInstances = InstanceHelper.ConvertToMessageBoxInstanceList(allInstances, appTitles, languageId);
+            List<MessageBoxInstance> messageBoxInstances = InstanceHelper.AddTitleToInstances(autorizedInstances, appTitles, languageId);
 
             return Ok(messageBoxInstances);
         }
