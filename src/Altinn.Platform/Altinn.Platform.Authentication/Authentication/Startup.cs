@@ -70,33 +70,33 @@ namespace Altinn.Platform.Authentication
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
-                    {
-                        var generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuerSigningKey = true,
-                            ValidateIssuer = false,
-                            ValidateAudience = false,
-                            RequireExpirationTime = true,
-                            ValidateLifetime = true
-                        };
+            {
+                GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    RequireExpirationTime = true,
+                    ValidateLifetime = true
+                };
 
-                        options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                        options.Cookie.Name = "AltinnStudioRuntime";
-                        options.Cookie.Domain = generalSettings.HostName;
-                        options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+                options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                options.Cookie.Name = "AltinnStudioRuntime";
+                options.Cookie.Domain = generalSettings.HostName;
+                options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
 
-                        if (_env.IsDevelopment())
-                        {
-                            options.RequireHttpsMetadata = false;
-                        }
-                    });
+                if (_env.IsDevelopment())
+                {
+                    options.RequireHttpsMetadata = false;
+                }
+            });
 
             services.AddSingleton<ISblCookieDecryptionService, SblCookieDecryptionService>();
             services.AddSingleton<ISigningCredentialsProvider, SigningCredentialsProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddSingleton<IOrganisationRepository, OrganisationRepository>();
-          
+
             string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
             if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
             {
@@ -155,7 +155,7 @@ namespace Altinn.Platform.Authentication
                 c.RoutePrefix = "authentication/swagger";
             });
 
-            app.UseRouting();           
+            app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
@@ -187,7 +187,7 @@ namespace Altinn.Platform.Authentication
                 if (string.IsNullOrEmpty(environmentKey))
                 {
                     return null;
-                }                
+                }
             }
 
             return environmentKey;
