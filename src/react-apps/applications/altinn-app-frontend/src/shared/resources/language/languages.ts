@@ -247,7 +247,7 @@ export const nb = () => (
     access_control: {
       about_header: 'Om tilgang',
       bankruptcy_estate: 'Konkursbo',
-      header: 'Administrer tilgangsstyring',
+      header: 'Tilgangsstyring',
       organisation: 'Virksomhet',
       party_type: 'Velg hvilke aktører som kan starte tjenesten. Velger du ingen, vil alle aktører kunne starte tjenesten.',
       party_type_header: 'Aktørkrav',
