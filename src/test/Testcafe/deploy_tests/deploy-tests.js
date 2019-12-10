@@ -24,13 +24,13 @@ fixture('Deploy of app to a test environment tests')
     t.ctx.ikkeTilgang = "Du har ikke tilgang til å legge ut tjenesten";
     t.ctx.leggerUtTjenesten = "Legger ut tjenesten i testmiljøet, det vil ta ca. 1 minutt.";
     await t
-      .resizeWindow(1536, 864)
+      .maximizeWindow()
   });
 
   test('Happy case; build and deploy an app after a change', async () => {
     await t
       .useRole(AutoTestUser)
-      .navigateTo(app.baseUrl + 'designer/ttd/autotestdeploy#/uieditor')
+      .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/uieditor')
       .click(designer.hentEndringer)
       .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok({ timeout: 180000 })
       .click(designer.omNavigationTab); //remove pop up
@@ -41,17 +41,18 @@ fixture('Deploy of app to a test environment tests')
     await t
       .expect(designer.delEndringer.exists).ok({ timeout: 180000 })
       .click(designer.delEndringer)
-      .expect(designer.commitMessageBox.exists).ok()
+      .expect(designer.commitMessageBox.exists).ok({ timeout: 60000 })
       .click(designer.commitMessageBox)
       .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
-      .expect(designer.validerEndringer.exists).ok()
+      .expect(designer.validerEndringer.exists).ok({ timeout: 60000 })
       .click(designer.validerEndringer)
-      .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 10000 })
+      .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 180000 })
       .click(designer.delEndringerBlueButton)
       .expect(designer.ingenEndringer.exists).ok()
       .click(designer.deployNavigationTab) 
       .click(designer.deployNavigationTab) //click twice to remove git push success pop-up
-      .click(designer.deployVersionDropDown);
+      .click(designer.deployVersionDropDown)
+      .expect(designer.deployVersionOptions.visible).ok();
 
     var lastBuildVersion = await designer.deployVersionOptions.child(0).innerText; //first element of the dropdown list
     lastBuildVersion = lastBuildVersion.split(" ");
@@ -69,34 +70,37 @@ fixture('Deploy of app to a test environment tests')
     
     await t
       .click(designer.deployVersionDropDown)
-      .expect(designer.deployVersionDropDown.child(0).innerText).contains(newBuildVersion.toString(),{timeout: 180000})
+      .expect(designer.deployVersionDropDown.child(0).innerText).contains(newBuildVersion.toString(),{timeout: 300000})
       .expect(designer.deployVersionOptions.child().count).eql(nAvailableVersions + 1)
       .click (designer.deployVersionOptions.child(0))
       .click(designer.deployButton)
       .expect(designer.deployConfirm.visible).ok()
       .click(designer.deployConfirm)
       .expect(designer.deployStatus.visible).ok({timeout: 60000})
-      .expect(designer.at21DeployTable.innerText).contains(newBuildVersion.toString(),{timeout: 180000}); //deploy succeeded
+      .expect(designer.at21DeployTable.innerText).contains(newBuildVersion.toString(),{timeout: 300000}); //deploy succeeded
 });
 
 test('App cannot build due to compilation error', async () => {
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/ttd/CompileError#/uieditor')    
+    .navigateTo(app.baseUrl + 'designer/ttd/compileerror1219#/uieditor')    
     .click(designer.hentEndringer)
-    .expect(designer.ingenEndringer.exists).ok({ timeout: 120000 })
-    .click(designer.testeNavigationTab) //click twice to remove pop up from "del"
-    .click(designer.testeNavigationTab)
-    .hover(designer.leftDrawerMenu)
-    .click(designer.testeLeftMenuItems[1])
-    .expect(designer.deployButton.getAttribute("disabled")).notOk()
-    .expect(Selector("h2").withText(t.ctx.noCompile).exists).ok()
+    .expect(designer.ingenEndringer.exists).ok({timeout: 120000})
+    .click(designer.deployNavigationTab) //click twice to remove pop up from "del"
+    .click(designer.deployNavigationTab)
+    .typeText(designer.versionNumber, '0.0.1')
+    .typeText(designer.versionDescription, "Testcafe compilation error build", {replace: true})
+    .click(designer.buildButton)
+    .expect(designer.buildButton.exists).ok({timeout: 120000})
+    .click(designer.deployVersionDropDown)
+    .expect(designer.noDeployVersionAvailable.visible).ok();
+
 });
 
-test('App cannot be deployed due to local changes', async () => {
+test('App cannot be built due to uncommited local changes', async () => {
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/ttd/autotestdeploy#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok({ timeout: 120000 })
@@ -105,62 +109,20 @@ test('App cannot be deployed due to local changes', async () => {
   await t.eval(() => location.reload(true))
   await t
     .expect(designer.delEndringer.exists).ok({ timeout: 120000 })
-    .click(designer.testeNavigationTab)
-    .hover(designer.leftDrawerMenu)
-    .click(designer.testeLeftMenuItems[1])
-    .expect(designer.deployButton.getAttribute("disabled")).notOk()
-    .expect((Selector("h2").withText(t.ctx.localChanges)).exists).ok()
-    .click(designer.delEndringer)
-    .click(designer.commitMessageBox)
-    .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
-    .expect(designer.validerEndringer.exists).ok()
-    .click(designer.validerEndringer)
-    .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 120000 })
-    .click(designer.delEndringerBlueButton)
-  await t.eval(() => location.reload(true));
-  await t
-    .expect((Selector("h2").withText(t.ctx.klarForDeploy)).exists).ok({ timeout: 120000 })
+    .click(designer.deployNavigationTab)
+    .expect(designer.buildButton.exists).notOk()
 });
 
 test('User does not have write access to app, and cannot deploy', async () => {
   await t
     .useRole(NoDeployUser)
-    .click(dash.serviceSearch)
-    .typeText(dash.serviceSearch, "manualDeployTest") // the noAccessUser login does not have access to manualDeployTest
-    .click(Selector('div > button > div').withText('manualDeployTest')) //click to open the service
-    .expect(designer.omTjenesteNavn.visible).ok()
-    .click(designer.lageNavigationTab)
-    .click(designer.testeNavigationTab)
-    .hover(designer.leftDrawerMenu)
-    .click(designer.testeLeftMenuItems[1])
-    .expect(Selector("h2").withText(t.ctx.ikkeTilgang).visible).ok()
-});
-
-test('Clone modal functionality', async () => {
-  await t
-    .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/ttd/autotestdeploy#/aboutservice')
-    .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
-    .hover(designer.cloneButton)
-    .click(designer.cloneButton)
-    .expect(designer.readMoreAltinnDocs.exists).ok()
-    .expect(designer.copyUrlRepoButton.exists).ok()
-    .click(designer.copyUrlRepoButton)
-});
-
-test('Negative tests for building an app', async () => {
-  await t
-    .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/AutoTest/autotestdeploy#/deploy')
-})
-
-test('Validation of missing datamodel in clone modal', async () => {
-  await t
-    .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/AutoTest/withoutdatamodel#/uieditor')
-    .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
-    .hover(designer.cloneButton)
-    .click(designer.cloneButton)
-    .expect(designer.dataModellLink.exists).ok()
-    .click(designer.dataModellLink)
+    .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/aboutservice')
+    .click(designer.deployNavigationTab)
+    .expect(designer.deployVersionDropDown.visible).ok()
+    .click(designer.deployVersionDropDown)
+    .click(designer.deployVersionOptions.child(0))
+    .click(designer.deployButton)
+    .expect(designer.deployConfirm.visible).ok()
+    .click(designer.deployConfirm)
+    .expect(Selector('div').withText('Teknisk feilkode 403').visible).ok({timeout: 60000});
 });

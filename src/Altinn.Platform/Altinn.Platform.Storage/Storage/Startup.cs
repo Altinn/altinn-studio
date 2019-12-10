@@ -50,11 +50,11 @@ namespace Altinn.Platform.Storage
         {
             services.AddControllers(config =>
             {
-                ////AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
-                ////    .AddAuthenticationSchemes(JwtCookieDefaults.AuthenticationScheme)
-                ////    .RequireAuthenticatedUser()
-                ////    .Build();
-                ////config.Filters.Add(new AuthorizeFilter(policy));
+                AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
+                    .AddAuthenticationSchemes(JwtCookieDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser()
+                    .Build();
+                config.Filters.Add(new AuthorizeFilter(policy));
             }).AddNewtonsoftJson();
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
@@ -62,26 +62,8 @@ namespace Altinn.Platform.Storage
             services.Configure<PepSettings>(Configuration.GetSection("PEPSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
-            GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
             SecurityKey key = new X509SecurityKey(cert);
-
-            services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
-                .AddJwtCookie(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = key,
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
-                        RequireExpirationTime = true,
-                        ValidateLifetime = true
-                    };
-                    options.Cookie.Domain = Configuration["GeneralSettings:HostName"];
-                    options.Cookie.Name = "AltinnStudioRuntime";
-                });
 
             services.AddAuthorization(options =>
             {
@@ -89,17 +71,24 @@ namespace Altinn.Platform.Storage
                 options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new AppAccessRequirement("write")));
             });
 
-            /*services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme);
+            GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
 
-            
+            services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                 {
                     options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
                     options.Cookie.Name = generalSettings.RuntimeCookieName;
                     options.Cookie.Domain = generalSettings.Hostname;
-
-                    // options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
-                });*/
+                    options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true
+                    };
+                });
 
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
@@ -122,27 +111,27 @@ namespace Altinn.Platform.Storage
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Platform Storage", Version = "v1" });
-                ////c.AddSecurityDefinition(JwtCookieDefaults.AuthenticationScheme, new OpenApiSecurityScheme
-                ////{
-                ////    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\". Remember to add \"Bearer\" to the input below before your token.",
-                ////    Name = "Authorization",
-                ////    In = ParameterLocation.Header,
-                ////    Type = SecuritySchemeType.ApiKey,
-                ////});
-                ////c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                ////{
-                ////    {
-                ////        new OpenApiSecurityScheme
-                ////        {
-                ////            Reference = new OpenApiReference
-                ////            {
-                ////                Id = JwtCookieDefaults.AuthenticationScheme,
-                ////                Type = ReferenceType.SecurityScheme
-                ////            }
-                ////        },
-                ////        new string[] { }
-                ////    }
-                ////});
+                c.AddSecurityDefinition(JwtCookieDefaults.AuthenticationScheme, new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\". Remember to add \"Bearer\" to the input below before your token.",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Id = JwtCookieDefaults.AuthenticationScheme,
+                                Type = ReferenceType.SecurityScheme
+                            }
+                        },
+                        new string[] { }
+                    }
+                });
                 try
                 {
                     c.IncludeXmlComments(GetXmlCommentsPathForControllers());

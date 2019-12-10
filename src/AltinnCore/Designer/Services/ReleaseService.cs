@@ -27,7 +27,7 @@ namespace AltinnCore.Designer.Services
     public class ReleaseService : IReleaseService
     {
         private readonly ReleaseRepository _releaseRepository;
-        private readonly IAzureDevOpsBuildService _azureDevOpsBuildService;
+        private readonly IAzureDevOpsBuildClient _azureDevOpsBuildClient;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
         private readonly string _org;
@@ -38,17 +38,17 @@ namespace AltinnCore.Designer.Services
         /// </summary>
         /// <param name="releaseRepository">Document db repository</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-        /// <param name="azureDevOpsBuildService">IAzureDevOpsBuildService</param>
+        /// <param name="azureDevOpsBuildClient">IAzureDevOpsBuildClient</param>
         /// <param name="azureDevOpsOptions">IOptionsMonitor of Type AzureDevOpsSettings</param>
         public ReleaseService(
             ReleaseRepository releaseRepository,
             IHttpContextAccessor httpContextAccessor,
-            IAzureDevOpsBuildService azureDevOpsBuildService,
+            IAzureDevOpsBuildClient azureDevOpsBuildClient,
             IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions)
         {
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _releaseRepository = releaseRepository;
-            _azureDevOpsBuildService = azureDevOpsBuildService;
+            _azureDevOpsBuildClient = azureDevOpsBuildClient;
             _httpContext = httpContextAccessor.HttpContext;
             _org = _httpContext.GetRouteValue("org")?.ToString();
             _app = _httpContext.GetRouteValue("app")?.ToString();
@@ -69,7 +69,7 @@ namespace AltinnCore.Designer.Services
                 TagName = release.TagName
             };
 
-            Build queuedBuild = await _azureDevOpsBuildService.QueueAsync(
+            Build queuedBuild = await _azureDevOpsBuildClient.QueueAsync(
                 queueBuildParameters,
                 _azureDevOpsSettings.BuildDefinitionId);
 

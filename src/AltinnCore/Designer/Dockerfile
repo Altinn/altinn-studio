@@ -5,8 +5,7 @@ RUN npm ci
 COPY /src/AltinnCore/Designer .
 RUN npm run gulp build
 
-#dotnet:3.0-sdk
-FROM mcr.microsoft.com/dotnet/core/sdk:3.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1-alpine AS build
 COPY /src/AltinnCore ./AltinnCore/
 COPY --from=generate-designer-js /wwwroot /AltinnCore/Designer/wwwroot
 
@@ -19,8 +18,7 @@ FROM altinn-studio-service-development:latest AS altinn-studio-service-developme
 # Altinn-Studio Dashboard
 FROM altinn-studio-dashboard:latest AS altinn-studio-dashboard
 
-#dotnet:3.0-aspnetcore-runtime
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-alpine AS final
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .

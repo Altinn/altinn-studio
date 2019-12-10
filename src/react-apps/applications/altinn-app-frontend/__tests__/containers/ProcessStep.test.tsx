@@ -154,7 +154,7 @@ describe('>>> containers/ProcessStep.tsx', () => {
 
   });
 
-  it('+++ should map unmappedValidations if there are any and create error report', () => {
+  it('+++ should map validations if there are any and create error report', () => {
     const createStore = configureStore();
     const newState = {
       language: {
@@ -198,6 +198,47 @@ describe('>>> containers/ProcessStep.tsx', () => {
         </Provider>
       </MemoryRouter>,
     );
-    expect(wrapper.find('.a-modal-header').first().prop('style')).toHaveProperty('backgroundColor', '#F9CAD3');
+    expect(wrapper.exists('#errorReport')).toBe(true);
+  });
+
+  it('+++ should hide error report when there are no validation errors', () => {
+    const createStore = configureStore();
+    const newState = {
+      language: {
+        language: {
+          form_filler: {
+            error_report_header: 'Mock error report',
+            placeholder_user: 'OLA PRIVATPERSON',
+          },
+        },
+      },
+      formValidations: {
+        validations: {},
+      },
+      profile: {
+        profile: null,
+      },
+      organisationMetaData: {
+        allOrgs: null,
+      },
+      applicationMetadata: {
+        applicationMetadata: null,
+      },
+      instanceData: {
+        instance: null,
+      },
+    };
+    mockStore = createStore(newState);
+    const wrapper = mount(
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <ProcessStep
+            header={mockHeader}
+            step={ProcessSteps.FormFilling}
+          />
+        </Provider>
+      </MemoryRouter>,
+    );
+    expect(wrapper.exists('#errorReport')).toBe(false);
   });
 });

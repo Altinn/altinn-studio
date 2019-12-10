@@ -1,4 +1,4 @@
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using System;
 using System.IO;
 using System.Net.Http;
@@ -78,10 +78,7 @@ namespace Altinn.Clients.PrefillClient
 
                 Instance instanceTemplate = new Instance()
                 {
-                    InstanceOwnerLookup = new InstanceOwnerLookup()
-                    {
-                        PersonNumber = personNumber,
-                    }
+                    InstanceOwner = new InstanceOwner { PersonNumber = personNumber}
                 };
 
                 MultipartFormDataContent content = new MultipartContentBuilder(instanceTemplate)

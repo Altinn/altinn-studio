@@ -6,7 +6,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
     /// <summary>
     /// Interface for communication with Azure DevOps
     /// </summary>
-    public interface IAzureDevOpsBuildService
+    public interface IAzureDevOpsBuildClient
     {
         /// <summary>
         /// Queues a build with a certain build definition id

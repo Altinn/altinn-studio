@@ -49,12 +49,13 @@ export const GenericComponent = (props: IGenericComponentProps) => {
     const dataModelField = props.dataModelBindings[key];
     FormDataActions.updateFormData(dataModelField, value, props.id);
     FormDynamicsActions.checkIfConditionalRulesShouldRun();
-    const component = layoutElement as ILayoutComponent;
-    if (component && component.triggerValidation) {
-      const { org, app, instanceId } = window as Window as IAltinnWindow;
-      const url = `${window.location.origin}/${org}/${app}/api/${instanceId}`;
-      ValidationActions.runSingleFieldValidation(url, dataModelField);
-    }
+      const component = layoutElement as ILayoutComponent;
+    // Disable single field validation, enable when supported server-side
+    // if (component && component.triggerValidation) {
+    //   const { org, app, instanceId } = window as Window as IAltinnWindow;
+    //   const url = `${window.location.origin}/${org}/${app}/instances/${instanceId}`;
+    //   ValidationActions.runSingleFieldValidation(url, dataModelField);
+    // }
     const dataModelElement = dataModel.find(
       (element) => element.dataBindingName === props.dataModelBindings[key],
     );

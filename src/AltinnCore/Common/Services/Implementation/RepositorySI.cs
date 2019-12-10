@@ -93,26 +93,17 @@ namespace AltinnCore.Common.Services.Implementation
 
             string appPath = orgPath + "/" + serviceMetadata.RepositoryName.AsFileName();
 
-            // Creates the directory for org?
-            if (!Directory.Exists(orgPath))
-            {
-                Directory.CreateDirectory(orgPath);
-            }
-
-            // Creates the directory for app?
-            if (!Directory.Exists(appPath))
-            {
-                Directory.CreateDirectory(appPath);
-            }
+            Directory.CreateDirectory(orgPath);
+            Directory.CreateDirectory(appPath);
 
             // Creates all the files
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.DeploymentLocation, _settings.GetDeploymentFolderName());
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());
-            CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.IntegrationTestsLocation, _settings.GetIntegrationTestsFolderName());
+
+            // CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.IntegrationTestsLocation, _settings.GetIntegrationTestsFolderName());
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.GitIgnoreFileName);
             UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
-
             return true;
         }
 
@@ -150,9 +141,6 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         Id = "ref-data-as-pdf",
                         AllowedContentTypes = new List<string>() { "application/pdf" },
-                        TaskId = "Task_1",
-                        MaxCount = 1,
-                        MinCount = 0,
                     }
                 },
                 PartyTypesAllowed = new PartyTypesAllowed()
