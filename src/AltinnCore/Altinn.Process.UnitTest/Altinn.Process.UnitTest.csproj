@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{A581FE98-39A1-45DF-B1DE-AFDAC4A165C3}</ProjectGuid>
   </PropertyGroup>

@@ -24,7 +24,6 @@ services:
       - PlatformSettings:ApiProfileEndpoint=https://platform.at21.altinn.cloud/profile/api/v1/
       - PlatformSettings:ApiAuthenticationEndpoint=https://platform.at21.altinn.cloud/authentication/api/v1/
       - GeneralSettings:LanguageFilesLocation=Languages/
-      - GeneralSettings:RuntimeMode=ServiceContainer/
     ports:
       - "5060:5060"
     depends_on:
