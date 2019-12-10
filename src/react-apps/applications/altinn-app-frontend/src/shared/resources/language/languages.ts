@@ -160,7 +160,7 @@ export const nb = () => (
       service_logic_edit_dynamics: 'Rediger dynamikk',
       service_logic_edit_validations: 'Rediger valideringer',
       service_logic_icon_aria_label: 'Logikkknapp',
-      service_logic_icon_title: 'Logikkikon',
+      service_logic_icon_title: 'Logikk',
       service_logic_validations: 'Valideringer',
       toolbar_add_container: 'Legg til container',
       toolbar_component_search: 'Finn komponent...',
