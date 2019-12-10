@@ -75,8 +75,15 @@ namespace Altinn.Common.PEP.Implementation
             {
                 return true;
             }
-
+                        
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
+
+            if (response?.Response == null)
+            {
+                _logger.LogInformation($"// Altinn PEP // PDPAppSI // PDP decision response received was empty. " +
+                    $"Request sent to platform authorization: {JsonConvert.SerializeObject(xacmlJsonRequest)}");
+            }
+
             return DecisionHelper.ValidateResponse(response.Response, user);
         }
     }
