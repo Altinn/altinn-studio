@@ -26,8 +26,8 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JwtCookieOptions _cookieOptions;
         private readonly HttpClient _client;
+        private readonly AppSettings _settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceAppSI"/> class.
@@ -37,15 +37,16 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="cookieOptions">The cookie options </param>
         /// <param name="httpClientAccessor">The Http client accessor </param>
+        /// <param name="settings">The application settings.</param>
         public InstanceAppSI(
             ILogger<InstanceAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            IOptions<JwtCookieOptions> cookieOptions,
-            IHttpClientAccessor httpClientAccessor)
+            IHttpClientAccessor httpClientAccessor,
+            IOptionsMonitor<AppSettings> settings)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
-            _cookieOptions = cookieOptions.Value;
+            _settings = settings.CurrentValue;
             _client = httpClientAccessor.StorageClient;
         }
 
@@ -55,7 +56,7 @@ namespace Altinn.App.Services.Implementation
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
 
             string apiUrl = $"instances/{instanceIdentifier}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);
@@ -77,7 +78,7 @@ namespace Altinn.App.Services.Implementation
         public async Task<List<Instance>> GetInstances(int instanceOwnerPartyId)
         {    
             string apiUrl = $"instances/{instanceOwnerPartyId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);
@@ -103,7 +104,7 @@ namespace Altinn.App.Services.Implementation
         public async Task<Instance> UpdateInstance(Instance instance)
         {
             string apiUrl = $"instances/{instance.Id}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             StringContent httpContent = new StringContent(instance.ToString(), Encoding.UTF8, "application/json");
@@ -126,7 +127,7 @@ namespace Altinn.App.Services.Implementation
         public async Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
         {
             string apiUrl = $"instances?appId={org}/{app}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             StringContent content = instanceTemplate.AsJson();
