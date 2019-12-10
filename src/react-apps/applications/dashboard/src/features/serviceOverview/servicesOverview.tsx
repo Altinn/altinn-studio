@@ -188,7 +188,7 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
   public render() {
     const { classes, services, currentUserName } = this.props;
     const altinnWindow: Window = window;
-    const knownIssuesUrl = `${altinnWindow.location.origin}#/knownissues`;
+    const knownIssuesUrl = `${altinnWindow.location.origin}#/known-issues`;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
