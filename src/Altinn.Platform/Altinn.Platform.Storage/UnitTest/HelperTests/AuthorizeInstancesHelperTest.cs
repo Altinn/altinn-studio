@@ -1,5 +1,6 @@
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Constants;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using System;
@@ -14,12 +15,18 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
 {
     public class AuthorizeInstancesHelperTest
     {
+        private readonly IPDP _pdp;
         private const string org = "Altinn";
         private const string app = "App";
         private const string partyId = "1000";
         private const string urnName = "urn:name";
         private const string urnAuthLv = "urn:altinn:authlevel";
         private const string urnAction = MatchAttributeIdentifiers.ActionId;
+
+        public AuthorizeInstancesHelperTest()
+        {
+
+        }
 
         /// <summary>
         /// Test case: Send attributes and creates multiple request out of it 
@@ -37,40 +44,15 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
 
             // Assert
             // Checks it has the right number of attributes in each category 
-            Assert.Equal(6, requestRoot.Request.MultiRequests.RequestReference.Count());
             Assert.Single(requestRoot.Request.AccessSubject);
             Assert.Equal(2, requestRoot.Request.Action.Count());
             Assert.Equal(3, requestRoot.Request.Resource.Count());
             Assert.Equal(5, requestRoot.Request.Resource.First().Attribute.Count());
-            // Check that it contains the correct information
-            // Subject
-            Assert.Equal(urnName, requestRoot.Request.AccessSubject[0].Attribute[0].AttributeId);
-            Assert.Equal("Ola", requestRoot.Request.AccessSubject[0].Attribute[0].Value);
-            Assert.Equal("string", requestRoot.Request.AccessSubject[0].Attribute[0].DataType);
-            Assert.Equal("org", requestRoot.Request.AccessSubject[0].Attribute[0].Issuer);
-            Assert.Equal(urnAuthLv, requestRoot.Request.AccessSubject[0].Attribute[1].AttributeId);
-            Assert.Equal("2", requestRoot.Request.AccessSubject[0].Attribute[1].Value);
-            Assert.Equal("string", requestRoot.Request.AccessSubject[0].Attribute[1].DataType);
-            Assert.Equal("org", requestRoot.Request.AccessSubject[0].Attribute[1].Issuer);
-            // Action
-            Assert.Equal(urnAction, requestRoot.Request.Action[0].Attribute[0].AttributeId);
-            Assert.Equal("read", requestRoot.Request.Action[0].Attribute[0].Value);
-            Assert.Equal("string", requestRoot.Request.Action[0].Attribute[0].DataType);
-            Assert.True(requestRoot.Request.Action[0].Attribute[0].IncludeInResult);
-            Assert.Equal(urnAction, requestRoot.Request.Action[1].Attribute[0].AttributeId);
-            Assert.Equal("write", requestRoot.Request.Action[1].Attribute[0].Value);
-            Assert.Equal("string", requestRoot.Request.Action[1].Attribute[0].DataType);
-            Assert.True(requestRoot.Request.Action[1].Attribute[0].IncludeInResult);
-            // Resource
-            Assert.Equal(AltinnXacmlUrns.InstanceId, requestRoot.Request.Resource[0].Attribute[0].AttributeId);
-            Assert.Equal("1000/1", requestRoot.Request.Resource[0].Attribute[0].Value);
-            Assert.True(requestRoot.Request.Resource[0].Attribute[0].IncludeInResult);
-            Assert.Equal(AltinnXacmlUrns.InstanceId, requestRoot.Request.Resource[1].Attribute[0].AttributeId);
-            Assert.Equal("1002/4", requestRoot.Request.Resource[1].Attribute[0].Value);
-            Assert.True(requestRoot.Request.Resource[1].Attribute[0].IncludeInResult);
-            Assert.Equal(AltinnXacmlUrns.InstanceId, requestRoot.Request.Resource[2].Attribute[0].AttributeId);
-            Assert.Equal("1000/7", requestRoot.Request.Resource[2].Attribute[0].Value);
-            Assert.True(requestRoot.Request.Resource[2].Attribute[0].IncludeInResult);
+            Assert.Equal(6, requestRoot.Request.MultiRequests.RequestReference.Count());
+            foreach (var refrenceId in requestRoot.Request.MultiRequests.RequestReference)
+            {
+                Assert.Equal(3, refrenceId.ReferenceId.Count());
+            }
         }
 
         /// <summary>
@@ -86,6 +68,12 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
 
             // Act & Assert 
             Assert.Throws<ArgumentNullException>(() => AuthorizeInstancesHelper.CreateXacmlJsonMultipleRequest(null, instances, actionTypes));
+        }
+
+        [Fact]
+        public void AuthorizeMesseageBoxInstances_TC01()
+        {
+
         }
 
         private ClaimsPrincipal CreateUserClaims()
