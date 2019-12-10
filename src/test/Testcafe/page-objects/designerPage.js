@@ -36,21 +36,14 @@ export default class DesignerPage {
     this.omLagringsNavn = Selector('#administrationInputReponame > div > div > input');
     this.omKommentarer = Selector('#administrationInputDescription > div > div > textarea');
     this.omLeftMenuItems = [
-      this.leftMenuList.withExactText('Om tjenesten'),
-      this.leftMenuList.withExactText('Roller og rettigheter'),
-      this.leftMenuList.withExactText('Produksjon'),
-      this.leftMenuList.withExactText('Versjonshistorikk'),
-      this.leftMenuList.withExactText('Om sluttbrukeren'),
-      this.leftMenuList.withExactText('Altinn.no')
+      this.leftMenuList.withExactText('Om appen')
     ];
 
     //"Lage" navigation tab selectors
     this.lageNavigationTab = Selector('div > a').withExactText('Lage');
     this.lageLeftMenuItems = [
       this.leftMenuList.withExactText('Datamodell'),
-      this.leftMenuList.withExactText('GUI'),
-      this.leftMenuList.withExactText('API'),
-      this.leftMenuList.withExactText('Kode'),
+      this.leftMenuList.withExactText('UI-Editor'),
       this.leftMenuList.withExactText('Tilgangsstyring')
     ];
     this.dataModelIFrame = Selector("#root > div > div > div:nth-child(2) > div > div > iframe");
@@ -95,8 +88,8 @@ export default class DesignerPage {
     ];
 
     //"Deploy" navigation tab selectors
-    this.deployNavigationTab = Selector('div > a').withExactText('Deploy');  
-    this.versionNumber = Selector('div > div').withAttribute('aria-label', 'Versjonsnummer'); 
+    this.deployNavigationTab = Selector('div > a').withExactText('Deploy');
+    this.versionNumber = Selector('div > div').withAttribute('aria-label', 'Versjonsnummer');
     this.versionDescription = Selector('div > textarea');
     this.buildButton = Selector('button').withExactText('Bygg versjon');
     this.latestBuilds = Selector('.MuiGrid-root').withText('Tidligere bygg av applikasjonen').parent(0).sibling(3);
@@ -169,14 +162,14 @@ export default class DesignerPage {
 
   async deleteUIComponentsMethod (t) {
     var addedUIComponents = await this.dragToArea.child('div').withAttribute('draggable','true');
-    var numberOfComponents = await addedUIComponents.count;      
-    if (numberOfComponents > 0 && !await addedUIComponents.withText('Tomt').exists) {      
+    var numberOfComponents = await addedUIComponents.count;
+    if (numberOfComponents > 0 && !await addedUIComponents.withText('Tomt').exists) {
         for (var i = 0; i < numberOfComponents; i++) {
           await t.hover(addedUIComponents.nth(i));
           await t.click(addedUIComponents.nth(i));
         }
         await t.hover(this.removeComponentsButton.parent('button'));
-        await t.click(this.removeComponentsButton.parent('button'));            
+        await t.click(this.removeComponentsButton.parent('button'));
     }
   }
 }

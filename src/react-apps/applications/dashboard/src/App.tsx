@@ -78,12 +78,12 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
                 </Grid>)}
             />
             <Route
-              path={'/cloneservice/:org/:serviceName'}
+              path={'/clone-app/:org/:serviceName'}
               exact={true}
               component={CloneService}
             />
             <Route
-              path={'/knownissues'}
+              path={'/known-issues'}
               exact={true}
               component={KnownIssues}
             />
