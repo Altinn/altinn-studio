@@ -22,7 +22,8 @@
       "launchUrl": "api/authentication/v1/debug",
       "applicationUrl": "http://localhost:5050",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5050"
       }
     }
   }
