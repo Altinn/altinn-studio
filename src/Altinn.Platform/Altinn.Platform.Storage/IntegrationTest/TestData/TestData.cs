@@ -9,6 +9,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// </summary>
     public class TestData
     {
+        private static string multiResponseGuid = "26133fb5-a9f2-45d4-90b1-f6d93ad40713";
         private static string instanceOwnerPartyId_1 = "50000000";
         private static string userId_1 = "20000000";
 
@@ -69,7 +70,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // Active instance of app 1
         private static readonly Instance Instance_1_1 = new Instance()
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = multiResponseGuid,
             AppId = AppId_1,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
@@ -141,7 +142,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // 1st instance of application 2
         private static readonly Instance Instance_2_1 = new Instance()
         {
-            Id = "26133fb5-a9f2-45d4-90b1-f6d93ad40713",
+            Id = multiResponseGuid,
             AppId = AppId_2,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T23:19:21.7920255Z"),
@@ -171,7 +172,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // 1st instance of application 3
         private static readonly Instance Instance_3_1 = new Instance()
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = multiResponseGuid,
             AppId = AppId_3,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T17:19:21.7920255Z"),
