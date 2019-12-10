@@ -9,7 +9,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Altinn.Platform.Storage.Dupicated.Clients
+namespace Altinn.Platform.Storage.IntegrationTest.Clients
 {
     /// <summary>
     /// Storage client methods.
@@ -31,6 +31,7 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
             _client = client;
             _hostName = hostName;
             _validToken = PrincipalUtil.GetToken(1);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
         }
 
         /// <summary>
@@ -64,7 +65,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
         {
             string requestUri = $"{_versionPrefix}/instances?org={org}&size={size}";
 
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = await _client.GetAsync(_hostName + requestUri);
 
             if (response.IsSuccessStatusCode)
@@ -89,7 +89,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
         {
             string requestUri = $"{_versionPrefix}/instances?appId={appId}";
 
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = await _client.PostAsync(_hostName + requestUri, new Instance()
             {
                 InstanceOwner = new InstanceOwner
@@ -118,7 +117,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
         {
             string requestUri = $"{_versionPrefix}/instances?appId={appId}";
 
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = await _client.PostAsync(_hostName + requestUri, instanceTemplate.AsJson());
             if (response.IsSuccessStatusCode)
             {
@@ -163,7 +161,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
                 requestUri += $"&from={from}&to={to}";
             }
 
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = await _client.GetAsync(_hostName + requestUri);
 
             if (response.IsSuccessStatusCode)
@@ -184,7 +181,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
         public async Task<string> PostInstanceEvent(InstanceEvent instanceEvent)
         {
             string requestUri = $"{_versionPrefix}/instances/{instanceEvent.InstanceId}/events";
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = await _client.PostAsync(_hostName + requestUri, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
 
             if (response.IsSuccessStatusCode)
@@ -205,7 +201,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
         {
             string requestUri = $"{_versionPrefix}/instances/{instanceId}?hard";
 
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = await _client.DeleteAsync(requestUri);
 
             if (response.IsSuccessStatusCode)
@@ -224,7 +219,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
         public async Task<bool> DeleteInstanceEvents(string instanceId)
         {
             string requestUri = $"{_versionPrefix}/instances/{instanceId}/events";
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = await _client.DeleteAsync(requestUri);
 
             if (response.IsSuccessStatusCode)
@@ -250,7 +244,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
             fileStreamContent.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
 
             await fileStreamContent.LoadIntoBufferAsync();
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = await _client.PostAsync(requestUri, fileStreamContent);
 
             return response;
@@ -269,7 +262,6 @@ namespace Altinn.Platform.Storage.Dupicated.Clients
             HttpContent fileStreamContent = new StreamContent(input);
             fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse($"{contentType}");
             fileStreamContent.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = await _client.PostAsync(requestUri, fileStreamContent);
 
             return response;

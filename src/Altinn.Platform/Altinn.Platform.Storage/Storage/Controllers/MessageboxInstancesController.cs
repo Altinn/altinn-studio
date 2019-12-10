@@ -95,7 +95,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">the instance guid</param>
         /// <param name="language"> language id en, nb, nn-NO"</param>
         /// <returns>list of instances</returns>
-        [Authorize(Policy = "InstanceRead")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> GetMessageBoxInstance(int instanceOwnerPartyId, Guid instanceGuid, [FromQuery] string language)
         {
@@ -131,7 +131,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">the instance owner id</param>
         /// <param name="instanceGuid">the instance guid</param>
         /// <returns>list of instances</returns>
-        [Authorize(Policy = "InstanceRead")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}/events")]
         public async Task<ActionResult> GetMessageBoxInstanceEvents(
             [FromRoute] int instanceOwnerPartyId,
@@ -163,7 +163,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">instance owner</param>
         /// <param name="instanceGuid">instance id</param>
         /// <returns>True if the instance was undeleted.</returns>
-        [Authorize(Policy = "InstanceWrite")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/undelete")]
         public async Task<ActionResult> Undelete(int instanceOwnerPartyId, Guid instanceGuid)
         {
@@ -191,7 +191,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else if (instance.Status.SoftDeleted.HasValue)
             {               
-                instance.LastChangedBy = User?.Identity?.Name;
+                instance.LastChangedBy = User.GetUserOrOrgId();
                 instance.LastChanged = DateTime.UtcNow;
                 instance.Status.SoftDeleted = null;
 
@@ -203,8 +203,9 @@ namespace Altinn.Platform.Storage.Controllers
                     InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
                     User = new PlatformUser
                     {
-                        UserId = 0, // update when authentication is turned on
-                        AuthenticationLevel = 0, // update when authentication is turned on
+                        UserId = User.GetUserIdAsInt(),
+                        AuthenticationLevel = User.GetAuthenticationLevel(),
+                        OrgId = User.GetOrg(),
                     }
                 };
 
@@ -231,7 +232,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="hard">if true is marked for hard delete.</param>
         /// <returns>true if instance was successfully deleted</returns>
         /// DELETE /instances/{instanceId}?instanceOwnerPartyId={instanceOwnerPartyId}?hard={bool}
-        [Authorize(Policy = "InstanceWrite")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerPartyId, bool hard)
         {
@@ -269,7 +270,7 @@ namespace Altinn.Platform.Storage.Controllers
                 instance.Status.SoftDeleted = now;
             }
 
-            instance.LastChangedBy = User.Identity.Name;
+            instance.LastChangedBy = User.GetUserOrOrgId();
             instance.LastChanged = now;
 
             InstanceEvent instanceEvent = new InstanceEvent
@@ -280,8 +281,9 @@ namespace Altinn.Platform.Storage.Controllers
                 InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
                 User = new PlatformUser
                 {
-                    UserId = 0, // update when authentication is turned on
-                    AuthenticationLevel = 0, // update when authentication is turned on
+                    UserId = User.GetUserIdAsInt(),
+                    AuthenticationLevel = User.GetAuthenticationLevel(),
+                    OrgId = User.GetOrg(),
                 },
             };
 

@@ -54,27 +54,6 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Gets all instances for a given instance owner. Currently a maximum of 100 instances will be returned.
-        /// </summary>
-        /// <param name="instanceOwnerPartyId">the instance owner party id</param>
-        /// <returns>list of instances</returns>        
-        [Authorize(Policy = "InstanceRead")]
-        [HttpGet("{instanceOwnerPartyId:int}")]
-        [ProducesResponseType(typeof(List<Instance>), 200)]
-        public async Task<ActionResult> GetInstanceOwners(int instanceOwnerPartyId)
-        {
-            List<Instance> result = await _instanceRepository.GetInstancesOfInstanceOwner(instanceOwnerPartyId);
-            if (result == null)
-            {
-                return NotFound($"Did not find any instances for instanceOwnerPartyId={instanceOwnerPartyId}");
-            }
-
-            result.ForEach(i => AddSelfLinks(Request, i));
-
-            return Ok(result);
-        }
-
-        /// <summary>
         /// Get all instances that match the given query parameters. Parameters can be combined. Unknown or illegal parameter values will result in 400 - bad request.
         /// </summary>
         /// <param name="org">application owner</param>
@@ -93,7 +72,6 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="size">the page size</param>
         /// <returns>list of all instances for given instance owner</returns>
         /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
-        [Authorize(Policy = "InstanceRead")]
         [HttpGet]
         [ProducesResponseType(typeof(QueryResponse<Instance>), 200)]
         public async Task<ActionResult> GetInstances(
@@ -197,7 +175,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">instance owner id.</param>
         /// <param name="instanceGuid">the guid of the instance.</param>
         /// <returns>an instance.</returns>
-        [Authorize(Policy = "InstanceRead")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [ProducesResponseType(typeof(Instance), 200)]
         public async Task<ActionResult> Get(int instanceOwnerPartyId, Guid instanceGuid)
@@ -225,7 +203,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instance">instance</param>
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId} -->
-        [Authorize(Policy = "InstanceWrite")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPost]
         [Consumes("application/json")]
         [Produces("application/json")]
@@ -278,7 +256,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">instance guid</param>
         /// <param name="instance">instance with updated parameters</param>
         /// <returns>The updated instance</returns>
-        [Authorize(Policy = "InstanceWrite")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [ProducesResponseType(typeof(Instance), 200)]
         [ProducesResponseType(404)]
@@ -336,7 +314,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">instance owner party id</param>
         /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribut set to todays date and time.</param>
         /// <returns>(202) updated instance object or (204) no content if hard delete</returns>
-        [Authorize(Policy = "InstanceWrite")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [ProducesResponseType(typeof(Instance), 202)] // Accepted
         [ProducesResponseType(204)] // No Content
@@ -532,8 +510,9 @@ namespace Altinn.Platform.Storage.Controllers
                 InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
                 User = new PlatformUser
                 {
-                    UserId = 0, // update when authentication is turned on
-                    AuthenticationLevel = 0, // update when authentication is turned on
+                    UserId = User.GetUserIdAsInt(),
+                    AuthenticationLevel = User.GetAuthenticationLevel(),
+                    OrgId = User.GetOrg(),
                 },
                 
                 ProcessInfo = instance.Process,
@@ -564,7 +543,7 @@ namespace Altinn.Platform.Storage.Controllers
 
         private string GetUserId()
         {
-            return User?.Identity?.Name;
+            return User.GetUserOrOrgId();
         }
     }
 }

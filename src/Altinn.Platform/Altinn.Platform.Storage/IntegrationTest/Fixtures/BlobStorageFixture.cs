@@ -40,6 +40,10 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
             StartAndWaitForExit("stop");
         }
 
+        /// <summary>
+        /// Sends command to blob storage process. E.g. start/stop.
+        /// </summary>
+        /// <param name="arguments">Start or stop argument.</param>
         public void StartAndWaitForExit(string arguments)
         {
             process.StartInfo.Arguments = arguments;

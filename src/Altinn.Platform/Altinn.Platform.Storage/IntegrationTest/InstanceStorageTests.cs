@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Dupicated.Clients;
+using Altinn.Platform.Storage.IntegrationTest.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
@@ -157,7 +157,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             await _instanceClient.PostInstances(testAppId, testInstanceOwnerId);
 
-            string url = $"{versionPrefix}/instances/{testInstanceOwnerId}";
+            string url = $"{versionPrefix}/instances?org={testOrg}&appId={testAppId}&instanceOwner.partyId={testInstanceOwnerId}";
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = await _client.GetAsync(url);
 

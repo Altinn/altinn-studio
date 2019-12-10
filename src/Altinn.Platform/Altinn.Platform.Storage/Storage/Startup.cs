@@ -1,13 +1,12 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
-using Altinn.Common.PEP.Configuration;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Repository;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Authorization;
@@ -59,17 +58,6 @@ namespace Altinn.Platform.Storage
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
-            services.Configure<PepSettings>(Configuration.GetSection("PEPSettings"));
-            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
-
-            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
-            SecurityKey key = new X509SecurityKey(cert);
-
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new AppAccessRequirement("read")));
-                options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new AppAccessRequirement("write")));
-            });
 
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
 
@@ -90,15 +78,20 @@ namespace Altinn.Platform.Storage
                     };
                 });
 
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_READ, policy => policy.Requirements.Add(new AppAccessRequirement("read")));
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_WRITE, policy => policy.Requirements.Add(new AppAccessRequirement("write")));
+            });
+
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
-
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
-            services.AddSingleton<IPDP, PDPAppSI>();    
-  
+            services.AddSingleton<IPDP, PDPAppSI>();
+
             services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
 
             string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
@@ -183,10 +176,8 @@ namespace Altinn.Platform.Storage
 
             // app.UseHttpsRedirection();
             app.UseRouting();
-
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

@@ -11,8 +11,16 @@ using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 {
+    /// <summary>
+    /// Mock of PDP that implements simplified GetDecisionForRequest method.
+    /// </summary>
     public class PDPMock : IPDP
     {
+        /// <summary>
+        /// Validates an authorization request. UserId 1 or org will return a permit response.
+        /// </summary>
+        /// <param name="xacmlJsonRequest">The xacmlJsonRequest.</param>
+        /// <returns>XacmlJsonResponse permit or deny.</returns>
         public Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
             string jsonResponse = string.Empty;

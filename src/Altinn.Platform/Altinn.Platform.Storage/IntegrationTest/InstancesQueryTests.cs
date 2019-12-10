@@ -4,8 +4,8 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Altinn.Platform.Storage.Dupicated.Clients;
 using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.IntegrationTest.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
@@ -40,7 +40,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
             _validToken = PrincipalUtil.GetToken(1);
             LoadTestData();
             CreateTestApplication(_testAppId);
-
         }        
 
         /// <summary>
@@ -273,28 +272,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
             int totalHits = jsonObject["totalHits"].Value<int>();
 
             Assert.True(totalHits >= 79);
-        }
-
-        /// <summary>
-        ///  Checks that the GET returns an instance owners codes
-        /// </summary>
-        [Fact]
-        public async void GetInstancesForInstanceOwner()
-        {
-            HttpClient client = _fixture.CreateClient();
-
-            string url = $"{_versionPrefix}/instances/{_testInstanceOwnerId}";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
-
-            HttpResponseMessage response = await client.GetAsync(url);
-
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-
-            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
-
-            Assert.True(instances.Count >= 1);
         }
 
         /// <summary>
