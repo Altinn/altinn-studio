@@ -8,6 +8,7 @@ using Altinn.App.Common.Enums;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Altinn.App.AppLogic.Validation;
+using Altinn.App.AppLogic.Calculation;
 
 namespace Altinn.App.AppLogic
 {
@@ -15,16 +16,23 @@ namespace Altinn.App.AppLogic
     {
         private readonly ILogger<App> _logger;
         private readonly ValidationHandler _validationHandler;
+        private readonly CalculationHandler _calculationHandler;
+        private readonly InstantiationHandler _instantiationHandler;
 
         public App(
             IAppResources appResourcesService,
             ILogger<App> logger,
             IData dataService,
             IProcess processService,
-            IPDF pdfService) : base(appResourcesService, logger, dataService, processService, pdfService)
+            IPDF pdfService,
+            IProfile profileService,
+            IRegister registerService
+            ) : base(appResourcesService, logger, dataService, processService, pdfService)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler();
+            _calculationHandler = new CalculationHandler();
+            _instantiationHandler = new InstantiationHandler(profileService, registerService);
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -65,6 +73,28 @@ namespace Altinn.App.AppLogic
         public override async Task<bool> RunValidation(object instance, ICollection<ValidationResult> validationResults)
         {
             _validationHandler.Validate(instance, validationResults);
+            return validationResults.Count == 0; ;
+        }
+
+        /// <summary>
+        /// Run validation event to perform custom validations
+        /// </summary>
+        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
+        /// <returns>Value indicating if the form is valid or not</returns>
+        public override async Task RunCalculation(object instance)
+        {
+            _calculationHandler.Calculate(instance);
+        }
+
+        /// <summary>
+        /// Run validation event to perform custom validations
+        /// </summary>
+        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
+        /// <returns>Value indicating if the form is valid or not</returns>
+        public override async Task<bool> RunInstantiation(object instance, ICollection<ValidationResult> validationResults)
+        {
+            _instantiationHandler.RunInstantiationEvents(instance);
+            _instantiationHandler.RunInstantiationValidation(instance, validationResults);
             return validationResults.Count == 0; ;
         }
     }
