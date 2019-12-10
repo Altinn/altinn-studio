@@ -17,7 +17,11 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
         {
             string jsonResponse = string.Empty;
 
-            if (xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => (a.AttributeId == "urn:altinn:userid" && a.Value == "1")) ||
+            if (xacmlJsonRequest.Request.MultiRequests.RequestReference.Count > 0)
+            {
+                jsonResponse = File.ReadAllText("data/response_multi_permit.json");
+            }
+            else if (xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => (a.AttributeId == "urn:altinn:userid" && a.Value == "1")) ||
                 xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => a.AttributeId == "urn:altinn:org"))
             {
                 jsonResponse = File.ReadAllText("data/response_permit.json");
