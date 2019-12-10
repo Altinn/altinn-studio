@@ -37,7 +37,7 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
       `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
 
     fetchServicesActionDispatchers.fetchServices(
-      `${altinnWindow.location.origin}/designerapi/Repository/Search`);
+      `${altinnWindow.location.origin}/designerapi/Repository/UserRepos`);
 
     fetchServicesActionDispatchers.fetchCurrentUser(
       `${altinnWindow.location.origin}/designerapi/User/Current`);
