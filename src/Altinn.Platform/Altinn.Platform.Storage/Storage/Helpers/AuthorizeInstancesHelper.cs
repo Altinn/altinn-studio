@@ -30,24 +30,9 @@ namespace Altinn.Platform.Storage.Helpers
 
         public static XacmlJsonRequestRoot CreateXacmlJsonMultipleRequest(ClaimsPrincipal user, List<Instance> instances, List<string> actionTypes)
         {
-            if (user.Claims == null)
+            if (user == null)
             {
-                throw new ArgumentNullException("user.Claims");
-            }
-
-            if (instances == null)
-            {
-                throw new ArgumentNullException("instances");
-            }
-
-            if (actionTypes == null)
-            {
-                throw new ArgumentNullException("actionTypes");
-            }
-
-            if (actionTypes.Count <= 0)
-            {
-                throw new ArgumentException("No action type was defined");
+                throw new ArgumentNullException("User is null");
             }
 
             XacmlJsonRequest request = new XacmlJsonRequest();

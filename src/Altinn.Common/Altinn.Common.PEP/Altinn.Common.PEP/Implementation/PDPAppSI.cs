@@ -79,6 +79,12 @@ namespace Altinn.Common.PEP.Implementation
             }
 
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
+
+            if (response == null || response?.Response == null)
+            {
+                throw new ArgumentNullException("response");
+            }
+
             return DecisionHelper.ValidatePdpDecision(response.Response, user);
         }
     }

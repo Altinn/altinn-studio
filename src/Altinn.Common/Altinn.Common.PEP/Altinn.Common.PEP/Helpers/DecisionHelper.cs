@@ -72,6 +72,11 @@ namespace Altinn.Common.PEP.Helpers
         {
             List<XacmlJsonAttribute> attributes = new List<XacmlJsonAttribute>();
 
+            if (claims.Count() <= 0)
+            {
+                throw new ArgumentException("No user claims was defined.");
+            }
+
             // Mapping all claims on user to attributes
             foreach (Claim claim in claims)
             {
