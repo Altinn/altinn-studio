@@ -22,12 +22,19 @@ namespace Altinn.Platform.Storage
     public class Startup
     {
         /// <summary>
+        /// application insights key in keyvault
+        /// </summary>
+        public static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Storage";
+
+        private readonly IWebHostEnvironment _env;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
-        /// <param name="configuration">the configuration for the database</param>
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            _env = env;
         }
 
         /// <summary>
@@ -70,6 +77,11 @@ namespace Altinn.Platform.Storage
                         RequireExpirationTime = true,
                         ValidateLifetime = true
                     };
+
+                    if (_env.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
                 });
 
             services.AddSingleton<IDataRepository, DataRepository>();

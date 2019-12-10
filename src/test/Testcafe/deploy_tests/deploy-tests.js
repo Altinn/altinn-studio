@@ -30,12 +30,12 @@ fixture('Deploy of app to a test environment tests')
   test('Happy case; build and deploy an app after a change', async () => {
     await t
       .useRole(AutoTestUser)
-      .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/uieditor')
+      .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/ui-editor')
       .click(designer.hentEndringer)
       .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok({ timeout: 180000 })
       .click(designer.omNavigationTab); //remove pop up
     await designer.deleteUIComponentsMethod(t);
-    await t   
+    await t
       .dragToElement(designer.inputComponent, designer.dragToArea);
     await t.eval(() => location.reload(true));
     await t
@@ -49,7 +49,7 @@ fixture('Deploy of app to a test environment tests')
       .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 180000 })
       .click(designer.delEndringerBlueButton)
       .expect(designer.ingenEndringer.exists).ok()
-      .click(designer.deployNavigationTab) 
+      .click(designer.deployNavigationTab)
       .click(designer.deployNavigationTab) //click twice to remove git push success pop-up
       .click(designer.deployVersionDropDown)
       .expect(designer.deployVersionOptions.visible).ok();
@@ -67,7 +67,7 @@ fixture('Deploy of app to a test environment tests')
       .typeText(designer.versionNumber, newBuildVersion.toString())
       .typeText(designer.versionDescription, "Autotest build " + dateTime.toString(), {replace: true})
       .click(designer.buildButton)
-    
+
     await t
       .click(designer.deployVersionDropDown)
       .expect(designer.deployVersionDropDown.child(0).innerText).contains(newBuildVersion.toString(),{timeout: 300000})
@@ -83,7 +83,7 @@ fixture('Deploy of app to a test environment tests')
 test('App cannot build due to compilation error', async () => {
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/ttd/compileerror1219#/uieditor')    
+    .navigateTo(app.baseUrl + 'designer/ttd/compileerror1219#/ui-editor')
     .click(designer.hentEndringer)
     .expect(designer.ingenEndringer.exists).ok({timeout: 120000})
     .click(designer.deployNavigationTab) //click twice to remove pop up from "del"
@@ -100,7 +100,7 @@ test('App cannot build due to compilation error', async () => {
 test('App cannot be built due to uncommited local changes', async () => {
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/about')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok({ timeout: 120000 })
@@ -116,7 +116,7 @@ test('App cannot be built due to uncommited local changes', async () => {
 test('User does not have write access to app, and cannot deploy', async () => {
   await t
     .useRole(NoDeployUser)
-    .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/about')
     .click(designer.deployNavigationTab)
     .expect(designer.deployVersionDropDown.visible).ok()
     .click(designer.deployVersionDropDown)

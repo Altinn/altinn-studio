@@ -21,7 +21,7 @@ fixture('GUI service designer tests')
 
 test('Drag and drop test', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/ui-editor')
     .expect(designer.inputComponent).ok()
     .dragToElement(designer.inputComponent, designer.dragToArea)
     .dragToElement(designer.addressComponent, designer.dragToArea)
@@ -30,7 +30,7 @@ test('Drag and drop test', async () => {
 
 test('Add one of each component to the designer using keyboard', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/about')
     .click(designer.lageNavigationTab)
     .expect(designer.inputComponent.visible).ok()
     .click(designer.inputComponent)
@@ -46,13 +46,13 @@ test('Add one of each component to the designer using keyboard', async () => {
     .pressKey('tab')
     .pressKey('enter') //date
     .pressKey('tab')
-    .pressKey('enter') //submit       
+    .pressKey('enter') //submit
   await designer.deleteUIComponentsMethod(t);
 });
 
 test('Sync a service with master', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/about')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
   await t.eval(() => location.reload(true));
@@ -77,7 +77,7 @@ test('About page items and editing', async () => {
   const randNumTwo = Math.floor(100 + Math.random() * 900);
   const randId = Math.floor(100000 + Math.random() * 900000);
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/ui-editor')
     .click(designer.omNavigationTab)
     .expect(designer.omTjenesteNavn.focused).notOk()
     .click(designer.omTjenesteNavn)
@@ -103,7 +103,7 @@ test('About page items and editing', async () => {
 
 test("Fill out Access control information on an app", async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/ui-editor')
     .click(designer.lageNavigationTab)
     .hover(designer.leftDrawerMenu)
     .click(designer.lageLeftMenuItems[4])
@@ -122,7 +122,7 @@ test("Fill out Access control information on an app", async () => {
 
 test("User cannot clone an app that does not have a data model", async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/ttd/cannotclone1219#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/ttd/cannotclone1219#/ui-editor')
     .expect(designer.cloneButton.visible).ok()
     .click(designer.cloneButton)
     .expect(designer.dataModelMissing.visible).ok()
@@ -134,7 +134,7 @@ test("User cannot clone an app that does not have a data model", async () => {
 
 test('Configure and delete rules', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/ttd/rulesservice1219#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/ttd/rulesservice1219#/ui-editor')
     .expect(designer.openserviceLogicmenu.exists).ok({ timeout: 5000 })
     .click(designer.openserviceLogicmenu)
     .expect(designer.connectRulesButton.exists).ok()
@@ -153,7 +153,7 @@ test('Configure and delete rules', async () => {
 
 test('Links in App Logic menu', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/ui-editor')
     .expect(designer.openserviceLogicmenu.exists).ok({ timeout: 5000 })
     .click(designer.openserviceLogicmenu)
     .expect(designer.editValidations.exists).ok()
@@ -163,7 +163,7 @@ test('Links in App Logic menu', async () => {
 
 test('Add and delete conditional rendering connections', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/ui-editor')
     .expect(designer.openserviceLogicmenu.exists).ok({ timeout: 5000 })
     .click(designer.openserviceLogicmenu)
     .expect(designer.connectConditionalRendering.exists).ok()
@@ -182,7 +182,7 @@ test('Add and delete conditional rendering connections', async () => {
 test('Clone modal functionality', async () => {
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/ttd/autotestdeploy#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/ttd/autotestdeploy#/about')
     .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
     .hover(designer.cloneButton)
     .click(designer.cloneButton)
@@ -195,7 +195,7 @@ test('Clone modal functionality', async () => {
 test('Validation of missing datamodel in clone modal', async () => {
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/AutoTest/withoutdatamodel#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/withoutdatamodel#/ui-editor')
     .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
     .hover(designer.cloneButton)
     .click(designer.cloneButton)
