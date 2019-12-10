@@ -91,7 +91,8 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<IList<Repository>> GetUserRepos() {
+        public async Task<IList<Repository>> GetUserRepos()
+        {
             IList<Repository> repos = new List<Repository>();
 
             HttpResponseMessage response = await _httpClient.GetAsync("user/repos");
