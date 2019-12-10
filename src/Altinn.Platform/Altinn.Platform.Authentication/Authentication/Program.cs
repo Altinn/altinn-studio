@@ -59,17 +59,7 @@ namespace Altinn.Platform.Authentication
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
 
-                IConfiguration stageOneConfig = config.Build();
-                KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
-                stageOneConfig.GetSection("kvSetting").Bind(keyVaultSettings);
-                if (!string.IsNullOrEmpty(keyVaultSettings.ClientId) &&
-                    !string.IsNullOrEmpty(keyVaultSettings.TenantId) &&
-                    !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
-                    !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
-                {
-                    Logger.Information("Configure key vault client");
-                    ConnectToKeyVaultAndSetApplicationInsigths(config);
-                }
+                ConnectToKeyVaultAndSetApplicationInsights(config);
             })
             .ConfigureLogging((hostingContext, logging) =>
             {
@@ -81,7 +71,7 @@ namespace Altinn.Platform.Authentication
             })
                 .UseStartup<Startup>();
 
-        private static void ConnectToKeyVaultAndSetApplicationInsigths(IConfigurationBuilder config)
+        private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
         {
             IConfiguration stageOneConfig = config.Build();
             KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
