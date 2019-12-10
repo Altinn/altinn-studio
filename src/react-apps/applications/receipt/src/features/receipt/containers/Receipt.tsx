@@ -12,9 +12,9 @@ import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationM
 import { getInstancePdf, mapInstanceAttachments } from '../../../../../shared/src/utils/attachmentsUtils';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
+import { nb } from '../../../resources/language';
 import { getInstanceMetaDataObject } from '../../../utils/receipt';
 import { altinnOrganisationsUrl, getApplicationMetadataUrl, getInstanceMetadataUrl, getPartyUrl, getUserUrl } from '../../../utils/urlHelper';
-import { nb } from '../../../resources/language';
 
 const styles = () => createStyles({
   body: {
