@@ -9,7 +9,7 @@ namespace AltinnCore.Common.Configuration
         /// Gets or sets the url for the API Profile endpoint
         /// The config value was needed for test purposes
         /// </summary>
-        public string ApiProfileEndpoint{ get; set; }
+        public string ApiProfileEndpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the url for the API Authentication endpoint
