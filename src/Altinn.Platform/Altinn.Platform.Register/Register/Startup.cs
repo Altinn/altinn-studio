@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using System.Reflection;
 using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Services.Implementation;
@@ -10,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Core;
 
 namespace Altinn.Platform.Register
 {
@@ -18,6 +18,20 @@ namespace Altinn.Platform.Register
     /// </summary>
     public class Startup
     {
+        /// <summary>
+        /// The key valt key for application insights.
+        /// </summary>
+        internal static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Register";
+
+        /// <summary>
+        /// The application insights key.
+        /// </summary>
+        internal static string ApplicationInsightsKey { get; set; }
+
+        private static readonly Logger _logger = new LoggerConfiguration()
+          .WriteTo.Console()
+          .CreateLogger();
+
         /// <summary>
         ///  Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
@@ -38,12 +52,21 @@ namespace Altinn.Platform.Register
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            _logger.Information("Startup // ConfigureServices");
+
             services.AddControllers();
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.AddSingleton<IOrganizations, OrganizationsWrapper>();
             services.AddSingleton<IPersons, PersonsWrapper>();
             services.AddSingleton<IParties, PartiesWrapper>();
+
+            if (!string.IsNullOrEmpty(ApplicationInsightsKey))
+            {
+                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+
+                _logger.Information($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
+            }
 
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
@@ -75,9 +98,12 @@ namespace Altinn.Platform.Register
         /// <param name="env">the hosting environment</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            _logger.Information("Startup // Configure");
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                _logger.Information("IsDevelopment");
             }
             else
             {
