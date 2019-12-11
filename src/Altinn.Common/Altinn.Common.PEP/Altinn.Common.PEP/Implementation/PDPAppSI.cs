@@ -78,7 +78,7 @@ namespace Altinn.Common.PEP.Implementation
 
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
 
-            if (response == null || response?.Response == null)
+            if (response?.Response == null)
             {
                 throw new ArgumentNullException("response");
             }

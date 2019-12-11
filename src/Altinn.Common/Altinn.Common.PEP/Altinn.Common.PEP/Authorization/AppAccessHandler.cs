@@ -65,7 +65,7 @@ namespace Altinn.Common.PEP.Authorization
 
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
-            if (response == null || response?.Response == null)
+            if (response?.Response == null)
             {
                 throw new ArgumentNullException("response");
             }
