@@ -91,11 +91,23 @@ namespace Altinn.App.AppLogic
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task<bool> RunInstantiation(object instance, ICollection<ValidationResult> validationResults)
+        public override async Task<ValidationResult> RunInstantiationValidation()
         {
-            _instantiationHandler.RunInstantiationEvents(instance);
-            _instantiationHandler.RunInstantiationValidation(instance, validationResults);
-            return validationResults.Count == 0; ;
+            return _instantiationHandler.RunInstantiationValidation();
+        }
+
+        /// <summary>
+        /// Is called to run custom instantiation events defined by app developer.
+        /// </summary>
+        /// <remarks>
+        /// Instantiation events include validation and data manipulation (custom prefill)
+        /// </remarks>
+        /// <param name="instance">The data to perform calculations on</param>
+        /// <param name="validationResults">Object containing any validation errors/warnings</param>
+        /// <returns>Task to indicate when calculation is completed</returns>
+        public override async Task RunDataCreation(object instance)
+        {
+            _instantiationHandler.DataCreation(instance);
         }
     }
 }

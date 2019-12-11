@@ -12,6 +12,7 @@ using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.App.Services.Models.Validation;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
@@ -268,6 +269,15 @@ namespace Altinn.App.Api.Controllers
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
                 return Forbid($"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}");
+            }
+
+            // Run custom app logic to validate instantiation
+            System.ComponentModel.DataAnnotations.ValidationResult validationResult = await _altinnApp.RunInstantiationValidation();
+            if (validationResult != null && !string.IsNullOrEmpty(validationResult.ErrorMessage))
+            {
+                // Todo. Figure out where to get this from
+                Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
+                return Forbid(ServiceTextHelper.GetServiceText(validationResult.ErrorMessage, serviceText, null, "nb"));
             }
 
             // use process controller to start process

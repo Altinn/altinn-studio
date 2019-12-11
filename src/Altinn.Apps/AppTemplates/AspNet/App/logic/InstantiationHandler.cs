@@ -26,11 +26,19 @@ namespace Altinn.App.AppLogic
         /// <summary>
         /// Run validations related to instantiation
         /// </summary>
+        /// <example>
+        /// if ([some condition])
+        /// {
+        ///     return new ValidationResult("[error message]");
+        /// }
+        /// return null;
+        /// </example>
         /// <param name="instance"></param>
         /// <param name="validationResults"></param>
-        public void RunInstantiationValidation(object instance, ICollection<ValidationResult> validationResults)
+        /// <returns>The validation result object (null if no errors) </returns>
+        public ValidationResult RunInstantiationValidation()
         {
-
+            return null;
         }
 
         /// <summary>
@@ -40,7 +48,7 @@ namespace Altinn.App.AppLogic
         /// For example custom prefill.
         /// </remarks>
         /// <param name="instance"></param>
-        public void RunInstantiationEvents(object instance)
+        public void DataCreation(object instance)
         {
 
         }
