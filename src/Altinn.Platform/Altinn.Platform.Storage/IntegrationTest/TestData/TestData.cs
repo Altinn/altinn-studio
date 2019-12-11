@@ -13,8 +13,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private static string instanceOwnerPartyId_1 = "50000000";
         private static string userId_1 = "20000000";
 
-        private static string org_1 = "TDD";
-        private static string org_2 = "SPF";
+        private static string org_1 = "tdd";
+        private static string org_2 = "spf";
 
         private static readonly string App_1 = "test-applikasjon-1";
         private static readonly string App_2 = "test-applikasjon-2";
@@ -204,7 +204,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 CurrentTask = new ProcessElementInfo
                 {
-                    ElementId = "FormFilling_1",
+                    ElementId = "Task_1",
                     Name = "FormFilling",
                 },
             };

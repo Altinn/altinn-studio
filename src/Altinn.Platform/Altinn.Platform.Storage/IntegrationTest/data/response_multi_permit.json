@@ -11,7 +11,6 @@
         {
           "id": "urn:altinn:obligation:authenticationLevel1",
           "attributeAssignment": [
-
             {
               "attributeId": "urn:altinn:obligation1-assignment1",
               "value": "2",
@@ -88,7 +87,6 @@
             }
           ]
         }
-
       ]
     }
   ]

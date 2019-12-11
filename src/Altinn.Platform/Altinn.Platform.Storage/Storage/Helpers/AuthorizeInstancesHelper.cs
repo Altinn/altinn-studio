@@ -83,7 +83,7 @@ namespace Altinn.Platform.Storage.Helpers
                 resourceCategory.Attribute = new List<XacmlJsonAttribute>();
 
                 string instanceId = instance.Id;
-                string task = instance.Process?.CurrentTask?.Name ?? string.Empty;
+                string task = instance.Process?.CurrentTask?.ElementId ?? string.Empty;
                 string instanceOwnerPartyId = instance.InstanceOwner.PartyId;
                 string org = instance.Org;
                 string app = instance.AppId.Split("/")[1];
