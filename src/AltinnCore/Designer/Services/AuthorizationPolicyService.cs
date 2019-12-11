@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.Designer.Infrastructure.Extensions;
 using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.Services.Models;
 using AltinnCore.Designer.TypedHttpClients.AltinnAuthorization;

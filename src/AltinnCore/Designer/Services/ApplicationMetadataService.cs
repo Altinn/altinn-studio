@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.Designer.Infrastructure.Extensions;
 using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.Services.Models;
 using AltinnCore.Designer.TypedHttpClients.AltinnStorage;
@@ -77,15 +79,13 @@ namespace AltinnCore.Designer.Services
         {
             string filePath = GetApplicationMetadataFilePath();
             GiteaFileContent file = await _giteaApiWrapper.GetFileAsync(_org, _app, filePath, _shortCommitId);
-            if (!string.IsNullOrEmpty(file.Content))
+            if (string.IsNullOrEmpty(file.Content))
             {
                 throw new NotFoundHttpRequestException($"There is no file in {filePath}.");
             }
 
             byte[] data = Convert.FromBase64String(file.Content);
-            string fileContent = Encoding.UTF8.GetString(data);
-
-            Application appMetadata = JsonConvert.DeserializeObject<Application>(fileContent);
+            Application appMetadata = data.Deserialize<Application>();
 
             return appMetadata;
         }
