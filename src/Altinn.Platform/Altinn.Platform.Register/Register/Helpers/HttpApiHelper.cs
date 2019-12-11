@@ -14,8 +14,10 @@ namespace Altinn.Platform.Register.Helpers
         /// <returns></returns>
         public static HttpClient GetApiClient(bool allowAutoRedirect = true)
         {
-            HttpClientHandler httpClientHandler = new HttpClientHandler();
-            httpClientHandler.AllowAutoRedirect = allowAutoRedirect;
+            HttpClientHandler httpClientHandler = new HttpClientHandler
+            {
+                AllowAutoRedirect = allowAutoRedirect
+            };
 
             HttpClient client = new HttpClient(httpClientHandler);
 

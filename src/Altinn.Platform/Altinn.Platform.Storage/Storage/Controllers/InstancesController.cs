@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Helpers;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -16,6 +18,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Controllers
 {
@@ -30,6 +33,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
+        private readonly IPDP _pdp;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -38,15 +42,18 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
         /// <param name="logger">the logger</param>
+        /// <param name="pdp">the policy desicion point.</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
-            ILogger<InstancesController> logger)
+            ILogger<InstancesController> logger,
+            IPDP pdp)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
+            _pdp = pdp;
             _logger = logger;
         }
 
@@ -198,7 +205,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instance">instance</param>
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId} -->
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [Authorize]
         [HttpPost]
         [Consumes("application/json")]
         [Produces("application/json")]
@@ -215,6 +222,23 @@ namespace Altinn.Platform.Storage.Controllers
             if (string.IsNullOrWhiteSpace(instance.InstanceOwner.PartyId))
             {
                 return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
+            }
+
+            // Checking that user is authorized to instantiate.
+            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instance.InstanceOwner.PartyId.ToString(), null);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+
+            if (response?.Response == null)
+            {
+                _logger.LogInformation($"// Instances Controller // Authorization of instantiation failed with request: {JsonConvert.SerializeObject(request)}.");
+                return Forbid();
+            }
+
+            bool authorized = DecisionHelper.ValidateResponse(response.Response, HttpContext.User);
+
+            if (!authorized)
+            {
+                return Forbid();
             }
 
             Instance storedInstance = new Instance();

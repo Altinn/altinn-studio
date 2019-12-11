@@ -18,14 +18,14 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <Version>2.1.0-alpha</Version>
+    <Version>2.2.0-alpha</Version>
     <Description>JWTCookieAuthentication is a package for usage of JWT token for authentication both as bearer token and inside cookie</Description>
     <PackageTags>altinn studio, authentication, jwt, JWTCookieAuthentication</PackageTags>
     <PackageId>JWTCookieAuthentication</PackageId>
     <Company>Altinn</Company>
     <Product>JWTCookieAuthentication</Product>
-    <AssemblyVersion>2.1.0.0</AssemblyVersion>
-    <FileVersion>2.1.0.0</FileVersion>
+    <AssemblyVersion>2.2.0.0</AssemblyVersion>
+    <FileVersion>2.2.0.0</FileVersion>
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject />

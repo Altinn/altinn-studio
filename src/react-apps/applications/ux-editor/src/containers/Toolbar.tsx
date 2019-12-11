@@ -79,9 +79,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       anchorElement: null,
       componentListOpen: true,
       componentListCloseAnimationDone: false,
-      textListOpen: true,
+      textListOpen: false,
       textListCloseAnimationDone: false,
-      advancedComponentListOpen: true,
+      advancedComponentListOpen: false,
       advancedComponentListCloseAnimationDone: false,
     };
     this.components = schemaComponents.map(this.mapComponentToToolbarElement);

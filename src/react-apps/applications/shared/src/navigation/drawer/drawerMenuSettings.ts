@@ -51,25 +51,13 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
       activeLeftMenuSelection: 'Om appen',
       iconClass: 'fa fa-info-circle',
     },
-    {
-      displayText: 'Roller og rettigheter',
-      navLink: '/rolesandrights',
-      activeLeftMenuSelection: 'Roller og rettigheter',
-      iconClass: 'fa fa-others',
-    },
-    {
-      displayText: 'Historikk',
-      navLink: '/versionhistory',
-      activeLeftMenuSelection: 'Versjonshistorikk',
-      iconClass: 'fa fa-deadline',
-    },
   ],
   create: [
     {
       displayText: 'Datamodell',
       navLink: '/datamodel',
       activeLeftMenuSelection: 'Datamodell',
-      iconClass: 'fa fa-info-circle',
+      iconClass: 'fa fa-archive',
     },
     {
       displayText: 'UI-Editor',
@@ -78,22 +66,10 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
       iconClass: 'fa fa-settings',
     },
     {
-      displayText: 'API',
-      navLink: '/api',
-      activeLeftMenuSelection: 'API',
-      iconClass: 'fa fa-info-circle',
-    },
-    {
-      displayText: 'Kode',
-      navLink: '/code',
-      activeLeftMenuSelection: 'Kode',
-      iconClass: 'fa fa-info-circle',
-    },
-    {
       displayText: 'Tilgangsstyring',
       navLink: '/accesscontrol',
       activeLeftMenuSelection: 'Tilgangsstyring',
-      iconClass: 'fa fa-info-circle',
+      iconClass: 'fa fa-keyhole',
     },
   ],
   language: [
@@ -101,13 +77,7 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
       displayText: 'Tekster',
       navLink: '/texts',
       activeLeftMenuSelection: 'Tekster',
-      iconClass: 'fa fa-settings',
-    },
-    {
-      displayText: 'Flere språk',
-      navLink: '/translate',
-      activeLeftMenuSelection: 'Flere språk',
-      iconClass: 'fa fa-settings',
+      iconClass: 'fa fa-write',
     },
   ],
 };
