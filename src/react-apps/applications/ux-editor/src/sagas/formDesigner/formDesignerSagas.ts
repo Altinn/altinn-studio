@@ -256,7 +256,7 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
   );
 }
 
-function* generateRepeatingGroupsSaga({ }: FormDesignerActions.IGenerateRepeatingGroupsAction): SagaIterator {
+function* generateRepeatingGroupsSaga(): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     const formFillerState: IFormFillerState = yield select(selectFormFiller);
