@@ -20,11 +20,23 @@ namespace Altinn.Platform.Profile
     public class Startup
     {
         /// <summary>
+        /// The key valt key for application insights.
+        /// </summary>
+        internal static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Profile";
+
+        /// <summary>
+        /// The application insights key.
+        /// </summary>
+        internal static string ApplicationInsightsKey { get; set; }
+
+        private readonly ILogger<Startup> _logger;
+
+        /// <summary>
         ///  Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
-        /// <param name="configuration">The configuration for the profile component</param>
-        public Startup(IConfiguration configuration)
+        public Startup(ILogger<Startup> logger, IConfiguration configuration)
         {
+            _logger = logger;
             Configuration = configuration;
         }
 
@@ -39,10 +51,19 @@ namespace Altinn.Platform.Profile
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            _logger.LogInformation("Startup // ConfigureServices");
+
             services.AddControllers();
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.AddSingleton(Configuration);
             services.AddSingleton<IUserProfiles, UserProfilesWrapper>();
+
+            if (!string.IsNullOrEmpty(ApplicationInsightsKey))
+            {
+                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+
+                _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
+            }
 
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
@@ -74,6 +95,8 @@ namespace Altinn.Platform.Profile
         /// <param name="env">the hosting environment</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            _logger.LogInformation($"Startup // Configure {env.ApplicationName}");
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
