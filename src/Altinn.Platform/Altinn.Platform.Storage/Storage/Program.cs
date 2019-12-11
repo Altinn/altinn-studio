@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using AltinnCore.Authentication.Constants;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
@@ -64,8 +65,9 @@ namespace Altinn.Platform.Storage
             {
                 logging.ClearProviders();
                 Serilog.ILogger logger = new LoggerConfiguration()
-                                .WriteTo.Console()
-                                .CreateLogger();
+                    .WriteTo.Console()
+                    .WriteTo.ApplicationInsights(TelemetryConfiguration.CreateDefault(), TelemetryConverter.Traces)
+                    .CreateLogger();
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             });
