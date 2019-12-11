@@ -20,9 +20,5 @@
     "eslint-plugin-react-hooks": "^1.7.0",
     "ini": "1.3.5",
     "lerna": "3.18.5"
-  },
-  "dependencies": {
-    "tslint-eslint-rules": "^5.4.0",
-    "tslint-react": "^4.1.0"
   }
 }
