@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.IntegrationTest.Mocks;
 using Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
@@ -19,6 +20,9 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 {
+    /// <summary>
+    /// Creates new instance of InstancesControllerTests.
+    /// </summary>
     [Collection("Sequential")]
     public class InstancesControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
@@ -27,6 +31,10 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         private readonly WebApplicationFactory<Startup> _factory;
         private readonly Mock<IInstanceRepository> _instanceRepository;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="factory">The web application factory.</param>
         public InstancesControllerTests(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
@@ -80,21 +88,22 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         }
 
         /// <summary>
-        /// Test case: User has to low authentication level. 
+        /// Test case: Response is deny. 
         /// Expected: Returns status forbidden.
         /// </summary>
         [Fact]
-        public async void Post_UserHasTooLowAuthLv_ReturnsStatusForbidden()
+        public async void Post_ReponseIsDeny_ReturnsStatusForbidden()
         {
             // Arrange
-            string appId = "1";
+            string appId = "test/testApp1";
             string requestUri = $"{BasePath}?appId={appId}";
 
             HttpClient client = GetTestClient(_instanceRepository.Object);
-            string token = PrincipalUtil.GetToken(1, 0);
+            string token = PrincipalUtil.GetToken(2);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            Instance instance = new Instance();
+            // Laste opp test instance.. 
+            Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1" }, Org = "test", AppId = "test/testApp1" };
 
             // Act
             HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
@@ -104,21 +113,22 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         }
 
         /// <summary>
-        /// Test case: Response is deny. 
+        /// Test case: User has to low authentication level. 
         /// Expected: Returns status forbidden.
         /// </summary>
         [Fact]
-        public async void Post_ReponseIsDeny_ReturnsStatusForbidden()
+        public async void Post_UserHasTooLowAuthLv_ReturnsStatusForbidden()
         {
             // Arrange
-            string appId = "1";
+            string appId = "test/testApp1";
             string requestUri = $"{BasePath}?appId={appId}";
 
             HttpClient client = GetTestClient(_instanceRepository.Object);
-            string token = PrincipalUtil.GetToken(2);
+            string token = PrincipalUtil.GetToken(1, 0);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            Instance instance = new Instance();
+            // Laste opp test instance.. 
+            Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1" }, Org = "test", AppId = "test/testApp1" };
 
             // Act
             HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
@@ -225,8 +235,12 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
         private HttpClient GetTestClient(IInstanceRepository instanceRepository)
         {
-            // No setup required for these services. They are not in use by the ApplicationController
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            Application testApp1 = new Application() { Id = "test/testApp1", Org = "test" };
+
+            applicationRepository.Setup(s => s.FindOne(It.Is<string>(s => s.Equals("test/testApp1")), It.IsAny<string>())).ReturnsAsync(testApp1);
+
+            // No setup required for these services. They are not in use by the ApplicationController
             Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
             Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
 

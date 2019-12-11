@@ -9,6 +9,7 @@ using Xunit;
 using System.Collections.Generic;
 using Authorization.Interface.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.UnitTest
 {
@@ -75,7 +76,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         /// A xacml request populated with the required attributes is returned
         /// </summary>
         [Fact]
-        public async Task ContextHanlder_TC02()
+        public async Task ContextHandler_TC02()
         {
             // Arrange
             string testCase = "AltinnApps0002";
@@ -110,7 +111,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         /// A xacml request populated with the required attributes is returned
         /// </summary>
         [Fact]
-        public async Task ContextHanlder_TC03()
+        public async Task ContextHandler_TC03()
         {
             // Arrange
             string testCase = "AltinnApps0003";
@@ -145,7 +146,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         /// A xacml request populated with the required attributes is returned
         /// </summary>
         [Fact]
-        public async Task ContextHanlder_TC04()
+        public async Task ContextHandler_TC04()
         {
             // Arrange
             string testCase = "AltinnApps0004";
@@ -178,7 +179,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         /// A xacml request populated with the required attributes is returned
         /// </summary>
         [Fact]
-        public async Task ContextHanlder_TC05()
+        public async Task ContextHandler_TC05()
         {
             // Arrange
             string testCase = "AltinnApps0004";
@@ -199,5 +200,43 @@ namespace Altinn.Platform.Authorization.UnitTest
             Assert.NotNull(expectedEnrichedRequest);
             AssertionUtil.AssertEqual(expectedEnrichedRequest, enrichedRequest);
         }
+        
+        /// <summary>
+        /// Scenario:
+        /// Tests if the xacml request is enriched with the required resource, subject attributes
+        /// Input:
+        /// Instance-id, user-id, party-id
+        /// Expected Result:
+        /// Xacml request is enriched with the missing attributes
+        /// Success Criteria:
+        /// A xacml request populated with the required attributes is returned
+        /// </summary>
+        [Fact]
+        public async Task ContextHandler_TC06()
+        {
+            // Arrange
+            string testCase = "AltinnApps0006";
+
+            XacmlContextRequest request = TestSetupUtil.CreateXacmlContextRequest(testCase);
+            XacmlContextRequest expectedEnrichedRequest = TestSetupUtil.GetEnrichedRequest(testCase);
+
+            // Act
+            Instance instance = TestSetupUtil.GetInstanceData("26133fb5-a9f2-45d4-90b1-f6d93ad40713.json");
+            List<Role> roles = TestSetupUtil.GetRoles(1, 1000);
+
+            _policyInformationRepositoryMock.Setup(p => p.GetInstance(It.Is<string>(s => s.Equals("1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713")))).ReturnsAsync(instance);
+            _rolesMock.Setup(p => p.GetDecisionPointRolesForUser(It.Is<int>(s => s.Equals(1)), It.Is<int>(p => p.Equals(1000)))).ReturnsAsync(roles);
+
+            XacmlContextRequest enrichedRequest = await _contextHandler.Enrich(request);
+
+            var a = JsonConvert.SerializeObject(enrichedRequest);
+            var b = JsonConvert.SerializeObject(expectedEnrichedRequest);
+
+            // Assert
+            Assert.NotNull(enrichedRequest);
+            Assert.NotNull(expectedEnrichedRequest);
+            AssertionUtil.AssertEqual(expectedEnrichedRequest, enrichedRequest);
+        }
+
     }
 }
