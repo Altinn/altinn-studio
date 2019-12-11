@@ -1,10 +1,8 @@
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
-using Altinn.Platform.Storage.Interface.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using Xunit;
 
@@ -25,7 +23,7 @@ namespace UnitTests
         public void CreateXacmlJsonRequest_TC01()
         {
             // Arrange & Act
-            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonRequest(org, app, CreateUserClaims(false), actionType, partyId, null);
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateDecisionRequest(org, app, CreateUserClaims(false), actionType, partyId, null);
             XacmlJsonRequest request = requestRoot.Request;
 
             // Assert
@@ -42,7 +40,7 @@ namespace UnitTests
         public void CreateXacmlJsonRequest_TC02()
         {
             // Arrange & Act
-            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonRequest(org, app, CreateUserClaims(true), actionType, partyId, null);
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateDecisionRequest(org, app, CreateUserClaims(true), actionType, partyId, null);
             XacmlJsonRequest request = requestRoot.Request;
 
             // Assert

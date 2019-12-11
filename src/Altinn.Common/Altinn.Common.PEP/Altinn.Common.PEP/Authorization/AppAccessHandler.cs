@@ -59,7 +59,7 @@ namespace Altinn.Common.PEP.Authorization
                 return;
             }
 
-            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
 
             _logger.LogInformation($"// Altinn PEP // AppAccessHandler // Request sent: {JsonConvert.SerializeObject(request)}");
 
