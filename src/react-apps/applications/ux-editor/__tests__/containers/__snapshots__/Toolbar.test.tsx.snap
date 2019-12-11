@@ -76,7 +76,7 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
         className="Connect(ToolbarItem)-listItemIcon-12"
       >
         <i
-          className="fa fa-expand-alt fa-rotate-90"
+          className="fa fa-expand-alt "
           style={
             Object {
               "color": "",
@@ -93,7 +93,7 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
       />
     </li>
     <div
-      className="MuiCollapse-container Connect(ToolbarClass)-collapsableContainer-4 MuiCollapse-entered"
+      className="MuiCollapse-container Connect(ToolbarClass)-collapsableContainer-4 MuiCollapse-hidden"
       style={
         Object {
           "minHeight": "0px",
@@ -127,7 +127,7 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
         className="Connect(ToolbarItem)-listItemIcon-12"
       >
         <i
-          className="fa fa-expand-alt fa-rotate-90"
+          className="fa fa-expand-alt "
           style={
             Object {
               "color": "",
@@ -144,7 +144,7 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
       />
     </li>
     <div
-      className="MuiCollapse-container Connect(ToolbarClass)-collapsableContainer-4 MuiCollapse-entered"
+      className="MuiCollapse-container Connect(ToolbarClass)-collapsableContainer-4 MuiCollapse-hidden"
       style={
         Object {
           "minHeight": "0px",
