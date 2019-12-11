@@ -17,6 +17,12 @@ namespace AltinnCore.Common.Services.Interfaces
         Task<User> GetCurrentUser();
 
         /// <summary>
+        /// List the repos that the authenticated user owns or has access to
+        /// </summary>
+        /// <returns>List of repos</returns>
+        Task<IList<Repository>> GetUserRepos();
+
+        /// <summary>
         /// Create repository for the org.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -68,7 +74,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// This method screen scrapes the user from the profile ui in GITEA.
         /// This was needed when GITEA changed their API policy in 1.5.2 and requiring
         /// only API calls with token. This is currently the only known way to get
-        /// info about the logged in user in GITEA. 
+        /// info about the logged in user in GITEA.
         /// </summary>
         /// <returns>Returns the logged in user</returns>
         Task<string> GetUserNameFromUI();
@@ -76,7 +82,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// This method generates a application key in GITEA with
         /// help of screen scraping the Application form in GITEA
-        /// This is the only  way (currently) to generate a APP key without involving the user in 
+        /// This is the only  way (currently) to generate a APP key without involving the user in
         /// </summary>
         /// <returns>A newly generated token</returns>
         Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null);

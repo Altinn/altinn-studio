@@ -141,7 +141,7 @@ class FormDesigner extends React.Component<
     this.state = {
       codeEditorOpen: false,
       codeEditorMode: null,
-      menuOpen: false,
+      menuOpen: true,
     };
   }
 

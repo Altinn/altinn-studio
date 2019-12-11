@@ -91,6 +91,20 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public async Task<IList<Repository>> GetUserRepos()
+        {
+            IList<Repository> repos = new List<Repository>();
+
+            HttpResponseMessage response = await _httpClient.GetAsync("user/repos");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                repos = await response.Content.ReadAsAsync<IList<Repository>>();
+            }
+
+            return repos;
+        }
+
+        /// <inheritdoc/>
         public async Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page)
         {
             User user = GetCurrentUser().Result;

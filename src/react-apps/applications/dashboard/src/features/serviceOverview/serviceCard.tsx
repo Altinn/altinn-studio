@@ -41,6 +41,10 @@ const styles = {
     fontSize: '35px',
     textAlign: 'right' as 'right',
   },
+  avatar: {
+    height: '28px',
+    width: '28px'
+  },
   textToRight: {
     textAlign: 'right' as 'right',
   },
@@ -68,7 +72,7 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
       window.location.assign(`/designer/${this.props.service.full_name}`);
     } else {
       // tslint:disable-next-line:max-line-length
-      window.location.assign(`/Home/Index#/cloneservice/${this.props.service.owner.login}/${this.props.service.name}`);
+      window.location.assign(`/Home/Index#/clone-app/${this.props.service.owner.login}/${this.props.service.name}`);
     }
 
   }
@@ -95,12 +99,7 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
                 </Typography>
               </Grid>
               <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
-                <i
-                  className={classNames(classes.iconStyling,
-                    { ['fa fa-corp']: service.owner.UserType === 2 },
-                    { ['fa fa-private']: service.owner.UserType !== 2 })}
-                  aria-hidden='true'
-                />
+                <img src={service.owner.avatar_url} title={(service.owner.full_name || service.owner.login)} alt="" className={classNames(classes.avatar)} />
               </Grid>
               <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
                 <i

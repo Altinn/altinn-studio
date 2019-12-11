@@ -119,54 +119,70 @@ namespace AltinnCore.Authentication.JwtCookie
                 }
 
                 JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
-
-                if (validator.CanReadToken(token))
+                if (!validator.CanReadToken(token))
                 {
-                    try
-                    {
-                        ClaimsPrincipal principal = validator.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
-                        JwtCookieValidatedContext jwtCookieValidatedContext = new JwtCookieValidatedContext(Context, Scheme, Options)
-                        {
-                            Principal = principal,
-                            SecurityToken = validatedToken
-                        };
-
-                        await Events.TokenValidated(jwtCookieValidatedContext);
-
-                        if (jwtCookieValidatedContext.Result != null)
-                        {
-                            return jwtCookieValidatedContext.Result;
-                        }
-
-                        jwtCookieValidatedContext.Success();
-                        return jwtCookieValidatedContext.Result;
-                    }
-                    catch (Exception ex)
-                    {
-                        JwtCookieFailedContext jwtCookieFailedContext = new JwtCookieFailedContext(Context, Scheme, Options)
-                        {
-                            Exception = ex
-                        };
-
-                        await Events.AuthenticationFailed(jwtCookieFailedContext);
-                        if (jwtCookieFailedContext.Result != null)
-                        {
-                            return jwtCookieFailedContext.Result;
-                        }
-
-                        return AuthenticateResult.Fail(jwtCookieFailedContext.Exception);
-                    }
+                    return AuthenticateResult.Fail("No SecurityTokenValidator available for token: " + token);
                 }
 
-                return AuthenticateResult.Fail("No SecurityTokenValidator available for token: " + token);
+                ClaimsPrincipal principal;
+                SecurityToken validatedToken;
+                try
+                {
+                    principal = validator.ValidateToken(token, validationParameters, out validatedToken);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogInformation("Failed to validate token.");
+
+                    // Refresh the configuration for exceptions that may be caused by key rollovers. The user can also request a refresh in the event.
+                    if (Options.RefreshOnIssuerKeyNotFound &&
+                        Options.ConfigurationManager != null &&
+                        ex is SecurityTokenSignatureKeyNotFoundException)
+                    {
+                        Options.ConfigurationManager.RequestRefresh();
+                    }
+
+                    JwtCookieFailedContext jwtCookieFailedContext = new JwtCookieFailedContext(Context, Scheme, Options)
+                    {
+                        Exception = ex
+                    };
+
+                    await Events.AuthenticationFailed(jwtCookieFailedContext);
+                    if (jwtCookieFailedContext.Result != null)
+                    {
+                        return jwtCookieFailedContext.Result;
+                    }
+
+                    return AuthenticateResult.Fail(jwtCookieFailedContext.Exception);
+                }
+
+                Logger.LogInformation("Successfully validated the token.");
+                JwtCookieValidatedContext jwtCookieValidatedContext = new JwtCookieValidatedContext(Context, Scheme, Options)
+                {
+                    Principal = principal,
+                    SecurityToken = validatedToken
+                };
+
+                await Events.TokenValidated(jwtCookieValidatedContext);
+
+                if (jwtCookieValidatedContext.Result != null)
+                {
+                    return jwtCookieValidatedContext.Result;
+                }
+
+                jwtCookieValidatedContext.Success();
+                return jwtCookieValidatedContext.Result;
+
             }
             catch (Exception ex)
             {
+                Logger.LogInformation("Exception occurred while processing message.");
                 JwtCookieFailedContext jwtCookieFailedContext = new JwtCookieFailedContext(Context, Scheme, Options)
                 {
                     Exception = ex
                 };
 
+                await Events.AuthenticationFailed(jwtCookieFailedContext);
                 if (jwtCookieFailedContext.Result != null)
                 {
                     return jwtCookieFailedContext.Result;

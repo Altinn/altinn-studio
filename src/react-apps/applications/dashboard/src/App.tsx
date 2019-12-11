@@ -41,7 +41,7 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
       `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
 
     fetchServicesActionDispatchers.fetchServices(
-      `${altinnWindow.location.origin}/designerapi/Repository/Search`);
+      `${altinnWindow.location.origin}/designerapi/Repository/UserRepos`);
 
     fetchServicesActionDispatchers.fetchOrganisations(
       `${altinnWindow.location.origin}/designerapi/Repository/Organizations`);
@@ -78,12 +78,12 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
                 </Grid>)}
             />
             <Route
-              path={'/cloneservice/:org/:serviceName'}
+              path={'/clone-app/:org/:serviceName'}
               exact={true}
               component={CloneService}
             />
             <Route
-              path={'/knownissues'}
+              path={'/known-issues'}
               exact={true}
               component={KnownIssues}
             />
