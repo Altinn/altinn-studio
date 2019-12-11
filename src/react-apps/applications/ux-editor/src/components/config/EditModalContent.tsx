@@ -2,14 +2,14 @@ import { Grid, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
-import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
+// import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
 import AltinnInputField from '../../../../shared/src/components/AltinnInputField';
 import AltinnRadio from '../../../../shared/src/components/AltinnRadio';
 import AltinnRadioGroup from '../../../../shared/src/components/AltinnRadioGroup';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
-import { AddressKeys, getTextResourceByAddressKey } from '../advanced/AddressComponent';
+// import { AddressKeys, getTextResourceByAddressKey } from '../advanced/AddressComponent';
 import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
 
 export const customInput = {
@@ -394,50 +394,50 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
         );
       }
 
-      case 'AddressComponent': {
-        return (
-          <Grid
-            container={true}
-            spacing={0}
-            direction={'column'}
-          >
-            <Grid item={true} xs={12}>
-              <AltinnCheckBox
-                checked={(this.state.component as IFormAddressComponent).simplified}
-                onChangeFunction={this.handleToggleAddressSimple}
-              />
-              {this.props.language.ux_editor.modal_configure_address_component_simplified}
-            </Grid>
-            {
-              renderSelectTextFromResources(
-                'modal_properties_label_helper',
-                this.handleTitleChange,
-                this.props.textResources,
-                this.props.language,
-                this.props.component.textResourceBindings.title,
-              )
-            }
+      // case 'AddressComponent': {
+      //   return (
+      //     <Grid
+      //       container={true}
+      //       spacing={0}
+      //       direction={'column'}
+      //     >
+      //       <Grid item={true} xs={12}>
+      //         <AltinnCheckBox
+      //           checked={(this.state.component as IFormAddressComponent).simplified}
+      //           onChangeFunction={this.handleToggleAddressSimple}
+      //         />
+      //         {this.props.language.ux_editor.modal_configure_address_component_simplified}
+      //       </Grid>
+      //       {
+      //         renderSelectTextFromResources(
+      //           'modal_properties_label_helper',
+      //           this.handleTitleChange,
+      //           this.props.textResources,
+      //           this.props.language,
+      //           this.props.component.textResourceBindings.title,
+      //         )
+      //       }
 
-            {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
-              const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
-              if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
-                return null;
-              }
-              return (
-                renderSelectDataModelBinding(
-                  this.props.component.dataModelBindings,
-                  this.handleDataModelChange,
-                  this.props.language,
-                  getTextResourceByAddressKey(value, this.props.language),
-                  value,
-                  value,
-                  index,
-                )
-              );
-            })}
-          </Grid >
-        );
-      }
+      //       {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
+      //         const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
+      //         if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
+      //           return null;
+      //         }
+      //         return (
+      //           renderSelectDataModelBinding(
+      //             this.props.component.dataModelBindings,
+      //             this.handleDataModelChange,
+      //             this.props.language,
+      //             getTextResourceByAddressKey(value, this.props.language),
+      //             value,
+      //             value,
+      //             index,
+      //           )
+      //         );
+      //       })}
+      //     </Grid >
+      //   );
+      // }
       case 'ThirdParty': {
         const [packageName, component] = this.props.component.textResourceBindings.title.split(' - ');
         if (!this.props.thirdPartyComponents || !this.props.thirdPartyComponents[packageName] ||
@@ -679,18 +679,18 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
     }
   }
 
-  public handleToggleAddressSimple = (event: object, checked: boolean) => {
-    this.setState({
-      component: {
-        ...this.state.component,
-        simplified: checked,
-      },
-    });
-    this.props.handleComponentUpdate({
-      ...this.props.component,
-      simplified: checked,
-    });
-  }
+  // public handleToggleAddressSimple = (event: object, checked: boolean) => {
+  //   this.setState({
+  //     component: {
+  //       ...this.state.component,
+  //       simplified: checked,
+  //     },
+  //   });
+  //   this.props.handleComponentUpdate({
+  //     ...this.props.component,
+  //     simplified: checked,
+  //   });
+  // }
 
   public renderTextResourceOptions = (): JSX.Element[] => {
     if (!this.props.textResources) {

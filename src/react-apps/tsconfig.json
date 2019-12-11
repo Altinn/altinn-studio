@@ -11,7 +11,7 @@
     "allowJs": true,
     "jsx": "react",
     "moduleResolution": "node",
-    "rootDir": "../",
+    "rootDir": "./",
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
@@ -19,7 +19,8 @@
     "noUnusedLocals": true
   },
   "include": [
-    "./applications/**/src/**/*", "utils/convertLangToJson.ts",
+    "**/*.ts",
+    "**/*.tsx",
   ],
   "exclude": [
     "node_modules",
@@ -28,6 +29,6 @@
     "acceptance-tests",
     "webpack",
     "jest",
-    "src/setupTests.ts"
+    "setupTests.ts"
   ],
 }

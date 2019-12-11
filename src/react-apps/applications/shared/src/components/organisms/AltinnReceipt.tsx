@@ -6,12 +6,11 @@ import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import classNames from 'classnames';
 import * as React from 'react';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import altinnTheme from '../../theme/altinnAppTheme';
 import { IAttachment } from '../../types/index.d';
 import AltinnAttachment from '../atoms/AltinnAttachment';
 import AltinnCollapsibleAttachments from '../molecules/AltinnCollapsibleAttachments';
-
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 export interface IReceiptComponentProps extends WithStyles<typeof styles> {
   attachments?: IAttachment[];
@@ -44,7 +43,6 @@ const styles = createStyles({
 });
 
 export function ReceiptComponent(props: IReceiptComponentProps) {
-
   const returnInstanceMetaDataGridRow = (name: string, prop: string, classes: any, index: number) => {
     return (
       <TableRow
@@ -60,7 +58,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
           }}
         >
           <Typography variant='body1'>
-          {name}:
+            {name}:
           </Typography>
         </TableCell>
         <TableCell
@@ -83,7 +81,11 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         <Typography variant='h2'>
           {props.title}
         </Typography>
-        <Table style={{ height: 'auto', width: 'auto' }} padding='none' className={props.classes.instanceMetaData}>
+        <Table
+          style={{ height: 'auto', width: 'auto' }}
+          padding='none'
+          className={props.classes.instanceMetaData}
+        >
           <TableBody>
             {Object.keys(props.instanceMetaDataObject).map((name, i) => (
               returnInstanceMetaDataGridRow(name, props.instanceMetaDataObject[name], props.classes, i)
@@ -99,7 +101,14 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         <Typography variant='body1' className={props.classes.paddingTop24}>
           {props.body}
         </Typography>
-        <Typography variant='h3' style={{ paddingTop: '4.1rem', paddingBottom: '0.5rem', fontWeight: 600 }}>
+        <Typography
+          variant='h3'
+          style={{
+            paddingTop: '4.1rem',
+            paddingBottom: '0.5rem',
+            fontWeight: 600,
+          }}
+        >
           {props.titleSubmitted}
         </Typography>
         <AltinnAttachment

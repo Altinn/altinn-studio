@@ -8,7 +8,7 @@ import { get } from '../../utils/networking';
 
 function* getCurrentStateSaga({ url }: WorkflowActions.IGetCurrentState): SagaIterator {
   try {
-    const result = yield call(get, url);
+    const result: any = yield call(get, url);
     yield call(WorkflowActionDispatcher.getCurrentStateFulfilled, result.state ? result.state : WorkflowSteps.Unknown);
   } catch (err) {
     yield call(WorkflowActionDispatcher.getCurrentStateRejected, err);
