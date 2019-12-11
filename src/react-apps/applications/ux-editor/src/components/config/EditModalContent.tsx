@@ -2,14 +2,14 @@ import { Grid, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
-// import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
+import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
 import AltinnInputField from '../../../../shared/src/components/AltinnInputField';
 import AltinnRadio from '../../../../shared/src/components/AltinnRadio';
 import AltinnRadioGroup from '../../../../shared/src/components/AltinnRadioGroup';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
-// import { AddressKeys, getTextResourceByAddressKey } from '../advanced/AddressComponent';
+import { AddressKeys, getTextResourceByAddressKey } from '../advanced/AddressComponent';
 import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
 
 export const customInput = {
@@ -189,6 +189,117 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
     const updatedComponent = { ...this.props.component as IFormCheckboxComponent | IFormRadioButtonComponent };
     updatedComponent.preselectedOptionIndex = event.target.value as number;
     this.props.handleComponentUpdate(updatedComponent);
+  }
+
+
+
+  public getMinOccursFromDataModel = (dataBindingName: string): number => {
+    const parentComponent = dataBindingName.replace('.value', '');
+    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) => {
+      const firstPeriod = e.id.indexOf('.');
+      const elementDataBindingName = e.id.substr(firstPeriod + 1, e.id.length - (firstPeriod + 1));
+      return elementDataBindingName.toLowerCase() === parentComponent.toLowerCase();
+    });
+    return element.minOccurs;
+  }
+
+  public handleValidFileEndingsChange = (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    component.validFileEndings = event.target.value;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
+  public handleMaxFileSizeInMBChange = (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    const value = parseInt(event.target.value, 10);
+    component.maxFileSizeInMB = (value >= 0) ? value : 0;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
+  public handleNumberOfAttachmentsChange = (type: string) => (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    const value = parseInt(event.target.value, 10);
+    if (type === 'max') {
+      component.maxNumberOfAttachments = (value >= 1) ? value : 1;
+    } else {
+      component.minNumberOfAttachments = (value >= 0) ? value : 0;
+      component.required = value > 0;
+    }
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
+  public handleDisplayModeChange = (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    component.displayMode = event.target.value;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
+  public handleHasCustomFileEndingsChange = (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    component.hasCustomFileEndings = (event.target.value === 'true');
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
+  public handleReadOnlyChange = (event: object, checked: boolean) => {
+    const component = this.props.component;
+    component.readOnly = checked;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
+  public handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
+    let { dataModelBindings: dataModelBinding } = (this.state.component as IFormAddressComponent);
+    if (!dataModelBinding) {
+      dataModelBinding = {};
+    }
+    dataModelBinding[key] = selectedDataModelElement;
+    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 0) {
+      this.setState({
+        component: {
+          ...this.state.component,
+          required: false,
+          dataModelBindings: dataModelBinding,
+        },
+      }, () => this.props.handleComponentUpdate(this.state.component));
+    } else {
+      this.setState({
+        component: {
+          ...this.state.component,
+          required: true,
+          dataModelBindings: dataModelBinding,
+        },
+      }, () => this.props.handleComponentUpdate(this.state.component));
+    }
+  }
+
+  public handleToggleAddressSimple = (event: object, checked: boolean) => {
+    this.setState({
+      component: {
+        ...this.state.component,
+        simplified: checked,
+      } as IFormAddressComponent,
+    });
+    this.props.handleComponentUpdate({
+      ...this.props.component,
+      simplified: checked,
+    });
   }
 
   public renderComponentSpecificContent(): JSX.Element {
@@ -394,50 +505,50 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
         );
       }
 
-      // case 'AddressComponent': {
-      //   return (
-      //     <Grid
-      //       container={true}
-      //       spacing={0}
-      //       direction={'column'}
-      //     >
-      //       <Grid item={true} xs={12}>
-      //         <AltinnCheckBox
-      //           checked={(this.state.component as IFormAddressComponent).simplified}
-      //           onChangeFunction={this.handleToggleAddressSimple}
-      //         />
-      //         {this.props.language.ux_editor.modal_configure_address_component_simplified}
-      //       </Grid>
-      //       {
-      //         renderSelectTextFromResources(
-      //           'modal_properties_label_helper',
-      //           this.handleTitleChange,
-      //           this.props.textResources,
-      //           this.props.language,
-      //           this.props.component.textResourceBindings.title,
-      //         )
-      //       }
+      case 'AddressComponent': {
+        return (
+          <Grid
+            container={true}
+            spacing={0}
+            direction={'column'}
+          >
+            <Grid item={true} xs={12}>
+              <AltinnCheckBox
+                checked={(this.state.component as IFormAddressComponent).simplified}
+                onChangeFunction={this.handleToggleAddressSimple}
+              />
+              {this.props.language.ux_editor.modal_configure_address_component_simplified}
+            </Grid>
+            {
+              renderSelectTextFromResources(
+                'modal_properties_label_helper',
+                this.handleTitleChange,
+                this.props.textResources,
+                this.props.language,
+                this.props.component.textResourceBindings.title,
+              )
+            }
 
-      //       {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
-      //         const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
-      //         if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
-      //           return null;
-      //         }
-      //         return (
-      //           renderSelectDataModelBinding(
-      //             this.props.component.dataModelBindings,
-      //             this.handleDataModelChange,
-      //             this.props.language,
-      //             getTextResourceByAddressKey(value, this.props.language),
-      //             value,
-      //             value,
-      //             index,
-      //           )
-      //         );
-      //       })}
-      //     </Grid >
-      //   );
-      // }
+            {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
+              const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
+              if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
+                return null;
+              }
+              return (
+                renderSelectDataModelBinding(
+                  this.props.component.dataModelBindings,
+                  this.handleDataModelChange,
+                  this.props.language,
+                  getTextResourceByAddressKey(value, this.props.language),
+                  value,
+                  value,
+                  index,
+                )
+              );
+            })}
+          </Grid >
+        );
+      }
       case 'ThirdParty': {
         const [packageName, component] = this.props.component.textResourceBindings.title.split(' - ');
         if (!this.props.thirdPartyComponents || !this.props.thirdPartyComponents[packageName] ||
@@ -582,115 +693,6 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       }
     }
   }
-
-  public getMinOccursFromDataModel = (dataBindingName: string): number => {
-    const parentComponent = dataBindingName.replace('.value', '');
-    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) => {
-      const firstPeriod = e.id.indexOf('.');
-      const elementDataBindingName = e.id.substr(firstPeriod + 1, e.id.length - (firstPeriod + 1));
-      return elementDataBindingName.toLowerCase() === parentComponent.toLowerCase();
-    });
-    return element.minOccurs;
-  }
-
-  public handleValidFileEndingsChange = (event: any) => {
-    const component = (this.props.component as IFormFileUploaderComponent);
-    component.validFileEndings = event.target.value;
-    this.setState({
-      component,
-    });
-    this.props.handleComponentUpdate(component);
-  }
-
-  public handleMaxFileSizeInMBChange = (event: any) => {
-    const component = (this.props.component as IFormFileUploaderComponent);
-    const value = parseInt(event.target.value, 10);
-    component.maxFileSizeInMB = (value >= 0) ? value : 0;
-    this.setState({
-      component,
-    });
-    this.props.handleComponentUpdate(component);
-  }
-
-  public handleNumberOfAttachmentsChange = (type: string) => (event: any) => {
-    const component = (this.props.component as IFormFileUploaderComponent);
-    const value = parseInt(event.target.value, 10);
-    if (type === 'max') {
-      component.maxNumberOfAttachments = (value >= 1) ? value : 1;
-    } else {
-      component.minNumberOfAttachments = (value >= 0) ? value : 0;
-      component.required = value > 0;
-    }
-    this.setState({
-      component,
-    });
-    this.props.handleComponentUpdate(component);
-  }
-
-  public handleDisplayModeChange = (event: any) => {
-    const component = (this.props.component as IFormFileUploaderComponent);
-    component.displayMode = event.target.value;
-    this.setState({
-      component,
-    });
-    this.props.handleComponentUpdate(component);
-  }
-
-  public handleHasCustomFileEndingsChange = (event: any) => {
-    const component = (this.props.component as IFormFileUploaderComponent);
-    component.hasCustomFileEndings = (event.target.value === 'true');
-    this.setState({
-      component,
-    });
-    this.props.handleComponentUpdate(component);
-  }
-
-  public handleReadOnlyChange = (event: object, checked: boolean) => {
-    const component = this.props.component;
-    component.readOnly = checked;
-    this.setState({
-      component,
-    });
-    this.props.handleComponentUpdate(component);
-  }
-
-  public handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
-    let { dataModelBindings: dataModelBinding } = (this.state.component as IFormAddressComponent);
-    if (!dataModelBinding) {
-      dataModelBinding = {};
-    }
-    dataModelBinding[key] = selectedDataModelElement;
-    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 0) {
-      this.setState({
-        component: {
-          ...this.state.component,
-          required: false,
-          dataModelBindings: dataModelBinding,
-        },
-      }, () => this.props.handleComponentUpdate(this.state.component));
-    } else {
-      this.setState({
-        component: {
-          ...this.state.component,
-          required: true,
-          dataModelBindings: dataModelBinding,
-        },
-      }, () => this.props.handleComponentUpdate(this.state.component));
-    }
-  }
-
-  // public handleToggleAddressSimple = (event: object, checked: boolean) => {
-  //   this.setState({
-  //     component: {
-  //       ...this.state.component,
-  //       simplified: checked,
-  //     },
-  //   });
-  //   this.props.handleComponentUpdate({
-  //     ...this.props.component,
-  //     simplified: checked,
-  //   });
-  // }
 
   public renderTextResourceOptions = (): JSX.Element[] => {
     if (!this.props.textResources) {
