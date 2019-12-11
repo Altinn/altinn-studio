@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Controllers
 {
@@ -223,8 +224,17 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
             }
 
+            // Checking that user is authorized to instantiate.
             XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instance.InstanceOwner.PartyId.ToString(), null);
-            bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+
+            if (response?.Response == null)
+            {
+                _logger.LogInformation($"// Instances Controller // Authorization of instantiation failed with request: {JsonConvert.SerializeObject(request)}.");
+                return Forbid();
+            }
+
+            bool authorized = DecisionHelper.ValidateResponse(response.Response, HttpContext.User);
 
             if (!authorized)
             {
