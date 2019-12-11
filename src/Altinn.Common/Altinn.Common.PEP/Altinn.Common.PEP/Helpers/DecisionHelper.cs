@@ -55,7 +55,10 @@ namespace Altinn.Common.PEP.Helpers
             if (string.IsNullOrWhiteSpace(app))
             {
                 string appId = routeData.Values[ParamAppId] as string;
-                app = appId.Split("/")[1];
+                if (appId != null)
+                {
+                    app = appId.Split("/")[1];
+                }
             }
 
             request.AccessSubject.Add(CreateSubjectCategory(context.User.Claims));
@@ -121,7 +124,7 @@ namespace Altinn.Common.PEP.Helpers
             {
                 resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceOwnerPartyId + "/" + instanceGuid, DefaultType, DefaultIssuer, includeResult));
             }
-            
+
             resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.OrgId, org, DefaultType, DefaultIssuer));
             resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));
 
