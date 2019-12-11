@@ -7,24 +7,24 @@ using Altinn.App.Services.Implementation;
 using Altinn.App.Common.Enums;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Altinn.App.AppLogic.Validation;
 
 namespace Altinn.App.AppLogic
 {
     public class App : AppBase, IAltinnApp
     {
         private readonly ILogger<App> _logger;
-        private readonly IValidationHandler _validationHandler;
+        private readonly ValidationHandler _validationHandler;
 
         public App(
             IAppResources appResourcesService,
             ILogger<App> logger,
             IData dataService,
             IProcess processService,
-            IPDF pdfService,
-            IValidationHandler validationHandler) : base(appResourcesService, logger, dataService, processService, pdfService)
+            IPDF pdfService) : base(appResourcesService, logger, dataService, processService, pdfService)
         {
             _logger = logger;
-            _validationHandler = validationHandler;
+            _validationHandler = new ValidationHandler();
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -62,9 +62,9 @@ namespace Altinn.App.AppLogic
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task<bool> RunValidation(object instance, Type modelType, ICollection<ValidationResult> validationResults)
+        public override async Task<bool> RunValidation(object instance, ICollection<ValidationResult> validationResults)
         {
-            _validationHandler.Validate(instance, modelType, validationResults);
+            _validationHandler.Validate(instance, validationResults);
             return validationResults.Count == 0; ;
         }
     }

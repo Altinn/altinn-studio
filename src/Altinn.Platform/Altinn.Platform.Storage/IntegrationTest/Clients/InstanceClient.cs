@@ -4,20 +4,22 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Altinn.Platform.Storage.Clients
+namespace Altinn.Platform.Storage.IntegrationTest.Clients
 {
     /// <summary>
     /// Storage client methods.
     /// </summary>
     public class InstanceClient
     {
-        private readonly HttpClient client;
-        private readonly string versionPrefix = "storage/api/v1";
-        private readonly string hostName;
+        private readonly HttpClient _client;
+        private readonly string _versionPrefix = "storage/api/v1";
+        private readonly string _hostName;
+        private readonly string _validToken;
 
         /// <summary>
         /// Create a client.
@@ -26,8 +28,10 @@ namespace Altinn.Platform.Storage.Clients
         /// <param name="hostName">the host name</param>
         public InstanceClient(HttpClient client, string hostName = "")
         {
-            this.client = client;
-            this.hostName = hostName;
+            _client = client;
+            _hostName = hostName;
+            _validToken = PrincipalUtil.GetToken(1);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
         }
 
         /// <summary>
@@ -37,9 +41,9 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns>the instance object</returns>
         public async Task<Instance> GetInstances(string instanceId)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}";
+            string requestUri = $"{_versionPrefix}/instances/{instanceId}";
 
-            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
+            HttpResponseMessage response = await _client.GetAsync(_hostName + requestUri);
 
             if (response.IsSuccessStatusCode)
             {
@@ -59,9 +63,9 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns>the instance object</returns>
         public async Task<List<Instance>> GetInstancesForOrg(string org, int size = 100)
         {
-            string requestUri = $"{versionPrefix}/instances?org={org}&size={size}";
+            string requestUri = $"{_versionPrefix}/instances?org={org}&size={size}";
 
-            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
+            HttpResponseMessage response = await _client.GetAsync(_hostName + requestUri);
 
             if (response.IsSuccessStatusCode)
             {
@@ -83,9 +87,9 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns>the instance just created</returns>
         public async Task<Instance> PostInstances(string appId, int instanceOwnerPartyId)
         {
-            string requestUri = $"{versionPrefix}/instances?appId={appId}";
+            string requestUri = $"{_versionPrefix}/instances?appId={appId}";
 
-            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new Instance()
+            HttpResponseMessage response = await _client.PostAsync(_hostName + requestUri, new Instance()
             {
                 InstanceOwner = new InstanceOwner
                 {
@@ -111,9 +115,9 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns>the instance just created</returns>
         public async Task<Instance> PostInstances(string appId, Instance instanceTemplate)
         {
-            string requestUri = $"{versionPrefix}/instances?appId={appId}";
+            string requestUri = $"{_versionPrefix}/instances?appId={appId}";
 
-            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, instanceTemplate.AsJson());
+            HttpResponseMessage response = await _client.PostAsync(_hostName + requestUri, instanceTemplate.AsJson());
             if (response.IsSuccessStatusCode)
             {
                 string json = await response.Content.ReadAsStringAsync();
@@ -135,7 +139,7 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns>List of intance events.</returns>
         public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string[] eventTypes, string from, string to)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/events?";
+            string requestUri = $"{_versionPrefix}/instances/{instanceId}/events?";
             if (eventTypes != null)
             {
                 StringBuilder eventTypeList = new StringBuilder();
@@ -157,7 +161,7 @@ namespace Altinn.Platform.Storage.Clients
                 requestUri += $"&from={from}&to={to}";
             }
 
-            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
+            HttpResponseMessage response = await _client.GetAsync(_hostName + requestUri);
 
             if (response.IsSuccessStatusCode)
             {
@@ -176,8 +180,8 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns>The stored instance event.</returns>
         public async Task<string> PostInstanceEvent(InstanceEvent instanceEvent)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceEvent.InstanceId}/events";
-            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
+            string requestUri = $"{_versionPrefix}/instances/{instanceEvent.InstanceId}/events";
+            HttpResponseMessage response = await _client.PostAsync(_hostName + requestUri, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
 
             if (response.IsSuccessStatusCode)
             {
@@ -195,9 +199,9 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns>tru if deletion was successfull otherwise throws an exception</returns>
         public async Task<bool> DeleteInstance(string instanceId)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}?hard";
+            string requestUri = $"{_versionPrefix}/instances/{instanceId}?hard";
 
-            HttpResponseMessage response = await client.DeleteAsync(requestUri);
+            HttpResponseMessage response = await _client.DeleteAsync(requestUri);
 
             if (response.IsSuccessStatusCode)
             {
@@ -214,8 +218,8 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns>True if instance events were successfully deleted.</returns>
         public async Task<bool> DeleteInstanceEvents(string instanceId)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/events";
-            HttpResponseMessage response = await client.DeleteAsync(requestUri);
+            string requestUri = $"{_versionPrefix}/instances/{instanceId}/events";
+            HttpResponseMessage response = await _client.DeleteAsync(requestUri);
 
             if (response.IsSuccessStatusCode)
             {
@@ -231,7 +235,7 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns>The HttpResponseMessage</returns>
         public async Task<HttpResponseMessage> PostFileAsAttachment(Instance instance, string dataType, string fileName, string contentType)
         {
-            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data?dataType={dataType}";
+            string requestUri = $"{_versionPrefix}/instances/{instance.Id}/data?dataType={dataType}";
 
             Stream input = File.OpenRead($"data/{fileName}");
 
@@ -240,8 +244,7 @@ namespace Altinn.Platform.Storage.Clients
             fileStreamContent.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
 
             await fileStreamContent.LoadIntoBufferAsync();
-
-            HttpResponseMessage response = await client.PostAsync(requestUri, fileStreamContent);
+            HttpResponseMessage response = await _client.PostAsync(requestUri, fileStreamContent);
 
             return response;
         }
@@ -252,15 +255,14 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns>http response message</returns>
         public async Task<HttpResponseMessage> PostFileAsStream(Instance instance, string dataType, string fileName, string contentType)
         {
-            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data?dataType={dataType}";
+            string requestUri = $"{_versionPrefix}/instances/{instance.Id}/data?dataType={dataType}";
 
             Stream input = File.OpenRead($"data/{fileName}");
 
             HttpContent fileStreamContent = new StreamContent(input);
             fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse($"{contentType}");
-            fileStreamContent.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");           
-
-            HttpResponseMessage response = await client.PostAsync(requestUri, fileStreamContent);
+            fileStreamContent.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
+            HttpResponseMessage response = await _client.PostAsync(requestUri, fileStreamContent);
 
             return response;
         }

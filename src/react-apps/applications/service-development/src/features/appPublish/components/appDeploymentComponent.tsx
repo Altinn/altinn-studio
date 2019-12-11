@@ -233,11 +233,11 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
       ...popoverState,
       children: (
         <Typography>
-          {getParsedLanguageFromKey('app_deploy_messages.deploy_confirmation', language, [
+          {appDeployedVersion ? getParsedLanguageFromKey('app_deploy_messages.deploy_confirmation', language, [
                     selectedImageTag,
                     appDeployedVersion,
                   ],
-          )}
+          ) : getParsedLanguageFromKey('app_deploy_messages.deploy_confirmation_short', language, [selectedImageTag])}
         </Typography>
         ),
       btnMethod: handleDeployButtonConfirmation,

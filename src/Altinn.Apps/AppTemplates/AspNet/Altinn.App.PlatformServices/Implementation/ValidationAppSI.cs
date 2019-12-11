@@ -165,7 +165,7 @@ namespace Altinn.App.Services.Implementation
 
                 var context = new ValidationContext(data);
                 List<System.ComponentModel.DataAnnotations.ValidationResult> validationResults = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
-                bool isValid = await _altinnApp.RunValidation(data.Result, modelType, validationResults);
+                bool isValid = await _altinnApp.RunValidation(data.Result, validationResults);
                 isValid = Validator.TryValidateObject(data, context, validationResults, true) && isValid;          
 
                 if (!isValid)

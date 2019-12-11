@@ -188,7 +188,7 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
   public render() {
     const { classes, services, currentUserName } = this.props;
     const altinnWindow: Window = window;
-    const knownIssuesUrl = `${altinnWindow.location.origin}#/knownissues`;
+    const knownIssuesUrl = `${altinnWindow.location.origin}#/known-issues`;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
@@ -228,9 +228,9 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
             </AltinnInformationPaper>
           </div>
         }
-        <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
+        {/*<Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
           {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
-        </Typography>
+        </Typography>*/}
         {services &&
           <>
             <Grid container={true} direction='row' className={classes.mar_top_50}>

@@ -7,7 +7,6 @@ using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -23,7 +22,7 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JwtCookieOptions _cookieOptions;
+        private readonly AppSettings _settings;
         private readonly HttpClient _client;
 
         /// <summary>
@@ -34,16 +33,17 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="cookieOptions">The cookie options </param>
         /// <param name="httpClientAccessor">The Http client accessor </param>
+        /// <param name="settings">The application settings.</param>
         public InstanceEventAppSI(
             ILogger<InstanceEventAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            IOptions<JwtCookieOptions> cookieOptions,
-            IHttpClientAccessor httpClientAccessor)
+            IHttpClientAccessor httpClientAccessor,
+            IOptionsMonitor<AppSettings> settings)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
-            _cookieOptions = cookieOptions.Value;
             _client = httpClientAccessor.StorageClient;
+            _settings = settings.CurrentValue;
         }
 
         /// <inheritdoc/>
@@ -51,7 +51,7 @@ namespace Altinn.App.Services.Implementation
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             string apiUrl = $"instances/{instanceIdentifier}/events";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             try
@@ -71,7 +71,7 @@ namespace Altinn.App.Services.Implementation
         public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string app, string[] eventTypes, string from, string to)
         {
             string apiUrl = $"{instanceOwnerId}/{instanceId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             if (eventTypes != null)
@@ -111,7 +111,7 @@ namespace Altinn.App.Services.Implementation
             InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
             instanceEvent.Created = DateTime.UtcNow;
             string apiUrl = $"instances/{instanceEvent.InstanceId}/events";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             try

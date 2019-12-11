@@ -17,8 +17,8 @@ export interface ICategoryComponentState {
 }
 
 const styles = {
-  mar_top_100: {
-    marginTop: '100px',
+  mar_top_1em: {
+    marginTop: '1em',
   },
   displayInlineBlock: {
     display: 'inline-block',
@@ -40,8 +40,8 @@ class CategoryComponent extends React.Component<ICategoryComponentProvidedProps,
     if (categoryRepos.length < 1) {
       return (
         <Grid container={true} direction='row'>
-          <Typography className={classNames(classes.width100, classes.mar_top_100, classes.fontSize_24)} align='center'>
-            {this.props.noServicesMessage}
+          <Typography className={classNames(classes.width100, classes.mar_top_1em, classes.fontSize_16)} align='left'>
+            {this.props.noServicesMessage} <a href="/repos/explore/repos/">repos</a>.
           </Typography>
         </Grid>
       );
@@ -61,15 +61,11 @@ class CategoryComponent extends React.Component<ICategoryComponentProvidedProps,
   }
 
   public render() {
-    const { classes } = this.props;
+    //const { classes } = this.props;
     return (
       <div className={classNames(this.props.className)}>
         <Grid container={true} direction='row'>
-          <Typography
-            className={classNames(classes.displayInlineBlock, classes.width100, classes.fontSize_16)}
-            noWrap={true}
-            gutterBottom={true}
-          >
+          <Typography component='h2' variant='h2' gutterBottom={true}>
             {this.props.header}
           </Typography>
         </Grid>

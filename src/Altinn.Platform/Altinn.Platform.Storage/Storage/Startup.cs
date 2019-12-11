@@ -1,12 +1,18 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Altinn.Common.PEP.Authorization;
+using Altinn.Common.PEP.Clients;
+using Altinn.Common.PEP.Implementation;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Repository;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,12 +28,19 @@ namespace Altinn.Platform.Storage
     public class Startup
     {
         /// <summary>
+        /// application insights key in keyvault
+        /// </summary>
+        public static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Storage";
+
+        private readonly IWebHostEnvironment _env;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
-        /// <param name="configuration">the configuration for the database</param>
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            _env = env;
         }
 
         /// <summary>
@@ -40,7 +53,7 @@ namespace Altinn.Platform.Storage
         /// </summary>
         /// <param name="services">the service configuration</param>        
         public void ConfigureServices(IServiceCollection services)
-        {            
+        {
             services.AddControllers(config =>
             {
                 AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
@@ -70,12 +83,28 @@ namespace Altinn.Platform.Storage
                         RequireExpirationTime = true,
                         ValidateLifetime = true
                     };
+
+                    if (_env.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
                 });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_READ, policy => policy.Requirements.Add(new AppAccessRequirement("read")));
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_WRITE, policy => policy.Requirements.Add(new AppAccessRequirement("write")));
+            });
 
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
-            services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();            
+            services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
+            services.AddSingleton<IPDP, PDPAppSI>();
+
+            services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
 
             string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
             if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
@@ -160,6 +189,7 @@ namespace Altinn.Platform.Storage
             // app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

@@ -12,17 +12,16 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
 {
     public class AltinnApp : AppBase, IAltinnApp
     {
-        private IValidationHandler _validationHandler;
+        private ValidationHandler _validationHandler;
 
         public AltinnApp(
             IAppResources appResourcesService,
             ILogger<AltinnApp> logger,
             IData dataService,
             IProcess processService,
-            IValidationHandler validationHandler,
             IPDF pdfService) : base(appResourcesService, logger, dataService, processService, pdfService)
         {
-            _validationHandler = validationHandler;
+            _validationHandler = new ValidationHandler();
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -41,9 +40,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
             return Task.FromResult(true);
         }
 
-        public override Task<bool> RunValidation(object instance, Type modelType, ICollection<ValidationResult> validationResults)
+        public override Task<bool> RunValidation(object instance, ICollection<ValidationResult> validationResults)
         {
-            _validationHandler.Validate(instance, modelType, validationResults);
+            _validationHandler.Validate(instance, validationResults);
             return Task.FromResult(validationResults.Count == 0);
         }
     }

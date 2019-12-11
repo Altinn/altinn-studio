@@ -3,8 +3,8 @@ using System.IO;
 using System.Reflection;
 
 using Altinn.Platform.Authentication.Configuration;
-using Altinn.Platform.Authentication.Maskinporten;
 using Altinn.Platform.Authentication.Repositories;
+using Altinn.Platform.Authentication.Services;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 
@@ -14,7 +14,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -29,7 +28,7 @@ namespace Altinn.Platform.Authentication
         /// <summary>
         /// The key vault key which application insights is stored.
         /// </summary>
-        public static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey";
+        public static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Authentication";
 
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<Startup> _logger;
@@ -55,11 +54,11 @@ namespace Altinn.Platform.Authentication
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            _logger.LogInformation("ConfigureServices");
+            _logger.LogInformation("Startup // ConfigureServices");
 
             services.AddControllers().AddJsonOptions(options =>
             {
-                options.JsonSerializerOptions.WriteIndented = true;
+                options.JsonSerializerOptions.WriteIndented = _env.IsDevelopment();
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
             services.AddMvc().AddControllersAsServices();
@@ -70,38 +69,40 @@ namespace Altinn.Platform.Authentication
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
-                    {
-                        var generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuerSigningKey = true,
-                            ValidateIssuer = false,
-                            ValidateAudience = false,
-                            RequireExpirationTime = true,
-                            ValidateLifetime = true
-                        };
+            {
+                GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    RequireExpirationTime = true,
+                    ValidateLifetime = true
+                };
 
-                        options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                        options.Cookie.Name = "AltinnStudioRuntime";
-                        options.Cookie.Domain = generalSettings.HostName;
-                        options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+                options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                options.Cookie.Name = "AltinnStudioRuntime";
+                options.Cookie.Domain = generalSettings.HostName;
+                options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
 
-                        if (_env.IsDevelopment())
-                        {
-                            options.RequireHttpsMetadata = false;
-                        }
-                    });
+                if (_env.IsDevelopment())
+                {
+                    options.RequireHttpsMetadata = false;
+                }
+            });
 
+            services.AddSingleton<ISblCookieDecryptionService, SblCookieDecryptionService>();
+            services.AddSingleton<ISigningCredentialsProvider, SigningCredentialsProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddSingleton<IOrganisationRepository, OrganisationRepository>();
-          
+            
             string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
             if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
             {
                 services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
-            }
 
-            _logger.LogInformation($"ApplicationInsightsTelemetryKey = {applicationInsightTelemetryKey}");
+                _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {applicationInsightTelemetryKey}");
+            }
 
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
@@ -129,7 +130,7 @@ namespace Altinn.Platform.Authentication
         /// <param name="env">the hosting environment</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            _logger.LogInformation("Configure");
+            _logger.LogInformation("Startup // Configure");
 
             if (env.IsDevelopment())
             {
@@ -153,7 +154,7 @@ namespace Altinn.Platform.Authentication
                 c.RoutePrefix = "authentication/swagger";
             });
 
-            app.UseRouting();           
+            app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
@@ -185,10 +186,10 @@ namespace Altinn.Platform.Authentication
                 if (string.IsNullOrEmpty(environmentKey))
                 {
                     return null;
-                }                
+                }
             }
 
             return environmentKey;
-        }
+        }       
     }
 }
