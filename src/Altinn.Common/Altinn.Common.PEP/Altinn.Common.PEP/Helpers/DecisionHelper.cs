@@ -51,11 +51,12 @@ namespace Altinn.Common.PEP.Helpers
             string org = routeData.Values[ParamOrg] as string;
             string instanceOwnerPartyId = routeData.Values[ParamInstanceOwnerPartyId] as string;
 
-            if (string.IsNullOrWhiteSpace(app))
+            if (string.IsNullOrWhiteSpace(app) && string.IsNullOrWhiteSpace(org))
             {
                 string appId = routeData.Values[ParamAppId] as string;
                 if (appId != null)
                 {
+                    org = appId.Split("/")[0];
                     app = appId.Split("/")[1];
                 }
             }
