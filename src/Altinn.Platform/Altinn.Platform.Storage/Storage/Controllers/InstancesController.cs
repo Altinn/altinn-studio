@@ -275,7 +275,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">instance guid</param>
         /// <param name="instance">instance with updated parameters</param>
         /// <returns>The updated instance</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [Authorize]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [ProducesResponseType(typeof(Instance), 200)]
         [ProducesResponseType(404)]
