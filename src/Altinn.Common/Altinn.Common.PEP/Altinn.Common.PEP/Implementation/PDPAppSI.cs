@@ -3,10 +3,12 @@ using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Configuration;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -78,9 +80,14 @@ namespace Altinn.Common.PEP.Implementation
 
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
 
+            if (response == null || response?.Response == null)
+            {
+                throw new ArgumentNullException("response");
+            }
+
             _logger.LogInformation($"// Altinn PEP // PDPAppSI // Request sent to platform authorization: {JsonConvert.SerializeObject(xacmlJsonRequest)}");
 
-            return DecisionHelper.ValidateResponse(response.Response, user);
+            return DecisionHelper.ValidatePdpDecision(response.Response, user);
         }
     }
 }
