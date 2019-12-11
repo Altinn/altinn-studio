@@ -6,7 +6,6 @@ using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.Services.Models;
-using AltinnCore.Designer.TypedHttpClients.AltinnAuthentication;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 using AltinnCore.Designer.ViewModels.Request;
