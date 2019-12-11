@@ -14,7 +14,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
     {
         private readonly ValidationHandler _validationHandler;
         private readonly CalculationHandler _calculationHandler;
-        //private readonly InstantiationHandler _instantiationHandler;
+        private readonly InstantiationHandler _instantiationHandler;
 
         public AltinnApp(
             IAppResources appResourcesService,
@@ -27,6 +27,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         {
             _validationHandler = new ValidationHandler();
             _calculationHandler = new CalculationHandler();
+            _instantiationHandler = new InstantiationHandler(profileService, registerService);
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -68,7 +69,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task<ValidationResult> RunInstantiationValidation()
         {
-            return null; //_instantiationHandler.RunInstantiationValidation();
+            return _instantiationHandler.RunInstantiationValidation();
         }
 
         /// <summary>
@@ -82,7 +83,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// <returns>Task to indicate when calculation is completed</returns>
         public override async Task RunDataCreation(object instance)
         {
-            //_instantiationHandler.DataCreation(instance);
+            _instantiationHandler.DataCreation(instance);
         }
     }
 }

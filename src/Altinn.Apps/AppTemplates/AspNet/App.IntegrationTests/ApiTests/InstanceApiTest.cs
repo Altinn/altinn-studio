@@ -1,4 +1,6 @@
+using Altinn.App.Common.Enums;
 using Altinn.App.IntegrationTests;
+using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
@@ -213,6 +215,27 @@ namespace App.IntegrationTests
             Assert.Equal("default", createdInstance.Data[0].DataType);
 
             TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new Guid(createdInstance.Id.Split('/')[1]));
+        }
+
+        [Fact]
+        public async Task Instance_Post_WithInstantiationValidationFail()
+        {
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/custom-validation/instances?instanceOwnerPartyId=1000")
+            {
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+            ValidationIssue validationIssue = JsonConvert.DeserializeObject<ValidationIssue>(responseContent);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Equal(ValidationIssueSeverity.Error, validationIssue.Severity);
+            Assert.Equal(AppEventType.ValidateInstantiation.ToString(), validationIssue.Code);
         }
     }
 }
