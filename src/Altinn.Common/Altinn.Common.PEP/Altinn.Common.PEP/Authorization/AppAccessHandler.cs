@@ -59,13 +59,13 @@ namespace Altinn.Common.PEP.Authorization
                 return;
             }
 
-            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
 
             _logger.LogInformation($"// Altinn PEP // AppAccessHandler // Request sent: {JsonConvert.SerializeObject(request)}");
 
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
-            if (response == null || response?.Response == null)
+            if (response?.Response == null)
             {
                 throw new ArgumentNullException("response");
             }
