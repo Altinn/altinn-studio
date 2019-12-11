@@ -200,8 +200,7 @@ namespace Altinn.Platform.Authorization.UnitTest
             Assert.NotNull(expectedEnrichedRequest);
             AssertionUtil.AssertEqual(expectedEnrichedRequest, enrichedRequest);
         }
-
-
+        
         /// <summary>
         /// Scenario:
         /// Tests if the xacml request is enriched with the required resource, subject attributes

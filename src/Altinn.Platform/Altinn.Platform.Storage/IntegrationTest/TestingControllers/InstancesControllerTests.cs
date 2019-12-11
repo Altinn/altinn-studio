@@ -20,14 +20,21 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 {
+    /// <summary>
+    /// Creates new instance of InstancesControllerTests.
+    /// </summary>
     [Collection("Sequential")]
-    public class InstancesControllerTests : IClassFixture<WebApplicationFactory<Startup>>, IClassFixture<CosmosDBFixture>
+    public class InstancesControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
         private const string BasePath = "storage/api/v1/instances";
 
         private readonly WebApplicationFactory<Startup> _factory;
         private readonly Mock<IInstanceRepository> _instanceRepository;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="factory">The web application factory.</param>
         public InstancesControllerTests(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
@@ -204,7 +211,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         private HttpClient GetTestClient(IInstanceRepository instanceRepository)
         {
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-            Application testApp1 = new Application() { Id = "testApp1", Org = "test"};
+            Application testApp1 = new Application() { Id = "testApp1", Org = "test" };
 
             applicationRepository.Setup(s => s.FindOne(It.Is<string>(s => s.Equals("testApp1")), It.IsAny<string>())).ReturnsAsync(testApp1);
 

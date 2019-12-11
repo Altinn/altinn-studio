@@ -40,6 +40,12 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
             return Task.FromResult(response);
         }
 
+        /// <summary>
+        /// Validated an unvalidated request
+        /// </summary>
+        /// <param name="xacmlJsonRequest">The xacml json request.</param>
+        /// <param name="user">The user claims principals.</param>
+        /// <returns></returns>
         public Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
         {
             if (user.Identities.First().Claims.Where(c => c.Type == "urn:altinn:userid").Select(c => c.Value).Single() == "1")
