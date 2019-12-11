@@ -20,6 +20,7 @@ namespace Altinn.Common.PEP.Helpers
         private const string ParamInstanceGuid = "instanceGuid";
         private const string ParamApp = "app";
         private const string ParamOrg = "org";
+        private const string ParamAppId = "appId";
         private const string DefaultIssuer = "Altinn";
         private const string DefaultType = "string";
 
@@ -50,6 +51,12 @@ namespace Altinn.Common.PEP.Helpers
             string app = routeData.Values[ParamApp] as string;
             string org = routeData.Values[ParamOrg] as string;
             string instanceOwnerPartyId = routeData.Values[ParamInstanceOwnerPartyId] as string;
+
+            if (string.IsNullOrWhiteSpace(app))
+            {
+                string appId = routeData.Values[ParamAppId] as string;
+                app = appId.Split("/")[1];
+            }
 
             request.AccessSubject.Add(CreateSubjectCategory(context.User.Claims));
             request.Action.Add(CreateActionCategory(requirement.ActionType));

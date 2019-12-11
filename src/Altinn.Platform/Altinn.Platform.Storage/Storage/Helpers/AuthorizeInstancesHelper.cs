@@ -141,6 +141,26 @@ namespace Altinn.Platform.Storage.Helpers
             return references;
         }
 
+        /// <summary>
+        /// Will check if a instance is already in the list of authorized instances.
+        /// Returns the position to the inctance in the list if it is in the list, and -1 if not. 
+        /// </summary>
+        private int InstanceAlreadyAuthorized(List<MessageBoxInstance> authorizedInstances, Instance instance)
+        {
+            int instancePosition = 0; 
+            foreach (MessageBoxInstance authorizedInstance in authorizedInstances)
+            {
+                if (authorizedInstance.Id.Equals(instance.Id))
+                {
+                    return instancePosition;
+                }
+
+                instancePosition++;
+            }
+
+            return -1;
+        }
+
         public async Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(ClaimsPrincipal user, List<Instance> instances)
         {
             List<MessageBoxInstance> authorizedInstances = new List<MessageBoxInstance>();
@@ -156,6 +176,7 @@ namespace Altinn.Platform.Storage.Helpers
                     string instanceId = string.Empty;
                     string actiontype = string.Empty;
 
+                    // Loop through all attributes in Category from the response
                     foreach (XacmlJsonCategory category in result.Category)
                     {
                         var attributes = category.Attribute;
@@ -174,16 +195,35 @@ namespace Altinn.Platform.Storage.Helpers
                         }
                     }
 
-                    Instance instance = instances.FirstOrDefault(i => i.Id == instanceId);
-                    MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(instance);
+                    // Find the instance that has been validated to add it to the list of authorized instances.
+                    Instance authorizedInstance = instances.FirstOrDefault(i => i.Id == instanceId);
 
-                    if (actiontype.Equals("write"))
+                    // Checks if it has already been authorized.
+                    int instancePosition = InstanceAlreadyAuthorized(authorizedInstances, authorizedInstance);
+
+                    // The instance has already been added to the authorizedInstance list if the position is 0 or above. 
+                    if (instancePosition >= 0)
                     {
-                        messageBoxInstance.AuthorizedForWrite = true;
-                        messageBoxInstance.AllowDelete = true;
+                        // Only need to check if the action type is write, because read do not add any special rights to the MessageBoxInstane.
+                        if (actiontype.Equals("write"))
+                        {
+                            MessageBoxInstance authorizedMsgBoxInstance = authorizedInstances[instancePosition];
+                            authorizedMsgBoxInstance.AuthorizedForWrite = true;
+                            authorizedMsgBoxInstance.AllowDelete = true;
+                        }
                     }
+                    else
+                    {
+                        MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(authorizedInstance);
 
-                    authorizedInstances.Add(messageBoxInstance);
+                        if (actiontype.Equals("write"))
+                        {
+                            messageBoxInstance.AuthorizedForWrite = true;
+                            messageBoxInstance.AllowDelete = true;
+                        }
+
+                        authorizedInstances.Add(messageBoxInstance);
+                    }
                 }
             }
 
