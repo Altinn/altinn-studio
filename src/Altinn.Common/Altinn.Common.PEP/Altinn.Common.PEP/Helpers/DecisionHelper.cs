@@ -125,12 +125,12 @@ namespace Altinn.Common.PEP.Helpers
                 resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceOwnerPartyId + "/" + instanceGuid, DefaultType, DefaultIssuer, includeResult));
             }
 
-            if (string.IsNullOrWhiteSpace(org))
+            if (!string.IsNullOrWhiteSpace(org))
             {
                 resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.OrgId, org, DefaultType, DefaultIssuer));
             }
 
-            if (string.IsNullOrWhiteSpace(app))
+            if (!string.IsNullOrWhiteSpace(app))
             {
                 resourceCategory.Attribute.Add(CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));
             }               
