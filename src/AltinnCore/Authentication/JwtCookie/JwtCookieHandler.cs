@@ -26,7 +26,11 @@ namespace AltinnCore.Authentication.JwtCookie
         /// <param name="logger">The logger</param>
         /// <param name="encoder">The Url encoder</param>
         /// <param name="clock">The system clock</param>
-        public JwtCookieHandler(IOptionsMonitor<JwtCookieOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
+        public JwtCookieHandler(
+            IOptionsMonitor<JwtCookieOptions> options,
+            ILoggerFactory logger,
+            UrlEncoder encoder,
+            ISystemClock clock)
             : base(options, logger, encoder, clock)
         {
         }
