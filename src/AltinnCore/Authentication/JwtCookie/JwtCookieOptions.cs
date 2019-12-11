@@ -84,24 +84,6 @@ namespace AltinnCore.Authentication.JwtCookie
         public bool RefreshOnIssuerKeyNotFound { get; set; } = true;
 
         /// <summary>
-        /// The LoginPath property is used by the handler for the redirection target when handling ChallengeAsync.
-        /// The current url which is added to the LoginPath as a query string parameter named by the ReturnUrlParameter. 
-        /// Once a request to the LoginPath grants a new SignIn identity, the ReturnUrlParameter value is used to redirect 
-        /// the browser back to the original url.
-        /// </summary>
-        public PathString LoginPath { get; set; }
-
-        /// <summary>
-        /// If the LogoutPath is provided the handler then a request to that path will redirect based on the ReturnUrlParameter.
-        /// </summary>
-        public PathString LogoutPath { get; set; }
-
-        /// <summary>
-        /// The AccessDeniedPath property is used by the handler for the redirection target when handling ForbidAsync.
-        /// </summary>
-        public PathString AccessDeniedPath { get; set; }
-
-        /// <summary>
         /// <para>
         /// Controls how much time the authentication Jwt token stored in the cookie will remain valid from the point it is created
         /// The expiration information is stored in the protected cookie ticket. Because of that an expired cookie will be ignored
@@ -128,7 +110,7 @@ namespace AltinnCore.Authentication.JwtCookie
         public IConfigurationManager<OpenIdConnectConfiguration> ConfigurationManager { get; set; }
 
         /// <summary>
-        /// Defines if it is required to have a https metadata adress
+        /// Defines if it is required to have a https metadata address
         /// </summary>
         public bool RequireHttpsMetadata { get; set; } = true;
     }

@@ -109,19 +109,11 @@ namespace Altinn.Platform.Authentication.Controllers
                 identity.AddClaims(claims);
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-                _logger.LogInformation("Platform Authentication before signin async");
-                await SignInAsync(
-                    principal,
-                    new AuthenticationProperties
-                    {
-                        ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime)),
-                        IsPersistent = false,
-                        AllowRefresh = false,
-                    });
+                _logger.LogInformation("Platform Authentication before creating JwtCookie");
+                await CreateJwtCookieAndAppendToResponse(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
+                _logger.LogInformation("Platform Authentication after creating JwtCookie");
 
-                _logger.LogInformation("Platform Authentication after signin async");
                 _logger.LogInformation($"TicketUpdated: {userAuthentication.TicketUpdated}");
-
                 if (userAuthentication.TicketUpdated)
                 {
                     Response.Cookies.Append(_generalSettings.GetSBLCookieName, userAuthentication.EncryptedTicket);
@@ -253,37 +245,34 @@ namespace Altinn.Platform.Authentication.Controllers
         /// Handles when a user is signing in
         /// </summary>
         /// <param name="user">The user</param>
-        /// <param name="properties">The authentication properties</param>
+        /// <param name="jwtTokenValidityMinutes">The authentication properties</param>
         /// <returns></returns>
-        protected async Task SignInAsync(ClaimsPrincipal user, AuthenticationProperties properties)
+        private async Task CreateJwtCookieAndAppendToResponse(ClaimsPrincipal user, int jwtTokenValidityMinutes)
         {
             CookieBuilder cookieBuilder = new RequestPathBaseCookieBuilder
             {
-                // To support OAuth authentication, a lax mode is required, see https://github.com/aspnet/Security/issues/1231.
+                Name = "AltinnStudioRuntime",
+                //// To support OAuth authentication, a lax mode is required, see https://github.com/aspnet/Security/issues/1231.
                 SameSite = SameSiteMode.Lax,
                 HttpOnly = true,
                 SecurePolicy = CookieSecurePolicy.SameAsRequest,
                 IsEssential = true,
-                Name = "AltinnStudioRuntime",
                 Domain = _generalSettings.HostName
             };
 
+            TimeSpan tokenExpiry = new TimeSpan(0, jwtTokenValidityMinutes, 0);
+            DateTimeOffset expiresUtc = DateTimeOffset.UtcNow.Add(tokenExpiry);
+
             CookieOptions cookieOptions = cookieBuilder.Build(HttpContext);
-
-            DateTimeOffset issuedUtc = DateTimeOffset.UtcNow;
-
-            TimeSpan tokenExipry = new TimeSpan(0, 30, 0);
-
-            DateTimeOffset expiresUtc = properties.ExpiresUtc ?? issuedUtc.Add(tokenExipry);
             cookieOptions.Expires = expiresUtc.ToUniversalTime();
 
-            string jwtToken = await GenerateToken(user, tokenExipry);
+            string serializedToken = await GenerateToken(user, tokenExpiry);
 
             ICookieManager cookieManager = new ChunkingCookieManager();
             cookieManager.AppendResponseCookie(
                 HttpContext,
                 cookieBuilder.Name,
-                jwtToken,
+                serializedToken,
                 cookieOptions);
 
             ApplyHeaders();
