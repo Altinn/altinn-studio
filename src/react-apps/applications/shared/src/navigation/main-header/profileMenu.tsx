@@ -88,13 +88,13 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
         <IconButton
           aria-owns={anchorEl ? 'simple-menu' : undefined}
           aria-haspopup='true'
-          aria-label={'profilikon knapp'}
+          aria-label='profilikon knapp'
           onClick={this.handleClick}
         >
           <AccountCircle
             fontSize='large'
-            titleAccess={'profilikon'}
-            aria-label={'profilikon'}
+            titleAccess='profilikon'
+            aria-label='profilikon'
           />
         </IconButton>
         <Menu
@@ -119,7 +119,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
             >
               <a
                 href={repositoryUrl}
-                target={'_blank'}
+                target='_blank'
               >
                 Åpne repository
               </a>
@@ -130,7 +130,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
           >
               <a
                 href={altinnStudioDocsUrl}
-                target={'_blank'}
+                target='_blank'
               >
                 Dokumentasjon
               </a>
