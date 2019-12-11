@@ -223,7 +223,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
             }
 
-            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(appInfo.Org, appInfo.Id, HttpContext.User, "instantiate", instance.InstanceOwner.PartyId.ToString(), null);
+            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instance.InstanceOwner.PartyId.ToString(), null);
             bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
 
             if (!authorized)
