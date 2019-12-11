@@ -91,9 +91,10 @@ namespace Altinn.Platform.Receipt
             config.AddJsonFile(configJsonFile2, optional: false, reloadOnChange: true);
 
             config.AddEnvironmentVariables();
-            config.AddCommandLine(args);
 
             ConnectToKeyVaultAndSetApplicationInsights(config);
+
+            config.AddCommandLine(args);
         }
 
         private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
