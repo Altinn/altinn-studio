@@ -8,7 +8,7 @@ using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
 
 using AltinnCore.Authentication.Constants;
-
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
@@ -20,6 +20,7 @@ namespace Altinn.Platform.Authentication.Controllers
     /// Represents a controller that can expose standard endpoints published by an open id provider.
     /// </summary>
     [Route("authentication/api/v1/openid/.well-known")]
+    [AllowAnonymous]
     [ApiController]
     public class OpenIdController : ControllerBase
     {

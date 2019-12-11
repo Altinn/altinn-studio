@@ -65,12 +65,15 @@ namespace Altinn.Platform.Authentication
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
-            services.Configure<CertificateSettings>(Configuration);
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
             {
                 GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+                options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                options.Cookie.Name = "AltinnStudioRuntime";
+                options.Cookie.Domain = generalSettings.HostName;
+                options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -79,11 +82,6 @@ namespace Altinn.Platform.Authentication
                     RequireExpirationTime = true,
                     ValidateLifetime = true
                 };
-
-                options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                options.Cookie.Name = "AltinnStudioRuntime";
-                options.Cookie.Domain = generalSettings.HostName;
-                options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
 
                 if (_env.IsDevelopment())
                 {
