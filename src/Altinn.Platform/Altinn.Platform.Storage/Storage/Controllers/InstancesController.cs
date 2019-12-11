@@ -225,7 +225,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             // Checking that user is authorized to instantiate.
-            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instance.InstanceOwner.PartyId.ToString(), null);
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instance.InstanceOwner.PartyId.ToString(), null);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)
@@ -234,7 +234,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return Forbid();
             }
 
-            bool authorized = DecisionHelper.ValidateResponse(response.Response, HttpContext.User);
+            bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
 
             if (!authorized)
             {
