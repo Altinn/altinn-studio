@@ -151,7 +151,6 @@ namespace AltinnCore.Authentication.JwtCookie
 
                 jwtCookieValidatedContext.Success();
                 return jwtCookieValidatedContext.Result;
-
             }
             catch (Exception ex)
             {
