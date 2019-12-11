@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Clients;
+using Altinn.Platform.Storage.IntegrationTest.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Interface.Models;
 using Xunit;
@@ -17,9 +17,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
     [Collection("Sequential")]
     public class InstanceEventsTest : IClassFixture<PlatformStorageFixture>, IClassFixture<CosmosDBFixture>, IDisposable
     {
-        private readonly PlatformStorageFixture fixture;
-        private readonly HttpClient client;
-        private readonly InstanceClient storage;
+        private readonly PlatformStorageFixture _fixture;
+        private readonly HttpClient _client;
+        private readonly InstanceClient _instanceClient;
         private readonly string testInstanceId = "100/922e412e-0e7d-4af3-968f-10b372ec7fd9";
 
         /// <summary>
@@ -28,9 +28,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
         public InstanceEventsTest(PlatformStorageFixture fixture)
         {
-            this.fixture = fixture;
-            this.client = this.fixture.Client;
-            this.storage = new InstanceClient(this.client);
+            _fixture = fixture;
+            _client = _fixture.Client;
+            _instanceClient = new InstanceClient(_client);
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             try
             {
-                await storage.DeleteInstanceEvents(testInstanceId);
+                await _instanceClient.DeleteInstanceEvents(testInstanceId);
             }
             catch
             {
@@ -68,7 +68,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             // Act
             await CleanDB();
             await PopulateDatabase();
-            List<InstanceEvent> instanceEvents = await storage.GetInstanceEvents(testInstanceId, null, null, null);
+            List<InstanceEvent> instanceEvents = await _instanceClient.GetInstanceEvents(testInstanceId, null, null, null);
 
             // Assert
             Assert.Equal(expectedNoEvents, instanceEvents.Count());
@@ -87,7 +87,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             // Act
             await CleanDB();
             await PopulateDatabase();
-            List<InstanceEvent> instanceEvents = await storage.GetInstanceEvents(testInstanceId, new string[] { "deleted" }, null, null);
+            List<InstanceEvent> instanceEvents = await _instanceClient.GetInstanceEvents(testInstanceId, new string[] { "deleted" }, null, null);
 
             // Assert
             Assert.Equal(expectedNoEvents, instanceEvents.Count());
@@ -111,7 +111,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             await PopulateDatabase();
 
             string to = DateTime.UtcNow.AddMinutes(1.5).ToString("s", CultureInfo.InvariantCulture);
-            List<InstanceEvent> instanceEvents = await storage.GetInstanceEvents(testInstanceId, null, from, to);
+            List<InstanceEvent> instanceEvents = await _instanceClient.GetInstanceEvents(testInstanceId, null, from, to);
 
             // Assert
             Assert.Equal(expectedNoEvents, instanceEvents.Count());
@@ -179,9 +179,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 }
             };
 
-            await storage.PostInstanceEvent(testEvent01);
-            await storage.PostInstanceEvent(testEvent02);
-            await storage.PostInstanceEvent(testEvent03);
+            await _instanceClient.PostInstanceEvent(testEvent01);
+            await _instanceClient.PostInstanceEvent(testEvent02);
+            await _instanceClient.PostInstanceEvent(testEvent03);
 
             return true;
         }

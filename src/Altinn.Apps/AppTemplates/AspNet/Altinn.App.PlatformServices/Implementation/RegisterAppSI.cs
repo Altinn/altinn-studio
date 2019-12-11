@@ -1,13 +1,11 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
-using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -26,7 +24,7 @@ namespace Altinn.App.Services.Implementation
         private readonly IER _er;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JwtCookieOptions _cookieOptions;
+        private readonly AppSettings _settings;
         private readonly HttpClient _client;
 
         /// <summary>
@@ -36,21 +34,21 @@ namespace Altinn.App.Services.Implementation
         /// <param name="er">The er</param>
         /// <param name="logger">The logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
-        /// <param name="cookieOptions">The cookie options </param>
+        /// <param name="settings">The application settings.</param>
         /// <param name="httpClientAccessor">The http client accessor </param>
         public RegisterAppSI(
             IDSF dsf,
             IER er,
             ILogger<RegisterAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            IOptions<JwtCookieOptions> cookieOptions,
+            IOptionsMonitor<AppSettings> settings,
             IHttpClientAccessor httpClientAccessor)
         {
             _dsf = dsf;
             _er = er;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
-            _cookieOptions = cookieOptions.Value;
+            _settings = settings.CurrentValue;
             _client = httpClientAccessor.RegisterClient;
         }
 
@@ -76,7 +74,7 @@ namespace Altinn.App.Services.Implementation
             Party party = null;
 
             string endpointUrl = $"parties/{partyId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -97,7 +95,7 @@ namespace Altinn.App.Services.Implementation
             Party party;
 
             string endpointUrl = "parties/lookupObject";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             StringContent content = new StringContent(JsonConvert.SerializeObject(personOrOrganisationNumber));
