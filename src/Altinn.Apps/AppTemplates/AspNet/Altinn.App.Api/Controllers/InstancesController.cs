@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.Common.Enums;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
 using Altinn.App.PlatformServices.Models;
@@ -277,7 +279,14 @@ namespace Altinn.App.Api.Controllers
             {
                 // Todo. Figure out where to get this from
                 Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
-                return Forbid(ServiceTextHelper.GetServiceText(validationResult.ErrorMessage, serviceText, null, "nb"));
+                return StatusCode((int)HttpStatusCode.Forbidden,
+                    new ValidationIssue()
+                    {
+                        Code = AppEventType.ValidateInstantiation.ToString(),
+                        Description = ServiceTextHelper.GetServiceText(validationResult.ErrorMessage, serviceText, null, "nb"),
+                        Severity = ValidationIssueSeverity.Error
+                    }
+                );
             }
 
             // use process controller to start process
@@ -434,7 +443,7 @@ namespace Altinn.App.Api.Controllers
             DataElement dataElement = null;
             string org = instance.Org;
             string app = instance.AppId.Split("/")[1];
-          
+
             foreach (RequestPart part in parts)
             {
                 DataType dataType = appInfo.DataTypes.Find(d => d.Id == part.Name);
@@ -452,7 +461,7 @@ namespace Altinn.App.Api.Controllers
                     {
                         throw new ApplicationException($"App.GetAppModelType failed: {altinnAppException.Message}");
                     }
-                    
+
                     object data = DataController.ParseFormDataAndDeserialize(type, part.ContentType, part.Stream, out string errorText);
 
                     if (!string.IsNullOrEmpty(errorText))
@@ -467,7 +476,7 @@ namespace Altinn.App.Api.Controllers
                         org,
                         app,
                         instanceOwnerIdAsInt,
-                        part.Name);                 
+                        part.Name);
                 }
                 else
                 {
