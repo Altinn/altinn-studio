@@ -48,7 +48,7 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet("openid-configuration")]
         public async Task<IActionResult> GetOpenIdConfiguration()
         {
-            string baseUrl = generalSettings.GetPlatformEndpoint;
+            string baseUrl = generalSettings.PlatformEndpoint;
 
             DiscoveryDocument discoveryDocument = new DiscoveryDocument
             {
