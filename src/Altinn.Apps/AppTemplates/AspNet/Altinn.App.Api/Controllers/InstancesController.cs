@@ -335,7 +335,7 @@ namespace Altinn.App.Api.Controllers
             {
                 UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
 
-                ProcessResult result = await _processService.ProcessStartAndGotoNextTask(instance, startEvent, userContext);
+                ProcessResult result = await _processService.ProcessStartAndGotoNextTask(instance, startEvent, User);
 
                 if (result != null)
                 {
