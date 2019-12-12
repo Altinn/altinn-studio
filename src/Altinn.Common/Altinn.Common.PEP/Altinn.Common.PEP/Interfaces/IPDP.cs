@@ -1,6 +1,4 @@
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Platform.Storage.Interface.Models;
-using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 

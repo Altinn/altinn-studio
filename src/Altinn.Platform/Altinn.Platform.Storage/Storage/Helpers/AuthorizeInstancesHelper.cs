@@ -16,7 +16,7 @@ namespace Altinn.Platform.Storage.Helpers
         private readonly IPDP _pdp;
 
         private const string XacmlResourceTaskId = "urn:altinn:task";
-        private const string XacmlResourceEndId = "urn:altinn:endtask";
+        private const string XacmlResourceEndId = "urn:altinn:end-event";
         private const string XacmlResourceActionId = "urn:oasis:names:tc:xacml:1.0:action:action-id";
         private const string DefaultIssuer = "Altinn";
         private const string DefaultType = "string";
@@ -83,7 +83,7 @@ namespace Altinn.Platform.Storage.Helpers
                 XacmlJsonCategory resourceCategory = new XacmlJsonCategory();
                 resourceCategory.Attribute = new List<XacmlJsonAttribute>();
 
-                string instanceId = instance.Id;
+                string instanceId = instance.Id.Split("/")[1];
                 string task = instance.Process?.CurrentTask?.ElementId;
                 string instanceOwnerPartyId = instance.InstanceOwner.PartyId;
                 string org = instance.Org;
@@ -91,7 +91,7 @@ namespace Altinn.Platform.Storage.Helpers
 
                 if (task == null)
                 {
-                    task = "endTask";
+                    task = instance.Process?.EndEvent;
                     resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceEndId, task, DefaultType, DefaultIssuer));
                 }
                 else
@@ -160,7 +160,7 @@ namespace Altinn.Platform.Storage.Helpers
             int instancePosition = 0; 
             foreach (MessageBoxInstance authorizedInstance in authorizedInstances)
             {
-                if (authorizedInstance.Id.Equals(instance.Id))
+                if (authorizedInstance.Id.Equals(instance.Id.Split("/")[1]))
                 {
                     return instancePosition;
                 }
@@ -173,6 +173,11 @@ namespace Altinn.Platform.Storage.Helpers
 
         public async Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(ClaimsPrincipal user, List<Instance> instances)
         {
+            if (instances.Count <= 0)
+            {
+                return new List<MessageBoxInstance>();
+            }
+
             List<MessageBoxInstance> authorizedInstances = new List<MessageBoxInstance>();
             List<string> actionTypes = new List<string> { "read", "write" };
 
@@ -200,7 +205,7 @@ namespace Altinn.Platform.Storage.Helpers
 
                             if (attribute.AttributeId.Equals(AltinnXacmlUrns.InstanceId))
                             {
-                                instanceId = attribute.Value.Split('/')[1];
+                                instanceId = attribute.Value;
                             }
                         }
                     }
@@ -242,6 +247,11 @@ namespace Altinn.Platform.Storage.Helpers
 
         public async Task<List<Instance>> AuthroizeInstances(ClaimsPrincipal user, List<Instance> instances)
         {
+            if (instances.Count <= 0)
+            {
+                return instances;
+            }
+
             List<Instance> authorizedInstances = new List<Instance>();
             List<string> actionTypes = new List<string> { "read" };
 
@@ -252,10 +262,21 @@ namespace Altinn.Platform.Storage.Helpers
             {
                 if (DecisionHelper.ValidateDecisionResult(result, user))
                 {
-                    XacmlJsonAttribute instanceAttribute = result.Category.Select(c => c.Attribute.Find(a => a.AttributeId.Equals(AltinnXacmlUrns.InstanceId))).FirstOrDefault();
-                    XacmlJsonAttribute actionAttribute = result.Category.Select(c => c.Attribute.Find(a => a.AttributeId.Equals(XacmlResourceActionId))).FirstOrDefault();
-                    string instanceId = instanceAttribute.Value.Split('/')[1];
-                    string actiontype = actionAttribute.Value;
+                    string instanceId = string.Empty;
+
+                    // Loop through all attributes in Category from the response
+                    foreach (XacmlJsonCategory category in result.Category)
+                    {
+                        var attributes = category.Attribute;
+
+                        foreach (var attribute in attributes)
+                        {
+                            if (attribute.AttributeId.Equals(AltinnXacmlUrns.InstanceId))
+                            {
+                                instanceId = attribute.Value;
+                            }
+                        }
+                    }
 
                     Instance instance = instances.FirstOrDefault(i => i.Id == instanceId);
                     authorizedInstances.Add(instance);

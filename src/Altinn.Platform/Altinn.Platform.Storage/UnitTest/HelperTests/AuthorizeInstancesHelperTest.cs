@@ -99,7 +99,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             {
                 new Instance
                 {
-                    Id = "1",
+                    Id = "1000/1",
                     Process = new ProcessState
                     {
                         CurrentTask = new ProcessElementInfo
@@ -116,7 +116,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
                 },
                 new Instance
                 {
-                    Id = "4",
+                    Id = "1002/4",
                     InstanceOwner = new InstanceOwner
                     {
                         PartyId = "1002"
@@ -126,7 +126,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
                 },
                 new Instance
                 {
-                    Id = "7",
+                    Id = "1000/7",
                     InstanceOwner = new InstanceOwner
                     {
                         PartyId = "1000"
