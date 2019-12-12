@@ -42,9 +42,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IRegister _registerService;
         private readonly IAltinnApp _altinnApp;
         private readonly IProcess _processService;
-        private readonly UserHelper _userHelper;
         private readonly IPDP _pdp;
-
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -57,9 +55,7 @@ namespace Altinn.App.Api.Controllers
             IAppResources appResourcesService,
             IAltinnApp altinnApp,
             IProcess processService,
-            IPDP pdp,
-            IProfile profileService,
-            IOptions<GeneralSettings> generalSettings)
+            IPDP pdp)
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -70,8 +66,6 @@ namespace Altinn.App.Api.Controllers
             _processService = processService;
 
             _pdp = pdp;
-
-            _userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
 
         /// <summary>
@@ -256,8 +250,8 @@ namespace Altinn.App.Api.Controllers
             {
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
             }
-
-            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString(), null);
+            
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString(), null);
             bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
 
             if (!authorized)
@@ -270,17 +264,27 @@ namespace Altinn.App.Api.Controllers
                 return Forbid($"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}");
             }
 
-            // use process controller to start process
-            instanceTemplate.Process = null;
-
             Instance instance;
             try
             {
-                instance = await _instanceService.CreateInstance(org, app, instanceTemplate);
-                if (instance == null)
+                // use process controller to start process
+                instanceTemplate.Process = null;
+
+                string startEvent = await _altinnApp.OnInstantiateGetStartEvent();
+
+                ProcessResult processResult = _processService.ProcessStartAndGotoNextTask(instanceTemplate, startEvent, User);
+             
+                if (processResult != null && processResult.Instance != null)
                 {
-                    throw new PlatformClientException("Failure instantiating instance. UnknownError");
-                }
+                    // create the instance, notify app and store events
+                    instance = await _instanceService.CreateInstance(org, app, processResult.Instance);
+                    await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events);                   
+                    await _processService.DispatchProcessEventsToStorage(instance, processResult.Events);
+                }               
+                else
+                {
+                    return Conflict($"Unable to start process and goto to next task for instance");
+                }               
             }
             catch (Exception instanceException)
             {
@@ -295,17 +299,7 @@ namespace Altinn.App.Api.Controllers
                 await StorePrefillParts(instance, application, parsedRequest.Parts);
 
                 // get the updated instance
-                instance = await _instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
-
-                Instance instanceWithStartedProcess = await StartProcessAndGotoNextTask(instance);
-                if (instanceWithStartedProcess != null)
-                {
-                    instance = instanceWithStartedProcess;
-                }
-                else
-                {
-                    return Conflict($"Unable to start and move process to next task for instance {instance.Id}");
-                }
+                instance = await _instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));                
             }
             catch (Exception dataException)
             {
@@ -320,41 +314,6 @@ namespace Altinn.App.Api.Controllers
             string url = instance.SelfLinks.Apps;
 
             return Created(url, instance);
-        }
-
-        /// <summary>
-        /// Calls Altinn app to get start event and goto next task
-        /// </summary>
-        /// <param name="instance">instance can be updated by app</param>
-        /// <returns></returns>
-        private async Task<Instance> StartProcessAndGotoNextTask(Instance instance)
-        {
-            string startEvent = await _altinnApp.OnInstantiateGetStartEvent(instance);
-
-            if (startEvent != null)
-            {
-                UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
-
-                ProcessResult result = await _processService.ProcessStartAndGotoNextTask(instance, startEvent, User);
-
-                if (result != null)
-                {
-                    instance = result.Instance;
-                    foreach (InstanceEvent instanceEvent in result.Events)
-                    {
-                        if (instanceEvent.EventType.Equals("process:StartTask"))
-                        {
-                            // make sure app can run event on start task.
-                            await _altinnApp.OnStartProcessTask(instanceEvent.ProcessInfo.CurrentTask.ElementId, instance);
-                        }
-                    }
-
-                    // make sure we save the instance after app has handled events
-                    return await _instanceService.UpdateInstance(instance);
-                }                                
-            }
-
-            return null;
         }
 
         private async Task<Party> LookupParty(Instance instanceTemplate)
@@ -503,5 +462,21 @@ namespace Altinn.App.Api.Controllers
 
             return instanceTemplate;
         }
+
+        private async Task<bool> AuthorizeAction(string currenTaskType, string org, string app, string instanceId)
+        {
+            string actionType = currenTaskType.Equals("data") ? "write" : null;
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, null, instanceId);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+            if (response?.Response == null)
+            {
+                _logger.LogInformation($"// Process Controller // Authorization of moving process forward failed with request: {JsonConvert.SerializeObject(request)}.");
+                return false;
+            }
+            bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
+            return authorized;
+        }
+
+
     }
 }

@@ -45,17 +45,12 @@ namespace Altinn.App.Services.Implementation
         public abstract Task<bool> RunValidation(object instance, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
         
         /// <inheritdoc />
-        public async Task<string> OnInstantiateGetStartEvent(Instance instance)
+        public Task<string> OnInstantiateGetStartEvent()
         {
-            _logger.LogInformation($"OnInstantiate for {instance.Id}");
+            _logger.LogInformation($"OnInstantiate for ");
 
-            if (instance.Process == null)
-            {
-                // return start event              
-                return "StartEvent_1";
-            }
-
-            return null;
+            // return start event              
+            return Task.FromResult("StartEvent_1");
         }
 
         /// <inheritdoc />

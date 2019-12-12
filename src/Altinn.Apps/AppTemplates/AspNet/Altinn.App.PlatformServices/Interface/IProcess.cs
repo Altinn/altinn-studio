@@ -26,17 +26,17 @@ namespace Altinn.App.Services.Interface
         /// <param name="instance">instance to start process on</param>
         /// <param name="validStartEvent">valid start event identifier</param>
         /// <returns>instance with started process</returns>
-        Task<ProcessResult> ProcessStart(Instance instance, string validStartEvent, ClaimsPrincipal userContext);
+        ProcessResult ProcessStart(Instance instance, string validStartEvent, ClaimsPrincipal user);
 
         /// <summary>
-        /// Starts the process with a valid start element and moves it to its next task.
-        /// If process is allready started operation is ignored.
+        /// Starts the process with a valid start element and moves it to its next task. This method does update the instance object with new process state.
+        /// But does not store this in storage. Hence instance.Id is not set.
         /// </summary>
-        /// <param name="instance"></param>
-        /// <param name="validStartEvent"></param>
-        /// <param name="userContext"></param>
-        /// <returns></returns>
-        Task<ProcessResult> ProcessStartAndGotoNextTask(Instance instance, string validStartEvent, ClaimsPrincipal userContext);
+        /// <param name="instance">the instance to start</param>
+        /// <param name="validStartEvent">valid start event</param>
+        /// <param name="user">the user</param>
+        /// <returns>ProcessResult with no instance id set</returns>
+        ProcessResult ProcessStartAndGotoNextTask(Instance instance, string validStartEvent, ClaimsPrincipal user);
 
         /// <summary>
         /// Updates the process to the next element id (can be a task or end event)
@@ -45,6 +45,14 @@ namespace Altinn.App.Services.Interface
         /// <param name="nextElementId">valid next element id</param>
         /// <param name="processModel">the process model to get info</param>
         /// <returns>instance with updated process</returns>
-        Task<ProcessResult> ProcessNext(Instance instance, string nextElementId, ProcessHelper processModel, ClaimsPrincipal userContext);
+        ProcessResult ProcessNext(Instance instance, string nextElementId, ProcessHelper processModel, ClaimsPrincipal user);
+
+        /// <summary>
+        /// Dispatches process events to storage.
+        /// </summary>
+        /// <param name="instance">the instance</param>
+        /// <param name="events">process events</param>
+        /// <returns></returns>
+        public Task DispatchProcessEventsToStorage(Instance instance, List<InstanceEvent> events);
     }
 }
