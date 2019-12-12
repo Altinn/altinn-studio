@@ -57,7 +57,7 @@ namespace Altinn.Platform.Authorization.Controllers
                     return await AuthorizeXmlRequest(model);
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {
@@ -68,6 +68,10 @@ namespace Altinn.Platform.Authorization.Controllers
             }
         }
 
+        /// <summary>
+        /// Test method. Should be deleted?
+        /// </summary>
+        /// <returns>test string</returns>
         [HttpGet]
         public string Get()
         {
@@ -158,8 +162,8 @@ namespace Altinn.Platform.Authorization.Controllers
 
         private async Task<ActionResult> AuthorizeJsonRequest(XacmlRequestApiModel model)
         {
-            XacmlJsonRequestRoot jsonRequest = null;
-            jsonRequest = (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
+            XacmlJsonRequestRoot jsonRequest =
+                (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
 
             XacmlJsonResponse jsonResponse = await Authorize(jsonRequest.Request);
 
@@ -187,27 +191,6 @@ namespace Altinn.Platform.Authorization.Controllers
             PolicyDecisionPoint pdp = new PolicyDecisionPoint();
             XacmlContextResponse xacmlContextResponse = pdp.Authorize(decisionRequest, policy);
             return xacmlContextResponse;
-        }
-
-        private XacmlContextRequest ParseApiBody(XacmlRequestApiModel model)
-        {
-            XacmlContextRequest request = null;
-
-            if (Request.ContentType.Contains("application/json"))
-            {
-                XacmlJsonRequestRoot jsonRequest;
-                jsonRequest = (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
-                request = XacmlJsonXmlConverter.ConvertRequest(jsonRequest.Request);
-            }
-            else if (Request.ContentType.Contains("application/xml"))
-            {
-                using (XmlReader reader = XmlReader.Create(new StringReader(model.BodyContent)))
-                {
-                    request = XacmlParser.ReadContextRequest(reader);
-                }
-            }
-
-            return request;
         }
     }
 }

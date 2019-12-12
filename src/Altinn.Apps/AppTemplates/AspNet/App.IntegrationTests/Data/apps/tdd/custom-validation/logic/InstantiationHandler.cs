@@ -1,8 +1,8 @@
+using System;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
-// using Altinn.App.Models; // Uncomment this line to refer to app model(s)
 
-namespace Altinn.App.AppLogic
+namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
 {
     public class InstantiationHandler
     {
@@ -35,7 +35,11 @@ namespace Altinn.App.AppLogic
         /// <returns>The validation result object (null if no errors) </returns>
         public InstantiationValidationResult RunInstantiationValidation()
         {
-            return null;
+            return new InstantiationValidationResult()
+            {
+                Valid = false,
+                Message = "ERROR: Validation not possible."
+            };
         }
 
         /// <summary>
@@ -47,7 +51,35 @@ namespace Altinn.App.AppLogic
         /// <param name="instance"></param>
         public void DataCreation(object instance)
         {
+            if (instance.GetType() == typeof(Skjema))
+            {
+                Skjema model = (Skjema)instance;
+                string navn = "Test Test 123";
 
+                if (model.Foretakgrp8820 == null)
+                {
+                    model.Foretakgrp8820 = new Foretakgrp8820()
+                    {
+                        EnhetNavnEndringdatadef31 = new EnhetNavnEndringdatadef31()
+                        {
+                            orid = 31,
+                            value = navn
+                        }
+                    };
+                }
+                else if (model.Foretakgrp8820.EnhetNavnEndringdatadef31 == null)
+                {
+                    model.Foretakgrp8820.EnhetNavnEndringdatadef31 = new EnhetNavnEndringdatadef31()
+                    {
+                        orid = 31,
+                        value = navn
+                    };
+                }
+                else
+                {
+                    model.Foretakgrp8820.EnhetNavnEndringdatadef31.value = navn;
+                }
+            }
         }
     }
 }

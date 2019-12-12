@@ -17,8 +17,11 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Core;
 
 namespace Altinn.Platform.Storage
 {
@@ -32,7 +35,16 @@ namespace Altinn.Platform.Storage
         /// </summary>
         public static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Storage";
 
+        /// <summary>
+        /// The application insights key.
+        /// </summary>
+        internal static string ApplicationInsightsKey { get; set; }
+
         private readonly IWebHostEnvironment _env;
+
+        private static readonly Logger _logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class
@@ -54,6 +66,8 @@ namespace Altinn.Platform.Storage
         /// <param name="services">the service configuration</param>        
         public void ConfigureServices(IServiceCollection services)
         {
+            _logger.Information("Startup // ConfigureServices");
+
             services.AddControllers(config =>
             {
                 AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
@@ -108,10 +122,11 @@ namespace Altinn.Platform.Storage
 
             services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
 
-            string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
-            if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
+            if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
-                services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
+                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+
+                _logger.Information($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
             }
 
             // Add Swagger support (Swashbuckle)
@@ -169,9 +184,11 @@ namespace Altinn.Platform.Storage
         /// <param name="env">the hosting environment</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            _logger.Information("Startup // Configure");
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                _logger.Information("IsDevelopment");
             }
             else
             {
