@@ -231,11 +231,11 @@ namespace App.IntegrationTests
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            ValidationIssue validationIssue = JsonConvert.DeserializeObject<ValidationIssue>(responseContent);
+            InstantiationValidationResult validationResult = JsonConvert.DeserializeObject<InstantiationValidationResult>(responseContent);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            Assert.Equal(ValidationIssueSeverity.Error, validationIssue.Severity);
-            Assert.Equal(AppEventType.ValidateInstantiation.ToString(), validationIssue.Code);
+            Assert.False(validationResult.Valid);
+            Assert.Equal("ERROR: Validation not possible.", validationResult.Message);
         }
     }
 }
