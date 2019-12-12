@@ -139,7 +139,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // trigger start event and goto next task
-            ProcessResult startResult = await _processService.ProcessStartAndGotoNextTask(instance, validStartElement, userContext);
+            ProcessResult startResult = await _processService.ProcessStartAndGotoNextTask(instance, validStartElement, User);
 
             if (startResult.Instance != null)
             {
@@ -300,7 +300,7 @@ namespace Altinn.App.Api.Controllers
             {
                 UserContext userContext = userHelper.GetUserContext(HttpContext).Result;
 
-                ProcessResult nextResult = await _processService.ProcessNext(instance, nextElement, processHelper, userContext);
+                ProcessResult nextResult = await _processService.ProcessNext(instance, nextElement, processHelper, User);
                 if (nextResult != null)
                 {
                     await NotifyAppAboutEvents(nextResult.Instance, nextResult.Events);
@@ -401,7 +401,7 @@ namespace Altinn.App.Api.Controllers
 
                 string nextElement = nextElements.First();
 
-                ProcessResult nextResult =  await _processService.ProcessNext(instance, nextElement, processHelper, userContext);
+                ProcessResult nextResult =  await _processService.ProcessNext(instance, nextElement, processHelper, User);
 
                 if (nextResult != null)
                 {

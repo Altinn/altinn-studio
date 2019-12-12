@@ -4,6 +4,7 @@ using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Altinn.App.Services.Interface
@@ -25,7 +26,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="instance">instance to start process on</param>
         /// <param name="validStartEvent">valid start event identifier</param>
         /// <returns>instance with started process</returns>
-        Task<ProcessResult> ProcessStart(Instance instance, string validStartEvent, UserContext userContext);
+        Task<ProcessResult> ProcessStart(Instance instance, string validStartEvent, ClaimsPrincipal userContext);
 
         /// <summary>
         /// Starts the process with a valid start element and moves it to its next task.
@@ -35,7 +36,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="validStartEvent"></param>
         /// <param name="userContext"></param>
         /// <returns></returns>
-        Task<ProcessResult> ProcessStartAndGotoNextTask(Instance instance, string validStartEvent, UserContext userContext);
+        Task<ProcessResult> ProcessStartAndGotoNextTask(Instance instance, string validStartEvent, ClaimsPrincipal userContext);
 
         /// <summary>
         /// Updates the process to the next element id (can be a task or end event)
@@ -44,6 +45,6 @@ namespace Altinn.App.Services.Interface
         /// <param name="nextElementId">valid next element id</param>
         /// <param name="processModel">the process model to get info</param>
         /// <returns>instance with updated process</returns>
-        Task<ProcessResult> ProcessNext(Instance instance, string nextElementId, ProcessHelper processModel, UserContext userContext);
+        Task<ProcessResult> ProcessNext(Instance instance, string nextElementId, ProcessHelper processModel, ClaimsPrincipal userContext);
     }
 }

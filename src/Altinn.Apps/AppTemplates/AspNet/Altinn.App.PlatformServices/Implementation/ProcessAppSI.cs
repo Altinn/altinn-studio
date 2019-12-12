@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
+using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
@@ -166,7 +168,11 @@ namespace Altinn.App.Services.Implementation
             }
         }
 
-        private async Task<List<InstanceEvent>> ChangeProcessStateAndGenerateEvents(Instance instance, string nextElementId, ProcessHelper processModel, UserContext userContext)
+        private async Task<List<InstanceEvent>> ChangeProcessStateAndGenerateEvents(
+            Instance instance,
+            string nextElementId,
+            ProcessHelper processModel,
+            ClaimsPrincipal user)
         {
             List<InstanceEvent> events = new List<InstanceEvent>();
 
@@ -191,7 +197,7 @@ namespace Altinn.App.Services.Implementation
                     flow = currentState.CurrentTask.Flow.Value;
                 }
 
-                events.Add(GenerateProcessChangeEvent("process:EndTask", instance, now, userContext));
+                events.Add(GenerateProcessChangeEvent("process:EndTask", instance, now, user));
             }
 
             if (processModel.IsEndEvent(nextElementId))
@@ -200,10 +206,10 @@ namespace Altinn.App.Services.Implementation
                 currentState.Ended = now;
                 currentState.EndEvent = nextElementId;
 
-                events.Add(GenerateProcessChangeEvent("process:EndEvent", instance, now, userContext));
+                events.Add(GenerateProcessChangeEvent("process:EndEvent", instance, now, user));
 
                 // add submit event (to support Altinn2 SBL)
-                events.Add(GenerateProcessChangeEvent(InstanceEventType.Submited.ToString(), instance, now, userContext));
+                events.Add(GenerateProcessChangeEvent(InstanceEventType.Submited.ToString(), instance, now, user));
             }
             else if (processModel.IsTask(nextElementId))
             {
@@ -218,7 +224,7 @@ namespace Altinn.App.Services.Implementation
                     Validated = null,
                 };
 
-                events.Add(GenerateProcessChangeEvent("process:StartTask", instance, now, userContext));
+                events.Add(GenerateProcessChangeEvent("process:StartTask", instance, now, user));
             }
 
             // current state points to the instance's process object. The following statement is unnecessary, but clarifies logic.
@@ -227,7 +233,7 @@ namespace Altinn.App.Services.Implementation
             return events;
         }
 
-        private InstanceEvent GenerateProcessChangeEvent(string eventType, Instance instance, DateTime now, UserContext userContext)
+        private InstanceEvent GenerateProcessChangeEvent(string eventType, Instance instance, DateTime now, ClaimsPrincipal user)
         {
             InstanceEvent instanceEvent = new InstanceEvent
             {
@@ -237,8 +243,9 @@ namespace Altinn.App.Services.Implementation
                 Created = now,
                 User = new PlatformUser
                 {
-                    UserId = userContext.UserId,
-                    AuthenticationLevel = userContext.AuthenticationLevel,
+                    UserId = user.GetUserIdAsInt(),
+                    AuthenticationLevel = user.GetAuthenticationLevel(),
+                    OrgId = user.GetOrg()
                 },
                 ProcessInfo = instance.Process,
             };
