@@ -302,7 +302,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // send events to trigger application business logic
-            await _altinnApp.RunAppEvent(AppEventType.AppModelCreation, appModel);
+            await _altinnApp.RunDataCreation(appModel);
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
@@ -445,7 +445,7 @@ namespace Altinn.App.Api.Controllers
             string appModelclassRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
             // Get Form Data from data service. Assumes that the data element is form data.
-            object appModel = _dataService.GetFormData(
+            object appModel = await _dataService.GetFormData(
                 instanceGuid,
                 _altinnApp.GetAppModelType(appModelclassRef),
                 org,
@@ -459,9 +459,8 @@ namespace Altinn.App.Api.Controllers
             }
 
 
-            // send events to trigger application business logic
-            await _altinnApp.RunAppEvent(AppEventType.DataRetrieval, appModel);
-            await _altinnApp.RunAppEvent(AppEventType.Calculation, appModel);
+            // Trigger application business logic
+            await _altinnApp.RunCalculation(appModel);
 
             return Ok(appModel);
         }
@@ -491,10 +490,8 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("No data found in content");
             }
 
-            // send events to trigger application business logic
-            await _altinnApp.RunAppEvent(AppEventType.DataRetrieval, serviceModel);
-            await _altinnApp.RunAppEvent(AppEventType.Calculation, serviceModel);
-
+            // Trigger application business logic
+            await _altinnApp.RunCalculation(serviceModel);
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
