@@ -1,8 +1,6 @@
-using Altinn.App.Services.Interface;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
+using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models.Validation;
 
 namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
 {
@@ -35,9 +33,13 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// <param name="instance"></param>
         /// <param name="validationResults"></param>
         /// <returns>The validation result object (null if no errors) </returns>
-        public ValidationResult RunInstantiationValidation()
+        public InstantiationValidationResult RunInstantiationValidation()
         {
-            return new ValidationResult("ERROR: Validation not possible.");
+            return new InstantiationValidationResult()
+            {
+                Valid = false,
+                Message = "ERROR: Validation not possible."
+            };
         }
 
         /// <summary>

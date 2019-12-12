@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Altinn.App.AppLogic.Validation;
 using Altinn.App.AppLogic.Calculation;
+using Altinn.App.Services.Models.Validation;
 
 namespace Altinn.App.AppLogic
 {
@@ -70,7 +71,7 @@ namespace Altinn.App.AppLogic
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task<bool> RunValidation(object instance, ICollection<ValidationResult> validationResults)
+        public override async Task<bool> RunValidation(object instance, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults)
         {
             _validationHandler.Validate(instance, validationResults);
             return validationResults.Count == 0; ;
@@ -91,7 +92,7 @@ namespace Altinn.App.AppLogic
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task<ValidationResult> RunInstantiationValidation()
+        public override async Task<InstantiationValidationResult> RunInstantiationValidation()
         {
             return _instantiationHandler.RunInstantiationValidation();
         }

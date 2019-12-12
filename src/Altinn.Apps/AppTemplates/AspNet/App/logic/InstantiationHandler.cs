@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models.Validation;
 // using Altinn.App.Models; // Uncomment this line to refer to app model(s)
 
 namespace Altinn.App.AppLogic
@@ -36,7 +33,7 @@ namespace Altinn.App.AppLogic
         /// <param name="instance"></param>
         /// <param name="validationResults"></param>
         /// <returns>The validation result object (null if no errors) </returns>
-        public ValidationResult RunInstantiationValidation()
+        public InstantiationValidationResult RunInstantiationValidation()
         {
             return null;
         }

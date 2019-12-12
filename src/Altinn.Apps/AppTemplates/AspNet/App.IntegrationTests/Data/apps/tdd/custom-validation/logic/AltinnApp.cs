@@ -67,7 +67,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task<ValidationResult> RunInstantiationValidation()
+        public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation()
         {
             return _instantiationHandler.RunInstantiationValidation();
         }

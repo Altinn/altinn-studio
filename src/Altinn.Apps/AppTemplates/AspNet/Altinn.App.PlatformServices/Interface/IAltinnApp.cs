@@ -81,7 +81,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="instance">The data to perform calculations on</param>
         /// <param name="validationResults">Object containing any validation errors/warnings</param>
         /// <returns>Task to indicate when calculation is completed</returns>
-        Task<System.ComponentModel.DataAnnotations.ValidationResult> RunInstantiationValidation();
+        Task<InstantiationValidationResult> RunInstantiationValidation();
 
         /// <summary>
         /// Is called to run custom instantiation events defined by app developer.

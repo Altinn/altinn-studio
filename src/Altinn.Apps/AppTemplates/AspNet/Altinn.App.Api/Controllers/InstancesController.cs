@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.App.Common.Enums;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
 using Altinn.App.PlatformServices.Models;
@@ -274,19 +273,12 @@ namespace Altinn.App.Api.Controllers
             }
 
             // Run custom app logic to validate instantiation
-            System.ComponentModel.DataAnnotations.ValidationResult validationResult = await _altinnApp.RunInstantiationValidation();
-            if (validationResult != null && !string.IsNullOrEmpty(validationResult.ErrorMessage))
+            InstantiationValidationResult validationResult = await _altinnApp.RunInstantiationValidation();
+            if (validationResult != null && !validationResult.Valid)
             {
                 // Todo. Figure out where to get this from
                 Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
-                return StatusCode((int)HttpStatusCode.Forbidden,
-                    new ValidationIssue()
-                    {
-                        Code = AppEventType.ValidateInstantiation.ToString(),
-                        Description = ServiceTextHelper.GetServiceText(validationResult.ErrorMessage, serviceText, null, "nb"),
-                        Severity = ValidationIssueSeverity.Error
-                    }
-                );
+                return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
             }
 
             // use process controller to start process
