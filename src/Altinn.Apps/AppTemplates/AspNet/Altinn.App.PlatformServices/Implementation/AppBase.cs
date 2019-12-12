@@ -1,6 +1,5 @@
 using Altinn.App.Common.Enums;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -82,7 +81,7 @@ namespace Altinn.App.Services.Implementation
             foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
             {
                 _logger.LogInformation($"autocreate data element: {dataType.Id}");
-
+                
                 DataElement dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
 
                 if (dataElement == null)
@@ -94,10 +93,9 @@ namespace Altinn.App.Services.Implementation
                     instance.Data.Add(createdDataElement);
 
                     _logger.LogInformation($"created data element: {createdDataElement.Id}");
-                }
+                }                                
             }
         }
-
 
         /// <inheritdoc />
         public async Task<bool> CanEndProcessTask(string taskId, Instance instance, List<ValidationIssue> validationIssues)

@@ -1187,9 +1187,8 @@ namespace Altinn.Authorization.ABAC.Utils
                 {
                     attribute.Attributes.Add(new System.Xml.Linq.XAttribute(item.Key, item.Value));
                 }
-                catch(Exception ex)
-                {
-                    string halle = "hh";
+                catch
+                {                    
                 }
             }
 
