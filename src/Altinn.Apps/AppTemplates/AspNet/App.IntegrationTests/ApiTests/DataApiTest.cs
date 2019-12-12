@@ -1,7 +1,9 @@
 
 using Altinn.App.IntegrationTests;
+using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Net;
 using System.Net.Http;
@@ -103,6 +105,58 @@ namespace App.IntegrationTests.ApiTests
             string responseContent = response.Content.ReadAsStringAsync().Result;
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Data_Get_With_Calculation()
+        {
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1000/182e053b-3c74-46d4-92ec-a2828289a877/data/7dfeffd1-1750-4e4a-8107-c6741e05d2a9")
+            {
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+
+            Assert.Contains("\"journalnummerdatadef33316\":{\"orid\":33316,\"value\":1001}", responseContent);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Data_Post_With_DataCreation()
+        {
+            Guid guid = new Guid("609efc9d-4496-4f0b-9d20-808dc2c1876d");
+            TestDataUtil.DeleteDataForInstance("tdd", "custom-validation", 1000, guid);
+
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/custom-validation/instances/1000/609efc9d-4496-4f0b-9d20-808dc2c1876d/data?dataType=default")
+            {
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/custom-validation/instances/1000/609efc9d-4496-4f0b-9d20-808dc2c1876d/data/{dataElement.Id}")
+            {
+            };
+
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = response.Content.ReadAsStringAsync().Result;
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains("\"enhetNavnEndringdatadef31\":{\"orid\":31,\"value\":\"Test Test 123\"}", responseContent);
+
+            TestDataUtil.DeleteDataForInstance("tdd", "custom-validation", 1000, guid);
         }
 
     }
