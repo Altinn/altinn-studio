@@ -37,6 +37,8 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 
         private readonly string taskAttributeId = "urn:altinn:task";
 
+        private readonly string endTaskAttributeId = "urn:altinn:end-event";
+
         private readonly string partyAttributeId = "urn:altinn:partyid";
 
         private readonly string userAttributeId = "urn:altinn:userid";
@@ -178,6 +180,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
             string instanceAttributeValue = string.Empty;
             string resourcePartyAttributeValue = string.Empty;
             string taskAttributeValue = string.Empty;
+            string endEventAttribute = string.Empty;
 
             XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
 
@@ -207,6 +210,11 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
                 {
                     resourcePartyAttributeValue = attribute.AttributeValues.First().Value;
                 }
+
+                if (attribute.AttributeId.OriginalString.Equals(endTaskAttributeId))
+                {
+                    endEventAttribute = attribute.AttributeValues.First().Value;
+                }
             }
 
             bool resourceAttributeComplete = false;
@@ -215,7 +223,8 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
                 !string.IsNullOrEmpty(appAttributeValue) &&
                 !string.IsNullOrEmpty(instanceAttributeValue) &&
                 !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
-                !string.IsNullOrEmpty(taskAttributeValue))
+                (!string.IsNullOrEmpty(taskAttributeValue) ||
+                !string.IsNullOrEmpty(endEventAttribute)))
             {
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
@@ -224,7 +233,8 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
                 !string.IsNullOrEmpty(appAttributeValue) &&
                 string.IsNullOrEmpty(instanceAttributeValue) &&
                 !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
-                string.IsNullOrEmpty(taskAttributeValue))
+                (!string.IsNullOrEmpty(taskAttributeValue) ||
+                !string.IsNullOrEmpty(endEventAttribute)))
             {
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
@@ -310,8 +320,22 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 
         private XacmlAttribute GetProcessElementAttribute(Instance instance)
         {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(taskAttributeId), false);
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Process.CurrentTask.ElementId));
+            string task = instance.Process.CurrentTask.ElementId;
+            XacmlAttribute attribute;
+
+            if (task != null)
+            {
+                attribute = new XacmlAttribute(new Uri(taskAttributeId), false);
+                
+            }
+            else
+            {
+                task = "end-event";
+                attribute = new XacmlAttribute(new Uri(endTaskAttributeId), false);
+            }
+
+            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), task));
+
             return attribute;
         }
 

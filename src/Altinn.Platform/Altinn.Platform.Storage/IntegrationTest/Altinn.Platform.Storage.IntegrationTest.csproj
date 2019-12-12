@@ -31,8 +31,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Altinn.Common\Altinn.Common.PEP\Altinn.Common.PEP\Altinn.Common.PEP.csproj" />
-    <ProjectReference Include="..\Storage.Interface\Altinn.Platform.Storage.Interface.csproj" />
     <ProjectReference Include="..\Storage\Altinn.Platform.Storage.csproj" />
   </ItemGroup>
 
@@ -53,6 +51,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="data\apps\tdd\test-applikasjon-2\config\authorization\policy.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="data\apps\tests\sailor\config\authorization\policy.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="data\binary_file.pdf">
@@ -79,7 +80,16 @@
     <None Update="data\response_permit.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="data\Roles\user_1\party_1000\roles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="data\Roles\user_1\party_50000000\roles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="data\Roles\user_1\party_1600\roles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="data\Roles\user_1\party_500\roles.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="data\xmlfile.xml">
