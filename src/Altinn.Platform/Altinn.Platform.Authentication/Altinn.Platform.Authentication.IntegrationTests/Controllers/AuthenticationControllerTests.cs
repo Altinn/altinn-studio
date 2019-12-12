@@ -129,6 +129,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             string token = null;
             string sameSite = null;
             bool httpOnly = false;
+            bool sessionCookie = true;
 
             response.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> cookies);
             foreach (string cookie in cookies)
@@ -146,6 +147,10 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
                         case "httponly":
                             httpOnly = true;
                             break;
+                        case "expires":
+                            // Cookies WITHOUT 'expires' are session cookies. They are gone when the browser is closed.
+                            sessionCookie = false;
+                            break;
                         case "samesite":
                             sameSite = cookieKeyValue[1];
                             break;
@@ -161,6 +166,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             Assert.Equal("lax", sameSite);
 
             Assert.True(httpOnly);
+            Assert.True(sessionCookie);
         }
 
         private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService)

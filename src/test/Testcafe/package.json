@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "node .\\testRunner --env=dev",
-    "wcag": "testcafe chrome:headless .\\wcag\\wcag.js -r spec"
+    "wcag": "node .\\WCAGRunner --env=dev"
   },
   "keywords": [],
   "author": "",

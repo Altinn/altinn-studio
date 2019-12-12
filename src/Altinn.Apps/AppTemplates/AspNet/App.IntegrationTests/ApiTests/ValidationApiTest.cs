@@ -34,7 +34,7 @@ namespace App.IntegrationTestsRef.ApiTests
         {
             string token = PrincipalUtil.GetToken(1);
 
-            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation", true);
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1000/0fc98a23-fe31-4ef5-8fb9-dd3f479354cd/validate");
             {
@@ -60,7 +60,7 @@ namespace App.IntegrationTestsRef.ApiTests
         {
             string token = PrincipalUtil.GetToken(1);
 
-            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation", true);
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1000/16314483-65f3-495a-aaec-79445b4edb0b/validate");
             {

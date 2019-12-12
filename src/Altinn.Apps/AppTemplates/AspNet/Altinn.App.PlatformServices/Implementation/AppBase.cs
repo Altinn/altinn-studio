@@ -42,6 +42,12 @@ namespace Altinn.App.Services.Implementation
         public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
 
         public abstract Task<bool> RunValidation(object instance, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
+
+        public abstract Task RunCalculation(object instance);
+
+        public abstract Task<InstantiationValidationResult> RunInstantiationValidation();
+
+        public abstract Task RunDataCreation(object instance);
         
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
@@ -87,6 +93,7 @@ namespace Altinn.App.Services.Implementation
                 if (dataElement == null)
                 {
                     dynamic data = CreateNewAppModel(dataType.AppLogic.ClassRef);
+                    RunDataCreation(data);
                     Type type = GetAppModelType(dataType.AppLogic.ClassRef);
 
                     DataElement createdDataElement = await _dataService.InsertFormData(instance, dataType.Id, data, type);

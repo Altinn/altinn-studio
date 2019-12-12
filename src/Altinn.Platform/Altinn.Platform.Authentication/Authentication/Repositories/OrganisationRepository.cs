@@ -16,11 +16,11 @@ namespace Altinn.Platform.Authentication.Repositories
     /// </summary>
     public class OrganisationRepository : IOrganisationRepository
     {
-        private static Dictionary<string, Organisation> orgNumberToOrganisation = new Dictionary<string, Organisation>();
-        private static Dictionary<string, Organisation> orgToOrganisation = new Dictionary<string, Organisation>();
-        private static DateTime dictionaryLastUpdated = DateTime.MinValue;
+        private Dictionary<string, Organisation> orgNumberToOrganisation = new Dictionary<string, Organisation>();
+        private Dictionary<string, Organisation> orgToOrganisation = new Dictionary<string, Organisation>();
+        private DateTime dictionaryLastUpdated = DateTime.MinValue;
 
-        private static readonly HttpClient HttpClient = new HttpClient();
+        private readonly HttpClient _httpClient = new HttpClient();
         private readonly ILogger logger;
 
         private readonly Uri organisationListLocation;
@@ -91,7 +91,7 @@ namespace Altinn.Platform.Authentication.Repositories
             Dictionary<string, Organisation> organisationHarvest = null;
             try
             {
-                HttpResponseMessage response = HttpClient.GetAsync(organisationListLocation).Result;
+                HttpResponseMessage response = _httpClient.GetAsync(organisationListLocation).Result;
 
                 response.EnsureSuccessStatusCode();
 
