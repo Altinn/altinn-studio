@@ -264,12 +264,12 @@ namespace Altinn.App.Api.Controllers
 
             if (!authorized)
             {
-                return Forbid();
+                return StatusCode((int)HttpStatusCode.Forbidden);
             }
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
-                return Forbid($"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}");
+                return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}"); 
             }
 
             // Run custom app logic to validate instantiation
