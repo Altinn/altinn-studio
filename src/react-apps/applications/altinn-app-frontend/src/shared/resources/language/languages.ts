@@ -160,7 +160,7 @@ export const nb = () => (
       service_logic_edit_dynamics: 'Rediger dynamikk',
       service_logic_edit_validations: 'Rediger valideringer',
       service_logic_icon_aria_label: 'Logikkknapp',
-      service_logic_icon_title: 'Logikkikon',
+      service_logic_icon_title: 'Logikk',
       service_logic_validations: 'Valideringer',
       toolbar_add_container: 'Legg til container',
       toolbar_component_search: 'Finn komponent...',
@@ -247,7 +247,7 @@ export const nb = () => (
     access_control: {
       about_header: 'Om tilgang',
       bankruptcy_estate: 'Konkursbo',
-      header: 'Administrer tilgangsstyring',
+      header: 'Tilgangsstyring',
       organisation: 'Virksomhet',
       party_type: 'Velg hvilke aktører som kan starte tjenesten. Velger du ingen, vil alle aktører kunne starte tjenesten.',
       party_type_header: 'Aktørkrav',

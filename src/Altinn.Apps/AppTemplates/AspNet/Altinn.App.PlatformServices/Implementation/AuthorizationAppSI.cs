@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.App.Services.Clients;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
-using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -20,7 +20,7 @@ namespace Altinn.App.Services.Implementation
     public class AuthorizationAppSI : IAuthorization
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JwtCookieOptions _cookieOptions;
+        private readonly AppSettings _settings;
         private readonly HttpClient _authClient;
         private readonly ILogger _logger;
 
@@ -29,17 +29,18 @@ namespace Altinn.App.Services.Implementation
         /// </summary>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="httpClientAccessor">The Http client accessor</param>
-        /// <param name="cookieOptions">the default cookie options</param>
+        /// <param name="settings">The application settings.</param>
         /// <param name="logger">the handler for logger service</param>
         public AuthorizationAppSI(
                 IHttpContextAccessor httpContextAccessor,
                 IHttpClientAccessor httpClientAccessor,
-                IOptions<JwtCookieOptions> cookieOptions,
+               IOptionsMonitor<AppSettings> settings,
                 ILogger<AuthorizationAppSI> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _authClient = httpClientAccessor.AuthorizationClient;
-            _cookieOptions = cookieOptions.Value;
+            _settings = settings.CurrentValue;
+
             _logger = logger;
         }
 
@@ -48,7 +49,7 @@ namespace Altinn.App.Services.Implementation
         {
             List<Party> partyList = null;
             string apiUrl = $"parties?userid={userId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_authClient, token);
             try
             {
@@ -73,7 +74,7 @@ namespace Altinn.App.Services.Implementation
         {
             bool? result;
             string apiUrl = $"parties/{partyId}/validate?userid={userId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_authClient, token);
 
             HttpResponseMessage response = await _authClient.GetAsync(apiUrl);

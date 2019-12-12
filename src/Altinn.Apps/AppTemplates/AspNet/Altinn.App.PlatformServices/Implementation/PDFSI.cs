@@ -75,9 +75,9 @@ namespace Altinn.App.Services.Implementation
             await dataStream.ReadAsync(dataAsBytes);
             string encodedXml = System.Convert.ToBase64String(dataAsBytes);
 
-            byte[] formLayout = _appResourcesService.GetAppResource(org, app, _appSettings.FormLayoutJSONFileName);            
+            byte[] formLayout = _appResourcesService.GetAppResource(org, app, _appSettings.FormLayoutJSONFileName);
             byte[] textResources = _appResourcesService.GetText(org, app, "resource.nb.json");
-            
+
             string formLayoutString = GetUTF8String(formLayout);
             string textResourcesString = GetUTF8String(textResources);
 
@@ -151,6 +151,7 @@ namespace Altinn.App.Services.Implementation
             if (instance.Title?["nb"] != null && instance.Title?["nb"] != String.Empty)
             {
                 fileName = instance.Title["nb"] + ".pdf";
+                fileName = GetValidFileName(fileName);
             }
 
             return await _dataService.InsertBinaryData(
@@ -158,7 +159,17 @@ namespace Altinn.App.Services.Implementation
                 pdfElementType,
                 "application/pdf",
                 fileName ?? defaultFileName,
-                pdfStream);            
+                pdfStream);
+        }
+
+        private string GetValidFileName(string fileName)
+        {
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+            {
+                fileName = fileName.Replace(c, '_');
+            }
+            fileName = fileName.Replace(' ', '_');
+            return fileName;
         }
     }
 }

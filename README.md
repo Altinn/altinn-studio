@@ -21,11 +21,15 @@ These instructions will get you a copy of the project up and running on your loc
 4. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
     - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))
 5. [Docker Desktop](https://www.docker.com/products/docker-desktop)
-6. Add `localhost altinn3.no` and `127.0.0.1 altinn3.no` in the hosts file (C:/Windows/System32/drivers/etc/hosts) <br />
-   On MacOS: Add `localhost altinn3.no` and `127.0.0.1 altinn3.no` to /private/etc/hosts.
-    ```cmd
-    sudo nano /private/etc/hosts
-    ```
+6. Update hosts file (C:/Windows/System32/drivers/etc/hosts) by adding the following values. On MacOS add the same values to values /private/etc/hosts using cmd `sudo nano /private/etc/hosts`.
+
+```cmd
+localhost altinn3.no
+127.0.0.1 altinn3.no
+localhost altinn3local.no
+127.0.0.1 altinn3local.no
+```
+
 7. Make sure your C drive is shared with docker, Docker Settings -> Shared Drives <br />
    On MacOS: Change docker-compose.yml (both)
     ```cmd

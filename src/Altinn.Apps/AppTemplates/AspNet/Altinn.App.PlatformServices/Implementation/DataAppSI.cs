@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.Services.Clients;
@@ -15,7 +12,6 @@ using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -33,7 +29,7 @@ namespace Altinn.App.Services.Implementation
         private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JwtCookieOptions _cookieOptions;
+        private readonly AppSettings _settings;
         private readonly HttpClient _client;
 
         private const string FORM_ID = "default";
@@ -50,13 +46,13 @@ namespace Altinn.App.Services.Implementation
             IOptions<PlatformSettings> platformSettings,
             ILogger<DataAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            IOptions<JwtCookieOptions> cookieOptions,
+            IOptionsMonitor<AppSettings> settings,
             IHttpClientAccessor httpClientAccessor)
         {
             _platformSettings = platformSettings.Value;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
-            _cookieOptions = cookieOptions.Value;
+            _settings = settings.CurrentValue;
             _client = httpClientAccessor.StorageClient;
         }
 
@@ -73,9 +69,9 @@ namespace Altinn.App.Services.Implementation
 
         public async Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type)
         {
-          
+
             string apiUrl = $"instances/{instance.Id}/data?dataType={dataType ?? FORM_ID}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             DataElement dataElement;
 
@@ -104,7 +100,7 @@ namespace Altinn.App.Services.Implementation
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             XmlSerializer serializer = new XmlSerializer(type);
@@ -130,7 +126,7 @@ namespace Altinn.App.Services.Implementation
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             HttpResponseMessage response = _client.GetAsync(apiUrl).Result;
@@ -148,7 +144,7 @@ namespace Altinn.App.Services.Implementation
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             HttpResponseMessage response = _client.GetAsync(apiUrl).Result;
@@ -158,8 +154,8 @@ namespace Altinn.App.Services.Implementation
                 try
                 {
                     using Stream stream = response.Content.ReadAsStreamAsync().Result;
-                    
-                    return serializer.Deserialize(stream);                    
+
+                    return serializer.Deserialize(stream);
                 }
                 catch
                 {
@@ -177,7 +173,7 @@ namespace Altinn.App.Services.Implementation
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/dataelements";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             List<DataElement> dataList;
@@ -237,9 +233,9 @@ namespace Altinn.App.Services.Implementation
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-           
+
             HttpResponseMessage response = await _client.DeleteAsync(apiUrl);
 
             if (response.IsSuccessStatusCode)
@@ -250,7 +246,7 @@ namespace Altinn.App.Services.Implementation
             {
                 _logger.LogError($"Deleting form attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
                 throw new PlatformClientException(response);
-            }            
+            }
         }
 
         /// <inheritdoc />
@@ -258,7 +254,7 @@ namespace Altinn.App.Services.Implementation
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data?dataType={dataType}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             DataElement dataElement;
 
             StreamContent content = CreateContentStream(request);
@@ -284,7 +280,7 @@ namespace Altinn.App.Services.Implementation
         public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string fileName, Stream stream)
         {
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             DataElement dataElement;
 
             StreamContent content = new StreamContent(stream);
@@ -318,18 +314,18 @@ namespace Altinn.App.Services.Implementation
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
             StreamContent content = CreateContentStream(request);
 
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);           
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             HttpResponseMessage response = await _client.PutAsync(apiUrl, content);
-       
+
             if (response.IsSuccessStatusCode)
             {
                 string instancedata = await response.Content.ReadAsStringAsync();
-                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata);                
+                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata);
 
                 return dataElement;
             }
@@ -338,7 +334,7 @@ namespace Altinn.App.Services.Implementation
                 _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
 
                 throw new PlatformClientException(response);
-            }                
+            }
         }
         private static StreamContent CreateContentStream(HttpRequest request)
         {
@@ -357,7 +353,7 @@ namespace Altinn.App.Services.Implementation
         public async Task<DataElement> Update(string instanceId, DataElement dataElement)
         {
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/dataelements/{dataElement.Id}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -365,7 +361,7 @@ namespace Altinn.App.Services.Implementation
 
             if (response.IsSuccessStatusCode)
             {
-                DataElement result = JsonConvert.DeserializeObject<DataElement> (await response.Content.ReadAsStringAsync());
+                DataElement result = JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync());
 
                 return result;
             }

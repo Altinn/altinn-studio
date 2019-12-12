@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.Common.PEP.Authorization
 {
@@ -58,7 +59,10 @@ namespace Altinn.Common.PEP.Authorization
                 return;
             }
 
-            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequestRoot(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
+
+            _logger.LogInformation($"// Altinn PEP // AppAccessHandler // Request sent: {JsonConvert.SerializeObject(request)}");
+
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)
@@ -66,7 +70,7 @@ namespace Altinn.Common.PEP.Authorization
                 throw new ArgumentNullException("response");
             }
 
-            if (!DecisionHelper.ValidateResponse(response.Response, context.User))
+            if (!DecisionHelper.ValidatePdpDecision(response.Response, context.User))
             {
                 context.Fail();
             }

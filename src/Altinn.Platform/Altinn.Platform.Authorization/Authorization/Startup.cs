@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using System.Reflection;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Platform.Authorization.Clients;
@@ -17,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
 namespace Altinn.Platform.Authorization
@@ -27,12 +26,24 @@ namespace Altinn.Platform.Authorization
     public class Startup
     {
         /// <summary>
+        /// The key valt key for application insights.
+        /// </summary>
+        internal static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Authorization";
+
+        /// <summary>
+        /// The application insights key.
+        /// </summary>
+        internal static string ApplicationInsightsKey { get; set; }
+
+        private readonly ILogger<Startup> _logger;
+
+        /// <summary>
         ///  Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
-        /// <param name="configuration">The configuration for the authorization component</param>
-        public Startup(IConfiguration configuration)
+        public Startup(ILogger<Startup> logger, IConfiguration configuration)
         {
             Configuration = configuration;
+            _logger = logger;
         }
 
         /// <summary>
@@ -46,6 +57,8 @@ namespace Altinn.Platform.Authorization
         /// <param name="services">the service configuration.</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            _logger.LogInformation("Startup // ConfigureServices");
+
             services.AddControllers().AddXmlSerializerFormatters(); 
             services.AddSingleton(Configuration);
             services.AddSingleton<IParties, PartiesWrapper>();
@@ -66,6 +79,13 @@ namespace Altinn.Platform.Authorization
             {
                 options.AllowSynchronousIO = true;
             });
+
+            if (!string.IsNullOrEmpty(ApplicationInsightsKey))
+            {
+                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+
+                _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
+            }
 
             services.AddMvc(options =>
             {
@@ -104,9 +124,12 @@ namespace Altinn.Platform.Authorization
         /// <param name="env">the hosting environment.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            _logger.LogInformation("Startup // Configure");
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                _logger.LogInformation("IsDevelopment");
             }
             else
             {

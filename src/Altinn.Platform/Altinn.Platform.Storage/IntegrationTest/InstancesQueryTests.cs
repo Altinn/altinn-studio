@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using Altinn.Platform.Storage.Clients;
+using System.Net.Http.Headers;
 using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.IntegrationTest.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
+using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -19,12 +21,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
     [Collection("Sequential")]
     public class InstancesQueryTests : IClassFixture<PlatformStorageFixture>, IClassFixture<DatabaseFixture>, IClassFixture<CosmosDBFixture>
     {
-        private readonly PlatformStorageFixture fixture;
-        private readonly InstanceClient storageClient;
-        private readonly string testOrg = "tdd";
-        private readonly string testAppId = "tdd/m1000";
-        private readonly int testInstanceOwnerId = 1001;
-        private readonly string versionPrefix = "/storage/api/v1";       
+        private readonly PlatformStorageFixture _fixture;
+        private readonly InstanceClient _instanceClient;
+        private readonly string _testOrg = "tdd";
+        private readonly string _testAppId = "tdd/m1000";
+        private readonly int _testInstanceOwnerId = 1001;
+        private readonly string _versionPrefix = "/storage/api/v1";
+        private readonly string _validToken;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceStorageTests"/> class.
@@ -32,12 +35,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
         public InstancesQueryTests(PlatformStorageFixture fixture)
         {
-            this.fixture = fixture;
-            this.storageClient = new InstanceClient(this.fixture.CreateClient());
-
+            _fixture = fixture;
+            _instanceClient = new InstanceClient(_fixture.CreateClient());
+            _validToken = PrincipalUtil.GetToken(1);
             LoadTestData();
-            CreateTestApplication(testAppId);
-
+            CreateTestApplication(_testAppId);
         }        
 
         /// <summary>
@@ -46,9 +48,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessCurrentTaskSubmit()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&process.currentTask=Submit_1";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=100&process.currentTask=Submit_1";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -66,9 +69,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessVisibleDateTimeGt()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=gt:2019-05-01";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=100&visibleAfter=gt:2019-05-01";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -87,9 +91,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessLabels()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&appOwner.labels=zero";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=100&appOwner.labels=zero";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -108,9 +113,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessTwoLabels()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&appOwner.labels=one&appOwner.labels=two";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=100&appOwner.labels=one&appOwner.labels=two";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -129,9 +135,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessOneLabelWithOne()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&appOwner.labels=one";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=1000&appOwner.labels=one";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -150,9 +157,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessOneLabelWithOneCommaTwo()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&appOwner.labels=one,two";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=1000&appOwner.labels=one,two";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -171,9 +179,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessIllegalVisibleDateTime()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=2019-50-01";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=100&visibleAfter=2019-50-01";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -185,9 +194,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessNoResult()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=gt:2022-12-31";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=100&visibleAfter=gt:2022-12-31";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
 
@@ -204,9 +214,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessVisibleDateTimeEq()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleAfter=2019-07-10T00:00:00Z";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=1000&visibleAfter=2019-07-10T00:00:00Z";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -225,9 +236,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessVisibleLocalDate()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleAfter=2019-03-25T02:00:00%2B02:00";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=1000&visibleAfter=2019-03-25T02:00:00%2B02:00";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -246,9 +258,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessVisibleDateTimeBetween()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleAfter=gt:2019-07-01&visibleAfter=lt:2019-08-01";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=1000&visibleAfter=gt:2019-07-01&visibleAfter=lt:2019-08-01";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -262,34 +275,16 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        ///  Checks that the GET returns an instance owners codes
-        /// </summary>
-        [Fact]
-        public async void GetInstancesForInstanceOwner()
-        {
-            HttpClient client = fixture.CreateClient();
-
-            string url = $"{versionPrefix}/instances/{testInstanceOwnerId}";
-            HttpResponseMessage response = await client.GetAsync(url);
-
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-
-            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
-
-            Assert.True(instances.Count >= 1);
-        }
-
-        /// <summary>
         ///  Check that storage returns bad request if illegal query parameter is set.
         /// </summary>
         [Fact]
         public async void GetInstancesWithIllegalQueryParam()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?instanceOwnerId=500";
+            string url = $"{_versionPrefix}/instances?instanceOwnerId=500";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+
             HttpResponseMessage response = await client.GetAsync(url);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);            
@@ -301,9 +296,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void GetInstancesForOrg()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?org={testOrg}";
+            string url = $"{_versionPrefix}/instances?org={_testOrg}";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
@@ -323,9 +320,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void GetInstancesWithContinuationTokenAndGetNext()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=500";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=500";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -360,7 +358,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
         private Application CreateTestApplication(string testAppId)
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
             ApplicationClient appClient = new ApplicationClient(client);
 
@@ -389,13 +387,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void GetInstancesWithAcceptJson()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}";
 
             // client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
-
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
@@ -416,9 +414,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void GetInstancesWithEndedProcess()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&process.ended=lt:2019-02-01";            
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&process.ended=lt:2019-02-01";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -442,7 +441,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // [Fact]
         public void GenerateData()
         {
-            DatabaseFixture.GenerateTestdata(fixture.CreateClient());
+            DatabaseFixture.GenerateTestdata(_fixture.CreateClient());
         }
 
         /// <summary>
@@ -451,9 +450,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         // [Fact]
         public void SaveData()
         {
-            HttpClient client = fixture.CreateClient();
+            HttpClient client = _fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000";
+            string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=1000";
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
             HttpResponseMessage response = client.GetAsync(url).Result;
             response.EnsureSuccessStatusCode();
@@ -470,7 +470,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         
         private void LoadTestData()
         {
-            DatabaseFixture.LoadData(testAppId, storageClient);
+            DatabaseFixture.LoadData(_testAppId, _instanceClient);
         }
     }
 }

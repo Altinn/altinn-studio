@@ -12,8 +12,9 @@ import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationM
 import { getInstancePdf, mapInstanceAttachments } from '../../../../../shared/src/utils/attachmentsUtils';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
+import { nb } from '../../../resources/language';
 import { getInstanceMetaDataObject } from '../../../utils/receipt';
-import { altinnOrganisationsUrl, getApplicationMetadataUrl, getInstanceMetadataUrl, getPartyUrl, getUserUrl, languageUrl } from '../../../utils/urlHelper';
+import { altinnOrganisationsUrl, getApplicationMetadataUrl, getInstanceMetadataUrl, getPartyUrl, getUserUrl } from '../../../utils/urlHelper';
 
 const styles = () => createStyles({
   body: {
@@ -85,8 +86,7 @@ function Receipt(props: WithStyles<typeof styles>) {
 
   const fetchLanguage = async () => {
     try {
-      const response = await Axios.get(languageUrl);
-      setLanguage(response.data);
+      setLanguage(nb());
     } catch (error) {
       console.error(error);
     }
