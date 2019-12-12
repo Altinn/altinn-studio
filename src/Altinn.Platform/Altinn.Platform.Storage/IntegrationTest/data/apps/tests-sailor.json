@@ -5,6 +5,12 @@
     "nb": "Testapplikasjon",
     "en": "Test application"
   },
+  "process": {
+    "currentTask": {
+      "elementId": "Task_1",
+      "name": "FormFilling"
+    }
+  },
   "validFrom": "2019-12-05T17:27:50.6951077Z",
   "dataTypes": [
     {
