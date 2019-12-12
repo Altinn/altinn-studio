@@ -8,7 +8,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
+using Serilog.Core;
 
 namespace Altinn.Platform.Receipt
 {
@@ -18,9 +21,22 @@ namespace Altinn.Platform.Receipt
     public class Startup
     {
         /// <summary>
+        /// The key valt key for application insights.
+        /// </summary>
+        internal static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Receipt";
+
+        /// <summary>
+        /// The application insights key.
+        /// </summary>
+        internal static string ApplicationInsightsKey { get; set; }
+
+        private static readonly Logger _logger = new LoggerConfiguration()
+           .WriteTo.Console()
+           .CreateLogger();
+
+        /// <summary>
         ///  Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
-        /// <param name="configuration">The configuration for the config component</param>
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -37,6 +53,8 @@ namespace Altinn.Platform.Receipt
         /// <param name="services">the service configuration.</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            _logger.Information("Startup // ConfigureServices");
+
             services.AddControllersWithViews();
 
             // Configure Authentication
@@ -61,8 +79,14 @@ namespace Altinn.Platform.Receipt
                 });
 
             services.AddSingleton(Configuration);
-            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
+
+            if (!string.IsNullOrEmpty(ApplicationInsightsKey))
+            {                
+                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+
+                _logger.Information($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
+            }
         }
 
         /// <summary>
@@ -72,15 +96,7 @@ namespace Altinn.Platform.Receipt
         /// <param name="env">the hosting environment.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            string runtimeMode = string.Empty;
-            if (Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode") != null)
-            {
-                runtimeMode = Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode");
-            }
-            else
-            {
-                runtimeMode = Configuration["GeneralSettings:RuntimeMode"];
-            }
+            _logger.Information("Startup // Configure");
 
             string authenticationEndpoint = string.Empty;
             if (Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpoint") != null)
@@ -110,7 +126,7 @@ namespace Altinn.Platform.Receipt
 
                 // you may also check requests path to do this only for specific methods
                 // && request.Path.Value.StartsWith("/specificPath")
-                if (response.StatusCode == (int)HttpStatusCode.Unauthorized && runtimeMode != "AltinnStudio")
+                if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
                 {
                     response.Redirect($"{authenticationEndpoint}authentication?goto={url}");
                 }

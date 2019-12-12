@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Authentication.Controllers;
 using Altinn.Platform.Authentication.IntegrationTests.Fakes;
-using Altinn.Platform.Authentication.Maskinporten;
 using Altinn.Platform.Authentication.Model;
+using Altinn.Platform.Authentication.Services;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;

@@ -18,8 +18,8 @@ fixture('Navigating the App designer')
   .beforeEach(async t => {
     await t
       .useRole(AutoTestUser)
-      .resizeWindow(1280, 610)
-      .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice');
+      .maximizeWindow()
+      .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/about');
   })
   .after(async () => {
   })
@@ -55,16 +55,9 @@ test('Språk tab navigation', async () => {
     .expect(designerPage.spraakLeftMenuItems[1].visible).ok()
 });
 
-test('Teste tab navigation', async () => {
-  await t
-    .click(designerPage.testeNavigationTab)
-    .hover(designerPage.leftDrawerMenu)
-    .expect(getLocation()).contains('test');
-});
-
 test('Deploy tab navigation', async () => {
   await t
-    .click(designerPage.deployNavigationTab)    
+    .click(designerPage.deployNavigationTab)
     .expect(getLocation()).contains('deploy');
 });
 

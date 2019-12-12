@@ -28,21 +28,6 @@ namespace AltinnCore.Authentication.JwtCookie
                 options.CookieManager = new ChunkingCookieManager();
             }
 
-            if (!options.LoginPath.HasValue)
-            {
-                options.LoginPath = JwtCookieDefaults.LoginPath;
-            }
-
-            if (!options.LogoutPath.HasValue)
-            {
-                options.LogoutPath = JwtCookieDefaults.LogoutPath;
-            }
-
-            if (!options.AccessDeniedPath.HasValue)
-            {
-                options.AccessDeniedPath = JwtCookieDefaults.AccessDeniedPath;
-            }
-
             if (!string.IsNullOrEmpty(options.MetadataAddress))
             {
                 if (!options.MetadataAddress.EndsWith("/", StringComparison.Ordinal))
@@ -54,7 +39,7 @@ namespace AltinnCore.Authentication.JwtCookie
                 options.ConfigurationManager = new ConfigurationManager<OpenIdConnectConfiguration>(
                     options.MetadataAddress,
                     new OpenIdConnectConfigurationRetriever(),
-                    new HttpDocumentRetriever() { RequireHttps = options.RequireHttpsMetadata });
+                    new HttpDocumentRetriever { RequireHttps = options.RequireHttpsMetadata });
             }
         }
     }

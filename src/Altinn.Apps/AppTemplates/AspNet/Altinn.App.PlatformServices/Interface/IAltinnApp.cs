@@ -61,7 +61,7 @@ namespace Altinn.App.Services.Interface
         /// </summary>
         /// <param name="modelState">The model state</param>
         /// <returns>Task to indicate when validation is completed</returns>
-        Task<bool> RunValidation(object instance, Type modelType, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
+        Task<bool> RunValidation(object instance, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
 
     }
 }

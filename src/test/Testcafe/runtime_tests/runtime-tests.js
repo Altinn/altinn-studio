@@ -8,7 +8,12 @@ let runtime = new RunTimePage();
 
 const getCookie = ClientFunction(() => document.cookie);
 
-fixture('Regression tests of apps in runtime')
+/*
+This fixture is no longer run after the test/preview functionality
+has been removed from Altinn Studio, Selenium tests in the SBL project
+now handle testing of instantiated Altinn Apps.
+*/
+fixture.skip('Regression tests of apps in runtime')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Testdata and other testing context

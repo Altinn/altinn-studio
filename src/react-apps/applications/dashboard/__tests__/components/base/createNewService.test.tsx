@@ -368,7 +368,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(instance.state.isLoading).toBe(true);
     return Promise.resolve().then(() => {
       expect(getSpy).toHaveBeenCalled();
-      expect(window.location.assign).toHaveBeenCalledWith(`${window.location.origin}/designer/${mockResult.full_name}#/aboutservice`);
+      expect(window.location.assign).toHaveBeenCalledWith(`${window.location.origin}/designer/${mockResult.full_name}#/about`);
     });
   });
 

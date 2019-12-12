@@ -93,7 +93,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
         <ErrorMessageComponent />
         <Route
           exact={true}
-          path='/uieditor'
+          path='/ui-editor'
           render={this.resetFormData}
         />
       </div>

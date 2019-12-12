@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Altinn.Platform.Storage.Clients
+namespace Altinn.Platform.Storage.IntegrationTest.Clients
 {
     /// <summary>
     /// Exception class for storage exceptions.

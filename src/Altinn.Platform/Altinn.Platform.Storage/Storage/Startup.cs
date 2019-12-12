@@ -1,18 +1,27 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Altinn.Common.PEP.Authorization;
+using Altinn.Common.PEP.Clients;
+using Altinn.Common.PEP.Implementation;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Repository;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Core;
 
 namespace Altinn.Platform.Storage
 {
@@ -22,12 +31,28 @@ namespace Altinn.Platform.Storage
     public class Startup
     {
         /// <summary>
+        /// application insights key in keyvault
+        /// </summary>
+        public static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Storage";
+
+        /// <summary>
+        /// The application insights key.
+        /// </summary>
+        internal static string ApplicationInsightsKey { get; set; }
+
+        private readonly IWebHostEnvironment _env;
+
+        private static readonly Logger _logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger();
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
-        /// <param name="configuration">the configuration for the database</param>
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            _env = env;
         }
 
         /// <summary>
@@ -40,7 +65,9 @@ namespace Altinn.Platform.Storage
         /// </summary>
         /// <param name="services">the service configuration</param>        
         public void ConfigureServices(IServiceCollection services)
-        {            
+        {
+            _logger.Information("Startup // ConfigureServices");
+
             services.AddControllers(config =>
             {
                 AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
@@ -52,6 +79,8 @@ namespace Altinn.Platform.Storage
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<Common.PEP.Configuration.PepSettings>(Configuration.GetSection("PepSettings"));
+            services.Configure<Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
 
@@ -70,17 +99,34 @@ namespace Altinn.Platform.Storage
                         RequireExpirationTime = true,
                         ValidateLifetime = true
                     };
+
+                    if (_env.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
                 });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_READ, policy => policy.Requirements.Add(new AppAccessRequirement("read")));
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_WRITE, policy => policy.Requirements.Add(new AppAccessRequirement("write")));
+            });
 
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
-            services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();            
+            services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
+            services.AddSingleton<IPDP, PDPAppSI>();
 
-            string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
-            if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
+            services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
+
+            if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
-                services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
+                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+
+                _logger.Information($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
             }
 
             // Add Swagger support (Swashbuckle)
@@ -138,9 +184,11 @@ namespace Altinn.Platform.Storage
         /// <param name="env">the hosting environment</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            _logger.Information("Startup // Configure");
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                _logger.Information("IsDevelopment");
             }
             else
             {
@@ -160,6 +208,7 @@ namespace Altinn.Platform.Storage
             // app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

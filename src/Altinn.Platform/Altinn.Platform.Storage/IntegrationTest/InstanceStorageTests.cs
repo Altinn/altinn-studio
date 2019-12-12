@@ -5,8 +5,9 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Clients;
+using Altinn.Platform.Storage.IntegrationTest.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
+using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -24,9 +25,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
     [Collection("Sequential")]
     public class InstanceStorageTests : IClassFixture<PlatformStorageFixture>, IClassFixture<BlobStorageFixture>, IClassFixture<CosmosDBFixture>, IDisposable
     {
-        private readonly PlatformStorageFixture fixture;
-        private readonly HttpClient client;
-        private readonly InstanceClient storageClient;
+        private readonly PlatformStorageFixture _fixture;
+        private readonly HttpClient _client;
+        private readonly InstanceClient _instanceClient;
         private string instanceId;
         private readonly string testOrg = "tests";
         private readonly string testAppId = "tests/sailor";
@@ -35,6 +36,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
         private bool blobSetup = false;
+        private readonly string _validToken;
 
         private readonly string versionPrefix = "/storage/api/v1";
 
@@ -44,9 +46,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
         public InstanceStorageTests(PlatformStorageFixture fixture)
         {
-            this.fixture = fixture;
-            this.client = this.fixture.Client;
-            this.storageClient = new InstanceClient(this.client);
+            _fixture = fixture;
+            _client = _fixture.Client;
+            _instanceClient = new InstanceClient(_client);
 
             // connect to azure blob storage
             StorageCredentials storageCredentials = new StorageCredentials("devstoreaccount1", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==");
@@ -56,6 +58,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
             _blobContainer = _blobClient.GetContainerReference("servicedata");
 
+            _validToken = PrincipalUtil.GetToken(1);
             CreateTestApplication();
         }
 
@@ -66,7 +69,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             string requestUri = $"{versionPrefix}/instances?org={testOrg}";
 
-            HttpResponseMessage response = client.GetAsync(requestUri).Result;
+            HttpResponseMessage response = _client.GetAsync(requestUri).Result;
             string content = response.Content.ReadAsStringAsync().Result;
 
             if (response.StatusCode == HttpStatusCode.OK)
@@ -87,12 +90,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
                             string dataDeleteUrl = url + dataUrl;
 
-                            client.DeleteAsync(dataDeleteUrl);
+                            _client.DeleteAsync(dataDeleteUrl);
                         }
                     }
 
                     string instanceUrl = $"{versionPrefix}/instances/{instance.Id}?hard=true";
-                    client.DeleteAsync(instanceUrl);
+                    _client.DeleteAsync(instanceUrl);
                 }
             }
 
@@ -119,7 +122,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             string url = $"{versionPrefix}/instances?appId={testAppId}";
 
-            HttpResponseMessage postResponse = await client.PostAsync(url, instanceData.AsJson());
+            HttpResponseMessage postResponse = await _client.PostAsync(url, instanceData.AsJson());
 
             postResponse.EnsureSuccessStatusCode();
             string instanceJson = await postResponse.Content.ReadAsStringAsync();
@@ -128,7 +131,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             instanceId = createdInstance.Id;
             Assert.NotNull(instanceId);
 
-            HttpResponseMessage getResponse = await client.GetAsync($"{versionPrefix}/instances/{instanceId}");
+            HttpResponseMessage getResponse = await _client.GetAsync($"{versionPrefix}/instances/{instanceId}");
 
             getResponse.EnsureSuccessStatusCode();
 
@@ -152,10 +155,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 await EnsureValidStorage();
             }
 
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
+            await _instanceClient.PostInstances(testAppId, testInstanceOwnerId);
 
-            string url = $"{versionPrefix}/instances/{testInstanceOwnerId}";
-            HttpResponseMessage response = await client.GetAsync(url);
+            string url = $"{versionPrefix}/instances?org={testOrg}&appId={testAppId}&instanceOwner.partyId={testInstanceOwnerId}";
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            HttpResponseMessage response = await _client.GetAsync(url);
 
             response.EnsureSuccessStatusCode();
             Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
@@ -180,12 +184,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
             };
 
             // create instance
-            Instance newInstance = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
+            Instance newInstance = await _instanceClient.PostInstances(testAppId, testInstanceOwnerId);
 
             string requestUri = $"{versionPrefix}/instances/{newInstance.Id}/data?dataType={dataType}";
 
             // post the file
-            HttpResponseMessage postResponse = await client.PostAsync(requestUri, jsonContent.AsJson());
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            HttpResponseMessage postResponse = await _client.PostAsync(requestUri, jsonContent.AsJson());
 
             postResponse.EnsureSuccessStatusCode();
         }
@@ -203,8 +208,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
-            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
-            HttpResponseMessage response = await storageClient.PostFileAsAttachment(instance, "default", "binary_file.pdf", "application/pdf");
+            Instance instance = await _instanceClient.PostInstances(applicationId, instanceOwnerId);
+            HttpResponseMessage response = await _instanceClient.PostFileAsAttachment(instance, "default", "binary_file.pdf", "application/pdf");
 
             response.EnsureSuccessStatusCode();
         }
@@ -222,8 +227,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
-            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
-            HttpResponseMessage response = await storageClient.PostFileAsStream(instance, "default", "binary_file.pdf", "application/pdf");
+            Instance instance = await _instanceClient.PostInstances(applicationId, instanceOwnerId);
+            HttpResponseMessage response = await _instanceClient.PostFileAsStream(instance, "default", "binary_file.pdf", "application/pdf");
 
             response.EnsureSuccessStatusCode();
         }
@@ -242,7 +247,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
+            Instance instance = await _instanceClient.PostInstances(applicationId, instanceOwnerId);
             string requestUri = $"{versionPrefix}/instances/{instance.Id}/data?dataType={dataType}";
 
             Stream input = File.OpenRead("data/binary_file.pdf");
@@ -254,14 +259,15 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 { fileStreamContent, dataType, "binary_file.pdf" }
             };
 
-            HttpResponseMessage response = await client.PostAsync(requestUri, fileStreamContent);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            HttpResponseMessage response = await _client.PostAsync(requestUri, fileStreamContent);
 
             response.EnsureSuccessStatusCode();
         }
 
         private Application CreateTestApplication()
         {
-            ApplicationClient appClient = new ApplicationClient(client);
+            ApplicationClient appClient = new ApplicationClient(_client);
 
             try
             {
@@ -284,7 +290,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
         private Application DeleteApplicationMetadata()
         {
-            ApplicationClient appClient = new ApplicationClient(client);
+            ApplicationClient appClient = new ApplicationClient(_client);
 
             Application existingApp = appClient.DeleteApplication(testAppId);
 
@@ -305,13 +311,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
+            Instance instance = await _instanceClient.PostInstances(applicationId, instanceOwnerId);
 
-            DataElement dataElement = await storageClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");
+            DataElement dataElement = await _instanceClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");
 
             string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
-
-            using HttpResponseMessage response2 = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            using HttpResponseMessage response2 = await _client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead);
 
             if (response2.IsSuccessStatusCode)
             {
@@ -338,13 +344,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
+            Instance instance = await _instanceClient.PostInstances(applicationId, instanceOwnerId);
 
-            DataElement dataElement = await storageClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "image.png", "image/png");
+            DataElement dataElement = await _instanceClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "image.png", "image/png");
 
             string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
-
-            using HttpResponseMessage response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            using HttpResponseMessage response = await _client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead);
 
             if (response.IsSuccessStatusCode)
             {
@@ -371,9 +377,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
+            Instance instance = await _instanceClient.PostInstances(applicationId, instanceOwnerId);
 
-            DataElement dataElement = await storageClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");
+            DataElement dataElement = await _instanceClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");
 
             string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
 
@@ -387,8 +393,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 { fileStreamContent, dataType, dataFile }
             };
-
-            HttpResponseMessage response = await client.PutAsync(requestUri, fileStreamContent);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            HttpResponseMessage response = await _client.PutAsync(requestUri, fileStreamContent);
 
             response.EnsureSuccessStatusCode();
         }
@@ -407,9 +413,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
+            Instance instance = await _instanceClient.PostInstances(applicationId, instanceOwnerId);
 
-            DataElement dataElement = await storageClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");
+            DataElement dataElement = await _instanceClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");
 
             string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
 
@@ -425,7 +431,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             fileStreamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("form-data; name=" + Path.GetFileNameWithoutExtension(fileName));
             fileStreamContent.Headers.ContentDisposition.FileName = fileName;
 
-            HttpResponseMessage response = await client.PutAsync(requestUri, fileStreamContent).ConfigureAwait(false);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            HttpResponseMessage response = await _client.PutAsync(requestUri, fileStreamContent).ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
 

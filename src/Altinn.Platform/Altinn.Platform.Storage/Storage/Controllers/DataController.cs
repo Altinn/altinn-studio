@@ -8,6 +8,7 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly IInstanceEventRepository instanceEventRepository;
+        private readonly IInstanceEventRepository _instanceEventRepository;
 
         private readonly ILogger _logger;
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
@@ -53,7 +54,7 @@ namespace Altinn.Platform.Storage.Controllers
             _dataRepository = dataRepository;
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
-            this.instanceEventRepository = instanceEventRepository;
+            _instanceEventRepository = instanceEventRepository;
             _logger = logger;
         }
 
@@ -64,6 +65,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dataId">the instance of the data element</param>
         /// <param name="instanceOwnerPartyId">the owner of the instance</param>
         /// <returns>the data element</returns>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpDelete("data/{dataId:guid}")]
         public async Task<IActionResult> Delete(Guid instanceGuid, Guid dataId, int instanceOwnerPartyId)
         {
@@ -73,7 +75,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             // check if instance id exist and user is allowed to change the instance data
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            
+
             if (instance == null)
             {
                 return NotFound("Provided instanceId is unknown to storage service");
@@ -113,6 +115,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">the instanceId</param>
         /// <param name="dataGuid">the data id</param>
         /// <returns>The data file as an asyncronous stream</returns>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("data/{dataGuid:guid}")]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(200)]
@@ -140,6 +143,20 @@ namespace Altinn.Platform.Storage.Controllers
             // check if dataId exists in instance
             if (dataElement != null)
             {
+                string orgFromClaim = User.GetOrg();
+
+                if (!string.IsNullOrEmpty(orgFromClaim))
+                {
+                    _logger.LogInformation($"App owner download of {instance.Id}/data/{dataGuid}, {instance.AppId} for {orgFromClaim}");
+
+                    // update downloaded structure on data element
+                    dataElement.AppOwner ??= new ApplicationOwnerDataState();
+                    dataElement.AppOwner.Downloaded ??= new List<DateTime>();
+                    dataElement.AppOwner.Downloaded.Add(DateTime.UtcNow);
+
+                    await _dataRepository.Update(dataElement);
+                }
+
                 if (string.Equals(dataElement.BlobStoragePath, storageFileName))
                 {
                     try
@@ -170,6 +187,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">the guid of the instance</param>
         /// <returns>The list of data elements</returns>
         /// <!-- GET /instances/{instanceId}/data -->
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("dataelements")]
         [ProducesResponseType(typeof(List<DataElement>), 200)]
         public async Task<IActionResult> GetMany(int instanceOwnerPartyId, Guid instanceGuid)
@@ -202,6 +220,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="refs">an optional array of data element references</param>
         /// <returns>If the request was successful or not</returns>
         /// <!-- POST /instances/{instanceOwnerPartyId}/{instanceGuid}/data?elementType={elementType} -->
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPost("data")]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
@@ -280,6 +299,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="refs">an optional array of data element references</param>
         /// <returns>data element metadata that records the successfull update</returns>
         /// <!-- PUT /instances/{instanceOwnerPartyId}/instanceGuid}/data/{dataId} -->
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("data/{dataGuid}")]
         [DisableFormValueModelBinding]
         [ProducesResponseType(typeof(DataElement), 200)]
@@ -306,6 +326,11 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound($"Dataid {dataGuid} is not registered in storage");
             }
 
+            if (dataElement.Locked)
+            {
+                return Conflict($"Data element {dataGuid} is locked and cannot be updated");
+            }
+
             string blobStoragePathName = DataElementHelper.DataFileName(
                 instance.AppId,
                 instanceGuid.ToString(),
@@ -325,13 +350,9 @@ namespace Altinn.Platform.Storage.Controllers
                 // update data record
                 dataElement.ContentType = updatedData.ContentType;
                 dataElement.Filename = updatedData.Filename;
-                dataElement.LastChangedBy = GetUserId();
+                dataElement.LastChangedBy = User.GetUserOrOrgId();
                 dataElement.LastChanged = changedTime;
                 dataElement.Refs = updatedData.Refs;
-
-                instance.LastChanged = changedTime;
-
-                instance.LastChangedBy = GetUserId();
 
                 // store file as blob
                 dataElement.Size = _dataRepository.WriteDataToStorage(theStream, blobStoragePathName).Result;
@@ -339,13 +360,12 @@ namespace Altinn.Platform.Storage.Controllers
                 if (dataElement.Size > 0)
                 {
                     // update data element
-                    // Question: Do we need to update instance?
                     DataElement updatedElement = await _dataRepository.Update(dataElement);
-                    AddSelfLinks(instance, dataElement);
+                    AddSelfLinks(instance, updatedElement);
 
-                    await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, dataElement);
+                    await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, updatedElement);
 
-                    return Ok(dataElement);
+                    return Ok(updatedElement);
                 }
 
                 return UnprocessableEntity($"Could not process attached file");
@@ -362,6 +382,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dataId">the dataId to upload data to</param>
         /// <param name="dataElement">The data element with data to update</param>
         /// <returns>data element metadata that records the successfull update</returns>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("dataelements/{dataId}")]
         [ProducesResponseType(typeof(DataElement), 200)]
         public async Task<IActionResult> Update(
@@ -388,7 +409,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dataGuid">the data guid</param>
         /// <returns>the updated data element</returns>
         // "/storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}/dataelements/{dataGuid}/confirmDownload"
-        [HttpPut("dataelements/{dataGuid}/confirmDownload")]        
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [HttpPut("dataelements/{dataGuid}/confirmDownload")]
         [ProducesResponseType(typeof(DataElement), 200)]
         public async Task<IActionResult> ConfirmDownload(int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
         {
@@ -401,7 +423,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return Conflict($"Data element {instanceOwnerPartyId}/{instanceGuid}/data/{dataGuid} is not recorded downloaded by app owner. Please download first.");
             }
 
-            DataElement updatedElement = await UpdateDataElementConfirmedDate(dataElement, DateTime.UtcNow);
+            DataElement updatedElement = await SetConfirmedDataAndUpdateDataElement(dataElement, DateTime.UtcNow);
 
             return Ok(updatedElement);
         }
@@ -412,6 +434,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">the instance owner party id</param>
         /// <param name="instanceGuid">the instance guid</param>
         /// <returns>A list of data elements with updated confirmed download dates</returns>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("dataelements/confirmDownload")]
         [ProducesResponseType(typeof(List<DataElement>), 200)]
         public async Task<IActionResult> ConfirmDownloadAll(int instanceOwnerPartyId, Guid instanceGuid)
@@ -432,14 +455,14 @@ namespace Altinn.Platform.Storage.Controllers
 
             foreach (DataElement element in dataElements)
             {
-                DataElement updatedElement = await UpdateDataElementConfirmedDate(element, DateTime.UtcNow);
+                DataElement updatedElement = await SetConfirmedDataAndUpdateDataElement(element, DateTime.UtcNow);
                 resultElements.Add(updatedElement);
             }
 
             return Ok(resultElements);
         }
 
-        private async Task<DataElement> UpdateDataElementConfirmedDate(DataElement dataElement, DateTime timestamp)
+        private async Task<DataElement> SetConfirmedDataAndUpdateDataElement(DataElement dataElement, DateTime timestamp)
         {
             dataElement.AppOwner ??= new ApplicationOwnerDataState();
             dataElement.AppOwner.DownloadConfirmed ??= new List<DateTime>();
@@ -469,13 +492,13 @@ namespace Altinn.Platform.Storage.Controllers
                 string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
 
                 MultipartSection section = null;
-      
+
                 MultipartReader reader = new MultipartReader(boundary, request.Body);
                 section = reader.ReadNextSectionAsync().Result;
 
                 theStream = section.Body;
                 contentType = section.ContentType;
-       
+
                 bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
 
                 if (hasContentDisposition)
@@ -583,31 +606,15 @@ namespace Altinn.Platform.Storage.Controllers
                 InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
                 User = new PlatformUser
                 {
-                    UserId = GetUserIdAsInt(), // update when authentication is turned on
-                    AuthenticationLevel = 0, // update when authentication is turned on
-                },                
+                    UserId = User.GetUserIdAsInt(),
+                    AuthenticationLevel = User.GetAuthenticationLevel(),
+                    OrgId = User.GetOrg(),
+                },
                 ProcessInfo = instance.Process,
                 Created = DateTime.UtcNow,
             };
 
-            await instanceEventRepository.InsertInstanceEvent(instanceEvent);
-        }
-
-        private string GetUserId()
-        {
-            return User?.Identity?.Name;
-        }
-
-        private int GetUserIdAsInt()
-        {
-            string userId = User?.Identity?.Name;
-            
-            if (int.TryParse(userId, out int result))
-            {
-                return result;
-            }
-
-            return 0;
+            await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
         }
     }
 }

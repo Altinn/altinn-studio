@@ -1,18 +1,21 @@
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.Clients
+namespace Altinn.Platform.Storage.IntegrationTest.Clients
 {
     /// <summary>
     /// Client for managing application metadata.
     /// </summary>
     public class ApplicationClient
     {
-        private readonly HttpClient client;
-        private readonly string endpointUri;
-        private readonly string resourcePrefix = "storage/api/v1/applications";
+        private readonly HttpClient _client;
+        private readonly string _endpointUri;
+        private readonly string _resourcePrefix = "storage/api/v1/applications";
+        private readonly string _validToken;
 
         /// <summary>
         /// Constructor
@@ -21,8 +24,10 @@ namespace Altinn.Platform.Storage.Clients
         /// <param name="enpointUrl">the url of the endpoint</param>
         public ApplicationClient(HttpClient client, string enpointUrl = "")
         {
-            this.client = client;
-            this.endpointUri = enpointUrl;
+            _client = client;
+            _endpointUri = enpointUrl;
+            _validToken = PrincipalUtil.GetToken(1);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
         }
 
         /// <summary>
@@ -58,9 +63,9 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns></returns>
         public Application CreateApplication(Application application)
         {
-            string url = $"{endpointUri}/{resourcePrefix}?appId={application.Id}";
-
-            HttpResponseMessage response = client.PostAsync(url, application.AsJson()).Result;
+            string url = $"{_endpointUri}/{_resourcePrefix}?appId={application.Id}";
+      
+            HttpResponseMessage response = _client.PostAsync(url, content: application.AsJson()).Result;
 
             if (!response.IsSuccessStatusCode)
             {
@@ -82,9 +87,9 @@ namespace Altinn.Platform.Storage.Clients
         {
             string applicationId = application.Id;
 
-            string url = $"{endpointUri}/{resourcePrefix}/{applicationId}";
+            string url = $"{_endpointUri}/{_resourcePrefix}/{applicationId}";
 
-            HttpResponseMessage response = client.PutAsync(url, application.AsJson()).Result;
+            HttpResponseMessage response = _client.PutAsync(url, application.AsJson()).Result;
 
             if (!response.IsSuccessStatusCode)
             {
@@ -104,9 +109,9 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns>the application object</returns>
         public Application GetApplication(string appId) 
         {
-            string url = $"{endpointUri}/{resourcePrefix}/{appId}";
+            string url = $"{_endpointUri}/{_resourcePrefix}/{appId}";
 
-            HttpResponseMessage response = client.GetAsync(url).Result;
+            HttpResponseMessage response = _client.GetAsync(url).Result;
 
             if (!response.IsSuccessStatusCode)
             {
@@ -126,9 +131,9 @@ namespace Altinn.Platform.Storage.Clients
         /// <returns>the application object that was deleted</returns>
         public Application DeleteApplication(string appId)
         {
-            string url = $"{endpointUri}/{resourcePrefix}/{appId}?hard=true";
+            string url = $"{_endpointUri}/{_resourcePrefix}/{appId}?hard=true";
 
-            HttpResponseMessage response = client.DeleteAsync(url).Result;
+            HttpResponseMessage response = _client.DeleteAsync(url).Result;
 
             if (!response.IsSuccessStatusCode)
             {

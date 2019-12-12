@@ -64,7 +64,7 @@ export interface ICollapsableMenuListItem {
 }
 
 const CollapsibleMenus = (props: ICollapsableMenuProps) => {
-  const [menuIsOpen, setMenuIsOpen] = React.useState(true);
+  const [menuIsOpen, setMenuIsOpen] = React.useState(false);
   const [component, setComponent] = React.useState(props.components[props.componentId]);
   const { classes } = props;
 

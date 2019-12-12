@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Altinn.Platform.Authentication.Maskinporten
+namespace Altinn.Platform.Authentication.Services
 {
     /// <inheritdoc />
     public class SigningKeysRetriever : ISigningKeysRetriever

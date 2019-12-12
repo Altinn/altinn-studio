@@ -91,6 +91,35 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public async Task<IList<Repository>> GetUserRepos()
+        {
+            IList<Repository> repos = new List<Repository>();
+
+            HttpResponseMessage response = await _httpClient.GetAsync("user/repos");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                repos = await response.Content.ReadAsAsync<IList<Repository>>();
+
+                foreach (Repository repo in repos)
+                {
+                    if (string.IsNullOrEmpty(repo.Owner?.Login))
+                    {
+                        continue;
+                    }
+
+                    repo.IsClonedToLocal = IsLocalRepo(repo.Owner.Login, repo.Name);
+                    Organization org = await GetCachedOrg(repo.Owner.Login);
+                    if (org.Id != -1)
+                    {
+                        repo.Owner.UserType = UserType.Org;
+                    }
+                }
+            }
+
+            return repos;
+        }
+
+        /// <inheritdoc/>
         public async Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page)
         {
             User user = GetCurrentUser().Result;

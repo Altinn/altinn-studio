@@ -1,9 +1,10 @@
 using System;
+using System.IO;
 using System.Reflection;
 
 using Altinn.Platform.Authentication.Configuration;
-using Altinn.Platform.Authentication.Maskinporten;
 using Altinn.Platform.Authentication.Repositories;
+using Altinn.Platform.Authentication.Services;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 
@@ -12,7 +13,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 namespace Altinn.Platform.Authentication
@@ -23,12 +26,21 @@ namespace Altinn.Platform.Authentication
     public class Startup
     {
         /// <summary>
+        /// The key vault key which application insights is stored.
+        /// </summary>
+        public static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Authentication";
+
+        private readonly IWebHostEnvironment _env;
+        private readonly ILogger<Startup> _logger;
+
+        /// <summary>
         /// Initialises a new instance of the <see cref="Startup"/> class
         /// </summary>
-        /// <param name="configuration">The configuration for the authentication component</param>
-        public Startup(IConfiguration configuration)
+        public Startup(ILogger<Startup> logger, IConfiguration configuration, IWebHostEnvironment env)
         {
+            _logger = logger;
             Configuration = configuration;
+            _env = env;
         }
 
         /// <summary>
@@ -42,29 +54,53 @@ namespace Altinn.Platform.Authentication
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            _logger.LogInformation("Startup // ConfigureServices");
+
             services.AddControllers().AddJsonOptions(options =>
             {
-                options.JsonSerializerOptions.WriteIndented = true;
+                options.JsonSerializerOptions.WriteIndented = _env.IsDevelopment();
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
-            services.Configure<CertificateSettings>(Configuration);
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
-                    {
-                        var generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-                        options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                        options.Cookie.Name = "AltinnStudioRuntime";
-                        options.Cookie.Domain = generalSettings.HostName;
-                        options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
-                    });
+            {
+                GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+                options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                options.Cookie.Name = "AltinnStudioRuntime";
+                options.Cookie.Domain = generalSettings.HostName;
+                options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    RequireExpirationTime = true,
+                    ValidateLifetime = true
+                };
 
+                if (_env.IsDevelopment())
+                {
+                    options.RequireHttpsMetadata = false;
+                }
+            });
+
+            services.AddSingleton<ISblCookieDecryptionService, SblCookieDecryptionService>();
+            services.AddSingleton<ISigningCredentialsProvider, SigningCredentialsProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddSingleton<IOrganisationRepository, OrganisationRepository>();
+            
+            string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
+            if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
+            {
+                services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
+
+                _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {applicationInsightTelemetryKey}");
+            }
 
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
@@ -73,7 +109,10 @@ namespace Altinn.Platform.Authentication
 
                 try
                 {
-                    c.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                    string filePath = GetXmlCommentsPathForControllers();
+                    _logger.LogInformation($"Swagger XML document file: {filePath}");
+
+                    c.IncludeXmlComments(filePath);
                 }
                 catch
                 {
@@ -89,8 +128,12 @@ namespace Altinn.Platform.Authentication
         /// <param name="env">the hosting environment</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            _logger.LogInformation("Startup // Configure");
+
             if (env.IsDevelopment())
             {
+                _logger.LogInformation("IsDevelopment");
+
                 app.UseDeveloperExceptionPage();
 
                 // Enable higher level of detail in exceptions related to JWT validation
@@ -109,7 +152,7 @@ namespace Altinn.Platform.Authentication
                 c.RoutePrefix = "authentication/swagger";
             });
 
-            app.UseRouting();           
+            app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
@@ -122,7 +165,29 @@ namespace Altinn.Platform.Authentication
         {
             // locate the xml file being generated by .NET
             string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            return xmlFile;
+            string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+
+            return xmlPath;
         }
+
+        /// <summary>
+        ///  Gets telemetry instrumentation key from environment, which we set in Program.cs
+        /// </summary>
+        /// <returns>Telemetry instrumentation key</returns>
+        public string GetApplicationInsightsKeyFromEnvironment()
+        {
+            string environmentKey = Environment.GetEnvironmentVariable(VaultApplicationInsightsKey);
+            if (string.IsNullOrEmpty(environmentKey))
+            {
+                environmentKey = Environment.GetEnvironmentVariable("APPINSIGHTS_INSTRUMENTATIONKEY");
+
+                if (string.IsNullOrEmpty(environmentKey))
+                {
+                    return null;
+                }
+            }
+
+            return environmentKey;
+        }       
     }
 }
