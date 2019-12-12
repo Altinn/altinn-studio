@@ -138,11 +138,15 @@ namespace Altinn.Platform.Authentication.Controllers
         public async Task<ActionResult> RefreshJwtCookie()
         {
             _logger.LogInformation("Starting to refresh token...");
+
             ClaimsPrincipal principal = HttpContext.User;
+
             _logger.LogInformation("Refreshing token....");
            
             string serializedToken = await GenerateToken(principal);
+
             _logger.LogInformation("End of refreshing token");
+
             return Ok(serializedToken);
         }
 
@@ -236,7 +240,6 @@ namespace Altinn.Platform.Authentication.Controllers
 
                 string serializedToken = await GenerateToken(principal);
 
-                // ToDo: https://stackoverflow.com/questions/19790588/how-do-i-prevent-readasstringasync-returning-a-doubly-escaped-string/19792791#19792791
                 return Ok(serializedToken);
             }
             catch (Exception ex)
