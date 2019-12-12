@@ -144,7 +144,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private XacmlAttribute GetAttribute(string attributeId, string attributeValue)
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(attributeId), false);
-            if(attributeId.Equals(XacmlRequestAttribute.PartyAttribute))
+            if (attributeId.Equals(XacmlRequestAttribute.PartyAttribute))
             {
                 // When Party attribute is missing from input it is good to return it so PEP can get this information
                 attribute.IncludeInResult = true;

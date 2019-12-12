@@ -23,7 +23,7 @@ namespace UnitTests
         public void CreateXacmlJsonRequest_TC01()
         {
             // Arrange & Act
-            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonRequest(org, app, CreateUserClaims(false), actionType, partyId, null);
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateDecisionRequest(org, app, CreateUserClaims(false), actionType, partyId, null);
             XacmlJsonRequest request = requestRoot.Request;
 
             // Assert
@@ -40,7 +40,7 @@ namespace UnitTests
         public void CreateXacmlJsonRequest_TC02()
         {
             // Arrange & Act
-            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateXacmlJsonRequest(org, app, CreateUserClaims(true), actionType, partyId, null);
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateDecisionRequest(org, app, CreateUserClaims(true), actionType, partyId, null);
             XacmlJsonRequest request = requestRoot.Request;
 
             // Assert
@@ -54,7 +54,7 @@ namespace UnitTests
         /// Expected: Returns true
         /// </summary>
         [Fact]
-        public void ValidateResponse_TC01()
+        public void ValidatePdpDecision_TC01()
         {
             // Arrange
             XacmlJsonResponse response = new XacmlJsonResponse();
@@ -64,7 +64,7 @@ namespace UnitTests
             response.Response.Add(xacmlJsonResult);
 
             // Act
-            bool result = DecisionHelper.ValidateResponse(response.Response, CreateUserClaims(false));
+            bool result = DecisionHelper.ValidatePdpDecision(response.Response, CreateUserClaims(false));
 
             // Assert
             Assert.True(result);
@@ -75,7 +75,7 @@ namespace UnitTests
         /// Expected: Returns true
         /// </summary>
         [Fact]
-        public void ValidateResponse_TC02()
+        public void ValidatePdpDecision_TC02()
         {
             // Arrange
             XacmlJsonResponse response = new XacmlJsonResponse();
@@ -96,7 +96,7 @@ namespace UnitTests
             xacmlJsonResult.Obligations.Add(obligation);
 
             // Act
-            bool result = DecisionHelper.ValidateResponse(response.Response, CreateUserClaims(false));
+            bool result = DecisionHelper.ValidatePdpDecision(response.Response, CreateUserClaims(false));
 
             // Assert
             Assert.True(result);
@@ -107,7 +107,7 @@ namespace UnitTests
         /// Expected: Returns false
         /// </summary>
         [Fact]
-        public void ValidateResponse_TC03()
+        public void ValidatePdpDecision_TC03()
         {
             // Arrange
             XacmlJsonResponse response = new XacmlJsonResponse();
@@ -128,7 +128,7 @@ namespace UnitTests
             xacmlJsonResult.Obligations.Add(obligation);
 
             // Act
-            bool result = DecisionHelper.ValidateResponse(response.Response, CreateUserClaims(false));
+            bool result = DecisionHelper.ValidatePdpDecision(response.Response, CreateUserClaims(false));
 
             // Assert
             Assert.False(result);
@@ -139,7 +139,7 @@ namespace UnitTests
         /// Expected: Returns false
         /// </summary>
         [Fact]
-        public void ValidateResponse_TC04()
+        public void ValidatePdpDecision_TC04()
         {
             // Arrange
             XacmlJsonResponse response = new XacmlJsonResponse();
@@ -149,7 +149,7 @@ namespace UnitTests
             response.Response.Add(xacmlJsonResult);
 
             // Act
-            bool result = DecisionHelper.ValidateResponse(response.Response, CreateUserClaims(false));
+            bool result = DecisionHelper.ValidatePdpDecision(response.Response, CreateUserClaims(false));
 
             // Assert
             Assert.False(result);
@@ -160,7 +160,7 @@ namespace UnitTests
         /// Expected: Returns false
         /// </summary>
         [Fact]
-        public void ValidateResponse_TC05()
+        public void ValidatePdpDecision_TC05()
         {
             // Arrange
             XacmlJsonResponse response = new XacmlJsonResponse();
@@ -171,7 +171,7 @@ namespace UnitTests
             response.Response.Add(new XacmlJsonResult());
 
             // Act
-            bool result = DecisionHelper.ValidateResponse(response.Response, CreateUserClaims(false));
+            bool result = DecisionHelper.ValidatePdpDecision(response.Response, CreateUserClaims(false));
 
             // Assert
             Assert.False(result);
@@ -182,14 +182,14 @@ namespace UnitTests
         /// Expected: Throws ArgumentNullException
         /// </summary>
         [Fact]
-        public void ValidateResponse_TC06()
+        public void ValidatePdpDecision_TC06()
         {
             // Arrange
             XacmlJsonResponse response = new XacmlJsonResponse();
             response.Response = null;
 
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => DecisionHelper.ValidateResponse(response.Response, CreateUserClaims(false)));
+            Assert.Throws<ArgumentNullException>(() => DecisionHelper.ValidatePdpDecision(response.Response, CreateUserClaims(false)));
         }
 
         /// <summary>
@@ -197,14 +197,14 @@ namespace UnitTests
         /// Expected: Throws ArgumentNullException
         /// </summary>
         [Fact]
-        public void ValidateResponse_TC07()
+        public void ValidatePdpDecision_TC07()
         {
             // Arrange
             XacmlJsonResponse response = new XacmlJsonResponse();
             response.Response = new List<XacmlJsonResult>();
 
             // Act & Assert
-            Assert.Throws<ArgumentNullException>(() => DecisionHelper.ValidateResponse(response.Response, null));
+            Assert.Throws<ArgumentNullException>(() => DecisionHelper.ValidatePdpDecision(response.Response, null));
         }
 
         private ClaimsPrincipal CreateUserClaims(bool addExtraClaim)
