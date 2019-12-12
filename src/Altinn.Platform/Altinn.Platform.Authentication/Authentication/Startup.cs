@@ -90,7 +90,7 @@ namespace Altinn.Platform.Authentication
             services.AddSingleton<ISblCookieDecryptionService, SblCookieDecryptionService>();
             services.AddSingleton<ISigningCredentialsProvider, SigningCredentialsProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
-            services.AddSingleton<IOrganisationRepository, OrganisationRepository>();
+            services.AddTransient<IOrganisationRepository, OrganisationRepository>();
             
             string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
             if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))

@@ -348,17 +348,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<GitTreeStructure> GetGitTreeAsync(string org, string app, string commitId)
+        public async Task<GiteaFileContent> GetFileAsync(string org, string app, string filePath, string shortCommitId)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/git/trees/{commitId}");
-            return await response.Content.ReadAsAsync<GitTreeStructure>();
-        }
-
-        /// <inheritdoc />
-        public async Task<string> GetFileAsync(string org, string app, string filePath)
-        {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/raw/{filePath}");
-            return await response.Content.ReadAsStringAsync();
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{filePath}?ref={shortCommitId}");
+            return await response.Content.ReadAsAsync<GiteaFileContent>();
         }
 
         private async Task<Organization> GetOrganization(string name)

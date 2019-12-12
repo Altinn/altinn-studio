@@ -1,11 +1,17 @@
+using System;
+using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.Designer.Infrastructure.Extensions;
 using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.Services.Models;
 using AltinnCore.Designer.TypedHttpClients.AltinnStorage;
+using AltinnCore.Designer.TypedHttpClients.Exceptions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest.TransientFaultHandling;
@@ -23,7 +29,7 @@ namespace AltinnCore.Designer.Services
         private readonly IAltinnStorageAppMetadataClient _storageAppMetadataClient;
         private readonly ServiceRepositorySettings _serviceRepositorySettings;
         private EnvironmentModel _deploymentEnvironment;
-        private string _fullCommitSha;
+        private string _shortCommitId;
         private string _org;
         private string _app;
 
@@ -50,13 +56,13 @@ namespace AltinnCore.Designer.Services
         public async Task UpdateApplicationMetadataAsync(
             string org,
             string app,
-            string fullCommitId,
+            string shortCommitId,
             EnvironmentModel deploymentEnvironment)
         {
             _org = org;
             _app = app;
             _deploymentEnvironment = deploymentEnvironment;
-            _fullCommitSha = fullCommitId;
+            _shortCommitId = shortCommitId;
 
             Application applicationFromRepository = await GetApplicationMetadataFileFromRepository();
             Application application = await GetApplicationMetadataFromStorage();
@@ -72,8 +78,14 @@ namespace AltinnCore.Designer.Services
         private async Task<Application> GetApplicationMetadataFileFromRepository()
         {
             string filePath = GetApplicationMetadataFilePath();
-            string file = await _giteaApiWrapper.GetFileAsync(_org, _app, filePath);
-            Application appMetadata = JsonConvert.DeserializeObject<Application>(file);
+            GiteaFileContent file = await _giteaApiWrapper.GetFileAsync(_org, _app, filePath, _shortCommitId);
+            if (string.IsNullOrEmpty(file.Content))
+            {
+                throw new NotFoundHttpRequestException($"There is no file in {filePath}.");
+            }
+
+            byte[] data = Convert.FromBase64String(file.Content);
+            Application appMetadata = data.Deserialize<Application>();
 
             return appMetadata;
         }
@@ -82,7 +94,7 @@ namespace AltinnCore.Designer.Services
         {
             const string configFolderPath = ServiceRepositorySettings.CONFIG_FOLDER_PATH;
             string applicationMetadataFileName = _serviceRepositorySettings.ApplicationMetadataFileName;
-            return $"{_fullCommitSha}/{configFolderPath}{applicationMetadataFileName}";
+            return $"{configFolderPath}{applicationMetadataFileName}";
         }
 
         private async Task<Application> GetApplicationMetadataFromStorage()
@@ -117,7 +129,7 @@ namespace AltinnCore.Designer.Services
                 DataTypes = applicationFromRepository.DataTypes,
                 Title = applicationFromRepository.Title,
                 PartyTypesAllowed = applicationFromRepository.PartyTypesAllowed,
-                VersionId = _fullCommitSha
+                VersionId = _shortCommitId
             };
             await _storageAppMetadataClient.CreateApplicationMetadata(_org, _app, appMetadata, _deploymentEnvironment);
         }
@@ -125,7 +137,7 @@ namespace AltinnCore.Designer.Services
         private async Task UpdateApplicationMetadata(Application application, Application applicationFromRepository)
         {
             application.Title = applicationFromRepository.Title;
-            application.VersionId = _fullCommitSha;
+            application.VersionId = _shortCommitId;
             application.DataTypes = applicationFromRepository.DataTypes;
             application.PartyTypesAllowed = applicationFromRepository.PartyTypesAllowed;
             await _storageAppMetadataClient.UpdateApplicationMetadata(_org, _app, application, _deploymentEnvironment);
