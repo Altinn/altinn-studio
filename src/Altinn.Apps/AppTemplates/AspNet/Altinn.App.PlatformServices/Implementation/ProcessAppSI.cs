@@ -63,7 +63,7 @@ namespace Altinn.App.Services.Implementation
         /// <summary>
         /// Does not save process. Instance is updated.
         /// </summary>
-        public async Task<ProcessResult> ProcessStart(Instance instance, string validStartElement, UserContext userContext)
+        public async Task<ProcessResult> ProcessStart(Instance instance, string validStartElement, ClaimsPrincipal userContext)
         {
             if (instance.Process == null)
             {
@@ -95,7 +95,7 @@ namespace Altinn.App.Services.Implementation
         /// <summary>
         /// Start process start and goto next. Returns
         /// </summary>
-        public async Task<ProcessResult> ProcessStartAndGotoNextTask(Instance instance, string validStartElement, UserContext userContext)
+        public async Task<ProcessResult> ProcessStartAndGotoNextTask(Instance instance, string validStartElement, ClaimsPrincipal userContext)
         {
             _logger.LogInformation($"ProcessStartAndGotoNextTask for {instance.Id}");
 
@@ -136,7 +136,7 @@ namespace Altinn.App.Services.Implementation
         /// <summary>
         /// Moves instance's process to nextElement id. Saves the instance and returns it together with process events.
         /// </summary>
-        public async Task<ProcessResult> ProcessNext(Instance instance, string nextElementId, ProcessHelper processModel, UserContext userContext)
+        public async Task<ProcessResult> ProcessNext(Instance instance, string nextElementId, ProcessHelper processModel, ClaimsPrincipal userContext)
         {
             if (instance.Process != null)
             {
