@@ -78,34 +78,27 @@ namespace Altinn.App.AppLogic
         }
 
         /// <summary>
-        /// Run validation event to perform custom validations
+        /// Is called to run custom calculation events defined by app developer.
         /// </summary>
-        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
-        /// <returns>Value indicating if the form is valid or not</returns>
+        /// <param name="instance">The data to perform calculations on</param>
         public override async Task RunCalculation(object instance)
         {
             _calculationHandler.Calculate(instance);
         }
 
         /// <summary>
-        /// Run validation event to perform custom validations
+        /// Is called to run custom instantiation validation defined by app developer.
         /// </summary>
-        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
-        /// <returns>Value indicating if the form is valid or not</returns>
+        /// <returns>Task with validation results</returns>
         public override async Task<InstantiationValidationResult> RunInstantiationValidation()
         {
             return _instantiationHandler.RunInstantiationValidation();
         }
 
         /// <summary>
-        /// Is called to run custom instantiation events defined by app developer.
+        /// Is called to run data creation (custom prefill) defined by app developer.
         /// </summary>
-        /// <remarks>
-        /// Instantiation events include validation and data manipulation (custom prefill)
-        /// </remarks>
-        /// <param name="instance">The data to perform calculations on</param>
-        /// <param name="validationResults">Object containing any validation errors/warnings</param>
-        /// <returns>Task to indicate when calculation is completed</returns>
+        /// <param name="instance">The data to perform data creation on</param>
         public override async Task RunDataCreation(object instance)
         {
             _instantiationHandler.DataCreation(instance);

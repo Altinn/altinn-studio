@@ -68,30 +68,18 @@ namespace Altinn.App.Services.Interface
         /// Is called to run custom calculation events defined by app developer.
         /// </summary>
         /// <param name="instance">The data to perform calculations on</param>
-        /// <param name="dataChanged">Value indicating if data has been changed in a calculation</param>
-        /// <returns>Task to indicate when calculation is completed</returns>
         Task RunCalculation(object instance);
 
         /// <summary>
-        /// Is called to run custom instantiation events defined by app developer.
+        /// Is called to run custom instantiation validation defined by app developer.
         /// </summary>
-        /// <remarks>
-        /// Instantiation events include validation and data manipulation (custom prefill)
-        /// </remarks>
-        /// <param name="instance">The data to perform calculations on</param>
-        /// <param name="validationResults">Object containing any validation errors/warnings</param>
-        /// <returns>Task to indicate when calculation is completed</returns>
+        /// <returns>Task with validation results</returns>
         Task<InstantiationValidationResult> RunInstantiationValidation();
 
         /// <summary>
-        /// Is called to run custom instantiation events defined by app developer.
+        /// Is called to run data creation (custom prefill) defined by app developer.
         /// </summary>
-        /// <remarks>
-        /// Instantiation events include validation and data manipulation (custom prefill)
-        /// </remarks>
-        /// <param name="instance">The data to perform calculations on</param>
-        /// <param name="validationResults">Object containing any validation errors/warnings</param>
-        /// <returns>Task to indicate when calculation is completed</returns>
+        /// <param name="instance">The data to perform data creation on</param>
         Task RunDataCreation(object instance);
     }
 }
