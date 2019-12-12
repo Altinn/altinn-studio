@@ -46,6 +46,9 @@
     <None Update="data\apps\spf\test-applikasjon-3\config\authorization\policy.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="data\apps\tdd\m1000\config\authorization\policy.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="data\apps\tdd\test-applikasjon-1\config\authorization\policy.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

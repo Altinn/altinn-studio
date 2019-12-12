@@ -172,6 +172,47 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
         /// <summary>
         /// Scenario:
+        ///   Request list of archived instances where task of the instance is not set. 
+        /// Expected:
+        ///   A list of instances is returned regardless.
+        /// Success:
+        ///   A single instance is returned and the task has the value of end event. 
+        /// </summary>
+        // [Fact]
+        public async void GetMessageBoxInstanceList_RequestArchivedInstancesForGivenOwner_ReturnsCorrectListOfInstancesWithEndEventTask()
+        {
+            // Arrange
+            TestData testData = new TestData();
+            List<Instance> testInstances = testData.GetInstances_App4();
+
+            Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
+
+            Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
+            instanceRepository.Setup(s => s.GetInstancesInStateOfInstanceOwner(It.IsAny<int>(), It.Is<string>(p2 => p2 == "archived")))
+                .ReturnsAsync(testInstances);
+
+            Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+            applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App1);
+
+            HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+
+            // Act
+            HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}?state=archived");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+
+            string responseContent = await responseMessage.Content.ReadAsStringAsync();
+            List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseContent);
+
+            int actualCount = messageBoxInstances.Count;
+            int expectedCount = 3;
+            Assert.Equal(expectedCount, actualCount);
+        }
+
+        /// <summary>
+        /// Scenario:
         ///   Restore a soft deleted instance in storage.
         /// Expected result:
         ///   The instance is restored.

@@ -16,6 +16,7 @@ namespace Altinn.Platform.Storage.Helpers
         private readonly IPDP _pdp;
 
         private const string XacmlResourceTaskId = "urn:altinn:task";
+        private const string XacmlResourceEndId = "urn:altinn:endtask";
         private const string XacmlResourceActionId = "urn:oasis:names:tc:xacml:1.0:action:action-id";
         private const string DefaultIssuer = "Altinn";
         private const string DefaultType = "string";
@@ -83,10 +84,20 @@ namespace Altinn.Platform.Storage.Helpers
                 resourceCategory.Attribute = new List<XacmlJsonAttribute>();
 
                 string instanceId = instance.Id;
-                string task = instance.Process?.CurrentTask?.ElementId ?? string.Empty;
+                string task = instance.Process?.CurrentTask?.ElementId;
                 string instanceOwnerPartyId = instance.InstanceOwner.PartyId;
                 string org = instance.Org;
                 string app = instance.AppId.Split("/")[1];
+
+                if (task == null)
+                {
+                    task = "endTask";
+                    resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceEndId, task, DefaultType, DefaultIssuer));
+                }
+                else
+                {
+                    resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceTaskId, task, DefaultType, DefaultIssuer));
+                }
 
                 if (!string.IsNullOrWhiteSpace(instanceId))
                 {
@@ -96,7 +107,6 @@ namespace Altinn.Platform.Storage.Helpers
                 resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.PartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer));
                 resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.OrgId, org, DefaultType, DefaultIssuer));
                 resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));
-                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceTaskId, task, DefaultType, DefaultIssuer));
                 resourceCategory.Id = ResourceId + counter.ToString();
                 resourcesCategories.Add(resourceCategory);
                 counter++;
