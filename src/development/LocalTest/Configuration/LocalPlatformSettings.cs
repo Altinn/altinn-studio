@@ -36,5 +36,7 @@ namespace LocalTest.Configuration
         public string AuthorizationDataFolder { get; set; } = "authorization/";
 
         public string PartyListFolder { get; set; } = "partylist/";
+
+        public string RolesFolder { get; set; } = "roles/";
     }
 }
