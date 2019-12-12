@@ -8,20 +8,14 @@ namespace Altinn.Platform.Authentication.Configuration
     public class GeneralSettings
     {
         /// <summary>
-        /// Gets or sets the sbl cookie name
+        /// Gets or sets the name of the SBL authentication cookie.
         /// </summary>
-        public string SBLCookieName { get; set; }
+        public string SblAuthCookieName { get; set; }
 
         /// <summary>
-        /// Gets the sbl cookie from kubernetes environment variables and appsettings if environment variable is not set
+        /// Gets or sets the name of the JSON Web Token cookie.
         /// </summary>
-        public string GetSBLCookieName
-        {
-            get
-            {
-                return Environment.GetEnvironmentVariable("GeneralSettings__SBLCookieName") ?? SBLCookieName;
-            }
-        }
+        public string JwtCookieName { get; set; }
 
         /// <summary>
         /// Gets or sets the AltinnParty cookie name
@@ -77,11 +71,6 @@ namespace Altinn.Platform.Authentication.Configuration
         public string PlatformEndpoint { get; set; }
 
         /// <summary>
-        /// Gets the platform endpoint from kubernetes environment variables or appsettings if environment variable is missing
-        /// </summary>
-        public string GetPlatformEndpoint => GetEnvironmentOrPropertyValue(nameof(PlatformEndpoint));
-
-        /// <summary>
         /// Gets or sets the claims identity
         /// </summary>
         public string ClaimsIdentity { get; set; }
@@ -98,20 +87,9 @@ namespace Altinn.Platform.Authentication.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the number of minutes the jwt cookie is valid for
+        /// Gets or sets the number of minutes the JSON Web Token and the cookie is valid.
         /// </summary>
-        public string JwtCookieValidityTime { get; set; }
-
-        /// <summary>
-        /// Gets the jwt cookie validity time from kubernetes environment variables and appsettings if environment variable is not set
-        /// </summary>
-        public string GetJwtCookieValidityTime
-        {
-            get
-            {
-                return Environment.GetEnvironmentVariable("GeneralSettings__GetJwtCookieValidityTime") ?? JwtCookieValidityTime;
-            }
-        }
+        public int JwtValidityMinutes { get; set; }
 
         /// <summary>
         /// Gets or sets the hostname
@@ -183,25 +161,5 @@ namespace Altinn.Platform.Authentication.Configuration
         /// Gets or sets the URL of the Altinn Open ID Connect well-known configuration endpoint.
         /// </summary>
         public string OpenIdWellKnownEndpoint { get; set; }
-
-        /// <summary>
-        /// Get value from environment variable with key equals "GeneralSettings__" + propertyName or directly from
-        /// the property if the environment variable is missing.
-        /// </summary>
-        /// <param name="propertyName">The name of a property in this class.</param>
-        /// <returns>The identified value</returns>
-        /// <remarks>This method is using reflection. Avoid it if a value is being accessed frequently. Like in a loop.</remarks>
-        private string GetEnvironmentOrPropertyValue(string propertyName)
-        {
-            var prop = this.GetType().GetProperty(propertyName);
-            if (prop == null)
-            {
-                throw new ArgumentException($"This class does not have any property with the name {propertyName}");
-            }
-
-            string envValue = Environment.GetEnvironmentVariable("GeneralSettings__" + propertyName);
-
-            return envValue ?? prop.GetValue(this).ToString();
-        }
     }
 }
