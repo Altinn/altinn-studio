@@ -24,8 +24,7 @@ namespace App.IntegrationTestsRef.Utils
         public static HttpClient GetTestClient(
             CustomWebApplicationFactory<Altinn.App.Startup> factory,
             string org,
-            string app,
-            bool customValidation = false)
+            string app)
         {
             HttpClient client = factory.WithWebHostBuilder(builder =>
             {
@@ -53,14 +52,6 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddSingleton<IRegister, RegisterMockSI>();
                     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
                     services.AddSingleton<IApplication, ApplicationMockSI>();
-                    if (customValidation)
-                    {
-                        services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.custom_validation.AltinnApp>();
-                    }
-                    else
-                    {
-                        services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
-                    }
 
                     services.AddTransient<IProfile, ProfileMockSI>();
                     services.AddSingleton<IValidation, ValidationAppSI>();
@@ -69,6 +60,19 @@ namespace App.IntegrationTestsRef.Utils
                     // Set up mock authentication so that not well known endpoint is used
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
+
+                    switch (app)
+                    {
+                        case "endring-av-navn":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
+                            break;
+                        case "custom-validation":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.custom_validation.AltinnApp>();
+                            break;
+                        default:
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
+                            break;
+                    }
                 });
             })
             .CreateClient();
