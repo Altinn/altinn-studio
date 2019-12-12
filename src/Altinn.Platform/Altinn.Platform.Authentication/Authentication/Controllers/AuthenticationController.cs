@@ -250,7 +250,7 @@ namespace Altinn.Platform.Authentication.Controllers
         }
 
         /// <summary>
-        /// Creates a cookie to hold a
+        /// Creates a session cookie meant to be used to hold the generated JSON Web Token and appends it to the response.
         /// </summary>
         /// <param name="cookieValue">The cookie value.</param>
         private void CreateJwtCookieAndAppendToResponse(string cookieValue)
@@ -323,10 +323,10 @@ namespace Altinn.Platform.Authentication.Controllers
         }
 
         /// <summary>
-        /// Generates a token
+        /// Generates a token and serialize it to a compact format
         /// </summary>
-        /// <param name="principal">the claims principal</param>
-        /// <returns></returns>
+        /// <param name="principal">The claims principal for the token</param>
+        /// <returns>A serialized version of the generated JSON Web Token.</returns>
         private async Task<string> GenerateToken(ClaimsPrincipal principal)
         {
             TimeSpan tokenExpiry = new TimeSpan(0, _generalSettings.JwtValidityMinutes, 0);
