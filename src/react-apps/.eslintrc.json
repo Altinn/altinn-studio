@@ -57,6 +57,10 @@
         "SwitchCase": 1
       }
     ],
+    "react/jsx-indent": [
+      "warn",
+      2
+    ],
     "max-len": [
       "warn",
       120,

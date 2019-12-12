@@ -31,9 +31,9 @@ export const returnInstanceMetaDataObject = (
   const obj: any = {};
 
 
-  obj[getLanguageFromKey('receipt.date_sent', languageData)] = lastChangedDateTime; // fdlksjfdjlkjklfddslfkjløsdkafjløsdkajfløsdajfløksdjafløksdjfløksjdfløkjsdfløkjsdafølkjsadølfjksadølkfjlsdøakfjlødfskj
+  obj[getLanguageFromKey('receipt.date_sent', languageData)] = lastChangedDateTime;
 
-  let sender: string = `literal`;
+  let sender: string = '';
   if (profileData?.profile && profileData.profile.party.person.ssn) {
     sender = `${profileData.profile.party.person.ssn}-${profileData.profile.party.name}`;
   } else if (profileData) {
