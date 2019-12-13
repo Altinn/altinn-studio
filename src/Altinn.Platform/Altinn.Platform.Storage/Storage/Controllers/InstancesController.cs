@@ -359,6 +359,11 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound(message);
             }
 
+            if (existingInstance == null)
+            {
+                return NotFound();
+            }
+
             string altinnTaskType = existingInstance.Process.CurrentTask?.AltinnTaskType;
             bool authorized = await Authorize(altinnTaskType, existingInstance.Org, existingInstance.AppId.Split("/")[1], existingInstance.Id);
             if (!authorized)
