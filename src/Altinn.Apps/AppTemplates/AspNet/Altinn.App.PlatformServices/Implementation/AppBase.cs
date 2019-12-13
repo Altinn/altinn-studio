@@ -43,7 +43,7 @@ namespace Altinn.App.Services.Implementation
 
         public abstract Task<bool> RunValidation(object instance, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
 
-        public abstract Task RunCalculation(object instance);
+        public abstract Task<bool> RunCalculation(object instance);
 
         public abstract Task<InstantiationValidationResult> RunInstantiationValidation();
 
