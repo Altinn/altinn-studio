@@ -10,7 +10,7 @@ using Altinn.Common.PEP.Interfaces;
 
 namespace Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication
 {
-    public class PepAuthorizationMockSI : IPDP
+    public class PDPMock : IPDP
     {
         public Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {

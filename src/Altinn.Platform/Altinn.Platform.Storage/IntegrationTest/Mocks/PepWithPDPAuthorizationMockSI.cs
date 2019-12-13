@@ -368,7 +368,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 
         private string GetRolesPath(int userId, int resourcePartyId)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepAuthorizationMockSI).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PDPMock).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
         }
 
