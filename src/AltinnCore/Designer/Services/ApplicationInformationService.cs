@@ -33,17 +33,14 @@ namespace AltinnCore.Designer.Services
         public async Task UpdateApplicationInformationAsync(
             string org,
             string app,
-            string commitId,
+            string shortCommitId,
             EnvironmentModel deploymentEnvironment)
         {
-            GitTreeStructure gitTree = await _giteaApiWrapper.GetGitTreeAsync(org, app, commitId);
-            string fullCommitSha = gitTree.Sha;
-
             Task updateMetadataTask = _applicationMetadataService
-                .UpdateApplicationMetadataAsync(org, app, fullCommitSha, deploymentEnvironment);
+                .UpdateApplicationMetadataAsync(org, app, shortCommitId, deploymentEnvironment);
 
             Task updateAuthPolicyTask = _authorizationPolicyService
-                .UpdateApplicationAuthorizationPolicyAsync(org, app, fullCommitSha, deploymentEnvironment);
+                .UpdateApplicationAuthorizationPolicyAsync(org, app, shortCommitId, deploymentEnvironment);
 
             await Task.WhenAll(new List<Task>
             {

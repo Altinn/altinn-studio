@@ -27,21 +27,6 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Fakes
                 options.CookieManager = new ChunkingCookieManager();
             }
 
-            if (!options.LoginPath.HasValue)
-            {
-                options.LoginPath = JwtCookieDefaults.LoginPath;
-            }
-
-            if (!options.LogoutPath.HasValue)
-            {
-                options.LogoutPath = JwtCookieDefaults.LogoutPath;
-            }
-
-            if (!options.AccessDeniedPath.HasValue)
-            {
-                options.AccessDeniedPath = JwtCookieDefaults.AccessDeniedPath;
-            }
-
             if (!options.MetadataAddress.EndsWith("/", StringComparison.Ordinal))
             {
                 options.MetadataAddress += "/";

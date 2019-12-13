@@ -37,5 +37,39 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
         {
             return Task.FromResult(true);
         }
+
+        /// <summary>
+        /// Run validation event to perform custom validations
+        /// </summary>
+        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
+        /// <returns>Value indicating if the form is valid or not</returns>
+        public override async Task RunCalculation(object instance)
+        {
+            
+        }
+
+        /// <summary>
+        /// Run validation event to perform custom validations
+        /// </summary>
+        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
+        /// <returns>Value indicating if the form is valid or not</returns>
+        public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation()
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Is called to run custom instantiation events defined by app developer.
+        /// </summary>
+        /// <remarks>
+        /// Instantiation events include validation and data manipulation (custom prefill)
+        /// </remarks>
+        /// <param name="instance">The data to perform calculations on</param>
+        /// <param name="validationResults">Object containing any validation errors/warnings</param>
+        /// <returns>Task to indicate when calculation is completed</returns>
+        public override async Task RunDataCreation(object instance)
+        {
+            
+        }
     }
 }
