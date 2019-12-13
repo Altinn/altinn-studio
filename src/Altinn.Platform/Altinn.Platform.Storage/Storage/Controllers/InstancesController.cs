@@ -34,6 +34,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
+        private readonly AuthorizeInstancesHelper _authorizeInstancesHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
