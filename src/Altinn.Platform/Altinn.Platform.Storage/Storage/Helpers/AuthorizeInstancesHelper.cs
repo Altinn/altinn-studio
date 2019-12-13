@@ -226,19 +226,10 @@ namespace Altinn.Platform.Storage.Helpers
                     // Find the instance that has been validated to add it to the list of authorized instances.
                     Instance authorizedInstance = instances.FirstOrDefault(i => i.Id == instanceId);
 
-                    // Checks if it has already been authorized.
-                    int instancePosition = InstanceAlreadyAuthorized(authorizedInstances, authorizedInstance);
-
-                    // The instance has already been added to the authorizedInstance list if the position is 0 or above. 
-                    if (instancePosition >= 0)
+                    // Only need to check if the action type is write, because read do not add any special rights to the MessageBoxInstane.
+                    if (actiontype.Equals("write"))
                     {
-                        // Only need to check if the action type is write, because read do not add any special rights to the MessageBoxInstane.
-                        if (actiontype.Equals("write"))
-                        {
-                            MessageBoxInstance authorizedMsgBoxInstance = authorizedInstances[instancePosition];
-                            authorizedMsgBoxInstance.AuthorizedForWrite = true;
-                            authorizedMsgBoxInstance.AllowDelete = true;
-                        }
+                        authorizedInstances.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = i.AllowDelete = true);
                     }
                     else
                     {
