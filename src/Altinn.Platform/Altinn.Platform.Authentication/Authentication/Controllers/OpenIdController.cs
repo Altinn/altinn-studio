@@ -6,12 +6,10 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
+using Altinn.Platform.Authentication.Services;
 
-using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authentication.Controllers
@@ -24,21 +22,21 @@ namespace Altinn.Platform.Authentication.Controllers
     [ApiController]
     public class OpenIdController : ControllerBase
     {
-        private readonly KeyVaultSettings keyVaultSettings;
-        private readonly GeneralSettings generalSettings;
-        private readonly CertificateSettings certSettings;
+        private readonly GeneralSettings _generalSettings;
+
+        private readonly IJwtSigningCertificateProvider _certificateProvider;
 
         /// <summary>
         /// Initialise a new instance of <see cref="OpenIdController"/> with the given input values.
         /// </summary>
         /// <param name="generalSettings">The application general settings.</param>
-        /// <param name="certSettings">The settings section for certificate information.</param>
-        /// <param name="keyVaultSettings">The settings section for the platform key vault.</param>
-        public OpenIdController(IOptions<GeneralSettings> generalSettings, IOptions<CertificateSettings> certSettings, IOptions<KeyVaultSettings> keyVaultSettings)
+        /// <param name="certificateProvider">A service able to obtain a list of valid certificates that can be used to sign/validate a JWT.</param>
+        public OpenIdController(
+            IOptions<GeneralSettings> generalSettings,
+            IJwtSigningCertificateProvider certificateProvider)
         {
-            this.generalSettings = generalSettings.Value;
-            this.certSettings = certSettings.Value;
-            this.keyVaultSettings = keyVaultSettings.Value;
+            _generalSettings = generalSettings.Value;
+            _certificateProvider = certificateProvider;
         }
 
         /// <summary>
@@ -46,9 +44,9 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <returns>The configuration object for Open ID Connect.</returns>
         [HttpGet("openid-configuration")]
-        public async Task<IActionResult> GetOpenIdConfiguration()
+        public async Task<IActionResult> GetOpenIdConfigurationAsync()
         {
-            string baseUrl = generalSettings.PlatformEndpoint;
+            string baseUrl = _generalSettings.PlatformEndpoint;
 
             DiscoveryDocument discoveryDocument = new DiscoveryDocument
             {
@@ -82,45 +80,35 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <returns>The Altinn JSON Web Key Set.</returns>
         [HttpGet("openid-configuration/jwks")]
-        public async Task<IActionResult> GetJsonWebKeySet()
+        public async Task<IActionResult> GetJsonWebKeySetAsync()
         {
-            X509Certificate2 cert = GetTokenCertificate();
-
-            string oidFriendlyName = cert.PublicKey.Oid.FriendlyName;
-
-            RSA rsaPublicKey = cert.GetRSAPublicKey();
-            RSAParameters exportParameters = rsaPublicKey.ExportParameters(false);
-            string exponent = Convert.ToBase64String(exportParameters.Exponent);
-            string modulus = Convert.ToBase64String(exportParameters.Modulus);
-
-            List<string> chain = ExportChain(cert);
-
             JwksDocument jwksDocument = new JwksDocument
             {
-                Keys = new List<JwkDocument>
-                {
-                    new JwkDocument
-                    {
-                        KeyType = oidFriendlyName, PublicKeyUse = "sig", KeyId = cert.Thumbprint, Exponent = exponent, Modulus = modulus, X509Chain = chain
-                    }
-                }
+                Keys = new List<JwkDocument>()
             };
 
-            return await Task.FromResult(Ok(jwksDocument));
-        }
+            List<X509Certificate2> certificates = await _certificateProvider.GetCertificates();
 
-        private X509Certificate2 GetTokenCertificate()
-        {
-            if (string.IsNullOrEmpty(keyVaultSettings.ClientId) || string.IsNullOrEmpty(keyVaultSettings.ClientSecret))
+            foreach (X509Certificate2 cert in certificates)
             {
-                return new X509Certificate2(certSettings.CertificatePath, certSettings.CertificatePwd);
+                string oidFriendlyName = cert.PublicKey.Oid.FriendlyName;
+
+                RSA rsaPublicKey = cert.GetRSAPublicKey();
+                RSAParameters exportParameters = rsaPublicKey.ExportParameters(false);
+                string exponent = Convert.ToBase64String(exportParameters.Exponent);
+                string modulus = Convert.ToBase64String(exportParameters.Modulus);
+
+                List<string> chain = ExportChain(cert);
+
+                JwkDocument jwkDocument = new JwkDocument
+                {
+                    KeyType = oidFriendlyName, PublicKeyUse = "sig", KeyId = cert.Thumbprint, Exponent = exponent, Modulus = modulus, X509Chain = chain
+                };
+
+                jwksDocument.Keys.Add(jwkDocument);
             }
 
-            KeyVaultClient client = KeyVaultSettings.GetClient(keyVaultSettings.ClientId, keyVaultSettings.ClientSecret);
-            CertificateBundle certificate = client.GetCertificateAsync(keyVaultSettings.SecretUri, certSettings.CertificateName).GetAwaiter().GetResult();
-            SecretBundle secret = client.GetSecretAsync(certificate.SecretIdentifier.Identifier).GetAwaiter().GetResult();
-            byte[] pfxBytes = Convert.FromBase64String(secret.Value);
-            return new X509Certificate2(pfxBytes);
+            return Ok(jwksDocument);
         }
 
         private List<string> ExportChain(X509Certificate2 cert)
