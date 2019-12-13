@@ -86,10 +86,10 @@ export interface IPartyTypesAllowed {
 }
 
 export enum PartyTypes {
-  bankruptcy_estate = 'bankruptcyEstate',
+  bankruptcyEstate = 'bankruptcyEstate',
   organisation = 'organisation',
   person = 'person',
-  sub_unit = 'subUnit',
+  subUnit = 'subUnit',
 }
 
 export class AccessControlContainerClass extends React.Component<
@@ -251,9 +251,9 @@ export class AccessControlContainerClass extends React.Component<
           {getLanguageFromKey('access_control.party_type', this.props.language)}
         </Typography>
         <AltinnCheckBoxGroup row={true}>
-          {partyTypeKeys.map((partyTypeKey: string) => {
+          {partyTypeKeys.map((partyTypeKey: string, index: number) => {
             // value used for mapping internal state, key used for language reference
-            const partyTypeValue = PartyTypes[partyTypeKey as any] as keyof IPartyTypesAllowed;
+            const partyTypeValue = PartyTypes[partyTypeKey as PartyTypes] as keyof IPartyTypesAllowed;
             return (
               <AltinnFormControlLabel
                 key={partyTypeKey}

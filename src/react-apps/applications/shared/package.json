@@ -7,7 +7,8 @@
   "scripts": {
     "test": "jest",
     "lint": "tslint -c ./../tslint.json src/**/*.{ts,tsx} __tests__/**/*.{ts,tsx}",
-    "styleguide": "styleguidist server"
+    "styleguide": "styleguidist server",
+    "styleguide:build": "styleguidist build"
   },
   "resolutions": {
     "@types/react": "16.9.2"
@@ -27,7 +28,8 @@
     "react-html-parser": "2.0.2",
     "react-monaco-editor": "0.22.0",
     "react-router-dom": "4.3.1",
-    "react-truncate-markup": "2.0.1"
+    "react-truncate-markup": "2.0.1",
+    "typescript": "3.7.3"
   },
   "devDependencies": {
     "@babel/core": "7.6.0",
@@ -40,10 +42,10 @@
     "@types/jest": "23.3.14",
     "@types/jsdom": "12.2.1",
     "@types/marked": "0.6.5",
+    "@types/react": "16.9.2",
     "@types/react-html-parser": "2.0.1",
     "@types/react-router-dom": "4.3.1",
     "@types/react-test-renderer": "16.8.1",
-    "@types/react": "16.9.2",
     "altinn-designsystem": "2.0.19",
     "babel-jest": "24.7.1",
     "babel-loader": "8.0.6",
@@ -59,11 +61,7 @@
     "react-dom": "16.8.6",
     "react-styleguidist": "9.1.2",
     "react-test-renderer": "16.8.6",
-    "ts-jest": "23.10.5",
-    "tslint": "5.11.0",
-    "tslint-eslint-rules": "5.4.0",
-    "tslint-react": "3.6.0",
-    "typescript": "3.1.6"
+    "ts-jest": "23.10.5"
   },
   "jest": {
     "transform": {

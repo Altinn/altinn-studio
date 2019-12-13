@@ -1,6 +1,5 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IUiConfig } from 'src/types/global';
 import {
   ILayout,
 } from '../';
@@ -10,6 +9,7 @@ import {
 } from '../actions/fetch';
 import * as ActionTypes from '../actions/types';
 import { IUpdateFocusFulfilled, IUpdateFormLayout, IUpdateHiddenComponents } from '../actions/update';
+import { IUiConfig } from './../../../../types/global';
 
 export interface ILayoutState {
   layout: ILayout;

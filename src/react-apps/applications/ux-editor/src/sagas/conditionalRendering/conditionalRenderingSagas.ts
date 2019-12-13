@@ -83,7 +83,7 @@ export function* watchForFulfillmentBeforeRunningRuleMethodsSaga(): SagaIterator
     take(ServiceConfigurationActionTypes.FETCH_JSON_FILE_FULFILLED),
     take(AppDataActionTypes.FETCH_RULE_MODEL_FULFILLED),
   ]);
-  yield call(checkIfConditionalRulesShouldRun, {});
+  yield call(checkIfConditionalRulesShouldRun, null);
 }
 
 export function* checkIfConditionalRulesShouldRun(

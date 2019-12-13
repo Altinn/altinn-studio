@@ -38,7 +38,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
   }
 
   public fetchFiles() {
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const appId = `${org}/${app}`;
 
     // ALTINN STUDIO
@@ -76,7 +76,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
   }
 
   public resetFormData = (): JSX.Element => {
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const appId = `${org}/${app}`;
     formFillerActionDispatchers.resetFormData(
       `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`);

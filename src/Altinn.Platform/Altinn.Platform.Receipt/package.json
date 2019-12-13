@@ -12,7 +12,7 @@
   "devDependencies": {
     "gulp": "4.0.2",
     "gulp-run-command": "0.0.9",
-    "lerna": "3.16.4",
+    "lerna": "3.18.5",
     "chokidar": "2.0.3"
   }
 }

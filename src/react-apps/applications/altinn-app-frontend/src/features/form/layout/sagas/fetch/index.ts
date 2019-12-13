@@ -7,7 +7,7 @@ import * as ActionTypes from '../../actions/types';
 
 function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
   try {
-    const { data } = yield call(get, url);
+    const { data }: any = yield call(get, url);
     yield call(
       Actions.fetchFormLayoutFulfilled,
       data.layout,

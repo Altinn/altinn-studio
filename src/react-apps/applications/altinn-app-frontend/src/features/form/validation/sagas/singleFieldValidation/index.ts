@@ -21,7 +21,7 @@ export function* runSingleFieldValidationSaga({
         ValidationTriggerField: dataModelBinding,
       },
     };
-    const response = yield call(put, url, 'Validate', requestBody, config, dataModelBinding);
+    const response: any = yield call(put, url, 'Validate', requestBody, config, dataModelBinding);
     if (response && response.validationResult) {
       const validationErrors = mapApiValidationsToRedux(response.validationResult.messages, state.formLayout.layout);
       yield call(Actions.runSingleFieldValidationFulfilled, validationErrors);
