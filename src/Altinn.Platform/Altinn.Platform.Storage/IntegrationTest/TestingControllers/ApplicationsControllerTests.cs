@@ -443,7 +443,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                     services.AddSingleton(dataRepository.Object);
                     services.AddSingleton(instanceRepository.Object);
                     services.AddSingleton(instanceEventRepository.Object);
-                    services.AddSingleton<IPDP, PDPMock>();
+                    services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
