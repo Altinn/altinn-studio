@@ -36,9 +36,22 @@ namespace Altinn.App.Services.Interface
         /// <returns>The Type of the service model for the current service</returns>
         Type GetAppModelType(string classRef);
 
+        /// <summary>
+        /// AppLogic must set the start event of the process model.
+        /// </summary>
+        /// <returns>the id of the start event</returns>
+        Task<string> OnInstantiateGetStartEvent();
 
-        Task<string> OnInstantiateGetStartEvent(Instance instance);
+        /// <summary>
+        /// Callback on first start event of process.
+        /// </summary>
+        /// <returns></returns>
         Task OnStartProcess(string startEvent, Instance instance);
+
+        /// <summary>
+        /// Callback to app after task has been started.
+        /// </summary>
+        /// <returns></returns>
         Task OnStartProcessTask(string taskId, Instance instance);
 
         /// <summary>

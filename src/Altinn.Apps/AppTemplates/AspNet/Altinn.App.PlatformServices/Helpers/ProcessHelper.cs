@@ -7,18 +7,18 @@ namespace Altinn.App.Services.Helpers
 {
     public class ProcessHelper
     {
-        private BpmnReader process { get; set; }
+        private readonly BpmnReader _process;
 
         public ProcessHelper(Stream bpmnStream)
         {
-            process = BpmnReader.Create(bpmnStream);
+            _process = BpmnReader.Create(bpmnStream);
         }
 
         public BpmnReader Process 
         {
             get
             {
-                return process;
+                return _process;
             }                
         }
 
@@ -27,7 +27,7 @@ namespace Altinn.App.Services.Helpers
             nextElementError = null;
             string nextElementId = null;
 
-            List<string> nextElements = process.NextElements(currentElement);
+            List<string> nextElements = _process.NextElements(currentElement);
 
             if (nextElements.Count > 1)
             {
@@ -65,12 +65,11 @@ namespace Altinn.App.Services.Helpers
             return endEvents.Contains(nextElementId);
         }
 
-
         public string GetValidStartEventOrError(string proposedStartEvent, out ProcessError startEventError)
         {
             startEventError = null;
 
-            List<string> possibleStartEvents = process.StartEvents();
+            List<string> possibleStartEvents = _process.StartEvents();
 
             if (!string.IsNullOrEmpty(proposedStartEvent))
             {
@@ -105,7 +104,7 @@ namespace Altinn.App.Services.Helpers
         {
             nextElementError = null;
 
-            List<string> possibleNextElements = process.NextElements(currentElementId);
+            List<string> possibleNextElements = _process.NextElements(currentElementId);
 
             if (!string.IsNullOrEmpty(proposedElementId))
             {
