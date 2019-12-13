@@ -63,6 +63,9 @@ namespace Altinn.Platform.Storage.Helpers
             return messageBoxInstances;
         }
 
+        /// <summary>
+        /// Converts to a simpler instance object that includes some application metadata
+        /// </summary>
         public static MessageBoxInstance ConvertToMessageBoxInstance(Instance instance)
         {
             InstanceStatus status = instance.Status ?? new InstanceStatus();
@@ -91,6 +94,9 @@ namespace Altinn.Platform.Storage.Helpers
             return messageBoxInstance;
         }
 
+        /// <summary>
+        /// Adds title to the intance
+        /// </summary>
         public static List<MessageBoxInstance> AddTitleToInstances(List<MessageBoxInstance> instances, Dictionary<string, Dictionary<string, string>> appTitles, string language)
         {
             foreach (MessageBoxInstance instance in instances)
@@ -102,6 +108,9 @@ namespace Altinn.Platform.Storage.Helpers
             return instances;
         }
 
+        /// <summary>
+        /// Returns app id 
+        /// </summary>
         public static string GetAppId(MessageBoxInstance instance)
         {
             return instance.Org.ToLower() + "/" + instance.AppName;

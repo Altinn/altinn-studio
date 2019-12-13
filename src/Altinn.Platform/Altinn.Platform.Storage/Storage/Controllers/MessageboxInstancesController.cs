@@ -31,6 +31,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
+        /// <param name="pdp">the policy decision point</param>
         public MessageBoxInstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,

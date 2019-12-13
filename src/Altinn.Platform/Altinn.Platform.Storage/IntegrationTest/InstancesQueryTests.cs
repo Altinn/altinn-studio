@@ -28,7 +28,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly int _testInstanceOwnerId = 1001;
         private readonly string _versionPrefix = "/storage/api/v1";
         private readonly string _validToken;
-        private bool testDataIsLoaded = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceStorageTests"/> class.

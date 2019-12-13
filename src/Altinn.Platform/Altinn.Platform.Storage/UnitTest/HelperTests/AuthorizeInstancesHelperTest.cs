@@ -1,32 +1,20 @@
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Common.PEP.Constants;
-using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Xunit;
-using static Altinn.Authorization.ABAC.Constants.XacmlConstants;
 
 namespace Altinn.Platform.Storage.UnitTest.HelperTests
 {
     public class AuthorizeInstancesHelperTest
     {
-        private readonly IPDP _pdp;
         private const string org = "Altinn";
         private const string app = "App";
-        private const string partyId = "1000";
         private const string urnName = "urn:name";
         private const string urnAuthLv = "urn:altinn:authlevel";
-        private const string urnAction = MatchAttributeIdentifiers.ActionId;
-
-        public AuthorizeInstancesHelperTest()
-        {
-
-        }
 
         /// <summary>
         /// Test case: Send attributes and creates multiple request out of it 
@@ -40,7 +28,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             List<Instance> instances = CreateInstances();
 
             // Act
-            XacmlJsonRequestRoot requestRoot = AuthorizeInstancesHelper.CreateXacmlJsonMultipleRequest(CreateUserClaims(), instances, actionTypes);
+            XacmlJsonRequestRoot requestRoot = AuthorizeInstancesHelper.CreateMultiDecisionRequest(CreateUserClaims(), instances, actionTypes);
 
             // Assert
             // Checks it has the right number of attributes in each category 
@@ -67,7 +55,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             List<Instance> instances = CreateInstances();
 
             // Act & Assert 
-            Assert.Throws<ArgumentNullException>(() => AuthorizeInstancesHelper.CreateXacmlJsonMultipleRequest(null, instances, actionTypes));
+            Assert.Throws<ArgumentNullException>(() => AuthorizeInstancesHelper.CreateMultiDecisionRequest(null, instances, actionTypes));
         }
 
         [Fact]

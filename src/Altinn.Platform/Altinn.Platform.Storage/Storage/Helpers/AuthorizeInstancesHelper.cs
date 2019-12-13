@@ -11,6 +11,9 @@ using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Helpers
 {
+    /// <summary>
+    /// Custom PEP to create multi decision request.
+    /// </summary>
     public class AuthorizeInstancesHelper
     {
         private readonly IPDP _pdp;
@@ -24,16 +27,23 @@ namespace Altinn.Platform.Storage.Helpers
         private const string ActionId = "a";
         private const string ResourceId = "r";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AuthorizeInstancesHelper"/> class.
+        /// </summary>
+        /// <param name="pdp">The policy decision point</param>
         public AuthorizeInstancesHelper(IPDP pdp)
         {
             _pdp = pdp;
         }
 
-        public static XacmlJsonRequestRoot CreateXacmlJsonMultipleRequest(ClaimsPrincipal user, List<Instance> instances, List<string> actionTypes)
+        /// <summary>
+        /// Creates multi decision request.
+        /// </summary>
+        public static XacmlJsonRequestRoot CreateMultiDecisionRequest(ClaimsPrincipal user, List<Instance> instances, List<string> actionTypes)
         {
             if (user == null)
             {
-                throw new ArgumentNullException("User is null");
+                throw new ArgumentNullException("user");
             }
 
             XacmlJsonRequest request = new XacmlJsonRequest();
@@ -171,6 +181,9 @@ namespace Altinn.Platform.Storage.Helpers
             return -1;
         }
 
+        /// <summary>
+        /// Authorize instances, and returns a list of MesseageBoxInstances with information about read and write rights of each instance. 
+        /// </summary>
         public async Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(ClaimsPrincipal user, List<Instance> instances)
         {
             if (instances.Count <= 0)
@@ -181,7 +194,7 @@ namespace Altinn.Platform.Storage.Helpers
             List<MessageBoxInstance> authorizedInstances = new List<MessageBoxInstance>();
             List<string> actionTypes = new List<string> { "read", "write" };
 
-            XacmlJsonRequestRoot xacmlJsonRequest = CreateXacmlJsonMultipleRequest(user, instances, actionTypes);
+            XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
 
             foreach (XacmlJsonResult result in response.Response)
@@ -245,6 +258,9 @@ namespace Altinn.Platform.Storage.Helpers
             return authorizedInstances;
         }
 
+        /// <summary>
+        /// Authorize instances, and returns a list of instances that the user has the right to read. 
+        /// </summary>
         public async Task<List<Instance>> AuthroizeInstances(ClaimsPrincipal user, List<Instance> instances)
         {
             if (instances.Count <= 0)
@@ -255,7 +271,7 @@ namespace Altinn.Platform.Storage.Helpers
             List<Instance> authorizedInstances = new List<Instance>();
             List<string> actionTypes = new List<string> { "read" };
 
-            XacmlJsonRequestRoot xacmlJsonRequest = CreateXacmlJsonMultipleRequest(user, instances, actionTypes);
+            XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
 
             foreach (XacmlJsonResult result in response.Response)
