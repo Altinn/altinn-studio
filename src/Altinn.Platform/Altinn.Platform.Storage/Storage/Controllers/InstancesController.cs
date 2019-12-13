@@ -296,8 +296,10 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound(message);
             }
 
-            existingInstance.AppOwner = instance.AppOwner;            
-            existingInstance.Process = instance.Process;
+            existingInstance.AppOwner = instance.AppOwner;
+
+            /* ignore process changes */
+
             existingInstance.Status = instance.Status;
             existingInstance.Title = instance.Title;
 
@@ -307,6 +309,65 @@ namespace Altinn.Platform.Storage.Controllers
             DateTime? visibleAfter = DateTimeHelper.ConvertToUniversalTime(instance.VisibleAfter);
             existingInstance.VisibleAfter ??= visibleAfter;
             
+            existingInstance.LastChangedBy = GetUserId();
+            existingInstance.LastChanged = DateTime.UtcNow;
+
+            Instance result;
+            try
+            {
+                result = await _instanceRepository.Update(existingInstance);
+                await DispatchEvent(InstanceEventType.Saved.ToString(), result);
+                AddSelfLinks(Request, result);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Unable to update instance object {instanceId}. Due to {e}");
+                return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Updates the process of an instance.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">instance owner party id</param>
+        /// <param name="instanceGuid">instance guid</param>
+        /// <param name="processState">the new process state of the instance</param>
+        /// <returns>The updated instance</returns>
+        [Authorize]
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/process")]
+        [ProducesResponseType(typeof(Instance), 200)]
+        [ProducesResponseType(404)]
+        public async Task<ActionResult> PutProcess(
+            int instanceOwnerPartyId,
+            Guid instanceGuid,
+            [FromBody] ProcessState processState)
+        {
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+
+            Instance existingInstance;
+            try
+            {
+                existingInstance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            }
+            catch (Exception e)
+            {
+                string message = $"Unable to find instance {instanceId} to update: {e}";
+                _logger.LogError(message);
+
+                return NotFound(message);
+            }
+
+            string altinnTaskType = existingInstance.Process.CurrentTask?.AltinnTaskType;
+            bool authorized = await Authorize(altinnTaskType, existingInstance.Org, existingInstance.AppId.Split("/")[1], existingInstance.Id);
+            if (!authorized)
+            {
+                return Forbid();
+            }
+
+            existingInstance.Process = processState;
+
             existingInstance.LastChangedBy = GetUserId();
             existingInstance.LastChanged = DateTime.UtcNow;
 
@@ -397,6 +458,21 @@ namespace Altinn.Platform.Storage.Controllers
                     return StatusCode(500, $"Unexpected exception when updating instance after soft delete: {e.Message}");
                 }
             }
+        }
+
+        private async Task<bool> Authorize(string currenTaskType, string org, string app, string instanceId)
+        {
+            string actionType = currenTaskType.Equals("data") ? "write" : null;
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, null, instanceId);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+            if (response?.Response == null)
+            {
+                _logger.LogInformation($"// Process Controller // Authorization of moving process forward failed with request: {JsonConvert.SerializeObject(request)}.");
+                return false;
+            }
+
+            bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
+            return authorized;
         }
 
         /// <summary>
