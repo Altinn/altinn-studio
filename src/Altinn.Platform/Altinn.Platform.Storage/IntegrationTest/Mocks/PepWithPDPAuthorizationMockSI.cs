@@ -24,7 +24,6 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 {
     class PepWithPDPAuthorizationMockSI : IPDP
     {
-        //private readonly IInstance _instanceService;
         private readonly IInstanceRepository _instanceRepository;
 
         private readonly PepSettings _pepSettings;
@@ -47,7 +46,6 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 
         public PepWithPDPAuthorizationMockSI(IInstanceRepository instanceRepository, IOptions<PepSettings> pepSettings)
         {
-            //this._instanceService = instanceService;
             this._instanceRepository = instanceRepository;
             _pepSettings = pepSettings.Value;
         }
@@ -58,11 +56,8 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 
             if (xacmlJsonRequest.Request.MultiRequests != null)
             {
-                //jsonResponse = File.ReadAllText("data/response_multi_permit.json");
                 try
                 {
-                    //XacmlContextRequest decisionRequest = XacmlJsonXmlConverter.ConvertRequest(xacmlJsonRequest.Request);
-                    //decisionRequest = await Enrich(decisionRequest);
                     Altinn.Authorization.ABAC.PolicyDecisionPoint pdp = new Altinn.Authorization.ABAC.PolicyDecisionPoint();
                     XacmlJsonResponse multiResponse = new XacmlJsonResponse();
                     foreach (XacmlJsonRequestReference xacmlJsonRequestReference in xacmlJsonRequest.Request.MultiRequests.RequestReference)
@@ -120,10 +115,6 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
                     }
 
                     return multiResponse;
-                    /*XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
-                    XacmlContextResponse contextResponse = pdp.Authorize(decisionRequest, policy);
-
-                    return XacmlJsonXmlConverter.ConvertResponse(contextResponse);*/
                 }
                 catch (Exception ex)
                 {
