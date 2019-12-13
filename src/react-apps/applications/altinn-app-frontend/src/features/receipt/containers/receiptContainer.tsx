@@ -2,18 +2,19 @@ import * as moment from 'moment';
 import { useState } from 'react';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
 import AltinnContentIconReceipt from '../../../../../shared/src/components/atoms/AltinnContentIconReceipt';
 import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
 import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationMetaDataUtils';
-import { getInstancePdf, mapInstanceAttachments} from '../../../../../shared/src/utils/attachmentsUtils';
+import { getInstancePdf, mapInstanceAttachments } from '../../../../../shared/src/utils/attachmentsUtils';
 import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
-import { IAttachment, IInstance } from './../../../../../shared/src/types/index.d';
-import { returnUrlToMessagebox } from './../../../../../shared/src/utils/urlHelper';
-import InstanceDataActions from './../../../shared/resources/instanceData/instanceDataActions';
-import OrgsActions from './../../../shared/resources/orgs/orgsActions';
+import { IAttachment, IInstance } from '../../../../../shared/src/types/index.d';
+import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
+import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
+import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 
 export interface IReceiptContainerProps extends RouteChildrenProps {
 }
@@ -26,13 +27,14 @@ export const returnInstanceMetaDataObject = (
   userLanguageString: string,
   lastChangedDateTime: string,
   org: any,
-  ): {} => {
+): {} => {
   const obj: any = {};
+
 
   obj[getLanguageFromKey('receipt.date_sent', languageData)] = lastChangedDateTime;
 
   let sender: string = '';
-  if (profileData.profile && profileData.profile.party.person.ssn) {
+  if (profileData?.profile && profileData.profile.party.person.ssn) {
     sender = `${profileData.profile.party.person.ssn}-${profileData.profile.party.name}`;
   } else if (profileData) {
     sender = `${profileData.profile.party.orgNumber}-${profileData.profile.party.name}`;
@@ -51,7 +53,7 @@ export const returnInstanceMetaDataObject = (
   return obj;
 };
 
-const ReceiptContainer = (props: IReceiptContainerProps ) => {
+const ReceiptContainer = (props: IReceiptContainerProps) => {
   const [appName, setAppName] = React.useState('');
   const [attachments, setAttachments] = useState([]);
   const [pdf, setPdf] = React.useState<IAttachment>(null);
@@ -68,18 +70,17 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   const origin = window.location.origin;
   const routeParams: any = props.match.params;
 
-  const isLoading = (): boolean => {
-    return (
-      !attachments ||
-      !instanceMetaObject ||
-      !lastChangedDateTime ||
-      !appName ||
-      !allOrgs ||
-      !profile ||
-      !instance ||
-      !lastChangedDateTime
-    );
-  };
+  const isLoading = (): boolean => (
+    !attachments ||
+    !instanceMetaObject ||
+    !lastChangedDateTime ||
+    !appName ||
+    !allOrgs ||
+    !profile ||
+    !instance ||
+    !lastChangedDateTime
+  );
+
 
   React.useEffect(() => {
     setUserLanguage(getUserLanguage());
@@ -121,7 +122,7 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   return (
     <>
       {isLoading() &&
-        <AltinnContentLoader  width={705} height={561}>
+        <AltinnContentLoader width={705} height={561}>
           <AltinnContentIconReceipt/>
         </AltinnContentLoader>
       }
@@ -140,7 +141,6 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
       }
     </>
   );
-
 };
 
 export default withRouter(ReceiptContainer);

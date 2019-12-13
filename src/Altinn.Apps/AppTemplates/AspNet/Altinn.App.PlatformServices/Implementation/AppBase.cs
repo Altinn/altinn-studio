@@ -1,6 +1,5 @@
 using Altinn.App.Common.Enums;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -51,17 +50,12 @@ namespace Altinn.App.Services.Implementation
         public abstract Task RunDataCreation(object instance);
         
         /// <inheritdoc />
-        public async Task<string> OnInstantiateGetStartEvent(Instance instance)
+        public Task<string> OnInstantiateGetStartEvent()
         {
-            _logger.LogInformation($"OnInstantiate for {instance.Id}");
+            _logger.LogInformation($"OnInstantiate: GetStartEvent");
 
-            if (instance.Process == null)
-            {
-                // return start event              
-                return "StartEvent_1";
-            }
-
-            return null;
+            // return start event              
+            return Task.FromResult("StartEvent_1");
         }
 
         /// <inheritdoc />
@@ -93,7 +87,7 @@ namespace Altinn.App.Services.Implementation
             foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
             {
                 _logger.LogInformation($"autocreate data element: {dataType.Id}");
-
+                
                 DataElement dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
 
                 if (dataElement == null)
@@ -106,10 +100,9 @@ namespace Altinn.App.Services.Implementation
                     instance.Data.Add(createdDataElement);
 
                     _logger.LogInformation($"created data element: {createdDataElement.Id}");
-                }
+                }                                
             }
         }
-
 
         /// <inheritdoc />
         public async Task<bool> CanEndProcessTask(string taskId, Instance instance, List<ValidationIssue> validationIssues)

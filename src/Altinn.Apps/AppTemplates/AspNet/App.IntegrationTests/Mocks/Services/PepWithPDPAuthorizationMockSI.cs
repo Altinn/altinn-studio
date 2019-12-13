@@ -61,9 +61,8 @@ namespace App.IntegrationTests.Mocks.Services
 
                 return XacmlJsonXmlConverter.ConvertResponse(contextResponse);
             }
-            catch (Exception ex)
+            catch 
             {
-                string test = "test";
             }
 
             return null;
@@ -77,7 +76,7 @@ namespace App.IntegrationTests.Mocks.Services
             }
 
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
-            return DecisionHelper.ValidateResponse(response.Response, user);
+            return DecisionHelper.ValidatePdpDecision(response.Response, user);
         }
 
 

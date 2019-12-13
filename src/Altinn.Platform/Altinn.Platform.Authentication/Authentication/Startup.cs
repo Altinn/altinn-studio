@@ -70,9 +70,7 @@ namespace Altinn.Platform.Authentication
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
             {
                 GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-                options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                options.Cookie.Name = "AltinnStudioRuntime";
-                options.Cookie.Domain = generalSettings.HostName;
+                options.Cookie.Name = generalSettings.JwtCookieName;
                 options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -90,9 +88,9 @@ namespace Altinn.Platform.Authentication
             });
 
             services.AddSingleton<ISblCookieDecryptionService, SblCookieDecryptionService>();
-            services.AddSingleton<ISigningCredentialsProvider, SigningCredentialsProvider>();
+            services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
-            services.AddSingleton<IOrganisationRepository, OrganisationRepository>();
+            services.AddTransient<IOrganisationRepository, OrganisationRepository>();
             
             string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
             if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))

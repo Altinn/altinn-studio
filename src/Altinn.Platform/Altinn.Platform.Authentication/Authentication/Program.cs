@@ -1,6 +1,8 @@
 using System;
 using System.IO;
+
 using AltinnCore.Authentication.Constants;
+
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -10,6 +12,7 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Logging;
+
 using Serilog;
 using Serilog.Core;
 using Serilog.Extensions.Logging;
@@ -57,10 +60,10 @@ namespace Altinn.Platform.Authentication
                     config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
                 }
 
+                ConnectToKeyVaultAndSetApplicationInsights(config);
+
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
-
-                ConnectToKeyVaultAndSetApplicationInsights(config);
             })
             .ConfigureLogging((hostingContext, logging) =>
             {
@@ -71,7 +74,7 @@ namespace Altinn.Platform.Authentication
                     .CreateLogger();
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
-                .UseStartup<Startup>();
+            .UseStartup<Startup>();
 
         private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
         {

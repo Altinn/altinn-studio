@@ -43,7 +43,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>
         public AuthenticationControllerTests(WebApplicationFactory<Startup> factory)
         {
-            this._factory = factory;
+            _factory = factory;
         }
 
         /// <summary>
@@ -129,6 +129,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             string token = null;
             string sameSite = null;
             bool httpOnly = false;
+            bool sessionCookie = true;
 
             response.Headers.TryGetValues(HeaderNames.SetCookie, out IEnumerable<string> cookies);
             foreach (string cookie in cookies)
@@ -146,6 +147,10 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
                         case "httponly":
                             httpOnly = true;
                             break;
+                        case "expires":
+                            // Cookies WITHOUT 'expires' are session cookies. They are gone when the browser is closed.
+                            sessionCookie = false;
+                            break;
                         case "samesite":
                             sameSite = cookieKeyValue[1];
                             break;
@@ -161,6 +166,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             Assert.Equal("lax", sameSite);
 
             Assert.True(httpOnly);
+            Assert.True(sessionCookie);
         }
 
         private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService)
@@ -175,7 +181,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
                     services.AddSingleton(cookieDecryptionService);
 
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
-                    services.AddSingleton<ISigningCredentialsProvider, SigningCredentialsProviderStub>();
+                    services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProviderStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
                 builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });

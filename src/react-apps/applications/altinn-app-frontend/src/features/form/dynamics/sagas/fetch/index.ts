@@ -7,7 +7,7 @@ import * as FormDynamicsActionTypes from '../../actions/types';
 
 function* fetchDynamicsSaga({ url }: IFetchServiceConfig): SagaIterator {
   try {
-    const { data } = yield call(get, url);
+    const { data }: any = yield call(get, url);
     yield call(
       FormDynamicsActions.fetchFormDynamicsFulfilled,
       data.APIs,

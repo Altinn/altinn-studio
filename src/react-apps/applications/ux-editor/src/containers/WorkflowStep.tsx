@@ -115,7 +115,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 
   public handleSubmitForm = () => {
-    const { org, app, instanceId } = window as IAltinnWindow;
+    const { org, app, instanceId } = window as Window as IAltinnWindow;
     FormFillerActionDispatchers.completeAndSendInForm(
       `${window.location.origin}/${org}/${app}/${instanceId}/CompleteAndSendIn`);
   }

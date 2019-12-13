@@ -52,7 +52,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
       if (apiMode === 'Complete') {
         // run validations against the datamodel
         const instanceId = state.instanceData.instance.id;
-        const validationResult = yield call(get, getValidationUrl(instanceId));
+        const validationResult: any = yield call(get, getValidationUrl(instanceId));
         if (validationResult && validationResult.length > 0
           && !(validationResult.length === 1 && validationResult[0].field === null)) {
           // we have validation errors, update validations and return

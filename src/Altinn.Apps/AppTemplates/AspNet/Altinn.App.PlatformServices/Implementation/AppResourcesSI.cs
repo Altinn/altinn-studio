@@ -25,7 +25,7 @@ namespace Altinn.App.Services.Implementation
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly ILogger _logger;
 
-        private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppResourcesSI"/> class.
