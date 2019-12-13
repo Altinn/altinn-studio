@@ -6,7 +6,7 @@ export default class DashBoard {
     this.homeButton = Selector("img").withAttribute("title", "startside");
     this.profileButton = Selector("ul > li > a > i").withExactText("AutoTest");
     this.logoutButton = Selector(".dropdown-item").withText("Logg ut");
-    this.newServiceButton = Selector("button > span").withExactText("ny tjeneste");
+    this.newServiceButton = Selector("button > span").withExactText("ny app");
     this.serviceSearch = Selector("#service-search");
     this.tjenesteEier = Selector("#service-owner");
     this.tjenesteNavn = Selector("#service-name");
