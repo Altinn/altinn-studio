@@ -14,7 +14,7 @@ namespace Altinn.Platform.Storage.Helpers
     /// <summary>
     /// Custom PEP to create multi decision request.
     /// </summary>
-    public class AuthorizeInstancesHelper
+    public class AuthorizationHelper
     {
         private readonly IPDP _pdp;
 
@@ -31,7 +31,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// Initializes a new instance of the <see cref="AuthorizeInstancesHelper"/> class.
         /// </summary>
         /// <param name="pdp">The policy decision point</param>
-        public AuthorizeInstancesHelper(IPDP pdp)
+        public AuthorizationHelper(IPDP pdp)
         {
             _pdp = pdp;
         }
@@ -227,9 +227,12 @@ namespace Altinn.Platform.Storage.Helpers
                     Instance authorizedInstance = instances.FirstOrDefault(i => i.Id == instanceId);
 
                     // Only need to check if the action type is write, because read do not add any special rights to the MessageBoxInstane.
-                    if (actiontype.Equals("write"))
+                    if (authorizedInstances.Any(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])))
                     {
-                        authorizedInstances.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = i.AllowDelete = true);
+                        if (actiontype.Equals("write"))
+                        {
+                            authorizedInstances.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = i.AllowDelete = true);
+                        }
                     }
                     else
                     {

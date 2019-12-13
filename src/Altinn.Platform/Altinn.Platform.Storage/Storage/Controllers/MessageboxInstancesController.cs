@@ -23,7 +23,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly AuthorizeInstancesHelper _authorizeInstancesHelper;
+        private readonly AuthorizationHelper _authorizationHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageBoxInstancesController"/> class
@@ -41,7 +41,7 @@ namespace Altinn.Platform.Storage.Controllers
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
-            _authorizeInstancesHelper = new AuthorizeInstancesHelper(pdp);
+            _authorizationHelper = new AuthorizationHelper(pdp);
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return Ok(new List<MessageBoxInstance>());
             }
 
-            List<MessageBoxInstance> autorizedInstances = await _authorizeInstancesHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
+            List<MessageBoxInstance> autorizedInstances = await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
             List<string> appIds = autorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
             Dictionary<string, Dictionary<string, string>> appTitles = await _applicationRepository.GetAppTitles(appIds);
             List<MessageBoxInstance> messageBoxInstances = InstanceHelper.AddTitleToInstances(autorizedInstances, appTitles, languageId);

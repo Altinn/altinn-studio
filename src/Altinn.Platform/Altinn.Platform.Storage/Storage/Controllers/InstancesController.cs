@@ -34,7 +34,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
-        private readonly AuthorizeInstancesHelper _authorizeInstancesHelper;
+        private readonly AuthorizationHelper _authorizationHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -56,7 +56,7 @@ namespace Altinn.Platform.Storage.Controllers
             _applicationRepository = applicationRepository;
             _pdp = pdp;
             _logger = logger;
-            _authorizeInstancesHelper = new AuthorizeInstancesHelper(pdp);
+            _authorizationHelper = new AuthorizationHelper(pdp);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Altinn.Platform.Storage.Controllers
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
-                List<Instance> authorizedInstances = await _authorizeInstancesHelper.AuthroizeInstances(HttpContext.User, result.Instances);
+                List<Instance> authorizedInstances = await _authorizationHelper.AuthroizeInstances(HttpContext.User, result.Instances);
 
                 QueryResponse<Instance> response = new QueryResponse<Instance>
                 {

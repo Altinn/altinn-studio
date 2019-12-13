@@ -28,7 +28,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             List<Instance> instances = CreateInstances();
 
             // Act
-            XacmlJsonRequestRoot requestRoot = AuthorizeInstancesHelper.CreateMultiDecisionRequest(CreateUserClaims(), instances, actionTypes);
+            XacmlJsonRequestRoot requestRoot = AuthorizationHelper.CreateMultiDecisionRequest(CreateUserClaims(), instances, actionTypes);
 
             // Assert
             // Checks it has the right number of attributes in each category 
@@ -55,7 +55,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             List<Instance> instances = CreateInstances();
 
             // Act & Assert 
-            Assert.Throws<ArgumentNullException>(() => AuthorizeInstancesHelper.CreateMultiDecisionRequest(null, instances, actionTypes));
+            Assert.Throws<ArgumentNullException>(() => AuthorizationHelper.CreateMultiDecisionRequest(null, instances, actionTypes));
         }
 
         [Fact]
