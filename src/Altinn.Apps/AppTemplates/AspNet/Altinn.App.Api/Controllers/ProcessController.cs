@@ -270,7 +270,7 @@ namespace Altinn.App.Api.Controllers
 
             string actionType = GetActionType(altinnTaskType);
 
-            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, actionType, null, instanceOwnerPartyId + "/" + instanceGuid);
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, null, instanceOwnerPartyId + "/" + instanceGuid);
             bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
 
             string currentElementId = instance.Process.CurrentTask?.ElementId;
