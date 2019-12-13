@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.PlatformServices.Extentions;
@@ -11,8 +13,10 @@ using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
+using AltinnCore.Authentication.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
 {
@@ -197,7 +201,7 @@ namespace Altinn.App.Services.Implementation
                 await _eventService.SaveInstanceEvent(instanceEvent, org, app);
             }
         }
-
+      
         /// <summary>
         /// Assumes that nextElementId is a valid task/state
         /// </summary>

@@ -123,6 +123,31 @@ namespace Altinn.App.Services.Implementation
             }
         }
 
+        /// <inheritdoc />
+        public async Task<Instance> UpdateProcess(Instance instance)
+        {
+            ProcessState processState = instance.Process;
+
+            string apiUrl = $"instances/{instance.Id}/process";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            StringContent httpContent = new StringContent(processState.ToString(), Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await _client.PutAsync(apiUrl, httpContent);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                string instanceData = await response.Content.ReadAsStringAsync();
+                Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(instanceData);
+
+                return updatedInstance;
+            }
+            else
+            {
+                _logger.LogError($"Unable to update instance process with instance id {instance.Id}");
+                throw new PlatformClientException(response);
+            }
+        }
+
         /// <inheritdoc/>
         public async Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
         {
