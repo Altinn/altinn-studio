@@ -128,25 +128,26 @@ namespace Altinn.App.Api.Controllers
                 return Conflict(startEventError.Text);
             }
 
-            // trigger start event and goto next task
-            ProcessResult startResult = _processService.ProcessStartAndGotoNextTask(instance, validStartElement, User);
-
-            if (startResult.Instance != null)
+            try
             {
-                Instance updatedInstance = await UpdateInstanceAndDispatchEvents(startResult);
+                // trigger start event and goto next task
+                ProcessStateChange processStateChange = _processService.ProcessStartAndGotoNextTask(instance, validStartElement, User);
+                Instance updatedInstance = await UpdateInstanceAndDispatchEvents(instance, processStateChange);
 
                 return Ok(updatedInstance.Process);
             }
-
-            _logger.LogError($"Unknown error. Unable to update next process state for instance {instance.Id}!");
-            return StatusCode(500, $"Unknown error. Cannot change process state!");
+            catch (Exception startException)
+            {
+                _logger.LogError($"Unknown error. Unable to start the process for instance {instance.Id} of {instance.AppId}. Due to {startException}");
+                return StatusCode(500, $"Unknown error. Cannot change process state! {startException.Message}");
+            }
         }
 
-        private async Task<Instance> UpdateInstanceAndDispatchEvents(ProcessResult startResult)
+        private async Task<Instance> UpdateInstanceAndDispatchEvents(Instance instance, ProcessStateChange processStateChange)
         {
-            await NotifyAppAboutEvents(_altinnApp, startResult.Instance, startResult.Events);
-            Instance updatedInstance = await _instanceService.UpdateInstance(startResult.Instance);
-            await _processService.DispatchProcessEventsToStorage(updatedInstance, startResult.Events);
+            await NotifyAppAboutEvents(_altinnApp, instance, processStateChange.Events);
+            Instance updatedInstance = await _instanceService.UpdateInstance(instance);
+            await _processService.DispatchProcessEventsToStorage(updatedInstance, processStateChange.Events);
             return updatedInstance;
         }
 
@@ -285,10 +286,10 @@ namespace Altinn.App.Api.Controllers
 
             if (await CanTaskBeEnded(instance, currentElementId))
             {
-                ProcessResult nextResult = _processService.ProcessNext(instance, nextElement, processHelper, User);
+                ProcessStateChange nextResult = _processService.ProcessNext(instance, nextElement, User);
                 if (nextResult != null)
                 {                    
-                    Instance changedInstance = await UpdateInstanceAndDispatchEvents(nextResult);
+                    Instance changedInstance = await UpdateInstanceAndDispatchEvents(instance, nextResult);
 
                     return Ok(changedInstance.Process);
                 }
@@ -380,11 +381,11 @@ namespace Altinn.App.Api.Controllers
 
                 string nextElement = nextElements.First();
 
-                ProcessResult nextResult =  _processService.ProcessNext(instance, nextElement, processHelper, User);
+                ProcessStateChange nextResult =  _processService.ProcessNext(instance, nextElement, User);
 
                 if (nextResult != null)
                 {
-                    instance = await UpdateInstanceAndDispatchEvents(nextResult);
+                    instance = await UpdateInstanceAndDispatchEvents(instance, nextResult);
                     
                     currentTaskId = instance.Process.CurrentTask?.ElementId;
                 }

@@ -276,25 +276,17 @@ namespace Altinn.App.Api.Controllers
             }
 
             Instance instance;
-            ProcessResult processResult;
+            ProcessStateChange processResult;
             try
             {
-                // use process controller to start process
+                // start process and goto next task
                 instanceTemplate.Process = null;
-
                 string startEvent = await _altinnApp.OnInstantiateGetStartEvent();
-
                 processResult = _processService.ProcessStartAndGotoNextTask(instanceTemplate, startEvent, User);
-
-                if (processResult != null && processResult.Instance != null)
-                {
-                    // create the instance
-                    instance = await _instanceService.CreateInstance(org, app, processResult.Instance);
-                }
-                else
-                {
-                    return Conflict($"Unable to start process and goto to next task for instance");
-                }
+             
+                // create the instance
+                instance = await _instanceService.CreateInstance(org, app, instanceTemplate);
+               
             }
             catch (Exception instanceException)
             {

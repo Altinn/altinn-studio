@@ -65,7 +65,6 @@ namespace Altinn.App.Services.Helpers
             return endEvents.Contains(nextElementId);
         }
 
-
         public string GetValidStartEventOrError(string proposedStartEvent, out ProcessError startEventError)
         {
             startEventError = null;
