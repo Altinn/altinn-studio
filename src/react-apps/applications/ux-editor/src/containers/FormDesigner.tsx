@@ -1,7 +1,7 @@
 import { createStyles, Drawer, Grid, IconButton, Theme, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
-import { DragDropContext } from 'react-dnd';
+import { DndProvider } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { connect } from 'react-redux';
 import FileEditor from '../../../shared/src/file-editor/FileEditor';
@@ -146,7 +146,7 @@ class FormDesigner extends React.Component<
   }
 
   public componentDidMount() {
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const appId = `${org}/${app}`;
 
     FormDesignerActionDispatchers.fetchFormLayout(
@@ -203,109 +203,111 @@ class FormDesigner extends React.Component<
   public render() {
     const { classes } = this.props;
     return (
-      <div className={classes.root}>
-        <Grid
-          container={true}
-          wrap={'nowrap'}
-          spacing={0}
-          classes={{ container: classNames(classes.container) }}
-          id='formFillerGrid'
-        >
-          <Grid item={true} xs={2} className={classes.toolbarWrapper} classes={{ item: classNames(classes.item) }}>
-            <Toolbar />
-          </Grid>
-          <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
-            <div className={classes.versionControlHeaderMargin}>
-              <VersionControlHeader language={this.props.language} />
-            </div>
-            <div
-              style={{
-                width: 'calc(100% - 48px)',
-                paddingTop: '24px',
-                marginLeft: '24px',
-              }}
-            >
-              <DesignView />
-              {this.state.codeEditorOpen ?
-                this.renderLogicEditor()
-                : null}
-            </div>
-          </Grid>
+      <DndProvider backend={HTML5Backend}>
+        <div className={classes.root}>
           <Grid
-            item={true}
-            xs={2}
-            classes={{ item: classNames(classes.item) }}
+            container={true}
+            wrap={'nowrap'}
+            spacing={0}
+            classes={{ container: classNames(classes.container) }}
+            id='formFillerGrid'
           >
-            <div id={'serviceLogicmenu'}>
-              <ServiceLogicMenu
-                open={this.state.menuOpen}
-                openCloseHandler={this.toggleMenu}
-                button={
-                  <Grid
-                    container={true}
-                    direction={'column'}
-                    justify={'center'}
-                    alignItems={'flex-end'}
-                    classes={classes.menuWrapper}
-                  >
-                    <IconButton
-                      type='button'
-                      aria-label={getLanguageFromKey('ux_editor.service_logic_icon_aria_label', this.props.language)}
-                      className={this.props.classes.button}
-                    >
-                      <i
-                        title={getLanguageFromKey('ux_editor.service_logic_icon_title', this.props.language)}
-                        className={
-                          (this.state.menuOpen ? this.props.classes.icon + ' ' + this.props.classes.iconActive :
-                            this.props.classes.icon) + ' fa fa-logic-no-circle'
-                        }
-                      />
-                    </IconButton>
-                  </Grid>}
+            <Grid item={true} xs={2} className={classes.toolbarWrapper} classes={{ item: classNames(classes.item) }}>
+              <Toolbar />
+            </Grid>
+            <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
+              <div className={classes.versionControlHeaderMargin}>
+                <VersionControlHeader language={this.props.language} />
+              </div>
+              <div
+                style={{
+                  width: 'calc(100% - 48px)',
+                  paddingTop: '24px',
+                  marginLeft: '24px',
+                }}
               >
-                <div className={this.props.classes.fullWidth}>
-                  <h3 className={this.props.classes.menuHeader}>
-                    {this.props.language.ux_editor.service_logic}
-                  </h3>
-                  <CollapsibleMenuComponent
-                    header={this.props.language.ux_editor.service_logic_validations}
-                    componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
-                    listItems={[
-                      {
-                        name: this.props.language.ux_editor.service_logic_edit_validations,
-                        action: this.toggleCodeEditor.bind(this, 'Validation'),
-                      },
-                    ]}
-                  />
-                  <CollapsibleMenuComponent
-                    header={this.props.language.ux_editor.service_logic_dynamics}
-                    componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
-                    listItems={[
-                      {
-                        name: this.props.language.ux_editor.service_logic_edit_dynamics,
-                        action: this.toggleCodeEditor.bind(this, 'Dynamics'),
-                      }]}
-                  >
-                    <RuleModalComponent />
-                    <ConditionalRenderingModalComponent />
-                  </CollapsibleMenuComponent>
-                  <CollapsibleMenuComponent
-                    header={this.props.language.ux_editor.service_logic_calculations}
-                    componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
-                    listItems={[
-                      {
-                        name: this.props.language.ux_editor.service_logic_edit_calculations,
-                        action: this.toggleCodeEditor.bind(this, 'Calculation'),
-                      },
-                    ]}
-                  />
-                  <div className={this.props.classes.divider} />
-                </div>
-              </ServiceLogicMenu>
-            </div>
+                <DesignView />
+                {this.state.codeEditorOpen ?
+                  this.renderLogicEditor()
+                  : null}
+              </div>
+            </Grid>
+            <Grid
+              item={true}
+              xs={2}
+              classes={{ item: classNames(classes.item) }}
+            >
+              <div id={'serviceLogicmenu'}>
+                <ServiceLogicMenu
+                  open={this.state.menuOpen}
+                  openCloseHandler={this.toggleMenu}
+                  button={
+                    <Grid
+                      container={true}
+                      direction={'column'}
+                      justify={'center'}
+                      alignItems={'flex-end'}
+                      classes={classes.menuWrapper}
+                    >
+                      <IconButton
+                        type='button'
+                        aria-label={getLanguageFromKey('ux_editor.service_logic_icon_aria_label', this.props.language)}
+                        className={this.props.classes.button}
+                      >
+                        <i
+                          title={getLanguageFromKey('ux_editor.service_logic_icon_title', this.props.language)}
+                          className={
+                            (this.state.menuOpen ? this.props.classes.icon + ' ' + this.props.classes.iconActive :
+                              this.props.classes.icon) + ' fa fa-logic-no-circle'
+                          }
+                        />
+                      </IconButton>
+                    </Grid>}
+                >
+                  <div className={this.props.classes.fullWidth}>
+                    <h3 className={this.props.classes.menuHeader}>
+                      {this.props.language.ux_editor.service_logic}
+                    </h3>
+                    <CollapsibleMenuComponent
+                      header={this.props.language.ux_editor.service_logic_validations}
+                      componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
+                      listItems={[
+                        {
+                          name: this.props.language.ux_editor.service_logic_edit_validations,
+                          action: this.toggleCodeEditor.bind(this, 'Validation'),
+                        },
+                      ]}
+                    />
+                    <CollapsibleMenuComponent
+                      header={this.props.language.ux_editor.service_logic_dynamics}
+                      componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
+                      listItems={[
+                        {
+                          name: this.props.language.ux_editor.service_logic_edit_dynamics,
+                          action: this.toggleCodeEditor.bind(this, 'Dynamics'),
+                        }]}
+                    >
+                      <RuleModalComponent />
+                      <ConditionalRenderingModalComponent />
+                    </CollapsibleMenuComponent>
+                    <CollapsibleMenuComponent
+                      header={this.props.language.ux_editor.service_logic_calculations}
+                      componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
+                      listItems={[
+                        {
+                          name: this.props.language.ux_editor.service_logic_edit_calculations,
+                          action: this.toggleCodeEditor.bind(this, 'Calculation'),
+                        },
+                      ]}
+                    />
+                    <div className={this.props.classes.divider} />
+                  </div>
+                </ServiceLogicMenu>
+              </div>
+            </Grid>
           </Grid>
-        </Grid>
-      </div>
+        </div>
+      </DndProvider>
     );
   }
 }
@@ -330,10 +332,6 @@ export default withStyles(
   connect(
     mapsStateToProps,
   )(
-    DragDropContext(
-      HTML5Backend,
-    )(
       FormDesigner,
-    ),
-  ),
+    )
 );

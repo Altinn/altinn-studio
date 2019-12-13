@@ -7,7 +7,7 @@ import { FETCH_TEXT_RESOURCES } from '../../actions/types';
 
 function* fetchTextResources(): SagaIterator {
   try {
-    const resource = yield call(get, textResourcesUrl);
+    const resource: any = yield call(get, textResourcesUrl);
     yield call(TextResourcesActions.fetchTextResourcesFulfilled, resource.language, resource.resources);
   } catch (err) {
     yield call(TextResourcesActions.fetchTextResourcesRejected, err);

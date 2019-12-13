@@ -8,7 +8,7 @@ import ProcessStateDispatchers from '../processDispatcher';
 
 export function* getProcessStateSaga(): SagaIterator {
   try {
-    const processState = yield call(get, getProcessStateUrl());
+    const processState: any = yield call(get, getProcessStateUrl());
     if (!processState) {
       yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Unknown);
     } else {

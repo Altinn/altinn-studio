@@ -144,7 +144,7 @@ export class AdministrationComponent extends
         serviceNameAnchorEl: document.getElementById('administrationInputServicename'),
       });
     } else {
-      const { org, app } = window as IAltinnWindow;
+      const { org, app } = window as Window as IAltinnWindow;
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceName(`${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`, this.state.serviceName);
       handleServiceInformationActionDispatchers.saveServiceConfig(
@@ -160,7 +160,7 @@ export class AdministrationComponent extends
 
   public onBlurServiceDescription = () => {
     if (this.state.editServiceDescription) {
-      const { org, app } = window as IAltinnWindow;
+      const { org, app } = window as Window as IAltinnWindow;
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceConfig(
         `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
@@ -175,7 +175,7 @@ export class AdministrationComponent extends
 
   public onBlurServiceId = () => {
     if (this.state.editServiceId) {
-      const { org, app } = window as IAltinnWindow;
+      const { org, app } = window as Window as IAltinnWindow;
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceConfig(
         `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
@@ -216,69 +216,68 @@ export class AdministrationComponent extends
   }
 
   public renderMainContent = (): JSX.Element => {
-    const {classes} = this.props;
-    return(
+    const { classes } = this.props;
+    return (
       <>
         <div className={classes.marginBottom_24}>
-        <AltinnInputField
-          id='administrationInputServicename'
-          onChangeFunction={this.onServiceNameChanged}
-          inputHeader={getLanguageFromKey('general.service_name', this.props.language)}
-          // tslint:disable-next-line:max-line-length
-          inputDescription={getLanguageFromKey('administration.service_name_administration_description', this.props.language)}
-          inputValue={this.state.serviceName}
-          onBlurFunction={this.onBlurServiceName}
-          btnText={getLanguageFromKey('general.edit', this.props.language)}
-          onBtnClickFunction={this.handleEditServiceName}
-          isDisabled={!this.state.editServiceName}
-          focusOnComponentDidUpdate={this.state.editServiceName}
-          inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-          inputFieldStyling={this.state.editServiceName ?
-            { background: theme.altinnPalette.primary.white } : null}
+          <AltinnInputField
+            id='administrationInputServicename'
+            onChangeFunction={this.onServiceNameChanged}
+            inputHeader={getLanguageFromKey('general.service_name', this.props.language)}
+            // tslint:disable-next-line:max-line-length
+            inputDescription={getLanguageFromKey('administration.service_name_administration_description', this.props.language)}
+            inputValue={this.state.serviceName}
+            onBlurFunction={this.onBlurServiceName}
+            btnText={getLanguageFromKey('general.edit', this.props.language)}
+            onBtnClickFunction={this.handleEditServiceName}
+            isDisabled={!this.state.editServiceName}
+            focusOnComponentDidUpdate={this.state.editServiceName}
+            inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
+            inputFieldStyling={this.state.editServiceName ?
+              { background: theme.altinnPalette.primary.white } : null}
+          />
+        </div>
+        <AltinnPopper
+          anchorEl={this.state.serviceNameAnchorEl}
+          message={getLanguageFromKey('administration.service_name_empty_message', this.props.language)}
         />
-      </div>
-      <AltinnPopper
-        anchorEl={this.state.serviceNameAnchorEl}
-        message={getLanguageFromKey('administration.service_name_empty_message', this.props.language)}
-      />
-      <div className={classes.marginBottom_24}>
-        <AltinnInputField
-          id='administrationInputServiceid'
-          onChangeFunction={this.onServiceIdChanged}
-          inputHeader={getLanguageFromKey('administration.service_id', this.props.language)}
-          // tslint:disable-next-line:max-line-length
-          inputDescription={getLanguageFromKey('administration.service_id_description', this.props.language)}
-          inputValue={this.state.serviceId}
-          onBlurFunction={this.onBlurServiceId}
-          inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-        />
-      </div>
-      <div className={classes.marginBottom_24}>
-        <AltinnInputField
-          id='administrationInputReponame'
-          inputHeader={getLanguageFromKey('general.service_saved_name', this.props.language)}
-          // tslint:disable-next-line:max-line-length
-          inputDescription={getLanguageFromKey('administration.service_saved_name_administration_description', this.props.language)}
-          inputValue={this.props.service ? this.props.service.name : ''}
-          isDisabled={true}
-          inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-        />
-      </div>
-      <div className={classes.marginBottom_24}>
-        <AltinnInputField
-          id='administrationInputDescription'
-          onChangeFunction={this.onServiceDescriptionChanged}
-          inputHeader={getLanguageFromKey('administration.service_comment', this.props.language)}
-          // tslint:disable-next-line:max-line-length
-          inputDescription={getLanguageFromKey('administration.service_comment_description', this.props.language)}
-          textAreaRows={7}
-          inputValue={this.state.serviceDescription}
-          onBlurFunction={this.onBlurServiceDescription}
-          inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-          className={classes.marginBottom_24}
-        />
-      </div>
-    </>
+        <div className={classes.marginBottom_24}>
+          <AltinnInputField
+            id='administrationInputServiceid'
+            onChangeFunction={this.onServiceIdChanged}
+            inputHeader={getLanguageFromKey('administration.service_id', this.props.language)}
+            // tslint:disable-next-line:max-line-length
+            inputDescription={getLanguageFromKey('administration.service_id_description', this.props.language)}
+            inputValue={this.state.serviceId}
+            onBlurFunction={this.onBlurServiceId}
+            inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
+          />
+        </div>
+        <div className={classes.marginBottom_24}>
+          <AltinnInputField
+            id='administrationInputReponame'
+            inputHeader={getLanguageFromKey('general.service_saved_name', this.props.language)}
+            // tslint:disable-next-line:max-line-length
+            inputDescription={getLanguageFromKey('administration.service_saved_name_administration_description', this.props.language)}
+            inputValue={this.props.service ? this.props.service.name : ''}
+            isDisabled={true}
+            inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
+          />
+        </div>
+        <div className={classes.marginBottom_24}>
+          <AltinnInputField
+            id='administrationInputDescription'
+            onChangeFunction={this.onServiceDescriptionChanged}
+            inputHeader={getLanguageFromKey('administration.service_comment', this.props.language)}
+            // tslint:disable-next-line:max-line-length
+            inputDescription={getLanguageFromKey('administration.service_comment_description', this.props.language)}
+            textAreaRows={7}
+            inputValue={this.state.serviceDescription}
+            onBlurFunction={this.onBlurServiceDescription}
+            inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
+          />
+        </div>
+      </>
     );
   }
 
@@ -287,17 +286,19 @@ export class AdministrationComponent extends
 
     return (
       <div>
-        {this.props.service && this.props.serviceName !== null
-          && this.props.serviceDescription !== null && this.props.serviceId !== null ?
-            <AltinnColumnLayout
-              aboveColumnChildren={
-                <div className={this.props.classes.versionControlHeaderMargin}>
-                  <VersionControlHeader language={this.props.language} />
-                </div>}
-              children={this.renderMainContent()}
-              sideMenuChildren={this.renderSideMenuContent()}
-              header={getLanguageFromKey('administration.administration', this.props.language)}
-            />
+        {this.props.service &&
+        this.props.serviceName !== null &&
+        this.props.serviceDescription !== null &&
+        this.props.serviceId !== null ?
+          <AltinnColumnLayout
+            aboveColumnChildren={
+              <div className={this.props.classes.versionControlHeaderMargin}>
+                <VersionControlHeader language={this.props.language} />
+              </div>}
+            children={this.renderMainContent()}
+            sideMenuChildren={this.renderSideMenuContent()}
+            header={getLanguageFromKey('administration.administration', this.props.language)}
+          />
           :
           <Grid container={true}>
             <AltinnSpinner spinnerText='Laster siden' styleObj={classes.spinnerLocation} />

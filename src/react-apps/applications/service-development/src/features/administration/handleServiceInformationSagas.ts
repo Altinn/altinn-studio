@@ -87,7 +87,7 @@ export function* handleFetchServiceConfigSaga({
   try {
     const serviceConfig = yield call(get, url);
 
-    yield call(HandleServiceInformationDispatcher.fetchServiceConfigFulfilled, serviceConfig || {});
+    yield call(HandleServiceInformationDispatcher.fetchServiceConfigFulfilled, serviceConfig || null);
   } catch (err) {
     yield call(HandleServiceInformationDispatcher.fetchInitialCommitRejected, err);
   }

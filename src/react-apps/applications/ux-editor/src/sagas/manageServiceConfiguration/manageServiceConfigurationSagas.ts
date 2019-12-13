@@ -15,7 +15,7 @@ export function* watchFetchJsonFileSaga(): SagaIterator {
 
 export function* fetchJsonFileSaga({ url }: ManageJsonFileActions.IFetchJsonFileAction): SagaIterator {
   try {
-    const serviceConfiguration = yield call(get, url);
+    const serviceConfiguration: any = yield call(get, url);
     yield call(
       ManageJsonFileActionDispatcher.fetchJsonFileFulfilled,
       serviceConfiguration.data,

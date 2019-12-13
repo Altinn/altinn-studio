@@ -210,11 +210,11 @@ function* fetchFormLayoutSaga({
   url,
 }: FormDesignerActions.IFetchFormLayoutAction): SagaIterator {
   try {
-    const fetchedFormLayout = yield call(get, url);
-    let convertedFormLayout;
+    const fetchedFormLayout: any = yield call(get, url);
+    let convertedFormLayout: any;
     let hasOldFormat = false;
     if (!fetchedFormLayout || !fetchedFormLayout.data) {
-      convertedFormLayout = yield call(convertFromLayoutToInternalFormat, {});
+      convertedFormLayout = yield call(convertFromLayoutToInternalFormat, null);
     } else if (!fetchedFormLayout.data.layout) {
       // TODO: remove this else at some later point
       // The service has the old internal format -> map from old to new, then back to fix component.component update
@@ -256,7 +256,7 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
   );
 }
 
-function* generateRepeatingGroupsSaga({ }: FormDesignerActions.IGenerateRepeatingGroupsAction): SagaIterator {
+function* generateRepeatingGroupsSaga(): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     const formFillerState: IFormFillerState = yield select(selectFormFiller);

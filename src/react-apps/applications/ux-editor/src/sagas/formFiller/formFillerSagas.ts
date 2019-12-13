@@ -56,7 +56,7 @@ export function* submitFormDataSaga({ url, apiMode }: FormFillerActions.ISubmitF
     const valErrors = Validator.validateFormData(state.formFiller.formData, state.appData.dataModel.model,
       state.formDesigner.layout.components);
     if (Object.keys(valErrors).length === 0) {
-      const apiResult = yield call(put, url, apiMode || 'Update', convertDataBindingToModel(state.formFiller.formData,
+      const apiResult: any = yield call(put, url, apiMode || 'Update', convertDataBindingToModel(state.formFiller.formData,
         state.appData.dataModel.model));
       yield call(FormFillerActionDispatcher.submitFormDataFulfilled, apiResult);
       if (apiResult.status === 0 && apiResult.nextState) {
@@ -139,7 +139,7 @@ export function* runSingleFieldValidationSaga({
         ValidationTriggerField: dataModelBinding,
       },
     };
-    const response = yield call(put, url, 'Validate', requestBody, config, dataModelBinding);
+    const response: any = yield call(put, url, 'Validate', requestBody, config, dataModelBinding);
     if (response && response.validationResult) {
       // Update validationError state
       const validationErrors: any = response.validationResult.errors;
@@ -156,7 +156,7 @@ export function* watchRunSingleFieldValidationSaga(): SagaIterator {
 
 export function* completeAndSendInFormSaga({ url }: FormFillerActions.ICompleteAndSendInForm): SagaIterator {
   try {
-    const response = yield call(post, url);
+    const response: any = yield call(post, url);
     if (response.data.status === 0) {
       yield call(FormFillerActionDispatcher.completeAndSendInFormFulfilled);
       yield call(WorkflowActionDispatcher.setCurrentState, response.data.nextState);

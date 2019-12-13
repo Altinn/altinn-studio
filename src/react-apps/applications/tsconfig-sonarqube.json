@@ -1,8 +1,0 @@
-{
-  "exclude": [
-    "./**/node_modules",
-    "./**/dist",
-    "./**/webpack.config.development.js",
-    "./**/webpack.config.production.js"
-  ]
-}
