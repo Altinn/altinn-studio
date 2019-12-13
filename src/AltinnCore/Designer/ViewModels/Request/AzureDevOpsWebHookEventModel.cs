@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 
 namespace AltinnCore.Designer.ViewModels.Request
@@ -10,6 +11,7 @@ namespace AltinnCore.Designer.ViewModels.Request
         /// <summary>
         /// Model that 
         /// </summary>
+        [Required(ErrorMessage = "Resource property can not be null")]
         public AzureDevOpsResource Resource { get; set; }
     }
 
@@ -21,6 +23,7 @@ namespace AltinnCore.Designer.ViewModels.Request
         /// <summary>
         /// Build number
         /// </summary>
+        [Required(ErrorMessage = "buildNumber property can not be null, empty string or containing only whitespace")]
         [JsonProperty("buildNumber")]
         public string BuildNumber { get; set; }
     }

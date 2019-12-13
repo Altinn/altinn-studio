@@ -21,6 +21,12 @@ using LocalTest.Services.Profile.Implementation;
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.Register.Implementation;
 using LocalTest.Services.Authorization.Implementation;
+using Altinn.Platform.Authorization.ModelBinding;
+using Altinn.Authorization.ABAC.Interface;
+using Altinn.Platform.Authorization.Services.Implementation;
+using Altinn.Platform.Authorization.Repositories.Interface;
+using Altinn.Platform.Authorization.Repositories;
+using Altinn.Platform.Authorization.Services.Interface;
 
 namespace LocalTest
 {
@@ -45,7 +51,7 @@ namespace LocalTest
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
             services.AddSingleton<IUserProfiles, UserProfilesWrapper>();
             services.AddSingleton<IOrganizations, OrganizationsWrapper>();
-            services.AddSingleton<IParties, PartiesWrapper>();
+            services.AddSingleton<Services.Register.Interface.IParties, PartiesWrapper>();
             services.AddSingleton<IPersons, PersonsWrapper>();
             services.AddSingleton<Altinn.Platform.Authorization.Services.Interface.IParties, PartiesService>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
@@ -53,6 +59,11 @@ namespace LocalTest
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
 
+            services.AddSingleton<IContextHandler, ContextHandler>();
+            services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
+            services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
+            services.AddSingleton<IRoles, RolesWrapper>();
+            
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
             SecurityKey key = new X509SecurityKey(cert);
 
@@ -80,6 +91,12 @@ namespace LocalTest
             {
                 options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new AppAccessRequirement("read")));
                 options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new AppAccessRequirement("write")));
+            });
+
+            services.AddMvc(options =>
+            {
+                // Adding custom modelbinders
+                options.ModelBinderProviders.Insert(0, new XacmlRequestApiModelBinderProvider());
             });
         }
 

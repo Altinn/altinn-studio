@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.App.Common.Helpers;
@@ -12,6 +13,7 @@ using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.App.Services.Models.Validation;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
@@ -262,12 +264,21 @@ namespace Altinn.App.Api.Controllers
 
             if (!authorized)
             {
-                return Forbid();
+                return StatusCode((int)HttpStatusCode.Forbidden);
             }
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
-                return Forbid($"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}");
+                return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}"); 
+            }
+
+            // Run custom app logic to validate instantiation
+            InstantiationValidationResult validationResult = await _altinnApp.RunInstantiationValidation();
+            if (validationResult != null && !validationResult.Valid)
+            {
+                // Todo. Figure out where to get this from
+                Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
+                return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
             }
 
             // use process controller to start process
@@ -424,7 +435,7 @@ namespace Altinn.App.Api.Controllers
             DataElement dataElement = null;
             string org = instance.Org;
             string app = instance.AppId.Split("/")[1];
-          
+
             foreach (RequestPart part in parts)
             {
                 DataType dataType = appInfo.DataTypes.Find(d => d.Id == part.Name);
@@ -442,7 +453,7 @@ namespace Altinn.App.Api.Controllers
                     {
                         throw new ApplicationException($"App.GetAppModelType failed: {altinnAppException.Message}");
                     }
-                    
+
                     object data = DataController.ParseFormDataAndDeserialize(type, part.ContentType, part.Stream, out string errorText);
 
                     if (!string.IsNullOrEmpty(errorText))
@@ -457,7 +468,7 @@ namespace Altinn.App.Api.Controllers
                         org,
                         app,
                         instanceOwnerIdAsInt,
-                        part.Name);                 
+                        part.Name);
                 }
                 else
                 {

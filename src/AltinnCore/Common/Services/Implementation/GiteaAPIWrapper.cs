@@ -99,6 +99,21 @@ namespace AltinnCore.Common.Services.Implementation
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 repos = await response.Content.ReadAsAsync<IList<Repository>>();
+
+                foreach (Repository repo in repos)
+                {
+                    if (string.IsNullOrEmpty(repo.Owner?.Login))
+                    {
+                        continue;
+                    }
+
+                    repo.IsClonedToLocal = IsLocalRepo(repo.Owner.Login, repo.Name);
+                    Organization org = await GetCachedOrg(repo.Owner.Login);
+                    if (org.Id != -1)
+                    {
+                        repo.Owner.UserType = UserType.Org;
+                    }
+                }
             }
 
             return repos;
@@ -333,17 +348,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<GitTreeStructure> GetGitTreeAsync(string org, string app, string commitId)
+        public async Task<GiteaFileContent> GetFileAsync(string org, string app, string filePath, string shortCommitId)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/git/trees/{commitId}");
-            return await response.Content.ReadAsAsync<GitTreeStructure>();
-        }
-
-        /// <inheritdoc />
-        public async Task<string> GetFileAsync(string org, string app, string filePath)
-        {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/raw/{filePath}");
-            return await response.Content.ReadAsStringAsync();
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{filePath}?ref={shortCommitId}");
+            return await response.Content.ReadAsAsync<GiteaFileContent>();
         }
 
         private async Task<Organization> GetOrganization(string name)

@@ -49,7 +49,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
         /// <inheritdoc/>
         public async Task<Build> Get(string buildId)
         {
-            var response = await _httpClient.GetAsync($"{buildId}?api-version=5.1");
+            HttpResponseMessage response = await _httpClient.GetAsync($"{buildId}?api-version=5.1");
             return await response.Content.ReadAsAsync<Build>();
         }
 

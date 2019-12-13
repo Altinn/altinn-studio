@@ -8,6 +8,8 @@ using Altinn.App.Common.Enums;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Altinn.App.AppLogic.Validation;
+using Altinn.App.AppLogic.Calculation;
+using Altinn.App.Services.Models.Validation;
 
 namespace Altinn.App.AppLogic
 {
@@ -15,16 +17,23 @@ namespace Altinn.App.AppLogic
     {
         private readonly ILogger<App> _logger;
         private readonly ValidationHandler _validationHandler;
+        private readonly CalculationHandler _calculationHandler;
+        private readonly InstantiationHandler _instantiationHandler;
 
         public App(
             IAppResources appResourcesService,
             ILogger<App> logger,
             IData dataService,
             IProcess processService,
-            IPDF pdfService) : base(appResourcesService, logger, dataService, processService, pdfService)
+            IPDF pdfService,
+            IProfile profileService,
+            IRegister registerService
+            ) : base(appResourcesService, logger, dataService, processService, pdfService)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler();
+            _calculationHandler = new CalculationHandler();
+            _instantiationHandler = new InstantiationHandler(profileService, registerService);
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -62,10 +71,37 @@ namespace Altinn.App.AppLogic
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task<bool> RunValidation(object instance, ICollection<ValidationResult> validationResults)
+        public override async Task<bool> RunValidation(object instance, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults)
         {
             _validationHandler.Validate(instance, validationResults);
             return validationResults.Count == 0; ;
+        }
+
+        /// <summary>
+        /// Is called to run custom calculation events defined by app developer.
+        /// </summary>
+        /// <param name="instance">The data to perform calculations on</param>
+        public override async Task RunCalculation(object instance)
+        {
+            _calculationHandler.Calculate(instance);
+        }
+
+        /// <summary>
+        /// Is called to run custom instantiation validation defined by app developer.
+        /// </summary>
+        /// <returns>Task with validation results</returns>
+        public override async Task<InstantiationValidationResult> RunInstantiationValidation()
+        {
+            return _instantiationHandler.RunInstantiationValidation();
+        }
+
+        /// <summary>
+        /// Is called to run data creation (custom prefill) defined by app developer.
+        /// </summary>
+        /// <param name="instance">The data to perform data creation on</param>
+        public override async Task RunDataCreation(object instance)
+        {
+            _instantiationHandler.DataCreation(instance);
         }
     }
 }
