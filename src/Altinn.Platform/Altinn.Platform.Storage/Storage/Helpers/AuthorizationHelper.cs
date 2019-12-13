@@ -191,7 +191,7 @@ namespace Altinn.Platform.Storage.Helpers
                 return new List<MessageBoxInstance>();
             }
 
-            List<MessageBoxInstance> authorizedInstances = new List<MessageBoxInstance>();
+            List<MessageBoxInstance> authorizedInstanceeList = new List<MessageBoxInstance>();
             List<string> actionTypes = new List<string> { "read", "write" };
 
             XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
@@ -226,12 +226,13 @@ namespace Altinn.Platform.Storage.Helpers
                     // Find the instance that has been validated to add it to the list of authorized instances.
                     Instance authorizedInstance = instances.FirstOrDefault(i => i.Id == instanceId);
 
-                    // Only need to check if the action type is write, because read do not add any special rights to the MessageBoxInstane.
-                    if (authorizedInstances.Any(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])))
+                    // Checks if the instance has already been authorized
+                    if (authorizedInstanceeList.Any(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])))
                     {
+                        // Only need to check if the action type is write, because read do not add any special rights to the MessageBoxInstane.
                         if (actiontype.Equals("write"))
                         {
-                            authorizedInstances.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = i.AllowDelete = true);
+                            authorizedInstanceeList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = i.AllowDelete = true);
                         }
                     }
                     else
@@ -244,12 +245,12 @@ namespace Altinn.Platform.Storage.Helpers
                             messageBoxInstance.AllowDelete = true;
                         }
 
-                        authorizedInstances.Add(messageBoxInstance);
+                        authorizedInstanceeList.Add(messageBoxInstance);
                     }
                 }
             }
 
-            return authorizedInstances;
+            return authorizedInstanceeList;
         }
 
         /// <summary>
