@@ -22,6 +22,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// <summary>
     ///  Tests data service REST api.
     /// </summary>
+    [Collection("Sequential")]
     public class DataElementStorageTests : IClassFixture<PlatformStorageFixture>, IClassFixture<BlobStorageFixture>, IClassFixture<CosmosDBFixture>, IDisposable
     {
         private readonly PlatformStorageFixture fixture;
