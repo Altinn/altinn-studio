@@ -52,7 +52,7 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
         {
-            _logger.LogInformation($"OnInstantiate for ");
+            _logger.LogInformation($"OnInstantiate: GetStartEvent");
 
             // return start event              
             return Task.FromResult("StartEvent_1");

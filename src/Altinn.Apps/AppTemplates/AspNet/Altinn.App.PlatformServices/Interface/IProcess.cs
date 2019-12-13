@@ -21,7 +21,7 @@ namespace Altinn.App.Services.Interface
         Stream GetProcessDefinition();
 
         /// <summary>
-        /// Starts the process with a proposed startEvent. If process is allready started the current instance is returned.
+        /// Starts the process with a proposed startEvent. 
         /// ArgumentException if proposed start event does not exist in process model.
         /// </summary>
         /// <param name="instance">instance to start process on</param>

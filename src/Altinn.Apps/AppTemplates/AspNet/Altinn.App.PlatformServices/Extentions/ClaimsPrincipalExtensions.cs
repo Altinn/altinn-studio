@@ -1,23 +1,10 @@
 using AltinnCore.Authentication.Constants;
-using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Text;
 
 namespace Altinn.App.PlatformServices.Extentions
 {
     public static class ClaimsPrincipalExtensions
     {
-        /// <summary>
-        /// Altinn org claim.
-        /// </summary>
-        public static readonly string AltinnCoreClaimTypesOrg = "urn:altinn:org"; /* AltinnCoreClaimTypes.Org */
-
-        /// <summary>
-        /// Altinn orgNumber claim.
-        /// </summary>
-        public static readonly string AltinnCoreClaimTypesOrgNumber = "urn:altinn:orgNumber"; /* AltinnCoreClaimTypes.Org */
-
         /// <summary>
         /// Gets the userId or the orgNumber or null if neither claims are present.
         /// </summary>
@@ -43,9 +30,9 @@ namespace Altinn.App.PlatformServices.Extentions
         /// </summary>        
         public static string GetOrg(this ClaimsPrincipal User)
         {
-            if (User.HasClaim(c => c.Type == AltinnCoreClaimTypesOrg))
+            if (User.HasClaim(c => c.Type == AltinnCoreClaimTypes.Org))
             {
-                Claim orgClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypesOrg);
+                Claim orgClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypes.Org);
                 if (orgClaim != null)
                 {
                     return orgClaim.Value;
@@ -60,9 +47,9 @@ namespace Altinn.App.PlatformServices.Extentions
         /// </summary>
         public static int? GetOrgNumber(this ClaimsPrincipal User)
         {
-            if (User.HasClaim(c => c.Type == AltinnCoreClaimTypesOrgNumber))
+            if (User.HasClaim(c => c.Type == AltinnCoreClaimTypes.OrgNumber))
             {
-                Claim orgClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypesOrgNumber);
+                Claim orgClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypes.OrgNumber);
                 if (orgClaim != null && int.TryParse(orgClaim.Value, out int orgNumber))
                 {
                     return orgNumber;
