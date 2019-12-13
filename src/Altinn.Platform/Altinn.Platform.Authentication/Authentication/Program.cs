@@ -74,7 +74,7 @@ namespace Altinn.Platform.Authentication
                     .CreateLogger();
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
-                .UseStartup<Startup>();
+            .UseStartup<Startup>();
 
         private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
         {

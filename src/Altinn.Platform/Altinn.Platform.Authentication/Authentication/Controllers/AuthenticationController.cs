@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -42,7 +43,7 @@ namespace Altinn.Platform.Authentication.Controllers
 
         private readonly ILogger _logger;
         private readonly IOrganisationRepository _organisationRepository;
-        private readonly ISigningCredentialsProvider _credentialsProvider;
+        private readonly IJwtSigningCertificateProvider _certificateProvider;
         private readonly ISblCookieDecryptionService _cookieDecryptionService;
         private readonly ISigningKeysRetriever _signingKeysRetriever;
 
@@ -55,20 +56,20 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <param name="generalSettings">Configuration for the authentication scope.</param>
         /// <param name="cookieDecryptionService">A service that can decrypt a .ASPXAUTH cookie.</param>
         /// <param name="organisationRepository">the repository object that holds valid organisations</param>
-        /// <param name="credentialsProvider">Service that can obtain the correct <see cref="SigningCredentials"/>.</param>
+        /// <param name="certificateProvider">Service that can obtain a list of certificates that can be used to generate JSON Web Tokens.</param>
         /// <param name="signingKeysRetriever">The class to use to obtain the signing keys.</param>
         public AuthenticationController(
             ILogger<AuthenticationController> logger,
             IOptions<GeneralSettings> generalSettings,
             ISigningKeysRetriever signingKeysRetriever,
-            ISigningCredentialsProvider credentialsProvider,
+            IJwtSigningCertificateProvider certificateProvider,
             ISblCookieDecryptionService cookieDecryptionService,
             IOrganisationRepository organisationRepository)
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;
             _signingKeysRetriever = signingKeysRetriever;
-            _credentialsProvider = credentialsProvider;
+            _certificateProvider = certificateProvider;
             _cookieDecryptionService = cookieDecryptionService;
             _organisationRepository = organisationRepository;
         }
@@ -329,6 +330,8 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <returns>A serialized version of the generated JSON Web Token.</returns>
         private async Task<string> GenerateToken(ClaimsPrincipal principal)
         {
+            List<X509Certificate2> certificates = await _certificateProvider.GetCertificates();
+
             TimeSpan tokenExpiry = new TimeSpan(0, _generalSettings.JwtValidityMinutes, 0);
 
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
@@ -336,7 +339,7 @@ namespace Altinn.Platform.Authentication.Controllers
             {
                 Subject = new ClaimsIdentity(principal.Identity),
                 Expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds),
-                SigningCredentials = await _credentialsProvider.GetSigningCredentials()
+                SigningCredentials = new X509SigningCredentials(certificates[0])
             };
 
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
