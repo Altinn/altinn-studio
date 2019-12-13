@@ -428,7 +428,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>A string that contains the self link url to the instance</returns>
         public static string ComputeInstanceSelfLink(HttpRequest request, Instance instance)
         {
-            string selfLink = $"{request.Scheme}://{request.Host.ToUriComponent()}{request.Path}";
+            string selfLink = $"https://{request.Host.ToUriComponent()}{request.Path}";
 
             int start = selfLink.IndexOf("/instances", StringComparison.Ordinal);
             selfLink = selfLink.Substring(0, start) + "/instances";
