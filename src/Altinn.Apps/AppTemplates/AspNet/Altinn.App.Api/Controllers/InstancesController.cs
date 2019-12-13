@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
 using Altinn.App.PlatformServices.Models;
@@ -78,7 +79,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>the instance</returns>
-        [Authorize(Policy = "InstanceRead")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
@@ -105,7 +106,7 @@ namespace Altinn.App.Api.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"{ex.Message}");
-            }            
+            }
         }
 
         /// <summary>
@@ -117,7 +118,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="instance">the instance with attributes that should be updated</param>
         /// <returns>the updated instance</returns>
-        [Authorize(Policy = "InstanceWrite")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [Consumes("application/json")]
@@ -263,7 +264,7 @@ namespace Altinn.App.Api.Controllers
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
-                return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}"); 
+                return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}");
             }
 
             // Run custom app logic to validate instantiation
@@ -283,9 +284,9 @@ namespace Altinn.App.Api.Controllers
                 instanceTemplate.Process = null;
                 string startEvent = await _altinnApp.OnInstantiateGetStartEvent();
                 processResult = _processService.ProcessStartAndGotoNextTask(instanceTemplate, startEvent, User);
-             
+
                 // create the instance
-                instance = await _instanceService.CreateInstance(org, app, instanceTemplate);               
+                instance = await _instanceService.CreateInstance(org, app, instanceTemplate);
             }
             catch (Exception instanceException)
             {
@@ -323,8 +324,17 @@ namespace Altinn.App.Api.Controllers
 
         private async Task<bool> Authorize(string org, string app, Party party)
         {
+            bool authorized = false;
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString(), null);
-            bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+
+            if (response?.Response == null)
+            {
+                _logger.LogInformation($"// Instances Controller // Authorization of instantiation failed with request: {JsonConvert.SerializeObject(request)}.");
+                return authorized;
+            }
+
+            authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
             return authorized;
         }
 
@@ -461,7 +471,7 @@ namespace Altinn.App.Api.Controllers
             {
                 instancePart = reader.Parts[0];
             }
-                        
+
             if (instancePart != null)
             {
                 reader.Parts.Remove(instancePart);
@@ -469,8 +479,8 @@ namespace Altinn.App.Api.Controllers
                 using StreamReader streamReader = new StreamReader(instancePart.Stream, Encoding.UTF8);
                 string content = streamReader.ReadToEndAsync().Result;
 
-                instanceTemplate = JsonConvert.DeserializeObject<Instance>(content);                
-            }                        
+                instanceTemplate = JsonConvert.DeserializeObject<Instance>(content);
+            }
 
             return instanceTemplate;
         }
