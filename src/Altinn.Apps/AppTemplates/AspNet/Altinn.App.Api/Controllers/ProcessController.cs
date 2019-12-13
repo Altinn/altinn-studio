@@ -5,10 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.PlatformServices.Models;
-using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
@@ -18,7 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -38,9 +36,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IValidation _validationService;
         private readonly IPDP _pdp;
 
-        private readonly UserHelper userHelper;
-
-        private ProcessHelper processHelper { get; set; }
+        private readonly ProcessHelper processHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessController"/>
@@ -49,9 +45,6 @@ namespace Altinn.App.Api.Controllers
             ILogger<ProcessController> logger,
             IInstance instanceService,
             IProcess processService,
-            IProfile profileService,
-            IRegister registerService,
-            IOptions<GeneralSettings> generalSettings,
             IAltinnApp altinnApp,
             IValidation validationService,
             IPDP pdp)
@@ -63,7 +56,8 @@ namespace Altinn.App.Api.Controllers
             _validationService = validationService;
             _pdp = pdp;
 
-            userHelper = new UserHelper(profileService, registerService, generalSettings);
+            using Stream bpmnStream = _processService.GetProcessDefinition();
+            processHelper = new ProcessHelper(bpmnStream);            
         }
 
         /// <summary>
@@ -116,9 +110,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromQuery] string startEvent = null)
-        {
-            UserContext userContext = userHelper.GetUserContext(HttpContext).Result;
-
+        {           
             Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
@@ -130,29 +122,33 @@ namespace Altinn.App.Api.Controllers
                 return Conflict($"Process is already started. Use next.");
             }
 
-            LoadProcessModel(org, app);
-
             string validStartElement = processHelper.GetValidStartEventOrError(startEvent, out ProcessError startEventError);
             if (startEventError != null)
             {
                 return Conflict(startEventError.Text);
             }
 
-            // trigger start event and goto next task
-            ProcessResult startResult = await _processService.ProcessStartAndGotoNextTask(instance, validStartElement, userContext);
-
-            if (startResult.Instance != null)
+            try
             {
-                await NotifyAppAboutEvents(startResult.Instance, startResult.Events);                
-
-                // make sure instance is saved after app has handled the events
-                Instance updatedInstance = await _instanceService.UpdateInstance(startResult.Instance);
+                // trigger start event and goto next task
+                ProcessStateChange processStateChange = _processService.ProcessStartAndGotoNextTask(instance, validStartElement, User);
+                Instance updatedInstance = await UpdateInstanceAndDispatchEvents(instance, processStateChange);
 
                 return Ok(updatedInstance.Process);
             }
+            catch (Exception startException)
+            {
+                _logger.LogError($"Unknown error. Unable to start the process for instance {instance.Id} of {instance.AppId}. Due to {startException}");
+                return StatusCode(500, $"Unknown error. Cannot change process state! {startException.Message}");
+            }
+        }
 
-            _logger.LogError($"Unknown error. Unable to update next process state for instance {instance.Id}!");
-            return StatusCode(500, $"Unknown error. Cannot change process state!");
+        private async Task<Instance> UpdateInstanceAndDispatchEvents(Instance instance, ProcessStateChange processStateChange)
+        {
+            await NotifyAppAboutEvents(_altinnApp, instance, processStateChange.Events);
+            Instance updatedInstance = await _instanceService.UpdateInstance(instance);
+            await _processService.DispatchProcessEventsToStorage(updatedInstance, processStateChange.Events);
+            return updatedInstance;
         }
 
         /// <summary>
@@ -180,8 +176,6 @@ namespace Altinn.App.Api.Controllers
             {
                 return NotFound();
             }
-
-            LoadProcessModel(org, app);
 
             if (instance.Process == null)
             {
@@ -250,8 +244,6 @@ namespace Altinn.App.Api.Controllers
                 return Conflict($"Process is ended.");
             }
 
-            LoadProcessModel(org, app);
-
             if (!string.IsNullOrEmpty(elementId))
             {
                 ElementInfo elemInfo = processHelper.Process.GetElementInfo(elementId);
@@ -268,17 +260,13 @@ namespace Altinn.App.Api.Controllers
                 return Conflict($"Instance does not have current altinn task type information!");
             }
 
-            string actionType = GetActionType(altinnTaskType);
-
-            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, actionType, null, instanceOwnerPartyId + "/" + instanceGuid);
-            bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
-
-            string currentElementId = instance.Process.CurrentTask?.ElementId;
-
+            bool authorized = await AuthorizeAction(altinnTaskType, org, app, instance.Id);                    
             if (!authorized)
             {
                 return Forbid();
             }
+
+            string currentElementId = instance.Process.CurrentTask?.ElementId;
 
             if (currentElementId == null)
             {
@@ -298,14 +286,10 @@ namespace Altinn.App.Api.Controllers
 
             if (await CanTaskBeEnded(instance, currentElementId))
             {
-                UserContext userContext = userHelper.GetUserContext(HttpContext).Result;
-
-                ProcessResult nextResult = await _processService.ProcessNext(instance, nextElement, processHelper, userContext);
+                ProcessStateChange nextResult = _processService.ProcessNext(instance, nextElement, User);
                 if (nextResult != null)
-                {
-                    await NotifyAppAboutEvents(nextResult.Instance, nextResult.Events);
-
-                    Instance changedInstance = await _instanceService.UpdateInstance(nextResult.Instance);
+                {                    
+                    Instance changedInstance = await UpdateInstanceAndDispatchEvents(instance, nextResult);
 
                     return Ok(changedInstance.Process);
                 }
@@ -316,10 +300,9 @@ namespace Altinn.App.Api.Controllers
 
         private async Task<bool> CanTaskBeEnded(Instance instance, string currentElementId)
         {
-            bool canEndTask = false;
-
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 
+            bool canEndTask;
             // check if 
             if (instance.Process?.CurrentTask?.Validated == null || !instance.Process.CurrentTask.Validated.CanCompleteTask)
             {
@@ -380,9 +363,6 @@ namespace Altinn.App.Api.Controllers
                 return Conflict($"Instance does not have valid currentTask");
             }
 
-            LoadProcessModel(org, app);
-            UserContext userContext = userHelper.GetUserContext(HttpContext).Result;
-
             // do next until end event is reached or task cannot be completed.
             int counter = 0;
             do
@@ -401,14 +381,12 @@ namespace Altinn.App.Api.Controllers
 
                 string nextElement = nextElements.First();
 
-                ProcessResult nextResult =  await _processService.ProcessNext(instance, nextElement, processHelper, userContext);
+                ProcessStateChange nextResult =  _processService.ProcessNext(instance, nextElement, User);
 
                 if (nextResult != null)
                 {
-                    await NotifyAppAboutEvents(nextResult.Instance, nextResult.Events);
-
-                    instance = await _instanceService.UpdateInstance(nextResult.Instance);
-
+                    instance = await UpdateInstanceAndDispatchEvents(instance, nextResult);
+                    
                     currentTaskId = instance.Process.CurrentTask?.ElementId;
                 }
                 else
@@ -427,46 +405,43 @@ namespace Altinn.App.Api.Controllers
             return Ok(instance.Process);
         }
 
-        private void LoadProcessModel(string org, string app)
-        {
-            using Stream bpmnStream = _processService.GetProcessDefinition();
-
-            processHelper = new ProcessHelper(bpmnStream);
-        }
-
-        private async Task NotifyAppAboutEvents(Instance instance, List<InstanceEvent> events)
-        {            
-            
+        internal static async Task NotifyAppAboutEvents(IAltinnApp altinnApp, Instance instance, List<InstanceEvent> events)
+        {                        
             foreach (InstanceEvent processEvent in events)
             {                
                 switch (processEvent.EventType)
                 {
                     case "process:StartEvent":
-                        await _altinnApp.OnStartProcess(processEvent.ProcessInfo?.StartEvent, instance);
+                        await altinnApp.OnStartProcess(processEvent.ProcessInfo?.StartEvent, instance);
                         break;
 
                     case "process:StartTask":
-                        await _altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
+                        await altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
                         break;
 
                     case "process:EndTask":
-                        await _altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
+                        await altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
                         break;
 
                     case "process:EndEvent":
-                        await _altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, instance);                        
+                        await altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, instance);                        
                         break;
                 }
             }          
         }
 
-        private string GetActionType(string currentTask)
+        private async Task<bool> AuthorizeAction(string currenTaskType, string org, string app, string instanceId)
         {
-            if (currentTask.Equals("data")) {
-                return "write";
+            string actionType = currenTaskType.Equals("data") ? "write" : null;
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, null, instanceId);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+            if (response?.Response == null)
+            {
+                _logger.LogInformation($"// Process Controller // Authorization of moving process forward failed with request: {JsonConvert.SerializeObject(request)}.");
+                return false;
             }
-
-            return null;
+            bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
+            return authorized;
         }
     }   
 }

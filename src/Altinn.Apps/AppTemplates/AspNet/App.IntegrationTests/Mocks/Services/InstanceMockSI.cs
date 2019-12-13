@@ -24,6 +24,8 @@ namespace App.IntegrationTests.Mocks.Services
                 AppId = $"{org}/{app}",
                 Org = org,
                 InstanceOwner = instanceTemplate.InstanceOwner,
+                Process = instanceTemplate.Process,
+                Data = new List<DataElement>(),
             };
 
             string instancePath = GetInstancePath(app, org, int.Parse(partyId), instanceGuid);

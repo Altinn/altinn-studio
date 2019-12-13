@@ -1,11 +1,8 @@
-using System.Security.Claims;
 using AltinnCore.Authentication.Constants;
+using System.Security.Claims;
 
-namespace Altinn.Platform.Storage.Helpers
+namespace Altinn.App.PlatformServices.Extentions
 {
-    /// <summary>
-    /// Helper methods to extend ClaimsPrincipal. 
-    /// </summary>
     public static class ClaimsPrincipalExtensions
     {
         /// <summary>
