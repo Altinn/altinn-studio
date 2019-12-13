@@ -74,7 +74,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
     console.error(err);
     yield call(FormDataActions.submitFormDataRejected, err);
     if (err.response && err.response.status === 303) {
-      yield call(FormDataActions.fetchFormData, url);
+      yield call(FormDataActions.fetchFormData, dataElementUrl(err.response.data.id));
     }
   }
 }
