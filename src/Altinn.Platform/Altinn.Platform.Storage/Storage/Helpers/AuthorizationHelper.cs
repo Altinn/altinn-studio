@@ -37,6 +37,122 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
+        /// Authorize instances, and returns a list of MesseageBoxInstances with information about read and write rights of each instance. 
+        /// </summary>
+        public async Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(ClaimsPrincipal user, List<Instance> instances)
+        {
+            if (instances.Count <= 0)
+            {
+                return new List<MessageBoxInstance>();
+            }
+
+            List<MessageBoxInstance> authorizedInstanceeList = new List<MessageBoxInstance>();
+            List<string> actionTypes = new List<string> { "read", "write" };
+
+            XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
+
+            foreach (XacmlJsonResult result in response.Response)
+            {
+                if (DecisionHelper.ValidateDecisionResult(result, user))
+                {
+                    string instanceId = string.Empty;
+                    string actiontype = string.Empty;
+
+                    // Loop through all attributes in Category from the response
+                    foreach (XacmlJsonCategory category in result.Category)
+                    {
+                        var attributes = category.Attribute;
+
+                        foreach (var attribute in attributes)
+                        {
+                            if (attribute.AttributeId.Equals(XacmlResourceActionId))
+                            {
+                                actiontype = attribute.Value;
+                            }
+
+                            if (attribute.AttributeId.Equals(AltinnXacmlUrns.InstanceId))
+                            {
+                                instanceId = attribute.Value;
+                            }
+                        }
+                    }
+
+                    // Find the instance that has been validated to add it to the list of authorized instances.
+                    Instance authorizedInstance = instances.FirstOrDefault(i => i.Id == instanceId);
+
+                    // Checks if the instance has already been authorized
+                    if (authorizedInstanceeList.Any(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])))
+                    {
+                        // Only need to check if the action type is write, because read do not add any special rights to the MessageBoxInstane.
+                        if (actiontype.Equals("write"))
+                        {
+                            authorizedInstanceeList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = i.AllowDelete = true);
+                        }
+                    }
+                    else
+                    {
+                        MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(authorizedInstance);
+
+                        if (actiontype.Equals("write"))
+                        {
+                            messageBoxInstance.AuthorizedForWrite = true;
+                            messageBoxInstance.AllowDelete = true;
+                        }
+
+                        authorizedInstanceeList.Add(messageBoxInstance);
+                    }
+                }
+            }
+
+            return authorizedInstanceeList;
+        }
+
+        /// <summary>
+        /// Authorize instances, and returns a list of instances that the user has the right to read. 
+        /// </summary>
+        public async Task<List<Instance>> AuthorizeInstances(ClaimsPrincipal user, List<Instance> instances)
+        {
+            if (instances.Count <= 0)
+            {
+                return instances;
+            }
+
+            List<Instance> authorizedInstanceList = new List<Instance>();
+            List<string> actionTypes = new List<string> { "read" };
+
+            XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
+
+            foreach (XacmlJsonResult result in response.Response)
+            {
+                if (DecisionHelper.ValidateDecisionResult(result, user))
+                {
+                    string instanceId = string.Empty;
+
+                    // Loop through all attributes in Category from the response
+                    foreach (XacmlJsonCategory category in result.Category)
+                    {
+                        var attributes = category.Attribute;
+
+                        foreach (var attribute in attributes)
+                        {
+                            if (attribute.AttributeId.Equals(AltinnXacmlUrns.InstanceId))
+                            {
+                                instanceId = attribute.Value;
+                            }
+                        }
+                    }
+
+                    Instance instance = instances.FirstOrDefault(i => i.Id == instanceId);
+                    authorizedInstanceList.Add(instance);
+                }
+            }
+
+            return authorizedInstanceList;
+        }
+
+        /// <summary>
         /// Creates multi decision request.
         /// </summary>
         public static XacmlJsonRequestRoot CreateMultiDecisionRequest(ClaimsPrincipal user, List<Instance> instances, List<string> actionTypes)
@@ -159,142 +275,6 @@ namespace Altinn.Platform.Storage.Helpers
             }
 
             return references;
-        }
-
-        /// <summary>
-        /// Will check if a instance is already in the list of authorized instances.
-        /// Returns the position to the inctance in the list if it is in the list, and -1 if not. 
-        /// </summary>
-        private int InstanceAlreadyAuthorized(List<MessageBoxInstance> authorizedInstances, Instance instance)
-        {
-            int instancePosition = 0; 
-            foreach (MessageBoxInstance authorizedInstance in authorizedInstances)
-            {
-                if (authorizedInstance.Id.Equals(instance.Id.Split("/")[1]))
-                {
-                    return instancePosition;
-                }
-
-                instancePosition++;
-            }
-
-            return -1;
-        }
-
-        /// <summary>
-        /// Authorize instances, and returns a list of MesseageBoxInstances with information about read and write rights of each instance. 
-        /// </summary>
-        public async Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(ClaimsPrincipal user, List<Instance> instances)
-        {
-            if (instances.Count <= 0)
-            {
-                return new List<MessageBoxInstance>();
-            }
-
-            List<MessageBoxInstance> authorizedInstanceeList = new List<MessageBoxInstance>();
-            List<string> actionTypes = new List<string> { "read", "write" };
-
-            XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
-            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
-
-            foreach (XacmlJsonResult result in response.Response)
-            {
-                if (DecisionHelper.ValidateDecisionResult(result, user))
-                {
-                    string instanceId = string.Empty;
-                    string actiontype = string.Empty;
-
-                    // Loop through all attributes in Category from the response
-                    foreach (XacmlJsonCategory category in result.Category)
-                    {
-                        var attributes = category.Attribute;
-
-                        foreach (var attribute in attributes)
-                        {
-                            if (attribute.AttributeId.Equals(XacmlResourceActionId))
-                            {
-                                actiontype = attribute.Value;
-                            }
-
-                            if (attribute.AttributeId.Equals(AltinnXacmlUrns.InstanceId))
-                            {
-                                instanceId = attribute.Value;
-                            }
-                        }
-                    }
-
-                    // Find the instance that has been validated to add it to the list of authorized instances.
-                    Instance authorizedInstance = instances.FirstOrDefault(i => i.Id == instanceId);
-
-                    // Checks if the instance has already been authorized
-                    if (authorizedInstanceeList.Any(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])))
-                    {
-                        // Only need to check if the action type is write, because read do not add any special rights to the MessageBoxInstane.
-                        if (actiontype.Equals("write"))
-                        {
-                            authorizedInstanceeList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = i.AllowDelete = true);
-                        }
-                    }
-                    else
-                    {
-                        MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(authorizedInstance);
-
-                        if (actiontype.Equals("write"))
-                        {
-                            messageBoxInstance.AuthorizedForWrite = true;
-                            messageBoxInstance.AllowDelete = true;
-                        }
-
-                        authorizedInstanceeList.Add(messageBoxInstance);
-                    }
-                }
-            }
-
-            return authorizedInstanceeList;
-        }
-
-        /// <summary>
-        /// Authorize instances, and returns a list of instances that the user has the right to read. 
-        /// </summary>
-        public async Task<List<Instance>> AuthroizeInstances(ClaimsPrincipal user, List<Instance> instances)
-        {
-            if (instances.Count <= 0)
-            {
-                return instances;
-            }
-
-            List<Instance> authorizedInstances = new List<Instance>();
-            List<string> actionTypes = new List<string> { "read" };
-
-            XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
-            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
-
-            foreach (XacmlJsonResult result in response.Response)
-            {
-                if (DecisionHelper.ValidateDecisionResult(result, user))
-                {
-                    string instanceId = string.Empty;
-
-                    // Loop through all attributes in Category from the response
-                    foreach (XacmlJsonCategory category in result.Category)
-                    {
-                        var attributes = category.Attribute;
-
-                        foreach (var attribute in attributes)
-                        {
-                            if (attribute.AttributeId.Equals(AltinnXacmlUrns.InstanceId))
-                            {
-                                instanceId = attribute.Value;
-                            }
-                        }
-                    }
-
-                    Instance instance = instances.FirstOrDefault(i => i.Id == instanceId);
-                    authorizedInstances.Add(instance);
-                }
-            }
-
-            return authorizedInstances;
         }
     }
 }

@@ -125,7 +125,7 @@ namespace Altinn.Platform.Storage.Controllers
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
-                List<Instance> authorizedInstances = await _authorizationHelper.AuthroizeInstances(HttpContext.User, result.Instances);
+                List<Instance> authorizedInstances = await _authorizationHelper.AuthorizeInstances(HttpContext.User, result.Instances);
 
                 QueryResponse<Instance> response = new QueryResponse<Instance>
                 {
