@@ -285,8 +285,7 @@ namespace Altinn.App.Api.Controllers
                 processResult = _processService.ProcessStartAndGotoNextTask(instanceTemplate, startEvent, User);
              
                 // create the instance
-                instance = await _instanceService.CreateInstance(org, app, instanceTemplate);
-               
+                instance = await _instanceService.CreateInstance(org, app, instanceTemplate);               
             }
             catch (Exception instanceException)
             {
@@ -309,7 +308,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception dataException)
             {
-                string message = $"Failure storing multipart prefil data. Could not create a data element for {instance.Id} of {org}/{app}.";
+                string message = $"Failure storing multipart prefil data. Could not create a data element(s) for {instance.Id} of {org}/{app}.";
                 _logger.LogError($"{message} - {dataException}");
 
                 // todo add compensating transaction (delete instance)                
