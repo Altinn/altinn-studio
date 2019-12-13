@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -94,8 +95,16 @@ namespace Altinn.Platform.Storage.IntegrationTest.Clients
                 InstanceOwner = new InstanceOwner
                 {
                     PartyId = instanceOwnerPartyId.ToString()
+                },
+                Process = new ProcessState
+                {
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        ElementId = "Task_1",
+                        Name = "FormFilling",
+                    }
                 }
-            }.AsJson());
+            }.AsJson()); 
             if (response.IsSuccessStatusCode)
             {
                 string json = await response.Content.ReadAsStringAsync();

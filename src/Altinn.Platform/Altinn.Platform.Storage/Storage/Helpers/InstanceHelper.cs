@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// <param name="instances">List of instances to convert.</param>
         /// <param name="appTitles">Dictionary for application titles by language.</param>
         /// <param name="language">Desired language.</param>
-        public static List<MessageBoxInstance> ConvertToMessageBoxInstance(List<Instance> instances, Dictionary<string, Dictionary<string, string>> appTitles, string language)
+        public static List<MessageBoxInstance> ConvertToMessageBoxInstanceList(List<Instance> instances, Dictionary<string, Dictionary<string, string>> appTitles, string language)
         {
             List<MessageBoxInstance> messageBoxInstances = new List<MessageBoxInstance>();
             if (instances == null || instances.Count == 0)
@@ -61,6 +61,59 @@ namespace Altinn.Platform.Storage.Helpers
             }
 
             return messageBoxInstances;
+        }
+
+        /// <summary>
+        /// Converts to a simpler instance object that includes some application metadata
+        /// </summary>
+        public static MessageBoxInstance ConvertToMessageBoxInstance(Instance instance)
+        {
+            InstanceStatus status = instance.Status ?? new InstanceStatus();
+            DateTime? visibleAfter = instance.VisibleAfter;
+
+            string instanceGuid = instance.Id.Contains("/") ? instance.Id.Split("/")[1] : instance.Id;
+
+            DateTime createdDateTime = visibleAfter != null && visibleAfter > instance.Created ? (DateTime)visibleAfter : instance.Created.Value;
+
+            MessageBoxInstance messageBoxInstance = new MessageBoxInstance
+            {
+                CreatedDateTime = createdDateTime,
+                DueDateTime = instance.DueBefore,
+                Id = instanceGuid,
+                InstanceOwnerId = instance.InstanceOwner.PartyId,
+                LastChangedBy = instance.LastChangedBy,
+                Org = instance.Org,
+                AppName = instance.AppId.Split('/')[1],
+                ProcessCurrentTask = GetSBLStatusForCurrentTask(instance),
+                AllowNewCopy = false,
+                DeletedDateTime = status.SoftDeleted,
+                ArchivedDateTime = status.Archived,
+                DeleteStatus = status.SoftDeleted.HasValue ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
+            };
+
+            return messageBoxInstance;
+        }
+
+        /// <summary>
+        /// Adds title to the intance
+        /// </summary>
+        public static List<MessageBoxInstance> AddTitleToInstances(List<MessageBoxInstance> instances, Dictionary<string, Dictionary<string, string>> appTitles, string language)
+        {
+            foreach (MessageBoxInstance instance in instances)
+            {
+                string title = appTitles[GetAppId(instance)].ContainsKey(language) ? appTitles[GetAppId(instance)][language] : appTitles[GetAppId(instance)]["nb"];
+                instance.Title = title;
+            }
+
+            return instances;
+        }
+
+        /// <summary>
+        /// Returns app id 
+        /// </summary>
+        public static string GetAppId(MessageBoxInstance instance)
+        {
+            return instance.Org.ToLower() + "/" + instance.AppName;
         }
 
         /// <summary>

@@ -138,6 +138,8 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
+        /* This tests are no longer needed because put has no policy defined in the Authorize tag,
+         * but the tests can be used later if we add authorization rules to the methode later. 
         /// <summary>
         /// Test case: User has to low authentication level. 
         /// Expected: Returns status forbidden.
@@ -239,7 +241,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-        }
+        }*/
 
         /// <summary>
         /// Test case: User has to low authentication level. 
@@ -306,7 +308,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                     services.AddSingleton(dataRepository.Object);
                     services.AddSingleton(instanceEventRepository.Object);
                     services.AddSingleton(instanceRepository);
-                    services.AddSingleton<IPDP, PDPMock>();
+                    services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
