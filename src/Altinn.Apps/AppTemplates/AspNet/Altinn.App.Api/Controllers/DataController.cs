@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -492,7 +493,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // Trigger application business logic
-            await _altinnApp.RunCalculation(serviceModel);
+            bool changedByCalculation = await _altinnApp.RunCalculation(serviceModel);
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
@@ -509,6 +510,11 @@ namespace Altinn.App.Api.Controllers
             SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, updatedDataElement, Request);
 
             string dataUrl = updatedDataElement.SelfLinks.Apps;
+
+            if (changedByCalculation)
+            {
+                return StatusCode((int)HttpStatusCode.SeeOther, updatedDataElement);
+            }
 
             return Created(dataUrl, updatedDataElement);
         }

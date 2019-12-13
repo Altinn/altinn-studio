@@ -22,9 +22,9 @@ namespace Altinn.App.AppLogic.Calculation
         /// }
         /// </example>
         /// <param name="instance">The data</param>
-        public void Calculate(object instance)
+        public bool Calculate(object instance)
         {
-
+            return false;
         }
     }
 }

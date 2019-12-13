@@ -81,7 +81,7 @@ namespace Altinn.App.Services.Interface
         /// Is called to run custom calculation events defined by app developer.
         /// </summary>
         /// <param name="instance">The data to perform calculations on</param>
-        Task RunCalculation(object instance);
+        Task<bool> RunCalculation(object instance);
 
         /// <summary>
         /// Is called to run custom instantiation validation defined by app developer.
