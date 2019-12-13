@@ -43,9 +43,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task RunCalculation(object instance)
+        public override Task<bool> RunCalculation(object instance)
         {
-            
+            return Task.FromResult(false);
         }
 
         /// <summary>

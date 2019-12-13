@@ -57,9 +57,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task RunCalculation(object instance)
+        public override async Task<bool> RunCalculation(object instance)
         {
-            _calculationHandler.Calculate(instance);
+            return _calculationHandler.Calculate(instance);
         }
 
         /// <summary>
