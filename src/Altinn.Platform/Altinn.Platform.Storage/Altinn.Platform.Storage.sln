@@ -19,10 +19,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Storage.Int
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Storage.UnitTest", "UnitTest\Altinn.Platform.Storage.UnitTest.csproj", "{7AD8A36D-CC19-4799-935E-FC99870CE096}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Common.PEP", "..\..\Altinn.Common\Altinn.Common.PEP\Altinn.Common.PEP\Altinn.Common.PEP.csproj", "{614DBA5C-9F02-4CA9-90C4-421ED5E0CCA8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC", "..\Altinn.Platform.Authorization\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj", "{7CA6EF80-EFD2-4BBD-BE12-C529D4E32B9B}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,14 +45,6 @@ Global
 		{7AD8A36D-CC19-4799-935E-FC99870CE096}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AD8A36D-CC19-4799-935E-FC99870CE096}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7AD8A36D-CC19-4799-935E-FC99870CE096}.Release|Any CPU.Build.0 = Release|Any CPU
-		{614DBA5C-9F02-4CA9-90C4-421ED5E0CCA8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{614DBA5C-9F02-4CA9-90C4-421ED5E0CCA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{614DBA5C-9F02-4CA9-90C4-421ED5E0CCA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{614DBA5C-9F02-4CA9-90C4-421ED5E0CCA8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7CA6EF80-EFD2-4BBD-BE12-C529D4E32B9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7CA6EF80-EFD2-4BBD-BE12-C529D4E32B9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7CA6EF80-EFD2-4BBD-BE12-C529D4E32B9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7CA6EF80-EFD2-4BBD-BE12-C529D4E32B9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
