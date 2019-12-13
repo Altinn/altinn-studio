@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
 using Altinn.App.PlatformServices.Models;
@@ -84,7 +85,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>the instance</returns>
-        [Authorize(Policy = "InstanceRead")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
@@ -123,7 +124,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="instance">the instance with attributes that should be updated</param>
         /// <returns>the updated instance</returns>
-        [Authorize(Policy = "InstanceWrite")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [Consumes("application/json")]
@@ -259,8 +260,17 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
             }
 
-            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString(), null);
-            bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
+            // Checking that user is authorized to instantiate.
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString(), null);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+
+            if (response?.Response == null)
+            {
+                _logger.LogInformation($"// Instances Controller // Authorization of instantiation failed with request: {JsonConvert.SerializeObject(request)}.");
+                return StatusCode((int)HttpStatusCode.Forbidden);
+            }
+
+            bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
 
             if (!authorized)
             {
