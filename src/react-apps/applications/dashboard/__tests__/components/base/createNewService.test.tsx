@@ -278,7 +278,7 @@ describe('>>> components/base/createNewService.tsx', () => {
       expect(getSpy).toHaveBeenCalled();
       expect(instance._isMounted).toBe(true);
       expect(instance.state.isLoading).toBe(false);
-      expect(instance.state.repoNamePopperMessage).toBe('dashboard.service_name_already_exist');
+      expect(instance.state.repoNamePopperMessage).toBe('dashboard.app_already_exist');
     });
   });
 
@@ -309,7 +309,7 @@ describe('>>> components/base/createNewService.tsx', () => {
       expect(getSpy).toHaveBeenCalled();
       expect(instance._isMounted).toBe(true);
       expect(instance.state.isLoading).toBe(false);
-      expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_service');
+      expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_app');
     });
   });
 
@@ -338,7 +338,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(mockPost).toHaveBeenCalled();
     expect(instance._isMounted).toBe(true);
     expect(instance.state.isLoading).toBe(false);
-    expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_service');
+    expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_app');
     expect(consoleError).toHaveBeenCalled();
   });
 

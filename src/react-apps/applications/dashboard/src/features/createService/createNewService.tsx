@@ -115,36 +115,11 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
     });
   }
 
-  public handleServiceNameUpdated = (event: any) => {
-    this.setState({ serviceName: event.target.value });
-  }
-
   public handleRepoNameUpdated = (event: any) => {
     this.setState({
       repoName: event.target.value,
       repoNameAnchorEl: null,
     });
-  }
-
-  public handleServiceNameOnBlur = () => {
-    if (this.state.serviceName && !this.state.repoName) {
-      this.setState({
-        repoName: this.createRepoNameFromServiceName(this.state.serviceName),
-      });
-    }
-  }
-
-  public createRepoNameFromServiceName(serviceName: string) {
-    return serviceName
-      .replace(/^[0-9 _-]+/, '')
-      .replace(/[^0-9a-zA-Z]+$/, '')
-      .replace(/[ ]+/g, '-')
-      .replace(/[æÆ]+/g, 'ae')
-      .replace(/[øØ]+/g, 'oe')
-      .replace(/[åÅ]+/g, 'aa')
-      .replace(/[^0-9a-zA-Z\-]+/g, '-')
-      .toLowerCase()
-      .substring(0, 100);
   }
 
   public validateRepoName = (repoName: string) => {
@@ -184,28 +159,28 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       // tslint:disable-next-line:max-line-length
       const selectedOrgOrUser = this.props.selectableUser.find((user: any) => (user.full_name === this.state.selectedOrgOrUser || user.name === this.state.selectedOrgOrUser));
       // tslint:disable-next-line:max-line-length
-      const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${selectedOrgOrUser.name}&repository=${this.state.repoName}&appTitle=${this.state.serviceName}`;
+      const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateApp?org=${selectedOrgOrUser.name}&repository=${this.state.repoName}`;
       post(url).then((result: any) => {
-        if (this._isMounted && result.repositoryCreatedStatus === 422) {
+        if (result.repositoryCreatedStatus === 409) {
           this.setState({
             isLoading: false,
           });
-          this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_already_exist', this.props.language));
+          this.showRepoNamePopper(getLanguageFromKey('dashboard.app_already_exist', this.props.language));
         } else if (result.repositoryCreatedStatus === 201) {
           window.location.assign(`${altinnWindow.location.origin}/designer/${result.full_name}#/about`);
         } else {
           this.setState({
             isLoading: false,
           });
-          this.showRepoNamePopper(getLanguageFromKey('dashboard.error_when_creating_service', this.props.language));
+          this.showRepoNamePopper(getLanguageFromKey('dashboard.error_when_creating_app', this.props.language));
         }
       }).catch((error: Error) => {
-        console.error('Unsucessful creating new service', error.message);
+        console.error('Unsucessful creating new app', error.message);
         if (this._isMounted) {
           this.setState({
             isLoading: false,
           });
-          this.showRepoNamePopper(getLanguageFromKey('dashboard.error_when_creating_service', this.props.language));
+          this.showRepoNamePopper(getLanguageFromKey('dashboard.error_when_creating_app', this.props.language));
         }
       });
     }
@@ -248,18 +223,8 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
           />
           <div className={classes.marginBottom_24}>
             <AltinnInputField
-              id={'service-name'}
-              inputHeader={getLanguageFromKey('general.service_name', this.props.language)}
-              inputDescription={getLanguageFromKey('dashboard.service_name_description', this.props.language)}
-              inputValue={this.state.serviceName}
-              onChangeFunction={this.handleServiceNameUpdated}
-              onBlurFunction={this.handleServiceNameOnBlur}
-            />
-          </div>
-          <div className={classes.marginBottom_24}>
-            <AltinnInputField
               id={'service-saved-name'}
-              inputHeader={getLanguageFromKey('general.service_saved_name', this.props.language)}
+              inputHeader={getLanguageFromKey('general.service_name', this.props.language)}
               inputDescription={getLanguageFromKey('dashboard.service_saved_name_description', this.props.language)}
               inputValue={this.state.repoName}
               onChangeFunction={this.handleRepoNameUpdated}

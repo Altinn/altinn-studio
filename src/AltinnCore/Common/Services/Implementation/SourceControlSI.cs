@@ -441,11 +441,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// Creates the remote repository
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="createRepoOption">Options for the remote repository</param>
+        /// <param name="options">Options for the remote repository</param>
         /// <returns>The repostory from API</returns>
-        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
+        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption options)
         {
-            return _gitea.CreateRepository(org, createRepoOption).Result;
+            return _gitea.CreateRepository(org, options).Result;
         }
 
         /// <summary>
