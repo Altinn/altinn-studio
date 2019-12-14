@@ -42,8 +42,7 @@ const styles = {
     textAlign: 'right' as 'right',
   },
   avatar: {
-    height: '28px',
-    width: '28px'
+    maxHeight: '1.5em',
   },
   textToRight: {
     textAlign: 'right' as 'right',
@@ -84,7 +83,7 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
         <CardActionArea onClick={this.openService}>
           <CardContent>
             <Grid container={true} spacing={1}>
-              <Grid item={true} xl={10} lg={10} md={10} sm={10} xs={10}>
+              <Grid item={true} xl={11} lg={11} md={11} sm={11} xs={11}>
                 <Typography
                   variant='h3'
                   className={
@@ -98,16 +97,19 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
                   {service.name}
                 </Typography>
               </Grid>
-              <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
-                <img src={service.owner.avatar_url} title={(service.owner.full_name || service.owner.login)} alt="" className={classNames(classes.avatar)} />
-              </Grid>
-              <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
-                <i
-                  className={classNames(classes.iconStyling,
-                    { ['fa fa-read']: service.permissions.push === false },
-                    { ['fa fa-write']: service.permissions.push === true })}
-                  aria-hidden='true'
-                />
+              <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1} >
+                <Typography
+                    className={classNames(
+                      classes.displayInlineBlock,
+                      classes.textToRight)}
+                  >
+                  <i
+                    className={classNames(classes.iconStyling,
+                      { ['fa fa-read']: service.permissions.push === false },
+                      { ['fa fa-write']: service.permissions.push === true })}
+                    aria-hidden='true'
+                  />
+                  </Typography>
               </Grid>
               <Grid
                 item={true}
@@ -133,7 +135,8 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
                       classes.displayInlineBlock, classes.width100, classes.fontSize_14, classes.fontWeight_500)}
                   noWrap={true}
                 >
-                  {service.owner ? (service.owner.full_name || service.owner.login) : ''}
+                  <img src={service.owner.avatar_url} alt="" className={classNames(classes.avatar)}
+                  /> {service.owner ? (service.owner.full_name || service.owner.login) : ''}
                 </Typography>
               </Grid>
               <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
