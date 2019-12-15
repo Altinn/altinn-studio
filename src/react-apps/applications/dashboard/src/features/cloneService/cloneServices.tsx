@@ -159,12 +159,14 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
         {repoInfo &&
           <div className={classes.mainStyle}>
             <Typography component='h1' variant='h1' gutterBottom={true} className={classes.serviceHeader}>
-              {repoInfo.owner.login + ' / ' + repoInfo.name}
+              {`${repoInfo.owner.login} / ${repoInfo.name}`}
             </Typography>
             <div>
               <Typography className={classes.ownerStyle}>
-                <img src={repoInfo.owner.avatar_url} alt="" className={classNames(classes.avatar)}
-                /> {repoInfo.owner.full_name || repoInfo.owner.login}
+                <img
+                  src={repoInfo.owner.avatar_url}
+                  className={classNames(classes.avatar)}
+                  alt=''/> {repoInfo.owner.full_name || repoInfo.owner.login}
               </Typography>
             </div>
             <div className={classes.metadataStyle}>

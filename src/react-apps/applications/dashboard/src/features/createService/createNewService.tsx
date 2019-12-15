@@ -118,6 +118,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
   public handleRepoNameUpdated = (event: any) => {
     this.setState({
       repoName: event.target.value,
+      serviceName: event.target.value,
       repoNameAnchorEl: null,
     });
   }
