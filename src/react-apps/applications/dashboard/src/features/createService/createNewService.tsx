@@ -28,7 +28,6 @@ export interface ICreateNewServiceState {
   repoNamePopperMessage: string;
   selectedOrgOrUser: string;
   selectedOrgOrUserDisabled: boolean;
-  serviceName: string;
   repoName: string;
   isLoading: boolean;
 }
@@ -57,7 +56,6 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
     repoNamePopperMessage: '',
     selectedOrgOrUser: '',
     selectedOrgOrUserDisabled: false,
-    serviceName: '',
     repoName: '',
     isLoading: false,
   };
@@ -87,7 +85,6 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       repoNameAnchorEl: null,
       repoNamePopperMessage: '',
       selectedOrgOrUser: '',
-      serviceName: '',
       repoName: '',
     });
   }
@@ -118,7 +115,6 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
   public handleRepoNameUpdated = (event: any) => {
     this.setState({
       repoName: event.target.value,
-      serviceName: event.target.value,
       repoNameAnchorEl: null,
     });
   }

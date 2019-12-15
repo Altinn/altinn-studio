@@ -98,18 +98,12 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
                 </Typography>
               </Grid>
               <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1} >
-                <Typography
-                    className={classNames(
-                      classes.displayInlineBlock,
-                      classes.textToRight)}
-                  >
                   <i
                     className={classNames(classes.iconStyling,
                       { ['fa fa-read']: service.permissions.push === false },
                       { ['fa fa-write']: service.permissions.push === true })}
                     aria-hidden='true'
                   />
-                  </Typography>
               </Grid>
               <Grid
                 item={true}
