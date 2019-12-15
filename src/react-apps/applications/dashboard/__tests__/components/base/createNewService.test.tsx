@@ -101,16 +101,6 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(instance.state.repoNamePopperMessage).toBe('dashboard.service_name_has_illegal_characters');
   });
 
-  it('+++ should handle creating reponame out of service name', () => {
-    const mountedComponent = mount(
-      <CreateNewServiceComponent
-        language={mockLanguage}
-        selectableUser={mockSelectableUser}
-        classes={mockClasses}
-      />,
-    );
-  });
-
   it('+++ should validate service names', () => {
     const mountedComponent = mount(
       <CreateNewServiceComponent
@@ -168,16 +158,6 @@ describe('>>> components/base/createNewService.tsx', () => {
     const mockRepoName = 'service-name';
     instance.handleRepoNameUpdated({ target: { value: mockRepoName } });
     expect(instance.state.repoName).toBe(mockRepoName);
-  });
-
-  it('+++ should handle update reponame on blur', () => {
-    const mountedComponent = mount(
-      <CreateNewServiceComponent
-        language={mockLanguage}
-        selectableUser={mockSelectableUser}
-        classes={mockClasses}
-      />,
-    );
   });
 
   it('+++ should handle creating new service when servicename is already taken', () => {
