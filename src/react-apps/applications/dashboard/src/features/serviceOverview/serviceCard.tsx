@@ -83,9 +83,13 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
         <CardActionArea onClick={this.openService}>
           <CardContent>
             <Grid container={true} spacing={1}>
-              <Grid item={true} xl={11}
-                lg={11} md={11}
-                sm={11} xs={11}>
+              <Grid item={true}
+                xl={11}
+                lg={11}
+                md={11}
+                sm={11}
+                xs={11}
+              >
                 <Typography
                   variant='h3'
                   className={
@@ -131,8 +135,10 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
                       classes.displayInlineBlock, classes.width100, classes.fontSize_14, classes.fontWeight_500)}
                   noWrap={true}
                 >
-                  <img src={service.owner.avatar_url} alt=''
+                  <img
+                    src={service.owner.avatar_url}
                     className={classNames(classes.avatar)}
+                    alt=''
                   /> {service.owner ? (service.owner.full_name || service.owner.login) : ''}
                 </Typography>
               </Grid>
