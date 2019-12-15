@@ -151,7 +151,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
               </Grid>
               <Hidden smDown>
                 <Grid xs={true} item={true} className={classes.paper}>
-                  {(org && app) ? org +' / '+ app : ''}
+                  {(org && app) ? `${org} / ${app}` : ''}
                 </Grid>
               </Hidden>
               <Grid item={true} xs={true} container={true} direction='row' alignItems='center' justify='flex-end'>

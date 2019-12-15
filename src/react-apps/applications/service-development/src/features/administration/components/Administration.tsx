@@ -198,7 +198,10 @@ export class AdministrationComponent extends
           {getLanguageFromKey('administration.service_owner_is', this.props.language)}
         </Typography>
         <Typography className={classNames(classes.sidebarServiceOwner, classes.sidebarInfoText)}>
-          <img src={this.props.service.owner.avatar_url} alt="" className={classNames(classes.avatar)}
+          <img
+            src={this.props.service.owner.avatar_url}
+            className={classNames(classes.avatar)}
+            alt=''
           /> {this.props.service.owner.full_name || this.props.service.owner.login}
         </Typography>
         {this.props.initialCommit &&

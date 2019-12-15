@@ -169,11 +169,11 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
     }
 
     return filteredServices.filter((service: any) => {
-        const searchFor = this.state.searchString.toLowerCase();
-        if (service.name.toLowerCase().indexOf(searchFor) > -1) return service;
-        if (service.owner.login.toLowerCase().indexOf(searchFor) > -1) return service;
-        if (service.owner.full_name.toLowerCase().indexOf(searchFor) > -1) return service;
-        if (service.description.toLowerCase().indexOf(searchFor) > -1) return service;
+      const searchFor = this.state.searchString.toLowerCase();
+      if (service.name.toLowerCase().indexOf(searchFor) > -1) return service;
+      if (service.owner.login.toLowerCase().indexOf(searchFor) > -1) return service;
+      if (service.owner.full_name.toLowerCase().indexOf(searchFor) > -1) return service;
+      if (service.description.toLowerCase().indexOf(searchFor) > -1) return service;
     });
 
   }

@@ -166,7 +166,8 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
                 <img
                   src={repoInfo.owner.avatar_url}
                   className={classNames(classes.avatar)}
-                  alt=''/> {repoInfo.owner.full_name || repoInfo.owner.login}
+                  alt=''
+                /> {repoInfo.owner.full_name || repoInfo.owner.login}
               </Typography>
             </div>
             <div className={classes.metadataStyle}>
