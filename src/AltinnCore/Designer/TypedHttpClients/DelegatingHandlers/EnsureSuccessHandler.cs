@@ -21,7 +21,8 @@ namespace AltinnCore.Designer.TypedHttpClients.DelegatingHandlers
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
-            if (!response.IsSuccessStatusCode && response.StatusCode != HttpStatusCode.Conflict)
+            if (!response.IsSuccessStatusCode &&
+                response.StatusCode != HttpStatusCode.Conflict) // 409 from Gitea when creating existing repo
             {
                 throw new HttpRequestWithStatusException(response.ReasonPhrase)
                 {

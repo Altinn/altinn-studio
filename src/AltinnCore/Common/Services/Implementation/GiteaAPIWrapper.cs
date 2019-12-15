@@ -83,7 +83,7 @@ namespace AltinnCore.Common.Services.Implementation
                 repository.RepositoryCreatedStatus = HttpStatusCode.Created;
             }
             else if (response.StatusCode == HttpStatusCode.Conflict) {
-                // The repository with the same name already exists
+                // The repository with the same name already exists, 409 from Gitea API
                 repository.RepositoryCreatedStatus = HttpStatusCode.Conflict;
             }
             else
