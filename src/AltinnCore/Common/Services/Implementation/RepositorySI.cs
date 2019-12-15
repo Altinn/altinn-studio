@@ -1050,17 +1050,22 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The repository created in gitea</returns>
         public RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration config)
         {
-            string filename = _settings.GetServicePath(org, config.RepositoryName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
+            string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string repoPath = _settings.GetServicePath(org, config.RepositoryName, userName);
             var options = new RepositoryClient.Model.CreateRepoOption(config.RepositoryName);
 
             RepositoryClient.Model.Repository repository = CreateRepository(org, options);
 
             if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
             {
-                if (!File.Exists(filename))
+                if (Directory.Exists(repoPath))
                 {
-                    _sourceControl.CloneRemoteRepository(org, config.RepositoryName);
+                    // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
+                    string backupPath = _settings.GetServicePath(org, $"{config.RepositoryName}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", userName);
+                    Directory.Move(repoPath, backupPath);
                 }
+
+                _sourceControl.CloneRemoteRepository(org, config.RepositoryName);
 
                 ModelMetadata metadata = new ModelMetadata
                 {
