@@ -13,8 +13,9 @@ import { get } from '../../../../../utils/networking';
 
 function* fetchFormDataModelSaga({ url }: IFetchDataModel): SagaIterator {
   try {
-    const dataModel = yield call(get, url);
+    const dataModel: any = yield call(get, url);
     // const dataModel: any = testData;
+
     const {
       Org,
       ServiceName,

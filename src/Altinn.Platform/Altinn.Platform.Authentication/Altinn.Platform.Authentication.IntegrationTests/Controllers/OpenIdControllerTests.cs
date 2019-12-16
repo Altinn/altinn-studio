@@ -34,10 +34,10 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         }
 
         /// <summary>
-        /// Test of method <see cref="OpenIdController.GetOpenIdConfiguration"/>.
+        /// Test of method <see cref="OpenIdController.GetOpenIdConfigurationAsync"/>.
         /// </summary>
         [Fact]
-        public async Task GetOpenIdConfiguration()
+        public async Task GetOpenIdConfigurationAsync_RequestMainConfigurationDocument_ReturnsCorrectSettings()
         {
             // Arrange
             HttpClient client = GetTestClient();
@@ -57,10 +57,10 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         }
 
         /// <summary>
-        /// Test of method <see cref="OpenIdController.GetJsonWebKeySet"/>.
+        /// Test of method <see cref="OpenIdController.GetJsonWebKeySetAsync"/>.
         /// </summary>
         [Fact]
-        public async Task GetJsonWebKeySet()
+        public async Task GetJsonWebKeySetAsync_RequestKeySet_ReturnsCorrectKeys()
         {
             // Arrange
             HttpClient client = GetTestClient();
@@ -89,7 +89,10 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
 
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
-                builder.ConfigureTestServices(services => { services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>(); });
+                builder.ConfigureTestServices(services =>
+                {
+                    services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProviderStub>();
+                });
                 builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
             }).CreateClient();
 

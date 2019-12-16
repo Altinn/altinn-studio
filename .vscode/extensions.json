@@ -8,6 +8,7 @@
     "msjsdiag.debugger-for-chrome",
     "EditorConfig.EditorConfig",
     "github.vscode-pull-request-github",
-    "ms-vscode.vscode-typescript-tslint-plugin"
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.vscode-typescript-next"
   ]
 }

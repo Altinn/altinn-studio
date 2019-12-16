@@ -62,13 +62,13 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   }
 
   public saveFormData = () => {
-    const { org, app, instanceId} = window as IAltinnWindow;
+    const { org, app, instanceId} = window as Window as IAltinnWindow;
     FormFillerActionDispatchers.submitFormData(`
         ${window.location.origin}/${org}/${app}/api/${instanceId}`);
   }
 
   public submitForm = () => {
-    const { org, app, instanceId } = window as IAltinnWindow;
+    const { org, app, instanceId } = window as Window as IAltinnWindow;
     FormFillerActionDispatchers.submitFormData(`
       ${window.location.origin}/${org}/${app}/api/${instanceId}`, 'Complete');
   }

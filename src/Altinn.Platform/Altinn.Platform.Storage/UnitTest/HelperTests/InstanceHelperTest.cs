@@ -37,7 +37,7 @@ namespace Altinn.Platform.Storage.UnitTest
             string expected_title_app3 = "Test applikasjon 3 bokmål";
 
             // Act
-            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstance(TestData.InstanceList_InstanceOwner1, TestData.AppTitles_InstanceList_InstanceOwner1, language);
+            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(TestData.InstanceList_InstanceOwner1, TestData.AppTitles_InstanceList_InstanceOwner1, language);
             string actual_title_app1 = actual.Where(i => i.AppName.Equals(app1)).Select(i => i.Title).FirstOrDefault();
             string actual_title_app2 = actual.Where(i => i.AppName.Equals(app2)).Select(i => i.Title).FirstOrDefault();
             string actual_title_app3 = actual.Where(i => i.AppName.Equals(app3)).Select(i => i.Title).FirstOrDefault();
@@ -63,7 +63,7 @@ namespace Altinn.Platform.Storage.UnitTest
             string expected_title = "Test applikasjon 3 bokmål";
 
             // Act
-            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance>() { TestData.Instance_3_2 }, TestData.AppTitles_Dict_App3, language);
+            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(new List<Instance>() { TestData.Instance_3_2 }, TestData.AppTitles_Dict_App3, language);
             string actual_title = actual.Where(i => i.AppName.Equals(app)).Select(i => i.Title).FirstOrDefault();
 
             // Assert
@@ -95,7 +95,7 @@ namespace Altinn.Platform.Storage.UnitTest
             string expected_title_app3 = "Test applikasjon 3 nynorsk";
 
             // Act
-            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstance(instances, TestData.AppTitles_InstanceList_InstanceOwner1, language);
+            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(instances, TestData.AppTitles_InstanceList_InstanceOwner1, language);
             string actual_title_app2 = actual.Where(i => i.AppName.Equals(app2)).Select(i => i.Title).FirstOrDefault();
             string actual_title_app3 = actual.Where(i => i.AppName.Equals(app3)).Select(i => i.Title).FirstOrDefault();
 
@@ -120,7 +120,7 @@ namespace Altinn.Platform.Storage.UnitTest
             instance.Id = $"{instanceOwner}/{instanceGuid}";        
         
             // Act
-            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance>() { instance }, TestData.AppTitles_Dict_App1, "nb");
+            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(new List<Instance>() { instance }, TestData.AppTitles_Dict_App1, "nb");
             string actualId = actual.FirstOrDefault().Id;
 
             // Assert

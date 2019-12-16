@@ -56,7 +56,6 @@ describe('>>> containers/EditContainer', () => {
               id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
               componentType: 2,
               dataModelBindings: {},
-              itemType: 'COMPONENT',
               readOnly: false,
               required: false,
               textResourceBindings: {
@@ -83,7 +82,6 @@ describe('>>> containers/EditContainer', () => {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
       componentType: 2,
       dataModelBindings: {},
-      itemType: 'COMPONENT',
       readOnly: false,
       required: false,
       textResourceBindings: {
@@ -169,7 +167,6 @@ describe('>>> containers/EditContainer', () => {
       id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
       componentType: 2,
       dataModelBindings: {},
-      itemType: 'COMPONENT',
       readOnly: false,
       required: true,
       textResourceBindings: {
@@ -204,19 +201,19 @@ describe('>>> containers/EditContainer', () => {
     instance.setState({
       isEditMode: true,
       component: {
-      id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      componentType: 2,
-      dataModelBindings: {
-        simpleBinding: 'skattyterinforgrp5801.infogrp5802.oppgavegiverNavnPreutfyltdatadef25795.value',
-      },
-      itemType: 'COMPONENT',
-      readOnly: false,
-      required: true,
-      textResourceBindings: {
-        title: 'Input',
-      },
-      type: 'Input',
-    }});
+        id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
+        componentType: 2,
+        dataModelBindings: {
+          simpleBinding: 'skattyterinforgrp5801.infogrp5802.oppgavegiverNavnPreutfyltdatadef25795.value',
+        },
+        readOnly: false,
+        required: true,
+        textResourceBindings: {
+          title: 'Input',
+        },
+        type: 'Input',
+      }
+    });
     instance.forceUpdate();
     mountedEditContainer.update();
 

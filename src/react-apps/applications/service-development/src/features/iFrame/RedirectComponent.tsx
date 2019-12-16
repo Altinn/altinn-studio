@@ -10,7 +10,7 @@ export class RedirectComponent extends
   React.Component<IRedirectComponentProvidedProps, any> {
 
   public openManualTesting = () => {
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     // tslint:disable-next-line:max-line-length
     const url = `${window.location.origin}/${this.props.redirectUrl}?ReturnUrl=%2Fruntime%2F${org}%2F${app}%2FManualTesting`;
     // tslint:disable-next-line:jsx-self-close

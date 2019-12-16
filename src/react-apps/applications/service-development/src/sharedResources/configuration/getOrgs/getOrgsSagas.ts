@@ -9,7 +9,7 @@ import { getOrgsListUrl } from './../../../utils/urlHelper';
 
 function* getOrgsSaga(): SagaIterator {
   try {
-    const result = yield call(get, getOrgsListUrl);
+    const result: any = yield call(get, getOrgsListUrl);
     const orgObject = result.orgs;
     yield call(ConfigurationDispatcher.getOrgsFulfilled, orgObject);
   } catch (err) {

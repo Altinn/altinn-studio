@@ -1,4 +1,4 @@
-import { IParty } from '../party';
+import { IParty } from '../../../../../../shared/src/types';
 
 export interface IProfile {
   userId: number;

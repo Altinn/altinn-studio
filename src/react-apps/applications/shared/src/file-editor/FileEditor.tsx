@@ -145,7 +145,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
 
   public componentDidMount() {
     if (!this.props.loadFile) {
-      const { org, app } = window as IAltinnWindow;
+      const { org, app } = window as Window as IAltinnWindow;
       const appId = `${org}/${app}`;
       get(`${window.location.origin}/designer/${appId}/ServiceDevelopment` +
         `/GetServiceFiles?fileEditorMode=${this.props.mode}`).then((response) => {
@@ -175,7 +175,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     this.setState({
       isLoading: true,
     });
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const appId = `${org}/${app}`;
     get(`${window.location.origin}/designer/${appId}/ServiceDevelopment` +
       `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`)
@@ -204,7 +204,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       stageFile = true;
     }
 
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const appId = `${org}/${app}`;
     const postUrl = `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
       `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&stageFile=${stageFile}`;

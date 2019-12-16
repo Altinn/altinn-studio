@@ -42,7 +42,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
                 .UseStartup<Altinn.Platform.Storage.Startup>()
                 .ConfigureTestServices(services =>
                 {
-                    services.AddSingleton<IPDP, PDPMock>();
+                    services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
 
                     // Set up mock authentication so that not well known endpoint is used
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
