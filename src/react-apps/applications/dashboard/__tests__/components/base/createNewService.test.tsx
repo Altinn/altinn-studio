@@ -174,7 +174,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
-      repositoryCreatedStatus: 422,
+      repositoryCreatedStatus: 409,
     };
     const getStub = jest.fn();
     const getSpy = jest.spyOn(networking, 'post').mockImplementation(getStub);
