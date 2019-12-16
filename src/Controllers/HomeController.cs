@@ -13,6 +13,12 @@ using Microsoft.AspNetCore.Authentication;
 using AltinnCore.Authentication.JwtCookie;
 using LocalTest.Configuration;
 using Microsoft.Extensions.Options;
+using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.Interface.Models;
+using System.IO;
+using LocalTest.Services.Profile.Interface;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using AltinnCore.ServiceLibrary.Models;
 
 namespace LocalTest.Controllers
 {
@@ -20,19 +26,50 @@ namespace LocalTest.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly GeneralSettings _generalSettings;
+        private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly IApplicationRepository _applicationRepository;
+        private readonly IUserProfiles _userProfileService;
 
         public HomeController(
             ILogger<HomeController> logger,
-            IOptions<GeneralSettings> generalSettings)
+            IOptions<GeneralSettings> generalSettings,
+            IOptions<LocalPlatformSettings> localPlatformSettings,
+            IApplicationRepository applicationRepository,
+            IUserProfiles userProfileService)
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;
+            this._localPlatformSettings = localPlatformSettings.Value;
+            this._applicationRepository = applicationRepository;
+            this._userProfileService = userProfileService;
         }
 
         [AllowAnonymous]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            StartAppModel model = new StartAppModel();
+            Application app = this._applicationRepository.FindOne("", "").Result;
+            model.TestUsers = await GetTestUsersForList();
+            model.AppPath = _localPlatformSettings.AppRepsitoryBasePath;
+            model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
+
+            if (app == null)
+            {
+                model.InvalidAppPath = true;
+            }
+
+            if (model.TestUsers.Count() == 0)
+            {
+                model.InvalidTestDataPath = true;
+            }
+
+            if (app != null)
+            {
+                model.Org = app.Org;
+                model.App = app.Id.Split("/")[1];
+               
+            }
+            return View(model);
         }
 
         public IActionResult Privacy()
@@ -53,21 +90,17 @@ namespace LocalTest.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="userId">The testUserId</param>
         /// <returns>Redirects to returnUrl</returns>
-        public async Task<ActionResult> LogInTestUser(string org, string app, int userId)
+        [HttpPost]
+        public async Task<ActionResult> LogInTestUser(StartAppModel startAppModel)
         {
-            // TODO: read test user data using profile service?
-            UserAuthenticationModel userAuthentication = new UserAuthenticationModel()
-            {
-                UserID = 12345,
-                Username = "Test Testesen",
-                PartyID = 12345
-            };
+            UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
+
 
             List<Claim> claims = new List<Claim>();
             string issuer = "altinn3local.no";
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
 
             ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
@@ -86,7 +119,56 @@ namespace LocalTest.Controllers
                     AllowRefresh = false,
                 });
 
-            return Redirect($"{_generalSettings.GetBaseUrl}/{org}/{app}");
+            Application app = this._applicationRepository.FindOne("", "").Result;
+
+            return Redirect($"{_generalSettings.GetBaseUrl}/{app.Org}/{app.Id.Split("/")[1]}");
+        }
+
+
+        private async Task<List<UserProfile>> GetTestUsers()
+        {
+            List<UserProfile> users = new List<UserProfile>();
+            string path = this._localPlatformSettings.LocalTestingStaticTestDataPath + "Profile/User/";
+
+            if (!Directory.Exists(path))
+            {
+                return users;
+            }
+
+            string[] files = Directory.GetFiles(path, "*.json");
+
+            foreach(string file in files)
+            {
+                int userId = 0;
+
+                if(int.TryParse(Path.GetFileNameWithoutExtension(file), out userId))
+                 {
+                    users.Add(await _userProfileService.GetUser(userId));
+                }
+            }
+
+            return users;
+        }
+
+
+        private async Task<IEnumerable<SelectListItem>> GetTestUsersForList()
+        {
+            List<UserProfile> users = await GetTestUsers();
+
+            List<SelectListItem> userItems = new List<SelectListItem>();
+
+            foreach(UserProfile profile in users)
+            {
+                SelectListItem item = new SelectListItem()
+                {
+                    Value = profile.UserId.ToString(),
+                    Text = profile.Party.Person.Name
+                };
+
+                userItems.Add(item);
+            }
+
+            return userItems;
         }
     }
 }

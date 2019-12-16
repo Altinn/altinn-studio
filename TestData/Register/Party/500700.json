@@ -1,0 +1,13 @@
+{
+  "partyId": "500700",
+  "partyTypeName": 2,
+  "orgNumber": "950474084",
+  "ssn": null,
+  "unitType": "BRL",
+  "name": "Oslos Vakreste Borettslag",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "person": null,
+  "organisation": null,
+  "childParties": null
+}

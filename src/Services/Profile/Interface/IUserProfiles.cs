@@ -1,5 +1,5 @@
+using AltinnCore.ServiceLibrary.Models;
 using System.Threading.Tasks;
-using Altinn.App.Services.Models;
 
 namespace LocalTest.Services.Profile.Interface
 {
