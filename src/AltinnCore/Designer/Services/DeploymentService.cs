@@ -130,10 +130,10 @@ namespace AltinnCore.Designer.Services
 
             return await _azureDevOpsBuildClient.QueueAsync(
                 queueBuildParameters,
-                getDeployDefinitionIdByEnvironemntName(deploymentEntity.EnvironmentName));
+                GetDeployDefinitionIdByEnvironemntName(deploymentEntity.EnvironmentName));
         }
 
-        private int getDeployDefinitionIdByEnvironemntName(string environmentName)
+        private int GetDeployDefinitionIdByEnvironemntName(string environmentName)
         {
             int deployDefinitionId = -1;
             switch (environmentName)
