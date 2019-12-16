@@ -22,8 +22,8 @@ fixture.skip('Regression tests of apps in runtime')
     t.ctx.instanceID = "44b3b0f2-b630-4c65-9a63-3cc5f50053c6";
     t.ctx.formFillComplete = "Skjemaet er nå fullført og sendt inn.";
     await t
+      .maximizeWindow()
       .useRole(AutoTestUser)
-      .resizeWindow(1536, 864)
   });
 
 test('Instantiate an app in runtime', async () => {

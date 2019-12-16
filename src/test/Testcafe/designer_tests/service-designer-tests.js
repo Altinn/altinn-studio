@@ -15,8 +15,8 @@ fixture('GUI service designer tests')
     t.ctx.deltMessage = "Du har delt dine endringer";
     t.ctx.syncMessage = "Endringene er validert";
     await t
-      .useRole(AutoTestUser)
       .maximizeWindow()
+      .useRole(AutoTestUser)
   })
 
 test('Drag and drop test', async () => {
@@ -103,10 +103,7 @@ test('About page items and editing', async () => {
 
 test("Fill out Access control information on an app", async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/ui-editor')
-    .click(designer.lageNavigationTab)
-    .hover(designer.leftDrawerMenu)
-    .click(designer.lageLeftMenuItems[4])
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/accesscontrol')
     .click(designer.virksomhet)
     .click(designer.hookCheckBox)
     .expect(designer.tjenestekode.exists).ok()
