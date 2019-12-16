@@ -28,7 +28,7 @@ namespace Altinn.Platform.Storage.Helpers
         private const string ResourceId = "r";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AuthorizeInstancesHelper"/> class.
+        /// Initializes a new instance of the <see cref="AuthorizationHelper"/> class.
         /// </summary>
         /// <param name="pdp">The policy decision point</param>
         public AuthorizationHelper(IPDP pdp)

@@ -1,12 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
+
+#pragma warning disable 1591
+#pragma warning disable SA1600
 
 namespace Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication
 {
