@@ -6,30 +6,35 @@
 @{ if (!Model.InvalidAppPath && !Model.InvalidTestDataPath)
   {
 
-  <div class="text-center">
-    <h1 class="display-4">Welcome to Altinn App Local Testing</h1>
-    <p>Learn about <a href="https://docs.altinn.studio" target="_blank">building and testing Altinn Apps</a>.</p>
+    <div class="text-center">
+      <h1 class="display-4">Welcome to Altinn App Local Testing</h1>
+      <p>Learn about <a href="https://docs.altinn.studio" target="_blank">building and testing Altinn Apps</a>.</p>
 
 
-    <h2>Testing app:  @Model.Org/@Model.App</h2>
+      <h2>Testing app:  @Model.Org/@Model.App</h2>
 
-    @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin" }))
-    {
-      @Html.AntiForgeryToken();
-      <div class="form-group">
-        <label for="exampleInputEmail1">Select test users</label>
-        @Html.DropDownListFor(model => model.UserId, Model.TestUsers, new { Class = "form-control" })
-      </div>
-      <button type="submit" class="btn btn-primary">Sign in</button>
-    }
-  </div>
+      @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin" }))
+      {
+        @Html.AntiForgeryToken();
+        <div class="form-group">
+          <label for="exampleInputEmail1">Select test users</label>
+          @Html.DropDownListFor(model => model.UserId, Model.TestUsers, new { Class = "form-control" })
+        </div>
+        <button type="submit" class="btn btn-primary">Sign in</button>
+      }
+    </div>
   }
   else if (Model.InvalidAppPath)
   {
-    <h1>Check your configured app path: @Model.AppPath</h1>
+    <div class="alert alert-dark" role="alert">
+      Check your configured app path in appsettings.json for localtest project  Can't find any Altinn App at this location: @Model.AppPath
+    </div>
+
   }
   else if (Model.InvalidTestDataPath)
   {
-    <h1>Check your app path: @Model.StaticTestDataPath</h1>
+    <div class="alert alert-dark" role="alert">
+      Check your configurred path to the cloned testdata for localtest project. Current path configured is: @Model.StaticTestDataPath
+    </div>
   }
 }

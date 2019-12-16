@@ -50,6 +50,8 @@ namespace LocalTest.Controllers
             StartAppModel model = new StartAppModel();
             Application app = this._applicationRepository.FindOne("", "").Result;
             model.TestUsers = await GetTestUsersForList();
+            model.AppPath = _localPlatformSettings.AppRepsitoryBasePath;
+            model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
 
             if (app == null)
             {
