@@ -45,7 +45,7 @@ const styles = createStyles({
 const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
   const { classes, styling } = props;
   return (
-    <Grid container={true} className={`${classes.gridContainer} ${styling.root}`}>
+    <Grid container={true} className={`${classes.gridContainer} ${styling ? styling.root : null}`}>
       <Grid item={true} md={8}>
         <div className={classes.contentMargin}>
           <Typography variant={'caption'}>
@@ -55,13 +55,13 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
         <div className={classes.contentMargin}>
           <Typography
             variant={'h1'}
-            className={classNames(classes.title, styling.title)}
+            className={classNames(classes.title, styling ? styling.title : null)}
           >
             {props.title}
           </Typography>
         </div>
         <div className={classes.contentMargin}>
-          <Typography classes={{ root: classes.articleText }} className={styling.content}>
+          <Typography classes={{ root: classes.articleText }} className={styling ? styling.content : null}>
             {props.content}
           </Typography>
         </div>
