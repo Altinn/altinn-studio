@@ -146,7 +146,7 @@ namespace Altinn.App.Api.Controllers
         private async Task<Instance> UpdateInstanceAndDispatchEvents(Instance instance, ProcessStateChange processStateChange)
         {
             await NotifyAppAboutEvents(_altinnApp, instance, processStateChange.Events);
-            Instance updatedInstance = await _instanceService.UpdateInstance(instance);
+            Instance updatedInstance = await _instanceService.UpdateProcess(instance);
             await _processService.DispatchProcessEventsToStorage(updatedInstance, processStateChange.Events);
             return updatedInstance;
         }

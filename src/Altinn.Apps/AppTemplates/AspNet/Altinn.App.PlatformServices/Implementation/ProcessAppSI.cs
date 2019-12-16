@@ -197,7 +197,7 @@ namespace Altinn.App.Services.Implementation
                 await _eventService.SaveInstanceEvent(instanceEvent, org, app);
             }
         }
-
+      
         /// <summary>
         /// Assumes that nextElementId is a valid task/state
         /// </summary>
