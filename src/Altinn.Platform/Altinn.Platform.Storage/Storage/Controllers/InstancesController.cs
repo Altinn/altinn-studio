@@ -319,6 +319,7 @@ namespace Altinn.Platform.Storage.Controllers
             Instance result;
             try
             {
+                existingInstance.Data = null;
                 result = await _instanceRepository.Update(existingInstance);
                 await DispatchEvent(InstanceEventType.Saved.ToString(), result);
                 AddSelfLinks(Request, result);

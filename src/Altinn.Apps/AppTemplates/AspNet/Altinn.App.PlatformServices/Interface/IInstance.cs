@@ -15,6 +15,8 @@ namespace Altinn.App.Services.Interface
         /// </summary>
         Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId);
 
+        Task<Instance> GetInstance(Instance instance);
+
         /// <summary>
         /// Gets the instance list of a given instance owner.
         /// </summary>
