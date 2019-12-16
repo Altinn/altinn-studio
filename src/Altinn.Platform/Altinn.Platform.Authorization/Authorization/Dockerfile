@@ -12,4 +12,10 @@ FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-alpine AS final
 EXPOSE 5030
 WORKDIR /app
 COPY --from=build /app_output .
+
+# setup the user and group
+# the user will have no password, using shell /bin/false and using the group dotnet
+RUN addgroup -g 3000 dotnet && adduser -u 1000 -G dotnet -D -s /bin/false dotnet
+# update permissions of files if neccessary before becoming dotnet user
+USER dotnet
 ENTRYPOINT ["dotnet", "Altinn.Platform.Authorization.dll"]
