@@ -57,6 +57,11 @@ namespace App.IntegrationTests.Mocks.Services
             return Task.FromResult(instance);
         }
 
+        public Task<Instance> UpdateProcess(Instance instance)
+        {
+            return UpdateInstance(instance);
+        }
+
         private Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {
             string instancePath = GetInstancePath(app, org, instanceOwnerId, instanceId);
