@@ -15,17 +15,14 @@ namespace UnitTests
 {
     public class ScopeAccessHandlerTest
     {
-        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly IOptions<PepSettings> _pepSettings;
         private readonly ScopeAccessHandler _sah;
 
-
         public ScopeAccessHandlerTest()
         {
-            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _pepSettings = Options.Create(new PepSettings());
             _pepSettings.Value.DisablePEP = false;
-            _sah = new ScopeAccessHandler(_httpContextAccessorMock.Object, _pepSettings, new Mock<ILogger<ScopeAccessHandler>>().Object);
+            _sah = new ScopeAccessHandler(_pepSettings);
         }
 
         /// <summary>

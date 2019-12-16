@@ -13,20 +13,15 @@ namespace Altinn.Common.PEP.Authorization
     public class ScopeAccessHandler : AuthorizationHandler<ScopeAccessRequirement>
     {
         private readonly PepSettings _pepSettings;
-        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ScopeAccessHandler"/> class.
         /// </summary>
         /// <param name="pepSettings"> The settings for PEP.</param>
-        /// <param name="logger">The logger. </param>
         public ScopeAccessHandler(
-            IHttpContextAccessor httpContextAccessor,
-            IOptions<PepSettings> pepSettings,
-            ILogger<ScopeAccessHandler> logger)
+            IOptions<PepSettings> pepSettings)
         {
             _pepSettings = pepSettings.Value;
-            _logger = logger;
         }
         
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ScopeAccessRequirement requirement)
