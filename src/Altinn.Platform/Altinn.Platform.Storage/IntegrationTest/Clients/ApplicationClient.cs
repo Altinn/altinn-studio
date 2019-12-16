@@ -26,7 +26,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Clients
         {
             _client = client;
             _endpointUri = enpointUrl;
-            _validToken = PrincipalUtil.GetToken(1);
+            _validToken = PrincipalUtil.GetOrgToken("testOrg");
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
         }
 

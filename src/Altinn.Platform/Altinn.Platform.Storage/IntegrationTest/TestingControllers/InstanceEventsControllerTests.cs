@@ -17,6 +17,9 @@ using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
+#pragma warning disable 1591
+#pragma warning disable SA1600
+
 namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 {
     [Collection("Sequential")]
