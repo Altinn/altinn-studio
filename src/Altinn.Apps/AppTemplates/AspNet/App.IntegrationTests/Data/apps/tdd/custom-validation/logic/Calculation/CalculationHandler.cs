@@ -29,10 +29,11 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         ///      validationResults.Add(new ValidationResult([error message], new List<string>() { [affected field id] } ));
         ///  }
         /// </example>
-        public void Calculate(object instance)
+        public bool Calculate(object instance)
         {
             Type instanceType = instance.GetType();
             Type skjemaType = typeof(Skjema);
+            bool changed = false;
             if (instance.GetType() == typeof(Skjema))
             {
                 Skjema model = (Skjema)instance;
@@ -40,8 +41,11 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
                 if (journalnummer != null && journalnummer == 1000)
                 {
                     model.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316.value = (decimal)journalnummer + 1;
+                    changed = true;
                 }
             }
+
+            return changed;
         }
     }
 }

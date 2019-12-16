@@ -22,7 +22,7 @@ export function* deleteAttachmentSaga(
     const newValidations = getFileUploadComponentValidations(null, null);
     yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
 
-    const response = yield call(httpDelete, dataElementUrl(attachment.id));
+    const response: any = yield call(httpDelete, dataElementUrl(attachment.id));
     if (response.status === 200) {
       yield call(AttachmentDispatcher.deleteAttachmentFulfilled, attachment.id, attachmentType, componentId);
     } else {

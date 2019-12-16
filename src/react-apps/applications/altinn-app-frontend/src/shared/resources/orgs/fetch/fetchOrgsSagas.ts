@@ -10,7 +10,7 @@ import {
 
 export function* fetchOrgsSaga(): SagaIterator {
   try {
-    const result = yield call(get, orgsListUrl);
+    const result: any = yield call(get, orgsListUrl);
     const orgObject = result.orgs;
     yield call(OrgsActions.fetchOrgsFulfilled, orgObject);
   } catch (err) {

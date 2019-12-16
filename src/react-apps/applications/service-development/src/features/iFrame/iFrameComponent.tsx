@@ -31,7 +31,7 @@ export class IFrameComponent extends
 
   public render() {
     const { classes } = this.props;
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const url = `${window.location.origin}/designer/${org}/${app}/${this.props.iframeEndingUrl}`;
     return (
       <div className={classes.mainLayout}>

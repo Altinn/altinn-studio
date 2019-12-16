@@ -43,7 +43,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>
         public AuthenticationControllerTests(WebApplicationFactory<Startup> factory)
         {
-            this._factory = factory;
+            _factory = factory;
         }
 
         /// <summary>
@@ -181,7 +181,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
                     services.AddSingleton(cookieDecryptionService);
 
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
-                    services.AddSingleton<ISigningCredentialsProvider, SigningCredentialsProviderStub>();
+                    services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProviderStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
                 builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });

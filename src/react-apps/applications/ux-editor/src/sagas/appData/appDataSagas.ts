@@ -9,7 +9,7 @@ function* fetchDataModelSaga({
   url,
 }: AppDataActions.IFetchDataModelAction): SagaIterator {
   try {
-    const dataModel = yield call(get, url);
+    const dataModel: any = yield call(get, url);
     const dataModelFields: IDataModelFieldElement[] = [];
     for (const dataModelField in dataModel.elements) {
       if (!dataModelField) {

@@ -70,7 +70,7 @@ export class HandleMergeConflictDiscardChanges extends
 
   // TODO: Add a spinner
   public discardChangesConfirmed = async () => {
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
 
     try {
 

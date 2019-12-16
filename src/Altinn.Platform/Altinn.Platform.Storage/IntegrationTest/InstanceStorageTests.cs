@@ -118,6 +118,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 AppId = testAppId,
                 InstanceOwner = new InstanceOwner { PartyId = testInstanceOwnerId.ToString() },
+                Process = new ProcessState
+                {
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        ElementId = "Task_1",
+                        Name = "FormFilling",
+                    }
+                }
             };
 
             string url = $"{versionPrefix}/instances?appId={testAppId}";

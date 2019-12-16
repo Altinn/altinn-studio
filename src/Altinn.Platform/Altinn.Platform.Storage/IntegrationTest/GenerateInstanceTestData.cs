@@ -71,7 +71,7 @@ namespace Altinn.Platform.Storage.Helpers
                 {
                     Org = testOrg,
                     AppId = testAppId,
-                    InstanceOwner = new InstanceOwner { PartyId = (i + 1000).ToString() },
+                    InstanceOwner = new InstanceOwner { PartyId = "1000" },
                     Process = processState,
                     LastChanged = lastChangedDate,
                     Created = creationDate,

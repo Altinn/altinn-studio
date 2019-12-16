@@ -81,9 +81,9 @@ namespace Altinn.App.AppLogic
         /// Is called to run custom calculation events defined by app developer.
         /// </summary>
         /// <param name="instance">The data to perform calculations on</param>
-        public override async Task RunCalculation(object instance)
+        public override async Task<bool> RunCalculation(object instance)
         {
-            _calculationHandler.Calculate(instance);
+            return _calculationHandler.Calculate(instance);
         }
 
         /// <summary>

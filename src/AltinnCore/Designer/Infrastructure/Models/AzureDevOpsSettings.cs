@@ -11,9 +11,19 @@ namespace AltinnCore.Designer.Infrastructure.Models
         public int BuildDefinitionId { get; set; }
 
         /// <summary>
-        /// Id for a definition that deploys an Altinn Studio app
+        /// Id for a definition that deploys an Altinn Studio app to TT-environment
         /// </summary>
-        public int DeployDefinitionId { get; set; }
+        public int DeployDefinitionIdTT { get; set;}
+
+        /// <summary>
+        /// Id for a definition that deploys an Altinn Studio app to AT-environment
+        /// </summary>
+        public int DeployDefinitionIdAT {get; set;}
+
+        /// <summary>
+        /// Id for a definition that deploys an Altinn Studio app to production-environment
+        /// </summary>
+        public int DeployDefinitonIdProd {get; set;}
 
         /// <summary>
         /// Base URI for Azure DevOps

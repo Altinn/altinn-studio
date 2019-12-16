@@ -24,6 +24,8 @@ namespace App.IntegrationTests.Mocks.Services
                 AppId = $"{org}/{app}",
                 Org = org,
                 InstanceOwner = instanceTemplate.InstanceOwner,
+                Process = instanceTemplate.Process,
+                Data = new List<DataElement>(),
             };
 
             string instancePath = GetInstancePath(app, org, int.Parse(partyId), instanceGuid);
@@ -53,6 +55,11 @@ namespace App.IntegrationTests.Mocks.Services
             File.WriteAllText(instancePath, JsonConvert.SerializeObject(instance));
             
             return Task.FromResult(instance);
+        }
+
+        public Task<Instance> UpdateProcess(Instance instance)
+        {
+            return UpdateInstance(instance);
         }
 
         private Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)

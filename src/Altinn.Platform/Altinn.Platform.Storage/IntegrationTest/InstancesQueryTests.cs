@@ -227,7 +227,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             int totalHits = jsonObject["totalHits"].Value<int>();
 
-            Assert.Equal(5, totalHits);
+            Assert.Equal(3, totalHits);
         }
 
         /// <summary>
@@ -249,7 +249,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             int totalHits = jsonObject["totalHits"].Value<int>();
 
-            Assert.Equal(3, totalHits);
+            Assert.Equal(4, totalHits);
         }
 
         /// <summary>

@@ -116,7 +116,12 @@ export function CloneModal(props: ICloneModalProps) {
           </Typography>
         </Grid>
         <Grid item={true} className={props.classes.itemSeparator}>
-          <AltinnInputField inputValue={repositoryGitUrl} textFieldId={'repository-url'} fullWidth={true}/>
+          <AltinnInputField
+            id='repository-url'
+            inputValue={repositoryGitUrl}
+            textFieldId={'repository-url'}
+            fullWidth={true}
+          />
         </Grid>
         {canCopy() &&
           <Grid item={true}>

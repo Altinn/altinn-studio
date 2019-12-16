@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 namespace Altinn.Common.PEP.Authorization
 {
     /// <summary>
-    /// Requirement uses for authorization policies used for accessing apps
+    /// Requirement for authorization policies used for accessing apps.
     /// <see href="https://docs.asp.net/en/latest/security/authorization/policies.html"/> for details about authorization
-    /// in asp.net core
+    /// in asp.net core.
     /// </summary>
     public class AppAccessRequirement : IAuthorizationRequirement
     {

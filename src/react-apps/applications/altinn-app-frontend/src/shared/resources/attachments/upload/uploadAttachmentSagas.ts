@@ -24,7 +24,7 @@ export function* uploadAttachmentSaga(
     data.append('file', file);
 
     const fileUploadLink = fileUploadUrl(attachmentType, file.name);
-    const response = yield call(post, fileUploadLink, null, data);
+    const response: any = yield call(post, fileUploadLink, null, data);
 
     if (response.status === 200) {
       const attachment: IAttachment

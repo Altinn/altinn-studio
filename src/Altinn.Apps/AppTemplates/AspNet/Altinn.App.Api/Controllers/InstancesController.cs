@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
 using Altinn.App.PlatformServices.Models;
@@ -44,9 +45,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IRegister _registerService;
         private readonly IAltinnApp _altinnApp;
         private readonly IProcess _processService;
-        private readonly UserHelper _userHelper;
         private readonly IPDP _pdp;
-
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -59,9 +58,7 @@ namespace Altinn.App.Api.Controllers
             IAppResources appResourcesService,
             IAltinnApp altinnApp,
             IProcess processService,
-            IPDP pdp,
-            IProfile profileService,
-            IOptions<GeneralSettings> generalSettings)
+            IPDP pdp)
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -72,8 +69,6 @@ namespace Altinn.App.Api.Controllers
             _processService = processService;
 
             _pdp = pdp;
-
-            _userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
 
         /// <summary>
@@ -84,7 +79,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>the instance</returns>
-        [Authorize(Policy = "InstanceRead")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
@@ -111,7 +106,7 @@ namespace Altinn.App.Api.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"{ex.Message}");
-            }            
+            }
         }
 
         /// <summary>
@@ -123,7 +118,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="instance">the instance with attributes that should be updated</param>
         /// <returns>the updated instance</returns>
-        [Authorize(Policy = "InstanceWrite")]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [Consumes("application/json")]
@@ -165,7 +160,7 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        /// Creates a new instance of an application in platform storage. Clients can send a instance as a json or send a
+        /// Creates a new instance of an application in platform storage. Clients can send an instance as json or send a
         /// multipart form-data with the instance in the first part named "instance" and the prefill data in the next parts, with
         /// names that correspond to the element types defined in the application metadata.
         /// The data elements are stored. Currently calculate and validate is not implemented. 
@@ -243,6 +238,7 @@ namespace Altinn.App.Api.Controllers
             }
             else
             {
+                // create minimum instance template
                 instanceTemplate = new Instance
                 {
                     InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.Value.ToString() }
@@ -259,8 +255,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
             }
 
-            XacmlJsonRequestRoot request = DecisionHelper.CreateXacmlJsonRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString(), null);
-            bool authorized = await _pdp.GetDecisionForUnvalidateRequest(request, HttpContext.User);
+            bool authorized = await Authorize(org, app, party);
 
             if (!authorized)
             {
@@ -269,7 +264,7 @@ namespace Altinn.App.Api.Controllers
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
-                return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}"); 
+                return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}");
             }
 
             // Run custom app logic to validate instantiation
@@ -281,17 +276,17 @@ namespace Altinn.App.Api.Controllers
                 return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
             }
 
-            // use process controller to start process
-            instanceTemplate.Process = null;
-
             Instance instance;
+            ProcessStateChange processResult;
             try
             {
+                // start process and goto next task
+                instanceTemplate.Process = null;
+                string startEvent = await _altinnApp.OnInstantiateGetStartEvent();
+                processResult = _processService.ProcessStartAndGotoNextTask(instanceTemplate, startEvent, User);
+
+                // create the instance
                 instance = await _instanceService.CreateInstance(org, app, instanceTemplate);
-                if (instance == null)
-                {
-                    throw new PlatformClientException("Failure instantiating instance. UnknownError");
-                }
             }
             catch (Exception instanceException)
             {
@@ -308,19 +303,13 @@ namespace Altinn.App.Api.Controllers
                 // get the updated instance
                 instance = await _instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
 
-                Instance instanceWithStartedProcess = await StartProcessAndGotoNextTask(instance);
-                if (instanceWithStartedProcess != null)
-                {
-                    instance = instanceWithStartedProcess;
-                }
-                else
-                {
-                    return Conflict($"Unable to start and move process to next task for instance {instance.Id}");
-                }
+                // notify app and store events
+                await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events);
+                await _processService.DispatchProcessEventsToStorage(instance, processResult.Events);
             }
             catch (Exception dataException)
             {
-                string message = $"Failure storing multipart prefil data. Could not create a data element for {instance.Id} of {org}/{app}.";
+                string message = $"Failure storing multipart prefil data. Could not create a data element(s) for {instance.Id} of {org}/{app}.";
                 _logger.LogError($"{message} - {dataException}");
 
                 // todo add compensating transaction (delete instance)                
@@ -333,39 +322,20 @@ namespace Altinn.App.Api.Controllers
             return Created(url, instance);
         }
 
-        /// <summary>
-        /// Calls Altinn app to get start event and goto next task
-        /// </summary>
-        /// <param name="instance">instance can be updated by app</param>
-        /// <returns></returns>
-        private async Task<Instance> StartProcessAndGotoNextTask(Instance instance)
+        private async Task<bool> Authorize(string org, string app, Party party)
         {
-            string startEvent = await _altinnApp.OnInstantiateGetStartEvent(instance);
+            bool authorized = false;
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString(), null);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
-            if (startEvent != null)
+            if (response?.Response == null)
             {
-                UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
-
-                ProcessResult result = await _processService.ProcessStartAndGotoNextTask(instance, startEvent, userContext);
-
-                if (result != null)
-                {
-                    instance = result.Instance;
-                    foreach (InstanceEvent instanceEvent in result.Events)
-                    {
-                        if (instanceEvent.EventType.Equals("process:StartTask"))
-                        {
-                            // make sure app can run event on start task.
-                            await _altinnApp.OnStartProcessTask(instanceEvent.ProcessInfo.CurrentTask.ElementId, instance);
-                        }
-                    }
-
-                    // make sure we save the instance after app has handled events
-                    return await _instanceService.UpdateInstance(instance);
-                }                                
+                _logger.LogInformation($"// Instances Controller // Authorization of instantiation failed with request: {JsonConvert.SerializeObject(request)}.");
+                return authorized;
             }
 
-            return null;
+            authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
+            return authorized;
         }
 
         private async Task<Party> LookupParty(Instance instanceTemplate)
@@ -501,7 +471,7 @@ namespace Altinn.App.Api.Controllers
             {
                 instancePart = reader.Parts[0];
             }
-                        
+
             if (instancePart != null)
             {
                 reader.Parts.Remove(instancePart);
@@ -509,8 +479,8 @@ namespace Altinn.App.Api.Controllers
                 using StreamReader streamReader = new StreamReader(instancePart.Stream, Encoding.UTF8);
                 string content = streamReader.ReadToEndAsync().Result;
 
-                instanceTemplate = JsonConvert.DeserializeObject<Instance>(content);                
-            }                        
+                instanceTemplate = JsonConvert.DeserializeObject<Instance>(content);
+            }
 
             return instanceTemplate;
         }
