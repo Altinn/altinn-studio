@@ -372,6 +372,14 @@ namespace Altinn.App.Api.Controllers
             int counter = 0;
             do
             {
+                string altinnTaskType = instance.Process.CurrentTask?.AltinnTaskType;
+
+                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instance.Id);
+                if (!authorized)
+                {
+                    return Forbid();
+                }
+
                 if (!await CanTaskBeEnded(instance, currentTaskId))
                 {
                     return Conflict($"Instance is not valid for task {currentTaskId}. Automatic completion of process is stopped");
