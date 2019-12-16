@@ -16,9 +16,11 @@ fixture('Creating/Reading/Updating/Deleting services')
     t.ctx.existingService = "autotestdeploy";
     t.ctx.deltMessage = "Du har delt dine endringer";
     t.ctx.syncMessage = "Endringene er validert";
+    t.ctx.ingenSkriveApper = "Vi fant ingen apper som du har skriverettigheter til";
+    t.ctx.ingenLeseApper = "Vi fant ingen apper som du eksplisitt har fått leserettigheter til";
     await t
-      .useRole(AutoTestUser)
       .maximizeWindow()
+      .useRole(AutoTestUser)
   })
   .after(async (t) => {
     //await dash.logout();
@@ -44,6 +46,6 @@ test('Error messages when app does not exist', async () => {
     .expect(Selector('h3').withExactText('servicedeploy').exists).ok({ timeout:120000 }) //To wait until the apps are loaded
     .typeText(dash.serviceSearch, "cannotfindapp")
     .pressKey("enter")
-    .expect(dash.skriveRettigheter.exists).ok({ timeout:120000 })
-    .expect(dash.rettigheterMelding.exists).ok({ timeout:120000 })
+    .expect(Selector('p').withText(t.ctx.ingenSkriveApper)).ok({ timeout:120000 })
+    .expect(Selector('p').withText(t.ctx.ingenLeseApper)).ok({ timeout:120000 })
 });

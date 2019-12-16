@@ -1,5 +1,4 @@
-import { t, ClientFunction } from 'testcafe';
-import axeCheck from 'axe-testcafe';
+import { t, ClientFunction, Selector } from 'testcafe';
 import DesignerPage from '../page-objects/designerPage';
 import HeaderPage from '../page-objects/headerPage'
 import { AutoTestUser } from '../TestData';
@@ -16,10 +15,14 @@ fixture('Navigating the App designer')
   .before(async () => {
   })
   .beforeEach(async t => {
+    t.ctx.at21 = "AT21-miljøet";
+    t.ctx.at22 = "AT22-miljøet";
+    t.ctx.at23 = "AT23-miljøet";
+    t.ctx.tt = "TT-miljøet";
     await t
-      .useRole(AutoTestUser)
       .maximizeWindow()
-      .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/about');
+      .useRole(AutoTestUser)
+      .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/about');
   })
   .after(async () => {
   })
@@ -29,11 +32,6 @@ test('Om tab navigation', async () => {
     .click(designerPage.omNavigationTab)
     .hover(designerPage.leftDrawerMenu)
     .expect(designerPage.omLeftMenuItems[0].visible).ok()
-    .expect(designerPage.omLeftMenuItems[1].visible).ok()
-    .expect(designerPage.omLeftMenuItems[2].visible).ok()
-    .expect(designerPage.omLeftMenuItems[3].visible).ok()
-    .expect(designerPage.omLeftMenuItems[4].visible).ok()
-    .expect(designerPage.omLeftMenuItems[5].visible).ok()
 });
 
 test('Lage tab navigation', async () => {
@@ -43,8 +41,6 @@ test('Lage tab navigation', async () => {
     .expect(designerPage.lageLeftMenuItems[0].visible).ok()
     .expect(designerPage.lageLeftMenuItems[1].visible).ok()
     .expect(designerPage.lageLeftMenuItems[2].visible).ok()
-    .expect(designerPage.lageLeftMenuItems[3].visible).ok()
-    .expect(designerPage.lageLeftMenuItems[4].visible).ok()
 });
 
 test('Språk tab navigation', async () => {
@@ -52,13 +48,16 @@ test('Språk tab navigation', async () => {
     .click(designerPage.spraakNavigationTab)
     .hover(designerPage.leftDrawerMenu)
     .expect(designerPage.spraakLeftMenuItems[0].visible).ok()
-    .expect(designerPage.spraakLeftMenuItems[1].visible).ok()
 });
 
 test('Deploy tab navigation', async () => {
   await t
     .click(designerPage.deployNavigationTab)
-    .expect(getLocation()).contains('deploy');
+    .expect(getLocation()).contains('deploy')
+    .expect(Selector('p').withText(t.ctx.at21).visible).ok()
+    .expect(Selector('p').withText(t.ctx.at22).visible).ok()
+    .expect(Selector('p').withText(t.ctx.at23).visible).ok()
+    .expect(Selector('p').withText(t.ctx.tt).visible).ok();
 });
 
 test('Open Gitea repository Navigation', async () => {
@@ -68,5 +67,5 @@ test('Open Gitea repository Navigation', async () => {
     .expect(headerPage.openGiteaRepo.exists).ok()
     .click(headerPage.openGiteaRepo)
     .switchToMainWindow()
-    .expect(getLocation()).contains('repos/AutoTest/auto_test');
+    .expect(getLocation()).contains('repos/ttd/autodeploy');
 });
