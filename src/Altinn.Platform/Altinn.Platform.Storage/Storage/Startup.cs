@@ -9,6 +9,8 @@ using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Repository;
 using AltinnCore.Authentication.JwtCookie;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -123,6 +125,8 @@ namespace Altinn.Platform.Storage
 
             services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
             services.AddTransient<IAuthorizationHandler, ScopeAccessHandler>();
+
+            services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
