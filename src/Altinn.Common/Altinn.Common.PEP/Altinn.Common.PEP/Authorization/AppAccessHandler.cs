@@ -32,6 +32,7 @@ namespace Altinn.Common.PEP.Authorization
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="pdp">The pdp</param>
         /// <param name="pepSettings">The settings for pep</param>
+        /// <param name="logger">The logger. </param>
         public AppAccessHandler(
             IHttpContextAccessor httpContextAccessor,
             IPDP pdp,
