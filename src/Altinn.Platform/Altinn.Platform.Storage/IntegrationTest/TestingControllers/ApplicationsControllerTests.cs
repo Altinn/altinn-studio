@@ -60,7 +60,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             string requestUri = $"{BasePath}/applications?appId={org}/{appName}";
 
             Application appInfo = CreateApplication(org, appName);
-      
+
             DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not found", HttpStatusCode.NotFound);
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
@@ -68,7 +68,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             applicationRepository.Setup(s => s.Create(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
 
             HttpClient client = GetTestClient(applicationRepository.Object);
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetOrgToken("testorg");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
@@ -88,12 +88,12 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
         /// <summary>
         /// Scenario:
-        ///   Post a simple but valid Application instance but user has too low authentication level.
+        ///   Post a simple, valid Application instance but client has incorrect scope.
         /// Expected result:
         ///   Returns HttpStatus Forbidden and no Application instance get returned.
         /// </summary>
         [Fact]
-        public async void Post_UserHastooLowAuthLv_ReturnsStatusForbidden()
+        public async void Post_ClientWithIncorrectScope_ReturnsStatusForbidden()
         {
             // Arrange
             string org = "test";
@@ -109,7 +109,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             applicationRepository.Setup(s => s.Create(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
 
             HttpClient client = GetTestClient(applicationRepository.Object);
-            string token = PrincipalUtil.GetToken(1, 0);
+            string token = PrincipalUtil.GetOrgToken(org: "testOrg", scope: "altinn:invalidScope");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
@@ -123,12 +123,12 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
         /// <summary>
         /// Scenario:
-        ///   Post a simple but valid Application instance but response is deny.
+        ///   Post a simple but valid Application instance but scope claim is empty.
         /// Expected result:
         ///   Returns HttpStatus Forbidden and no Application instance get returned.
         /// </summary>
         [Fact]
-        public async void Post_ReponseIsDeny_ReturnsStatusForbidden()
+        public async void Post_ClientWithEmptyScope_ReturnsStatusForbidden()
         {
             // Arrange
             string org = "test";
@@ -144,7 +144,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             applicationRepository.Setup(s => s.Create(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
 
             HttpClient client = GetTestClient(applicationRepository.Object);
-            string token = PrincipalUtil.GetToken(2);
+            string token = PrincipalUtil.GetOrgToken("testorg", scope: string.Empty);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
@@ -177,7 +177,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
 
             HttpClient client = GetTestClient(applicationRepository.Object);
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetOrgToken("testorg");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
@@ -193,12 +193,12 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
         /// <summary>
         /// Scenario:
-        ///   Soft delete an existing application but user has too low authentication level. 
+        ///   Soft delete an existing application but empty scope claim in context.
         /// Expected result:
         ///   Returns HttpStatus Forbidden and application will not be updated
         /// </summary>
         [Fact]
-        public async void Delete_UserHastooLowAuthLv_ReturnsStatusForbidden()
+        public async void Delete_ClientWithEmptyScope_ReturnsStatusForbidden()
         {
             // Arrange
             string org = "test";
@@ -213,7 +213,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
             HttpClient client = GetTestClient(applicationRepository.Object);
 
-            string token = PrincipalUtil.GetToken(1, 0);
+            string token = PrincipalUtil.GetOrgToken("testorg", scope: string.Empty);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
@@ -227,12 +227,12 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
         /// <summary>
         /// Scenario:
-        ///   Soft delete an existing application but response is deny.
+        ///   Soft delete an existing application but inccorrect scope claim in context.
         /// Expected result:
         ///   Returns HttpStatus Forbidden and application will not be updated
         /// </summary>
         [Fact]
-        public async void Delete_ResponseIsDeny_ReturnsStatusForbidden()
+        public async void Delete_ClientWithIncorrectScope_ReturnsStatusForbidden()
         {
             // Arrange
             string org = "test";
@@ -247,7 +247,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
             HttpClient client = GetTestClient(applicationRepository.Object);
 
-            string token = PrincipalUtil.GetToken(2);
+            string token = PrincipalUtil.GetOrgToken("testorg", scope: "altinn:invalidScope");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
@@ -283,7 +283,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
             HttpClient client = GetTestClient(applicationRepository.Object);
 
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetOrgToken("testorg");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // Act
@@ -318,7 +318,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
             HttpClient client = GetTestClient(applicationRepository.Object);
 
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetOrgToken("testorg");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             Application updatedApp = CreateApplication(org, appName);
