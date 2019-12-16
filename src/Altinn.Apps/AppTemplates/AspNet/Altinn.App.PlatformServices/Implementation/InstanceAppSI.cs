@@ -51,9 +51,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceGuid)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
 
             string apiUrl = $"instances/{instanceIdentifier}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
@@ -68,9 +68,20 @@ namespace Altinn.App.Services.Implementation
             }
             else
             {
-                _logger.LogError($"Unable to fetch instance with instance id {instanceId}");
+                _logger.LogError($"Unable to fetch instance with instance id {instanceGuid}");
                 throw new PlatformClientException(response);
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<Instance> GetInstance(Instance instance)
+        {
+            string app = instance.AppId.Split("/")[1];
+            string org = instance.Org;
+            int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+
+            return await GetInstance(app, org, instanceOwnerId, instanceGuid);
         }
 
         /// <inheritdoc />

@@ -123,17 +123,24 @@ namespace Altinn.App.Services.Implementation
         {
             if (instance.Process != null)
             {
-                string validNextEmentId = CheckNextElementId(instance, nextElementId);
-
-                ProcessStateChange result = new ProcessStateChange
+                try
                 {
-                    OldProcessState = instance.Process,                  
-                };
+                    string validNextEmentId = CheckNextElementId(instance, nextElementId);
 
-                result.Events = MoveProcessToNext(instance, validNextEmentId, userContext);
-                result.NewProcessState = instance.Process;
-                
-                return result;
+                    ProcessStateChange result = new ProcessStateChange
+                    {
+                        OldProcessState = instance.Process,
+                    };
+
+                    result.Events = MoveProcessToNext(instance, validNextEmentId, userContext);
+                    result.NewProcessState = instance.Process;
+
+                    return result;
+                }
+                catch
+                {
+                    _logger.LogError($"Unable to get next for {instance.Id}");
+                }
             }
 
             return null;

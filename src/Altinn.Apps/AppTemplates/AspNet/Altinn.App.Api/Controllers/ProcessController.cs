@@ -28,7 +28,7 @@ namespace Altinn.App.Api.Controllers
     [Authorize]
     public class ProcessController : ControllerBase
     {
-        private const int MAX_ITERATIONS_ALLOWED = 1000;
+        private const int MAX_ITERATIONS_ALLOWED = 100;
         private readonly ILogger<ProcessController> _logger;
         private readonly IInstance _instanceService;
         private readonly IProcess _processService;
@@ -146,8 +146,13 @@ namespace Altinn.App.Api.Controllers
         private async Task<Instance> UpdateInstanceAndDispatchEvents(Instance instance, ProcessStateChange processStateChange)
         {
             await NotifyAppAboutEvents(_altinnApp, instance, processStateChange.Events);
+
             Instance updatedInstance = await _instanceService.UpdateProcess(instance);
             await _processService.DispatchProcessEventsToStorage(updatedInstance, processStateChange.Events);
+
+            // remember to get the instance anew since AppBase can have updated a data element or stored something in the database.
+            updatedInstance = await _instanceService.GetInstance(updatedInstance);
+
             return updatedInstance;
         }
 
@@ -367,6 +372,14 @@ namespace Altinn.App.Api.Controllers
             int counter = 0;
             do
             {
+                string altinnTaskType = instance.Process.CurrentTask?.AltinnTaskType;
+
+                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instance.Id);
+                if (!authorized)
+                {
+                    return Forbid();
+                }
+
                 if (!await CanTaskBeEnded(instance, currentTaskId))
                 {
                     return Conflict($"Instance is not valid for task {currentTaskId}. Automatic completion of process is stopped");
@@ -381,22 +394,31 @@ namespace Altinn.App.Api.Controllers
 
                 string nextElement = nextElements.First();
 
-                ProcessStateChange nextResult =  _processService.ProcessNext(instance, nextElement, User);
+                try
+                {
+                    ProcessStateChange nextResult = _processService.ProcessNext(instance, nextElement, User);
 
-                if (nextResult != null)
-                {
-                    instance = await UpdateInstanceAndDispatchEvents(instance, nextResult);
-                    
-                    currentTaskId = instance.Process.CurrentTask?.ElementId;
+                    if (nextResult != null)
+                    {
+                        instance = await UpdateInstanceAndDispatchEvents(instance, nextResult);
+
+                        currentTaskId = instance.Process.CurrentTask?.ElementId;
+                    }
+                    else
+                    {
+                        return Conflict($"Cannot complete process. Unable to move to next element {nextElement}");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    return Conflict($"Cannot complete process. Unable to move to next element {nextElement}");
+                    _logger.LogError($"Error in completeProcess {ex}");
                 }
+
+                counter++;
             }
             while (instance.Process.EndEvent == null || counter > MAX_ITERATIONS_ALLOWED);
 
-            if (counter > 1000)
+            if (counter > MAX_ITERATIONS_ALLOWED)
             {
                 _logger.LogError($"More than {counter} iterations detected in process. Possible loop. Fix app {org}/{app}'s process definition!");
                 return StatusCode(500, $"More than {counter} iterations detected in process. Possible loop. Fix app process definition!");

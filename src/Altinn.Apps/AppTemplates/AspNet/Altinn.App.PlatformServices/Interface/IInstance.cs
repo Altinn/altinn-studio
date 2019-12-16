@@ -16,6 +16,11 @@ namespace Altinn.App.Services.Interface
         Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId);
 
         /// <summary>
+        /// Gets the instance anew. Instance must have set appId, instanceOwner.PartyId and Id.
+        /// </summary>
+        Task<Instance> GetInstance(Instance instance);
+
+        /// <summary>
         /// Gets the instance list of a given instance owner.
         /// </summary>
         Task<List<Instance>> GetInstances(int instanceOwnerPartyId);
