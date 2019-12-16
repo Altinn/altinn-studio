@@ -150,6 +150,7 @@ namespace AltinnCore.Designer.Services
                     deployDefinitionId = _azureDevOpsSettings.DeployDefinitonIdProd;
                     break;
             }
+
             return deployDefinitionId;
         }
 
