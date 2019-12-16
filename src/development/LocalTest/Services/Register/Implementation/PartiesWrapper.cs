@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
+using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using LocalTest.Configuration;
 using LocalTest.Services.Register.Interface;
@@ -14,10 +15,16 @@ namespace LocalTest.Services.Register.Implementation
     public class PartiesWrapper : IParties
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly IPersons _personService;
+        private readonly IOrganizations _organizationService;
 
-        public PartiesWrapper(IOptions<LocalPlatformSettings> localPlatformSettings)
+
+        public PartiesWrapper(IOptions<LocalPlatformSettings> localPlatformSettings,
+            IPersons personsService, IOrganizations organizationService)
         {
             _localPlatformSettings = localPlatformSettings.Value;
+            this._organizationService = organizationService;
+            this._personService = personsService;
         }
 
         /// <inheritdoc />
@@ -31,6 +38,15 @@ namespace LocalTest.Services.Register.Implementation
                 party = (Party)JsonConvert.DeserializeObject(content, typeof(Party));
             }
 
+
+            if (party.PartyTypeName.Equals(PartyType.Person))
+            {
+                party.Person = await _personService.GetPerson(party.SSN);
+            }
+            else if (party.PartyTypeName.Equals(PartyType.Organisation))
+            {
+                party.Organization = await _organizationService.GetOrganization(party.OrgNumber);
+            }
             return party;
         }
 

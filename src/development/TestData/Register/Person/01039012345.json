@@ -1,0 +1,19 @@
+{
+  "SSN": "01039012345",
+  "Name": "Sophie Salt",
+  "FirstName": "Sophie",
+  "MiddleName": "",
+  "LastName": "Salt",
+  "TelephoneNumber": "12345678",
+  "MobileNumber": "87654321",
+  "MailingAddress": "ddg@worldwonders.no",
+  "MailingPostalCode": "0157",
+  "MailingPostalCity": "Oslo",
+  "AddressMunicipalNumber": "0301",
+  "AddressMunicipalName": "Oslo",
+  "AddressStreetName": "Engateioslo",
+  "AddressHouseNumber": "9",
+  "AddressHouseLetter": "A",
+  "AddressPostalCode": "0554",
+  "AddressCity": "Oslo"
+}
