@@ -323,7 +323,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             DataElement dataElement = await _instanceClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");
 
-            string requestUri = $"{versionPrefix}/instances/{instance.Id.Split("/")[1]}/data/{dataElement.Id}";
+            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             using HttpResponseMessage response2 = await _client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead);
 
