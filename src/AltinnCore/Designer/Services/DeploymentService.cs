@@ -152,5 +152,6 @@ namespace AltinnCore.Designer.Services
             }
             return deployDefinitionId;
         }
+
     }
 }
