@@ -1,6 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
-using Altinn.App.Services.Models;
+using Altinn.Platform.Authorization.Services.Interface;
+using AltinnCore.ServiceLibrary.Models;
 using LocalTest.Configuration;
 using LocalTest.Services.Profile.Interface;
 using Microsoft.Extensions.Options;
@@ -15,9 +16,12 @@ namespace LocalTest.Services.Profile.Implementation
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
 
-        public UserProfilesWrapper(IOptions<LocalPlatformSettings> localPlatformSettings)
+        private readonly LocalTest.Services.Register.Interface.IParties _partiesService;
+
+        public UserProfilesWrapper(IOptions<LocalPlatformSettings> localPlatformSettings, LocalTest.Services.Register.Interface.IParties partiesService)
         {
             _localPlatformSettings = localPlatformSettings.Value;
+            _partiesService = partiesService;
         }
 
         /// <inheritdoc />
@@ -31,7 +35,8 @@ namespace LocalTest.Services.Profile.Implementation
                 user = (UserProfile)JsonConvert.DeserializeObject(content, typeof(UserProfile));
             }
 
-            return user;
+            user.Party = await _partiesService.GetParty(user.PartyId);
+           return user;
         }
     }
 }

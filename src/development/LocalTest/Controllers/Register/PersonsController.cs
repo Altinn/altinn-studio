@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Altinn.App.Services.Models;
+using AltinnCore.ServiceLibrary.Models;
 using LocalTest.Services.Register.Interface;
 using Microsoft.AspNetCore.Mvc;
 

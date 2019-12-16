@@ -1,0 +1,88 @@
+[
+  {
+    "partyId": "1337",
+    "partyTypeName": 1,
+    "ssn": "01038812345",
+    "unitType": null,
+    "name": "Sophie Salt",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  },
+  {
+    "partyId": "500000",
+    "partyTypeName": 2,
+    "OrgNumber": "897069650",
+    "unitType": "AS",
+    "name": "DDG Fitness AS",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": [
+      {
+        "partyId": "500001",
+        "partyTypeName": 2,
+        "OrgNumber": "897069651",
+        "unitType": "BEDR",
+        "name": "DDG Fitness Bergen",
+        "isDeleted": false,
+        "onlyHierarchyElementWithNoAccess": false,
+        "person": null,
+        "organisation": null,
+        "childParties": null
+      },
+      {
+        "partyId": "500002",
+        "partyTypeName": 2,
+        "OrgNumber": "897069652",
+        "unitType": "BEDR",
+        "name": "DDG Fitness Oslo",
+        "isDeleted": false,
+        "onlyHierarchyElementWithNoAccess": false,
+        "person": null,
+        "organisation": null,
+        "childParties": null
+      },
+      {
+        "partyId": "500003",
+        "partyTypeName": 2,
+        "OrgNumber": "897069653",
+        "unitType": "BEDR",
+        "name": "DDG Fitness Trondheim",
+        "isDeleted": false,
+        "onlyHierarchyElementWithNoAccess": false,
+        "person": null,
+        "organisation": null,
+        "childParties": null
+      }
+
+    ]
+  },
+  {
+    "partyId": "500600",
+    "partyTypeName": 2,
+    "OrgNumber": "897069631",
+    "unitType": "AS",
+    "name": "EAS Health Consulting",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  },
+  {
+    "partyId": "500700",
+    "partyTypeName": 2,
+    "OrgNumber": "950474084",
+    "unitType": "BRL",
+    "name": "Oslos Vakreste Borettslag",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  }
+]

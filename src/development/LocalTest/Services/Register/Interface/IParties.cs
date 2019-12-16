@@ -1,5 +1,6 @@
-using System.Threading.Tasks;
 using AltinnCore.ServiceLibrary.Models;
+using System.Threading.Tasks;
+
 
 namespace LocalTest.Services.Register.Interface
 {
