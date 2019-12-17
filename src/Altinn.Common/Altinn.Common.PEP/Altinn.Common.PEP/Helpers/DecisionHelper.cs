@@ -23,7 +23,7 @@ namespace Altinn.Common.PEP.Helpers
         private const string DefaultIssuer = "Altinn";
         private const string DefaultType = "string";
 
-        public static XacmlJsonRequestRoot CreateDecisionRequest(string org, string app, ClaimsPrincipal user, string actionType, string instanceOwnerPartyId, string instanceId)
+        public static XacmlJsonRequestRoot CreateDecisionRequest(string org, string app, ClaimsPrincipal user, string actionType, string instanceOwnerPartyId, string instanceGuid)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
             request.AccessSubject = new List<XacmlJsonCategory>();
@@ -32,7 +32,7 @@ namespace Altinn.Common.PEP.Helpers
 
             request.AccessSubject.Add(CreateSubjectCategory(user.Claims));
             request.Action.Add(CreateActionCategory(actionType));
-            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId, instanceId));
+            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId, instanceGuid));
 
             XacmlJsonRequestRoot jsonRequest = new XacmlJsonRequestRoot() { Request = request };
 
