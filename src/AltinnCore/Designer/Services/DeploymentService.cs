@@ -143,7 +143,7 @@ namespace AltinnCore.Designer.Services
                 case "at23":
                     deployDefinitionId = _azureDevOpsSettings.DeployDefinitionIdAT;
                     break;
-                case "tt":
+                case "tt02":
                     deployDefinitionId = _azureDevOpsSettings.DeployDefinitionIdTT;
                     break;
                 case "production":
