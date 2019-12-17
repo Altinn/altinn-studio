@@ -75,7 +75,7 @@ namespace Altinn.App.Services.Interface
         /// <param name="instance">The data to validate</param>
         /// <param name="validationResults">Object containing any validation errors/warnings</param>
         /// <returns>Task to indicate when validation is completed</returns>
-        Task<bool> RunValidation(object instance, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
+        Task RunValidation(object instance, ModelStateDictionary validationResults);
 
         /// <summary>
         /// Is called to run custom calculation events defined by app developer.

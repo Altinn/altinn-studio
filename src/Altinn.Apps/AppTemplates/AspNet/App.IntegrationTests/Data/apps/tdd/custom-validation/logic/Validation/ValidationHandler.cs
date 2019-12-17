@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 
 using Altinn.App.Services.Interface;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
 {
@@ -29,18 +30,16 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         ///      validationResults.Add(new ValidationResult([error message], new List<string>() { [affected field id] } ));
         ///  }
         /// </example>
-        public void Validate(object instance, ICollection<ValidationResult> validationResults)
+        public void Validate(object instance, ModelStateDictionary validationResults)
         {
             if (instance.GetType() == typeof(Skjema))
             {
                 Skjema model = (Skjema)instance;
                 if (model.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value == 1234)
                 {
-                    validationResults.Add(
-                        new ValidationResult(
-                            "Value cannot be 1234",
-                            new List<string>() { "opplysningerOmArbeidstakerengrp8819.skjemainstansgrp8854.journalnummerdatadef33316.value" }
-                        )
+                    validationResults.AddModelError(
+                        "opplysningerOmArbeidstakerengrp8819.skjemainstansgrp8854.journalnummerdatadef33316.value",
+                        "Value cannot be 1234"
                     );
                 }
             }

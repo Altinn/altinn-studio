@@ -31,8 +31,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// </example>
         public bool Calculate(object instance)
         {
-            Type instanceType = instance.GetType();
-            Type skjemaType = typeof(Skjema);
             bool changed = false;
             if (instance.GetType() == typeof(Skjema))
             {
