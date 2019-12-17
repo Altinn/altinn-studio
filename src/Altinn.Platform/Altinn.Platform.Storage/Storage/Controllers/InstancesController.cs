@@ -484,10 +484,8 @@ namespace Altinn.Platform.Storage.Controllers
 
             string org = instance.Org;
             string app = instance.AppId.Split("/")[1];
-            string instanceOwnerPartyId = instance.InstanceOwner?.PartyId;
-            string instanceGuid = instance.Id.Split("/")[1];
             
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, instanceOwnerPartyId, instanceGuid);
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, null, instance.Id);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
             if (response?.Response == null)
             {
