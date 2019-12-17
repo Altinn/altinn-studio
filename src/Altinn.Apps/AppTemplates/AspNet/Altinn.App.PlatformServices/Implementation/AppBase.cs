@@ -65,11 +65,11 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task OnEndProcess(string taskId, Instance instance)
+        public async Task OnEndProcess(string endEvent, Instance instance)
         {
-            _logger.LogInformation($"OnEndProcess for {instance.Id}, taskId: {taskId}");
+            _logger.LogInformation($"OnEndProcess for {instance.Id}, endEvent: {endEvent}");
 
-            if (taskId != null && taskId.Equals("EndEvent_1"))
+            if (endEvent != null && endEvent.Equals("EndEvent_1"))
             {
                 await _pdfService.GenerateAndStoreReceiptPDF(instance);
             }
@@ -140,8 +140,8 @@ namespace Altinn.App.Services.Implementation
                 foreach (DataElement dataElement in instance.Data.FindAll(de => de.DataType == dataType.Id))
                 {
                     dataElement.Locked = true;
-                    _logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType}.");
-                    await _dataService.Update(instance.Id, dataElement);   
+                    _logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType.Id}.");
+                    await _dataService.Update(instance.Id, dataElement);
                 }
             }
         }

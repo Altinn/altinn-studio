@@ -41,7 +41,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="org">application owner id</param>
         /// <returns>list of all applications for a given owner</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
+        [Authorize]
         [HttpGet("{org}")]
         [ProducesResponseType(typeof(List<Application>), 200)]
         public async Task<ActionResult> GetMany(string org)
@@ -80,7 +80,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns></returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
+        [Authorize]
         [HttpGet("{org}/{app}")]
         [ProducesResponseType(typeof(Application), 200)]
         public async Task<ActionResult> GetOne(string org, string app)
@@ -116,7 +116,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="appId">the unique identification of the application to be created</param>
         /// <param name="application">the application metadata object to store</param>
         /// <returns>the applicaiton metadata object</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_APPDEPLOY)]
         [HttpPost]
         [ProducesResponseType(typeof(Application), 201)]
         public async Task<ActionResult> Post(string appId, [FromBody] Application application)
@@ -231,7 +231,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// Updates an application metadata object.
         /// </summary>
         /// <returns>the updated application metadata object</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_APPDEPLOY)]
         [HttpPut("{org}/{app}")]
         [ProducesResponseType(typeof(Application), 200)]
         public async Task<ActionResult> Put(string org, string app, [FromBody] Application application)
@@ -311,7 +311,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="hard">if true hard delete will take place</param>
         /// <returns>(200) updated application object, or no content if hard delete</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_APPDEPLOY)]
         [HttpDelete("{org}/{app}")]
         [ProducesResponseType(typeof(Application), 202)]
         [ProducesResponseType(204)]

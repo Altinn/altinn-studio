@@ -1,3 +1,4 @@
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Configuration;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -46,6 +48,20 @@ namespace Altinn.Common.PEP.Implementation
         {
             XacmlJsonResponse xacmlJsonResponse = null;
             string apiUrl = $"decision";
+
+            if (_pepSettings.DisablePEP)
+            {
+                return new XacmlJsonResponse
+                {
+                    Response = new List<XacmlJsonResult>()
+                    {
+                        new XacmlJsonResult
+                        {
+                            Decision = XacmlContextDecision.Permit.ToString(),
+                        }
+                    },
+                };
+            }
 
             try
             {

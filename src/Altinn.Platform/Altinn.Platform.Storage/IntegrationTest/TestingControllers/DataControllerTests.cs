@@ -30,10 +30,9 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         private string _validToken_level0;
 
         private readonly HttpClient _client;
-        private readonly PlatformStorageFixture _fixture;
 
         /// <summary>
-        /// Initializes a new instane of the <see cref="DataControllerTests"/> class.
+        /// Initializes a new instance of the <see cref="DataControllerTests"/> class.
         /// </summary>
         /// <param name="fixture">Platform storage fixture.</param>
         public DataControllerTests(PlatformStorageFixture fixture)

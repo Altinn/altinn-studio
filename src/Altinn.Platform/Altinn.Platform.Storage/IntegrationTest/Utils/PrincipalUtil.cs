@@ -4,6 +4,9 @@ using System.Security.Claims;
 using Altinn.Platform.Storage.IntegrationTest.Mocks;
 using AltinnCore.Authentication.Constants;
 
+#pragma warning disable 1591
+#pragma warning disable SA1600
+
 namespace Altinn.Platform.Storage.IntegrationTest.Utils
 {
     public static class PrincipalUtil
@@ -29,7 +32,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Utils
             return token;
         }
 
-        public static string GetOrgToken(string org, int orgNumber = 111111111)
+        public static string GetOrgToken(string org, int orgNumber = 111111111, string scope = "altinn:appdeploy")
         {
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no";
@@ -37,6 +40,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Utils
             claims.Add(new Claim(AltinnCoreClaimTypesOrgNumber, orgNumber.ToString(), ClaimValueTypes.Integer32, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "Mock", ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32, issuer));
+            claims.Add(new Claim("scope", scope, ClaimValueTypes.String, "maskinporten"));
 
             ClaimsIdentity identity = new ClaimsIdentity("mock-org");
             identity.AddClaims(claims);
