@@ -311,35 +311,20 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository.</param>
-        /// <param name="appTitle">The title of the app to create.</param>
         /// <returns>
         /// An indication if app was created successful or not.
         /// </returns>
         [Authorize]
         [HttpPost]
-        public RepositoryModel CreateService(string org, string repository, string appTitle)
+        public RepositoryModel CreateApp(string org, string repository)
         {
-            ServiceConfiguration serviceConfiguration = new ServiceConfiguration
+            var config = new ServiceConfiguration
             {
                 RepositoryName = repository,
-                ServiceName = appTitle,
+                ServiceName = repository,
             };
 
-            IList<ServiceConfiguration> apps = _repository.GetServices(org);
-            List<string> appNames = apps.Select(c => c.RepositoryName.ToLower()).ToList();
-            bool appAlreadyExist = appNames.Contains(serviceConfiguration.RepositoryName.ToLower());
-
-            if (!appAlreadyExist)
-            {
-                return _repository.CreateService(org, serviceConfiguration);
-            }
-            else
-            {
-                return new RepositoryModel
-                {
-                    RepositoryCreatedStatus = HttpStatusCode.UnprocessableEntity,
-                };
-            }
+            return _repository.CreateService(org, config);
         }
 
         /// <summary>

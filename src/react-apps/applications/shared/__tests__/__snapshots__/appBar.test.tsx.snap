@@ -29,6 +29,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
               href="/"
             >
               <img
+                alt="Altinn logo"
                 src="https://altinncdn.no/img/altinn_logo_header.png"
               />
             </a>
@@ -37,9 +38,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
         <div
           className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-true"
         >
-          <div
-            className="MuiGrid-root MuiGrid-item"
-          />
+          
         </div>
       </div>
     </div>
@@ -76,6 +75,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
               href="/"
             >
               <img
+                alt="Altinn logo"
                 src="https://altinncdn.no/img/altinn_logo_header.png"
               />
             </a>
@@ -84,9 +84,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
         <div
           className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-true"
         >
-          <div
-            className="MuiGrid-root MuiGrid-item"
-          />
+          
         </div>
       </div>
     </div>
@@ -123,6 +121,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
               href="/"
             >
               <img
+                alt="Altinn logo"
                 src="https://altinncdn.no/img/altinn_logo_header.png"
               />
             </a>
@@ -131,9 +130,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
         <div
           className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-true"
         >
-          <div
-            className="MuiGrid-root MuiGrid-item"
-          />
+          
         </div>
       </div>
     </div>
@@ -170,6 +167,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
               href="/"
             >
               <img
+                alt="Altinn logo"
                 src="https://altinncdn.no/img/altinn_logo_header.png"
               />
             </a>
@@ -178,9 +176,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
         <div
           className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-true"
         >
-          <div
-            className="MuiGrid-root MuiGrid-item"
-          />
+          
         </div>
       </div>
     </div>
@@ -217,6 +213,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
               href="/"
             >
               <img
+                alt="Altinn logo"
                 src="https://altinncdn.no/img/altinn_logo_header.png"
               />
             </a>
@@ -225,9 +222,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
         <div
           className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-true"
         >
-          <div
-            className="MuiGrid-root MuiGrid-item"
-          />
+          
         </div>
       </div>
     </div>
@@ -264,6 +259,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
               href="/"
             >
               <img
+                alt="Altinn logo"
                 src="https://altinncdn.no/img/altinn_logo_header.png"
               />
             </a>
@@ -272,9 +268,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
         <div
           className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-xs-flex-end MuiGrid-grid-xs-true"
         >
-          <div
-            className="MuiGrid-root MuiGrid-item"
-          />
+          
         </div>
       </div>
     </div>

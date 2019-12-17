@@ -26,9 +26,9 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Create repository for the org.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="createRepoOption">the options for creating repository.</param>
+        /// <param name="options">the options for creating repository.</param>
         /// <returns>The newly created repository object.</returns>
-        Task<Repository> CreateRepository(string org, CreateRepoOption createRepoOption);
+        Task<Repository> CreateRepository(string org, CreateRepoOption options);
 
         /// <summary>
         /// Search the repository for the given parameters

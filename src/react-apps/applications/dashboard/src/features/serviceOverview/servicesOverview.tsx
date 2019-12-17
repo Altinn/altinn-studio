@@ -169,17 +169,16 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
     }
 
     return filteredServices.filter((service: any) => {
-        const isMatchOnName = service.name.toLowerCase().indexOf(this.state.searchString.toLocaleLowerCase()) > -1;
-        const isMatchOnDescription = service.description.toLowerCase()
-          .indexOf(this.state.searchString.toLocaleLowerCase()) > -1;
-        if (isMatchOnName || isMatchOnDescription) {
-          return service;
-        }
+      const searchFor = this.state.searchString.toLowerCase();
+      if (service.name.toLowerCase().indexOf(searchFor) > -1) return service;
+      if (service.owner.login.toLowerCase().indexOf(searchFor) > -1) return service;
+      if (service.owner.full_name.toLowerCase().indexOf(searchFor) > -1) return service;
+      if (service.description.toLowerCase().indexOf(searchFor) > -1) return service;
     });
 
   }
 
-  public updateSearchSting = (event: any) => {
+  public updateSearchString = (event: any) => {
     this.setState({
       searchString: event.target.value,
     });
@@ -238,18 +237,18 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
                 item={true}
                 xl={12}
                 lg={12}
-                md={10}
-                sm={10}
+                md={12}
+                sm={12}
                 xs={12}
                 className={classNames({
-                  [classes.alignToCenter]: isWidthUp('lg', this.props.width),
+                  [classes.alignToCenter]: isWidthUp('md', this.props.width),
                 })}
               >
                 <AltinnSearchInput
                   id={'service-search'}
                   ariaLabel={getLanguageFromKey('dashboard.search_service', this.props.language)}
                   placeholder={getLanguageFromKey('dashboard.search_service', this.props.language)}
-                  onChangeFunction={this.updateSearchSting}
+                  onChangeFunction={this.updateSearchString}
                 />
               </Grid>
             </Grid>
