@@ -23,11 +23,6 @@ namespace AltinnCore.Common.Helpers.Extensions
                 return input;
             }
 
-            if (input == "..")
-            {
-                throw new ArgumentOutOfRangeException(nameof(input));
-            }
-
             char[] illegalFileNameCharacters = System.IO.Path.GetInvalidFileNameChars();
             if (throwExceptionOnInvalidCharacters)
             {
@@ -36,9 +31,15 @@ namespace AltinnCore.Common.Helpers.Extensions
                     throw new ArgumentOutOfRangeException(nameof(input));
                 }
 
+                if (input == "..")
+                {
+                    throw new ArgumentOutOfRangeException(nameof(input));
+                }
+
                 return input;
             }
 
+            input = input.Replace("..", "");
             return illegalFileNameCharacters.Aggregate(input, (current, c) => current.Replace(c, '-'));
         }
     }
