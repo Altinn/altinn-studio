@@ -77,7 +77,7 @@ fixture('Deploy of app to a test environment tests')
       .expect(designer.deployConfirm.visible).ok()
       .click(designer.deployConfirm)
       .expect(designer.deployStatus.visible).ok({timeout: 60000})
-      .expect(designer.at21DeployTable.innerText).contains(newBuildVersion.toString(),{timeout: 300000}); //deploy succeeded
+      .expect(designer.at23DeployTable.innerText).contains(newBuildVersion.toString(),{timeout: 300000}); //deploy succeeded
 });
 
 test('App cannot build due to compilation error', async () => {

@@ -34,6 +34,17 @@ namespace App.IntegrationTests.Mocks.Services
             return Task.FromResult(instance);
         }
 
+        /// <inheritdoc />
+        public async Task<Instance> GetInstance(Instance instance)
+        {
+            string app = instance.AppId.Split("/")[1];
+            string org = instance.Org;
+            int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+
+            return await GetInstance(app, org, instanceOwnerId, instanceGuid);
+        }
+
         public Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {
             Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceId);
@@ -55,6 +66,11 @@ namespace App.IntegrationTests.Mocks.Services
             File.WriteAllText(instancePath, JsonConvert.SerializeObject(instance));
             
             return Task.FromResult(instance);
+        }
+
+        public Task<Instance> UpdateProcess(Instance instance)
+        {
+            return UpdateInstance(instance);
         }
 
         private Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)

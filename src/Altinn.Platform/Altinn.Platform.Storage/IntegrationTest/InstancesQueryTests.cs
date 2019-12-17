@@ -25,7 +25,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly InstanceClient _instanceClient;
         private readonly string _testOrg = "tdd";
         private readonly string _testAppId = "tdd/m1000";
-        private readonly int _testInstanceOwnerId = 1001;
         private readonly string _versionPrefix = "/storage/api/v1";
         private readonly string _validToken;
 

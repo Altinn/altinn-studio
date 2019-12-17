@@ -52,7 +52,7 @@ namespace Altinn.Common.PEP.Implementation
                 string requestJson = JsonConvert.SerializeObject(xacmlJsonRequest);
                 StringContent httpContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
                 _authClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                HttpResponseMessage response = _authClient.PostAsync(apiUrl, httpContent).Result;
+                HttpResponseMessage response = await _authClient.PostAsync(apiUrl, httpContent);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {

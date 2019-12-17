@@ -77,7 +77,7 @@ export default class DesignerPage {
     //"språk" navigation tab selectors
     this.spraakNavigationTab = Selector('div').withExactText('Språk');
     this.spraakLeftMenuItems = [
-      this.leftMenuList.withExactText('Tekst'),
+      this.leftMenuList.withExactText('Tekster'),
       this.leftMenuList.withExactText('Flere språk')
     ];
 
@@ -94,10 +94,10 @@ export default class DesignerPage {
     this.buildButton = Selector('button').withExactText('Bygg versjon');
     this.latestBuilds = Selector('.MuiGrid-root').withText('Tidligere bygg av applikasjonen').parent(0).sibling(3);
     this.deployButton = Selector('button').withExactText('Deploy ny versjon');
-    this.deployVersionDropDown = Selector('#deploy-select-at21');
+    this.deployVersionDropDown = Selector('#deploy-select-at23');
     this.noDeployVersionAvailable = Selector('div').withText('Du har ingen versjoner å deploye');
     this.deployVersionOptions = Selector('.select__menu-list');
-    this.at21DeployTable = Selector('#deploy-history-table-at21');
+    this.at23DeployTable = Selector('#deploy-history-table-at23');
     this.deployConfirm = Selector("#deployPopover");
     this.deployStatus = Selector('p').withText('deployer versjon');
 

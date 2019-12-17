@@ -1,9 +1,10 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
 using Altinn.Common.PEP.Interfaces;
-using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.IntegrationTest.Mocks;
 using Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
@@ -159,6 +160,59 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
             // Act
             HttpResponseMessage response = await client.PutAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: User has to low authentication level. 
+        /// Expected: Returns status forbidden.
+        /// </summary>
+        [Fact]
+        public async void Put_ToProcess_ReturnsStatusForbidden()
+        {
+            // Arrange
+            int instanceOwnerPartyId = 1;
+            string instanceGuid = "cbdb00b1-4134-490d-b02b-3e33f7d8da33";
+            string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/process";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+
+            Instance instance = new Instance
+            {
+                Id = instanceId,
+                AppId = "tdd/app",
+                Org = "tdd",
+                Process = new ProcessState
+                {
+                    Started = DateTime.UtcNow,
+                    StartEvent = "StartEvent_1",
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        ElementId = "Task_1",
+                        AltinnTaskType = "data"
+                    },
+                },
+            };
+
+            _instanceRepository
+                .Setup(r => r.GetOne(instanceId, instanceOwnerPartyId))
+                .Returns(Task.FromResult(instance));
+
+            HttpClient client = GetTestClient(_instanceRepository.Object);
+            string token = PrincipalUtil.GetToken(1, 0);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            ProcessState processState = new ProcessState
+            {
+                StartEvent = "StartEvent_1",
+                CurrentTask = null,
+                EndEvent = "EndEvent_1",
+                Ended = DateTime.UtcNow,                 
+            };
+
+            // Act
+            HttpResponseMessage response = await client.PutAsync(requestUri, new StringContent(JsonConvert.SerializeObject(processState), Encoding.UTF8, "application/json"));
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);

@@ -51,9 +51,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceGuid)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
 
             string apiUrl = $"instances/{instanceIdentifier}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
@@ -68,9 +68,20 @@ namespace Altinn.App.Services.Implementation
             }
             else
             {
-                _logger.LogError($"Unable to fetch instance with instance id {instanceId}");
+                _logger.LogError($"Unable to fetch instance with instance id {instanceGuid}");
                 throw new PlatformClientException(response);
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<Instance> GetInstance(Instance instance)
+        {
+            string app = instance.AppId.Split("/")[1];
+            string org = instance.Org;
+            int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+
+            return await GetInstance(app, org, instanceOwnerId, instanceGuid);
         }
 
         /// <inheritdoc />
@@ -119,6 +130,31 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 _logger.LogError($"Unable to update instance with instance id {instance.Id}");
+                throw new PlatformClientException(response);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<Instance> UpdateProcess(Instance instance)
+        {
+            ProcessState processState = instance.Process;
+
+            string apiUrl = $"instances/{instance.Id}/process";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            StringContent httpContent = new StringContent(processState.ToString(), Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await _client.PutAsync(apiUrl, httpContent);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                string instanceData = await response.Content.ReadAsStringAsync();
+                Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(instanceData);
+
+                return updatedInstance;
+            }
+            else
+            {
+                _logger.LogError($"Unable to update instance process with instance id {instance.Id}");
                 throw new PlatformClientException(response);
             }
         }

@@ -16,14 +16,24 @@ namespace Altinn.App.Services.Interface
         Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId);
 
         /// <summary>
+        /// Gets the instance anew. Instance must have set appId, instanceOwner.PartyId and Id.
+        /// </summary>
+        Task<Instance> GetInstance(Instance instance);
+
+        /// <summary>
         /// Gets the instance list of a given instance owner.
         /// </summary>
         Task<List<Instance>> GetInstances(int instanceOwnerPartyId);
 
         /// <summary>
-        /// update instance metadata
+        /// Update instance metadata in storage. Notice that only selected properties are updated.
         /// </summary>
         Task<Instance> UpdateInstance(Instance instance);
+
+        /// <summary>
+        /// Updates the process model of the instance and returns the updated instance.
+        /// </summary>        
+        Task<Instance> UpdateProcess(Instance instance);
 
         /// <summary>
         /// Creates an instance of an application with no data.

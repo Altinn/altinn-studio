@@ -28,7 +28,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
         private readonly InstanceClient instanceClient;
-        private string instanceId;
         private readonly string testOrg = "tests";
         private readonly string testAppId = "tests/sailor";
         private readonly int testInstanceOwnerId = 500;

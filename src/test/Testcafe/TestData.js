@@ -17,7 +17,7 @@ export default class TestData {
 export const AutoTestUser = Role(app.baseUrl, async t => {
   await t
       .click(loginPage.welcomeLoginButton)
-      .expect(loginPage.userInput.exists).ok()
+      .expect(loginPage.userInput.exists).ok({timeout: 30000})
       .typeText(loginPage.userInput, "AutoTest")
       .typeText(loginPage.passwordInput, "test123")
       .click(loginPage.loginButton)
