@@ -125,7 +125,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         [BindNever]
         public decimal orid { get; set; } = 27335;
         [MinLength(1)]
-        [MaxLength(11)]
+        [MaxLength(11, ErrorMessage = "ERROR: Max length is 11")]
         [XmlText()]
         public string value { get; set; }
     }
