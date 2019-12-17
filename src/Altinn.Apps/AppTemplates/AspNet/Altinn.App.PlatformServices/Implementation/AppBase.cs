@@ -141,7 +141,7 @@ namespace Altinn.App.Services.Implementation
                 {
                     dataElement.Locked = true;
                     _logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType.Id}.");
-                    await _dataService.Update(instance.Id, dataElement);
+                    await _dataService.Update(instance, dataElement);
                 }
             }
         }

@@ -385,7 +385,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
-                await DispatchEvent(InstanceEventType.Saved.ToString(), result);
+               
                 AddSelfLinks(Request, result);
             }
             catch (Exception e)
@@ -489,7 +489,7 @@ namespace Altinn.Platform.Storage.Controllers
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
             if (response?.Response == null)
             {
-                _logger.LogInformation($"// Process Controller // Authorization of moving process forward failed with request: {JsonConvert.SerializeObject(request)}.");
+                _logger.LogInformation($"// Instance Controller // Authorization to update Process failed: {JsonConvert.SerializeObject(request)}.");
                 return false;
             }
 
