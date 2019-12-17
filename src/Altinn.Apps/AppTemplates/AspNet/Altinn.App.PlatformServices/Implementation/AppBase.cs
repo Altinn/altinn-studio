@@ -41,7 +41,7 @@ namespace Altinn.App.Services.Implementation
 
         public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
 
-        public abstract Task<bool> RunValidation(object instance, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
+        public abstract Task RunValidation(object instance, ModelStateDictionary validationResults);
 
         public abstract Task<bool> RunCalculation(object instance);
 
