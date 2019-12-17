@@ -174,7 +174,12 @@ namespace Altinn.App.Services.Implementation
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
                 dynamic data = await _dataService.GetFormData(instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, Guid.Parse(dataElement.Id));
 
-                var actionContext = new ActionContext(_httpContextAccessor.HttpContext, new Microsoft.AspNetCore.Routing.RouteData(), new ActionDescriptor(), new ModelStateDictionary());
+                var actionContext = new ActionContext(
+                    _httpContextAccessor.HttpContext,
+                    new Microsoft.AspNetCore.Routing.RouteData(),
+                    new ActionDescriptor(),
+                    new ModelStateDictionary());
+
                 ValidationStateDictionary validationState = new ValidationStateDictionary();
                 _objectModelValidator.Validate(actionContext, validationState, null, data);
 
