@@ -118,12 +118,12 @@ namespace Altinn.App.Services.Interface
 
 
         /// <summary>
-        /// Updates the data element object metadata.
+        /// Updates the data element metadata object.
         /// </summary>
-        /// <param name="instanceId">The instance id</param>
+        /// <param name="instance">The instance which is not updated</param>
         /// <param name="dataElement">The data element with values to update</param>
         /// <returns>the updated data element</returns>
-        Task<DataElement> Update(string instanceId, DataElement dataElement);
+        Task<DataElement> Update(Instance instance, DataElement dataElement);
 
     }
 }
