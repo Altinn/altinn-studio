@@ -1,10 +1,8 @@
 using System;
-using System.ComponentModel.DataAnnotations;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
-
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 // using Altinn.App.Models; // Uncomment this line to refer to app model(s)
-using Altinn.App.Services.Interface;
+
 
 namespace Altinn.App.AppLogic.Validation
 {
@@ -38,7 +36,7 @@ namespace Altinn.App.AppLogic.Validation
         ///     }
         /// }
         /// </example>
-        public void Validate(object instance, ICollection<ValidationResult> validationResults)
+        public void Validate(object instance, ModelStateDictionary validationResults)
         {
 
         }

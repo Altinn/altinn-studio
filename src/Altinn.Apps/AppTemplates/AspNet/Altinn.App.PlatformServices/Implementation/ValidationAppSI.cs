@@ -174,55 +174,20 @@ namespace Altinn.App.Services.Implementation
                 int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
                 dynamic data = await _dataService.GetFormData(instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, Guid.Parse(dataElement.Id));
 
+                ModelStateDictionary validationResults = new ModelStateDictionary();
                 var actionContext = new ActionContext(
                     _httpContextAccessor.HttpContext,
                     new Microsoft.AspNetCore.Routing.RouteData(),
                     new ActionDescriptor(),
-                    new ModelStateDictionary());
+                    validationResults);
 
                 ValidationStateDictionary validationState = new ValidationStateDictionary();
                 _objectModelValidator.Validate(actionContext, validationState, null, data);
+                await _altinnApp.RunValidation(data, validationResults);
 
-                if (!actionContext.ModelState.IsValid)
+                if (!validationResults.IsValid)
                 {
                     messages.AddRange(MapModelStateToIssueList(actionContext.ModelState, instance, dataElement.Id, serviceText));
-                }
-
-                List<System.ComponentModel.DataAnnotations.ValidationResult> validationResults = new List<System.ComponentModel.DataAnnotations.ValidationResult>();
-                bool isValidApp = await _altinnApp.RunValidation(data, validationResults);         
-
-                if (!isValidApp)
-                {
-                    messages.AddRange(MapValidationResultToIssueList(instance, validationResults, dataElement.Id, dataElement.DataType, serviceText));
-                }
-                
-            }
-
-            return messages;
-        }
-
-        private List<ValidationIssue> MapValidationResultToIssueList(
-            Instance instance,
-            List<System.ComponentModel.DataAnnotations.ValidationResult> validationResult,
-            string elementId,
-            string dataType,
-            Dictionary<string, Dictionary<string, string>> serviceText)
-        {
-            List<ValidationIssue> messages = new List<ValidationIssue>();
-            foreach (System.ComponentModel.DataAnnotations.ValidationResult validationIssue in validationResult)
-            {               
-                if (validationIssue != null)
-                {                    
-                    ValidationIssue message = new ValidationIssue
-                    {
-                        InstanceId = instance.Id,
-                        DataElementId = elementId,
-                        Code = validationIssue.ErrorMessage,                                                
-                        Field = string.Join(",", validationIssue.MemberNames),
-                        Severity = ValidationIssueSeverity.Error,
-                        Description = ServiceTextHelper.GetServiceText(validationIssue.ErrorMessage, serviceText, null, "nb")
-                    };
-                    messages.Add(message);                    
                 }
             }
 
