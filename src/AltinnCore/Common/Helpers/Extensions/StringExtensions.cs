@@ -39,7 +39,11 @@ namespace AltinnCore.Common.Helpers.Extensions
                 return input;
             }
 
-            input = input.Replace("..", "");
+            if (input == "..")
+            {
+               return "-";
+            }
+
             return illegalFileNameCharacters.Aggregate(input, (current, c) => current.Replace(c, '-'));
         }
     }
