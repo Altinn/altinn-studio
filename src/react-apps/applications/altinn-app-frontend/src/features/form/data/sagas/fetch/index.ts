@@ -16,7 +16,7 @@ function* fetchFormDataSaga({ url }: IFetchFormData): SagaIterator {
   try {
     const fetchedData: any = yield call(get, url);
     const dataModel = yield select(SelectFormDataModel);
-    const parsedLayout = convertModelToDataBinding(fetchedData.result, dataModel);
+    const parsedLayout = convertModelToDataBinding(fetchedData, dataModel);
     yield call(FormActions.fetchFormDataFulfilled, parsedLayout);
   } catch (err) {
     yield call(FormActions.fetchFormDataRejected, err);
