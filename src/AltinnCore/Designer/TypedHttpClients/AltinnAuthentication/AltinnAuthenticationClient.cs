@@ -19,6 +19,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
         /// Constructor
         /// </summary>
         /// <param name="httpClient">HttpClient</param>
+        /// <param name="options">Settings for connecting to and accessing the platform.</param>
         public AltinnAuthenticationClient(
             HttpClient httpClient,
             IOptionsMonitor<PlatformSettings> options)

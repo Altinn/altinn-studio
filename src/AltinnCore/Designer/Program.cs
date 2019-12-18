@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using AltinnCore.Common.Configuration;
+
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using Serilog;
 using Serilog.Core;
 using Serilog.Extensions.Logging;
@@ -81,14 +82,13 @@ namespace AltinnCore.Designer
                         SetTelemetry(secretBundle.Value);
 
                         AddMaskinportenCertificate(stageOneConfig, keyVaultClient, keyVaultEndpoint, config);
-                        
                     }
                     catch (Exception vaultException)
                     {
                         logger.Error($"Could not find secretBundle for application insights {vaultException}");
                     }
                 }
-                
+
                 if (hostingEnvironment.IsDevelopment() && basePath != "/")
                 {
                     config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: true);
@@ -108,8 +108,8 @@ namespace AltinnCore.Designer
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
-                .UseStartup<Startup>()
-                .CaptureStartupErrors(true);
+            .UseStartup<Startup>()
+            .CaptureStartupErrors(true);
 
         private static void AddMaskinportenCertificate(
             IConfiguration stageOneConfig,
