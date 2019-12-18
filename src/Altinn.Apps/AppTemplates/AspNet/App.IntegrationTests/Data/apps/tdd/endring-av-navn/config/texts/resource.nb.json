@@ -164,30 +164,6 @@
     {
       "id": "kontaktinfoBeskrivelse",
       "value": "Kontaktinformasjon dersom saksbehandler ønsker å ta kontakt vedrørende denne saken"
-    },
-    {
-      "id": "subscription_hook_error_content",
-      "value": "a"
-    },
-    {
-      "id": "subscription_hook_error_statusCode",
-      "value": "a"
-    },
-    {
-      "id": "subscription_hook_error_title",
-      "value": "a"
-    },
-    {
-      "id": "subscription_hook_error_url",
-      "value": "a"
-    },
-    {
-      "id": "subscription_hook_error_urlText",
-      "value": "a"
-    },
-    {
-      "id": "subscription_hook_error_urlTextSuffix",
-      "value": "a"
     }
   ]
 }

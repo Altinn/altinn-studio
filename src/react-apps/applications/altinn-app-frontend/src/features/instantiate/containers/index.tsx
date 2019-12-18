@@ -13,9 +13,7 @@ import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
 import { post } from '../../../utils/networking';
-import SubscriptionHookError from '../components/subscriptionHookError';
 import InstantiationActions from '../instantiation/actions';
-import { verifySubscriptionHook } from '../resources/verifySubscriptionHook';
 import MissingRolesError from './MissingRolesError';
 import NoValidPartiesError from './NoValidPartiesError';
 import UnknownError from './UnknownError';
@@ -45,7 +43,6 @@ function InstantiateContainer(props: IServiceInfoProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
   const { org, app } = window as Window as IAltinnWindow;
 
-  const [subscriptionHookValid, setSubscriptionHookValid] = React.useState(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
   const [instantiating, setInstantiating] = React.useState(false);
 
@@ -75,16 +72,6 @@ function InstantiateContainer(props: IServiceInfoProps) {
     } catch (err) {
       console.error(err);
       throw new Error('Server did not respond with party validation');
-    }
-  };
-
-  const validateSubscriptionHook = async () => {
-    try {
-      const result = await verifySubscriptionHook();
-      setSubscriptionHookValid(result);
-    } catch (err) {
-      console.error(err);
-      throw new Error('Subscription hook failed: ' + err.message);
     }
   };
 
@@ -126,7 +113,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
 
   React.useEffect(() => {
     if (partyValidation !== null) {
-      validateSubscriptionHook();
+      // validations
     }
   }, [partyValidation]);
 
@@ -134,14 +121,12 @@ function InstantiateContainer(props: IServiceInfoProps) {
     if (
       partyValidation !== null &&
       partyValidation.valid &&
-      subscriptionHookValid !== null &&
-      subscriptionHookValid &&
       !instantiating &&
       !instantiation.instanceId
     ) {
       createNewInstance();
     }
-  }, [partyValidation, subscriptionHookValid, instantiating, selectedParty]);
+  }, [partyValidation, instantiating, selectedParty]);
 
   if (instantiation.error !== null && checkIfAxiosError(instantiation.error)) {
     const axiosError = instantiation.error as AxiosError;
@@ -183,8 +168,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
         party={selectedParty}
         userParty={profile ? profile.party : {} as IParty}
       />
-      {(subscriptionHookValid === null || subscriptionHookValid === true) && renderModalAndLoader()}
-      {subscriptionHookValid === false && <SubscriptionHookError textResources={textResources}/>}
+      {renderModalAndLoader()}
     </>
   );
 }

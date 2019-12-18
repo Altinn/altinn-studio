@@ -26,7 +26,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Service owner code for the service, e.g. nav.
         /// </summary>
         [JsonProperty(PropertyName = "org")]
-        public string Org { get; set; }      
+        public string Org { get; set; }
 
         /// <summary>
         /// Title of the application with language codes.
@@ -70,12 +70,6 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "partyTypesAllowed")]
         public PartyTypesAllowed PartyTypesAllowed { get; set; }
-
-        /// <summary>
-        /// Gets or sets the subscription hook attached to the application
-        /// </summary>
-        [JsonProperty(PropertyName = "subscriptionHook")]
-        public SubscriptionHook SubscriptionHook {get; set;}
 
         /// <inheritdoc/>
         public override string ToString()

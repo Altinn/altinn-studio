@@ -256,12 +256,7 @@ export const nb = () => (
       test_initiation: 'For å teste alle instillinger på instansiering av tjenesten anbefaler vi at du tester dette i et testmiljø',
       test_initiation_header: 'Test av instansiering',
       test_what: 'Aktørlisten vil bli filtrert i Altinn Studio preview basert på aktørkrav.',
-      test_what_header: 'Hva kan du teste i Altinn Studio?',
-      hooks_header: 'Regler (hooks)',
-      hooks: 'Gjenbruk abonnementfunksjonalitet fra dagens TUL tjeneste',
-      service_code: 'Tjenestekode',
-      edition_code: 'Tjenesteutgavekode',
-      subscription_text_helper: 'For å endre feilmeldingsteksten presentert for sluttbruker kan du benytte tekstnøkkeler som starter med "subscription_hook_error". Denne er tilgjengelig på språksiden i Altinn Studio.',
+      test_what_header: 'Hva kan du teste i Altinn Studio?'
     },
     receipt_platform: {
       attachments: 'Vedlegg',

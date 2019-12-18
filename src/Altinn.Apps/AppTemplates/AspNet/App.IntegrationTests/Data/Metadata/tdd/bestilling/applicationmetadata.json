@@ -35,9 +35,5 @@
     "organization": true,
     "person": true,
     "subUnit": true
-  },
-  "subscriptionHook": {
-    "serviceCode": "",
-    "editionCode": ""
   }
 }
