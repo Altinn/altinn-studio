@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 // using Altinn.App.Models; // Uncomment this line to refer to app model(s)
@@ -36,7 +37,7 @@ namespace Altinn.App.AppLogic.Validation
         ///     }
         /// }
         /// </example>
-        public void Validate(object instance, ModelStateDictionary validationResults)
+        public async Task Validate(object instance, ModelStateDictionary validationResults)
         {
 
         }
