@@ -186,7 +186,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// <returns></returns>
         public static bool VerifyOrgInClaimPrincipal(string org, ClaimsPrincipal user)
         {
-            string orgClaim = user?.Claims.Where(c => c.Type.Equals("urn:altinn:org")).Select(c => c.Value).FirstOrDefault();
+            string orgClaim = user?.Claims.Where(c => c.Type.Equals(AltinnXacmlUrns.OrgId)).Select(c => c.Value).FirstOrDefault();
 
             if (org.Equals(orgClaim, StringComparison.CurrentCultureIgnoreCase))
             {
