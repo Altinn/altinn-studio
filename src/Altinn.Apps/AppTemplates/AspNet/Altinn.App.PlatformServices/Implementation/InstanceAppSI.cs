@@ -9,7 +9,6 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -69,7 +68,7 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 _logger.LogError($"Unable to fetch instance with instance id {instanceGuid}");
-                throw new PlatformClientException(response);
+                throw new PlatformHttpException(response);
             }
         }
 
@@ -107,7 +106,7 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 _logger.LogError("Unable to fetch instances");
-                throw new PlatformClientException(response);
+                throw new PlatformHttpException(response);
             }
         }
 
@@ -130,7 +129,7 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 _logger.LogError($"Unable to update instance with instance id {instance.Id}");
-                throw new PlatformClientException(response);
+                throw new PlatformHttpException(response);
             }
         }
 
@@ -155,7 +154,7 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 _logger.LogError($"Unable to update instance process with instance id {instance.Id}");
-                throw new PlatformClientException(response);
+                throw new PlatformHttpException(response);
             }
         }
 
@@ -177,7 +176,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Unable to create instance {response.StatusCode} - {response.Content?.ReadAsStringAsync().Result}");
-            throw new PlatformClientException(response);            
+            throw new PlatformHttpException(response);            
         }
     }
 }

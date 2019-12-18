@@ -117,7 +117,7 @@ namespace Altinn.App.Services.Implementation
                 string reason = await response.Content.ReadAsStringAsync();
                 _logger.LogError($"// Getting party with personOrOrganisationNumber {personOrOrganisationNumber} failed with statuscode {response.StatusCode} - {reason}");
 
-                throw new PlatformClientException($"Failed to lookup party in platform register. {response.StatusCode} - {reason}.");
+                throw new PlatformHttpException($"Failed to lookup party in platform register. {response.StatusCode} - {reason}.");
             }
 
             return party;            

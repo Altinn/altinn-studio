@@ -8,6 +8,8 @@ using System.Xml.Serialization;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Helpers;
+using Altinn.App.PlatformServices.Helpers;
+using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -93,22 +95,30 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Element type {dataType} not allowed for instance {instanceGuid}.");
             }
 
-            bool appLogic = dataTypeFromMetadata.AppLogic != null;
+            try
+            {
+                bool appLogic = dataTypeFromMetadata.AppLogic != null;
 
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance == null)
-            {
-                return NotFound($"Did not find instance {instance}");
-            }
+                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                if (instance == null)
+                {
+                    return NotFound($"Did not find instance {instance}");
+                }
 
-            if (appLogic)
-            {
-                return await CreateAppModelData(org, app, instance, dataType);
+                if (appLogic)
+                {
+                    return await CreateAppModelData(org, app, instance, dataType);
+                }
+                else
+                {
+                    return await CreateBinaryData(org, app, instance, dataType);
+                }
             }
-            else
+            catch (PlatformHttpException pce)
             {
-                return await CreateBinaryData(org, app, instance, dataType);
+                return ExceptionResponse(pce, $"Cannot create data element of {dataType} for {instanceOwnerPartyId}/{instanceGuid}");
             }
+            
         }
 
         /// <summary>
@@ -261,6 +271,24 @@ namespace Altinn.App.Api.Controllers
             return await DeleteBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
         }
 
+        private ActionResult ExceptionResponse(Exception exception, string message)
+        {
+            _logger.LogError($"{message}: {exception}");
+
+            if (exception is PlatformHttpException)
+            {
+                PlatformHttpException phe = exception as PlatformHttpException;
+                return StatusCode((int)phe.Response.StatusCode, phe.Message);
+            }
+            else if (exception is ServiceException)
+            {
+                ServiceException se = exception as ServiceException;
+                return StatusCode((int)se.StatusCode, se.Message);
+            }
+
+            return StatusCode(500, $"{message}");
+        }
+
         private async Task<ActionResult> CreateBinaryData(string org, string app, Instance instanceBefore, string dataType)
         {
             int instanceOwnerPartyId = int.Parse(instanceBefore.Id.Split("/")[0]);
@@ -286,7 +314,6 @@ namespace Altinn.App.Api.Controllers
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
             object appModel;
-
 
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
