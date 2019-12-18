@@ -26,7 +26,8 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
         /// <param name="logger">The logger.</param>
         public AltinnAuthenticationClient(
             HttpClient httpClient,
-            IOptionsMonitor<PlatformSettings> options, ILogger<AltinnAuthenticationClient> logger)
+            IOptionsMonitor<PlatformSettings> options,
+            ILogger<AltinnAuthenticationClient> logger)
         {
             _httpClient = httpClient;
             _platformSettings = options.CurrentValue;
@@ -54,6 +55,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
             {
                 RequestUri = new Uri($"{uri.Scheme}://{uri.Host}/{_platformSettings.ApiAuthenticationConvertUri}")
             };
+
             HttpResponseMessage response = await _httpClient.SendAsync(message);
 
             _logger.LogInformation($"//AltinnAuthenticationClient // ConvertTokenAsync // Response: {response}");
