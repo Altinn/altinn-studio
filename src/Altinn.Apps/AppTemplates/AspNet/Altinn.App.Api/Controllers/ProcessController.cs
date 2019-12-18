@@ -147,8 +147,9 @@ namespace Altinn.App.Api.Controllers
         {
             await NotifyAppAboutEvents(_altinnApp, instance, processStateChange.Events);
 
-            // need to update the instance in case appbase has changed it, e.g. endEvent sets status.archived
-            Instance updatedInstance = await _instanceService.UpdateInstance(instance);
+            // need to update the instance process and then the instance in case appbase has changed it, e.g. endEvent sets status.archived
+            Instance instanceWithUpdatedProcess = await _instanceService.UpdateProcess(instance);
+            Instance updatedInstance = await _instanceService.UpdateInstance(instanceWithUpdatedProcess);
             await _processService.DispatchProcessEventsToStorage(updatedInstance, processStateChange.Events);
 
             // remember to get the instance anew since AppBase can have updated a data element or stored something in the database.

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
@@ -54,17 +55,13 @@ namespace Altinn.App.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            try
+            HttpResponseMessage response = await _client.DeleteAsync(apiUrl);
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await _client.DeleteAsync(apiUrl);
-                response.EnsureSuccessStatusCode();
                 return true;
             }
-            catch
-            {
-                _logger.LogError($"Unable to delete instance events");
-                return false;
-            }
+
+            throw new PlatformHttpException(response);            
         }
 
         /// <inheritdoc/>
