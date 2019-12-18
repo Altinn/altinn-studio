@@ -70,22 +70,29 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Repository> CreateRepository(string org, CreateRepoOption createRepoOption)
+        public async Task<Repository> CreateRepository(string org, CreateRepoOption options)
         {
-            Repository repository = new Repository();
+            var repository = new Repository();
             string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string urlEnd = developerUserName == org ? "user/repos" : $"org/{org}/repos";
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(urlEnd, createRepoOption);
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(urlEnd, options);
+
             if (response.StatusCode == HttpStatusCode.Created)
             {
                 repository = await response.Content.ReadAsAsync<Repository>();
+                repository.RepositoryCreatedStatus = HttpStatusCode.Created;
+            }
+            else if (response.StatusCode == HttpStatusCode.Conflict)
+            {
+                // The repository with the same name already exists, 409 from Gitea API
+                repository.RepositoryCreatedStatus = HttpStatusCode.Conflict;
             }
             else
             {
-                _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Create repository failed with statuscode " + response.StatusCode + " for " + org + " and reponame " + createRepoOption.Name);
+                _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) +
+                    " Create repository failed with statuscode " + response.StatusCode + " for " +
+                    org + " and repo-name " + options.Name);
             }
-
-            repository.RepositoryCreatedStatus = HttpStatusCode.Created;
 
             return repository;
         }

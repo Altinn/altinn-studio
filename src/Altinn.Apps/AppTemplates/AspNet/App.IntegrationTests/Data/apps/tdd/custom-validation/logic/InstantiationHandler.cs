@@ -35,11 +35,17 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// <returns>The validation result object (null if no errors) </returns>
         public InstantiationValidationResult RunInstantiationValidation()
         {
-            return new InstantiationValidationResult()
+            DateTime now = DateTime.Now;
+            if (now.Hour < 15)
             {
-                Valid = false,
-                Message = "ERROR: Validation not possible."
-            };
+                return new InstantiationValidationResult()
+                {
+                    Valid = false,
+                    Message = "ERROR: Instantiation not possible before 3PM."
+                };
+            }
+
+            return null;
         }
 
         /// <summary>

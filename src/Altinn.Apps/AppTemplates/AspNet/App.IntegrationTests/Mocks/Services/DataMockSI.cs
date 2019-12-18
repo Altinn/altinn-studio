@@ -147,7 +147,7 @@ namespace App.IntegrationTests.Mocks.Services
             string path = GetDataPath(org, app, instanceOwnerId, instanceId);
             List<DataElement> dataElements = new List<DataElement>();
 
-           string[] files = Directory.GetFiles(path);
+            string[] files = Directory.GetFiles(path);
 
             foreach (string file in files)
             {
@@ -164,9 +164,22 @@ namespace App.IntegrationTests.Mocks.Services
             throw new NotImplementedException();
         }
 
-        public Task<DataElement> Update(string instanceId, DataElement dataElement)
+        public Task<DataElement> Update(Instance instance, DataElement dataElement)
         {
-            throw new NotImplementedException();
+            string org = instance.Org;
+            string app = instance.AppId.Split("/")[1];
+            int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+
+            string path = GetDataPath(org, app, instanceOwnerId, instanceGuid);
+
+            string jsonData = JsonConvert.SerializeObject(dataElement);
+            using StreamWriter sw = new StreamWriter(path + dataElement.Id + @".json");
+
+            sw.Write(jsonData.ToString());
+            sw.Close();
+
+            return Task.FromResult(dataElement);                        
         }
     }
 }

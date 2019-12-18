@@ -369,8 +369,8 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound();
             }
 
-            string altinnTaskType = existingInstance.Process.CurrentTask?.AltinnTaskType;
-            bool authorized = await Authorize(altinnTaskType, existingInstance.Org, existingInstance.AppId.Split("/")[1], existingInstance.Id);
+            string altinnTaskType = existingInstance.Process?.CurrentTask?.AltinnTaskType;
+            bool authorized = await Authorize(altinnTaskType, existingInstance);
             if (!authorized)
             {
                 return Forbid();
@@ -385,7 +385,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
-                await DispatchEvent(InstanceEventType.Saved.ToString(), result);
+               
                 AddSelfLinks(Request, result);
             }
             catch (Exception e)
@@ -470,14 +470,26 @@ namespace Altinn.Platform.Storage.Controllers
             }
         }
 
-        private async Task<bool> Authorize(string currenTaskType, string org, string app, string instanceId)
+        private async Task<bool> Authorize(string currentTaskType, Instance instance)
         {
-            string actionType = currenTaskType.Equals("data") ? "write" : null;
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, null, instanceId);
+            string actionType;
+            if (string.IsNullOrEmpty(currentTaskType) || currentTaskType.Equals("data"))
+            {
+                actionType = "write";
+            }
+            else
+            {
+                actionType = currentTaskType;
+            }
+
+            string org = instance.Org;
+            string app = instance.AppId.Split("/")[1];
+            
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, null, instance.Id);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
             if (response?.Response == null)
             {
-                _logger.LogInformation($"// Process Controller // Authorization of moving process forward failed with request: {JsonConvert.SerializeObject(request)}.");
+                _logger.LogInformation($"// Instance Controller // Authorization to update Process failed: {JsonConvert.SerializeObject(request)}.");
                 return false;
             }
 

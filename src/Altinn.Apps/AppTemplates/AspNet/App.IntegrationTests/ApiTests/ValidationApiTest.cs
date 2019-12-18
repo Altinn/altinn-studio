@@ -30,7 +30,7 @@ namespace App.IntegrationTestsRef.ApiTests
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task ValidateForm_InvalidData()
+        public async Task ValidateForm_CustomValidation_InvalidData()
         {
             string token = PrincipalUtil.GetToken(1);
 
@@ -73,6 +73,32 @@ namespace App.IntegrationTestsRef.ApiTests
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Empty(messages);
+        }
+
+        /// <summary>
+        /// Test that verifies that custom validation allows valid data.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task ValidateForm_ModelValidation_InvalidData()
+        {
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/validate");
+            {
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+
+            List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Single(messages);
+            Assert.Equal(ValidationIssueSeverity.Error, messages[0].Severity);
+            Assert.Equal("ERROR: Max length is 11", messages[0].Code);
         }
     }
 }

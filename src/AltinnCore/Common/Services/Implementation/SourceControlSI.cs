@@ -441,24 +441,26 @@ namespace AltinnCore.Common.Services.Implementation
         /// Creates the remote repository
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="createRepoOption">Options for the remote repository</param>
+        /// <param name="options">Options for the remote repository</param>
         /// <returns>The repostory from API</returns>
-        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
+        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption options)
         {
-            return _gitea.CreateRepository(org, createRepoOption).Result;
+            return _gitea.CreateRepository(org, options).Result;
         }
 
         /// <summary>
         /// Method for storing AppToken in Developers folder. This is not the permanent solution
         /// </summary>
-        /// <param name="token">The</param>
+        /// <param name="token">The token</param>
         public void StoreAppTokenForUser(string token)
         {
             CheckAndCreateDeveloperFolder();
-            string path = null;
-            path = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                    ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt"
-                    : _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt";
+
+            string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string path = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation");
+            path = (path != null)
+                ? $"{path}{userName}/AuthToken.txt"
+                : $"{_settings.RepositoryLocation}{userName}/AuthToken.txt";
 
             File.WriteAllText(path, token);
         }
@@ -507,10 +509,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         private void CheckAndCreateDeveloperFolder()
         {
-            string path = null;
-            path = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/"
-            : _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/";
+            string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string path = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation");
+            path = (path != null) ? $"{path}{userName}/" : $"{_settings.RepositoryLocation}{userName}/";
 
             if (!Directory.Exists(path))
             {
@@ -519,16 +520,19 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the local
+        /// Returns the local repo location
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>The path to the local repository</returns>
         public string FindLocalRepoLocation(string org, string repository)
         {
-            return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/{repository}"
-                : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/{repository}";
+            string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string envRepoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation");
+
+            return (envRepoLocation != null)
+                ? $"{envRepoLocation}{userName}/{org}/{repository}"
+                : $"{_settings.RepositoryLocation}{userName}/{org}/{repository}";
         }
 
         /// <summary>
@@ -539,8 +543,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The path to the remote repo</returns>
         private string FindRemoteRepoLocation(string org, string repository)
         {
-            return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
-                ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL")}/{org}/{repository}.git"
+            string reposBaseUrl = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL");
+
+            return (reposBaseUrl != null)
+                ? $"{reposBaseUrl}/{org}/{repository}.git"
                 : $"{_settings.RepositoryBaseURL}/{org}/{repository}.git";
         }
 

@@ -233,9 +233,23 @@ namespace App.IntegrationTests
             string responseContent = await response.Content.ReadAsStringAsync();
             InstantiationValidationResult validationResult = JsonConvert.DeserializeObject<InstantiationValidationResult>(responseContent);
 
-            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            Assert.False(validationResult.Valid);
-            Assert.Equal("ERROR: Validation not possible.", validationResult.Message);
+            if (DateTime.Now.Hour < 15)
+            {
+                Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+                Assert.False(validationResult.Valid);
+                Assert.Equal("ERROR: Instantiation not possible before 3PM.", validationResult.Message);
+            }
+            else
+            {
+                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+                Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
+
+                Assert.NotNull(createdInstance);
+                Assert.Single(createdInstance.Data);
+                Assert.Equal("default", createdInstance.Data[0].DataType);
+
+                TestDataUtil.DeletInstanceAndData("tdd", "custom-validering", 1000, new Guid(createdInstance.Id.Split('/')[1]));
+            }
         }
     }
 }

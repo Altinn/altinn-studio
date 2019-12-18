@@ -41,7 +41,7 @@ namespace Altinn.App.Services.Implementation
 
         public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
 
-        public abstract Task<bool> RunValidation(object instance, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
+        public abstract Task RunValidation(object instance, ModelStateDictionary validationResults);
 
         public abstract Task<bool> RunCalculation(object instance);
 
@@ -141,7 +141,7 @@ namespace Altinn.App.Services.Implementation
                 {
                     dataElement.Locked = true;
                     _logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType.Id}.");
-                    await _dataService.Update(instance.Id, dataElement);
+                    await _dataService.Update(instance, dataElement);
                 }
             }
         }

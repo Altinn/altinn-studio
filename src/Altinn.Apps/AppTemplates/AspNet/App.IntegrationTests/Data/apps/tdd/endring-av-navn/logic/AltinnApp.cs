@@ -33,9 +33,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
             return Task.FromResult(true);
         }
 
-        public override Task<bool> RunValidation(object instance, ICollection<ValidationResult> validationResults)
+        public override async Task RunValidation(object instance, ModelStateDictionary validationResults)
         {
-            return Task.FromResult(true);
+
         }
 
         /// <summary>
