@@ -216,7 +216,6 @@ namespace Altinn.Platform.Storage
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

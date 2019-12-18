@@ -27,7 +27,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly string _testOrg = "tdd";
         private readonly string _testAppId = "tdd/m1000";
         private readonly string _versionPrefix = "/storage/api/v1";
-        private readonly string _validToken;
         private readonly string _validOrgToken;
 
         /// <summary>
@@ -38,7 +37,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             _fixture = fixture;
             _instanceClient = new InstanceClient(_fixture.CreateClient());
-            _validToken = PrincipalUtil.GetToken(1);
             _validOrgToken = PrincipalUtil.GetOrgToken(org: _testOrg, scope: "altinn:instances.read");
 
             LoadTestData();

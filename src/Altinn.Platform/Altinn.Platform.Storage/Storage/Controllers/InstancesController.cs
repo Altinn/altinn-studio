@@ -42,7 +42,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
         /// <param name="logger">the logger</param>
-        /// <param name="pdp">the policy desicion point.</param>
+        /// <param name="pdp">the policy decision point.</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
