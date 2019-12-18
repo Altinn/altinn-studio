@@ -304,7 +304,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // send events to trigger application business logic
-            await _altinnApp.RunDataCreation(appModel);
+            await _altinnApp.RunDataCreation(instance, appModel);
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
