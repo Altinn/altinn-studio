@@ -8,7 +8,6 @@ using Altinn.Common.PEP.Constants;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Platform.Storage.Helpers
 {
