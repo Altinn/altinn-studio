@@ -48,7 +48,6 @@ function InstantiateContainer(props: IServiceInfoProps) {
 
   const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
-  const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
   const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
 
   const createNewInstance = () => {
