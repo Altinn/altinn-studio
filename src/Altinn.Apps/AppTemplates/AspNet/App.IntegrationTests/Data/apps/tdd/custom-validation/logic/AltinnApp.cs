@@ -1,6 +1,7 @@
 using Altinn.App.Common.Enums;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using System;
@@ -46,9 +47,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
             return Task.FromResult(true);
         }
 
-        public override async Task RunValidation(object instance, ModelStateDictionary validationResults)
+        public override async Task RunValidation(object data, ModelStateDictionary validationResults)
         {
-            _validationHandler.Validate(instance, validationResults);
+            _validationHandler.Validate(data, validationResults);
         }
 
         /// <summary>
@@ -56,9 +57,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task<bool> RunCalculation(object instance)
+        public override async Task<bool> RunCalculation(object data)
         {
-            return _calculationHandler.Calculate(instance);
+            return _calculationHandler.Calculate(data);
         }
 
         /// <summary>
@@ -66,9 +67,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation()
+        public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
-            return _instantiationHandler.RunInstantiationValidation();
+            return _instantiationHandler.RunInstantiationValidation(instance);
         }
 
         /// <summary>
@@ -80,9 +81,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// <param name="instance">The data to perform calculations on</param>
         /// <param name="validationResults">Object containing any validation errors/warnings</param>
         /// <returns>Task to indicate when calculation is completed</returns>
-        public override async Task RunDataCreation(object instance)
+        public override async Task RunDataCreation(Instance instance, object data)
         {
-            _instantiationHandler.DataCreation(instance);
+            _instantiationHandler.DataCreation(instance, data);
         }
     }
 }

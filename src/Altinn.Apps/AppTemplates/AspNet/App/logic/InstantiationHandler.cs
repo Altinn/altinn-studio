@@ -1,5 +1,6 @@
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Platform.Storage.Interface.Models;
 // using Altinn.App.Models; // Uncomment this line to refer to app model(s)
 
 namespace Altinn.App.AppLogic
@@ -33,7 +34,7 @@ namespace Altinn.App.AppLogic
         /// <param name="instance"></param>
         /// <param name="validationResults"></param>
         /// <returns>The validation result object (null if no errors) </returns>
-        public InstantiationValidationResult RunInstantiationValidation()
+        public InstantiationValidationResult RunInstantiationValidation(Instance instance)
         {
             return null;
         }
@@ -44,8 +45,9 @@ namespace Altinn.App.AppLogic
         /// <remarks>
         /// For example custom prefill.
         /// </remarks>
-        /// <param name="instance"></param>
-        public void DataCreation(object instance)
+        /// <param name="instance">Instance information</param>
+        /// <param name="data">The data object created</param>
+        public void DataCreation(Instance instance, object data)
         {
 
         }

@@ -268,7 +268,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // Run custom app logic to validate instantiation
-            InstantiationValidationResult validationResult = await _altinnApp.RunInstantiationValidation();
+            InstantiationValidationResult validationResult = await _altinnApp.RunInstantiationValidation(instanceTemplate);
             if (validationResult != null && !validationResult.Valid)
             {
                 // Todo. Figure out where to get this from
