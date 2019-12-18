@@ -1,6 +1,7 @@
 using System;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
 {
@@ -33,7 +34,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// <param name="instance"></param>
         /// <param name="validationResults"></param>
         /// <returns>The validation result object (null if no errors) </returns>
-        public InstantiationValidationResult RunInstantiationValidation()
+        public InstantiationValidationResult RunInstantiationValidation(Instance instance)
         {
             DateTime now = DateTime.Now;
             if (now.Hour < 15)
@@ -54,12 +55,13 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// <remarks>
         /// For example custom prefill.
         /// </remarks>
-        /// <param name="instance"></param>
-        public void DataCreation(object instance)
+        /// <param name="instance">The instance object</param>
+        /// <param name="data">The data created</param>
+        public void DataCreation(Instance instance, object data)
         {
-            if (instance.GetType() == typeof(Skjema))
+            if (data.GetType() == typeof(Skjema))
             {
-                Skjema model = (Skjema)instance;
+                Skjema model = (Skjema)data;
                 string navn = "Test Test 123";
 
                 if (model.Foretakgrp8820 == null)
