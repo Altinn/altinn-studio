@@ -45,9 +45,9 @@ namespace Altinn.App.Services.Implementation
 
         public abstract Task<bool> RunCalculation(object instance);
 
-        public abstract Task<InstantiationValidationResult> RunInstantiationValidation();
+        public abstract Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance);
 
-        public abstract Task RunDataCreation(object instance);
+        public abstract Task RunDataCreation(Instance instance, object data);
         
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()

@@ -35,7 +35,7 @@ namespace Altinn.App.AppLogic
         /// <param name="instance"></param>
         /// <param name="validationResults"></param>
         /// <returns>The validation result object (null if no errors) </returns>
-        public InstantiationValidationResult RunInstantiationValidation()
+        public InstantiationValidationResult RunInstantiationValidation(Instance instance)
         {
             return null;
         }

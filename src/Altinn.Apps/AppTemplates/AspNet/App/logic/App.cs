@@ -10,6 +10,7 @@ using System.ComponentModel.DataAnnotations;
 using Altinn.App.AppLogic.Validation;
 using Altinn.App.AppLogic.Calculation;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.AppLogic
 {
@@ -71,36 +72,36 @@ namespace Altinn.App.AppLogic
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task RunValidation(object instance, ModelStateDictionary validationResults)
+        public override async Task RunValidation(object data, ModelStateDictionary validationResults)
         {
-            _validationHandler.Validate(instance, validationResults);
+            _validationHandler.Validate(data, validationResults);
         }
 
         /// <summary>
         /// Is called to run custom calculation events defined by app developer.
         /// </summary>
-        /// <param name="instance">The data to perform calculations on</param>
-        public override async Task<bool> RunCalculation(object instance)
+        /// <param name="data">The data to perform calculations on</param>
+        public override async Task<bool> RunCalculation(object data)
         {
-            return _calculationHandler.Calculate(instance);
+            return _calculationHandler.Calculate(data);
         }
 
         /// <summary>
         /// Is called to run custom instantiation validation defined by app developer.
         /// </summary>
         /// <returns>Task with validation results</returns>
-        public override async Task<InstantiationValidationResult> RunInstantiationValidation()
+        public override async Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
-            return _instantiationHandler.RunInstantiationValidation();
+            return _instantiationHandler.RunInstantiationValidation(instance);
         }
 
         /// <summary>
         /// Is called to run data creation (custom prefill) defined by app developer.
         /// </summary>
         /// <param name="instance">The data to perform data creation on</param>
-        public override async Task RunDataCreation(object instance)
+        public override async Task RunDataCreation(Instance instance, object data)
         {
-            _instantiationHandler.DataCreation(instance);
+            _instantiationHandler.DataCreation(instance, data);
         }
     }
 }
