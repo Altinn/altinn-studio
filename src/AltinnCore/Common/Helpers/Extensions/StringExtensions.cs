@@ -11,7 +11,7 @@ namespace AltinnCore.Common.Helpers.Extensions
     public static class StringExtensions
     {
         /// <summary>
-        /// Sanitize the input as a file name. 
+        /// Sanitize the input as a file name.
         /// </summary>
         /// <param name="input">The input variable to be sanitized</param>
         /// <param name="throwExceptionOnInvalidCharacters">Throw exception instead of replacing invalid characters with '-'</param>
@@ -27,11 +27,21 @@ namespace AltinnCore.Common.Helpers.Extensions
             if (throwExceptionOnInvalidCharacters)
             {
                 if (illegalFileNameCharacters.Any(ic => input.Any(i => ic == i)))
-                {                    
+                {
+                    throw new ArgumentOutOfRangeException(nameof(input));
+                }
+
+                if (input == "..")
+                {
                     throw new ArgumentOutOfRangeException(nameof(input));
                 }
 
                 return input;
+            }
+
+            if (input == "..")
+            {
+               return "-";
             }
 
             return illegalFileNameCharacters.Aggregate(input, (current, c) => current.Replace(c, '-'));
