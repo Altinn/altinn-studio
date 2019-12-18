@@ -74,7 +74,7 @@ namespace Altinn.App.AppLogic
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task RunValidation(object data, ModelStateDictionary validationResults)
         {
-            _validationHandler.Validate(data, validationResults);
+           await _validationHandler.Validate(data, validationResults);
         }
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace Altinn.App.AppLogic
         /// <param name="data">The data to perform calculations on</param>
         public override async Task<bool> RunCalculation(object data)
         {
-            return _calculationHandler.Calculate(data);
+            return await _calculationHandler.Calculate(data);
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace Altinn.App.AppLogic
         /// <returns>Task with validation results</returns>
         public override async Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
-            return _instantiationHandler.RunInstantiationValidation(instance);
+            return await _instantiationHandler.RunInstantiationValidation(instance);
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Altinn.App.AppLogic
         /// <param name="instance">The data to perform data creation on</param>
         public override async Task RunDataCreation(Instance instance, object data)
         {
-            _instantiationHandler.DataCreation(instance, data);
+           await _instantiationHandler.DataCreation(instance, data);
         }
     }
 }
