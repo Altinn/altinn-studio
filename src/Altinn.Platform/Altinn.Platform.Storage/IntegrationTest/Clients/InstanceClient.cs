@@ -66,6 +66,9 @@ namespace Altinn.Platform.Storage.IntegrationTest.Clients
         {
             string requestUri = $"{_versionPrefix}/instances?org={org}&size={size}";
 
+            string token = PrincipalUtil.GetOrgToken(org: org, scope: "altinn:instances.read");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             HttpResponseMessage response = await _client.GetAsync(_hostName + requestUri);
 
             if (response.IsSuccessStatusCode)
@@ -104,7 +107,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Clients
                         Name = "FormFilling",
                     }
                 }
-            }.AsJson()); 
+            }.AsJson());
             if (response.IsSuccessStatusCode)
             {
                 string json = await response.Content.ReadAsStringAsync();

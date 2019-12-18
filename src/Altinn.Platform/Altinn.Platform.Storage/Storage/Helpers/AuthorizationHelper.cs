@@ -162,8 +162,11 @@ namespace Altinn.Platform.Storage.Helpers
                 throw new ArgumentNullException("user");
             }
 
-            XacmlJsonRequest request = new XacmlJsonRequest();
-            request.AccessSubject = new List<XacmlJsonCategory>();
+            XacmlJsonRequest request = new XacmlJsonRequest
+            {
+                AccessSubject = new List<XacmlJsonCategory>()
+            };
+
             request.AccessSubject.Add(CreateMultipleSubjectCategory(user.Claims));
             request.Action = CreateMultipleActionCategory(actionTypes);
             request.Resource = CreateMultipleResourceCategory(instances);
@@ -172,6 +175,24 @@ namespace Altinn.Platform.Storage.Helpers
             XacmlJsonRequestRoot jsonRequest = new XacmlJsonRequestRoot() { Request = request };
 
             return jsonRequest;
+        }
+
+        /// <summary>
+        /// Verifies that org string matches org in user claims.
+        /// </summary>
+        /// <param name="org">Organisation to match in claims.</param>
+        /// <param name="user">Claim principal from http context.</param>
+        /// <returns></returns>
+        public static bool VerifyOrgInClaimPrincipal(string org, ClaimsPrincipal user)
+        {
+            string orgClaim = user?.Claims.Where(c => c.Type.Equals(AltinnXacmlUrns.OrgId)).Select(c => c.Value).FirstOrDefault();
+
+            if (org.Equals(orgClaim, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static XacmlJsonCategory CreateMultipleSubjectCategory(IEnumerable<Claim> claims)
@@ -206,8 +227,7 @@ namespace Altinn.Platform.Storage.Helpers
 
             foreach (Instance instance in instances)
             {
-                XacmlJsonCategory resourceCategory = new XacmlJsonCategory();
-                resourceCategory.Attribute = new List<XacmlJsonAttribute>();
+                XacmlJsonCategory resourceCategory = new XacmlJsonCategory { Attribute = new List<XacmlJsonAttribute>() };
 
                 string instanceId = instance.Id.Split("/")[1];
                 string task = instance.Process?.CurrentTask?.ElementId;
@@ -247,8 +267,10 @@ namespace Altinn.Platform.Storage.Helpers
             List<string> actionIds = actions.Select(a => a.Id).ToList();
             List<string> resourceIds = resources.Select(r => r.Id).ToList();
 
-            XacmlJsonMultiRequests multiRequests = new XacmlJsonMultiRequests();
-            multiRequests.RequestReference = CreateRequestReference(subjectIds, actionIds, resourceIds);
+            XacmlJsonMultiRequests multiRequests = new XacmlJsonMultiRequests
+            {
+                RequestReference = CreateRequestReference(subjectIds, actionIds, resourceIds)
+            };
 
             return multiRequests;
         }
@@ -264,10 +286,12 @@ namespace Altinn.Platform.Storage.Helpers
                     foreach (string subjectId in subjectIds)
                     {
                         XacmlJsonRequestReference reference = new XacmlJsonRequestReference();
-                        List<string> referenceId = new List<string>();
-                        referenceId.Add(subjectId);
-                        referenceId.Add(actionId);
-                        referenceId.Add(resourceId);
+                        List<string> referenceId = new List<string>
+                        {
+                            subjectId,
+                            actionId,
+                            resourceId
+                        };
                         reference.ReferenceId = referenceId;
                         references.Add(reference);
                     }
