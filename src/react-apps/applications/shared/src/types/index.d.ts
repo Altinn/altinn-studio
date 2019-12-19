@@ -1,3 +1,5 @@
+import { string } from "prop-types"
+
 export interface IAltinnWindow extends Window {
   org: string;
   app: string;
@@ -29,13 +31,19 @@ export interface IData {
 
 export interface IInstance {
   id: string;
-  instanceOwnerId: string;
+  instanceOwner: IInstanceOwner;
   appId: string;
   org: string;
   created: Date;
   lastChanged: Date;
   instanceState: IInstanceState;
   data: IData[];
+}
+
+export interface IInstanceOwner {
+  partyId: string;
+  personNumber: string;
+  organisationNumber: string;
 }
 
 export interface IPerson {
