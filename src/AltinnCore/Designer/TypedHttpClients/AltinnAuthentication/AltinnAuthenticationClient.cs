@@ -15,7 +15,6 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
     {
         private readonly HttpClient _httpClient;
         private readonly PlatformSettings _platformSettings;
-        private const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
         private readonly ILogger _logger;
 
         /// <summary>
@@ -39,12 +38,9 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
         {
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            _logger.LogInformation($"//AltinnAuthenticationClient // ConvertTokenAsync // Checking if environment is tt02");
-
             if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
             {
-                _logger.LogInformation($"//AltinnAuthenticationClient // ConvertTokenAsync // Env matched tt02. Setting subscription key in header.");
-                _httpClient.DefaultRequestHeaders.Add(SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
+                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
             }
 
             /*

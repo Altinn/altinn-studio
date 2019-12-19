@@ -17,7 +17,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnStorage
     {
         private readonly HttpClient _httpClient;
         private readonly PlatformSettings _platformSettings;
-
+        
         /// <summary>
         /// Constructor
         /// </summary>
@@ -35,6 +35,12 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnStorage
         public async Task<Application> GetApplicationMetadata(string org, string app, EnvironmentModel environmentModel)
         {
             Uri uri = new Uri($"{CreateUri(environmentModel)}{org}/{app}");
+
+            if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
+            }
+
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
              * because the base address can change on each request and after HttpClient gets initial base address,
@@ -53,6 +59,12 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnStorage
             EnvironmentModel environmentModel)
         {
             Uri uri = new Uri($"{CreateUri(environmentModel)}?appId={org}/{app}");
+
+            if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
+            }
+
             string stringContent = JsonSerializer.Serialize(applicationMetadata);
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
@@ -74,6 +86,12 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnStorage
             EnvironmentModel environmentModel)
         {
             Uri uri = new Uri($"{CreateUri(environmentModel)}{org}/{app}");
+
+            if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
+            }
+
             string stringContent = JsonSerializer.Serialize(applicationMetadata);
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
