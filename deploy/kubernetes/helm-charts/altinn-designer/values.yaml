@@ -45,6 +45,8 @@ environmentVariables:
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
       value: http://altinn-repositories:3000
+    - name: PlatformSettings__SubscriptionKeyTT02
+      value: Will Be Inserted
   staging:
     - name: ASPNETCORE_ENVIRONMENT
       value: Staging
@@ -74,6 +76,8 @@ environmentVariables:
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
       value: http://altinn-repositories:3000
+    - name: PlatformSettings__SubscriptionKeyTT02
+      value: Will Be Inserted
   production:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
@@ -103,6 +107,8 @@ environmentVariables:
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
       value: http://altinn-repositories:3000
+    - name: PlatformSettings__SubscriptionKeyTT02
+      value: Will Be Inserted
 
 volumeMounts:
   - name: altinn-repo-storage
