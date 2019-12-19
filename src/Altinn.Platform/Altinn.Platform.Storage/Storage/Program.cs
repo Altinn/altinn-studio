@@ -68,7 +68,7 @@ namespace Altinn.Platform.Storage
                 logging.ClearProviders();
                 Serilog.ILogger logger = new LoggerConfiguration()
                     .WriteTo.Console()
-                    .WriteTo.ApplicationInsights(TelemetryConfiguration.CreateDefault(), TelemetryConverter.Traces)
+                    .WriteTo.ApplicationInsights(new TelemetryConfiguration(Startup.ApplicationInsightsKey), TelemetryConverter.Traces)
                     .CreateLogger();
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
