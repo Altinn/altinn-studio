@@ -1,12 +1,14 @@
-using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+
 using AltinnCore.Common.Configuration;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
@@ -34,7 +36,7 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<Organization> GetOrganization(string OrgNr)
         {
             string path = _testdataRepositorySettings.RepositoryLocation + TESTDATA_ORG_FOLDER + OrgNr + @"/" + ORG_JSON_FILE;
-            string textData = File.ReadAllText(path, Encoding.UTF8);
+            string textData = await File.ReadAllTextAsync(path, Encoding.UTF8);
             Organization org = JsonConvert.DeserializeObject<Organization>(textData);
             return org;
         }

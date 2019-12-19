@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
+
 using Altinn.Platform.Storage.Interface.Models;
+
 using AltinnCore.Common.Models;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.Models;
-using AltinnCore.ServiceLibrary.Models.Workflow;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
-using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Common.Services.Interfaces
 {
@@ -22,6 +22,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="serviceMetadata">The <see cref="ModelMetadata"/> to generate the model based on.</param>
         /// <param name="mainXsd">The main XSD for the current app</param>
+        /// <param name="fileName">The name of the model metadata file.</param>
         /// <returns>A boolean indicating the result</returns>
         bool CreateModel(string org, string app, ModelMetadata serviceMetadata, XDocument mainXsd, string fileName);
 
