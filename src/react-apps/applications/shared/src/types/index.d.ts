@@ -1,4 +1,3 @@
-
 export interface IAltinnWindow extends Window {
   org: string;
   app: string;
