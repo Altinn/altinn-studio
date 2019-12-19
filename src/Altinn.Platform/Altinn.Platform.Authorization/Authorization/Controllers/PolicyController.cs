@@ -80,7 +80,7 @@ namespace Altinn.Platform.Authorization.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex);
+                logger.LogError(ex.ToString());
                 return StatusCode(500);
             }
 
