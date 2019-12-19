@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 //using Altinn.App.Models; // <-- Uncomment this line to refer to app model(s)
 
 namespace Altinn.App.AppLogic.Calculation
@@ -22,7 +23,7 @@ namespace Altinn.App.AppLogic.Calculation
         /// }
         /// </example>
         /// <param name="instance">The data</param>
-        public bool Calculate(object instance)
+        public async Task<bool> Calculate(object instance)
         {
             return false;
         }

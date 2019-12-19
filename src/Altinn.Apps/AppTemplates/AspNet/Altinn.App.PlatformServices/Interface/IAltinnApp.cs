@@ -72,27 +72,27 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Is called to run custom validation events defined by app developer.
         /// </summary>
-        /// <param name="instance">The data to validate</param>
+        /// <param name="data">The data to validate</param>
         /// <param name="validationResults">Object containing any validation errors/warnings</param>
         /// <returns>Task to indicate when validation is completed</returns>
-        Task RunValidation(object instance, ModelStateDictionary validationResults);
+        Task RunValidation(object data, ModelStateDictionary validationResults);
 
         /// <summary>
         /// Is called to run custom calculation events defined by app developer.
         /// </summary>
-        /// <param name="instance">The data to perform calculations on</param>
-        Task<bool> RunCalculation(object instance);
+        /// <param name="data">The data to perform calculations on</param>
+        Task<bool> RunCalculation(object data);
 
         /// <summary>
         /// Is called to run custom instantiation validation defined by app developer.
         /// </summary>
         /// <returns>Task with validation results</returns>
-        Task<InstantiationValidationResult> RunInstantiationValidation();
+        Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance);
 
         /// <summary>
         /// Is called to run data creation (custom prefill) defined by app developer.
         /// </summary>
-        /// <param name="instance">The data to perform data creation on</param>
-        Task RunDataCreation(object instance);
+        /// <param name="data">The data to perform data creation on</param>
+        Task RunDataCreation(Instance instance, object data);
     }
 }

@@ -34,7 +34,6 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
-        private readonly AuthorizationHelper _authorizationHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -43,7 +42,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
         /// <param name="logger">the logger</param>
-        /// <param name="pdp">the policy desicion point.</param>
+        /// <param name="pdp">the policy decision point.</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
@@ -56,7 +55,6 @@ namespace Altinn.Platform.Storage.Controllers
             _applicationRepository = applicationRepository;
             _pdp = pdp;
             _logger = logger;
-            _authorizationHelper = new AuthorizationHelper(pdp);
         }
 
         /// <summary>
@@ -78,11 +76,12 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="size">the page size</param>
         /// <returns>list of all instances for given instance owner</returns>
         /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
+        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_INSTANCE_READ)]
         [HttpGet]
         [ProducesResponseType(typeof(QueryResponse<Instance>), 200)]
         public async Task<ActionResult> GetInstances(
-            string org,
-            string appId,
+            [FromQuery] string org,
+            [FromQuery] string appId,
             [FromQuery(Name = "process.currentTask")] string currentTaskId,
             [FromQuery(Name = "process.isComplete")] bool? processIsComplete,
             [FromQuery(Name = "process.endEvent")] string processEndEvent,
@@ -98,6 +97,18 @@ namespace Altinn.Platform.Storage.Controllers
         {
             int pageSize = size ?? 100;
             string selfContinuationToken = null;
+
+            if (string.IsNullOrEmpty(org) && string.IsNullOrEmpty(appId))
+            {
+                return BadRequest("Org or AppId must be defined.");
+            }
+
+            org = string.IsNullOrEmpty(org) ? appId.Split('/')[0] : org;
+
+            if (!AuthorizationHelper.VerifyOrgInClaimPrincipal(org, HttpContext.User))
+            {
+                return Forbid();
+            }
 
             if (!string.IsNullOrEmpty(continuationToken))
             {
@@ -116,7 +127,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 InstanceQueryResponse result = await _instanceRepository.GetInstancesOfApplication(queryParams, continuationToken, pageSize);
-                
+
                 if (!string.IsNullOrEmpty(result.Exception))
                 {
                     return BadRequest(result.Exception);
@@ -125,11 +136,9 @@ namespace Altinn.Platform.Storage.Controllers
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
-                List<Instance> authorizedInstances = await _authorizationHelper.AuthorizeInstances(HttpContext.User, result.Instances);
-
                 QueryResponse<Instance> response = new QueryResponse<Instance>
                 {
-                    Instances = authorizedInstances,
+                    Instances = result.Instances,
                     Count = result.Instances.Count,
                     TotalHits = result.TotalHits ?? 0
                 };
@@ -312,7 +321,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             DateTime? visibleAfter = DateTimeHelper.ConvertToUniversalTime(instance.VisibleAfter);
             existingInstance.VisibleAfter ??= visibleAfter;
-            
+
             existingInstance.LastChangedBy = GetUserId();
             existingInstance.LastChanged = DateTime.UtcNow;
 
@@ -385,7 +394,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
-               
+
                 AddSelfLinks(Request, result);
             }
             catch (Exception e)
@@ -484,7 +493,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             string org = instance.Org;
             string app = instance.AppId.Split("/")[1];
-            
+
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, null, instance.Id);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
             if (response?.Response == null)
@@ -565,7 +574,7 @@ namespace Altinn.Platform.Storage.Controllers
                 AppOwner = new ApplicationOwnerState
                 {
                     Labels = instanceTemplate.AppOwner?.Labels,
-                },                               
+                },
             };
 
             // copy applications title to presentation field if not set by instance template
@@ -631,7 +640,7 @@ namespace Altinn.Platform.Storage.Controllers
                     AuthenticationLevel = User.GetAuthenticationLevel(),
                     OrgId = User.GetOrg(),
                 },
-                
+
                 ProcessInfo = instance.Process,
                 Created = DateTime.UtcNow,
             };
