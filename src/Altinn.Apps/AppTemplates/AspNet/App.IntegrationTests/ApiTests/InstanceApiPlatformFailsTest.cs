@@ -70,7 +70,7 @@ namespace App.IntegrationTestsRef.ApiTests
         }
 
         [Fact]
-        public async Task Instance_Post_FailOk()
+        public async Task Instance_Post_Instance_FailOk()
         {
             string token = PrincipalUtil.GetToken(1);
 
@@ -82,9 +82,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             string responseContent = await response.Content.ReadAsStringAsync();           
 
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);            
         }
-
     }
 }

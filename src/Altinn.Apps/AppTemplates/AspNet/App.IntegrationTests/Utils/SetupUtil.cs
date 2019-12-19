@@ -49,6 +49,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.Configure<AppSettings>(appSettingSection);
                     services.AddSingleton<IInstance, InstanceMockSI>();
                     services.AddSingleton<IData, DataMockSI>();
+                    services.AddSingleton<IInstanceEvent, InstanceEventAppSIMock>();
                     services.AddSingleton<IRegister, RegisterMockSI>();
                     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
                     services.AddSingleton<IApplication, ApplicationMockSI>();

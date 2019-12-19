@@ -87,19 +87,17 @@ namespace Altinn.App.Services.Implementation
                 apiUrl += $"&from={from}&to={to}";
             }
 
-            try
+            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await _client.GetAsync(apiUrl);
                 string eventData = await response.Content.ReadAsStringAsync();
                 List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
 
                 return instanceEvents;
             }
-            catch (Exception)
-            {
-                _logger.LogError($"Unable to retrieve instance event");
-                return null;
-            }
+
+            throw new PlatformHttpException(response);                              
         }
 
         /// <inheritdoc/>
@@ -111,18 +109,17 @@ namespace Altinn.App.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            try
+            
+            HttpResponseMessage response = await _client.PostAsync(apiUrl, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
+
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await _client.PostAsync(apiUrl, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
                 string eventData = await response.Content.ReadAsStringAsync();
                 InstanceEvent result = JsonConvert.DeserializeObject<InstanceEvent>(eventData);
                 return result.Id.ToString();
             }
-            catch
-            {
-                _logger.LogError($"Unable to store instance event");
-                return null;
-            }
+
+            throw new PlatformHttpException(response);
         }
     }
 }
