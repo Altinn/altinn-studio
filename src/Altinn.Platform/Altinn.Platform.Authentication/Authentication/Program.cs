@@ -109,7 +109,7 @@ namespace Altinn.Platform.Authentication
                     SecretBundle secretBundle = keyVaultClient
                         .GetSecretAsync(keyVaultSettings.SecretUri, appInsightsKey).Result;
 
-                    Environment.SetEnvironmentVariable(appInsightsKey, secretBundle.Value);
+                    Startup.ApplicationInsightsKey = secretBundle.Value;
                 }
                 catch (Exception vaultException)
                 {
