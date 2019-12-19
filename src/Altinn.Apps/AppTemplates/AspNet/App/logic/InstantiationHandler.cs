@@ -1,6 +1,7 @@
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using System.Threading.Tasks;
 // using Altinn.App.Models; // Uncomment this line to refer to app model(s)
 
 namespace Altinn.App.AppLogic
@@ -34,7 +35,7 @@ namespace Altinn.App.AppLogic
         /// <param name="instance"></param>
         /// <param name="validationResults"></param>
         /// <returns>The validation result object (null if no errors) </returns>
-        public InstantiationValidationResult RunInstantiationValidation(Instance instance)
+        public async Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
             return null;
         }
@@ -47,7 +48,7 @@ namespace Altinn.App.AppLogic
         /// </remarks>
         /// <param name="instance">Instance information</param>
         /// <param name="data">The data object created</param>
-        public void DataCreation(Instance instance, object data)
+        public async Task DataCreation(Instance instance, object data)
         {
 
         }
