@@ -350,9 +350,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> Update(string instanceId, DataElement dataElement)
+        public async Task<DataElement> Update(Instance instance, DataElement dataElement)
         {
-            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/dataelements/{dataElement.Id}";
+            string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instance.Id}/dataelements/{dataElement.Id}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
@@ -366,7 +366,7 @@ namespace Altinn.App.Services.Implementation
                 return result;
             }
 
-            return null;
+            throw new PlatformClientException(response);            
         }
     }
 }

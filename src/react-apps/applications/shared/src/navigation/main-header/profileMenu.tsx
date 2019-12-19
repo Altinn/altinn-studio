@@ -61,14 +61,11 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
   public shouldShowRepositoryLink = () => {
     if (window) {
       const {org, app} = (window as Window as IAltinnWindow);
-      if (!org || !app) {
-        return false;
-      } else {
+      if (org && app) {
         return true;
       }
-    } else {
-      return false;
     }
+    return false;
   }
 
   public handleGiteaRepository = () => {

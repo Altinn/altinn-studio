@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.RepositoryClient.Model
 {
     /// <summary>
-    /// CreateRepoOption options when creating repository
+    /// Access token
     /// </summary>
     [DataContract]
     public partial class AccessToken

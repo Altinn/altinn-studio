@@ -2,7 +2,6 @@ import { SagaIterator } from 'redux-saga';
 import { delay } from 'redux-saga';
 import { call, fork, race, select, take } from 'redux-saga/effects';
 import { get } from '../../../../../shared/src/utils/networking';
-import { urls } from '../../../config/sharedConfig';
 import * as AppClusterActionTypes from '../appClusterActionTypes';
 import AppClusterDispatcher from '../appClusterDispatcher';
 
@@ -17,7 +16,7 @@ function* getDeploymentsIntervalSaga(): SagaIterator {
       try {
         const result = yield call(get,
           // tslint:disable-next-line:max-line-length
-          `https://${org}.apps.${env.name}.${urls.hostname.apps.test}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${app}`);
+          `https://${org}.apps.${env.hostname}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${app}`);
 
         yield call(AppClusterDispatcher.getDeploymentsFulfilled, result, env.name);
       } catch (err) {

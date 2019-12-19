@@ -198,21 +198,13 @@ namespace AltinnCore.Common.Services.Interfaces
         IList<OrgConfiguration> GetOwners();
 
         /// <summary>
-        /// Returns a list of all apps for a given organisation present in the local repository
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <returns>A list of all apps for the given org</returns>
-        IList<ServiceConfiguration> GetServices(string org);
-
-        /// <summary>
         /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
-        /// <param name="repoCreated">whether the repo is created or not</param>
         /// <returns>The repository created in gitea</returns>
-        RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false);
+        RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration serviceConfig);
 
         /// <summary>
         ///  Deletes an app folder from disk

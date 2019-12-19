@@ -9,18 +9,12 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using SwaggerDateConverter = AltinnCore.RepositoryClient.Client.SwaggerDateConverter;
 
 namespace AltinnCore.RepositoryClient.Model
 {
@@ -41,31 +35,31 @@ namespace AltinnCore.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateRepoOption" /> class.
         /// </summary>
-        /// <param name="AutoInit">Whether the repository should be auto-intialized?.</param>
-        /// <param name="Description">Description of the repository to create.</param>
-        /// <param name="Gitignores">Gitignores to use.</param>
-        /// <param name="License">License to use.</param>
-        /// <param name="Name">Name of the repository to create (required).</param>
-        /// <param name="_Private">Whether the repository is private.</param>
-        /// <param name="Readme">Readme of the repository to create.</param>
-        public CreateRepoOption(bool? AutoInit = default(bool?), string Description = default(string), string Gitignores = default(string), string License = default(string), string Name = default(string), bool? _Private = default(bool?), string Readme = default(string))
+        /// <param name="autoInit">Whether the repository should be auto-intialized?.</param>
+        /// <param name="description">Description of the repository to create.</param>
+        /// <param name="gitignores">Gitignores to use.</param>
+        /// <param name="license">License to use.</param>
+        /// <param name="name">Name of the repository to create (required).</param>
+        /// <param name="makePrivate">Whether the repository should be made private.</param>
+        /// <param name="readme">Readme of the repository to create.</param>
+        public CreateRepoOption(string name, bool autoInit = false, string description = null, string gitignores = null, string license = null, bool makePrivate = false, string readme = null)
         {
             // to ensure "Name" is required (not null)
-            if (Name == null)
+            if (name == null)
             {
                 throw new InvalidDataException("Name is a required property for CreateRepoOption and cannot be null");
             }
             else
             {
-                this.Name = Name;
+                this.Name = name;
             }
 
-            this.AutoInit = AutoInit;
-            this.Description = Description;
-            this.Gitignores = Gitignores;
-            this.License = License;
-            this.IsPrivate = _Private;
-            this.Readme = Readme;
+            this.AutoInit = autoInit;
+            this.Description = description;
+            this.Gitignores = gitignores;
+            this.License = license;
+            this.IsPrivate = makePrivate;
+            this.Readme = readme;
         }
 
         /// <summary>
@@ -117,15 +111,16 @@ namespace AltinnCore.RepositoryClient.Model
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.Append("class CreateRepoOption {\n");
-            sb.Append("  AutoInit: ").Append(AutoInit).Append("\n");
-            sb.Append("  Description: ").Append(Description).Append("\n");
-            sb.Append("  Gitignores: ").Append(Gitignores).Append("\n");
-            sb.Append("  License: ").Append(License).Append("\n");
-            sb.Append("  Name: ").Append(Name).Append("\n");
-            sb.Append("  _Private: ").Append(IsPrivate).Append("\n");
-            sb.Append("  Readme: ").Append(Readme).Append("\n");
-            sb.Append("}\n");
+            sb.AppendLine("class CreateRepoOption {");
+            sb.Append("  AutoInit: ").Append(AutoInit).AppendLine();
+            sb.Append("  Description: ").AppendLine(Description);
+            sb.Append("  Gitignores: ").AppendLine(Gitignores);
+            sb.Append("  License: ").AppendLine(License);
+            sb.Append("  Name: ").AppendLine(Name);
+            sb.Append("  _Private: ").Append(IsPrivate).AppendLine();
+            sb.Append("  Readme: ").AppendLine(Readme);
+            sb.AppendLine("}");
+
             return sb.ToString();
         }
 

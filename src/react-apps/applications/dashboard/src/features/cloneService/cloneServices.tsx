@@ -36,6 +36,9 @@ const styles = createStyles({
       marginRight: '50px',
     },
   },
+  avatar: {
+    maxHeight: '2em',
+  },
   ownerStyle: {
     fontSize: '16px',
     marginTop: '60px',
@@ -156,16 +159,14 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
         {repoInfo &&
           <div className={classes.mainStyle}>
             <Typography component='h1' variant='h1' gutterBottom={true} className={classes.serviceHeader}>
-              {repoInfo.name}
+              {`${repoInfo.owner.login} / ${repoInfo.name}`}
             </Typography>
             <div>
               <Typography className={classes.ownerStyle}>
-                <i
-                  className={classNames(
-                    classes.iconStyling,
-                    { ['fa fa-corp']: repoInfo.owner.UserType === 2 },
-                    { ['fa fa-private']: repoInfo.owner.UserType !== 2 })}
-                  aria-hidden='true'
+                <img
+                  src={repoInfo.owner.avatar_url}
+                  className={classNames(classes.avatar)}
+                  alt=''
                 /> {repoInfo.owner.full_name || repoInfo.owner.login}
               </Typography>
             </div>

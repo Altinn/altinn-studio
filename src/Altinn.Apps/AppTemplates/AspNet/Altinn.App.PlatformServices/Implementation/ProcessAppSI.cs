@@ -13,6 +13,7 @@ using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
 {
@@ -123,17 +124,24 @@ namespace Altinn.App.Services.Implementation
         {
             if (instance.Process != null)
             {
-                string validNextEmentId = CheckNextElementId(instance, nextElementId);
-
-                ProcessStateChange result = new ProcessStateChange
+                try
                 {
-                    OldProcessState = instance.Process,                  
-                };
+                    string validNextEmentId = CheckNextElementId(instance, nextElementId);
 
-                result.Events = MoveProcessToNext(instance, validNextEmentId, userContext);
-                result.NewProcessState = instance.Process;
-                
-                return result;
+                    ProcessStateChange result = new ProcessStateChange
+                    {
+                        OldProcessState = instance.Process,
+                    };
+
+                    result.Events = MoveProcessToNext(instance, validNextEmentId, userContext);
+                    result.NewProcessState = instance.Process;
+
+                    return result;
+                }
+                catch
+                {
+                    _logger.LogError($"Unable to get next for {instance.Id}");
+                }
             }
 
             return null;
@@ -197,7 +205,7 @@ namespace Altinn.App.Services.Implementation
                 await _eventService.SaveInstanceEvent(instanceEvent, org, app);
             }
         }
-      
+
         /// <summary>
         /// Assumes that nextElementId is a valid task/state
         /// </summary>
@@ -208,6 +216,7 @@ namespace Altinn.App.Services.Implementation
         {
             List<InstanceEvent> events = new List<InstanceEvent>();
 
+            ProcessState previousState = JsonConvert.DeserializeObject<ProcessState>(JsonConvert.SerializeObject(instance.Process));
             ProcessState currentState = instance.Process;
 
             string previousElementId = currentState.CurrentTask?.ElementId;
@@ -228,8 +237,9 @@ namespace Altinn.App.Services.Implementation
                 {
                     flow = currentState.CurrentTask.Flow.Value;
                 }
-
+                instance.Process = previousState;
                 events.Add(GenerateProcessChangeEvent("process:EndTask", instance, now, user));
+                instance.Process = currentState;
             }
 
             if (ProcessHelper.IsEndEvent(nextElementId))

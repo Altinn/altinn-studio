@@ -41,13 +41,13 @@ namespace Altinn.App.Services.Implementation
 
         public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
 
-        public abstract Task<bool> RunValidation(object instance, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
+        public abstract Task RunValidation(object instance, ModelStateDictionary validationResults);
 
         public abstract Task<bool> RunCalculation(object instance);
 
-        public abstract Task<InstantiationValidationResult> RunInstantiationValidation();
+        public abstract Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance);
 
-        public abstract Task RunDataCreation(object instance);
+        public abstract Task RunDataCreation(Instance instance, object data);
         
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
@@ -65,11 +65,11 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task OnEndProcess(string taskId, Instance instance)
+        public async Task OnEndProcess(string endEvent, Instance instance)
         {
-            _logger.LogInformation($"OnEndProcess for {instance.Id}, taskId: {taskId}");
+            _logger.LogInformation($"OnEndProcess for {instance.Id}, endEvent: {endEvent}");
 
-            if (taskId != null && taskId.Equals("EndEvent_1"))
+            if (endEvent != null && endEvent.Equals("EndEvent_1"))
             {
                 await _pdfService.GenerateAndStoreReceiptPDF(instance);
             }
@@ -93,7 +93,7 @@ namespace Altinn.App.Services.Implementation
                 if (dataElement == null)
                 {
                     dynamic data = CreateNewAppModel(dataType.AppLogic.ClassRef);
-                    RunDataCreation(data);
+                    await RunDataCreation(instance, data);
                     Type type = GetAppModelType(dataType.AppLogic.ClassRef);
 
                     DataElement createdDataElement = await _dataService.InsertFormData(instance, dataType.Id, data, type);
@@ -140,8 +140,8 @@ namespace Altinn.App.Services.Implementation
                 foreach (DataElement dataElement in instance.Data.FindAll(de => de.DataType == dataType.Id))
                 {
                     dataElement.Locked = true;
-                    _logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType}.");
-                    await _dataService.Update(instance.Id, dataElement);   
+                    _logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType.Id}.");
+                    await _dataService.Update(instance, dataElement);
                 }
             }
         }

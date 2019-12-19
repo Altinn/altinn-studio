@@ -37,6 +37,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private CloudBlobContainer _blobContainer;
         private bool blobSetup = false;
         private readonly string _validToken;
+        private readonly string _validOrgToken;
 
         private readonly string versionPrefix = "/storage/api/v1";
 
@@ -59,6 +60,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             _blobContainer = _blobClient.GetContainerReference("servicedata");
 
             _validToken = PrincipalUtil.GetToken(1);
+            _validOrgToken = PrincipalUtil.GetOrgToken(org: testOrg, scope: "altinn:instances.read");
             CreateTestApplication();
         }
 
@@ -166,7 +168,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             await _instanceClient.PostInstances(testAppId, testInstanceOwnerId);
 
             string url = $"{versionPrefix}/instances?org={testOrg}&appId={testAppId}&instanceOwner.partyId={testInstanceOwnerId}";
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
             HttpResponseMessage response = await _client.GetAsync(url);
 
             response.EnsureSuccessStatusCode();

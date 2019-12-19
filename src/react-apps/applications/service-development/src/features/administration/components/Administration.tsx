@@ -42,6 +42,9 @@ export interface IAdministrationComponentState {
 const theme = createMuiTheme(altinnTheme);
 
 const styles = createStyles({
+  avatar: {
+    maxHeight: '2em',
+  },
   sidebarHeader: {
     marginBottom: 20,
     fontSize: 20,
@@ -195,15 +198,11 @@ export class AdministrationComponent extends
           {getLanguageFromKey('administration.service_owner_is', this.props.language)}
         </Typography>
         <Typography className={classNames(classes.sidebarServiceOwner, classes.sidebarInfoText)}>
-          <i
-            className={classNames(classes.iconStyling,
-              {
-                ['fa fa-corp']: this.props.service.owner.UserType === 2,
-                ['fa fa-private']: this.props.service.owner.UserType !== 2,
-              })}
-            aria-hidden='true'
-          />
-          {this.props.service.owner.full_name || this.props.service.owner.login}
+          <img
+            src={this.props.service.owner.avatar_url}
+            className={classNames(classes.avatar)}
+            alt=''
+          /> {this.props.service.owner.full_name || this.props.service.owner.login}
         </Typography>
         {this.props.initialCommit &&
           <Typography className={classNames(classes.sidebarCreatedBy)}>

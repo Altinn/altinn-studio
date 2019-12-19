@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using Altinn.Platform.Storage.Interface.Models;
 
+#pragma warning disable 1591
+#pragma warning disable SA1600
+
 namespace Altinn.Platform.Storage.IntegrationTest
 {
     /// <summary>

@@ -20,9 +20,13 @@ using Altinn.Platform.Storage.Repository;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
+#pragma warning disable 1998
+#pragma warning disable 1591
+#pragma warning disable SA1600
+
 namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 {
-    class PepWithPDPAuthorizationMockSI : IPDP
+    public class PepWithPDPAuthorizationMockSI : IPDP
     {
         private readonly IInstanceRepository _instanceRepository;
 
@@ -116,9 +120,8 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 
                     return multiResponse;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    string test = "test";
                 }
             }
             else if (xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => (a.AttributeId == "urn:altinn:userid" && a.Value == "1")) ||
@@ -317,7 +320,6 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
             if (task != null)
             {
                 attribute = new XacmlAttribute(new Uri(taskAttributeId), false);
-                
             }
             else
             {
