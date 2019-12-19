@@ -194,7 +194,11 @@ namespace Altinn.Platform.Storage.Helpers
         /// <returns></returns>
         public static bool VerifyOrgInClaimPrincipal(string org, ClaimsPrincipal user)
         {
+            Console.WriteLine($"AuthzHelper // VerifyOrg // Trying to verify org in claims.");
+
             string orgClaim = user?.Claims.Where(c => c.Type.Equals(AltinnXacmlUrns.OrgId)).Select(c => c.Value).FirstOrDefault();
+
+            Console.WriteLine($"AuthzHelper // VerifyOrg // Org claim: {orgClaim}.");
 
             if (org.Equals(orgClaim, StringComparison.CurrentCultureIgnoreCase))
             {

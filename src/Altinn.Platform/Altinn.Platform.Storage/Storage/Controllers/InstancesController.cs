@@ -105,6 +105,8 @@ namespace Altinn.Platform.Storage.Controllers
 
             org = string.IsNullOrEmpty(org) ? appId.Split('/')[0] : org;
 
+            _logger.LogInformation($" // InstancesController // GetInstances // Tyring to get instances for org: {org}");
+
             if (!AuthorizationHelper.VerifyOrgInClaimPrincipal(org, HttpContext.User))
             {
                 return Forbid();
