@@ -8,6 +8,8 @@ using Altinn.Common.PEP.Constants;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Helpers
 {
@@ -17,6 +19,7 @@ namespace Altinn.Platform.Storage.Helpers
     public class AuthorizationHelper
     {
         private readonly IPDP _pdp;
+        private readonly ILogger _logger;
 
         private const string XacmlResourceTaskId = "urn:altinn:task";
         private const string XacmlResourceEndId = "urn:altinn:end-event";
@@ -31,9 +34,10 @@ namespace Altinn.Platform.Storage.Helpers
         /// Initializes a new instance of the <see cref="AuthorizationHelper"/> class.
         /// </summary>
         /// <param name="pdp">The policy decision point</param>
-        public AuthorizationHelper(IPDP pdp)
+        public AuthorizationHelper(IPDP pdp, ILogger<AuthorizationHelper> logger)
         {
             _pdp = pdp;
+            _logger = logger;
         }
 
         /// <summary>
@@ -49,7 +53,12 @@ namespace Altinn.Platform.Storage.Helpers
             List<MessageBoxInstance> authorizedInstanceeList = new List<MessageBoxInstance>();
             List<string> actionTypes = new List<string> { "read", "write" };
 
+            _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // User: {user}");
+            _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // Instances count: {instances.Count()}");
+            _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // Action types: {actionTypes}");
             XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
+
+            _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // xacmlJsonRequest: {JsonConvert.SerializeObject(xacmlJsonRequest)}");
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(xacmlJsonRequest);
 
             foreach (XacmlJsonResult result in response.Response)
