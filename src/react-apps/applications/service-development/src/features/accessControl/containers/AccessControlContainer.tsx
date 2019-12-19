@@ -90,7 +90,7 @@ export class AccessControlContainerClass extends React.Component<
   IAccessControlContainerProps, IAccessControlContainerState> {
 
   public static getDerivedStateFromProps(nextProps: IAccessControlContainerProps, state: IAccessControlContainerState) {
-    const {partyTypesAllowed} = nextProps.applicationMetadata;
+    const { partyTypesAllowed } = nextProps.applicationMetadata;
     if (!partyTypesAllowed) {
       return null;
     }
@@ -105,7 +105,7 @@ export class AccessControlContainerClass extends React.Component<
 
   constructor(props: IAccessControlContainerProps, state: IAccessControlContainerState) {
     super(props, state);
-    let { partyTypesAllowed} = props.applicationMetadata;
+    let { partyTypesAllowed } = props.applicationMetadata;
     if (!partyTypesAllowed) {
       partyTypesAllowed = {
         bankruptcyEstate: false,
