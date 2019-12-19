@@ -4,6 +4,8 @@ using System.Reflection;
 using Altinn.Platform.Profile.Configuration;
 using Altinn.Platform.Profile.Services.Implementation;
 using Altinn.Platform.Profile.Services.Interfaces;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -60,6 +62,7 @@ namespace Altinn.Platform.Profile
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
+                services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");

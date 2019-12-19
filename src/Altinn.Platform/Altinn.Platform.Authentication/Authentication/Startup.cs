@@ -7,7 +7,8 @@ using Altinn.Platform.Authentication.Repositories;
 using Altinn.Platform.Authentication.Services;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
-
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +30,11 @@ namespace Altinn.Platform.Authentication
         /// The key vault key which application insights is stored.
         /// </summary>
         public static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Authentication";
+
+        /// <summary>
+        /// The application insights key.
+        /// </summary>
+        internal static string ApplicationInsightsKey { get; set; }
 
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<Startup> _logger;
@@ -95,9 +101,10 @@ namespace Altinn.Platform.Authentication
             string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
             if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
             {
-                services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
+                services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
+                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
 
-                _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {applicationInsightTelemetryKey}");
+                _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
             }
 
             // Add Swagger support (Swashbuckle)

@@ -68,10 +68,15 @@ namespace Altinn.Platform.Authentication
             .ConfigureLogging((hostingContext, logging) =>
             {
                 logging.ClearProviders();
-                Serilog.ILogger logger = new LoggerConfiguration()
-                    .WriteTo.Console()
-                    .WriteTo.ApplicationInsights(TelemetryConfiguration.CreateDefault(), TelemetryConverter.Traces)
-                    .CreateLogger();
+                LoggerConfiguration loggerConfig = new LoggerConfiguration().WriteTo.Console();
+
+                if (!string.IsNullOrEmpty(Startup.ApplicationInsightsKey))
+                {
+                    loggerConfig.WriteTo.ApplicationInsights(new TelemetryConfiguration(Startup.ApplicationInsightsKey), TelemetryConverter.Traces);
+                }
+
+                Serilog.ILogger logger = loggerConfig.CreateLogger();
+
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
             .UseStartup<Startup>();
@@ -104,7 +109,7 @@ namespace Altinn.Platform.Authentication
                     SecretBundle secretBundle = keyVaultClient
                         .GetSecretAsync(keyVaultSettings.SecretUri, appInsightsKey).Result;
 
-                    Environment.SetEnvironmentVariable(appInsightsKey, secretBundle.Value);
+                    Startup.ApplicationInsightsKey = secretBundle.Value;
                 }
                 catch (Exception vaultException)
                 {
