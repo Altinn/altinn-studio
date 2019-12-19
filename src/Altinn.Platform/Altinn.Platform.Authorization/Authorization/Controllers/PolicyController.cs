@@ -19,7 +19,7 @@ namespace Altinn.Platform.Authorization.Controllers
         private readonly IPolicyRetrievalPoint _prp;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PolicyController"/> class.      
+        /// Initializes a new instance of the <see cref="PolicyController"/> class.
         /// </summary>
         /// <param name="prp">The policy retrieval point.</param>
         /// <param name="logger">logger</param>
@@ -32,7 +32,7 @@ namespace Altinn.Platform.Authorization.Controllers
         }
 
         /// <summary>
-        /// Saves policy file to storage    
+        /// Saves policy file to storage
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -80,7 +80,7 @@ namespace Altinn.Platform.Authorization.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex.Message);
+                logger.LogError(ex.ToString());
                 return StatusCode(500);
             }
 
