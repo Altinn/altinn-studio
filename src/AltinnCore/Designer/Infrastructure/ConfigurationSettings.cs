@@ -22,7 +22,6 @@ namespace AltinnCore.Designer.Infrastructure
             services.Configure<TestdataRepositorySettings>(configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(configuration.GetSection("GeneralSettings"));
             services.Configure<KeyVaultSettings>(configuration.GetSection("kvSetting"));
-            services.Configure<CertificateSettings>(configuration);
             services.Configure<CertificateSettings>(configuration.GetSection("CertificateSettings"));
             services.Configure<PlatformSettings>(configuration.GetSection("PlatformSettings"));
             services.Configure<Integrations>(configuration.GetSection("Integrations"));

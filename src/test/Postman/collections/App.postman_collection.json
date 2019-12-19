@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "f5ccfcdf-441a-4513-bea0-8dd2816ed48e",
-		"name": "Runtime",
+		"name": "App",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -32,7 +32,6 @@
 									"    if(error)",
 									"    {",
 									"        console.log(\"error\",error);",
-									"        ",
 									"    }",
 									"});"
 								],
@@ -52,7 +51,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"UserName\": \"{{testUserName}}\",\r\n    \"UserPassword\": \"Altinn123\"\r\n}\r\n",
+							"raw": "{\r\n    \"UserName\": \"{{testUserName}}\",\r\n    \"UserPassword\": \"{{testUserPassword}}\"\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -143,6 +142,52 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "GET AttachmentType Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ce37f250-8e44-4034-9ec3-b9ee5feac332",
+								"exec": [
+									"if (pm.response.code == 200) {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var dataTypes = jsonData.dataTypes;\r",
+									"    var dataTypesCount = dataTypes.length;\r",
+									"    for(var i=0; i<dataTypesCount; i++){\r",
+									"        if (dataTypes[i].id !== \"default\" && dataTypes[i].id !== \"ref-data-as-pdf\"){\r",
+									"            pm.environment.set(\"attachmentElementType\", dataTypes[i].id);\r",
+									"            break;\r",
+									"        }\r",
+									"    }\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"applications",
+								"{{org}}",
+								"{{app}}"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
@@ -171,6 +216,8 @@
 									"        var dataId = jsonData.data[0].id;\r",
 									"        pm.environment.set('instanceId',instanceId);\r",
 									"        pm.environment.set('dataGuid',dataId);\r",
+									"        var processElementId = jsonData.process.currentTask.elementId;\r",
+									"        pm.environment.set(\"processElementId\",processElementId);\r",
 									"    }\r",
 									"});\r",
 									""
@@ -184,7 +231,8 @@
 								"id": "f6eb3baa-0d7d-4224-b967-4fa09e1e8570",
 								"exec": [
 									"pm.environment.set(\"instanceId\",\"\");",
-									"pm.environment.set(\"dataGuid\",\"\");"
+									"pm.environment.set(\"dataGuid\",\"\");",
+									"pm.environment.set(\"processElementId\",\"\");"
 								],
 								"type": "text/javascript"
 							}
@@ -698,63 +746,6 @@
 			"name": "Process",
 			"item": [
 				{
-					"name": "POST Start Process",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "709bf4db-92f0-4803-b802-cd5605187d00",
-								"exec": [
-									"pm.test(\"Runtime - Process - Start Process - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/start",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"process",
-								"start"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "POST Start Process again - Negative",
 					"event": [
 						{
@@ -849,59 +840,6 @@
 								"{{instanceOwnerId}}",
 								"{{instanceId}}",
 								"process"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GET Instances with process filters",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
-								"exec": [
-									"pm.test(\"Platform - Storage - Instances - Get Instances with Process filter - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"    pm.expect(pm.response.json().count).to.be.above(0);\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Accept",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&process.currentTask={{processElementId}}",
-							"protocol": "https",
-							"host": [
-								"platform",
-								"{{envUrl}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"instances"
-							],
-							"query": [
-								{
-									"key": "appId",
-									"value": "{{org}}/{{app}}"
-								},
-								{
-									"key": "process.currentTask",
-									"value": "{{processElementId}}"
-								}
 							]
 						}
 					},
@@ -1168,7 +1106,6 @@
 									"        var jsonData = pm.response.json();\r",
 									"        if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
 									"        {\r",
-									"            pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
 									"            var instanceId = jsonData.id;\r",
 									"            instanceId = instanceId.toString();\r",
 									"            instanceId = instanceId.split('/');\r",
@@ -1211,7 +1148,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwner\": {\r\n    \t\"partyId\": \"{{instanceOwnerId}}\"\r\n    },\r\n    \"appOwner\":{\r\n    \t\"labels\" : [ \"gr\", \"x2\" ]\r\n    },\r\n    \"appId\" : \"{{org}}/{{app}}\",\r\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleAfter\": \"2019-05-20T00:00:00Z\",\r\n    \"title\": { \"nb\": \"Arbeidsmelding\" }\r\n}\r\n\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">98274</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>\r\n\r\n--abcdefg--",
+							"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwner\": {\r\n    \t\"partyId\": \"{{instanceOwnerId}}\"\r\n    }\r\n}\r\n\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">98274</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>\r\n\r\n--abcdefg--",
 							"options": {
 								"raw": {
 									"language": "text"
@@ -1552,7 +1489,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>",
+							"raw": "<?xml version=\"1.0\"?>\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\n    </Skjemainstans-grp-8854>\n  </OpplysningerOmArbeidstakeren-grp-8819>\n</Skjema>",
 							"options": {
 								"raw": {
 									"language": "xml"
@@ -2059,7 +1996,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeProcess",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -2073,90 +2010,7 @@
 								"{{instanceOwnerId}}",
 								"{{instanceId}}",
 								"process",
-								"completeProcess"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "POST ref-data-as-pdf",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "8c637fd5-88b9-4aec-9bdc-d6a566a131e1",
-								"exec": [
-									"if (pm.response.code == 201)\r",
-									"{\r",
-									"    var jsonData = pm.response.json();\r",
-									"    if(pm.expect(jsonData.id).not.eql(null))\r",
-									"    {\r",
-									"        pm.environment.set('dataGuid', jsonData.id);\r",
-									"    }\r",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "138fbc85-0369-4b13-8336-4f307a053e19",
-								"exec": [
-									"pm.environment.set(\"dataGuid\",\"\");"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Disposition",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "attachment; filename=test.pdf"
-							},
-							{
-								"key": "Content-Type",
-								"type": "text",
-								"value": "application/pdf"
-							}
-						],
-						"body": {
-							"mode": "file",
-							"file": {
-								"src": "test_file_pdf.pdf"
-							},
-							"options": {
-								"raw": {
-									"language": "text"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?dataType=ref-data-as-pdf",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"data"
-							],
-							"query": [
-								{
-									"key": "dataType",
-									"value": "ref-data-as-pdf"
-								}
+								"next"
 							]
 						}
 					},
@@ -2397,6 +2251,28 @@
 				}
 			],
 			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "6f76088f-7b42-44ae-9cf4-d2d22fbcb1f0",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "9d9aca45-4d0e-49f2-a49b-28b54c018901",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		}
 	]
 }

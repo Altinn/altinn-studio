@@ -18,9 +18,9 @@ namespace AltinnCore.Authentication.JwtCookie
         /// <param name="options">The options instance to configure.</param>
         public void PostConfigure(string name, JwtCookieOptions options)
         {
-            if (string.IsNullOrEmpty(options.Cookie.Name))
+            if (string.IsNullOrEmpty(options.JwtCookieName))
             {
-                options.Cookie.Name = JwtCookieDefaults.CookiePrefix + name;
+                options.JwtCookieName = JwtCookieDefaults.CookiePrefix + name;
             }
 
             if (options.CookieManager == null)
