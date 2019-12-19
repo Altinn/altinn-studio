@@ -9,6 +9,7 @@ using Altinn.Platform.Storage.IntegrationTest.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.OpenApi.Writers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -26,7 +27,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly string _testOrg = "tdd";
         private readonly string _testAppId = "tdd/m1000";
         private readonly string _versionPrefix = "/storage/api/v1";
-        private readonly string _validToken;
+        private readonly string _validOrgToken;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceStorageTests"/> class.
@@ -36,7 +37,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             _fixture = fixture;
             _instanceClient = new InstanceClient(_fixture.CreateClient());
-            _validToken = PrincipalUtil.GetToken(1);
+            _validOrgToken = PrincipalUtil.GetOrgToken(org: _testOrg, scope: "altinn:instances.read");
+
             LoadTestData();
             CreateTestApplication(_testAppId);
         }        
@@ -50,7 +52,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=100&process.currentTask=Submit_1";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -71,7 +73,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=100&visibleAfter=gt:2019-05-01";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -93,7 +95,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=100&appOwner.labels=zero";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -115,7 +117,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=100&appOwner.labels=one&appOwner.labels=two";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -137,7 +139,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=1000&appOwner.labels=one";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -159,7 +161,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=1000&appOwner.labels=one,two";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -181,7 +183,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=100&visibleAfter=2019-50-01";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -196,7 +198,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=100&visibleAfter=gt:2022-12-31";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
 
@@ -216,7 +218,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=1000&visibleAfter=2019-07-10T00:00:00Z";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -238,7 +240,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=1000&visibleAfter=2019-03-25T02:00:00%2B02:00";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -260,7 +262,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=1000&visibleAfter=gt:2019-07-01&visibleAfter=lt:2019-08-01";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -282,7 +284,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?instanceOwnerId=500";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
 
@@ -298,7 +300,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?org={_testOrg}";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
+
+            string token = PrincipalUtil.GetOrgToken(org: _testOrg, scope: "altinn:instances.read");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -322,7 +327,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=500";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -392,7 +397,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             // client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
@@ -416,7 +421,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&process.ended=lt:2019-02-01";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -452,7 +457,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpClient client = _fixture.CreateClient();
 
             string url = $"{_versionPrefix}/instances?appId={_testAppId}&size=1000";
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
 
             HttpResponseMessage response = client.GetAsync(url).Result;
             response.EnsureSuccessStatusCode();

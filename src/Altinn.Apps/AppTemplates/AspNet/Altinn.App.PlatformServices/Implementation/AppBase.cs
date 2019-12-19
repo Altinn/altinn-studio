@@ -41,13 +41,13 @@ namespace Altinn.App.Services.Implementation
 
         public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
 
-        public abstract Task<bool> RunValidation(object instance, ICollection<System.ComponentModel.DataAnnotations.ValidationResult> validationResults);
+        public abstract Task RunValidation(object instance, ModelStateDictionary validationResults);
 
         public abstract Task<bool> RunCalculation(object instance);
 
-        public abstract Task<InstantiationValidationResult> RunInstantiationValidation();
+        public abstract Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance);
 
-        public abstract Task RunDataCreation(object instance);
+        public abstract Task RunDataCreation(Instance instance, object data);
         
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
@@ -93,7 +93,7 @@ namespace Altinn.App.Services.Implementation
                 if (dataElement == null)
                 {
                     dynamic data = CreateNewAppModel(dataType.AppLogic.ClassRef);
-                    RunDataCreation(data);
+                    await RunDataCreation(instance, data);
                     Type type = GetAppModelType(dataType.AppLogic.ClassRef);
 
                     DataElement createdDataElement = await _dataService.InsertFormData(instance, dataType.Id, data, type);
@@ -141,7 +141,7 @@ namespace Altinn.App.Services.Implementation
                 {
                     dataElement.Locked = true;
                     _logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType.Id}.");
-                    await _dataService.Update(instance.Id, dataElement);
+                    await _dataService.Update(instance, dataElement);
                 }
             }
         }

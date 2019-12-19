@@ -24,6 +24,7 @@ export interface IAppBarComponentProps extends WithStyles<typeof styles> {
   logoutButton?: boolean;
   org?: string;
   app?: string;
+  user?: string;
   showBreadcrumbOnTablet?: boolean;
   showSubHeader?: boolean;
 }
@@ -119,6 +120,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
       logoutButton,
       org,
       app,
+      user,
       showBreadcrumbOnTablet,
     } = this.props;
 
@@ -135,7 +137,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
               <Grid xs={true} item={true} container={true}>
                 <Grid item={true}>
                   <a href='/' className={classes.aImgStyling}>
-                    <img src={altinnImgLogoHeaderUrl} />
+                    <img src={altinnImgLogoHeaderUrl} alt='Altinn logo' />
                   </a>
                 </Grid>
                 <Hidden mdUp>
@@ -149,20 +151,11 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
               </Grid>
               <Hidden smDown>
                 <Grid xs={true} item={true} className={classes.paper}>
-                  {app ? app : 'WARNING: NO APP NAME'}
+                  {(org && app) ? `${org} / ${app}` : ''}
                 </Grid>
               </Hidden>
               <Grid item={true} xs={true} container={true} direction='row' alignItems='center' justify='flex-end'>
-                <Grid item={true}>
-                  <Hidden smDown>
-                    {org ? org : ''}
-                  </Hidden>
-                  <Hidden mdUp>
-                    <div className={classes.topRightService}>
-                      {app ? app : 'WARNING: NO APP NAME'}
-                    </div>
-                  </Hidden>
-                </Grid>
+                {user ? user : ''}
                 <Hidden smDown>
                   <Grid item={true}>
                     <ProfileMenu

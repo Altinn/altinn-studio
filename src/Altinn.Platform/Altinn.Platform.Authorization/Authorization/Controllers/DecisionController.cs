@@ -13,6 +13,7 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Authorization.ModelBinding;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Controllers
@@ -27,16 +28,19 @@ namespace Altinn.Platform.Authorization.Controllers
     {
         private readonly IContextHandler _contextHandler;
         private readonly IPolicyRetrievalPoint _prp;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DecisionController"/> class.
         /// </summary>
         /// <param name="contextHandler">The Context handler</param>
         /// <param name="policyRetrievalPoint">The policy Retrieval point</param>
-        public DecisionController(IContextHandler contextHandler, IPolicyRetrievalPoint policyRetrievalPoint)
+        /// <param name="logger">the logger.</param>
+        public DecisionController(IContextHandler contextHandler, IPolicyRetrievalPoint policyRetrievalPoint, ILogger<DecisionController> logger)
         {
             _contextHandler = contextHandler;
             _prp = policyRetrievalPoint;
+            _logger = logger;
         }
 
         /// <summary>
@@ -186,10 +190,13 @@ namespace Altinn.Platform.Authorization.Controllers
         private async Task<XacmlContextResponse> Authorize(XacmlContextRequest decisionRequest)
         {
             decisionRequest = await this._contextHandler.Enrich(decisionRequest);
+
+            _logger.LogInformation($"// DecisionController // Authorize // Enriched request: {JsonConvert.SerializeObject(decisionRequest)}.");
             XacmlPolicy policy = await this._prp.GetPolicyAsync(decisionRequest);
 
             PolicyDecisionPoint pdp = new PolicyDecisionPoint();
             XacmlContextResponse xacmlContextResponse = pdp.Authorize(decisionRequest, policy);
+            _logger.LogInformation($"// DecisionController // Authorize // XACML ContextResponse: {JsonConvert.SerializeObject(xacmlContextResponse)}.");
             return xacmlContextResponse;
         }
     }

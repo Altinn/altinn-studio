@@ -11,9 +11,9 @@
   "MailingPostalCity": "Oslo",
   "AddressMunicipalNumber": "0301",
   "AddressMunicipalName": "Oslo",
-  "AddressStreetName": "Engateioslo",
+  "AddressStreetName": "Grev Wedels Plass",
   "AddressHouseNumber": "9",
-  "AddressHouseLetter": "A",
-  "AddressPostalCode": "0554",
+  "AddressHouseLetter": null,
+  "AddressPostalCode": "0151",
   "AddressCity": "Oslo"
 }

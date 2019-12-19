@@ -75,6 +75,11 @@ namespace Altinn.Common.PEP.Implementation
                     string responseData = response.Content.ReadAsStringAsync().Result;
                     xacmlJsonResponse = JsonConvert.DeserializeObject<XacmlJsonResponse>(responseData);
                 }
+                else
+                {
+                    _logger.LogInformation($"// PDPAppSI // GetDecisionForRequest // Non-zero status code: {response.StatusCode}");
+                    _logger.LogInformation($"// PDPAppSI // GetDecisionForRequest // Response: {response.Content.ReadAsStringAsync().Result}");
+                }
             }
             catch (Exception e)
             {

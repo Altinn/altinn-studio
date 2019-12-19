@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.RepositoryClient.Model
 {
     /// <summary>
-    /// CreateRepoOption options when creating repository
+    /// CreateAccessTokenOption options
     /// </summary>
     [DataContract]
     public partial class CreateAccessTokenOption
@@ -36,14 +36,14 @@ namespace AltinnCore.RepositoryClient.Model
             // to ensure "Name" is required (not null)
             if (Name == null)
             {
-                throw new InvalidDataException("Name is a required property for CreateRepoOption and cannot be null");
+                throw new InvalidDataException("Name is a required property for CreateAccessTokenOption and cannot be null");
             }
             else
             {
                 this.Name = Name;
             }
         }
-        
+
         /// <summary>
         /// Name of the repository to create
         /// </summary>

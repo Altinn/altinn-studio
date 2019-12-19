@@ -48,7 +48,6 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.handleModalClose();
     expect(instance.state.isOpen).toBe(false);
     expect(instance.state.selectedOrgOrUser).toBe('');
-    expect(instance.state.serviceName).toBe('');
     expect(instance.state.repoName).toBe('');
   });
 
@@ -100,58 +99,6 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     expect(instance.state.serviceOwnerPopperMessage).toBe('dashboard.field_cannot_be_empty');
     expect(instance.state.repoNamePopperMessage).toBe('dashboard.service_name_has_illegal_characters');
-  });
-
-  it('+++ should handle creating reponame out of service name', () => {
-    const mountedComponent = mount(
-      <CreateNewServiceComponent
-        language={mockLanguage}
-        selectableUser={mockSelectableUser}
-        classes={mockClasses}
-      />,
-    );
-
-    const instance = mountedComponent.instance() as CreateNewServiceComponent;
-
-    // Assert removing non a-z in beginning of name
-    expect(instance.createRepoNameFromServiceName('1234_-FjernerTallOgSpesialTegnIStartenAvNavn'))
-      .toBe('fjernertallogspesialtegnistartenavnavn');
-
-    // Assert removing space at the end of name
-    expect(instance.createRepoNameFromServiceName('Fjerner space på slutten '))
-      .toBe('fjerner-space-paa-slutten');
-
-    // Assert removing _ at the end of name
-    expect(instance.createRepoNameFromServiceName('Fjerner underscore på slutten_'))
-      .toBe('fjerner-underscore-paa-slutten');
-
-    // Assert removing - at the end of name
-    expect(instance.createRepoNameFromServiceName('Fjerner bindestrek på slutten-'))
-      .toBe('fjerner-bindestrek-paa-slutten');
-
-    // Assert removing space, _ and - at the end of name
-    expect(instance.createRepoNameFromServiceName('Fjerner flere ulovlige tegn på slutten_ -? *'))
-      .toBe('fjerner-flere-ulovlige-tegn-paa-slutten');
-
-    // Assert spaces
-    expect(instance.createRepoNameFromServiceName('1234 Removes Numbers And Inserts Dashes'))
-      .toBe('removes-numbers-and-inserts-dashes');
-
-    // Assert æøå replacement
-    expect(instance.createRepoNameFromServiceName('Tjeneste med æ ø og å 2019'))
-      .toBe('tjeneste-med-ae-oe-og-aa-2019');
-
-    // Assert replace illegal characters
-    expect(instance.createRepoNameFromServiceName('Replaces three illegal characters with one dash($_?2019'))
-      .toBe('replaces-three-illegal-characters-with-one-dash-2019');
-
-    // Assert lowercase
-    expect(instance.createRepoNameFromServiceName('1234RemovesNumbersAndUppercaseLetters'))
-      .toBe('removesnumbersanduppercaseletters');
-
-    // Assert substring
-    expect(instance.createRepoNameFromServiceName('TjenesteMedVeldigLangtNavnSomOverstiger100TegnOmNoenFlereOrdHerNaaErViSnartIMaalMedNokOrd-JaErHundreDetteErOverHundre'))
-      .toBe('tjenestemedveldiglangtnavnsomoverstiger100tegnomnoenflereordhernaaervisnartimaalmednokord-jaerhundre');
   });
 
   it('+++ should validate service names', () => {
@@ -208,48 +155,9 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.handleUpdateDropdown({ target: { value: mockSelectableUser[0].name } });
     expect(instance.state.selectedOrgOrUser).toBe(mockSelectableUser[0].name);
 
-    const mockServiceName = '1234service-name';
-    instance.handleServiceNameUpdated({ target: { value: mockServiceName } });
-    expect(instance.state.serviceName).toBe(mockServiceName);
-
     const mockRepoName = 'service-name';
     instance.handleRepoNameUpdated({ target: { value: mockRepoName } });
     expect(instance.state.repoName).toBe(mockRepoName);
-  });
-
-  it('+++ should handle update reponame on blur', () => {
-    const mountedComponent = mount(
-      <CreateNewServiceComponent
-        language={mockLanguage}
-        selectableUser={mockSelectableUser}
-        classes={mockClasses}
-      />,
-    );
-
-    const instance = mountedComponent.instance() as CreateNewServiceComponent;
-
-    // When reponame is null, convert service name to valid reponame
-    instance.state.serviceName = 'Service Name';
-    instance.state.repoName = null;
-    instance.handleServiceNameOnBlur();
-    expect(instance.state.repoName).toBe('service-name');
-
-    // RepoName is RepoName
-    instance.state.repoName = 'service-name-2019';
-    instance.handleServiceNameOnBlur();
-    expect(instance.state.repoName).toBe('service-name-2019');
-
-    // Repo name is still 'service-name-2019'
-    instance.state.serviceName = 'Service Name';
-    instance.handleServiceNameOnBlur();
-    expect(instance.state.repoName).toBe('service-name-2019');
-
-    // Reponame does not change when service name changes
-    instance.state.serviceName = 'Service Name';
-    instance.state.repoName = 'repo-name';
-    instance.handleServiceNameOnBlur();
-    expect(instance.state.repoName).toBe('repo-name');
-
   });
 
   it('+++ should handle creating new service when servicename is already taken', () => {
@@ -266,7 +174,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
-      repositoryCreatedStatus: 422,
+      repositoryCreatedStatus: 409,
     };
     const getStub = jest.fn();
     const getSpy = jest.spyOn(networking, 'post').mockImplementation(getStub);
@@ -278,7 +186,7 @@ describe('>>> components/base/createNewService.tsx', () => {
       expect(getSpy).toHaveBeenCalled();
       expect(instance._isMounted).toBe(true);
       expect(instance.state.isLoading).toBe(false);
-      expect(instance.state.repoNamePopperMessage).toBe('dashboard.service_name_already_exist');
+      expect(instance.state.repoNamePopperMessage).toBe('dashboard.app_already_exist');
     });
   });
 
@@ -309,7 +217,7 @@ describe('>>> components/base/createNewService.tsx', () => {
       expect(getSpy).toHaveBeenCalled();
       expect(instance._isMounted).toBe(true);
       expect(instance.state.isLoading).toBe(false);
-      expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_service');
+      expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_app');
     });
   });
 
@@ -338,7 +246,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(mockPost).toHaveBeenCalled();
     expect(instance._isMounted).toBe(true);
     expect(instance.state.isLoading).toBe(false);
-    expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_service');
+    expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_app');
     expect(consoleError).toHaveBeenCalled();
   });
 

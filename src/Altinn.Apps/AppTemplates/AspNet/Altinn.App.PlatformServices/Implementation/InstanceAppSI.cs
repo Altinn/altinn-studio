@@ -141,7 +141,10 @@ namespace Altinn.App.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            StringContent httpContent = new StringContent(processState.ToString(), Encoding.UTF8, "application/json");
+            string processStateString = JsonConvert.SerializeObject(processState);
+            _logger.LogInformation($"update process state: {processStateString}");
+
+            StringContent httpContent = new StringContent(processStateString, Encoding.UTF8, "application/json");
             HttpResponseMessage response = await _client.PutAsync(apiUrl, httpContent);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
