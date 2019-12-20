@@ -10,7 +10,6 @@ export interface IApplicationMetadata {
   maxSize: string;
   org: string;
   partyTypesAllowed: IPartyTypesAllowed;
-  subscriptionHook: ISubscriptionHook;
   title: ITitle;
   validFrom: string;
   validTo: string;
@@ -23,9 +22,4 @@ interface IPartyTypesAllowed {
   organisation: boolean;
   person: boolean;
   subUnit: boolean;
-}
-
-interface ISubscriptionHook {
-  serviceCode: string;
-  editionCode: number;
 }
