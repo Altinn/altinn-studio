@@ -16,7 +16,7 @@ namespace Altinn.Platform.Authorization.Repositories
     /// </summary>
     public class PolicyRepository : IPolicyRepository
     {
-        private readonly ILogger<PolicyRepository> logger;
+        private readonly ILogger<PolicyRepository> _logger;
         private readonly AzureStorageConfiguration _storageConfig;
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
@@ -30,7 +30,7 @@ namespace Altinn.Platform.Authorization.Repositories
             IOptions<AzureStorageConfiguration> storageConfig,
             ILogger<PolicyRepository> logger)
         {
-            this.logger = logger;
+            _logger = logger;
 
             _storageConfig = storageConfig.Value;
             SetUpBlobConnection();
@@ -56,7 +56,11 @@ namespace Altinn.Platform.Authorization.Repositories
         /// <inheritdoc />
         public async Task<bool> WritePolicyAsync(string filepath, Stream fileStream)
         {
+            _logger.LogInformation($"// PolicyRepository // Wrie to filepath: {filepath}");
             CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
+            _logger.LogInformation($"// PolicyRepository // blockBlob name: {blockBlob.Name}");
+            _logger.LogInformation($"// PolicyRepository // blockBlob name: {blockBlob.StorageUri}");
+
             try
             {
                 await blockBlob.UploadFromStreamAsync(fileStream);
@@ -67,7 +71,7 @@ namespace Altinn.Platform.Authorization.Repositories
             }
             catch (Exception ex)
             {
-                logger.LogError("failed to save policy file. " + ex.Message);
+                _logger.LogError("failed to save policy file. " + ex);
                 throw;
             }
         }
@@ -91,6 +95,9 @@ namespace Altinn.Platform.Authorization.Repositories
 
             _blobContainer = _blobClient.GetContainerReference(_storageConfig.MetadataContainer);
             _blobContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
+            _logger.LogInformation($" // PolicyRepository // Blob connection // Container exists: {_blobContainer.ExistsAsync()}");
+            _logger.LogInformation($" // PolicyRepository // Blob connection // Container uri: {_blobContainer.Uri}");
+
         }
     }
 }
