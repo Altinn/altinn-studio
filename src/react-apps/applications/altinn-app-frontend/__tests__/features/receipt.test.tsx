@@ -75,6 +75,11 @@ describe('Testing functions in ReceiptContainer', () => {
       instance: {
         org: 'tdd',
       },
+      instanceOwnerParty: {
+        partyId: 50001,
+        name: 'Ola Privatperson',
+        ssn: '01017512345'
+      }
     };
 
     const expected = {
@@ -87,7 +92,7 @@ describe('Testing functions in ReceiptContainer', () => {
     expect(returnInstanceMetaDataObject(
       testData.orgsData,
       testData.languageData,
-      testData.profileData,
+      testData.instanceOwnerParty,
       testData.instanceGuid,
       testData.userLanguageString,
       testData.lastChangedDateTime,

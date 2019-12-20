@@ -77,7 +77,7 @@ namespace AltinnCore.Authentication.JwtCookie
                 if (string.IsNullOrEmpty(token))
                 {
                     // Get the cookie from request
-                    token = Options.CookieManager.GetRequestCookie(Context, Options.Cookie.Name);
+                    token = Options.CookieManager.GetRequestCookie(Context, Options.JwtCookieName);
                 }
 
                 // If no token found, return no result
@@ -96,8 +96,8 @@ namespace AltinnCore.Authentication.JwtCookie
                         var issuers = new[] { configuration.Issuer };
                         validationParameters.ValidIssuers = validationParameters.ValidIssuers?.Concat(issuers) ?? issuers;
 
-                        validationParameters.IssuerSigningKeys = validationParameters.IssuerSigningKeys?.Concat(configuration.SigningKeys)
-                                                                 ?? configuration.SigningKeys;
+                        validationParameters.IssuerSigningKeys =
+                            validationParameters.IssuerSigningKeys?.Concat(configuration.SigningKeys) ?? configuration.SigningKeys;
                     }
                 }
 

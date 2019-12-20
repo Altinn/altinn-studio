@@ -29,13 +29,19 @@ export interface IData {
 
 export interface IInstance {
   id: string;
-  instanceOwnerId: string;
+  instanceOwner: IInstanceOwner;
   appId: string;
   org: string;
   created: Date;
   lastChanged: Date;
   instanceState: IInstanceState;
   data: IData[];
+}
+
+export interface IInstanceOwner {
+  partyId: string;
+  personNumber: string;
+  organisationNumber: string;
 }
 
 export interface IPerson {

@@ -3,6 +3,8 @@ using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Configuration;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -82,7 +84,8 @@ namespace Altinn.Platform.Receipt
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
-            {                
+            {
+                services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
 
                 _logger.Information($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");

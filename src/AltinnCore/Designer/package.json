@@ -24,7 +24,7 @@
   "dependencies": {
     "bootstrap": "4.1.1",
     "bootstrap-list-filter": "0.3.3",
-    "jquery": "3.3.1",
+    "jquery": "3.4.1",
     "jquery-ui-dist": "1.12.1",
     "jquery-validation": "1.17.0",
     "jquery-validation-unobtrusive": "3.2.10",

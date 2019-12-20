@@ -25,5 +25,10 @@ namespace AltinnCore.Common.Configuration
         /// API Management subscription key for platform in TT02.
         /// </summary>
         public string SubscriptionKeyTT02 { get; set; }
+
+        /// <summary>
+        /// API management subscription key header name.
+        /// </summary>
+        public string SubscriptionKeyHeaderName { get; set; }
     }
 }

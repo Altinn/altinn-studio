@@ -1,11 +1,10 @@
-import { createMuiTheme, createStyles, Paper, Typography, withStyles } from '@material-ui/core';
+import { createMuiTheme, createStyles, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnCheckBox from '../../../../../shared/src/components/AltinnCheckBox';
 import AltinnCheckBoxGroup from '../../../../../shared/src/components/AltinnCheckBoxGroup';
 import AltinnColumnLayout from '../../../../../shared/src/components/AltinnColumnLayout';
 import AltinnFormControlLabel from '../../../../../shared/src/components/AltinnFormControlLabel';
-import AltinnInputField from '../../../../../shared/src/components/AltinnInputField';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import VersionControlHeader from '../../../../../shared/src/version-control/versionControlHeader';
@@ -71,11 +70,6 @@ export interface IAccessControlContainerProps extends IAccessControlContainerPro
 
 export interface IAccessControlContainerState {
   partyTypesAllowed: IPartyTypesAllowed;
-  subscriptionHook: {
-    serviceCode: string,
-    editionCode: string,
-  };
-  showSubscriptionHook: boolean;
 }
 
 export interface IPartyTypesAllowed {
@@ -96,16 +90,14 @@ export class AccessControlContainerClass extends React.Component<
   IAccessControlContainerProps, IAccessControlContainerState> {
 
   public static getDerivedStateFromProps(nextProps: IAccessControlContainerProps, state: IAccessControlContainerState) {
-    const {subscriptionHook, partyTypesAllowed} = nextProps.applicationMetadata;
-    if (!subscriptionHook || !partyTypesAllowed) {
+    const { partyTypesAllowed } = nextProps.applicationMetadata;
+    if (!partyTypesAllowed) {
       return null;
     }
-    if (state.subscriptionHook !== subscriptionHook || state.partyTypesAllowed !== partyTypesAllowed) {
+    if (state.partyTypesAllowed !== partyTypesAllowed) {
       return {
         partyTypesAllowed,
-        subscriptionHook,
         // tslint:disable-next-line: max-line-length
-        showSubscriptionHook: (subscriptionHook.serviceCode || subscriptionHook.editionCode) || state.showSubscriptionHook,
       };
     }
     return null;
@@ -113,7 +105,7 @@ export class AccessControlContainerClass extends React.Component<
 
   constructor(props: IAccessControlContainerProps, state: IAccessControlContainerState) {
     super(props, state);
-    let { partyTypesAllowed, subscriptionHook} = props.applicationMetadata;
+    let { partyTypesAllowed } = props.applicationMetadata;
     if (!partyTypesAllowed) {
       partyTypesAllowed = {
         bankruptcyEstate: false,
@@ -122,18 +114,10 @@ export class AccessControlContainerClass extends React.Component<
         subUnit: false,
       };
     }
-    if (!subscriptionHook) {
-      subscriptionHook =  {
-        serviceCode: '',
-        editionCode: '',
-      };
-    }
+
     this.state = {
       partyTypesAllowed,
-      subscriptionHook,
-      showSubscriptionHook: (subscriptionHook.serviceCode || subscriptionHook.editionCode),
     };
-    this.handleSubscriptionHookValuesOnBlur = this.handleSubscriptionHookValuesOnBlur.bind(this);
   }
 
   public render() {
@@ -154,90 +138,8 @@ export class AccessControlContainerClass extends React.Component<
     return (
       <>
         {this.renderPartySection()}
-        {this.renderHooksSection()}
       </>
     );
-  }
-
-  public renderHooksSection = (): JSX.Element => {
-    const { serviceCode, editionCode } = this.state.subscriptionHook;
-    const { classes } = this.props;
-    return (
-      <>
-        <Typography className={this.props.classes.sectionHeader}>
-          {getLanguageFromKey('access_control.hooks_header', this.props.language)}
-        </Typography>
-        <div className={classes.contentMargin}>
-          <AltinnFormControlLabel
-            control={<AltinnCheckBox
-              checked={this.state.showSubscriptionHook}
-              onChangeFunction={this.handleSubscriptionHookChange.bind(this)}
-            />}
-            label={getLanguageFromKey('access_control.hooks', this.props.language)}
-          />
-        </div>
-        {this.state.showSubscriptionHook &&
-          <>
-            <div className={classes.contentMargin}>
-              <AltinnInputField
-                id='service-code'
-                inputHeader={getLanguageFromKey('access_control.service_code', this.props.language)}
-                inputValue={serviceCode}
-                inputHeaderStyling={{ fontSize: 16, fontWeight: 500 }}
-                onChangeFunction={this.handleSubscriptionHookValuesChanged.bind(this, 'serviceCode')}
-                onBlurFunction={this.handleSubscriptionHookValuesOnBlur}
-                inputFieldStyling={{ width: '96px', backgroundColor: 'white' }}
-              />
-            </div>
-            <div className={classes.contentMargin}>
-              <AltinnInputField
-                id='edition-code'
-                inputHeader={getLanguageFromKey('access_control.edition_code', this.props.language)}
-                inputValue={editionCode}
-                inputHeaderStyling={{ fontSize: 16, fontWeight: 500 }}
-                onChangeFunction={this.handleSubscriptionHookValuesChanged.bind(this, 'editionCode')}
-                onBlurFunction={this.handleSubscriptionHookValuesOnBlur}
-                inputFieldStyling={{ width: '96px', backgroundColor: 'white' }}
-              />
-            </div>
-            <div className={classes.contentMargin}>
-              <Paper elevation={1} square={true} className={classes.informationPaper}>
-                <Typography className={classes.informationPaperText}>
-                  {getLanguageFromKey('access_control.subscription_text_helper', this.props.language)}
-                </Typography>
-              </Paper>
-            </div>
-          </>
-        }
-      </>
-    );
-  }
-
-  public handleSubscriptionHookChange() {
-    const newState = Object.assign(this.state) as IAccessControlContainerState;
-    newState.showSubscriptionHook = !newState.showSubscriptionHook;
-    if (!newState.showSubscriptionHook) {
-      newState.subscriptionHook.serviceCode = '';
-      newState.subscriptionHook.editionCode = '';
-    }
-    this.setState(newState, () => {
-      this.saveApplicationMetadata();
-    });
-  }
-
-  public handleSubscriptionHookValuesChanged(type: string, event: any) {
-    const value = event.target.value;
-    const newState = Object.assign(this.state) as IAccessControlContainerState;
-    if (type === 'serviceCode') {
-      newState.subscriptionHook.serviceCode = value;
-    } else {
-      newState.subscriptionHook.editionCode = value;
-    }
-    this.setState(newState);
-  }
-
-  public handleSubscriptionHookValuesOnBlur() {
-    this.saveApplicationMetadata();
   }
 
   public renderPartySection = (): JSX.Element => {
@@ -283,7 +185,6 @@ export class AccessControlContainerClass extends React.Component<
     // tslint:disable-next-line: max-line-length
     const newApplicationMetadata = JSON.parse(JSON.stringify((this.props.applicationMetadata ? this.props.applicationMetadata : {})));
     newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
-    newApplicationMetadata.subscriptionHook = this.state.subscriptionHook;
     applicationMetadataDispatcher.putApplicationMetadata(newApplicationMetadata);
   }
 

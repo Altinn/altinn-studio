@@ -50,7 +50,7 @@ namespace AltinnCore.Designer.TypedHttpClients.Maskinporten
             X509SecurityKey securityKey = new X509SecurityKey(_certificate);
             JwtHeader header = new JwtHeader(new SigningCredentials(securityKey, SecurityAlgorithms.RsaSha256))
             {
-                {"x5c", new List<string>() {Convert.ToBase64String(_certificate.GetRawCertData())}}
+                { "x5c", new List<string> { Convert.ToBase64String(_certificate.GetRawCertData()) } }
             };
             header.Remove("typ");
             header.Remove("kid");
@@ -61,7 +61,7 @@ namespace AltinnCore.Designer.TypedHttpClients.Maskinporten
                 { "aud", _generalSettings.MaskinportenBaseAddress },
                 { "resource", _generalSettings.MaskinportenResource },
                 { "scope", _generalSettings.MaskinportenScopes },
-                { "iss",  _generalSettings.MaskinportenClientId},
+                { "iss",  _generalSettings.MaskinportenClientId },
                 { "exp", dateTimeOffset.ToUnixTimeSeconds() + 10 },
                 { "iat", dateTimeOffset.ToUnixTimeSeconds() },
                 { "jti", Guid.NewGuid().ToString() },
