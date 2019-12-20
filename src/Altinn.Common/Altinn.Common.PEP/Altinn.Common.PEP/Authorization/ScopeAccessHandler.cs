@@ -44,6 +44,7 @@ namespace Altinn.Common.PEP.Authorization
                 .Where(c => c.Type.Equals("urn:altinn:scope"))?
                 .Select(c => c.Value).FirstOrDefault();
 
+            contextScope ??= context?.User?.Claims.Where(c => c.Type.Equals("scope")).Select(c => c.Value).FirstOrDefault();
 
             _logger.LogInformation(($"// ScopeAccessHandler // HandleRequirementAsync // Scope claim in context: {contextScope}"));
 
