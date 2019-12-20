@@ -23,7 +23,7 @@ namespace Altinn.Common.PEP.Authorization
         {
             _pepSettings = pepSettings.Value;
         }
-        
+
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ScopeAccessRequirement requirement)
         {
             if (_pepSettings.DisablePEP)
@@ -33,10 +33,14 @@ namespace Altinn.Common.PEP.Authorization
             }
 
             // get scope parameter from  user claims
-            string contextScope = context?.User?.Claims.Where(c => c.Type.Equals("scope")).Select(c => c.Value).FirstOrDefault(); 
+            string contextScope = context?.User?.Identities?
+                .Where(i => i.AuthenticationType != null && i.AuthenticationType.Equals("AuthenticationTypes.Federation"))
+                .FirstOrDefault()?.Claims
+                .Where(c => c.Type.Equals("urn:altinn:scope"))?
+                .Select(c => c.Value).FirstOrDefault();
 
             // compare scope claim value to
-            if (!string.IsNullOrWhiteSpace(contextScope) && requirement.Scope.Equals(contextScope))
+            if (!string.IsNullOrWhiteSpace(contextScope) && contextScope.Contains(requirement.Scope, StringComparison.InvariantCultureIgnoreCase))
             {
                 context.Succeed(requirement);
             }
