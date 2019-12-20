@@ -40,32 +40,38 @@ namespace Altinn.Platform.Receipt
         /// <param name="args">arguments for creating build configuration</param>
         /// <returns>The web host builder</returns>
         public static IHostBuilder CreateHostBuilder(string[] args) =>
-               Host.CreateDefaultBuilder(args)
-               .ConfigureLogging((hostingContext, logging) =>
-               {
-                   logging.ClearProviders();
-                   Serilog.ILogger logger = new LoggerConfiguration()
-                        .WriteTo.Console()
-                        .WriteTo.ApplicationInsights(TelemetryConfiguration.CreateDefault(), TelemetryConverter.Traces)
-                        .CreateLogger();
-                   logging.AddProvider(new SerilogLoggerProvider(logger));
-               })
-              .ConfigureWebHostDefaults(webBuilder =>
-              {
-                    webBuilder.ConfigureAppConfiguration((hostingContext, config) =>
-                      {
-                          _logger.Information($"Program // ConfigureAppConfiguration");
+             Host.CreateDefaultBuilder(args)
+             .ConfigureWebHostDefaults(webBuilder =>
+             {
+                 webBuilder.ConfigureAppConfiguration((hostingContext, config) =>
+                 {
+                     _logger.Information($"Program // ConfigureAppConfiguration");
 
-                          string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+                     string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
 
-                          string basePathCurrentDirectory = Directory.GetCurrentDirectory();
-                          _logger.Information($"Current directory is: {basePathCurrentDirectory}");
+                     string basePathCurrentDirectory = Directory.GetCurrentDirectory();
+                     _logger.Information($"Current directory is: {basePathCurrentDirectory}");
 
-                          LoadConfigurationSettings(config, basePath, args);
-                      })
+                     LoadConfigurationSettings(config, basePath, args);
+                 })
 
-                    .UseStartup<Startup>();
-              });
+                 .UseStartup<Startup>();
+             })
+            .ConfigureLogging((hostingContext, logging) =>
+            {
+                logging.ClearProviders();
+                LoggerConfiguration loggerConfig = new LoggerConfiguration().WriteTo.Console();
+
+                if (!string.IsNullOrEmpty(Startup.ApplicationInsightsKey))
+                {
+                    loggerConfig.WriteTo.ApplicationInsights(new TelemetryConfiguration(Startup.ApplicationInsightsKey), TelemetryConverter.Traces);
+                }
+
+                Serilog.ILogger logger = loggerConfig.CreateLogger();
+
+                logging.AddProvider(new SerilogLoggerProvider(logger));
+            })
+             ;
 
         /// <summary>
         /// Load the configuration settings for the program.

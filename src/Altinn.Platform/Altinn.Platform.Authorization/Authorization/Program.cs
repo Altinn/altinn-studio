@@ -54,11 +54,16 @@ namespace Altinn.Platform.Authorization
             .ConfigureLogging((hostingContext, logging) =>
             {
                 logging.ClearProviders();
-                Serilog.ILogger serilogLogger = new LoggerConfiguration()
-                    .WriteTo.Console()
-                    .WriteTo.ApplicationInsights(TelemetryConfiguration.CreateDefault(), TelemetryConverter.Traces)
-                    .CreateLogger();
-                logging.AddProvider(new SerilogLoggerProvider(serilogLogger));
+                LoggerConfiguration loggerConfig = new LoggerConfiguration().WriteTo.Console();
+
+                if (!string.IsNullOrEmpty(Startup.ApplicationInsightsKey))
+                {
+                    loggerConfig.WriteTo.ApplicationInsights(new TelemetryConfiguration(Startup.ApplicationInsightsKey), TelemetryConverter.Traces);
+                }
+
+                Serilog.ILogger logger = loggerConfig.CreateLogger();
+
+                logging.AddProvider(new SerilogLoggerProvider(logger));
             })
             .UseStartup<Startup>();
 

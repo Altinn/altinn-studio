@@ -10,6 +10,7 @@ using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Storage.Controllers
 {
@@ -24,7 +25,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly AuthorizationHelper _authorizationHelper;
-
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageBoxInstancesController"/> class
         /// </summary>
@@ -36,12 +37,13 @@ namespace Altinn.Platform.Storage.Controllers
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
-            IPDP pdp)
+            IPDP pdp,
+            ILogger<AuthorizationHelper> logger)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
-            _authorizationHelper = new AuthorizationHelper(pdp);
+            _authorizationHelper = new AuthorizationHelper(pdp, logger);
         }
 
         /// <summary>

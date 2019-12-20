@@ -35,6 +35,11 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthorization
             string uriString = $"https://{environmentModel.PlatformPrefix}.{environmentModel.Hostname}/{_platformSettings.ApiAuthorizationPolicyUri}";
             Uri uri = new Uri($"{uriString}?org={org}&app={app}");
 
+            if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
+            }
+
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
              * because the base address can change on each request and after HttpClient gets initial base address,
@@ -44,6 +49,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthorization
             {
                 Content = new StringContent(policyFile, Encoding.UTF8, "application/xml"),
             };
+
             await _httpClient.SendAsync(request);
         }
     }
