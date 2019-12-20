@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
+using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
@@ -78,16 +79,24 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-
-            if (instance == null)
+            try
             {
-                return NotFound();
+                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+
+                if (instance == null)
+                {
+                    return NotFound();
+                }
+
+                ProcessState processState = instance.Process;
+
+                return Ok(processState);
             }
-
-            ProcessState processState = instance.Process;
-
-            return Ok(processState);
+            catch (Exception exception)
+            {
+                _logger.LogError($"Failed to access process for {instanceOwnerPartyId}/{instanceGuid}");
+                return ExceptionResponse(exception, $"Failed to access process for {instanceOwnerPartyId}/{instanceGuid}");
+            }
         }
 
         /// <summary>
@@ -138,8 +147,8 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception startException)
             {
-                _logger.LogError($"Unknown error. Unable to start the process for instance {instance.Id} of {instance.AppId}. Due to {startException}");
-                return StatusCode(500, $"Unknown error. Cannot change process state! {startException.Message}");
+                _logger.LogError($"Unable to start the process for instance {instance.Id} of {instance.AppId}. Due to {startException}");
+                return ExceptionResponse(startException, "Unable to start the process for instance {instance.Id} of {instance.AppId}");                
             }
         }
 
@@ -147,7 +156,9 @@ namespace Altinn.App.Api.Controllers
         {
             await NotifyAppAboutEvents(_altinnApp, instance, processStateChange.Events);
 
-            Instance updatedInstance = await _instanceService.UpdateProcess(instance);
+            // need to update the instance process and then the instance in case appbase has changed it, e.g. endEvent sets status.archived
+            Instance instanceWithUpdatedProcess = await _instanceService.UpdateProcess(instance);
+            Instance updatedInstance = await _instanceService.UpdateInstance(instanceWithUpdatedProcess);
             await _processService.DispatchProcessEventsToStorage(updatedInstance, processStateChange.Events);
 
             // remember to get the instance anew since AppBase can have updated a data element or stored something in the database.
@@ -208,7 +219,7 @@ namespace Altinn.App.Api.Controllers
             catch (Exception processException)
             {
                 _logger.LogError($"Unable to find next process element for instance {instance.Id} and current task {currentTaskId}. {processException}");
-                return Conflict($"Unable to find next process element for instance {instance.Id} and current task {currentTaskId}. Exception was {processException.Message}. Is the process file OK?");
+                return ExceptionResponse(processException, $"Unable to find next process element for instance {instance.Id} and current task {currentTaskId}. Exception was {processException.Message}. Is the process file OK?");
             }
         }
 
@@ -289,18 +300,25 @@ namespace Altinn.App.Api.Controllers
                 return Conflict(nextElementError.Text);
             }
 
-            if (await CanTaskBeEnded(instance, currentElementId))
+            try
             {
-                ProcessStateChange nextResult = _processService.ProcessNext(instance, nextElement, User);
-                if (nextResult != null)
-                {                    
-                    Instance changedInstance = await UpdateInstanceAndDispatchEvents(instance, nextResult);
+                if (await CanTaskBeEnded(instance, currentElementId))
+                {
+                    ProcessStateChange nextResult = _processService.ProcessNext(instance, nextElement, User);
+                    if (nextResult != null)
+                    {
+                        Instance changedInstance = await UpdateInstanceAndDispatchEvents(instance, nextResult);
 
-                    return Ok(changedInstance.Process);
+                        return Ok(changedInstance.Process);
+                    }
                 }
+                return Conflict($"Cannot complete/close current task {currentElementId}. The data element(s) assigned to the task are not valid!");
             }
-
-            return Conflict($"Cannot complete/close current task {currentElementId}. The data element(s) assigned to the task are not valid!");
+            catch (Exception exception)
+            {
+                return ExceptionResponse(exception, "Process next failed.");
+            }
+            
         }
 
         private async Task<bool> CanTaskBeEnded(Instance instance, string currentElementId)
@@ -411,7 +429,7 @@ namespace Altinn.App.Api.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"Error in completeProcess {ex}");
+                    return ExceptionResponse(ex, "Complete process failed.");
                 }
 
                 counter++;
@@ -425,6 +443,24 @@ namespace Altinn.App.Api.Controllers
             }
 
             return Ok(instance.Process);
+        }
+
+        private ActionResult ExceptionResponse(Exception exception, string message)
+        {
+            _logger.LogError($"{message}: {exception}");
+
+            if (exception is PlatformHttpException)
+            {
+                PlatformHttpException phe = exception as PlatformHttpException;
+                return StatusCode((int)phe.Response.StatusCode, phe.Message);
+            }
+            else if (exception is ServiceException)
+            {
+                ServiceException se = exception as ServiceException;
+                return StatusCode((int)se.StatusCode, se.Message);
+            }
+
+            return StatusCode(500, $"{message}");
         }
 
         internal static async Task NotifyAppAboutEvents(IAltinnApp altinnApp, Instance instance, List<InstanceEvent> events)

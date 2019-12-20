@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
@@ -31,8 +33,6 @@ namespace Altinn.App.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly HttpClient _client;
-
-        private const string FORM_ID = "default";
 
         /// <summary>
         /// Initializes a new data of the <see cref="DataAppSI"/> class.
@@ -69,8 +69,7 @@ namespace Altinn.App.Services.Implementation
 
         public async Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type)
         {
-
-            string apiUrl = $"instances/{instance.Id}/data?dataType={dataType ?? FORM_ID}";
+            string apiUrl = $"instances/{instance.Id}/data?dataType={dataType}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             DataElement dataElement;
@@ -82,17 +81,18 @@ namespace Altinn.App.Services.Implementation
             stream.Position = 0;
             StreamContent streamContent = new StreamContent(stream);
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
-            Task<HttpResponseMessage> response = _client.PostAsync(apiUrl, streamContent);
-            if (!response.Result.IsSuccessStatusCode)
+            HttpResponseMessage response = await _client.PostAsync(apiUrl, streamContent);
+
+            if (response.IsSuccessStatusCode)
             {
-                _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instance.Id, response.Result.StatusCode);
-                return null;
+                string instanceData = await response.Content.ReadAsStringAsync();
+                dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
+
+                return dataElement;
             }
 
-            string instanceData = await response.Result.Content.ReadAsStringAsync();
-            dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
-
-            return dataElement;
+            _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instance.Id, response.StatusCode);
+            throw new PlatformHttpException(response);            
         }
 
         /// <inheritdoc />
@@ -110,15 +110,16 @@ namespace Altinn.App.Services.Implementation
             StreamContent streamContent = new StreamContent(stream);
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
 
-            Task<HttpResponseMessage> response = _client.PutAsync(apiUrl, streamContent);
-            if (!response.Result.IsSuccessStatusCode)
+            HttpResponseMessage response = await _client.PutAsync(apiUrl, streamContent);
+
+            if (response.IsSuccessStatusCode)
             {
-                _logger.LogError($"Unable to save form model for instance {instanceGuid}");
+                string instanceData = await response.Content.ReadAsStringAsync();
+                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
+                return dataElement;
             }
 
-            string instanceData = await response.Result.Content.ReadAsStringAsync();
-            DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
-            return dataElement;
+            throw new PlatformHttpException(response);                        
         }
 
         /// <inheritdoc />
@@ -135,8 +136,12 @@ namespace Altinn.App.Services.Implementation
             {
                 return response.Content.ReadAsStreamAsync();
             }
+            else if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
 
-            return null;
+            throw new PlatformHttpException(response);
         }
 
         /// <inheritdoc />
@@ -157,15 +162,14 @@ namespace Altinn.App.Services.Implementation
 
                     return serializer.Deserialize(stream);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    return Activator.CreateInstance(type);
+                    _logger.LogError($"Cannot deserialize XML form data read from storage: {ex}");
+                    throw new ServiceException(HttpStatusCode.Conflict, $"Cannot deserialize XML form data from storage", ex);
                 }
             }
-            else
-            {
-                return Activator.CreateInstance(type);
-            }
+
+            throw new PlatformHttpException(response);
         }
 
         /// <inheritdoc />
@@ -180,19 +184,19 @@ namespace Altinn.App.Services.Implementation
             List<AttachmentList> attachmentList = new List<AttachmentList>();
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
                 dataList = JsonConvert.DeserializeObject<List<DataElement>>(instanceData);
 
                 ExtractAttachments(dataList, attachmentList);
-            }
-            else
-            {
-                _logger.Log(LogLevel.Error, "Unable to fetch attachment list {0}", response.StatusCode);
+
+                return attachmentList;
             }
 
-            return attachmentList;
+            _logger.Log(LogLevel.Error, "Unable to fetch attachment list {0}", response.StatusCode);
+
+            throw new PlatformHttpException(response);
         }
 
         private static void ExtractAttachments(List<DataElement> dataList, List<AttachmentList> attachmentList)
@@ -242,11 +246,9 @@ namespace Altinn.App.Services.Implementation
             {
                 return true;
             }
-            else
-            {
-                _logger.LogError($"Deleting form attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
-                throw new PlatformClientException(response);
-            }
+
+            _logger.LogError($"Deleting form attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
+            throw new PlatformHttpException(response);
         }
 
         /// <inheritdoc />
@@ -270,11 +272,9 @@ namespace Altinn.App.Services.Implementation
 
                 return dataElement;
             }
-            else
-            {
-                _logger.LogError($"Storing attachment for instance {instanceGuid} failed with status code {response.StatusCode}");
-                throw new PlatformClientException(response);
-            }
+
+            _logger.LogError($"Storing attachment for instance {instanceGuid} failed with status code {response.StatusCode}");
+            throw new PlatformHttpException(response);
         }
 
         public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string fileName, Stream stream)
@@ -301,11 +301,9 @@ namespace Altinn.App.Services.Implementation
 
                 return dataElement;
             }
-            else
-            {
-                _logger.LogError($"Storing attachment for instance {instanceId} failed with status code {response.StatusCode} - content {await response.Content.ReadAsStringAsync()}");
-                throw new PlatformClientException(response);
-            }
+
+            _logger.LogError($"Storing attachment for instance {instanceId} failed with status code {response.StatusCode} - content {await response.Content.ReadAsStringAsync()}");
+            throw new PlatformHttpException(response);
         }
 
 
@@ -329,13 +327,12 @@ namespace Altinn.App.Services.Implementation
 
                 return dataElement;
             }
-            else
-            {
-                _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
 
-                throw new PlatformClientException(response);
-            }
+            _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
+
+            throw new PlatformHttpException(response);
         }
+
         private static StreamContent CreateContentStream(HttpRequest request)
         {
             StreamContent content = new StreamContent(request.Body);
@@ -366,7 +363,7 @@ namespace Altinn.App.Services.Implementation
                 return result;
             }
 
-            throw new PlatformClientException(response);            
+            throw new PlatformHttpException(response);
         }
     }
 }
