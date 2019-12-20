@@ -39,6 +39,8 @@ namespace Altinn.Common.PEP.Authorization
                 .Where(c => c.Type.Equals("urn:altinn:scope"))?
                 .Select(c => c.Value).FirstOrDefault();
 
+            contextScope ??= context?.User?.Claims.Where(c => c.Type.Equals("scope")).Select(c => c.Value).FirstOrDefault();
+
             // compare scope claim value to
             if (!string.IsNullOrWhiteSpace(contextScope) && contextScope.Contains(requirement.Scope, StringComparison.InvariantCultureIgnoreCase))
             {
