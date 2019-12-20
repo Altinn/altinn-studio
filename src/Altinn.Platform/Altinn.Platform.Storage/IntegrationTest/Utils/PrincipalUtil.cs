@@ -40,7 +40,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Utils
             claims.Add(new Claim(AltinnCoreClaimTypesOrgNumber, orgNumber.ToString(), ClaimValueTypes.Integer32, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "Mock", ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32, issuer));
-            claims.Add(new Claim("scope", scope, ClaimValueTypes.String, "maskinporten"));
+            claims.Add(new Claim("urn:altinn:scope", scope, ClaimValueTypes.String, "maskinporten"));
 
             ClaimsIdentity identity = new ClaimsIdentity("mock-org");
             identity.AddClaims(claims);
