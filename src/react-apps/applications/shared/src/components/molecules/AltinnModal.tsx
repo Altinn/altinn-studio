@@ -73,7 +73,7 @@ const styles = createStyles({
   },
   iconBtn: {
     float: 'right' as 'right',
-    paddingRight: 20,
+    marginRight: '-11px',
     marginTop: '-27px',
   },
   iconStyling: {
@@ -109,9 +109,8 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
                     { [classes.closeButtonOutsideModal]: this.props.closeButtonOutsideModal === true},
                   )}
                   onClick={this.props.onClose}
-                  disableRipple={true}
                 >
-                  <i className={classNames('ai ai-exit-test', classes.iconStyling)} />
+                  <i tabIndex={0} className={classNames('ai ai-exit-test', classes.iconStyling)} />
                 </IconButton>
               }
               <Typography className={classes.headerText}>
@@ -136,7 +135,7 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
                 )}
                 onClick={this.props.onClose}
               >
-                <i className={classNames('ai ai-exit-test', classes.iconStyling)} />
+                <i tabIndex={0} className={classNames('ai ai-exit-test', classes.iconStyling)} />
               </IconButton>
             }
             <Typography className={classes.headerText}>
