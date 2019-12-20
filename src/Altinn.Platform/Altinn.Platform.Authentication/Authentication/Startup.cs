@@ -98,8 +98,7 @@ namespace Altinn.Platform.Authentication
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddTransient<IOrganisationRepository, OrganisationRepository>();
             
-            string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
-            if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
+            if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
