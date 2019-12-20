@@ -1,13 +1,12 @@
+using System;
+using System.Threading.Tasks;
+
 using Altinn.App.Common.Enums;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 
 namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
 {

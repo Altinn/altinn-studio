@@ -33,7 +33,7 @@ namespace Altinn.App.PlatformServices.Helpers
         }
 
         /// <summary>
-        /// C# stuff to what knows why
+        /// Add serialization info.
         /// </summary>
         protected PlatformHttpException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
