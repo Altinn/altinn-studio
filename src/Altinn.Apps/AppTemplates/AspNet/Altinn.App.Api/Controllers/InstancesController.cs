@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
+using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
@@ -103,11 +104,11 @@ namespace Altinn.App.Api.Controllers
 
                 return Ok(instance);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                return StatusCode(500, $"{ex.Message}");
+                return ExceptionResponse(exception, $"Get instance {instanceOwnerPartyId}/{instanceGuid} failed");
             }
-        }
+        }       
 
         /// <summary>
         ///  Updates an instance object in storage.
@@ -153,9 +154,9 @@ namespace Altinn.App.Api.Controllers
 
                 return Ok(updatedInstance);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                return StatusCode(500, $"{ex.Message}");
+                return ExceptionResponse(exception, $"Update of instance {instanceOwnerPartyId}/{instanceGuid} failed.");               
             }
         }
 
@@ -255,7 +256,7 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
             }
 
-            bool authorized = await Authorize(org, app, party);
+            bool authorized = await AuthorizeInstatiation(org, app, party);
 
             if (!authorized)
             {
@@ -288,12 +289,9 @@ namespace Altinn.App.Api.Controllers
                 // create the instance
                 instance = await _instanceService.CreateInstance(org, app, instanceTemplate);
             }
-            catch (Exception instanceException)
+            catch (Exception exception)
             {
-                string message = $"Failure in multipart prefil. Could not create an instance of {org}/{app} for party {instanceTemplate.InstanceOwner.PartyId}.";
-
-                _logger.LogError($"{message} - {instanceException}");
-                return StatusCode(500, $"{message} - {instanceException.Message}");
+                return ExceptionResponse(exception, $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}"); 
             }
 
             try
@@ -307,13 +305,9 @@ namespace Altinn.App.Api.Controllers
                 await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events);
                 await _processService.DispatchProcessEventsToStorage(instance, processResult.Events);
             }
-            catch (Exception dataException)
+            catch (Exception exception)
             {
-                string message = $"Failure storing multipart prefil data. Could not create a data element(s) for {instance.Id} of {org}/{app}.";
-                _logger.LogError($"{message} - {dataException}");
-
-                // todo add compensating transaction (delete instance)                
-                return StatusCode(500, $"{message} Exception: {dataException.Message}");
+                return ExceptionResponse(exception, $"Instatiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
 
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
@@ -322,7 +316,25 @@ namespace Altinn.App.Api.Controllers
             return Created(url, instance);
         }
 
-        private async Task<bool> Authorize(string org, string app, Party party)
+        private ActionResult ExceptionResponse(Exception exception, string message)
+        {
+            _logger.LogError($"{message}: {exception}");
+
+            if (exception is PlatformHttpException)
+            {
+                PlatformHttpException phe = exception as PlatformHttpException;
+                return StatusCode((int)phe.Response.StatusCode, phe.Message);
+            }
+            else if (exception is ServiceException)
+            {
+                ServiceException se = exception as ServiceException;
+                return StatusCode((int)se.StatusCode, se.Message);
+            }
+
+            return StatusCode(500, $"{message}");
+        }
+
+        private async Task<bool> AuthorizeInstatiation(string org, string app, Party party)
         {
             bool authorized = false;
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString(), null);
@@ -362,7 +374,7 @@ namespace Altinn.App.Api.Controllers
                 catch (Exception e)
                 {
                     _logger.LogWarning($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}");
-                    throw new PlatformClientException($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}");
+                    throw new ServiceException(HttpStatusCode.BadRequest, $"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}", e);
                 }
             }
             else
@@ -383,7 +395,7 @@ namespace Altinn.App.Api.Controllers
                     }
                     else
                     {
-                        throw new PlatformClientException("Neither personNumber or organisationNumber has value in instanceOwner");
+                        throw new ServiceException(HttpStatusCode.BadRequest, "Neither personNumber or organisationNumber has value in instanceOwner");
                     }
 
                     instanceOwner.PartyId = party.PartyId.ToString();
@@ -391,7 +403,7 @@ namespace Altinn.App.Api.Controllers
                 catch (Exception e)
                 {
                     _logger.LogWarning($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e}");
-                    throw new PlatformClientException($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e.Message}");
+                    throw new ServiceException(HttpStatusCode.BadRequest, $"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e.Message}", e);
                 }
             }
 
@@ -421,7 +433,7 @@ namespace Altinn.App.Api.Controllers
                     }
                     catch (Exception altinnAppException)
                     {
-                        throw new ApplicationException($"App.GetAppModelType failed: {altinnAppException.Message}");
+                        throw new ServiceException(HttpStatusCode.InternalServerError, $"App.GetAppModelType failed: {altinnAppException.Message}", altinnAppException);
                     }
 
                     object data = DataController.ParseFormDataAndDeserialize(type, part.ContentType, part.Stream, out string errorText);
@@ -447,7 +459,7 @@ namespace Altinn.App.Api.Controllers
 
                 if (dataElement == null)
                 {
-                    throw new InvalidOperationException($"Dataservice did not return a valid instance metadata when attempt to store data element {part.Name}");
+                    throw new ServiceException(HttpStatusCode.InternalServerError, $"Dataservice did not return a valid instance metadata when attempt to store data element {part.Name}");
                 }
             }
         }

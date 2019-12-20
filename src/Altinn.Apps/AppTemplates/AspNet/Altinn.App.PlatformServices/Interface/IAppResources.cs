@@ -16,8 +16,6 @@ namespace Altinn.App.Services.Interface
         /// <returns>The app resource.</returns>
         byte[] GetAppResource(string org, string app, string resource);
 
-
-
         /// <summary>
         /// Get the app resource for the given parameters.
         /// </summary>
@@ -26,7 +24,6 @@ namespace Altinn.App.Services.Interface
         /// <param name="resource">the resource.</param>
         /// <returns>The app resource.</returns>
         byte[] GetText(string org, string app, string textResource);
-
 
         /// <summary>
         /// Returns the model metadata for an app.

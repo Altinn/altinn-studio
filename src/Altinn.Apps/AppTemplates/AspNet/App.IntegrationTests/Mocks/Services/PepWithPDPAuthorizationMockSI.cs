@@ -49,6 +49,20 @@ namespace App.IntegrationTests.Mocks.Services
 
         public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
+            if (_pepSettings.DisablePEP)
+            {
+                return new XacmlJsonResponse
+                {
+                    Response = new List<XacmlJsonResult>()
+                    {
+                        new XacmlJsonResult
+                        {
+                            Decision = XacmlContextDecision.Permit.ToString(),
+                        }
+                    },
+                };
+            }
+
             try
             {
                 XacmlContextRequest decisionRequest = XacmlJsonXmlConverter.ConvertRequest(xacmlJsonRequest.Request);

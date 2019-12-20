@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
@@ -68,7 +69,7 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 _logger.LogError($"Unable to fetch instance with instance id {instanceGuid}");
-                throw new PlatformClientException(response);
+                throw new PlatformHttpException(response);
             }
         }
 
@@ -106,7 +107,7 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 _logger.LogError("Unable to fetch instances");
-                throw new PlatformClientException(response);
+                throw new PlatformHttpException(response);
             }
         }
 
@@ -126,11 +127,9 @@ namespace Altinn.App.Services.Implementation
 
                 return updatedInstance;
             }
-            else
-            {
-                _logger.LogError($"Unable to update instance with instance id {instance.Id}");
-                throw new PlatformClientException(response);
-            }
+
+            _logger.LogError($"Unable to update instance with instance id {instance.Id}");
+            throw new PlatformHttpException(response);
         }
 
         /// <inheritdoc />
@@ -157,7 +156,7 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 _logger.LogError($"Unable to update instance process with instance id {instance.Id}");
-                throw new PlatformClientException(response);
+                throw new PlatformHttpException(response);
             }
         }
 
@@ -179,7 +178,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Unable to create instance {response.StatusCode} - {response.Content?.ReadAsStringAsync().Result}");
-            throw new PlatformClientException(response);            
+            throw new PlatformHttpException(response);            
         }
     }
 }
