@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,16 +20,18 @@ namespace AltinnCore.Designer.Controllers
     {
         private readonly IGitea _giteaApi;
         private readonly ServiceRepositorySettings _settings;
+        private readonly IAntiforgery _antiforgery;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UserController"/> class.
         /// </summary>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="repositorySettings">Settings for repository</param>
-        public UserController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings)
+        public UserController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings, IAntiforgery antiforgery)
         {
             _giteaApi = giteaWrapper;
             _settings = repositorySettings.Value;
+            _antiforgery = antiforgery;
         }
 
         /// <summary>
@@ -36,6 +39,16 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <returns>The user object</returns>
         [HttpGet]
-        public async Task<AltinnCore.RepositoryClient.Model.User> Current() => await _giteaApi.GetCurrentUser();
+        public async Task<AltinnCore.RepositoryClient.Model.User> Current()
+        {
+            // See comments in MvcConfiguration.cs during configuration of Antiforgery.
+            var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+            HttpContext.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken, new CookieOptions
+            {
+                HttpOnly = false // Make this cookie readable by Javascript.
+            });
+
+            return await _giteaApi.GetCurrentUser();
+        }
     }
 }

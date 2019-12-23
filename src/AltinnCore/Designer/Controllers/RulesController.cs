@@ -18,6 +18,7 @@ namespace AltinnCore.Designer.Controllers
     /// Controller for all actions related to app rules
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class RulesController : Controller
     {
         private readonly IRepository _repository;

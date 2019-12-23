@@ -10,6 +10,7 @@ namespace AltinnCore.Designer.Controllers
     /// Controller containing all actions related to code lists
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class CodelistController : Controller
     {
         private readonly IRepository _repository;

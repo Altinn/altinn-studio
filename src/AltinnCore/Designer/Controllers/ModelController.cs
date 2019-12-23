@@ -23,6 +23,7 @@ namespace AltinnCore.Designer.Controllers
     /// This is the controller responsible for handling model functionality in AltinnCore
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class ModelController : Controller
     {
         private readonly IRepository _repository;
