@@ -19,10 +19,6 @@ describe('AccessControl', () => {
         person: false,
         organisation: true,
       },
-      subscriptionHook: {
-        editionCode: 'Current edition code',
-        serviceCode: 'Current service code',
-      },
     };
     newApplicationMetadata = {
       // must be opposite of currentApplicationMetadata.partyTypesAllowed
@@ -32,15 +28,9 @@ describe('AccessControl', () => {
         person: true,
         organisation: false,
       },
-      subscriptionHook: {
-        editionCode: 'New edition code',
-        serviceCode: 'New service code',
-      },
     };
     accessContainerState = {
       partyTypesAllowed: currentApplicationMetadata.partyTypesAllowed,
-      subscriptionHook: currentApplicationMetadata.subscriptionHook,
-      showSubscriptionHook: true,
     };
     nextAccessContainerProps = {
       applicationMetadata: newApplicationMetadata,
@@ -74,19 +64,6 @@ describe('AccessControl', () => {
     expect(shouldNotUpdateOnNullValues).toBe(null);
   });
 
-  it('should correctly update subscriptionHook state when handleSubscriptionHookValuesChanged is triggered', () => {
-    const wrapper = mount(
-      <AccessControlContainerClass
-        applicationMetadata={currentApplicationMetadata}
-        language={{}}
-        classes={{}}
-      />);
-    const instance = wrapper.instance() as AccessControlContainerClass;
-    instance.handleSubscriptionHookValuesChanged('serviceCode', {target: {value: 'value1'}});
-    instance.handleSubscriptionHookValuesChanged('editionCode', {target: {value: 'value2'}});
-    expect(wrapper.state('subscriptionHook')).toEqual({ editionCode: 'value2', serviceCode: 'value1' });
-  });
-
   it('should correctly update partyTypesAllowed state when handlePartyTypesAllowedChange is triggered', () => {
     const wrapper = mount(
       <AccessControlContainerClass
@@ -102,21 +79,7 @@ describe('AccessControl', () => {
     expect(wrapper.state('partyTypesAllowed')).toEqual(newApplicationMetadata.partyTypesAllowed);
   });
 
-  it('should call save on both handleSubscriptionHookValuesOnBlur and handleSubscriptionHookChange', () => {
-    const wrapper = mount(
-      <AccessControlContainerClass
-        applicationMetadata={currentApplicationMetadata}
-        language={{}}
-        classes={{}}
-      />);
-    const instance = wrapper.instance() as AccessControlContainerClass;
-    const spy = jest.spyOn(instance, 'saveApplicationMetadata');
-    instance.handleSubscriptionHookValuesOnBlur();
-    instance.handleSubscriptionHookChange();
-    expect(spy).toHaveBeenCalledTimes(2);
-  });
-
-  it('constructor should initiate partyTypesAllowed and subscriptionHook with empty values if passed as null', () => {
+  it('constructor should initiate partyTypesAllowed with empty values if passed as null', () => {
     const wrapper = mount(
       <AccessControlContainerClass
         applicationMetadata={{}}
@@ -128,10 +91,6 @@ describe('AccessControl', () => {
       organisation: false,
       person: false,
       subUnit: false,
-    });
-    expect(wrapper.state('subscriptionHook')).toEqual({
-      serviceCode: '',
-      editionCode: '',
     });
   });
 });

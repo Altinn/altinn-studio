@@ -67,8 +67,21 @@ describe('>>> containers/ProcessStep.tsx', () => {
         applicationMetadata: null,
       },
       instanceData: {
-        instance: null,
+        instance: {
+          instanceOwner: {
+            partyId: '12345',
+          }
+        },
       },
+      party: {
+        parties: [
+          {
+            partyId: '12345',
+            name: 'Ola Privatperson',
+            ssn: '01017512345',
+          }
+        ],
+      }
     };
     mockStore = createStore(initialState);
   });

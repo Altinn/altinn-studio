@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
@@ -117,7 +118,7 @@ namespace Altinn.App.Services.Implementation
                 string reason = await response.Content.ReadAsStringAsync();
                 _logger.LogError($"// Getting party with personOrOrganisationNumber {personOrOrganisationNumber} failed with statuscode {response.StatusCode} - {reason}");
 
-                throw new PlatformClientException($"Failed to lookup party in platform register. {response.StatusCode} - {reason}.");
+                throw new PlatformHttpException(response);
             }
 
             return party;            

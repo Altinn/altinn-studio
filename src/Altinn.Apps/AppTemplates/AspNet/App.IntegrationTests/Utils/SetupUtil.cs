@@ -49,6 +49,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.Configure<AppSettings>(appSettingSection);
                     services.AddSingleton<IInstance, InstanceMockSI>();
                     services.AddSingleton<IData, DataMockSI>();
+                    services.AddSingleton<IInstanceEvent, InstanceEventAppSIMock>();
                     services.AddSingleton<IRegister, RegisterMockSI>();
                     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
                     services.AddSingleton<IApplication, ApplicationMockSI>();
@@ -68,6 +69,10 @@ namespace App.IntegrationTestsRef.Utils
                             break;
                         case "custom-validation":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.custom_validation.AltinnApp>();
+                            break;
+                        case "platform-fails":
+                            services.AddSingleton<IInstance, InstancePlatformFailsMock>();
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.platform_fails.AltinnApp>();
                             break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();

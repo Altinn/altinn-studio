@@ -7,14 +7,14 @@ import { RouteChildrenProps, withRouter } from 'react-router';
 import AltinnContentIconReceipt from '../../../../../shared/src/components/atoms/AltinnContentIconReceipt';
 import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
+import { IAttachment, IInstance, IParty } from '../../../../../shared/src/types/index.d';
 import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationMetaDataUtils';
 import { getInstancePdf, mapInstanceAttachments } from '../../../../../shared/src/utils/attachmentsUtils';
 import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
-import { IRuntimeState } from '../../../types';
-import { IAttachment, IInstance } from '../../../../../shared/src/types/index.d';
 import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
+import { IRuntimeState } from '../../../types';
 
 export interface IReceiptContainerProps extends RouteChildrenProps {
 }
@@ -22,7 +22,7 @@ export interface IReceiptContainerProps extends RouteChildrenProps {
 export const returnInstanceMetaDataObject = (
   orgsData: any,
   languageData: any,
-  profileData: any,
+  instanceOwnerParty: any,
   instanceGuid: string,
   userLanguageString: string,
   lastChangedDateTime: string,
@@ -34,10 +34,10 @@ export const returnInstanceMetaDataObject = (
   obj[getLanguageFromKey('receipt.date_sent', languageData)] = lastChangedDateTime;
 
   let sender: string = '';
-  if (profileData?.profile && profileData.profile.party.person.ssn) {
-    sender = `${profileData.profile.party.person.ssn}-${profileData.profile.party.name}`;
-  } else if (profileData) {
-    sender = `${profileData.profile.party.orgNumber}-${profileData.profile.party.name}`;
+  if (instanceOwnerParty?.ssn) {
+    sender = `${instanceOwnerParty.ssn}-${instanceOwnerParty.name}`;
+  } else if (instanceOwnerParty?.orgNumber) {
+    sender = `${instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
   }
   obj[getLanguageFromKey('receipt.sender', languageData)] = sender;
 
@@ -65,7 +65,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   const applicationMetadata: any = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
-  const profile: any = useSelector((state: IRuntimeState) => state.profile);
+  const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
 
   const origin = window.location.origin;
   const routeParams: any = props.match.params;
@@ -76,7 +76,6 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
     !lastChangedDateTime ||
     !appName ||
     !allOrgs ||
-    !profile ||
     !instance ||
     !lastChangedDateTime
   );
@@ -89,13 +88,23 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   }, []);
 
   React.useEffect(() => {
-    if (allOrgs != null && profile.profile && instance && instance.org && allOrgs) {
+    const instanceOwnerParty = parties.find((party: IParty) => {
+      return party.partyId.toString() === instance.instanceOwner.partyId;
+    });
+
+    if (allOrgs != null && instanceOwnerParty && instance && instance.org && allOrgs) {
       const obj = returnInstanceMetaDataObject(
-        allOrgs, language, profile, routeParams.instanceGuid, userLanguage, lastChangedDateTime, instance.org,
+        allOrgs,
+        language,
+        instanceOwnerParty,
+        routeParams.instanceGuid,
+        userLanguage,
+        lastChangedDateTime,
+        instance.org,
       );
       setInstanceMetaObject(obj);
     }
-  }, [allOrgs, profile, instance, lastChangedDateTime]);
+  }, [allOrgs, parties, instance, lastChangedDateTime]);
 
   React.useEffect(() => {
     if (applicationMetadata && applicationMetadata.title) {

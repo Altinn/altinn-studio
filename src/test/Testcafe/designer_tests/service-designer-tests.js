@@ -101,22 +101,6 @@ test('About page items and editing', async () => {
     .expect(designer.omKommentarer.textContent).contains("Lorem")
 });
 
-test("Fill out Access control information on an app", async () => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/accesscontrol')
-    .click(designer.virksomhet)
-    .click(designer.hookCheckBox)
-    .expect(designer.tjenestekode.exists).ok()
-    .typeText(designer.tjenestekode, '1234')
-    .expect(designer.tjenesteutgavekode.exists).ok()
-    .typeText(designer.tjenesteutgavekode, '1')
-    .click(designer.virksomhet)
-    .click(designer.hookCheckBox)
-    .expect(designer.tjenestekode.exists).notOk()
-    .expect(designer.tjenesteutgavekode.exists).notOk()
-});
-
-
 test("User cannot clone an app that does not have a data model", async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/ttd/cannotclone1219#/ui-editor')

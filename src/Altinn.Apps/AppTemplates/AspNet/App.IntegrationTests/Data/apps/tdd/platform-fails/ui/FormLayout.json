@@ -1,0 +1,378 @@
+{
+  "data": {
+    "layout": [
+      {
+        "id": "52a617cf-23a8-41eb-8aeb-903e5a2218d9",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "NavarendeNavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "innledninggrp9309.kontaktinformasjongrp9311.melderFultnavn.value"
+        },
+        "required": true,
+        "readOnly": true
+      },
+      {
+        "id": "2c66f031-12ac-4773-9dbd-c9547212dbf9",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "PersonNyttFornavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "nyttNavngrp9313.nyttNavngrp9314.personFornavnNyttdatadef34758.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "98239853-1b30-4fb4-ace4-39d0d99fd549",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "PersonNyttEtternavn",
+          "description": "HintEtternavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "nyttNavngrp9313.nyttNavngrp9314.personEtternavnNyttdatadef34757.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "7b652a98-29b9-4a2f-8581-9b32a7dfe338",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "PersonNyttMellomnavn",
+          "description": "HintMellomnavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "nyttNavngrp9313.nyttNavngrp9314.personMellomnavnNyttdatadef34759.value"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "84130325-f0be-4777-b101-b717758cb616",
+        "type": "Header",
+        "componentType": 0,
+        "textResourceBindings": {
+          "title": "DineEndringer"
+        },
+        "dataModelBindings": {},
+        "size": "L"
+      },
+      {
+        "id": "d74c14e9-f5c3-4abd-ae25-e84a589a1eab",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "EndreNavnFra"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "innledninggrp9309.kontaktinformasjongrp9311.melderFultnavn.value"
+        },
+        "required": true,
+        "readOnly": true
+      },
+      {
+        "id": "ff2810fc-b605-445f-8663-9dd190d91ea5",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "EndreNavnTil"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "innledninggrp9309.navneendringenGjelderForgrp9310.subjektFornavnFolkeregistrertdatadef34730.value"
+        },
+        "required": true,
+        "readOnly": true
+      },
+      {
+        "id": "f216f8cc-f163-487b-a285-f17e6c161f25",
+        "type": "Checkboxes",
+        "componentType": 5,
+        "textResourceBindings": {
+          "title": "BekreftNavnTittel"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "nyttNavngrp9313.nyttNavngrp9314.personBekrefterNyttNavn.value"
+        },
+        "options": [
+          {
+            "label": "Ja, jeg bekrefter at navnet er riktig og slik jeg ønsker det ",
+            "value": "Ja"
+          }
+        ],
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "94a75ec6-8f0f-4356-8efe-76815d57051a",
+        "type": "RadioButtons",
+        "componentType": 6,
+        "textResourceBindings": {
+          "title": "BegrunnelseValgNavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "radioknapp"
+        },
+        "options": [
+          {
+            "label": "Slektskap",
+            "value": "1"
+          },
+          {
+            "label": "Adoptivforelders etternavn eller mellomnavn",
+            "value": "2"
+          },
+          {
+            "label": "Ste- eller fosterforeldres etternavn eller mellomnavn",
+            "value": "3"
+          },
+          {
+            "label": "Ektefelles etternavn eller mellomnavn",
+            "value": "4"
+          },
+          {
+            "label": "Samboers etternavn eller mellomnavn",
+            "value": "5"
+          },
+          {
+            "label": "Tidligere etternavn eller mellomnavn",
+            "value": "6"
+          },
+          {
+            "label": "Gårdsbruk",
+            "value": "7"
+          },
+          {
+            "label": "Jeg tror navnet er nytt i Norge",
+            "value": "8"
+          },
+          {
+            "label": "Annen begrunnelse ",
+            "value": "9"
+          }
+        ],
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "f3bb9f90-05b2-4ee9-9690-bfd80e5a5781",
+        "type": "TextArea",
+        "componentType": 7,
+        "textResourceBindings": {
+          "title": "BegrunnelseSlektskap"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningEtternavn1grp9350.personEtternavnForstedatadef34896.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "a7092381-beeb-4e01-b457-78693eca112e",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "BegrunnelseSteforeldre"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningEtternavn1grp9350.personEtternavnForsteTilknytningBeskrivelsedatadef34898.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "653e1b33-f697-4d44-a3c1-51e678c4a1bb",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "Fodselsnummer"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningEtternavn1grp9350.personEtternavnForsteTilknyttetPersonsFodselsnummerdatadef34899.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "26dbba7d-be5d-472b-b8f2-ecc7ddfb1bfa",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "BegrunnelseSamboer1"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningEtternavn1grp9350.personEtternavnForsteTilknytningBeskrivelsedatadef34898.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "c5ac62ad-551a-4834-97d3-1c674c44e3f3",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "BegrunnelseSamboer2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningEtternavn1grp9350.personEtternavnForsteTilknyttetPersonsFodselsnummerdatadef34899.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "1317e228-f778-440c-b216-3f78d0e77857",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "BegrunnelseGard1"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningEtternavn1grp9350.personEtternavnForsteTilknyttetGardNavndatadef34901.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "161b214a-a312-48bc-ae06-4665d04ed69a",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "BegrunnelseGard2"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningEtternavn1grp9350.personEtternavnForsteTilknyttetGardKommunenummerdatadef34902.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "87c319e7-a31f-4ddf-b7c8-545b47b2da59",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "BegrunnelseGard3"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningMellomnavn2grp9353.personMellomnavnAndreTilknyttetGardGardsnummerdatadef34933.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "e5149177-0d89-4b2e-abba-cf97acc1f092",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "BegrunnelseGard4"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningEtternavn2grp9351.personEtternavnAndreTilknyttetGardBruksnummerdatadef34914.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "db8de08a-572b-4582-a791-c759f8b65e81",
+        "type": "TextArea",
+        "componentType": 7,
+        "textResourceBindings": {
+          "title": "BegrunnelseGard5"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningEtternavn1grp9350.personEtternavnForsteTilknyttetGardFesteavgiftdatadef34905.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "9326e501-e55b-49c6-8181-c3d4db71246a",
+        "type": "TextArea",
+        "componentType": 7,
+        "textResourceBindings": {
+          "title": "BegrunnelseNyttNavn"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "begrunnelsegrp9317.begrunnelseForNyttNavngrp9318.personFornavnAnnetBegrunnelsedatadef34948.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "50258474-4b8d-46fa-83dd-e591c5f73e4a",
+        "type": "TextArea",
+        "componentType": 7,
+        "textResourceBindings": {
+          "title": "BegrunnelseAnnet"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningEtternavn2grp9351.personEtternavnAndredatadef34906.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "fd7c5f84-bae7-4ef0-9b42-d1da8d93e7f1",
+        "type": "Header",
+        "componentType": 0,
+        "textResourceBindings": {
+          "title": "Kontaktinformasjon"
+        },
+        "dataModelBindings": {},
+        "size": "L"
+      },
+      {
+        "id": "71aa03b5-646a-4892-bb18-4741865237a1",
+        "type": "Header",
+        "componentType": 0,
+        "textResourceBindings": {
+          "title": "kontaktinfoBeskrivelse"
+        },
+        "dataModelBindings": {}
+      },
+      {
+        "id": "3531a508-7ea9-4627-8e75-afafd11311b3",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "Telefonnummer"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "innledninggrp9309.kontaktinformasjongrp9311.melderMobiltelefonnummerdatadef34740.value"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "4baeccb4-c02d-46c4-b663-5205e86facba",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "Epost"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "innledninggrp9309.kontaktinformasjongrp9311.melderEpostdatadef34739.value"
+        },
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "775364fb-b633-464f-b983-e7ec4aa84d5d",
+        "type": "Button",
+        "componentType": 9,
+        "textResourceBindings": {
+          "title": "Send inn"
+        },
+        "dataModelBindings": {},
+        "textResourceId": "Standard.Button.Button",
+        "customType": "Standard"
+      }
+    ]
+  }
+}

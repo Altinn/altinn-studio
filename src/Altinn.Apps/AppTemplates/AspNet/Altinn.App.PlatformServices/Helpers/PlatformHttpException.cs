@@ -2,16 +2,16 @@ using System;
 using System.Net.Http;
 using System.Runtime.Serialization;
 
-namespace Altinn.App.Services.Implementation
+namespace Altinn.App.PlatformServices.Helpers
 {
     /// <summary>
     /// Exception class to hold exceptions when talking to the platform REST services
     /// </summary>
     [Serializable]
-    public class PlatformClientException : Exception
+    public class PlatformHttpException : Exception
     {
         /// <summary>
-        /// the response message which is not a success.
+        /// Responsible for holding an http request exception towards platform (storage).
         /// </summary>
         public HttpResponseMessage Response { get; }
 
@@ -19,7 +19,7 @@ namespace Altinn.App.Services.Implementation
         /// Copy the response for further investigations
         /// </summary>
         /// <param name="response">the response</param>
-        public PlatformClientException(HttpResponseMessage response) : base(ModifyMessage(response))
+        public PlatformHttpException(HttpResponseMessage response) : base(ModifyMessage(response))
         {
             this.Response = response;
         }
@@ -33,24 +33,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <summary>
-        /// Just a single line
+        /// Add serialization info.
         /// </summary>
-        /// <param name="message">the message</param>
-        public PlatformClientException(string message) : base(message)
-        {
-        }
-
-        /// <summary>
-        /// Inner exception
-        /// </summary>
-        public PlatformClientException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        /// <summary>
-        /// C# stuff to what knows why
-        /// </summary>
-        protected PlatformClientException(SerializationInfo info, StreamingContext context) : base(info, context)
+        protected PlatformHttpException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }
