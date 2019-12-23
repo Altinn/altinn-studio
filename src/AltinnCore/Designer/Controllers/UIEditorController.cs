@@ -22,6 +22,7 @@ namespace AltinnCore.Designer.Controllers
     /// Controller containing all react-ions
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class UIEditorController : Controller
     {
         private readonly IRepository _repository;
@@ -109,7 +110,6 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public ActionResult SaveFormLayout([FromBody] dynamic jsonData, string org, string app)
         {
             _repository.SaveJsonFormLayout(org, app, jsonData.ToString());

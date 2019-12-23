@@ -41,7 +41,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public async Task<AltinnCore.RepositoryClient.Model.User> Current()
         {
-            // See comments in MvcConfiguration.cs during configuration of Antiforgery.
+            // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
             HttpContext.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken, new CookieOptions
             {
