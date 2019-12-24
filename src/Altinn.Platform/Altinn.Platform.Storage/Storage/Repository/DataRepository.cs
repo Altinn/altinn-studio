@@ -8,6 +8,8 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -29,6 +31,10 @@ namespace Altinn.Platform.Storage.Repository
         private readonly AzureStorageConfiguration _storageConfiguration;
         private readonly CloudBlobClient _blobClient;
         private readonly CloudBlobContainer _container;
+
+        private bool _useAppBlobClient = false;
+
+        private CloudBlobContainer AppBlobContainer { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataRepository"/> class
@@ -81,7 +87,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<long> WriteDataToStorage(Stream fileStream, string fileName)
         {
-            CloudBlockBlob blockBlob = _container.GetBlockBlobReference(fileName);
+            CloudBlockBlob blockBlob = GetBlobContainer().GetBlockBlobReference(fileName);
 
             await blockBlob.UploadFromStreamAsync(fileStream);
             blockBlob.FetchAttributes();
@@ -92,7 +98,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<Stream> ReadDataFromStorage(string fileName)
         {
-            CloudBlockBlob blockBlob = _container.GetBlockBlobReference(fileName);
+            CloudBlockBlob blockBlob = GetBlobContainer().GetBlockBlobReference(fileName);
 
             var memoryStream = new MemoryStream();
             await blockBlob.DownloadToStreamAsync(memoryStream);
@@ -103,7 +109,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<bool> DeleteDataInStorage(string fileName)
         {           
-            CloudBlockBlob blockBlob = _container.GetBlockBlobReference(fileName);
+            CloudBlockBlob blockBlob = GetBlobContainer().GetBlockBlobReference(fileName);
 
             bool result = await blockBlob.DeleteIfExistsAsync();
 
@@ -181,6 +187,54 @@ namespace Altinn.Platform.Storage.Repository
                 new RequestOptions { PartitionKey = new PartitionKey(dataElement.instanceGuid) });
 
             return true;
+        }
+
+        /// <summary>
+        /// Sets the blob client to point to app owner blob 
+        /// </summary>
+        /// <param name="org">Name of the application owner</param>
+        public void SetAppBlobClient(string org)
+        {
+            _useAppBlobClient = false;
+            if (!string.IsNullOrEmpty(org))
+            {
+                AppBlobContainer = GetCloudBlobContainer(org);
+                _useAppBlobClient = true;
+            }
+        }
+
+        private CloudBlobContainer GetBlobContainer()
+        {
+            if (_useAppBlobClient)
+            {
+                return _container;
+            }
+
+            return _container;
+        }
+
+        /// <summary>
+        /// Sets the blob container to point to app owner blob container
+        /// </summary>
+        /// <param name="org">Name of the application owner</param>
+        private CloudBlobContainer GetCloudBlobContainer(string org)
+        {
+            string containerName = $@"{org}-at21-appsdata-blob-db";
+            return GetCloudBlobClient(org).GetContainerReference(containerName);
+        }
+
+        private CloudBlobClient GetCloudBlobClient(string org)
+        {
+            string secretUri = @$"https://{org}-{Startup.EnvironmentName}-keyvault.vault.azure.net/";
+            string storageAccount = $@"{org}altinnat{Startup.EnvironmentName}storage01";
+            string sasDefinition = $@"{org}{Startup.EnvironmentName}sasdef01";
+
+            KeyVaultClient kv = Startup.PlatformKeyVaultClient;
+            SecretBundle sb = kv.GetSecretAsync(secretUri, $@"{storageAccount}-{sasDefinition}").Result;
+            StorageCredentials accountSasCredential = new StorageCredentials(sb.Value);
+            CloudStorageAccount accountWithSas = new CloudStorageAccount(accountSasCredential, new Uri($@"https://{storageAccount}.blob.core.windows.net/"), null, null, null);
+
+            return accountWithSas.CreateCloudBlobClient();
         }
     }
 }

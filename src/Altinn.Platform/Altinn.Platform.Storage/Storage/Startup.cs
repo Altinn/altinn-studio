@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.Azure.KeyVault;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -41,6 +42,16 @@ namespace Altinn.Platform.Storage
         /// The application insights key.
         /// </summary>
         internal static string ApplicationInsightsKey { get; set; }
+
+        /// <summary>
+        /// Key Vault client represnting Platform
+        /// </summary>
+        internal static KeyVaultClient PlatformKeyVaultClient { get; set; }
+
+        /// <summary>
+        /// Holds the current environement name
+        /// </summary>
+        internal static string EnvironmentName { get; set; } 
 
         private readonly IWebHostEnvironment _env;
 
@@ -78,6 +89,7 @@ namespace Altinn.Platform.Storage
                     .Build();
                 config.Filters.Add(new AuthorizeFilter(policy));
             }).AddNewtonsoftJson();
+
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
@@ -86,6 +98,12 @@ namespace Altinn.Platform.Storage
 
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
 
+            string envname = generalSettings.Hostname.Split('.')[0].Trim();
+            if (!string.IsNullOrEmpty(envname))
+            {
+                EnvironmentName = envname;
+            }
+            
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                 {
@@ -213,6 +231,7 @@ namespace Altinn.Platform.Storage
 
             // app.UseHttpsRedirection();
             app.UseRouting();
+
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>

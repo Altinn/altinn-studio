@@ -10,7 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Serilog;
 using Serilog.Core;
 using Serilog.Extensions.Logging;
@@ -124,6 +126,9 @@ namespace Altinn.Platform.Storage
                 KeyVaultClient keyVaultClient = new KeyVaultClient(
                     new KeyVaultClient.AuthenticationCallback(
                         azureServiceTokenProvider.KeyVaultTokenCallback));
+
+                Startup.PlatformKeyVaultClient = keyVaultClient;
+
                 config.AddAzureKeyVault(
                     keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
                 try

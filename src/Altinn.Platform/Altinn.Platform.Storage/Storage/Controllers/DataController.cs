@@ -81,6 +81,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound("Provided instanceId is unknown to storage service");
             }
 
+            _dataRepository.SetAppBlobClient(instance.Org);
             DataElement dataElement = await _dataRepository.Read(instanceGuid, dataId);
 
             if (dataElement == null)
@@ -137,6 +138,8 @@ namespace Altinn.Platform.Storage.Controllers
 
             string storageFileName =
                 DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataGuid.ToString());
+
+            _dataRepository.SetAppBlobClient(instance.Org);
 
             DataElement dataElement = await _dataRepository.Read(instanceGuid, dataGuid);
 
@@ -206,6 +209,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return errorResult;
             }
 
+            _dataRepository.SetAppBlobClient(instance.Org);
             List<DataElement> dataList = await _dataRepository.ReadAll(instanceGuid);
 
             return Ok(dataList);
@@ -266,6 +270,8 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
+                _dataRepository.SetAppBlobClient(instance.Org);
+
                 // store file as blob
                 newData.Size = await _dataRepository.WriteDataToStorage(theStream, newData.BlobStoragePath);
 
@@ -318,6 +324,8 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return errorMessage;
             }
+
+            _dataRepository.SetAppBlobClient(instance.Org);
 
             DataElement dataElement = await _dataRepository.Read(instanceGuid, dataGuid);
 

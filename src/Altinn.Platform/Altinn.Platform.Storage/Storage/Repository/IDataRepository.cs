@@ -70,5 +70,11 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="dataElement">the element to delete</param>
         /// <returns>true if delete went well.</returns>
         Task<bool> Delete(DataElement dataElement);
+
+        /// <summary>
+        /// Sets the blob client
+        /// </summary>
+        /// <param name="org">App owner identifier</param>
+        void SetAppBlobClient(string org);
     }
 }
