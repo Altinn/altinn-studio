@@ -198,8 +198,15 @@ namespace Altinn.Platform.Storage.Repository
             _useAppBlobClient = false;
             if (!string.IsNullOrEmpty(org))
             {
-                AppBlobContainer = GetCloudBlobContainer(org);
-                _useAppBlobClient = true;
+                try
+                {
+                    AppBlobContainer = GetCloudBlobContainer(org);
+                    _useAppBlobClient = true;
+                }
+                catch
+                {
+                    _useAppBlobClient = false;
+                }
             }
         }
 
