@@ -285,7 +285,7 @@ describe('>>> utils/validations.ts', () => {
   });
   it('+++ validateFormComponents should return error on fileUpload if its not enough files', () => {
     const componentSpesificValidations =
-      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockLanguage.language);
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockLanguage.language, []);
 
     const mockResult = {
       componentId_4: {
@@ -303,7 +303,7 @@ describe('>>> utils/validations.ts', () => {
       attachments: null,
     };
     const componentSpesificValidations =
-      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockLanguage.language);
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockLanguage.language, []);
 
     const mockResult = {
       componentId_4: {
@@ -327,7 +327,7 @@ describe('>>> utils/validations.ts', () => {
       },
     ];
     const componentSpesificValidations =
-      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockLanguage.language);
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockLanguage.language, []);
 
     const mockResult = {};
 
@@ -341,11 +341,10 @@ describe('>>> utils/validations.ts', () => {
         dataModelBindings: {},
         maxNumberOfAttachments: '1',
         minNumberOfAttachments: '0',
-        hidden: true,
       },
     ];
     const componentSpesificValidations =
-      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockLanguage.language);
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockLanguage.language, ['componentId_4']);
 
     const mockResult = {};
 
@@ -354,7 +353,7 @@ describe('>>> utils/validations.ts', () => {
   it('+++ validateEmptyFields should return error if empty fields are required', () => {
 
     const componentSpesificValidations =
-      validation.validateEmptyFields(mockFormData, mockLayout, mockLanguage.language);
+      validation.validateEmptyFields(mockFormData, mockLayout, mockLanguage.language, []);
 
     const mockResult = { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } } };
 

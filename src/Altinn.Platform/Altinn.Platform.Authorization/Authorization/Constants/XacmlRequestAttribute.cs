@@ -26,6 +26,11 @@ namespace Altinn.Platform.Authorization.Constants
         public const string TaskAttribute = "urn:altinn:task";
 
         /// <summary>
+        /// xacml string that represents end event
+        /// </summary>
+        public const string EndEventAttribute = "urn:altinn:end-event";
+
+        /// <summary>
         /// xacml string that represents party
         /// </summary>
         public const string PartyAttribute = "urn:altinn:partyid";

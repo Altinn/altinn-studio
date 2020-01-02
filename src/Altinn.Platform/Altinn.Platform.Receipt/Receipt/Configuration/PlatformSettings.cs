@@ -1,4 +1,4 @@
-namespace AltinnCore.Common.Configuration
+namespace Altinn.Platform.Receipt.Configuration
 {
     /// <summary>
     /// Configuration for platform settings

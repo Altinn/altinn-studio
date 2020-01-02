@@ -50,7 +50,6 @@ export interface IFormComponent extends ICreateFormComponent {
   id: string;
   disabled?: boolean;
   required?: boolean;
-  hidden?: boolean;
   readOnly?: boolean;
 }
 

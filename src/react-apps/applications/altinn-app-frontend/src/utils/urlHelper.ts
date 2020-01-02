@@ -79,8 +79,10 @@ export const getHostname: () => string = () => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
   const domainSplitted: string[] = window.location.host.split('.');
   if (domainSplitted.length === 5) {
-    return domainSplitted[2];
+    return `${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}`;
   } else if (domainSplitted.length === 4) {
-    return domainSplitted[2];
+    return `${domainSplitted[2]}.${domainSplitted[3]}`;
+  } else {
+    throw new Error('Unknown domain');
   }
 };
