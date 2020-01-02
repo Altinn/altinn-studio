@@ -1,8 +1,7 @@
 using System;
 using System.Net;
-using System.Security.Cryptography.X509Certificates;
+using Altinn.Platform.Receipt.Configuration;
 using AltinnCore.Authentication.JwtCookie;
-using AltinnCore.Common.Configuration;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.AspNetCore.Builder;
@@ -10,7 +9,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Core;
@@ -32,6 +30,8 @@ namespace Altinn.Platform.Receipt
         /// </summary>
         internal static string ApplicationInsightsKey { get; set; }
 
+        private readonly IWebHostEnvironment _env;
+
         private static readonly Logger _logger = new LoggerConfiguration()
            .WriteTo.Console()
            .CreateLogger();
@@ -39,9 +39,10 @@ namespace Altinn.Platform.Receipt
         /// <summary>
         ///  Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            _env = env;
         }
 
         /// <summary>
@@ -58,26 +59,28 @@ namespace Altinn.Platform.Receipt
             _logger.Information("Startup // ConfigureServices");
 
             services.AddControllersWithViews();
-
-            // Configure Authentication
-            // Use [Authorize] to require login on MVC Controller Actions
-            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
-            SecurityKey key = new X509SecurityKey(cert);
+            GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
-                .AddJwtCookie(options =>
+                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                 {
+                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                    options.Cookie.Name = generalSettings.RuntimeCookieName;
+                    options.Cookie.Domain = generalSettings.Hostname;
+                    options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = key,
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         RequireExpirationTime = true,
                         ValidateLifetime = true
                     };
-                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                    options.Cookie.Name = "AltinnStudioRuntime";
+
+                    if (_env.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
                 });
 
             services.AddSingleton(Configuration);
