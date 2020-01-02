@@ -5,8 +5,6 @@ export interface IFetchFormData extends Action {
   url: string;
 }
 
-export interface IFetchFormDataInitial extends Action {}
-
 export interface IFetchFormDataFulfilled extends Action {
   formData: any;
 }
@@ -36,7 +34,7 @@ export function fetchFormDataRejected(error: Error): IFetchFormDataRejected {
   };
 }
 
-export function fetchFormDataInitial(): IFetchFormDataInitial {
+export function fetchFormDataInitial(): Action {
   return {
     type: actionTypes.FETCH_FORM_DATA_INITIAL,
   };

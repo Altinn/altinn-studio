@@ -14,7 +14,7 @@ export interface IFormDataActions extends ActionCreatorsMapObject {
   fetchFormData: (url: string) => FetchFormData.IFetchFormData;
   fetchFormDataFulfilled: (formData: any) => FetchFormData.IFetchFormDataFulfilled;
   fetchFormDataRejected: (error: Error) => FetchFormData.IFetchFormDataRejected;
-  fetchFormDataInitial: () => FetchFormData.IFetchFormDataInitial;
+  fetchFormDataInitial: () => Action;
 }
 
 const actions: IFormDataActions = {
