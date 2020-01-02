@@ -5,15 +5,21 @@ export interface IFetchFormData extends Action {
   url: string;
 }
 
+export interface IFetchFormDataInitial extends Action {}
+
+export interface IFetchFormDataFulfilled extends Action {
+  formData: any;
+}
+
+export interface IFetchFormDataRejected extends Action {
+  error: Error;
+}
+
 export function fetchFormData(url: string): IFetchFormData {
   return {
     type: actionTypes.FETCH_FORM_DATA,
     url,
   };
-}
-
-export interface IFetchFormDataFulfilled extends Action {
-  formData: any;
 }
 
 export function fetchFormDataFulfilled(formData: any): IFetchFormDataFulfilled {
@@ -23,13 +29,15 @@ export function fetchFormDataFulfilled(formData: any): IFetchFormDataFulfilled {
   };
 }
 
-export interface IFetchFormDataRejected extends Action {
-  error: Error;
-}
-
 export function fetchFormDataRejected(error: Error): IFetchFormDataRejected {
   return {
     type: actionTypes.FETCH_FORM_DATA_REJECTED,
     error,
+  };
+}
+
+export function fetchFormDataInitial(): IFetchFormDataInitial {
+  return {
+    type: actionTypes.FETCH_FORM_DATA_INITIAL,
   };
 }
