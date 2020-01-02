@@ -52,10 +52,11 @@ export function validateEmptyFields(
   formData: any,
   formLayout: any,
   language: any,
+  hiddenFields: string[],
 ) {
   const validations: any = {};
   formLayout.forEach((component: any) => {
-    if (!component.hidden && component.required) {
+    if (!hiddenFields.includes(component.id) && component.required) {
       const fieldKey = Object.keys(component.dataModelBindings).find((binding: string) =>
         component.dataModelBindings[binding]);
       const value = formData[component.dataModelBindings[fieldKey]];
@@ -84,11 +85,12 @@ export function validateFormComponents(
   attachments: any,
   formLayout: any,
   language: any,
+  hiddenFields: string[],
 ) {
   const validations: any = {};
   const fieldKey = 'simpleBinding';
   formLayout.forEach((component: any) => {
-    if (!component.hidden) {
+    if (!hiddenFields.includes(component.id)) {
       if (component.type === 'FileUpload') {
         if (!attachmentsValid(attachments, component)) {
           validations[component.id] = {};
