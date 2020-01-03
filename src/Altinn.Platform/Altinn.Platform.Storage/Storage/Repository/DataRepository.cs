@@ -226,7 +226,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="org">Name of the application owner</param>
         private CloudBlobContainer GetCloudBlobContainer(string org)
         {
-            string containerName = $@"{org}-at21-appsdata-blob-db";
+            string containerName = $@"{org}-{Startup.EnvironmentName}-appsdata-blob-db";
             return GetCloudBlobClient(org).GetContainerReference(containerName);
         }
 
