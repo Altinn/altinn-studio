@@ -214,27 +214,23 @@ namespace Altinn.Platform.Storage.Repository
         {
             if (_useAppBlobClient)
             {
-                return _container;
+                return AppBlobContainer;
             }
 
             return _container;
         }
 
-        /// <summary>
-        /// Sets the blob container to point to app owner blob container
-        /// </summary>
-        /// <param name="org">Name of the application owner</param>
         private CloudBlobContainer GetCloudBlobContainer(string org)
         {
-            string containerName = $@"{org}-{Startup.EnvironmentName}-appsdata-blob-db";
+            string containerName = string.Format(_storageConfiguration.OrgStorageContainer, org, Startup.EnvironmentName);
             return GetCloudBlobClient(org).GetContainerReference(containerName);
         }
 
         private CloudBlobClient GetCloudBlobClient(string org)
         {
-            string secretUri = @$"https://{org}-{Startup.EnvironmentName}-keyvault.vault.azure.net/";
-            string storageAccount = $@"{org}altinnat{Startup.EnvironmentName}storage01";
-            string sasDefinition = $@"{org}{Startup.EnvironmentName}sasdef01";
+            string secretUri = string.Format(_storageConfiguration.OrgKeyVaultURI, org, Startup.EnvironmentName);
+            string storageAccount = string.Format(_storageConfiguration.OrgStorageAccount, org, Startup.EnvironmentName);
+            string sasDefinition = string.Format(_storageConfiguration.OrgSasDefinition, org, Startup.EnvironmentName);
 
             KeyVaultClient kv = Startup.PlatformKeyVaultClient;
             SecretBundle sb = kv.GetSecretAsync(secretUri, $@"{storageAccount}-{sasDefinition}").Result;
