@@ -5,17 +5,17 @@ namespace Altinn.App.Services.Helpers
     /// <summary>
     /// Helper for service Text
     /// </summary>
-    public static class ServiceTextHelper
+    public static class AppTextHelper
     {
         /// <summary>
-        /// Get a given serviceText
+        /// Get a given app Text
         /// </summary>
         /// <param name="key">The key</param>
         /// <param name="serviceText">List of serviceText</param>
         /// <param name="textParams">Parameters for text</param>
         /// <param name="languageId">The languageId</param>
         /// <returns>The given text</returns>
-        public static string GetServiceText(string key, Dictionary<string, Dictionary<string, string>> serviceText, List<string> textParams, string languageId)
+        public static string GetAppText(string key, Dictionary<string, Dictionary<string, string>> serviceText, List<string> textParams, string languageId)
         {
             string text = key;
             if (serviceText != null && serviceText.ContainsKey(key))
