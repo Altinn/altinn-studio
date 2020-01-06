@@ -1,6 +1,6 @@
 package altinn.platform.pdf.configuration;
 
-public class KvConfig {
+public class KvSetting {
   public String ClientId;
 
   public String TenantId;
