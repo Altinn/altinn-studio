@@ -92,7 +92,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instance.Id, response.StatusCode);
-            throw new PlatformHttpException(response);            
+            throw new PlatformHttpException(response);
         }
 
         /// <inheritdoc />
@@ -119,7 +119,7 @@ namespace Altinn.App.Services.Implementation
                 return dataElement;
             }
 
-            throw new PlatformHttpException(response);                        
+            throw new PlatformHttpException(response);
         }
 
         /// <inheritdoc />
@@ -270,6 +270,11 @@ namespace Altinn.App.Services.Implementation
                 string instancedata = await response.Content.ReadAsStringAsync();
                 dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata);
 
+                return dataElement;
+            }
+            else if (response.StatusCode.Equals(HttpStatusCode.Conflict))
+            {
+                dataElement = new DataElement { Locked = true };
                 return dataElement;
             }
 
