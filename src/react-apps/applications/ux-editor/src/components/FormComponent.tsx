@@ -16,9 +16,7 @@ const styles = createStyles({
  */
 export interface IProvidedProps {
   id: string;
-  formData: any;
   activeList: any[];
-  handleDataUpdate: (id: string, dataModelElement: any, value: any) => void;
   classes: any;
   firstInActiveList: boolean;
   lastInActiveList: boolean;
@@ -149,10 +147,6 @@ const FormComponent = (props: IFormElementProps) => {
     e.stopPropagation();
   };
 
-  /**
-   * The React Render method. This is run when this component is included in another component.
-   * It is either called from FormFiller or FormDesigner.
-   */
   return (
     <div ref={getWrapperRef}>
       <EditContainer
@@ -171,11 +165,6 @@ const FormComponent = (props: IFormElementProps) => {
   );
 };
 
-/**
- * Map values from Provided props and store to FormElementProps
- * @param state the state
- * @param props the input props give as input from formFiller component
- */
 const makeMapStateToProps = () => {
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const mapStateToProps = (state: IAppState, props: IProvidedProps): IFormElementProps => ({
@@ -183,9 +172,7 @@ const makeMapStateToProps = () => {
     id: props.id,
     firstInActiveList: props.firstInActiveList,
     lastInActiveList: props.lastInActiveList,
-    formData: props.formData,
     classes: props.classes,
-    handleDataUpdate: props.handleDataUpdate,
     sendListToParent: props.sendListToParent,
     singleSelected: props.singleSelected,
     component: state.formDesigner.layout.components[props.id],
@@ -197,10 +184,7 @@ const makeMapStateToProps = () => {
         state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding),
     connections: state.serviceConfigurations.APIs.connections,
     externalApi: state.serviceConfigurations.APIs.externalApisById,
-    validationErrors:
-      Object.keys(state.formFiller.validationErrors).length > 0
-        ? state.formFiller.validationErrors[props.id]
-        : null,
+    validationErrors: null,
     textResources: state.appData.textResources.resources,
     thirdPartyComponents: state.thirdPartyComponents.components,
     dataModel: state.appData.dataModel.model,
