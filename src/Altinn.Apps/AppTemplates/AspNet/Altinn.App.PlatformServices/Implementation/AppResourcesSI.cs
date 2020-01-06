@@ -167,7 +167,7 @@ namespace Altinn.App.Services.Implementation
 
         public string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel")
         {
-            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + dataModelName + ".prefill.json";
+            string filename = _settings.GetModelPath(org, app, dataModelName + ".prefill.json");
             string filedata = null;
             if (File.Exists(filename))
             {
