@@ -16,19 +16,16 @@ namespace AltinnCore.Designer.Controllers
     public class ServiceController : Controller
     {
         private readonly IRepository _repository;
-        private readonly ICompilation _compilation;
         private readonly ISourceControl _sourceControl;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceController"/> class.
         /// </summary>
         /// <param name="repositoryService">The service repository service.</param>
-        /// <param name="compilationService">the compilation service handler.</param>
         /// <param name="sourceControl">the source control service handler.</param>
-        public ServiceController(IRepository repositoryService, ICompilation compilationService, ISourceControl sourceControl)
+        public ServiceController(IRepository repositoryService, ISourceControl sourceControl)
         {
             _repository = repositoryService;
-            _compilation = compilationService;
             _sourceControl = sourceControl;
         }
 
@@ -61,20 +58,6 @@ namespace AltinnCore.Designer.Controllers
             ViewBag.PackageDetails = packageDetails;
 
             return View(model);
-        }
-
-        /// <summary>
-        /// Creates a new service package using all the current app files.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="startAppFlag">Flag to determine if the app should run/re-run.</param>
-        /// <returns>Redirect to index.</returns>
-        [HttpGet]
-        public IActionResult CreateServicePackage(string org, string app, bool startAppFlag)
-        {
-            _compilation.CreateServicePackage(org, app, startAppFlag);
-            return RedirectToAction("Index", new { org, app });
         }
 
         /// <summary>
