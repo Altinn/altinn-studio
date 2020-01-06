@@ -98,6 +98,63 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         /// Test of method <see cref="AuthenticationController.AuthenticateOrganisation"/>.
         /// </summary>
         [Fact]
+        public async Task AuthenticateOrganisation_RequestTestTokenWithValidExternalToken_ReturnsNewToken()
+        {
+            // Arrange
+            List<Claim> claims = new List<Claim>();
+
+            string orgNr = "974760223";
+            string brgOrgNr = "974760673";
+
+            object iso6523Consumer = new
+            {
+                authority = "iso6523-actorid-upis",
+                ID = $"9908:{orgNr}"
+            };
+
+            object brgConsumer = new
+            {
+                authority = "iso6523-actorid-upis",
+                ID = $"9908:{brgOrgNr}"
+            };
+
+            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(iso6523Consumer)));
+            claims.Add(new Claim("client_orgno", orgNr));
+            claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
+
+            ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
+
+            Mock<ISblCookieDecryptionService> cookieDecryptionService = new Mock<ISblCookieDecryptionService>();
+
+            HttpClient client = GetTestClient(cookieDecryptionService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/convert?test=true");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            string token = await response.Content.ReadAsStringAsync();
+
+            ClaimsPrincipal principal = JwtTokenMock.ValidateToken(token);
+
+            Assert.NotNull(principal);
+
+            Assert.True(principal.HasClaim(c => c.Type == "urn:altinn:org"));
+
+            Assert.Equal("ttd", principal.FindFirst(c => c.Type == "urn:altinn:org").Value);
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.AuthenticateOrganisation"/>.
+        /// </summary>
+        [Fact]
         public async Task AuthenticateUser_RequestTokenWithValidAltinnCookie_ReturnsNewToken()
         {
             // Arrange

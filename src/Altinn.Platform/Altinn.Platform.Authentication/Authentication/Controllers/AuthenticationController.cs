@@ -157,7 +157,8 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <returns>The result of the action. Contains the new token if the old token was valid and could be converted.</returns>
         [AllowAnonymous]
         [HttpGet("convert")]
-        public async Task<IActionResult> AuthenticateOrganisation()
+        public async Task<IActionResult> AuthenticateOrganisation(
+            [FromQuery] bool test)
         {
             string originalToken = string.Empty;
 
@@ -220,6 +221,10 @@ namespace Altinn.Platform.Authentication.Controllers
                 }
 
                 string org = _organisationRepository.LookupOrg(orgNumber);
+                if (org == "brg" && test)
+                {
+                    org = "ttd";
+                }
 
                 string issuer = _generalSettings.PlatformEndpoint;
                 claims.Add(new Claim(AltinnCoreClaimTypes.Org, org, ClaimValueTypes.String, issuer));
