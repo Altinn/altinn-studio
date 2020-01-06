@@ -75,23 +75,5 @@ namespace Altinn.App.Services.Helpers
             userContext.Party = await _registerService.GetParty(userContext.PartyId);
             return userContext;
         }
-
-        /// <summary>
-        /// Returns the user context for a given user and party Id
-        /// </summary>
-        /// <param name="context">The HttpContext</param>
-        /// <param name="userId">The user id</param>
-        /// <param name="partyId">The party id</param>
-        /// <returns>The UserContext</returns>
-        public async Task<UserContext> CreateUserContextBasedOnUserAndParty(HttpContext context, int userId, int partyId)
-        {
-            UserContext userContext = new UserContext() { User = context.User };
-            userContext.UserId = userId;
-            userContext.PartyId = partyId;
-            userContext.Party = await _registerService.GetParty(userContext.PartyId);
-
-            // userContext.UserParty = await _registerService.GetParty(userContext.PartyId); // this userPartyId is not available at this point.
-            return userContext;
-        }
     }
 }

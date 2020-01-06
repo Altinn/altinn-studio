@@ -77,7 +77,6 @@ namespace Altinn.App
 
             // Application Settings
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
-            services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(Configuration.GetSection("PEPSettings"));
