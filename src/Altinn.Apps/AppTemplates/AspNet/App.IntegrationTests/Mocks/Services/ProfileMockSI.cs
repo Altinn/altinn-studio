@@ -1,5 +1,6 @@
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.Platform.Profile.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
