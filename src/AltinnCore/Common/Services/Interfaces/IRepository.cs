@@ -13,7 +13,7 @@ namespace AltinnCore.Common.Services.Interfaces
     /// <summary>
     /// Interface for repository functionality
     /// </summary>
-    public interface IRepository : IServicePackageRepository
+    public interface IRepository
     {
         /// <summary>
         /// Creates the service model based on XSD.
@@ -174,23 +174,6 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="modelName">The name of the data model.</param>
         /// <returns>A boolean indicating if saving was ok</returns>
         bool UpdateModelMetadata(string org, string app, ModelMetadata modelMetadata, string modelName);
-
-        /// <summary>
-        /// Updates rules for an app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="rules">The rules to save</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        bool UpdateRules(string org, string app, List<RuleContainer> rules);
-
-        /// <summary>
-        /// Returns the rules for an app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The rules for an app.</returns>
-        List<RuleContainer> GetRules(string org, string app);
 
         /// <summary>
         /// Returns a list of all organisations present in the local repository

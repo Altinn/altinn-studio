@@ -32,7 +32,6 @@ namespace AltinnCore.Designer.Infrastructure
             // services.AddSingleton<ICompilation, CompilationSI>();
             // services.AddSingleton<IForm, FormStudioSI>();
             services.AddTransient<IRepository, RepositorySI>();
-            services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddTransient<ISourceControl, SourceControlSI>();
 
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();

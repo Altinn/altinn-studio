@@ -30,37 +30,6 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// The index action which will list basic information about the app, as well as
-        /// all possible operations on the app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>A view with basic information and all available operations.</returns>
-        public IActionResult Index(string org, string app)
-        {
-            ModelMetadata metadata = _repository.GetModelMetadata(org, app);
-            IList<ServicePackageDetails> packageDetails = _repository.GetServicePackages(org, app);
-            AltinnStudioViewModel model = new AltinnStudioViewModel();
-            model.Service = app;
-            model.Org = org;
-            model.ServiceMetadata = metadata;
-
-            if (_sourceControl.IsLocalRepo(org, app))
-            {
-                model.IsLocalRepo = true;
-                model.RepositoryContent = _sourceControl.Status(org, app);
-                _sourceControl.FetchRemoteChanges(org, app);
-                model.CommitsBehind = _sourceControl.CheckRemoteUpdates(org, app);
-            }
-
-            ViewBag.HasCreatedResources = _repository.GetLanguages(org, app).Any();
-            ViewBag.HasSetConfiguration = _repository.GetConfiguration(org, app, "basic.json") != null;
-            ViewBag.PackageDetails = packageDetails;
-
-            return View(model);
-        }
-
-        /// <summary>
         /// List GIT Status for an app.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
