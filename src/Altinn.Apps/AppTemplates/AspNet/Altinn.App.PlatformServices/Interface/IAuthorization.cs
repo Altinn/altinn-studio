@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.App.Services.Models;
+using Altinn.Platform.Register.Models;
 
 namespace Altinn.App.Services.Interface
 {
