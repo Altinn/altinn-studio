@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>Altinn.Platform</RootNamespace>
+    <Version>1.0.0-alpha</Version>
+  </PropertyGroup>
+
+</Project>
