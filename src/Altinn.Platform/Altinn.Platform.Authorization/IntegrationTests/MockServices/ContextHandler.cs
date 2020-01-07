@@ -4,7 +4,7 @@ using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
-using Authorization.Interface.Models;
+using Authorization.Platform.Authorization.Models;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System;

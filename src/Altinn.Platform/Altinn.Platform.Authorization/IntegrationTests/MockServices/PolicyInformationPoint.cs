@@ -1,5 +1,5 @@
 using Altinn.Platform.Authorization.Services.Interface;
-using Authorization.Interface.Models;
+using Authorization.Platform.Authorization.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

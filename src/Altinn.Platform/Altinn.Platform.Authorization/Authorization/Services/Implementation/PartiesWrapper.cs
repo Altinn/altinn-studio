@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Register.Models;
-using Authorization.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
