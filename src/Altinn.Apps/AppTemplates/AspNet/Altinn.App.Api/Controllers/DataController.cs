@@ -118,7 +118,7 @@ namespace Altinn.App.Api.Controllers
             {
                 return ExceptionResponse(pce, $"Cannot create data element of {dataType} for {instanceOwnerPartyId}/{instanceGuid}");
             }
-            
+
         }
 
         /// <summary>
@@ -497,6 +497,12 @@ namespace Altinn.App.Api.Controllers
         private async Task<ActionResult> PutBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
         {
             DataElement dataElement = await _dataService.UpdateBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, Request);
+
+            if (dataElement.Locked)
+            {
+                return Conflict($"Data element {dataGuid} is locked and cannot be updated");
+            }
+
             SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
 
             return Created(dataElement.SelfLinks.Apps, dataElement);
