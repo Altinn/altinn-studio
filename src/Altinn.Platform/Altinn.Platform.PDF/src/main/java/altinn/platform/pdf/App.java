@@ -44,13 +44,13 @@ public class App {
       KvSetting kvSetting = altinnDBSettingsSecret.getKvSetting();
 
       ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
-        .clientId(kvSetting.clientId)
-        .clientSecret(kvSetting.clientSecret)
-        .tenantId(kvSetting.tenantId)
+        .clientId(kvSetting.getClientId())
+        .clientSecret(kvSetting.getClientSecret())
+        .tenantId(kvSetting.getTenantId())
         .build();
 
       SecretClient secretClient = new SecretClientBuilder()
-        .vaultUrl(kvSetting.secretUri)
+        .vaultUrl(kvSetting.getSecretUri())
         .credential(clientSecretCredential)
         .buildClient();
 
