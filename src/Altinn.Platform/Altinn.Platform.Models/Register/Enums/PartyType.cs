@@ -1,4 +1,4 @@
-namespace Altinn.App.Services.Enums
+namespace Altinn.Platform.Register.Enums
 {
     /// <summary>
     /// Enum containing values for the different types of parties
@@ -26,9 +26,8 @@ namespace Altinn.App.Services.Enums
         SubUnit = 4,
 
         /// <summary>
-        /// Party Type is bankrupcy estate
+        /// Party Type is bankruptcy estate
         /// </summary>
         BankruptcyEstate = 5
-
     }
 }

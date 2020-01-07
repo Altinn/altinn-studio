@@ -1,4 +1,4 @@
-namespace Altinn.App.Services.Models
+namespace Altinn.Platform.Register.Models
 {
     /// <summary>
     /// Class representing a person

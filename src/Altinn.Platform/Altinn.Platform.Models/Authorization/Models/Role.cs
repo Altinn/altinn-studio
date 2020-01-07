@@ -1,9 +1,8 @@
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Authorization.Interface.Models
+
+namespace Authorization.Platform.Authorization.Models
 {
     /// <summary>
     /// Entity representing a Role
