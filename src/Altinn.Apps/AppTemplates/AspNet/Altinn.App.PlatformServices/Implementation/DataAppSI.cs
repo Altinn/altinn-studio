@@ -118,10 +118,6 @@ namespace Altinn.App.Services.Implementation
                 DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
                 return dataElement;
             }
-            else if (response.StatusCode.Equals(HttpStatusCode.Conflict))
-            {
-                return new DataElement { Locked = true };
-            }
 
             throw new PlatformHttpException(response);
         }

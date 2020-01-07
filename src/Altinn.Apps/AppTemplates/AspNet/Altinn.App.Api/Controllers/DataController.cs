@@ -116,22 +116,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.Conflict)
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    return ExceptionResponse(e, $"Cannot create data element of {dataType} for {instanceOwnerPartyId}/{instanceGuid}");
-                }
+                return HandlePlatformHttpException(e, $"Cannot create data element of {dataType} for {instanceOwnerPartyId}/{instanceGuid}");
             }
         }
 
@@ -187,18 +172,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    return ExceptionResponse(e, $"Cannot get data element of {dataGuid} for {instanceOwnerPartyId}/{instanceGuid}");
-                }
+                return HandlePlatformHttpException(e, $"Cannot get data element of {dataGuid} for {instanceOwnerPartyId}/{instanceGuid}");
             }
         }
 
@@ -252,22 +226,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.Conflict)
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw e;
-                }
+                return HandlePlatformHttpException(e, $"Unable to update data element {dataGuid} for instance {instanceOwnerPartyId}/{instanceGuid}");
             }
         }
 
@@ -324,22 +283,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.Conflict)
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    return ExceptionResponse(e, $"Cannot delete data element {dataGuid} for {instanceOwnerPartyId}/{instanceGuid}");
-                }
+                return HandlePlatformHttpException(e, $"Cannot delete data element {dataGuid} for {instanceOwnerPartyId}/{instanceGuid}");
             }
         }
 
@@ -618,5 +562,24 @@ namespace Altinn.App.Api.Controllers
             return Created(dataUrl, updatedDataElement);
         }
 
+        private ActionResult HandlePlatformHttpException(PlatformHttpException e, string defaultMessage)
+        {
+            if (e.Response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                return Forbid();
+            }
+            else if (e.Response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return NotFound();
+            }
+            else if (e.Response.StatusCode == HttpStatusCode.Conflict)
+            {
+                return Conflict();
+            }
+            else
+            {
+                return ExceptionResponse(e, defaultMessage);
+            }
+        }
     }
 }

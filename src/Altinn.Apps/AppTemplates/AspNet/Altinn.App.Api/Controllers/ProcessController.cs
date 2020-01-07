@@ -89,18 +89,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound("Cannot find instance");
-                }
-                else
-                {
-                    return ExceptionResponse(e, $"Failed to access process for {instanceOwnerPartyId}/{instanceGuid}");
-                }
+                return HandlePlatformHttpException(e, $"Failed to access process for {instanceOwnerPartyId}/{instanceGuid}");
             }
             catch (Exception exception)
             {
@@ -155,18 +144,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound($"Cannot find instance {instanceOwnerPartyId}/{instanceGuid} ");
-                }
-                else
-                {
-                    return ExceptionResponse(e, $"Unable to start the process for instance {instance.Id} of {instance.AppId}");
-                }
+                return HandlePlatformHttpException(e, $"Unable to start the process for instance {instance.Id} of {instance.AppId}");
             }
             catch (Exception startException)
             {
@@ -239,18 +217,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound("Cannot find instance");
-                }
-                else
-                {
-                    return ExceptionResponse(e, $"Unable to find next process element for instance {instance.Id} and current task {currentTaskId}. Exception was {e.Message}. Is the process file OK?");
-                }
+                return HandlePlatformHttpException(e, $"Unable to find next process element for instance {instance.Id} and current task {currentTaskId}. Exception was {e.Message}. Is the process file OK?");
             }
             catch (Exception processException)
             {
@@ -348,18 +315,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound("Cannot find instance");
-                }
-                else
-                {
-                    return ExceptionResponse(e, "Process next failed.");
-                }
+                return HandlePlatformHttpException(e, "Process next failed.");
             }
             catch (Exception exception)
             {
@@ -414,20 +370,8 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound("Cannot find instance");
-                }
-                else
-                {
-                    return ExceptionResponse(e, "Could not complete process.");
-                }
+                return HandlePlatformHttpException(e, "Could not complete process.");
             }
-
 
             if (instance.Process == null)
             {
@@ -562,6 +506,26 @@ namespace Altinn.App.Api.Controllers
             }
             bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
             return authorized;
+        }
+
+        private ActionResult HandlePlatformHttpException(PlatformHttpException e, string defaultMessage)
+        {
+            if (e.Response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                return Forbid();
+            }
+            else if (e.Response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return NotFound();
+            }
+            else if (e.Response.StatusCode == HttpStatusCode.Conflict)
+            {
+                return Conflict();
+            }
+            else
+            {
+                return ExceptionResponse(e, defaultMessage);
+            }
         }
     }
 }

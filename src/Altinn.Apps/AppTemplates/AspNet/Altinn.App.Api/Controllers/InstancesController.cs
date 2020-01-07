@@ -101,18 +101,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw e;
-                }
+                return HandlePlatformHttpException(e, $"Get instance {instanceOwnerPartyId}/{instanceGuid} failed");
             }
             catch (Exception exception)
             {
@@ -161,18 +150,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw e;
-                }
+                return HandlePlatformHttpException(e, $"Update of instance {instanceOwnerPartyId}/{instanceGuid} failed.");
             }
             catch (Exception exception)
             {
@@ -311,14 +289,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else
-                {
-                    throw e;
-                }
+                return HandlePlatformHttpException(e, $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
             catch (Exception exception)
             {
@@ -338,14 +309,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (PlatformHttpException e)
             {
-                if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    return Forbid();
-                }
-                else
-                {
-                    throw e;
-                }
+                HandlePlatformHttpException(e, $"Instatiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
             catch (Exception exception)
             {
@@ -537,6 +501,26 @@ namespace Altinn.App.Api.Controllers
             }
 
             return instanceTemplate;
+        }
+
+        private ActionResult HandlePlatformHttpException(PlatformHttpException e, string defaultMessage)
+        {
+            if (e.Response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                return Forbid();
+            }
+            else if (e.Response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return NotFound();
+            }
+            else if (e.Response.StatusCode == HttpStatusCode.Conflict)
+            {
+                return Conflict();
+            }
+            else
+            {
+                return ExceptionResponse(e, defaultMessage);
+            }
         }
     }
 }
