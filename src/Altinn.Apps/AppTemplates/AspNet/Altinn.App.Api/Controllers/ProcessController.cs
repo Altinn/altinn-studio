@@ -148,7 +148,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception startException)
             {
-                _logger.LogError($"Unable to start the process for instance {instance.Id} of {app}. Due to {startException}");
+                _logger.LogError($"Unable to start the process for instance {instance.Id} of {instance.AppId}. Due to {startException}");
                 return ExceptionResponse(startException, $"Unable to start the process for instance {instance.Id} of {instance.AppId}");
             }
         }
