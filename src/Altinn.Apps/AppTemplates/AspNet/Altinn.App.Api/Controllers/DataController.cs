@@ -540,6 +540,11 @@ namespace Altinn.App.Api.Controllers
                 instanceOwnerPartyId,
                 dataGuid);
 
+            if (updatedDataElement.Locked)
+            {
+                return Conflict($"Data element {dataGuid} is locked and cannot be updated");
+            }
+
             SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, updatedDataElement, Request);
 
             string dataUrl = updatedDataElement.SelfLinks.Apps;
