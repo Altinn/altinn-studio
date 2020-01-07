@@ -27,6 +27,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="repositorySettings">Settings for repository</param>
+        /// <param name="antiforgery">Access to the antiforgery system in .NET Core</param>
         public UserController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings, IAntiforgery antiforgery)
         {
             _giteaApi = giteaWrapper;
