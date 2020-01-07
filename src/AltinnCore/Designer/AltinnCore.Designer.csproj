@@ -76,9 +76,6 @@
     <Content Update="Views\Home\AppToken.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
-    <Content Update="Views\Service\Status.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
   </ItemGroup>
 
   <Target Name="AfterPublishScript" AfterTargets="Publish">
