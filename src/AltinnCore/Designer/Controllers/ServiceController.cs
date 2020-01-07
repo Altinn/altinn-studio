@@ -1,9 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary.Configuration;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

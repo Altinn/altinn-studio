@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace AltinnCore.ServiceLibrary.Configuration
+namespace AltinnCore.Common.Configuration
 {
     /// <summary>
     /// Class representation for basic service configuration

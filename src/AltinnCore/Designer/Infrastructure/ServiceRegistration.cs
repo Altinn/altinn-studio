@@ -1,4 +1,3 @@
-using AltinnCore.Common.Backend;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
@@ -25,7 +24,6 @@ namespace AltinnCore.Designer.Infrastructure
             services.AddTransient<IRepository, RepositorySI>();
             services.AddTransient<ISourceControl, SourceControlSI>();
 
-            services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton(configuration);
 

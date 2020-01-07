@@ -1,10 +1,7 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
-
 using Altinn.Platform.Storage.Interface.Models;
-
-using AltinnCore.Common.Models;
-using AltinnCore.ServiceLibrary.Configuration;
+using AltinnCore.Common.Configuration;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 

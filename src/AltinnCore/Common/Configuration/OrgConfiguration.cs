@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.ServiceLibrary.Configuration
+namespace AltinnCore.Common.Configuration
 {
     /// <summary>
     /// Class containing basic details about a service owner
