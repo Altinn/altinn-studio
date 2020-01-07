@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using AltinnCore.Common.ModelMetadatalModels;
 using AltinnCore.ServiceLibrary.Extensions;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Newtonsoft.Json.Linq;
 
 namespace AltinnCore.Common.Factories.ModelFactory

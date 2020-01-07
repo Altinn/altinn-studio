@@ -1,4 +1,4 @@
-﻿#region Namespace imports
+#region Namespace imports
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Xml.Serialization;
 
 #endregion
 
-namespace AltinnCore.ServiceLibrary.ServiceMetadata
+namespace AltinnCore.Common.ModelMetadatalModels
 {
     /// <summary>
     /// A dictionary where the values have cultures

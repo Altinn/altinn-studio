@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-
-using AltinnCore.ServiceLibrary.Models;
+using AltinnCore.Common.Models;
 
 namespace AltinnCore.Common.Helpers.Extensions
 {

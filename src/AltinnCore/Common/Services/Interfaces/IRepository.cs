@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using System.Xml.Linq;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Common.Configuration;
-using AltinnCore.ServiceLibrary.Models;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
+using AltinnCore.Common.ModelMetadatalModels;
+using AltinnCore.Common.Models;
 
 namespace AltinnCore.Common.Services.Interfaces
 {

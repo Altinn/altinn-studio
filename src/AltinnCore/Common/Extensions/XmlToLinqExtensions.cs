@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Xml.Linq;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
+using AltinnCore.Common.ModelMetadatalModels;
 
 namespace AltinnCore.ServiceLibrary.Extensions
 {

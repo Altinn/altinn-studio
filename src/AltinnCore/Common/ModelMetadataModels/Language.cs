@@ -1,4 +1,4 @@
-namespace AltinnCore.ServiceLibrary.ServiceMetadata
+namespace AltinnCore.Common.ModelMetadatalModels
 {
     /// <summary>
     /// Enumeration for language

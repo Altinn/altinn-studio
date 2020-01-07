@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using AltinnCore.Common.Factories.ModelFactory.Manatee.Json;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
+using AltinnCore.Common.ModelMetadatalModels;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;

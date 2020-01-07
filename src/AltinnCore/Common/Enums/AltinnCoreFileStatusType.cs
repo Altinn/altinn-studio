@@ -1,4 +1,4 @@
-namespace AltinnCore.ServiceLibrary.Enums
+namespace AltinnCore.Common.Enums
 {
     /// <summary>
     /// Enum for the different status a file in a AltinnCore service can have

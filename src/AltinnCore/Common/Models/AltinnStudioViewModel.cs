@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.ModelMetadatalModels;
 using AltinnCore.RepositoryClient.Model;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
 
 namespace AltinnCore.Common.Models
 {

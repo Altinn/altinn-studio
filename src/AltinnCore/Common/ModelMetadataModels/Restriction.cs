@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace AltinnCore.ServiceLibrary.ServiceMetadata
+namespace AltinnCore.Common.ModelMetadatalModels
 {
     /// <summary>
     /// Class representing a service element restriction

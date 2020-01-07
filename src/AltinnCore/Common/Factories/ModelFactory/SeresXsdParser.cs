@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml;
 using System.Xml.Linq;
+using AltinnCore.Common.ModelMetadatalModels;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Extensions;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
 
 namespace AltinnCore.Common.Factories.ModelFactory
 {
