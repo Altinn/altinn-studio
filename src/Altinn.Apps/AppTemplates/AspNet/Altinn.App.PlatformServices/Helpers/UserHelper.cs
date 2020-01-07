@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
