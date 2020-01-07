@@ -4,16 +4,16 @@ import com.google.gson.annotations.SerializedName;
 
 public class KvSetting {
   @SerializedName("ClientId")
-  public String clientId;
+  private String clientId;
 
   @SerializedName("TenantId")
-  public String tenantId;
+  private String tenantId;
 
   @SerializedName("ClientSecret")
-  public String clientSecret;
+  private String clientSecret;
 
   @SerializedName("SecretUri")
-  public String secretUri;
+  private String secretUri;
 
   public String getClientId() {
     return clientId;

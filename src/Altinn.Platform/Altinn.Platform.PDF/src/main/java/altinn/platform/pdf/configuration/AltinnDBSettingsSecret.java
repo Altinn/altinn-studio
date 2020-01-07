@@ -1,7 +1,7 @@
 package altinn.platform.pdf.configuration;
 
 public class AltinnDBSettingsSecret {
-  public KvSetting kvSetting;
+  private KvSetting kvSetting;
 
   public KvSetting getKvSetting() {
     return kvSetting;

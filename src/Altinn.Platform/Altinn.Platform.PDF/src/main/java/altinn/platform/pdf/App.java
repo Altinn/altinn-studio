@@ -29,7 +29,7 @@ public class App {
     try {
       connectToKeyVaultAndSetApplicationInsight();
     } catch (Exception e) {
-      e.printStackTrace();
+      BasicLogger.log(Level.SEVERE, e.getMessage());
     }
     SpringApplication.run(App.class, args);
   }
