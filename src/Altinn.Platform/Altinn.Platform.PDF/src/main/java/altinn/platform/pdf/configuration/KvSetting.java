@@ -1,43 +1,49 @@
 package altinn.platform.pdf.configuration;
 
+import com.google.gson.annotations.SerializedName;
+
 public class KvSetting {
-  public String ClientId;
+  @SerializedName("ClientId")
+  public String clientId;
 
-  public String TenantId;
+  @SerializedName("TenantId")
+  public String tenantId;
 
-  public String ClientSecret;
+  @SerializedName("ClientSecret")
+  public String clientSecret;
 
-  public String SecretUri;
+  @SerializedName("SecretUri")
+  public String secretUri;
 
   public String getClientId() {
-    return ClientId;
+    return clientId;
   }
 
   public void setClientId(String clientId) {
-    ClientId = clientId;
+    this.clientId = clientId;
   }
 
   public String getTenantId() {
-    return TenantId;
+    return tenantId;
   }
 
   public void setTenantId(String tenantId) {
-    TenantId = tenantId;
+    this.tenantId = tenantId;
   }
 
   public String getClientSecret() {
-    return ClientSecret;
+    return clientSecret;
   }
 
   public void setClientSecret(String clientSecret) {
-    ClientSecret = clientSecret;
+    this.clientSecret = clientSecret;
   }
 
   public String getSecretUri() {
-    return SecretUri;
+    return secretUri;
   }
 
   public void setSecretUri(String secretUri) {
-    SecretUri = secretUri;
+    this.secretUri = secretUri;
   }
 }

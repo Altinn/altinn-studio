@@ -6,7 +6,6 @@ import altinn.platform.pdf.services.BasicLogger;
 import altinn.platform.pdf.utils.AltinnOrgUtils;
 import com.azure.identity.ClientSecretCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;
-import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import com.google.gson.Gson;
@@ -23,46 +22,47 @@ import java.util.logging.Level;
 @SpringBootApplication
 public class App {
 
-  private static String VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Pdf";
+  private static String vaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Pdf";
 
   public static void main(String[] args) {
     AltinnOrgUtils.fetchAltinnOrgs();
     try {
-      ConnectToKeyVaultAndSetApplicationInsight();
+      connectToKeyVaultAndSetApplicationInsight();
     } catch (Exception e) {
       e.printStackTrace();
     }
     SpringApplication.run(App.class, args);
   }
 
-  private static void ConnectToKeyVaultAndSetApplicationInsight() throws IOException {
+  private static void connectToKeyVaultAndSetApplicationInsight() throws IOException {
     // Read kv-configuration
     Gson gson = new Gson();
     String rootFolderPath = new File("").getCanonicalFile().getParent();
     String configurationFilePath = rootFolderPath + File.separator + "altinn-appsettings" + File.separator + "altinn-dbsettings-secret.json";
-    JsonReader jsonReader = new JsonReader(new FileReader(configurationFilePath));
-    AltinnDBSettingsSecret altinnDBSettingsSecret = gson.fromJson(jsonReader, AltinnDBSettingsSecret.class);
-    KvSetting kvSetting = altinnDBSettingsSecret.getKvSetting();
+    try (JsonReader jsonReader = new JsonReader(new FileReader(configurationFilePath))) {
+      AltinnDBSettingsSecret altinnDBSettingsSecret = gson.fromJson(jsonReader, AltinnDBSettingsSecret.class);
+      KvSetting kvSetting = altinnDBSettingsSecret.getKvSetting();
 
-    ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
-        .clientId(kvSetting.ClientId)
-        .clientSecret(kvSetting.ClientSecret)
-        .tenantId(kvSetting.TenantId)
+      ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
+        .clientId(kvSetting.clientId)
+        .clientSecret(kvSetting.clientSecret)
+        .tenantId(kvSetting.tenantId)
         .build();
 
-    SecretClient secretClient = new SecretClientBuilder()
-      .vaultUrl(kvSetting.SecretUri)
-      .credential(clientSecretCredential)
-      .buildClient();
+      SecretClient secretClient = new SecretClientBuilder()
+        .vaultUrl(kvSetting.secretUri)
+        .credential(clientSecretCredential)
+        .buildClient();
 
-    String instrumentationKey = secretClient.getSecret(VaultApplicationInsightsKey).getValue();
+      String instrumentationKey = secretClient.getSecret(vaultApplicationInsightsKey).getValue();
 
-    // Initializes app insights
-    if (instrumentationKey != null) {
-      TelemetryConfiguration.getActive().setInstrumentationKey(instrumentationKey);
-      BasicLogger.log(Level.INFO, "Application insights instrumentation key has been set");
-    } else {
-      BasicLogger.log(Level.SEVERE, "Could not find application insights instrumentation key");
+      // Initializes app insights
+      if (instrumentationKey != null) {
+        TelemetryConfiguration.getActive().setInstrumentationKey(instrumentationKey);
+        BasicLogger.log(Level.INFO, "Application insights instrumentation key has been set");
+      } else {
+        BasicLogger.log(Level.SEVERE, "Could not find application insights instrumentation key");
+      }
     }
   }
 }
