@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AltinnCore.Common.Constants;
-using AltinnCore.Common.Helpers;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
+using AltinnCore.Common.ModelMetadatalModels;
 using Newtonsoft.Json.Linq;
 
 namespace AltinnCore.Common.Factories.ModelFactory
