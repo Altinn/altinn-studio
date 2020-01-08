@@ -1996,7 +1996,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeProcess",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -2010,7 +2010,7 @@
 								"{{instanceOwnerId}}",
 								"{{instanceId}}",
 								"process",
-								"next"
+								"completeProcess"
 							]
 						}
 					},
@@ -2080,8 +2080,6 @@
 									"    if (instanceCount !== 0)",
 									"    {",
 									"        var instanceId = jsonData[0].id;",
-									"        instanceId = instanceId.split('/');",
-									"        instanceId = instanceId[1];",
 									"        pm.environment.set('instanceId', instanceId);",
 									"    }",
 									"    else",
@@ -2104,7 +2102,7 @@
 							}
 						],
 						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}?state=active&language=nb",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -2114,8 +2112,19 @@
 								"storage",
 								"api",
 								"v1",
+								"sbl",
 								"instances",
 								"{{instanceOwnerId}}"
+							],
+							"query": [
+								{
+									"key": "state",
+									"value": "active"
+								},
+								{
+									"key": "language",
+									"value": "nb"
+								}
 							]
 						}
 					},
@@ -2189,8 +2198,6 @@
 									"    if (instanceCount !== 0)",
 									"    {",
 									"        var instanceId = jsonData[0].id;",
-									"        instanceId = instanceId.split('/');",
-									"        instanceId = instanceId[1];",
 									"        pm.environment.set('instanceId', instanceId);",
 									"        postman.setNextRequest(\"CleanUp App instances\");",
 									"    }",
@@ -2210,7 +2217,7 @@
 							}
 						],
 						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}?state=active&language=nb",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -2220,8 +2227,19 @@
 								"storage",
 								"api",
 								"v1",
+								"sbl",
 								"instances",
 								"{{instanceOwnerId}}"
+							],
+							"query": [
+								{
+									"key": "state",
+									"value": "active"
+								},
+								{
+									"key": "language",
+									"value": "nb"
+								}
 							]
 						}
 					},

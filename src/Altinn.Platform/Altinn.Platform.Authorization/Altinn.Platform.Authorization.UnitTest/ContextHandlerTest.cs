@@ -7,9 +7,9 @@ using Moq;
 using System.Threading.Tasks;
 using Xunit;
 using System.Collections.Generic;
-using Authorization.Interface.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
+using Authorization.Platform.Authorization.Models;
 
 namespace Altinn.Platform.Authorization.UnitTest
 {

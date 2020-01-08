@@ -1,7 +1,7 @@
-using Altinn.App.Services.Enums;
+using Altinn.Platform.Register.Enums;
 using System.Collections.Generic;
 
-namespace Altinn.App.Services.Models
+namespace Altinn.Platform.Register.Models
 {
     /// <summary>
     /// Class representing a party

@@ -273,7 +273,7 @@ export const nb = () => (
       attachments: 'Vedlegg',
       body: 'Det er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten.',
       date_sent: 'Dato sendt',
-      receiver: 'Mottager',
+      receiver: 'Mottaker',
       receipt: 'Kvittering',
       ref_num: 'Referansenummer',
       sender: 'Avsender',

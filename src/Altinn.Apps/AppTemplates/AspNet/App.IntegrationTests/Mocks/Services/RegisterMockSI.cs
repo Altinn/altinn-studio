@@ -1,5 +1,7 @@
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.Platform.Register.Enums;
+using Altinn.Platform.Register.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,7 +22,7 @@ namespace App.IntegrationTests.Mocks.Services
                 PartyId = partyId,
                 Name = "Test Lookup",
                 SSN = "12345678901",
-                PartyTypeName = Altinn.App.Services.Enums.PartyType.Person,
+                PartyTypeName = PartyType.Person,
             };
 
             return Task.FromResult(party);
@@ -33,7 +35,7 @@ namespace App.IntegrationTests.Mocks.Services
                 PartyId = 1000,
                 Name = "Test Lookup",
                 SSN = personOrOrganisationNumber,
-                PartyTypeName = Altinn.App.Services.Enums.PartyType.Person,
+                PartyTypeName = PartyType.Person,
             };
 
             return Task.FromResult(party);

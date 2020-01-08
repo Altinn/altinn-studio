@@ -1,4 +1,8 @@
-namespace Altinn.App.Services.Models
+
+using Altinn.Platform.Profile.Enums;
+using Altinn.Platform.Register.Models;
+
+namespace Altinn.Platform.Profile.Models
 {
     /// <summary>
     /// Class describing a user profile

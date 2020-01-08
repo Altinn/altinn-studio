@@ -1,3 +1,4 @@
+using Altinn.Platform.Register.Models;
 using System.Security.Claims;
 
 namespace Altinn.App.Services.Models

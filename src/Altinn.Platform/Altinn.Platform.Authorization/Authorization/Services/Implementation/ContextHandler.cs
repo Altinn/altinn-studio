@@ -10,7 +10,7 @@ using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
-using Authorization.Interface.Models;
+using Authorization.Platform.Authorization.Models;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
 {
