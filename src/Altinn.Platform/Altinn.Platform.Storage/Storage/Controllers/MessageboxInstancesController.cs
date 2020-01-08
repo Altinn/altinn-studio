@@ -157,6 +157,9 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<InstanceEvent> result = await _instanceEventRepository.ListInstanceEvents(instanceId, eventTypes, null, null);
 
+            // filtering out Create & delete data element event
+            result = result.Where(r => string.IsNullOrEmpty(r.DataId) || r.EventType.Equals(InstanceEventType.Saved)).ToList();
+
             return Ok(InstanceHelper.ConvertToSBLInstanceEvent(result));
         }
 
