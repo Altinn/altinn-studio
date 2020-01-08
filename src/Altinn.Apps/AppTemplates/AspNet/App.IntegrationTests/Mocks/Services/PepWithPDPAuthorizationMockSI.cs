@@ -6,6 +6,7 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Configuration;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
+using App.IntegrationTestsRef.Constants;
 using App.IntegrationTestsRef.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -105,106 +106,76 @@ namespace App.IntegrationTests.Mocks.Services
 
         private async Task EnrichResourceAttributes(XacmlContextRequest request)
         {
-            string orgAttributeValue = string.Empty;
-            string appAttributeValue = string.Empty;
-            string instanceAttributeValue = string.Empty;
-            string resourcePartyAttributeValue = string.Empty;
-            string taskAttributeValue = string.Empty;
-            string endEventAttribute = string.Empty;
-
             XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
-
-            foreach (XacmlAttribute attribute in resourceContextAttributes.Attributes)
-            {
-                if (attribute.AttributeId.OriginalString.Equals(OrgAttributeId))
-                {
-                    orgAttributeValue = attribute.AttributeValues.First().Value;
-                }
-
-                if (attribute.AttributeId.OriginalString.Equals(AppAttributeId))
-                {
-                    appAttributeValue = attribute.AttributeValues.First().Value;
-                }
-
-                if (attribute.AttributeId.OriginalString.Equals(InstanceAttributeId))
-                {
-                    instanceAttributeValue = attribute.AttributeValues.First().Value;
-                }
-
-                if (attribute.AttributeId.OriginalString.Equals(TaskAttributeId))
-                {
-                    taskAttributeValue = attribute.AttributeValues.First().Value;
-                }
-
-                if (attribute.AttributeId.OriginalString.Equals(PartyAttributeId))
-                {
-                    resourcePartyAttributeValue = attribute.AttributeValues.First().Value;
-                }
-
-                if (attribute.AttributeId.OriginalString.Equals(endEventAttribute))
-                {
-                    endEventAttribute = attribute.AttributeValues.First().Value;
-                }
-            }
+            XacmlResourceAttributes resourceAttributes = GetResourceAttributeValues(resourceContextAttributes);
 
             bool resourceAttributeComplete = false;
 
-            if (!string.IsNullOrEmpty(orgAttributeValue) &&
-                !string.IsNullOrEmpty(appAttributeValue) &&
-                !string.IsNullOrEmpty(instanceAttributeValue) &&
-                !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
-               (!string.IsNullOrEmpty(taskAttributeValue) ||
-                !string.IsNullOrEmpty(endEventAttribute)))
+            if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.TaskValue))
             {
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
             }
-            else if (!string.IsNullOrEmpty(orgAttributeValue) &&
-                !string.IsNullOrEmpty(appAttributeValue) &&
-                string.IsNullOrEmpty(instanceAttributeValue) &&
-                !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
-               (!string.IsNullOrEmpty(taskAttributeValue) ||
-                !string.IsNullOrEmpty(endEventAttribute)))
+            else if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
+                string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
+                string.IsNullOrEmpty(resourceAttributes.TaskValue))
             {
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
             }
+
 
             if (!resourceAttributeComplete)
             {
-                Instance instanceData = await _instanceService.GetInstance(appAttributeValue, orgAttributeValue, Convert.ToInt32(instanceAttributeValue.Split('/')[0]), new Guid(instanceAttributeValue.Split('/')[1]));
-
-                if (string.IsNullOrEmpty(orgAttributeValue) && instanceData != null)
-                {
-                    resourceContextAttributes.Attributes.Add(GetOrgAttribute(instanceData));
-                }
-
-                if (string.IsNullOrEmpty(appAttributeValue) && instanceData != null)
-                {
-                    resourceContextAttributes.Attributes.Add(GetAppAttribute(instanceData));
-                }
-
-                if (string.IsNullOrEmpty(taskAttributeValue) && instanceData?.Process?.CurrentTask != null)
-                {
-                    resourceContextAttributes.Attributes.Add(GetProcessElementAttribute(instanceData));
-                }
-                else if (string.IsNullOrEmpty(endEventAttribute) && instanceData?.Process?.EndEvent != null )
-                {
-                    resourceContextAttributes.Attributes.Add(GetEndEventAttribute(instanceData));
-                }
-
-                if (string.IsNullOrEmpty(resourcePartyAttributeValue) && instanceData != null)
-                {
-                    resourceContextAttributes.Attributes.Add(GetPartyAttribute(instanceData));
-                }
+                Instance instanceData = await _instanceService.GetInstance(resourceAttributes.AppValue, resourceAttributes.OrgValue, Convert.ToInt32(resourceAttributes.InstanceValue.Split('/')[0]), new Guid(resourceAttributes.InstanceValue.Split('/')[1]));
 
                 if (instanceData != null)
                 {
-                    resourcePartyAttributeValue = instanceData.InstanceOwner.PartyId;
+                    AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.OrgAttribute, resourceAttributes.OrgValue, instanceData.Org);
+                    string app = instanceData.AppId.Split("/")[1];
+                    AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.AppAttribute, resourceAttributes.AppValue, app);
+                    if (instanceData.Process?.CurrentTask != null)
+                    {
+                        AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.TaskAttribute, resourceAttributes.TaskValue, instanceData.Process.CurrentTask.ElementId);
+                    }
+                    else if (instanceData.Process?.EndEvent != null)
+                    {
+                        AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.EndEventAttribute, null, instanceData.Process.EndEvent);
+                    }
+
+                    AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.PartyAttribute, resourceAttributes.ResourcePartyValue, instanceData.InstanceOwner.PartyId);
+                    resourceAttributes.ResourcePartyValue = instanceData.InstanceOwner.PartyId;
                 }
             }
 
-            await EnrichSubjectAttributes(request, resourcePartyAttributeValue);
+            await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
+        }
+
+        private void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
+        {
+            if (string.IsNullOrEmpty(attributeValue))
+            {
+                resourceAttributes.Attributes.Add(GetAttribute(attributeId, newAttributeValue));
+            }
+        }
+
+        private XacmlAttribute GetAttribute(string attributeId, string attributeValue)
+        {
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(attributeId), false);
+            if (attributeId.Equals(XacmlRequestAttribute.PartyAttribute))
+            {
+                // When Party attribute is missing from input it is good to return it so PEP can get this information
+                attribute.IncludeInResult = true;
+            }
+
+            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), attributeValue));
+            return attribute;
         }
 
         private async Task EnrichSubjectAttributes(XacmlContextRequest request, string resourceParty)
@@ -238,32 +209,40 @@ namespace App.IntegrationTests.Mocks.Services
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }
 
-        private XacmlAttribute GetOrgAttribute(Instance instance)
-        {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(OrgAttributeId), false);
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Org));
-            return attribute;
-        }
 
-        private XacmlAttribute GetAppAttribute(Instance instance)
+        private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
         {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(AppAttributeId), false);
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.AppId.Split('/')[1]));
-            return attribute;
-        }
+            XacmlResourceAttributes resourceAttributes = new XacmlResourceAttributes();
 
-        private XacmlAttribute GetProcessElementAttribute(Instance instance)
-        {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(TaskAttributeId), false);
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Process.CurrentTask.ElementId));
-            return attribute;
-        }
+            foreach (XacmlAttribute attribute in resourceContextAttributes.Attributes)
+            {
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.OrgAttribute))
+                {
+                    resourceAttributes.OrgValue = attribute.AttributeValues.First().Value;
+                }
 
-        private XacmlAttribute GetEndEventAttribute(Instance instance)
-        {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(EndEventAttributeId), false);
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Process.EndEvent));
-            return attribute;
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.AppAttribute))
+                {
+                    resourceAttributes.AppValue = attribute.AttributeValues.First().Value;
+                }
+
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.InstanceAttribute))
+                {
+                    resourceAttributes.InstanceValue = attribute.AttributeValues.First().Value;
+                }
+
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.PartyAttribute))
+                {
+                    resourceAttributes.ResourcePartyValue = attribute.AttributeValues.First().Value;
+                }
+
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.TaskAttribute))
+                {
+                    resourceAttributes.TaskValue = attribute.AttributeValues.First().Value;
+                }
+            }
+
+            return resourceAttributes;
         }
 
         private XacmlAttribute GetPartyAttribute(Instance instance)
