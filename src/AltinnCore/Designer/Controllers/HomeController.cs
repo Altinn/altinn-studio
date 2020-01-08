@@ -94,28 +94,10 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for presenting licensing information
-        /// </summary>
-        /// <returns>The Licensing view</returns>
-        public IActionResult Licensing()
-        {
-            return View();
-        }
-
-        /// <summary>
         /// Action for presenting documentation
         /// </summary>
         /// <returns>The Doc view</returns>
         public IActionResult Docs()
-        {
-            return View();
-        }
-
-        /// <summary>
-        /// Action for presenting information about the product
-        /// </summary>
-        /// <returns>The About view</returns>
-        public IActionResult About()
         {
             return View();
         }
