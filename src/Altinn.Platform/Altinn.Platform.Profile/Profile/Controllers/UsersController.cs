@@ -1,8 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Profile.Services.Interfaces;
 using AltinnCore.Authentication.Constants;
-using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Profile.Controllers

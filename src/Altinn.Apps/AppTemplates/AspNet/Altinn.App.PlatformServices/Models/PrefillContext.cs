@@ -1,3 +1,5 @@
+using Altinn.Platform.Register.Models;
+
 namespace Altinn.App.Services.Models
 {
     /// <summary>

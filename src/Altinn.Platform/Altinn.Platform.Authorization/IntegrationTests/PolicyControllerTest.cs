@@ -9,7 +9,7 @@ using Xunit;
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
     [Collection("Our Test Collection #1")]
-    public class PolicyControllerTest : IClassFixture<PolicyRetrivevalPointFixture>
+    public class PolicyControllerTest : IClassFixture<PolicyRetrivevalPointFixture>, IClassFixture<BlobStorageFixture>
     {
         private readonly HttpClient _client;
         private const string ORG = "ttd";

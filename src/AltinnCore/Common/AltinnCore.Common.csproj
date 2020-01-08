@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.0.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.4" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
     <PackageReference Include="Manatee.Json" Version="10.1.2" />
@@ -23,7 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RepositoryClient\AltinnCore.RepositoryClient.csproj" />
-    <ProjectReference Include="..\ServiceLibrary\AltinnCore.ServiceLibrary.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

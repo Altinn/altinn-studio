@@ -12,7 +12,7 @@ const attachments = [
 instanceMetaDataObject = {
   'Dato sendt': '01.01.2020 / 12:21',
   'Avsender': '01017512345-Ola Privatperson',
-  'Mottager': 'matsgm',
+  'Mottaker': 'matsgm',
   'Referansenummer': '82cb396c-c9b9-4bb2-9826-6ff9a04f1cca'
 };
 
@@ -73,7 +73,7 @@ const attachments = [
 instanceMetaDataObject = {
   'Dato sendt': '01.01.2020 / 12:21',
   'Avsender': '01017512345-Ola Privatperson',
-  'Mottager': 'matsgm',
+  'Mottaker': 'matsgm',
   'Referansenummer': '82cb396c-c9b9-4bb2-9826-6ff9a04f1cca'
 };
 

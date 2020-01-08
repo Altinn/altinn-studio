@@ -1,19 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Constants;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.RepositoryClient.Api;
-using AltinnCore.RepositoryClient.CustomApi;
-using AltinnCore.RepositoryClient.Model;
-using AltinnCore.ServiceLibrary.Configuration;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -100,28 +94,10 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for presenting licensing information
-        /// </summary>
-        /// <returns>The Licensing view</returns>
-        public IActionResult Licensing()
-        {
-            return View();
-        }
-
-        /// <summary>
         /// Action for presenting documentation
         /// </summary>
         /// <returns>The Doc view</returns>
         public IActionResult Docs()
-        {
-            return View();
-        }
-
-        /// <summary>
-        /// Action for presenting information about the product
-        /// </summary>
-        /// <returns>The About view</returns>
-        public IActionResult About()
         {
             return View();
         }

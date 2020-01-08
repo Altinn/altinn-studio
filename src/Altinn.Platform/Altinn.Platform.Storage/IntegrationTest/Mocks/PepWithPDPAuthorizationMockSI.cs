@@ -40,7 +40,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 
         private readonly string taskAttributeId = "urn:altinn:task";
 
-        private readonly string endTaskAttributeId = "urn:altinn:end-event";
+        private readonly string endEventAttributeId = "urn:altinn:end-event";
 
         private readonly string partyAttributeId = "urn:altinn:partyid";
 
@@ -205,7 +205,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
                     resourcePartyAttributeValue = attribute.AttributeValues.First().Value;
                 }
 
-                if (attribute.AttributeId.OriginalString.Equals(endTaskAttributeId))
+                if (attribute.AttributeId.OriginalString.Equals(endEventAttributeId))
                 {
                     endEventAttribute = attribute.AttributeValues.First().Value;
                 }
@@ -248,9 +248,13 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
                     resourceContextAttributes.Attributes.Add(GetAppAttribute(instanceData));
                 }
 
-                if (string.IsNullOrEmpty(taskAttributeValue) && instanceData != null && instanceData.Process != null && instanceData.Process.CurrentTask != null)
+                if (string.IsNullOrEmpty(taskAttributeValue) && instanceData?.Process?.CurrentTask != null)
                 {
                     resourceContextAttributes.Attributes.Add(GetProcessElementAttribute(instanceData));
+                }
+                else if (string.IsNullOrEmpty(endEventAttribute) && instanceData?.Process?.EndEvent != null)
+                {
+                    resourceContextAttributes.Attributes.Add(GetEndEventAttribute(instanceData));
                 }
 
                 if (string.IsNullOrEmpty(resourcePartyAttributeValue) && instanceData != null)
@@ -314,21 +318,15 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 
         private XacmlAttribute GetProcessElementAttribute(Instance instance)
         {
-            string task = instance.Process.CurrentTask.ElementId;
-            XacmlAttribute attribute;
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(taskAttributeId), false);
+            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Process.CurrentTask.ElementId));
+            return attribute;
+        }
 
-            if (task != null)
-            {
-                attribute = new XacmlAttribute(new Uri(taskAttributeId), false);
-            }
-            else
-            {
-                task = "end-event";
-                attribute = new XacmlAttribute(new Uri(endTaskAttributeId), false);
-            }
-
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), task));
-
+        private XacmlAttribute GetEndEventAttribute(Instance instance)
+        {
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(endEventAttributeId), false);
+            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Process.EndEvent));
             return attribute;
         }
 

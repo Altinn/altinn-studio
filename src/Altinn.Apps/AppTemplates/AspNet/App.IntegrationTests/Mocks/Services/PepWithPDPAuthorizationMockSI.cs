@@ -34,6 +34,8 @@ namespace App.IntegrationTests.Mocks.Services
 
         private readonly string TaskAttributeId = "urn:altinn:task";
 
+        private readonly string EndEventAttributeId = "urn:altinn:end-event";
+
         private readonly string PartyAttributeId = "urn:altinn:partyid";
 
         private readonly string UserAttributeId = "urn:altinn:userid";
@@ -75,7 +77,7 @@ namespace App.IntegrationTests.Mocks.Services
 
                 return XacmlJsonXmlConverter.ConvertResponse(contextResponse);
             }
-            catch 
+            catch
             {
             }
 
@@ -108,6 +110,7 @@ namespace App.IntegrationTests.Mocks.Services
             string instanceAttributeValue = string.Empty;
             string resourcePartyAttributeValue = string.Empty;
             string taskAttributeValue = string.Empty;
+            string endEventAttribute = string.Empty;
 
             XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
 
@@ -137,6 +140,11 @@ namespace App.IntegrationTests.Mocks.Services
                 {
                     resourcePartyAttributeValue = attribute.AttributeValues.First().Value;
                 }
+
+                if (attribute.AttributeId.OriginalString.Equals(endEventAttribute))
+                {
+                    endEventAttribute = attribute.AttributeValues.First().Value;
+                }
             }
 
             bool resourceAttributeComplete = false;
@@ -145,7 +153,8 @@ namespace App.IntegrationTests.Mocks.Services
                 !string.IsNullOrEmpty(appAttributeValue) &&
                 !string.IsNullOrEmpty(instanceAttributeValue) &&
                 !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
-                !string.IsNullOrEmpty(taskAttributeValue))
+               (!string.IsNullOrEmpty(taskAttributeValue) ||
+                !string.IsNullOrEmpty(endEventAttribute)))
             {
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
@@ -154,7 +163,8 @@ namespace App.IntegrationTests.Mocks.Services
                 !string.IsNullOrEmpty(appAttributeValue) &&
                 string.IsNullOrEmpty(instanceAttributeValue) &&
                 !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
-                string.IsNullOrEmpty(taskAttributeValue))
+               (!string.IsNullOrEmpty(taskAttributeValue) ||
+                !string.IsNullOrEmpty(endEventAttribute)))
             {
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
@@ -174,9 +184,13 @@ namespace App.IntegrationTests.Mocks.Services
                     resourceContextAttributes.Attributes.Add(GetAppAttribute(instanceData));
                 }
 
-                if (string.IsNullOrEmpty(taskAttributeValue) && instanceData != null && instanceData.Process != null && instanceData.Process.CurrentTask != null)
+                if (string.IsNullOrEmpty(taskAttributeValue) && instanceData?.Process?.CurrentTask != null)
                 {
                     resourceContextAttributes.Attributes.Add(GetProcessElementAttribute(instanceData));
+                }
+                else if (string.IsNullOrEmpty(endEventAttribute) && instanceData?.Process?.EndEvent != null )
+                {
+                    resourceContextAttributes.Attributes.Add(GetEndEventAttribute(instanceData));
                 }
 
                 if (string.IsNullOrEmpty(resourcePartyAttributeValue) && instanceData != null)
@@ -198,7 +212,7 @@ namespace App.IntegrationTests.Mocks.Services
             // If there is no resource party then it is impossible to enrich roles
             if (string.IsNullOrEmpty(resourceParty))
             {
-                return; 
+                return;
             }
 
             XacmlContextAttributes subjectContextAttributes = request.GetSubjectAttributes();
@@ -242,6 +256,13 @@ namespace App.IntegrationTests.Mocks.Services
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(TaskAttributeId), false);
             attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Process.CurrentTask.ElementId));
+            return attribute;
+        }
+
+        private XacmlAttribute GetEndEventAttribute(Instance instance)
+        {
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(EndEventAttributeId), false);
+            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Process.EndEvent));
             return attribute;
         }
 

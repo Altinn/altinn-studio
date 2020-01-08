@@ -56,7 +56,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 {
                     return await AuthorizeJsonRequest(model);
                 }
-                else 
+                else
                 {
                     return await AuthorizeXmlRequest(model);
                 }

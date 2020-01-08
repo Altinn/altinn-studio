@@ -23,6 +23,9 @@ services:
       - ASPNETCORE_URLS=http://+:5060
       - PlatformSettings:ApiProfileEndpoint=https://platform.at21.altinn.cloud/profile/api/v1/
       - PlatformSettings:ApiAuthenticationEndpoint=https://platform.at21.altinn.cloud/authentication/api/v1/
+      - GeneralSettings:OpenIdWellKnownEndpoint=http://localhost:5040/authentication/api/v1/openid/
+      - GeneralSettings:Hostname=at21.altinn.cloud
+      - GeneralSettings:RuntimeCookieName=AltinnStudioRuntime
       - GeneralSettings:LanguageFilesLocation=Languages/
     ports:
       - "5060:5060"

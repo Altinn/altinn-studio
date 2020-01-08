@@ -387,8 +387,14 @@ namespace Altinn.Platform.Storage.Controllers
                 return Forbid();
             }
 
-            existingInstance.Process = processState;
+            // Archiving instance if process was ended
+            if (existingInstance.Process.Ended == null && processState.Ended != null)
+            {
+                existingInstance.Status ??= new InstanceStatus();
+                existingInstance.Status.Archived = processState.Ended;
+            }
 
+            existingInstance.Process = processState;
             existingInstance.LastChangedBy = GetUserId();
             existingInstance.LastChanged = DateTime.UtcNow;
 

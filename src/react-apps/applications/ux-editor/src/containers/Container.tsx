@@ -1,14 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import ApiActionDispatchers from '../actions/apiActions/apiActionDispatcher';
-import ConditionalRenderingActionDispatcher from '../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
-import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
-import RuleConnectionActionDispatchers from '../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { SwitchComponent } from '../components/widget/SwitchComponent';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
-import { makeGetFormDataSelector } from '../selectors/getFormData';
 import {
   makeGetActiveFormContainer,
   makeGetLayoutComponentsSelector,
@@ -37,7 +32,6 @@ export interface IContainerProps extends IProvidedContainerProps {
   containers: any;
   repeating: boolean;
   designMode: boolean;
-  formData: any;
   index?: number;
   formContainerActive?: boolean;
   activeList: any[];
@@ -75,34 +69,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   public handleContainerDelete = (e: any) => {
     FormDesignerActionDispatchers.deleteFormContainer(this.props.id, this.props.index);
     e.stopPropagation();
-  }
-
-  public handleComponentDataUpdate = (
-    id: string,
-    dataModelElement: IDataModelFieldElement,
-    callbackValue: any,
-  ): void => {
-    const dataBindingName = this.isRepeating() ? dataModelElement.dataBindingName.replace(this.props.dataModelGroup,
-      this.props.dataModelGroup + `[${this.props.index}]`) : dataModelElement.dataBindingName;
-    FormFillerActionDispatchers.updateFormData(
-      id,
-      callbackValue,
-      dataModelElement,
-      dataBindingName,
-    );
-    const component = this.props.components[id];
-    if (component && component.triggerValidation) {
-      const { org, app, instanceId } = window as Window as IAltinnWindow;
-      FormFillerActionDispatchers.runSingleFieldValidation(
-        `${window.location.origin}/${org}/${app}/api/${instanceId}`,
-        dataBindingName,
-      );
-    }
-    const repeatingContainerId = this.isRepeating() ? this.props.id : null;
-    ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun(repeatingContainerId);
-    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, repeatingContainerId);
-    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue, this.props.repeating,
-      this.props.dataModelGroup, this.props.index);
   }
 
   public isRepeating = (): boolean => {
@@ -307,8 +273,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             activeList={this.props.activeList}
             firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
             lastInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true}
-            handleDataUpdate={this.handleComponentDataUpdate}
-            formData={this.getFormData(id)}
             sendListToParent={this.handleActiveListChange}
             singleSelected={this.props.activeList.length === 1}
           />
@@ -322,33 +286,10 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         activeList={this.props.activeList}
         firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
         lastInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true}
-        handleDataUpdate={this.handleComponentDataUpdate}
-        formData={this.getFormData(id)}
         sendListToParent={this.handleActiveListChange}
         singleSelected={this.props.activeList.length === 1}
       />
     );
-  }
-
-  public getFormData = (id: string): string | {} => {
-    if (!this.props.components[id].dataModelBindings ||
-      Object.keys(this.props.components[id].dataModelBindings).length === 0) {
-      return '';
-    }
-    const valueArr: { [id: string]: string } = {};
-    for (const dataBindingKey in this.props.components[id].dataModelBindings) {
-      if (!dataBindingKey) {
-        continue;
-      }
-      valueArr[dataBindingKey] = this.props.formData[this.props.components[id].dataModelBindings[dataBindingKey]];
-    }
-    if (Object.keys(valueArr).indexOf('simpleBinding') >= 0) {
-      // Simple component
-      return valueArr.simpleBinding;
-    } else {
-      // Advanced component
-      return valueArr;
-    }
   }
 
   public handleAddNewGroup = () => {
@@ -364,7 +305,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
 }
 
 const makeMapStateToProps = () => {
-  const GetFormDataSelector = makeGetFormDataSelector();
   const GetLayoutContainersSelector = makeGetLayoutContainersSelector();
   const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
   const GetDesignModeSelector = makeGetDesignModeSelector();
@@ -384,7 +324,6 @@ const makeMapStateToProps = () => {
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
       language: state.appData.language.language,
-      formData: GetFormDataSelector(state, props, container.index),
       itemOrder: !props.items ? itemOrder : props.items,
       id: props.id,
       index: props.index,

@@ -92,7 +92,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instance.Id, response.StatusCode);
-            throw new PlatformHttpException(response);            
+            throw new PlatformHttpException(response);
         }
 
         /// <inheritdoc />
@@ -118,8 +118,12 @@ namespace Altinn.App.Services.Implementation
                 DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
                 return dataElement;
             }
+            else if (response.StatusCode.Equals(HttpStatusCode.Conflict))
+            {
+                return new DataElement { Locked = true };
+            }
 
-            throw new PlatformHttpException(response);                        
+            throw new PlatformHttpException(response);
         }
 
         /// <inheritdoc />
@@ -326,6 +330,10 @@ namespace Altinn.App.Services.Implementation
                 DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata);
 
                 return dataElement;
+            }
+            else if (response.StatusCode.Equals(HttpStatusCode.Conflict))
+            {
+                return new DataElement { Locked = true };
             }
 
             _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
