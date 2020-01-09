@@ -96,15 +96,6 @@
     </AdditionalFiles>
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Languages\ini\en.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Languages\ini\nb.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
