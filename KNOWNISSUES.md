@@ -6,7 +6,6 @@ Det er noen kjente feil og svakheter i løsningen.
 
 - Dagens app-struktur er endret for å optimalisere for lokal utvikling. Applikasjoner lagd på gammel applikasjonsstruktur vil ikke fungere. Som en konsekvens er muligheten for å teste i Studio fjernet. [Se hvilke muligheter som finnes for test](https://altinn.github.io/docs/altinn-studio/testing/)
 - Enkelte funksjonaliteter har vesentlige feil som ikke vil bli rettet innenfor MVP. Vi anbefaler at myke valideringer og datovelgeren *ikke* tas i bruk i en produksjonssatt tjeneste før disse feilene er rettet.
-- Løsningen er ennå ikke optimalisert for tastaturnavigasjon eller bruk av touchskjermer.
 
 ## Mindre svakheter som er verdt å nevne
 
@@ -14,6 +13,7 @@ Det er noen kjente feil og svakheter i løsningen.
 - Det er mulig å legge til komponenter for kort svar og langt svar uten en ledetekst. Komponenten vil i slike tilfeller se rar ut og ikke være i tråd med UU-krav.
 - Det er mulig å endre på (en lokal kopi av) en tjeneste du ikke har skrivetilgang til. Det er dog ikke mulig å dele/lagre disse endringene.
 - Det kan virke tilfeldig hvor i lista et nytt element dukker opp når du legger det til via drag and drop.
+- Løsningen er ennå ikke optimalisert for tastaturnavigasjon eller bruk av touchskjermer.
 
 ## Fullstendig oversikt over feil
 
