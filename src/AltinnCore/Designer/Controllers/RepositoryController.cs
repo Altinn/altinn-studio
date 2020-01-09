@@ -19,6 +19,7 @@ namespace AltinnCore.Designer.Controllers
     /// This is the API controller for functionality related to repositories.
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class RepositoryController : ControllerBase
     {
         private readonly IGitea _giteaApi;

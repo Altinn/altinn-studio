@@ -9,6 +9,7 @@ namespace AltinnCore.Designer.Controllers
     /// Controller containing all actions related to basic configuration of an app.
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class ServiceController : Controller
     {
         private readonly IRepository _repository;

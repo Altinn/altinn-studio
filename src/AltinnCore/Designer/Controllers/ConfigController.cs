@@ -19,6 +19,7 @@ namespace AltinnCore.Designer.Controllers
     /// Controller exposing
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class ConfigController : Controller
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

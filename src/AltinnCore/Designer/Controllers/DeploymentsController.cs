@@ -15,6 +15,7 @@ namespace AltinnCore.Designer.Controllers
     /// </summary>
     [ApiController]
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     [Route("/designer/api/v1/{org}/{app}/[controller]")]
     public class DeploymentsController : ControllerBase
     {

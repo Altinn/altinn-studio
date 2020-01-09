@@ -17,6 +17,7 @@ namespace AltinnCore.Designer.Controllers
     /// The app builder API.
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class ServiceDevelopmentController : Controller
     {
         private readonly IRepository _repository;

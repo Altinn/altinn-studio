@@ -20,6 +20,7 @@ namespace AltinnCore.Designer.Controllers
     /// Controller for resources
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class TextController : Controller
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

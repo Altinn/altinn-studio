@@ -11,6 +11,7 @@ namespace Designer.Controllers
     /// </summary>
     [ApiController]
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     [Route("/designer/api/v1/{org}/{app}")]
     public class ApplicationMetadataController : ControllerBase
     {

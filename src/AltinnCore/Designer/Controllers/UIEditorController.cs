@@ -12,6 +12,7 @@ namespace AltinnCore.Designer.Controllers
     /// Controller containing all react-ions
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class UIEditorController : Controller
     {
         private readonly IRepository _repository;
