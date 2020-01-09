@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Filters;
 using Altinn.App.AppLogic.Validation;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
@@ -19,6 +20,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
@@ -124,6 +126,8 @@ namespace Altinn.App
                 options.Cookie.Name = "AS-XSRF-TOKEN";
                 options.HeaderName = "X-XSRF-TOKEN";
             });
+
+            services.TryAddSingleton<ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

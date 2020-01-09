@@ -67,6 +67,12 @@ namespace Altinn.App.Api.Filters
                 return false;
             }
 
+            var authCookie = context.HttpContext.Request.Cookies[Services.Constants.General.RuntimeCookieName];
+            if (authCookie == null)
+            {
+                return false;
+            }
+
             // Anything else requires a token.
             return true;
         }
