@@ -26,7 +26,7 @@ environmentVariables:
     - name: GeneralSettings__AltinnPartyCookieName
       value: AltinnPartyId
     - name: GeneralSettings__LanguageFilesLocation
-      value: Languages/ini/
+      value: Languages/
     - name: GeneralSettings__TemplateLocation
       value: Templates/AspNet
     - name: GeneralSettings__DeploymentLocation
@@ -57,7 +57,7 @@ environmentVariables:
     - name: GeneralSettings__AltinnPartyCookieName
       value: AltinnPartyId
     - name: GeneralSettings__LanguageFilesLocation
-      value: Languages/ini/
+      value: Languages/
     - name: GeneralSettings__TemplateLocation
       value: Templates/AspNet
     - name: GeneralSettings__DeploymentLocation
@@ -88,7 +88,7 @@ environmentVariables:
     - name: GeneralSettings__AltinnPartyCookieName
       value: AltinnPartyId
     - name: GeneralSettings__LanguageFilesLocation
-      value: Languages/ini/
+      value: Languages/
     - name: GeneralSettings__TemplateLocation
       value: Templates/AspNet
     - name: GeneralSettings__DeploymentLocation

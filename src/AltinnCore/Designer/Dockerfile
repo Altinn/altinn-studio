@@ -40,7 +40,7 @@ COPY /src/Altinn.Apps/AppTemplates/AspNet/deployment ./Templates/AspNet/deployme
 COPY /src/Altinn.Apps/AppTemplates/AspNet/.gitignore ./Templates/AspNet
 COPY /src/Altinn.Apps/AppTemplates/AspNet/App.sln ./Templates/AspNet
 
-#RUN mv Templates ..
-RUN mv Testdata ..
+COPY /src/AltinnCore/Designer/Languages/ini ./Languages
+
 
 ENTRYPOINT ["dotnet", "AltinnCore.Designer.dll"]
