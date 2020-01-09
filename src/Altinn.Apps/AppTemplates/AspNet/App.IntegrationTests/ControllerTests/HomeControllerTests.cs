@@ -4,6 +4,8 @@ using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -36,8 +38,13 @@ namespace App.IntegrationTests.ControllerTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
+            IEnumerable<string> cookieHeaders = response.Headers.GetValues("Set-Cookie");
 
+            // Verify that 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(2, cookieHeaders.Count());
+            Assert.StartsWith("AS-", cookieHeaders.ElementAt(0));
+            Assert.StartsWith("XSR", cookieHeaders.ElementAt(1));
         }
 
 
