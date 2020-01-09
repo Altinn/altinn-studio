@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AltinnCore.ServiceLibrary.Models;
+using Altinn.Platform.Register.Models;
 
 namespace Altinn.Platform.Authorization.Services.Interface
 {

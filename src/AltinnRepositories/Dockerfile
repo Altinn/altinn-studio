@@ -1,5 +1,5 @@
 # base image
-FROM gitea/gitea:1.10.1
+FROM gitea/gitea:1.10.2
 
 # copy configuration file
 COPY src/AltinnRepositories/gitea-data/gitea/conf/app.ini data/gitea/conf/app.ini

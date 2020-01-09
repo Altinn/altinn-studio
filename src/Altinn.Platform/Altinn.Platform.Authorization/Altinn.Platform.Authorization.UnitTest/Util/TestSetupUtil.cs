@@ -1,16 +1,10 @@
-using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Storage.Interface.Models;
-using Authorization.Interface.Models;
+using Authorization.Platform.Authorization.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace Altinn.Platform.Authorization.UnitTest.Util
 {

@@ -248,14 +248,13 @@ namespace Altinn.Platform.Storage.Helpers
                 string org = instance.Org;
                 string app = instance.AppId.Split("/")[1];
 
-                if (task == null)
-                {
-                    task = instance.Process?.EndEvent;
-                    resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceEndId, task, DefaultType, DefaultIssuer));
-                }
-                else
+                if (task != null)
                 {
                     resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceTaskId, task, DefaultType, DefaultIssuer));
+                }
+                else if (instance.Process?.EndEvent != null)
+                {
+                    resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceEndId, instance.Process.EndEvent, DefaultType, DefaultIssuer));
                 }
 
                 if (!string.IsNullOrWhiteSpace(instanceId))

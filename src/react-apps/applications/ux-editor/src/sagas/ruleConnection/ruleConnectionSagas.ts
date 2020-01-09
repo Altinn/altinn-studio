@@ -1,21 +1,13 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
-import ErrorActionDispatchers from '../../actions/errorActions/errorActionDispatcher';
-import FormFillerActionDispatchers from '../../actions/formFillerActions/formFillerActionDispatcher';
 import manageServiceConfigurationActionDispatcher from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import * as RuleConnetionActions from '../../actions/ruleConnectionActions/actions';
 import RuleConnectionActionDispatchers from '../../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import * as RuleConnectionActionTypes from '../../actions/ruleConnectionActions/ruleConnectionActionTypes';
-import { IAppDataState } from '../../reducers/appDataReducer';
-import { IFormDesignerState } from '../../reducers/formDesignerReducer';
-import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { IRuleConnectionState } from '../../reducers/ruleConnectionReducer';
 import { getSaveServiceConfigurationUrl } from '../../utils/urlHelper';
 
-const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
-const selectFormFiller = (state: IAppState): IFormFillerState => state.formFiller;
 const selectRuleConnection = (state: IAppState): IRuleConnectionState => state.serviceConfigurations.ruleConnection;
-const selectAppData = (state: IAppState): IAppDataState => state.appData;
 
 function* addRuleConnectionSaga({ newConnection }: RuleConnetionActions.IAddRuleConnection): SagaIterator {
   try {
@@ -61,125 +53,5 @@ export function* watchDelRuleConnectionSaga(): SagaIterator {
   yield takeLatest(
     RuleConnectionActionTypes.DEL_RULE_CONNECTION,
     delRuleConnectionSaga,
-  );
-}
-
-function* checkIfRuleShouldRunSaga({
-  lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId, repeatingContainerId }:
-  RuleConnetionActions.ICheckIfRuleShouldRun): SagaIterator {
-  try {
-    // get state
-    const formFillerState: IFormFillerState = yield select(selectFormFiller);
-    const ruleConnectionState: IRuleConnectionState = yield select(selectRuleConnection);
-    const appDataState: IAppDataState = yield select(selectAppData);
-    const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
-    const order = formDesignerState.layout.order;
-    let repContainer;
-    let repeating;
-    let dataModelGroup: string;
-    let index;
-    if (repeatingContainerId) {
-      repContainer = formDesignerState.layout.containers[repeatingContainerId];
-      repeating = repContainer.repeating;
-      dataModelGroup = repContainer.dataModelGroup;
-      index = repContainer.index;
-    }
-
-    const isPartOfRepeatingGroup: boolean = (repeating && dataModelGroup != null && index != null);
-    const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`;
-
-    for (const connection in ruleConnectionState) {
-      if (!connection) {
-        continue;
-      }
-      const connectionDef = ruleConnectionState[connection];
-      const functionToRun: string = connectionDef.selectedFunction;
-      let shouldRunFunction = false;
-      let numberOfInputFieldsFilledIn = 0;
-      for (const inputParam in connectionDef.inputParams) {
-        if (!inputParam) {
-          continue;
-        }
-        let inputParamBinding: string = connectionDef.inputParams[inputParam];
-        if (isPartOfRepeatingGroup) {
-          inputParamBinding = inputParamBinding.replace(dataModelGroup, dataModelGroupWithIndex);
-        }
-        if (formFillerState.formData[inputParamBinding]) {
-          numberOfInputFieldsFilledIn++;
-        }
-        if (connectionDef.inputParams[inputParam] === lastUpdatedDataBinding.dataBindingName) {
-          shouldRunFunction = true;
-        }
-      }
-      for (const outParam of Object.keys(connectionDef.outParams)) {
-        if (!outParam) {
-          shouldRunFunction = false;
-        }
-      }
-      if (shouldRunFunction) {
-        const objectToUpdate = (window as any).ruleHandlerHelper[functionToRun]();
-        if (Object.keys(objectToUpdate).length === numberOfInputFieldsFilledIn) {
-          const newObj = Object.keys(objectToUpdate).reduce((acc: any, elem: any) => {
-            let inputParamBinding = connectionDef.inputParams[elem];
-            if (isPartOfRepeatingGroup) {
-              inputParamBinding = inputParamBinding.replace(dataModelGroup, dataModelGroupWithIndex);
-            }
-            acc[elem] = formFillerState.formData[inputParamBinding];
-            return acc;
-          }, {});
-
-          const result = (window as any).ruleHandlerObject[functionToRun](newObj);
-          let updatedDataBinding: IDataModelFieldElement = appDataState.dataModel.model.find(
-            (element: IDataModelFieldElement) => element.dataBindingName === connectionDef.outParams.outParam0);
-          let updatedComponent: string;
-          for (const component in formDesignerState.layout.components) {
-            if (!component) {
-              continue;
-            }
-            if (isPartOfRepeatingGroup) {
-              if (Object.keys(order[repeatingContainerId]).indexOf(component) !== -1) {
-                continue;
-              }
-            }
-            for (const dataBindingKey in formDesignerState.layout.components[component].dataModelBindings) {
-              if (!dataBindingKey) {
-                continue;
-              }
-              if (formDesignerState.layout.components[component].dataModelBindings[dataBindingKey] ===
-                connectionDef.outParams.outParam0) {
-                updatedComponent = component;
-                break;
-              }
-            }
-          }
-          if (!updatedDataBinding) {
-            // Validation error on field that triggered the check?
-          } else {
-            if (!updatedComponent) {
-              // Validation error on field that triggered the check?
-            } else {
-              if (isPartOfRepeatingGroup) {
-                updatedDataBinding = { ...updatedDataBinding };
-                updatedDataBinding.dataBindingName =
-                  updatedDataBinding.dataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
-              }
-              yield call(
-                FormFillerActionDispatchers.updateFormData,
-                updatedComponent, result, updatedDataBinding, updatedDataBinding.dataBindingName);
-            }
-          }
-        }
-      }
-    }
-  } catch (err) {
-    ErrorActionDispatchers.addError('Ånei! Noe gikk galt, vennligst prøv igjen seinere.');
-    console.error(err);
-  }
-}
-
-export function* watchCheckIfRuleShouldRunSaga(): SagaIterator {
-  yield takeLatest(
-    RuleConnectionActionTypes.CHECK_IF_RULE_SHOULD_RUN,
-    checkIfRuleShouldRunSaga,
   );
 }

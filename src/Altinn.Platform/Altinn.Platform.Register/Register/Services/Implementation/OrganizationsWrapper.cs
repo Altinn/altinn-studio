@@ -5,8 +5,8 @@ using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Helpers;
+using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Services.Interfaces;
-using AltinnCore.ServiceLibrary.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

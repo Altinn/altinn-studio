@@ -3,12 +3,10 @@ import { hot } from 'react-hot-loader';
 import postMessages from '../../shared/src/utils/postMessages';
 import appDataActionDispatcher from './actions/appDataActions/appDataActionDispatcher';
 import formDesignerActionDispatchers from './actions/formDesignerActions/formDesignerActionDispatcher';
-import formFillerActionDispatchers from './actions/formFillerActions/formFillerActionDispatcher';
 import manageServiceConfigurationActionDispatcher from './actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import ThirdPartyComponentsActionDispatcher from './actions/thirdPartyComponentsActions/thirdPartyComponentsActionDispatcher';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import FormDesigner from './containers/FormDesigner';
-import { FormFiller } from './containers/FormFiller';
 
 // tslint:disable-next-line:no-implicit-dependencies
 import { Route } from 'react-router-dom';
@@ -75,16 +73,8 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
 
   }
 
-  public resetFormData = (): JSX.Element => {
-    const { org, app } = window as Window as IAltinnWindow;
-    const appId = `${org}/${app}`;
-    formFillerActionDispatchers.resetFormData(
-      `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`);
+  public renderFormDesigner = (): JSX.Element => {
     return <FormDesigner />;
-  }
-
-  public renderFormFiller = (): JSX.Element => {
-    return <FormFiller />;
   }
 
   public render() {
@@ -94,7 +84,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
         <Route
           exact={true}
           path='/ui-editor'
-          render={this.resetFormData}
+          render={this.renderFormDesigner}
         />
       </div>
     );

@@ -87,7 +87,7 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         /// Get instances of an instance owner.
         public async Task<List<Instance>> GetInstances(int instanceOwnerPartyId)
-        {    
+        {
             string apiUrl = $"instances/{instanceOwnerPartyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
@@ -178,7 +178,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Unable to create instance {response.StatusCode} - {response.Content?.ReadAsStringAsync().Result}");
-            throw new PlatformHttpException(response);            
+            throw new PlatformHttpException(response);
         }
     }
 }

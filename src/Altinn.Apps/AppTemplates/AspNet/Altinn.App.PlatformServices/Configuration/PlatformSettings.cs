@@ -31,30 +31,12 @@ namespace Altinn.App.Services.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the url host for API storage
-        /// </summary>
-        public string ApiStorageEndpointHost
-        {
-            get => Environment.GetEnvironmentVariable("PlatformSettings__ApiStorageEndpointHost") ?? _apiStorageEndpointHost;
-            set => _apiStorageEndpointHost = value;
-        }
-
-        /// <summary>
         /// Gets or sets the url for the API register endpoint
         /// </summary>
         public string ApiRegisterEndpoint
         {
             get => Environment.GetEnvironmentVariable("PlatformSettings__ApiRegisterEndpoint") ?? _apiRegisterEndpoint;
             set => _apiRegisterEndpoint = value;
-        }
-
-        /// <summary>
-        /// Gets or sets the url host for API register
-        /// </summary>
-        public string ApiRegisterEndpointHost
-        {
-            get => Environment.GetEnvironmentVariable("PlatformSettings__ApiRegisterEndpointHost") ?? _apiRegisterEndpointHost;
-            set => _apiRegisterEndpointHost = value;
         }
 
         /// <summary>
@@ -67,15 +49,6 @@ namespace Altinn.App.Services.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the url host for API profile
-        /// </summary>
-        public string ApiProfileEndpointHost
-        {
-            get => Environment.GetEnvironmentVariable("PlatformSettings__ApiProfileEndpointHost") ?? _apiProfileEndpointHost;
-            set => _apiProfileEndpointHost = value;
-        }
-
-        /// <summary>
         /// Gets or sets the url for the API Authentication endpoint
         /// </summary>
         public string ApiAuthenticationEndpoint
@@ -85,30 +58,12 @@ namespace Altinn.App.Services.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the url host for API Authentication
-        /// </summary>
-        public string ApiAuthenticationEndpointHost
-        {
-            get => Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpointHost") ?? _apiAuthenticationEndpointHost;
-            set => _apiAuthenticationEndpointHost = value;
-        }
-
-        /// <summary>
         /// Gets or sets the url for the API Authorization endpoint
         /// </summary>
         public string ApiAuthorizationEndpoint
         {
             get => Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthorizationEndpoint") ?? _apiAuthorizationEndpoint;
             set => _apiAuthorizationEndpoint = value;
-        }
-
-        /// <summary>
-        /// Gets or sets the url host for API Authorization
-        /// </summary>
-        public string ApiAuthorizationEndpointHost
-        {
-            get => Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthorizationEndpointHost") ?? _apiAuthorizationEndpointHost;
-            set => _apiAuthorizationEndpointHost = value;
         }
 
         /// <summary>

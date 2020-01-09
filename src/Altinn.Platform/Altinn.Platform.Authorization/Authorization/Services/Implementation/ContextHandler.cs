@@ -10,7 +10,7 @@ using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
-using Authorization.Interface.Models;
+using Authorization.Platform.Authorization.Models;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
 {
@@ -88,6 +88,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     if (instanceData.Process?.CurrentTask != null)
                     {
                         AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.TaskAttribute, resourceAttributes.TaskValue, instanceData.Process.CurrentTask.ElementId);
+                    }
+                    else if (instanceData.Process?.EndEvent != null)
+                    {
+                        AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.EndEventAttribute, null, instanceData.Process.EndEvent);
                     }
 
                     AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.PartyAttribute, resourceAttributes.ResourcePartyValue, instanceData.InstanceOwner.PartyId);
