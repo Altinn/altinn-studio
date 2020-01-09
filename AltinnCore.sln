@@ -11,10 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AltinnCore", "AltinnCore", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.Designer", "src\AltinnCore\Designer\AltinnCore.Designer.csproj", "{A8CEDA65-1EC3-4D9E-857C-BFCFA796315C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.RepositoryClient", "src\AltinnCore\RepositoryClient\AltinnCore.RepositoryClient.csproj", "{D643F218-0EEA-45A0-88E5-36D077B758A8}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.Common", "src\AltinnCore\Common\AltinnCore.Common.csproj", "{D9FF76F1-2736-4E27-A3CA-6B78633D1890}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0CE60568-1CC9-4F7A-BE1C-43969F984B7A}"
 	ProjectSection(SolutionItems) = preProject
 		Altinn3.ruleset = Altinn3.ruleset
@@ -35,14 +31,6 @@ Global
 		{A8CEDA65-1EC3-4D9E-857C-BFCFA796315C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8CEDA65-1EC3-4D9E-857C-BFCFA796315C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8CEDA65-1EC3-4D9E-857C-BFCFA796315C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D643F218-0EEA-45A0-88E5-36D077B758A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D643F218-0EEA-45A0-88E5-36D077B758A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D643F218-0EEA-45A0-88E5-36D077B758A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D643F218-0EEA-45A0-88E5-36D077B758A8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D9FF76F1-2736-4E27-A3CA-6B78633D1890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D9FF76F1-2736-4E27-A3CA-6B78633D1890}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D9FF76F1-2736-4E27-A3CA-6B78633D1890}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D9FF76F1-2736-4E27-A3CA-6B78633D1890}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,8 +38,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{16DBADD5-01B0-460B-A11F-413805ECE4B1} = {2A3CDEF9-2C3D-409D-A1F5-FCB4B3E81F6D}
 		{A8CEDA65-1EC3-4D9E-857C-BFCFA796315C} = {16DBADD5-01B0-460B-A11F-413805ECE4B1}
-		{D643F218-0EEA-45A0-88E5-36D077B758A8} = {16DBADD5-01B0-460B-A11F-413805ECE4B1}
-		{D9FF76F1-2736-4E27-A3CA-6B78633D1890} = {16DBADD5-01B0-460B-A11F-413805ECE4B1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {26A53E83-4F29-4AF5-B556-7E0F90B1DB47}
