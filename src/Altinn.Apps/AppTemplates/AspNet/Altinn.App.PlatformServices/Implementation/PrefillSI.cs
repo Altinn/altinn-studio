@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.Platform.Profile.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -11,11 +10,9 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Factories.ModelFactory;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Helpers.Extensions;
+using AltinnCore.Common.ModelMetadatalModels;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary.Configuration;
-using AltinnCore.ServiceLibrary.Models;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
 using LibGit2Sharp;
 using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Http;
@@ -1150,78 +1147,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Gets all packages for the given app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>A list of all packages created for the given app.</returns>
-        public IList<ServicePackageDetails> GetServicePackages(string org, string app)
-        {
-            Guard.AssertOrgApp(org, app);
-            List<ServicePackageDetails> packageDetails = new List<ServicePackageDetails>();
-            string packageDirectory = _settings.GetServicePackagesPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-            if (!Directory.Exists(packageDirectory))
-            {
-                return packageDetails;
-            }
-
-            foreach (string fileName in Directory.EnumerateFiles(packageDirectory))
-            {
-                ServicePackageDetails details = JsonConvert.DeserializeObject<ServicePackageDetails>(new StreamReader(ZipFile.OpenRead(fileName).Entries.First(e => e.Name == "ServicePackageDetails.json").Open()).ReadToEnd());
-                details.PackageName = Path.GetFileName(fileName);
-                packageDetails.Add(details);
-            }
-
-            return packageDetails;
-        }
-
-        /// <summary>
-        /// Updates rules for an app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="rules">The rules to save</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        public bool UpdateRules(string org, string app, List<RuleContainer> rules)
-        {
-            try
-            {
-                Directory.CreateDirectory(_settings.GetRulesPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-                string rulesAsJson = JsonConvert.SerializeObject(rules);
-                string filePath = _settings.GetRulesPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RulesFileName;
-
-                File.WriteAllText(filePath, rulesAsJson, Encoding.UTF8);
-            }
-            catch
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Returns the rules for an app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The rules for an app</returns>
-        public List<RuleContainer> GetRules(string org, string app)
-        {
-            string filename = _settings.GetRulesPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RulesFileName;
-            List<RuleContainer> rules = null;
-
-            if (File.Exists(filename))
-            {
-                string textData = File.ReadAllText(filename, Encoding.UTF8);
-                rules = JsonConvert.DeserializeObject<List<RuleContainer>>(textData);
-            }
-
-            return rules;
         }
 
         /// <summary>

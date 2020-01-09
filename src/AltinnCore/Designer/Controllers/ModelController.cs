@@ -5,9 +5,8 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using AltinnCore.Common.Factories.ModelFactory;
+using AltinnCore.Common.ModelMetadatalModels;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
-using Manatee.Json;
 using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -23,6 +22,7 @@ namespace AltinnCore.Designer.Controllers
     /// This is the controller responsible for handling model functionality in AltinnCore
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class ModelController : Controller
     {
         private readonly IRepository _repository;

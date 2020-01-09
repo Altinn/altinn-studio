@@ -2,10 +2,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Clients;
-using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Services.Interface;
-using Authorization.Interface.Models;
-using Microsoft.Extensions.Logging;
+using Authorization.Platform.Authorization.Models;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Services.Implementation

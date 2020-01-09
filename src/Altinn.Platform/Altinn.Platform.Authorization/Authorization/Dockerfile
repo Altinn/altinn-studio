@@ -2,7 +2,6 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1-alpine AS build
 WORKDIR Authorization/
 
 COPY Authorization ./Authorization
-COPY Authorization.Interface ./Authorization.Interface
 WORKDIR Authorization/
 
 RUN dotnet build Altinn.Platform.Authorization.csproj -c Release -o /app_output
