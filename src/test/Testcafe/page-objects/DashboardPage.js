@@ -8,13 +8,12 @@ export default class DashBoard {
     this.logoutButton = Selector(".dropdown-item").withText("Logg ut");
     this.newServiceButton = Selector("button > span").withExactText("ny app");
     this.serviceSearch = Selector("#service-search");
-    this.tjenesteEier = Selector("#service-owner");
-    this.tjenesteNavn = Selector("#service-name");
-    this.lagringsNavn = Selector("#service-saved-name");
+    this.tjenesteEier = Selector("#service-owner");    
+    this.appName = Selector("#service-saved-name");
     this.rettigheterMelding = Selector("p").withText("Du har ikke tilgang");
     this.skriveRettigheter = Selector("div > div > p").withText("Du har ikke skriverettigheter");
     this.opprettButton = Selector("button").withExactText("Opprett");
-    this.serviceExistsDialogue = Selector("div").withExactText("Lagringsnavnet finnes allerede");
+    this.serviceExistsDialogue = Selector("div").withExactText("En app med det navnet finnes allerede.");
     this.serviceOwnerList = Selector('#menu-').find('li').withAttribute('role','option');
   }
 
