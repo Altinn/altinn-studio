@@ -17,10 +17,12 @@ namespace AltinnCore.Authentication.Utils
         /// <returns>The JWT token string.</returns>
         public static string GetTokenFromContext(HttpContext context, string cookieName)
         {
-            // Get the cookie from request 
+            // Get the cookie from request
             string token = context.Request.Cookies[cookieName];
 
-            // If no cookie present 
+            Console.WriteLine();
+
+            // If no cookie present
             if (string.IsNullOrEmpty(token))
             {
                 string authorization = context.Request.Headers["Authorization"];
