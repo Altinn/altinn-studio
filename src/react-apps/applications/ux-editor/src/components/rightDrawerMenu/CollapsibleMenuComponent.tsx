@@ -31,6 +31,7 @@ const styles = createStyles({
     width: '100%',
     color: altinnTheme.altinnPalette.primary.blueDarker,
     fontSize: '1.6rem',
+    cursor: 'pointer',
   },
   rotateDown: {
     transform: 'rotate(90deg)',
@@ -97,12 +98,12 @@ const CollapsibleMenus = (props: ICollapsableMenuProps) => {
     <List className={classes.list}>
       <ListItem
         className={classes.listItem + ' ' + classes.listItemHeader}
+        tabIndex={0}
+        onKeyPress={handleKeyPress(toggleMenu)}
+        onClick={toggleMenu}
       >
         <ListItemIcon
           className={menuIsOpen ? classes.rotateDown : classes.rotateRight}
-          onClick={toggleMenu}
-          tabIndex={0}
-          onKeyPress={handleKeyPress(toggleMenu)}
         >
           <i className={'fa fa-expand-alt ' + classes.icon} />
         </ListItemIcon>

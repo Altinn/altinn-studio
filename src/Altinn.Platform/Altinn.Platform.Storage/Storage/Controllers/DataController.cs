@@ -363,7 +363,7 @@ namespace Altinn.Platform.Storage.Controllers
                     DataElement updatedElement = await _dataRepository.Update(dataElement);
                     AddSelfLinks(instance, updatedElement);
 
-                    await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, updatedElement);
+                    await DispatchEvent(InstanceEventType.Saved.ToString(), instance, updatedElement);
 
                     return Ok(updatedElement);
                 }
