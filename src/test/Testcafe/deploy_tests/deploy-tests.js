@@ -13,14 +13,14 @@ fixture('Deploy of app to a test environment tests')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Header texts
-    t.ctx.tjenesteOppdatert = "Tjenesten din er oppdatert til siste versjon";
+    t.ctx.tjenesteOppdatert = "Appen din er oppdatert til siste versjon";
     t.ctx.endrnigerValidert = "Endringene er validert og kan deles med andre";
-    t.ctx.klarForDeploy = "Tjenesten er klar til å legges ut i testmiljø";
-    t.ctx.deployFailure = "Tjenesten ble ikke lagt ut i testmiljøet";
+    t.ctx.klarForDeploy = "Appen er klar til å legges ut i testmiljø";
+    t.ctx.deployFailure = "Appen ble ikke lagt ut i testmiljøet";
     t.ctx.localChanges = "Du har ikke delt dine endringer med din organisasjon";
-    t.ctx.noCompile = "Tjenesten din kompilerer ikke";
-    t.ctx.tilgjengelig = "Tjenesten din er klar for test";
-    t.ctx.ikkeTilgjengelig = "Tjenesten din er ikke tilgjengelig i testmiljø";
+    t.ctx.noCompile = "Appen din kompilerer ikke";
+    t.ctx.tilgjengelig = "Appen din er klar for test";
+    t.ctx.ikkeTilgjengelig = "Appen din er ikke tilgjengelig i testmiljø";
     t.ctx.ikkeTilgang = "Du har ikke tilgang til å legge ut tjenesten";
     t.ctx.leggerUtTjenesten = "Legger ut tjenesten i testmiljøet, det vil ta ca. 1 minutt.";
     await t
@@ -66,18 +66,19 @@ fixture('Deploy of app to a test environment tests')
     await t
       .typeText(designer.versionNumber, newBuildVersion.toString())
       .typeText(designer.versionDescription, "Autotest build " + dateTime.toString(), {replace: true})
-      .click(designer.buildButton)
+      .click(designer.buildButton)     
 
     await t
       .click(designer.deployVersionDropDown)
-      .expect(designer.deployVersionDropDown.child(0).innerText).contains(newBuildVersion.toString(),{timeout: 300000})
+      .expect(designer.deployVersionDropDown.child(0).innerText).contains(newBuildVersion.toString(),"Fail",{timeout: 300000})
       .expect(designer.deployVersionOptions.child().count).eql(nAvailableVersions + 1)
       .click (designer.deployVersionOptions.child(0))
-      .click(designer.deployButton)
+      .click(designer.deployButtonAt23)
       .expect(designer.deployConfirm.visible).ok()
       .click(designer.deployConfirm)
       .expect(designer.deployStatus.visible).ok({timeout: 60000})
-      .expect(designer.at23DeployTable.innerText).contains(newBuildVersion.toString(),{timeout: 300000}); //deploy succeeded
+      .expect(designer.at23DeployTable.visible).ok({timeout: 300000})
+      .expect(designer.at23DeployTable.innerText).contains(newBuildVersion.toString(),"Fail",{timeout: 300000}); //deploy succeeded
 });
 
 test('App cannot build due to compilation error', async () => {
@@ -94,7 +95,6 @@ test('App cannot build due to compilation error', async () => {
     .expect(designer.buildButton.exists).ok({timeout: 120000})
     .click(designer.deployVersionDropDown)
     .expect(designer.noDeployVersionAvailable.visible).ok();
-
 });
 
 test('App cannot be built due to uncommited local changes', async () => {
@@ -105,6 +105,8 @@ test('App cannot be built due to uncommited local changes', async () => {
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok({ timeout: 120000 })
     .click(designer.omNavigationTab) //remove pop up
+  await designer.deleteUIComponentsMethod(t);
+  await t
     .dragToElement(designer.radioButtonComponent, designer.dragToArea)
   await t.eval(() => location.reload(true))
   await t
@@ -121,7 +123,7 @@ test('User does not have write access to app, and cannot deploy', async () => {
     .expect(designer.deployVersionDropDown.visible).ok()
     .click(designer.deployVersionDropDown)
     .click(designer.deployVersionOptions.child(0))
-    .click(designer.deployButton)
+    .click(designer.deployButtonAt23)
     .expect(designer.deployConfirm.visible).ok()
     .click(designer.deployConfirm)
     .expect(Selector('div').withText('Teknisk feilkode 403').visible).ok({timeout: 60000});

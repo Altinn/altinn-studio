@@ -70,6 +70,8 @@ export default class DesignerPage {
     this.addressComponent = Selector(".fa.fa-address").parent(2);
     this.dragToArea = Selector(".col-12");
     this.removeComponentsButton = Selector(".fa.fa-circletrash");
+    this.advancedComponentsGroup = Selector("div").withExactText("Avansert");
+    this.textComponentsGroup = Selector("div").withExactText("Tekst");
 
     //"språk" navigation tab selectors
     this.spraakNavigationTab = Selector('div').withExactText('Språk');
@@ -90,7 +92,7 @@ export default class DesignerPage {
     this.versionDescription = Selector('div > textarea');
     this.buildButton = Selector('button').withExactText('Bygg versjon');
     this.latestBuilds = Selector('.MuiGrid-root').withText('Tidligere bygg av applikasjonen').parent(0).sibling(3);
-    this.deployButton = Selector('button').withExactText('Deploy ny versjon');
+    this.deployButtonAt23 = Selector('#deploy-button-at23');
     this.deployVersionDropDown = Selector('#deploy-select-at23');
     this.noDeployVersionAvailable = Selector('div').withText('Du har ingen versjoner å deploye');
     this.deployVersionOptions = Selector('.select__menu-list');
@@ -124,12 +126,16 @@ export default class DesignerPage {
 
     //serviceLogicmenu
     this.openserviceLogicmenu = Selector('#serviceLogicmenu').find('button');
+    this.serviceLogicmenu = Selector('#serviceLogicmenu');
     this.connectRulesButton = Selector('p').withExactText('Regler').nextSibling('button');
     this.connectConditionalRendering = Selector('p').withExactText('Betingede renderingstilkoblinger').nextSibling('button');
-    this.addedRules = Selector('.a-topTasks').find('button')
+    this.addedRules = Selector('.a-topTasks').find('button');
+    this.validationsGroup = Selector('span').withExactText('Valideringer').parent("li");
     this.editValidations = Selector('span').withExactText('Rediger valideringer');
+    this.dynamicsGroup = Selector('span').withExactText('Dynamikk').prevSibling("div");
     this.editDynamic = Selector('span').withExactText('Rediger dynamikk');
-    this.editCalculations = Selector('span').withExactText('Rediger kalkuleringer');
+    this.calculationsGroup = Selector('span').withExactText('Kalkuleringer').prevSibling("div");
+    this.editCalculations = Selector('span').withExactText('Rediger kalkuleringer');   
 
     //rulesmodal
     this.rulesConnectionModal = Selector('span').withExactText('Konfigurer regler');

@@ -18,7 +18,7 @@ fixture('Navigating the App designer')
     t.ctx.at21 = "AT21-miljøet";
     t.ctx.at22 = "AT22-miljøet";
     t.ctx.at23 = "AT23-miljøet";
-    t.ctx.tt = "TT-miljøet";
+    t.ctx.tt = "TT02-miljøet";
     await t
       .maximizeWindow()
       .useRole(AutoTestUser)
@@ -27,7 +27,7 @@ fixture('Navigating the App designer')
   .after(async () => {
   })
 
-test('Om tab navigation', async () => {
+test.only('Om tab navigation', async () => {
   await t
     .click(designerPage.omNavigationTab)
     .hover(designerPage.leftDrawerMenu)

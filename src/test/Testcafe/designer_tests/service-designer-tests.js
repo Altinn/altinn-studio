@@ -24,6 +24,7 @@ test('Drag and drop test', async () => {
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/ui-editor')
     .expect(designer.inputComponent).ok()
     .dragToElement(designer.inputComponent, designer.dragToArea)
+    .click(designer.advancedComponentsGroup)
     .dragToElement(designer.addressComponent, designer.dragToArea)
   await designer.deleteUIComponentsMethod(t);
 });
@@ -135,10 +136,19 @@ test('Configure and delete rules', async () => {
 test('Links in App Logic menu', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/ui-editor')
-    .expect(designer.openserviceLogicmenu.exists).ok({ timeout: 5000 })
-    .click(designer.openserviceLogicmenu)
+   if (!await designer.serviceLogicmenu.exists) {
+      await t.click(designer.openserviceLogicmenu)
+   }   
+   await t
+    .expect(designer.serviceLogicmenu.exists).ok({ timeout: 5000 })
+    .expect(designer.validationsGroup.exists).ok({ timeout: 5000 })
+    .expect(designer.validationsGroup.child('div').child('i').exists).ok({ timeout: 5000 })    
+    .expect(designer.validationsGroup.child('div').child('i').visible).ok()
+    .click(designer.validationsGroup.child('div').child('i'))
     .expect(designer.editValidations.exists).ok()
+    .click(designer.dynamicsGroup)
     .expect(designer.editDynamic.exists).ok()
+    .click(designer.calculationsGroup)
     .expect(designer.editCalculations.exists).ok()
 });
 
