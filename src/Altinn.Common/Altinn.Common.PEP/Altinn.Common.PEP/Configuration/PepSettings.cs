@@ -6,7 +6,7 @@ namespace Altinn.Common.PEP.Configuration
     public class PepSettings
     {
         /// <summary>
-        /// Gets or sets to disable pep er not
+        /// Gets or sets to disable pep er not updated
         /// </summary>
         public bool DisablePEP { get; set; }
     }
