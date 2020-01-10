@@ -15,6 +15,7 @@ namespace AltinnCore.Designer.Controllers
     /// </summary>
     [ApiController]
     [Route("/designer/api/v1/{org}/{app}/[controller]")]
+    [AutoValidateAntiforgeryToken]
     public class ReleasesController : ControllerBase
     {
         private readonly IReleaseService _releaseService;

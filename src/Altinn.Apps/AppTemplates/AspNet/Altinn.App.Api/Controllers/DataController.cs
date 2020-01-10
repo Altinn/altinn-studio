@@ -82,21 +82,21 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("Element type must be provided.");
             }
 
-            Application application = _appResourcesService.GetApplication();
-            if (application == null)
-            {
-                return NotFound($"AppId {org}/{app} was not found");
-            }
-
-            DataType dataTypeFromMetadata = application.DataTypes.FirstOrDefault(e => e.Id.Equals(dataType, StringComparison.InvariantCultureIgnoreCase));
-
-            if (dataTypeFromMetadata == null)
-            {
-                return BadRequest($"Element type {dataType} not allowed for instance {instanceGuid}.");
-            }
-
             try
             {
+                Application application = _appResourcesService.GetApplication();
+                if (application == null)
+                {
+                    return NotFound($"AppId {org}/{app} was not found");
+                }
+
+                DataType dataTypeFromMetadata = application.DataTypes.FirstOrDefault(e => e.Id.Equals(dataType, StringComparison.InvariantCultureIgnoreCase));
+
+                if (dataTypeFromMetadata == null)
+                {
+                    return BadRequest($"Element type {dataType} not allowed for instance {instanceGuid}.");
+                }
+
                 bool appLogic = dataTypeFromMetadata.AppLogic != null;
 
                 Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
@@ -114,11 +114,10 @@ namespace Altinn.App.Api.Controllers
                     return await CreateBinaryData(org, app, instance, dataType);
                 }
             }
-            catch (PlatformHttpException pce)
+            catch (PlatformHttpException e)
             {
-                return ExceptionResponse(pce, $"Cannot create data element of {dataType} for {instanceOwnerPartyId}/{instanceGuid}");
+                return HandlePlatformHttpException(e, $"Cannot create data element of {dataType} for {instanceOwnerPartyId}/{instanceGuid}");
             }
-
         }
 
         /// <summary>
@@ -139,35 +138,42 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceGuid,
             [FromRoute] Guid dataGuid)
         {
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance == null)
+            try
             {
-                return NotFound($"Did not find instance {instance}");
+                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                if (instance == null)
+                {
+                    return NotFound($"Did not find instance {instance}");
+                }
+
+                DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
+
+                if (dataElement == null)
+                {
+                    return NotFound("Did not find data element");
+                }
+
+                string dataType = dataElement.DataType;
+
+                bool? appLogic = await RequiresAppLogic(org, app, dataType);
+
+                if (appLogic == null)
+                {
+                    string error = $"Could not determine if {dataType} requires app logic for application {org}/{app}";
+                    _logger.LogError(error);
+                    return BadRequest(error);
+                }
+                else if ((bool)appLogic)
+                {
+                    return await GetFormData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataType);
+                }
+
+                return await GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataElement);
             }
-
-            DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
-
-            if (dataElement == null)
+            catch (PlatformHttpException e)
             {
-                return NotFound("Did not find data element");
+                return HandlePlatformHttpException(e, $"Cannot get data element of {dataGuid} for {instanceOwnerPartyId}/{instanceGuid}");
             }
-
-            string dataType = dataElement.DataType;
-
-            bool? appLogic = await RequiresAppLogic(org, app, dataType);
-
-            if (appLogic == null)
-            {
-                string error = $"Could not determine if {dataType} requires app logic for application {org}/{app}";
-                _logger.LogError(error);
-                return BadRequest(error);
-            }
-            else if ((bool)appLogic)
-            {
-                return await GetFormData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataType);
-            }
-
-            return await GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataElement);
         }
 
         /// <summary>
@@ -191,34 +197,37 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceGuid,
             [FromRoute] Guid dataGuid)
         {
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance == null)
+            try
             {
-                return NotFound("Did not find instance");
+                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+
+                DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
+
+                if (dataElement == null)
+                {
+                    return NotFound("Did not find data element");
+                }
+
+                string dataType = dataElement.DataType;
+
+                bool? appLogic = await RequiresAppLogic(org, app, dataType);
+
+                if (appLogic == null)
+                {
+                    _logger.LogError($"Could not determine if {dataType} requires app logic for application {org}/{app}");
+                    return BadRequest($"Could not determine if data type {dataType} requires application logic.");
+                }
+                else if ((bool)appLogic)
+                {
+                    return await PutFormData(org, app, instance, dataGuid, dataType);
+                }
+
+                return await PutBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
             }
-
-            DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
-
-            if (dataElement == null)
+            catch (PlatformHttpException e)
             {
-                return NotFound("Did not find data element");
+                return HandlePlatformHttpException(e, $"Unable to update data element {dataGuid} for instance {instanceOwnerPartyId}/{instanceGuid}");
             }
-
-            string dataType = dataElement.DataType;
-
-            bool? appLogic = await RequiresAppLogic(org, app, dataType);
-
-            if (appLogic == null)
-            {
-                _logger.LogError($"Could not determine if {dataType} requires app logic for application {org}/{app}");
-                return BadRequest($"Could not determine if data type {dataType} requires application logic.");
-            }
-            else if ((bool)appLogic)
-            {
-                return await PutFormData(org, app, instance, dataGuid, dataType);
-            }
-
-            return await PutBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
         }
 
         /// <summary>
@@ -239,36 +248,43 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceGuid,
             [FromRoute] Guid dataGuid)
         {
-            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance == null)
+            try
             {
-                return NotFound("Did not find instance");
+                Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                if (instance == null)
+                {
+                    return NotFound("Did not find instance");
+                }
+
+                DataElement dataElement = instance.Data.Find(m => m.Id.Equals(dataGuid.ToString()));
+
+                if (dataElement == null)
+                {
+                    return NotFound("Did not find data element");
+                }
+
+                string dataType = dataElement.DataType;
+
+                bool? appLogic = await RequiresAppLogic(org, app, dataType);
+
+                if (appLogic == null)
+                {
+                    string errorMsg = $"Could not determine if {dataType} requires app logic for application {org}/{app}";
+                    _logger.LogError(errorMsg);
+                    return BadRequest(errorMsg);
+                }
+                else if ((bool)appLogic)
+                {
+                    // trying deleting a form element
+                    return BadRequest("Deleting form data is not possible at this moment.");
+                }
+
+                return await DeleteBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
             }
-
-            DataElement dataElement = instance.Data.Find(m => m.Id.Equals(dataGuid.ToString()));
-
-            if (dataElement == null)
+            catch (PlatformHttpException e)
             {
-                return NotFound("Did not find data element");
+                return HandlePlatformHttpException(e, $"Cannot delete data element {dataGuid} for {instanceOwnerPartyId}/{instanceGuid}");
             }
-
-            string dataType = dataElement.DataType;
-
-            bool? appLogic = await RequiresAppLogic(org, app, dataType);
-
-            if (appLogic == null)
-            {
-                string errorMsg = $"Could not determine if {dataType} requires app logic for application {org}/{app}";
-                _logger.LogError(errorMsg);
-                return BadRequest(errorMsg);
-            }
-            else if ((bool)appLogic)
-            {
-                // trying deleting a form element
-                return BadRequest("Deleting form data is not possible at this moment.");
-            }
-
-            return await DeleteBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
         }
 
         private ActionResult ExceptionResponse(Exception exception, string message)
@@ -497,12 +513,6 @@ namespace Altinn.App.Api.Controllers
         private async Task<ActionResult> PutBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
         {
             DataElement dataElement = await _dataService.UpdateBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, Request);
-
-            if (dataElement.Locked)
-            {
-                return Conflict($"Data element {dataGuid} is locked and cannot be updated");
-            }
-
             SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
 
             return Created(dataElement.SelfLinks.Apps, dataElement);
@@ -540,11 +550,6 @@ namespace Altinn.App.Api.Controllers
                 instanceOwnerPartyId,
                 dataGuid);
 
-            if (updatedDataElement.Locked)
-            {
-                return Conflict($"Data element {dataGuid} is locked and cannot be updated");
-            }
-
             SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, updatedDataElement, Request);
 
             string dataUrl = updatedDataElement.SelfLinks.Apps;
@@ -557,5 +562,24 @@ namespace Altinn.App.Api.Controllers
             return Created(dataUrl, updatedDataElement);
         }
 
+        private ActionResult HandlePlatformHttpException(PlatformHttpException e, string defaultMessage)
+        {
+            if (e.Response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                return Forbid();
+            }
+            else if (e.Response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return NotFound();
+            }
+            else if (e.Response.StatusCode == HttpStatusCode.Conflict)
+            {
+                return Conflict();
+            }
+            else
+            {
+                return ExceptionResponse(e, defaultMessage);
+            }
+        }
     }
 }

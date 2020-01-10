@@ -118,10 +118,6 @@ namespace Altinn.App.Services.Implementation
                 DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
                 return dataElement;
             }
-            else if (response.StatusCode.Equals(HttpStatusCode.Conflict))
-            {
-                return new DataElement { Locked = true };
-            }
 
             throw new PlatformHttpException(response);
         }
@@ -331,13 +327,8 @@ namespace Altinn.App.Services.Implementation
 
                 return dataElement;
             }
-            else if (response.StatusCode.Equals(HttpStatusCode.Conflict))
-            {
-                return new DataElement { Locked = true };
-            }
 
             _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
-
             throw new PlatformHttpException(response);
         }
 
