@@ -4,25 +4,7 @@ import App from '../app';
 
 
 export default class DesignerPage {
-  constructor() {
-
-    //editor elements #schema-components
-    this.header = Selector("#schema-texts").withText("Header");
-    this.inputBtn = Selector("#schema-components").withText("Input");
-    this.dropDown = Selector("#schema-components").withText("Dropdown");
-    this.datePicker = Selector("#schema-components").withText("Datepicker");
-    this.checkBoxes = Selector("#schema-components").withText("Checkboxes");
-    this.radioButtons = Selector("#schema-components").withText("RadioButtons");
-    this.textArea = Selector("#schema-components").withText("TextArea");
-    this.fileUpload = Selector("#schema-components").withText("FileUpload");
-    this.submit = Selector("#schema-components").withText("Submit");
-    this.saveButton = Selector("#schema-components").withText("Save");
-    this.addApiConnection = Selector(".d-block").withText("Api connections").child(0);
-    this.addRuleConnection = Selector(".d-block").withText("Rule connections").child(0);
-    this.addConditionalRendering = Selector(".d-block").withText("Conditional Rendering").child(0);
-
-    //editor canvas
-    this.canvas = Selector('.div').withAttribute('draggable');
+  constructor() {    
 
     //left drawer menu
     this.leftDrawerMenu = Selector('#root > div > div > div:nth-child(2) > div:nth-child(1) > div > div > div');
@@ -130,17 +112,17 @@ export default class DesignerPage {
     this.connectRulesButton = Selector('p').withExactText('Regler').nextSibling('button');
     this.connectConditionalRendering = Selector('p').withExactText('Betingede renderingstilkoblinger').nextSibling('button');
     this.addedRules = Selector('.a-topTasks').find('button');
-    this.validationsGroup = Selector('span').withExactText('Valideringer').parent("li");
+    this.validationsGroup = Selector('span').withExactText('Valideringer');
     this.editValidations = Selector('span').withExactText('Rediger valideringer');
-    this.dynamicsGroup = Selector('span').withExactText('Dynamikk').prevSibling("div");
+    this.dynamicsGroup = Selector('span').withExactText('Dynamikk');
     this.editDynamic = Selector('span').withExactText('Rediger dynamikk');
-    this.calculationsGroup = Selector('span').withExactText('Kalkuleringer').prevSibling("div");
+    this.calculationsGroup = Selector('span').withExactText('Kalkuleringer');
     this.editCalculations = Selector('span').withExactText('Rediger kalkuleringer');   
 
     //rulesmodal
     this.rulesConnectionModal = Selector('span').withExactText('Konfigurer regler');
     this.rulesDropDown = Selector('select').withAttribute('name', 'selectRule');
-    this.rulesList = this.rulesDropDown.find('div');
+    this.rulesList = this.rulesDropDown.find('option');
     this.saveRulesButton = Selector('button').withExactText('Lagre');
     this.deleteRulesButton = Selector('button').withExactText('Slett');
 
@@ -165,14 +147,34 @@ export default class DesignerPage {
 
   async deleteUIComponentsMethod (t) {
     var addedUIComponents = await this.dragToArea.child('div').withAttribute('draggable','true');
-    var numberOfComponents = await addedUIComponents.count;
+    var numberOfComponents = await addedUIComponents.count;    
     if (numberOfComponents > 0 && !await addedUIComponents.withText('Tomt').exists) {
-        for (var i = 0; i < numberOfComponents; i++) {
+        for (var i = 0; i < numberOfComponents; i++) {          
           await t.hover(addedUIComponents.nth(i));
           await t.click(addedUIComponents.nth(i));
         }
         await t.hover(this.removeComponentsButton.parent('button'));
         await t.click(this.removeComponentsButton.parent('button'));
     }
+  }
+
+async pushAndCommitChanges (t) {
+ await t 
+    .expect(this.delEndringer.exists).ok({ timeout: 180000 })
+    .click(this.delEndringer)
+    .expect(this.commitMessageBox.exists).ok({ timeout: 60000 })
+    .click(this.commitMessageBox)
+    .typeText(this.commitMessageBox, "Sync service automated test", { replace: true })
+    .expect(this.validerEndringer.exists).ok({ timeout: 60000 })
+    .click(this.validerEndringer)
+    .expect(this.delEndringerBlueButton.exists).ok({ timeout: 180000 })
+    .click(this.delEndringerBlueButton)
+    .expect(this.ingenEndringer.exists).ok({ timeout: 180000 })
+  }
+
+  async getlatestBuildVersion (t) {
+    var lastBuildVersion = await this.deployVersionOptions.child(0).innerText; //first element of the dropdown list
+    lastBuildVersion = lastBuildVersion.split(" ");    
+    return lastBuildVersion[1];
   }
 }

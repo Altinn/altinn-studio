@@ -27,7 +27,7 @@ fixture('Navigating the App designer')
   .after(async () => {
   })
 
-test.only('Om tab navigation', async () => {
+test('Om tab navigation', async () => {
   await t
     .click(designerPage.omNavigationTab)
     .hover(designerPage.leftDrawerMenu)
