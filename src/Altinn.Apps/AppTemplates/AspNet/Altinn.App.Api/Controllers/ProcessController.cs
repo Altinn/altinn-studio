@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Altinn.App.Api.Filters;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Models;
@@ -28,6 +29,7 @@ namespace Altinn.App.Api.Controllers
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/process")]
     [ApiController]
     [Authorize]
+    [AutoValidateAntiforgeryTokenIfAuthCookie]
     public class ProcessController : ControllerBase
     {
         private const int MAX_ITERATIONS_ALLOWED = 100;

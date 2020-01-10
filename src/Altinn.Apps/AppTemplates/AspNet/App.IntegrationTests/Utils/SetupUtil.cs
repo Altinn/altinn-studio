@@ -16,6 +16,8 @@ using Microsoft.Extensions.Options;
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Collections;
+using System.Linq;
 
 namespace App.IntegrationTestsRef.Utils
 {
@@ -85,6 +87,30 @@ namespace App.IntegrationTestsRef.Utils
             return client;
         }
 
+
+        public static void AddAuthCookie(HttpRequestMessage requestMessage, string token, string xsrfToken=null)
+        {
+            requestMessage.Headers.Add("Cookie", Altinn.App.Services.Constants.General.RuntimeCookieName +"=" + token);
+            if (xsrfToken != null)
+            {
+                requestMessage.Headers.Add("X-XSRF-TOKEN", xsrfToken);
+            }
+        }
+
+        public static string GetXsrfCookieValue(HttpResponseMessage response)
+        {
+            System.Collections.Generic.IEnumerable<string> setCookieHeaders = response.Headers.GetValues("Set-Cookie");
+
+           for (int i = 0; i < setCookieHeaders.Count(); i++)
+           {
+                if(setCookieHeaders.ElementAt(i).StartsWith("XSRF-TOKEN"))
+                {
+                    return setCookieHeaders.ElementAt(i).Substring(11).Split(";")[0];
+                }
+           }
+
+            return null;
+        }
 
         private static string GetAppPath(string org, string app)
         {

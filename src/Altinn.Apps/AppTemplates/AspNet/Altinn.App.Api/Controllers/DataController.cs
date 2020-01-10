@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Altinn.App.Api.Filters;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Helpers;
@@ -22,6 +23,7 @@ namespace Altinn.App.Api.Controllers
     /// <summary>
     /// The data controller handles creation, update, validation and calculation of data elements.
     /// </summary>
+    [AutoValidateAntiforgeryTokenIfAuthCookie]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data")]
     public class DataController : ControllerBase
     {
