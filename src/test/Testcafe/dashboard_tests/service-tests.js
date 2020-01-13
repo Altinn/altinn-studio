@@ -32,10 +32,8 @@ test('Cannot create new app, as app name already exists', async () => {
     .click(dash.tjenesteEier)        
     .expect(dash.serviceOwnerList.withExactText('Testdepartementet').exists).ok()
     .click(dash.serviceOwnerList.withExactText('Testdepartementet'))
-    .click(dash.tjenesteNavn)
-    .typeText(dash.tjenesteNavn, t.ctx.existingService)
-    .pressKey("tab")
-    .pressKey("tab")
+    .click(dash.appName)
+    .typeText(dash.appName, t.ctx.existingService)    
     .click(dash.opprettButton)
     .expect(dash.serviceExistsDialogue.exists).ok()
 });
