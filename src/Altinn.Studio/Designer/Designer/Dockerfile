@@ -44,4 +44,4 @@ COPY --from=altinn-studio-dashboard /dist/dashboard.css ./wwwroot/designer/css/d
 COPY /Designer/Designer/Languages/ini ./Languages
 
 
-ENTRYPOINT ["dotnet", "AltinnCore.Designer.dll"]
+ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]
