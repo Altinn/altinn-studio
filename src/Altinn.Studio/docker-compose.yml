@@ -13,14 +13,14 @@ services:
     image: altinn-studio-dashboard:latest
     build:
       context: .
-      dockerfile: ../react-apps/applications/dashboard/Dockerfile
+      dockerfile: ./Designer/Frontend/dashboard/Dockerfile
 
   altinn_service_development:
     container_name: studiodev
     image: altinn-studio-service-development:latest
     build:
       context: .
-      dockerfile: ../react-apps/applications/service-development/Dockerfile
+      dockerfile: ./Designer/Frontend/service-development/Dockerfile
 
   altinn_loadbalancer:
     container_name: altinn-loadbalancer
