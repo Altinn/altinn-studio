@@ -44,7 +44,7 @@ fixture('Deploy of app to a test environment tests')
       .click(designer.deployVersionDropDown)
       .expect(designer.deployVersionOptions.visible).ok();
 
-    var newBuildVersion = Number(designer.getlatestBuildVersion(t) + 1); //assumes integer as last built version
+    var newBuildVersion = Number(await designer.getlatestBuildVersion(t)) + 1; //assumes integer as last built version    
     var today = new Date();
     var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
     var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
