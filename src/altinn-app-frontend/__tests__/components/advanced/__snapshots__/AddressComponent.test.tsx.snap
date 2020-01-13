@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snapshot of AddressComponent 1`] = `
+<div
+  className="address-component"
+>
+  <label
+    className="a-form-label title-label"
+    htmlFor="mock-id"
+  >
+    Adresse
+    <span
+      className="label-optional"
+    >
+      (
+      general.optional
+      )
+    </span>
+  </label>
+  <input
+    className="form-control"
+    onBlur={[Function]}
+    onChange={[Function]}
+    readOnly={false}
+    required={false}
+    value="adresse 1"
+  />
+  <div
+    className="address-component-postplace-zipCode"
+  >
+    <div
+      className="address-component-zipCode"
+    >
+      <label
+        className="a-form-label title-label"
+        htmlFor="mock-id"
+      >
+        Postnr
+        <span
+          className="label-optional"
+        >
+          (
+          general.optional
+          )
+        </span>
+      </label>
+      <input
+        className="address-component-small-inputs form-control"
+        onBlur={[Function]}
+        onChange={[Function]}
+        readOnly={false}
+        required={false}
+        value=""
+      />
+    </div>
+    <div
+      className="address-component-postplace"
+    >
+      <label
+        className="a-form-label title-label"
+        htmlFor="mock-id"
+      >
+        Poststed
+      </label>
+      <input
+        className="form-control disabled"
+        readOnly={true}
+        value=""
+      />
+    </div>
+  </div>
+</div>
+`;

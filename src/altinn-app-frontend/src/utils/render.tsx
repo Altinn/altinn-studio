@@ -1,0 +1,60 @@
+import Typography from '@material-ui/core/Typography';
+import * as React from 'react';
+import MessageComponent from '../components/message/MessageComponent';
+
+export const styles = {
+  inputHelper: {
+    marginTop: '2.4rem',
+    fontSize: '1.6rem',
+    lineHeight: '3.2rem',
+  },
+};
+
+export function renderPropertyLabel(textKey: string) {
+  return (
+    <Typography style={styles.inputHelper}>
+      {textKey}
+    </Typography>
+  );
+}
+
+export function noOptionsMessage(language: any): string {
+  return language.general.no_options;
+}
+
+export function renderValidationMessagesForComponent(
+  validationMessages: any,
+  id: string,
+): JSX.Element[] {
+  if (!validationMessages) {
+    return null;
+  }
+  const validationMessageElements: JSX.Element[] = [];
+  if (validationMessages.errors && validationMessages.errors.length > 0) {
+    validationMessageElements.push(renderValidationMessages(validationMessages.errors, `error_${id}`, 'error'));
+  }
+
+  if (validationMessages.warnings && validationMessages.warnings.length > 0) {
+    validationMessageElements.push(renderValidationMessages(validationMessages.warnings, `message_${id}`, 'message'));
+  }
+  return validationMessageElements.length > 0 ? validationMessageElements : null;
+}
+
+export function renderValidationMessages(messages: string[], id: string, messageType: any) {
+  return (
+    <MessageComponent
+      messageType={messageType}
+      style={{ display: 'block', width: 'fit-content' }}
+      key={'messageType'}
+      id={id}
+    >
+      <ol>
+        {messages.map((message: string, idx: number) => {
+          return (
+            <li key={idx}>{message}</li>
+          );
+        })}
+      </ol>
+    </MessageComponent>
+  );
+}

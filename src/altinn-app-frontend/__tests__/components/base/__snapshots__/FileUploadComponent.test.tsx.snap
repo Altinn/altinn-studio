@@ -1,0 +1,155 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1`] = `
+<div
+  className="container"
+  id="altinn-fileuploader-mockId"
+>
+  <div
+    id="altinn-file-list-mockId"
+  >
+    <table
+      className="file-upload-table"
+    >
+      <thead>
+        <tr
+          className="blue-underline"
+          id="altinn-file-list-row-header"
+        >
+          <th>
+            form_filler.file_uploader_list_header_name
+          </th>
+          <th>
+            form_filler.file_uploader_list_header_file_size
+          </th>
+          <th>
+            form_filler.file_uploader_list_header_status
+          </th>
+          <th />
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          className="blue-underline-dotted"
+          id="altinn-file-list-row-attachment-id-1"
+        >
+          <td>
+            attachment-name-1
+          </td>
+          <td>
+            0.00 form_filler.file_uploader_mb
+          </td>
+          <td>
+            <div>
+              form_filler.file_uploader_list_status_done
+              <i
+                className="ai ai-check-circle"
+              />
+            </div>
+          </td>
+          <td>
+            <div
+              id="attachment-delete-0"
+              onClick={[Function]}
+            >
+              form_filler.file_uploader_list_delete
+              <i
+                className="ai ai-trash"
+              />
+            </div>
+          </td>
+        </tr>
+        <tr
+          className="blue-underline-dotted"
+          id="altinn-file-list-row-attachment-id-2"
+        >
+          <td>
+            attachment-name-2
+          </td>
+          <td>
+            0.00 form_filler.file_uploader_mb
+          </td>
+          <td>
+            <div
+              className="a-loader"
+              id="loader-upload"
+            >
+              <div
+                className="loader loader-ellipsis"
+                style={
+                  Object {
+                    "marginBottom": "1.6rem",
+                    "marginLeft": "1.3rem",
+                  }
+                }
+              />
+            </div>
+          </td>
+          <td>
+            <div
+              id="attachment-delete-1"
+              onClick={[Function]}
+            >
+              form_filler.file_uploader_list_delete
+              <i
+                className="ai ai-trash"
+              />
+            </div>
+          </td>
+        </tr>
+        <tr
+          className="blue-underline-dotted"
+          id="altinn-file-list-row-attachment-id-3"
+        >
+          <td>
+            attachment-name-3
+          </td>
+          <td>
+            0.00 form_filler.file_uploader_mb
+          </td>
+          <td>
+            <div>
+              form_filler.file_uploader_list_status_done
+              <i
+                className="ai ai-check-circle"
+              />
+            </div>
+          </td>
+          <td>
+            <div
+              id="attachment-delete-2"
+              onClick={[Function]}
+            >
+              <div
+                className="a-loader"
+                id="loader-delete"
+              >
+                <div
+                  className="loader loader-ellipsis"
+                  style={
+                    Object {
+                      "marginBottom": "1.6rem",
+                      "marginRight": "1.0rem",
+                    }
+                  }
+                />
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p
+    className="file-upload-text-bold-small"
+  >
+    form_filler.file_uploader_number_of_files 3/4
+  </p>
+  <button
+    className="file-upload-button blue-underline"
+    onClick={[Function]}
+  >
+    form_filler.file_uploader_add_attachment
+  </button>
+</div>
+`;
