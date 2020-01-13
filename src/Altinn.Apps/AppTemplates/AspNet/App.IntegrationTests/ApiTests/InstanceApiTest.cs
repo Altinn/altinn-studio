@@ -250,6 +250,70 @@ namespace App.IntegrationTests
 
                 TestDataUtil.DeletInstanceAndData("tdd", "custom-validering", 1000, new Guid(createdInstance.Id.Split('/')[1]));
             }
+
+        }
+
+        [Fact]
+        public async Task Instance_Post_WithQueryParamOk_AuthCookie()
+        {
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            HttpRequestMessage httpRequestMessageHome = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/")
+            {
+                
+            };
+
+            SetupUtil.AddAuthCookie(httpRequestMessageHome, token);
+
+            HttpResponseMessage responseHome = await client.SendAsync(httpRequestMessageHome);
+
+            string xsrfToken = SetupUtil.GetXsrfCookieValue(responseHome);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances?instanceOwnerPartyId=1000")
+            {
+            };
+
+            SetupUtil.AddAuthCookie(httpRequestMessage, token, xsrfToken);
+          
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+            Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.NotNull(instance);
+            Assert.Equal("1000", instance.InstanceOwner.PartyId);
+
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new Guid(instance.Id.Split('/')[1]));
+        }
+
+        [Fact]
+        public async Task Instance_Post_WithQueryParamInvalidCsrf_AuthCookie()
+        {
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            HttpRequestMessage httpRequestMessageHome = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/")
+            {
+
+            };
+
+            SetupUtil.AddAuthCookie(httpRequestMessageHome, token);
+
+            HttpResponseMessage responseHome = await client.SendAsync(httpRequestMessageHome);
+
+            string xsrfToken = SetupUtil.GetXsrfCookieValue(responseHome);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances?instanceOwnerPartyId=1000")
+            {
+            };
+
+            xsrfToken = xsrfToken + "THIS_MAKE_THE_TOKEN_INVALID";
+            SetupUtil.AddAuthCookie(httpRequestMessage, token, xsrfToken);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+  
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
 }

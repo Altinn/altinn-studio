@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.Api.Filters;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
@@ -35,6 +36,7 @@ namespace Altinn.App.Api.Controllers
     /// You can create a new instance (POST), update it (PUT) and retreive a specific instance (GET).
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryTokenIfAuthCookie]
     [Route("{org}/{app}/instances")]
     [ApiController]
     public class InstancesController : ControllerBase

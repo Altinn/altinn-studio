@@ -24,6 +24,7 @@ test('Drag and drop test', async () => {
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/ui-editor')
     .expect(designer.inputComponent).ok()
     .dragToElement(designer.inputComponent, designer.dragToArea)
+    .click(designer.advancedComponentsGroup)
     .dragToElement(designer.addressComponent, designer.dragToArea)
   await designer.deleteUIComponentsMethod(t);
 });
@@ -116,15 +117,19 @@ test("User cannot clone an app that does not have a data model", async () => {
 test('Configure and delete rules', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/ttd/rulesservice1219#/ui-editor')
-    .expect(designer.openserviceLogicmenu.exists).ok({ timeout: 5000 })
-    .click(designer.openserviceLogicmenu)
+    if (!await designer.serviceLogicmenu.exists) {
+      await t.click(designer.openserviceLogicmenu)
+    }   
+  await t
+    .expect(designer.serviceLogicmenu.exists).ok({ timeout: 5000 })
+    .click(designer.dynamicsGroup)
     .expect(designer.connectRulesButton.exists).ok()
     .click(designer.connectRulesButton)
     .expect(designer.rulesConnectionModal.exists).ok({ timeout: 10000 })
     .expect(designer.rulesDropDown.exists).ok()
     .click(designer.rulesDropDown)
-    .expect(designer.rulesList.withText('sum').exists).ok()
-    .click(designer.rulesList.withText('sum'))
+    .expect(designer.rulesList.withAttribute('value','sum').exists).ok()
+    .click(designer.rulesList.withAttribute('value','sum'))
     .click(designer.saveRulesButton)
     .expect(designer.addedRules.withExactText('sum').exists).ok()
     .click(designer.addedRules.withExactText('sum'))
@@ -135,18 +140,30 @@ test('Configure and delete rules', async () => {
 test('Links in App Logic menu', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/ui-editor')
-    .expect(designer.openserviceLogicmenu.exists).ok({ timeout: 5000 })
-    .click(designer.openserviceLogicmenu)
+   if (!await designer.serviceLogicmenu.exists) {
+      await t.click(designer.openserviceLogicmenu)
+   }   
+   await t
+    .expect(designer.serviceLogicmenu.exists).ok({ timeout: 5000 })
+    .expect(designer.validationsGroup.exists).ok({ timeout: 5000 })    
+    .expect(designer.validationsGroup.visible).ok()
+    .click(designer.validationsGroup)
     .expect(designer.editValidations.exists).ok()
+    .click(designer.dynamicsGroup)
     .expect(designer.editDynamic.exists).ok()
+    .click(designer.calculationsGroup)
     .expect(designer.editCalculations.exists).ok()
 });
 
 test('Add and delete conditional rendering connections', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/ui-editor')
-    .expect(designer.openserviceLogicmenu.exists).ok({ timeout: 5000 })
-    .click(designer.openserviceLogicmenu)
+    if (!await designer.serviceLogicmenu.exists) {
+      await t.click(designer.openserviceLogicmenu)
+   }   
+   await t
+    .expect(designer.serviceLogicmenu.exists).ok({ timeout: 5000 })
+    .click(designer.dynamicsGroup)
     .expect(designer.connectConditionalRendering.exists).ok()
     .click(designer.connectConditionalRendering)
     .expect(designer.renderingConnectionModal.exists).ok({ timeout: 10000 })

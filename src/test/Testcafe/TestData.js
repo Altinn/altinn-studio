@@ -15,19 +15,25 @@ export default class TestData {
 }
 
 export const AutoTestUser = Role(app.baseUrl, async t => {
+  var password= process.env.autoTestPwd.toString();
+  var passwordLength = password.length;
+  password = password.substring(1, passwordLength-1);
   await t
       .click(loginPage.welcomeLoginButton)
       .expect(loginPage.userInput.exists).ok({timeout: 30000})
       .typeText(loginPage.userInput, "AutoTest")
-      .typeText(loginPage.passwordInput, "test123")
+      .typeText(loginPage.passwordInput, password)
       .click(loginPage.loginButton)
 }, { preserveUrl: true })
 
-export const NoDeployUser = Role(app.baseUrl, async t => {
+export const NoDeployUser = Role(app.baseUrl, async t => {  
+  var password= process.env.automatedTestPwd.toString();
+  var passwordLength = password.length;
+  password = password.substring(1, passwordLength-1);
   await t
       .click(loginPage.welcomeLoginButton)
-      .expect(loginPage.userInput.exists).ok()
+      .expect(loginPage.userInput.exists).ok({timeout: 30000})
       .typeText(loginPage.userInput, "automatedtest@email.com")
-      .typeText(loginPage.passwordInput, "test123")
+      .typeText(loginPage.passwordInput, password)
       .click(loginPage.loginButton)
 }, { preserveUrl: true })
