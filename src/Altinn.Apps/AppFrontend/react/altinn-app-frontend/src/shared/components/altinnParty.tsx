@@ -1,17 +1,17 @@
 import { createStyles, Grid, Paper, Typography, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import AltinnCollapsableList from '../../../../shared/src/components/AltinnCollapsableList';
-import altinnTheme from '../../../../shared/src/theme/altinnAppTheme';
-import { IParty } from '../../../../shared/src/types';
+import {AltinnCollapsableList} from 'altinn-shared/components';
+import {AltinnAppTheme} from 'altinn-shared/theme';
+import { IParty } from 'altinn-shared/types';
 import { IRuntimeState } from '../../types';
 
 const styles = createStyles({
   partyPaper: {
     marginBottom: '1.2rem',
     borderRadius: 0,
-    backgroundColor: altinnTheme.altinnPalette.primary.blueLighter,
-    boxShadow: altinnTheme.sharedStyles.boxShadow,
+    backgroundColor: AltinnAppTheme.altinnPalette.primary.blueLighter,
+    boxShadow: AltinnAppTheme.sharedStyles.boxShadow,
     width: '100%',
   },
   partyWrapper: {
@@ -31,9 +31,9 @@ const styles = createStyles({
   partyPaperDisabled: {
     marginBottom: '1.2rem',
     borderRadius: 0,
-    backgroundColor: altinnTheme.altinnPalette.primary.blueLighter,
-    boxShadow: altinnTheme.sharedStyles.boxShadow,
-    color: altinnTheme.altinnPalette.primary.grey,
+    backgroundColor: AltinnAppTheme.altinnPalette.primary.blueLighter,
+    boxShadow: AltinnAppTheme.sharedStyles.boxShadow,
+    color: AltinnAppTheme.altinnPalette.primary.grey,
     width: '100%',
   },
   partyIcon: {
@@ -52,7 +52,7 @@ const styles = createStyles({
     fontWeight: 300,
   },
   subUnitWrapper: {
-    color: altinnTheme.altinnPalette.primary.black,
+    color: AltinnAppTheme.altinnPalette.primary.black,
   },
   subUnitListHeaderWrapper: {
     '&:hover': {
@@ -60,14 +60,14 @@ const styles = createStyles({
     },
     'paddingTop': '1.2rem',
     'paddingBottom': '1.2rem',
-    'borderTop': `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
+    'borderTop': `1px solid ${AltinnAppTheme.altinnPalette.primary.greyMedium}`,
   },
   subUnit: {
     'width': '100%',
     'paddingLeft': '2.4rem',
     'paddingRight': '2.4rem',
     '&:hover': {
-      background: altinnTheme.altinnPalette.primary.blueLight,
+      background: AltinnAppTheme.altinnPalette.primary.blueLight,
       cursor: 'pointer',
     },
   },
@@ -75,21 +75,21 @@ const styles = createStyles({
     'paddingLeft': '2.4rem',
     'paddingRight': '2.4rem',
     '&:hover': {
-      background: altinnTheme.altinnPalette.primary.blueLight,
+      background: AltinnAppTheme.altinnPalette.primary.blueLight,
       cursor: 'pointer',
     },
   },
   subUnitListHeaderText: {
     paddingTop: '1.2rem',
-    color: altinnTheme.altinnPalette.primary.black,
+    color: AltinnAppTheme.altinnPalette.primary.black,
   },
   subUnitListHeaderIcon: {
     padding: '1.2rem',
     fontSize: '1.3rem',
-    color: altinnTheme.altinnPalette.primary.blue,
+    color: AltinnAppTheme.altinnPalette.primary.blue,
   },
   subUnitTextWrapper: {
-    borderTop: `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
+    borderTop: `1px solid ${AltinnAppTheme.altinnPalette.primary.greyMedium}`,
     paddingRight: '2.1rem',
     paddingLeft: '4.8rem',
   },

@@ -6,6 +6,11 @@
       "jest"
     ],
     "baseUrl": ".",
+    "paths": {
+      "altinn-shared/*": [
+        "../shared/src/*",
+      ]
+    },
     "outDir": "compiled",
     "module": "commonjs",
     "target": "es5",
@@ -18,7 +23,7 @@
     "allowJs": true,
     "jsx": "react",
     "moduleResolution": "node",
-    "rootDir": "../",
+    "rootDir": "./../",
     "strictNullChecks": false,
   },
   "include": [

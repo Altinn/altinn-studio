@@ -1,4 +1,4 @@
-import { IParty } from '../../../../../../shared/src/types';
+import { IParty } from 'altinn-shared/types';
 
 export interface IProfile {
   userId: number;

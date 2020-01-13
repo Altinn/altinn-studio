@@ -5,8 +5,8 @@ import { IRuntimeState } from '../../../../types';
 import { mapAttachmentListToAttachments } from '../../../../utils/attachment';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
-import { IData, IInstance } from './../../../../../../shared/src/types';
-import { getCurrentTaskData } from './../../../../../../shared/src/utils/applicationMetaDataUtils';
+import { IData, IInstance } from 'altinn-shared/types';
+import { getCurrentTaskData } from 'altinn-shared/utils';
 import { IApplicationMetadata } from './../../applicationMetadata';
 
 export function* watchMapAttachmentsSaga(): SagaIterator {

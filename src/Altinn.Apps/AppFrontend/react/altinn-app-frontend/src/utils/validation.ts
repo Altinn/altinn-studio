@@ -1,4 +1,4 @@
-import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../shared/src/utils/language';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import { IFormData } from '../features/form/data/reducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
 import { IValidationIssue, Severity } from '../types';
