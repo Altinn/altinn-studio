@@ -15,16 +15,16 @@ const cleanGlobs = [
 ];
 
 
-const jsServDevFile = '../../react-apps/applications/service-development/dist/service-development.js';
-const jsServDevModuleFile0 = '../../react-apps/applications/service-development/dist/0.service-development.js';
-const jsServDevModuleFile1 = '../../react-apps/applications/service-development/dist/1.service-development.js';
-const jsServDevModuleFile2 = '../../react-apps/applications/service-development/dist/2.service-development.js';
-const jsServDevModuleFile3 = '../../react-apps/applications/service-development/dist/3.service-development.js';
-const jsServDevMonacoWorker1 = '../../react-apps/applications/service-development/js/react/editor.worker.js';
-const jsServDevMonacoWorker2 = '../../react-apps/applications/service-development/js/react/typescript.worker.js';
-const jsDashboardFile = '../../react-apps/applications/dashboard/dist/dashboard.js';
-const cssServDevFile = '../../react-apps/applications/service-development/dist/service-development.css';
-const cssDashboardFile = '../../react-apps/applications/dashboard/dist/dashboard.css';
+const jsServDevFile = '../Frontend/applications/service-development/dist/service-development.js';
+const jsServDevModuleFile0 = '../Frontend/applications/service-development/dist/0.service-development.js';
+const jsServDevModuleFile1 = '../Frontend/applications/service-development/dist/1.service-development.js';
+const jsServDevModuleFile2 = '../Frontend/applications/service-development/dist/2.service-development.js';
+const jsServDevModuleFile3 = '../Frontend/applications/service-development/dist/3.service-development.js';
+const jsServDevMonacoWorker1 = '../Frontend/applications/service-development/js/react/editor.worker.js';
+const jsServDevMonacoWorker2 = '../Frontend/applications/service-development/js/react/typescript.worker.js';
+const jsDashboardFile = '../Frontend/applications/dashboard/dist/dashboard.js';
+const cssServDevFile = '../Frontend/applications/service-development/dist/service-development.css';
+const cssDashboardFile = '../Frontend/applications/dashboard/dist/dashboard.css';
 
 let jsWatcher = null;
 let cssWatcher = null;
@@ -233,10 +233,10 @@ gulp.task('clean', gulp.series(
   deleteDashboardJs,
   cleanNodeModulePackages,
   run('npm run clean', {
-    cwd: '../../react-apps/applications/dashboard',
+    cwd: '../Frontend/applications/dashboard',
   }),
   run('npm run clean', {
-    cwd: '../../react-apps/applications/service-development',
+    cwd: '../Frontend/applications/service-development',
   })
 ));
 
@@ -245,7 +245,7 @@ gulp.task('develop', gulp.parallel(
   setupWatchers,
   run('dotnet run'),
   run('npm run webpack-watch', {
-    cwd: '../../react-apps/applications/service-development',
+    cwd: '../Frontend/applications/service-development',
   })
 ));
 
@@ -254,32 +254,32 @@ gulp.task('develop-dashboard', gulp.parallel(
   setupWatchers,
   run('dotnet run'),
   run('npm run webpack-watch', {
-    cwd: '../../react-apps/applications/dashboard',
+    cwd: '../Frontend/applications/dashboard',
   })
 ));
 
 gulp.task('build-ux-editor', gulp.series(
   run('npm run build', {
-    cwd: '../../react-apps/applications/ux-editor',
+    cwd: '../Frontend/applications/ux-editor',
   }),
   'copy-files'
 ));
 
 gulp.task('install-react-app-dependencies', gulp.series(
   run('lerna bootstrap --hoist --ci', {
-    cwd: '../../react-apps',
+    cwd: '../Frontend',
   })
 ));
 
 gulp.task('default', gulp.series([
   run('npm run build', {
-    cwd: '../../react-apps/applications/service-development',
+    cwd: '../Frontend/applications/service-development',
   }),
   run('npm run build', {
-    cwd: '../../react-apps/applications/dashboard',
+    cwd: '../Frontend/applications/dashboard',
   }),
   run('npm run build', {
-    cwd: '../../react-apps/applications/ux-editor',
+    cwd: '../Frontend/applications/ux-editor',
   }),
   'copy-files'
 ]));

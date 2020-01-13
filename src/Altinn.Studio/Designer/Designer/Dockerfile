@@ -1,16 +1,16 @@
 FROM node:10.13.0 AS generate-designer-js
-COPY /src/AltinnCore/Designer/package.json .
-COPY /src/AltinnCore/Designer/package-lock.json .
+COPY /Designer/Designer/package.json .
+COPY /Designer/Designer/package-lock.json .
 RUN npm ci
-COPY /src/AltinnCore/Designer .
+COPY /Designer/Designer .
 RUN npm run gulp build
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-alpine AS build
-COPY /src/AltinnCore ./AltinnCore/
-COPY --from=generate-designer-js /wwwroot /AltinnCore/Designer/wwwroot
+COPY /Designer/Designer ./Designer/
+COPY --from=generate-designer-js /wwwroot /Designer/Designer/wwwroot
 
-RUN dotnet build AltinnCore/Designer/AltinnCore.Designer.csproj -c Release -o /app_output
-RUN dotnet publish AltinnCore/Designer/AltinnCore.Designer.csproj -c Release -o /app_output
+RUN dotnet build Designer/Designer.csproj -c Release -o /app_output
+RUN dotnet publish Designer/Designer.csproj -c Release -o /app_output
 
 # Altinn-Studio Service-Development
 FROM altinn-studio-service-development:latest AS altinn-studio-service-development
@@ -34,13 +34,14 @@ COPY --from=altinn-studio-dashboard /dist/dashboard.js ./wwwroot/designer/js/rea
 COPY --from=altinn-studio-dashboard /dist/dashboard.css ./wwwroot/designer/css/dashboard.css
 
 ## Copying app template
-COPY /src/Altinn.Apps/AppTemplates/AspNet/App ./Templates/AspNet/App
-COPY /src/Altinn.Apps/AppTemplates/AspNet/App.IntegrationTests ./Templates/AspNet/App.IntegrationTests
-COPY /src/Altinn.Apps/AppTemplates/AspNet/deployment ./Templates/AspNet/deployment
-COPY /src/Altinn.Apps/AppTemplates/AspNet/.gitignore ./Templates/AspNet
-COPY /src/Altinn.Apps/AppTemplates/AspNet/App.sln ./Templates/AspNet
+## TODO: how to solve this?
+# COPY /src/Altinn.Apps/AppTemplates/AspNet/App ./Templates/AspNet/App
+# COPY /src/Altinn.Apps/AppTemplates/AspNet/App.IntegrationTests ./Templates/AspNet/App.IntegrationTests
+# COPY /src/Altinn.Apps/AppTemplates/AspNet/deployment ./Templates/AspNet/deployment
+# COPY /src/Altinn.Apps/AppTemplates/AspNet/.gitignore ./Templates/AspNet
+# COPY /src/Altinn.Apps/AppTemplates/AspNet/App.sln ./Templates/AspNet
 
-COPY /src/AltinnCore/Designer/Languages/ini ./Languages
+COPY /Designer/Designer/Languages/ini ./Languages
 
 
 ENTRYPOINT ["dotnet", "AltinnCore.Designer.dll"]

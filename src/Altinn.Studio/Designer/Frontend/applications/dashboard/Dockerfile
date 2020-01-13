@@ -2,23 +2,23 @@
 FROM node:10.13.0 AS generate-dashboard
 
 # Copy and install Lerna
-COPY ../react-apps/lerna.json .
-COPY ../react-apps/package.json .
-COPY ../react-apps/package-lock.json .
+COPY ./Designer/Frontend/lerna.json .
+COPY ./Designer/Frontend/package.json .
+COPY ./Designer/Frontend/package-lock.json .
 RUN npm ci
 
 # Copy and install npm dependencies
-COPY ../react-apps/applications/shared/package.json ./applications/shared/
-COPY ../react-apps/applications/shared/package-lock.json ./applications/shared/
-COPY ../react-apps/applications/dashboard/package.json ./applications/dashboard/
-COPY ../react-apps/applications/dashboard/package-lock.json ./applications/dashboard/
+COPY ./Designer/Frontend/applications/shared/package.json ./applications/shared/
+COPY ./Designer/Frontend/applications/shared/package-lock.json ./applications/shared/
+COPY ./Designer/Frontend/applications/dashboard/package.json ./applications/dashboard/
+COPY ./Designer/Frontend/applications/dashboard/package-lock.json ./applications/dashboard/
 
 RUN npm run install-deps
 
-# Copy and build Shared + Service-Development
+# Copy and build Shared + Dashboard
 WORKDIR /applications
-COPY ../react-apps/applications/shared/ ./shared/
-COPY ../react-apps/applications/dashboard/ ./dashboard/
+COPY ./Designer/Frontend/applications/shared/ ./shared/
+COPY ./Designer/Frontend/applications/dashboard/ ./dashboard/
 WORKDIR /
 RUN npm run build --prefix ./applications/dashboard
 
