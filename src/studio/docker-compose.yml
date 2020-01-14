@@ -13,14 +13,14 @@ services:
     image: altinn-studio-dashboard:latest
     build:
       context: .
-      dockerfile: ./Designer/Frontend/applications/dashboard/Dockerfile
+      dockerfile: ./src/designer/frontend/dashboard/Dockerfile
 
   altinn_service_development:
     container_name: studiodev
-    image: altinn-studio-service-development:latest
+    image: altinn-studio-app-development:latest
     build:
       context: .
-      dockerfile: ./Designer/Frontend/applications/service-development/Dockerfile
+      dockerfile: .src/designer/frontend/app-development/Dockerfile
 
   altinn_loadbalancer:
     container_name: altinn-loadbalancer
@@ -37,7 +37,7 @@ services:
       - altinn_repositories
       - altinn_designer
     build:
-      context: ./LoadBalancer
+      context: ./src/load-balancer
 
   altinn_designer:
     container_name: altinn-designer
@@ -72,7 +72,7 @@ services:
       - altinn_service_development
     build:
       context: .
-      dockerfile: ./Designer/Designer/Dockerfile
+      dockerfile: ./src/designer/backend/Dockerfile
 
   altinn_repositories:
     container_name: altinn-repositories
@@ -87,4 +87,4 @@ services:
       - "222:22"
     build:
       context: .
-      dockerfile: ./AltinnRepositories/Dockerfile
+      dockerfile: ./src/repositories/Dockerfile
