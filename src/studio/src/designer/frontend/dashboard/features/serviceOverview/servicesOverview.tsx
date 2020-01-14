@@ -8,11 +8,11 @@ import * as marked from 'marked';
 import * as React from 'react';
 import ReactHtmlParser from 'react-html-parser';
 import { connect } from 'react-redux';
-import AltinnInformationPaper from '../../../../shared/src/components/AltinnInformationPaper';
-import AltinnLink from '../../../../shared/src/components/AltinnLink';
-import AltinnSearchInput from '../../../../shared/src/components/AltinnSearchInput';
-import { getLanguageFromKey } from '../../../../shared/src/utils/language';
-import { get } from '../../../../shared/src/utils/networking';
+import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
+import AltinnLink from 'app-shared/components/AltinnLink';
+import AltinnSearchInput from 'app-shared/components/AltinnSearchInput';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { get } from 'app-shared/utils/networking';
 import { CreateNewService } from '../createService/createNewService';
 import { ServicesCategory } from './servicesCategory';
 

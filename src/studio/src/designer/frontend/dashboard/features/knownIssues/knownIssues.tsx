@@ -5,11 +5,11 @@ import marked = require('marked');
 import * as React from 'react';
 import ReactHtmlParser from 'react-html-parser';
 import { connect } from 'react-redux';
-import AltinnBreadcrumb from '../../../../shared/src/components/AltinnBreadcrumb';
-import AltinnSpinner from '../../../../shared/src/components/AltinnSpinner';
-import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
-import { getLanguageFromKey } from '../../../../shared/src/utils/language';
-import { get } from '../../../../shared/src/utils/networking';
+import AltinnBreadcrumb from 'app-shared/components/AltinnBreadcrumb';
+import AltinnSpinner from 'app-shared/components/AltinnSpinner';
+import altinnTheme from 'app-shared/theme/altinnStudioTheme';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { get } from 'app-shared/utils/networking';
 
 export interface IKnownIssuesComponentProvidedProps {
   classes: any;

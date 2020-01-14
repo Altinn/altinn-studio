@@ -4,13 +4,13 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteChildrenProps, withRouter } from 'react-router';
-import AltinnBreadcrumb from '../../../../shared/src/components/AltinnBreadcrumb';
-import AltinnButton from '../../../../shared/src/components/AltinnButton';
-import AltinnSpinner from '../../../../shared/src/components/AltinnSpinner';
-import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
-import { formatNameAndDate } from '../../../../shared/src/utils/formatDate';
-import { getLanguageFromKey } from '../../../../shared/src/utils/language';
-import { get } from '../../../../shared/src/utils/networking';
+import AltinnBreadcrumb from 'app-shared/components/AltinnBreadcrumb';
+import AltinnButton from 'app-shared/components/AltinnButton';
+import AltinnSpinner from 'app-shared/components/AltinnSpinner';
+import altinnTheme from 'app-shared/theme/altinnStudioTheme';
+import { formatNameAndDate } from 'app-shared/utils/formatDate';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { get } from 'app-shared/utils/networking';
 
 export interface ICloneServiceComponentProvidedProps {
   classes: any;

@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import * as React from 'react';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import * as networking from 'app-shared/utils/networking';
-import { CloneServiceComponent } from '../../../../src/features/cloneService/cloneServices';
+import { CloneServiceComponent } from '../../../../features/cloneService/cloneServices';
 
 describe('>>> components/base/cloneService.tsx', () => {
   let mockServices: any;

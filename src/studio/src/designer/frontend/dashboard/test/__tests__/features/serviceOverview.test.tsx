@@ -9,7 +9,7 @@ import {
   getListOfServicesExcludingCodelist,
   ServicesOverview,
   // ServicesOverviewComponent,
-} from '../../src/features/serviceOverview/servicesOverview';
+} from '../../../features/serviceOverview/servicesOverview';
 
 describe('>>> features/serviceOverview', () => {
   let mockStore: any;

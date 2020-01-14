@@ -3,8 +3,8 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import * as networking from '../../../../shared/src/utils/networking';
-import { CreateNewServiceComponent } from '../../../src/features/createService/createNewService';
+import * as networking from 'app-shared/utils/networking';
+import { CreateNewServiceComponent } from '../../../../features/createService/createNewService';
 
 describe('>>> components/base/createNewService.tsx', () => {
   let mockSelectableUser: any;

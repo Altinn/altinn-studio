@@ -1,15 +1,15 @@
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AltinnButton from '../../../../shared/src/components/AltinnButton';
-import AltinnDropdown from '../../../../shared/src/components/AltinnDropdown';
-import AltinnIconButton from '../../../../shared/src/components/AltinnIconButton';
-import AltinnInputField from '../../../../shared/src/components/AltinnInputField';
-import AltinnPopper from '../../../../shared/src/components/AltinnPopper';
-import AltinnSpinner from '../../../../shared/src/components/AltinnSpinner';
-import AltinnModal from '../../../../shared/src/components/molecules/AltinnModal';
-import { getLanguageFromKey } from '../../../../shared/src/utils/language';
-import { post } from '../../../../shared/src/utils/networking';
+import AltinnButton from 'app-shared/components/AltinnButton';
+import AltinnDropdown from 'app-shared/components/AltinnDropdown';
+import AltinnIconButton from 'app-shared/components/AltinnIconButton';
+import AltinnInputField from 'app-shared/components/AltinnInputField';
+import AltinnPopper from 'app-shared/components/AltinnPopper';
+import AltinnSpinner from 'app-shared/components/AltinnSpinner';
+import AltinnModal from 'app-shared/components/molecules/AltinnModal';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { post } from 'app-shared/utils/networking';
 
 export interface ICreateNewServiceProvidedProps {
   classes: any;

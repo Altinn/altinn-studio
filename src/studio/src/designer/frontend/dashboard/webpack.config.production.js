@@ -11,7 +11,7 @@ module.exports = {
     "core-js/modules/es.object.assign",
     "core-js/modules/es.array.find-index",
     "core-js/modules/es.array.find",
-    "./src/index.tsx"
+    "./index.tsx"
   ],
   output: {
     path: path.resolve(__dirname, "../dist/dashboard"),

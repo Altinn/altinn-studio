@@ -1,8 +1,8 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import * as networking from '../../../../shared/src/utils/networking';
-import { KnownIssuesComponent } from '../../../src/features/knownIssues/knownIssues';
+import * as networking from 'app-shared/utils/networking';
+import { KnownIssuesComponent } from '../../../../features/knownIssues/knownIssues';
 
 describe('>>> components/base/knownIssues.tsx', () => {
   let mockClasses: any;
