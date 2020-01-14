@@ -1,7 +1,7 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import AltinnCheckBox from '../../src/components/AltinnCheckBox';
+import AltinnCheckBox from '../../../components/AltinnCheckBox';
 
 describe('>>> AltinnCheckBox', () => {
   let mockOnChangeFunction: any;

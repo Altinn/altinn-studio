@@ -1,5 +1,5 @@
 import 'jest';
-import { returnUrlToMessagebox } from './../../src/utils/urlHelper';
+import { returnUrlToMessagebox } from './../../../utils/urlHelper';
 
 describe('Shared urlHelper.ts', () => {
   test('returnUrlToMessagebox() returning production messagebox', () => {

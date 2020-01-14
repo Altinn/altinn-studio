@@ -2,7 +2,7 @@ import { FormControlLabel } from '@material-ui/core';
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import AltinnRadio from '../../src/components/AltinnRadio';
+import AltinnRadio from '../../../components/AltinnRadio';
 
 describe('>>> AltinnRadioButton.tsx', () => {
   let mockLabel: string;

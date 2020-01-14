@@ -3,8 +3,8 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
-import AltinnRadio from '../../src/components/AltinnRadio';
-import AltinnRadioGroup from '../../src/components/AltinnRadioGroup';
+import AltinnRadio from '../../../components/AltinnRadio';
+import AltinnRadioGroup from '../../../components/AltinnRadioGroup';
 
 describe('>>> AltinnRadioButtonGroup.tsx', () => {
   let mockValue: string;

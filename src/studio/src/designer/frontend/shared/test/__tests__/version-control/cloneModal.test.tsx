@@ -1,7 +1,7 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import { CloneModal } from '../../src/version-control/cloneModal';
+import { CloneModal } from '../../../version-control/cloneModal';
 
 describe('>>> components/version-control/cloneModal.test.tsx', () => {
 

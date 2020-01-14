@@ -2,7 +2,7 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
-import AltinnInformationCard from '../../src/components/AltinnInformationCard';
+import AltinnInformationCard from '../../../components/AltinnInformationCard';
 
 describe('>>> AltinnInformationCard--- Snapshot', () => {
   let props: any;

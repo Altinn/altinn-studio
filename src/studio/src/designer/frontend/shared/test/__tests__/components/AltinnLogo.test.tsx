@@ -3,7 +3,7 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
-import AltinnLogo from '../../src/components/AltinnLogo';
+import AltinnLogo from '../../../components/AltinnLogo';
 
 describe('>>> AltinnLogo', () => {
   let mockColor: string;

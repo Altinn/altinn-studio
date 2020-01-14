@@ -1,7 +1,7 @@
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
-import SyncModalComponent from '../../src/version-control/syncModal';
+import SyncModalComponent from '../../../version-control/syncModal';
 
 jest.mock('react-truncate-markup');
 

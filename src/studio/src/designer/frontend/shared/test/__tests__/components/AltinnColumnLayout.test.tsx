@@ -2,7 +2,7 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import AltinnColumnLayout from '../../src/components/AltinnColumnLayout';
+import AltinnColumnLayout from '../../../components/AltinnColumnLayout';
 
 describe('>>> AltinnColumnLayout', () => {
   let mockHeader: string;

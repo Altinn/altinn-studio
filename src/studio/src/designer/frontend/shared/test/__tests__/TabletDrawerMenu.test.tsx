@@ -2,10 +2,10 @@ import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import TabletDrawerMenu from '../src/navigation/drawer/TabletDrawerMenu';
-import altinnTheme from '../src/theme/altinnStudioTheme';
+import TabletDrawerMenu from '../../navigation/drawer/TabletDrawerMenu';
+import altinnTheme from '../../theme/altinnStudioTheme';
 
-describe('>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx', () => {
+describe('>>> shar../../navigation/drawer/TabletDrawerMenu.tsx', () => {
   describe('when the tabletDrawerOpen is true', () => {
     let mockTabletDrawerOpen: boolean;
     let mockHandleTabletDrawerMenu: () => void;

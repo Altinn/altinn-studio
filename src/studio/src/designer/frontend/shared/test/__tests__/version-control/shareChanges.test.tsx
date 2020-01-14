@@ -1,7 +1,7 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import ShareChangesComponent from '../../src/version-control/shareChanges';
+import ShareChangesComponent from '../../../version-control/shareChanges';
 
 jest.mock('react-truncate-markup');
 

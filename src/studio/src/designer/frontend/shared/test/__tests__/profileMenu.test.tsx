@@ -2,7 +2,7 @@ import { shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as render from 'react-test-renderer';
-import ProfileMenuComponent from '../src/navigation/main-header/profileMenu';
+import ProfileMenuComponent from '../../navigation/main-header/profileMenu';
 
 describe('ProfileMenu', () => {
   let rendered: any;

@@ -1,7 +1,7 @@
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
-import AltinnFilterChip from '../../src/components/AltinnFilterChip';
+import AltinnFilterChip from '../../../components/AltinnFilterChip';
 
 describe('>>> AltinnFilterChip--- Snapshot', () => {
   let mockKey: any;

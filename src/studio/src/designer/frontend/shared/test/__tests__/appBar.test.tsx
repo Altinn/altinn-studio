@@ -5,10 +5,10 @@ import 'jest';
 import * as React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import * as renderer from 'react-test-renderer';
-import AppBarComponent from '../src/navigation/main-header/appBar';
-import altinnTheme from '../src/theme/altinnStudioTheme';
+import AppBarComponent from '../../navigation/main-header/appBar';
+import altinnTheme from '../../theme/altinnStudioTheme';
 
-import * as AppBarConfig from '../src/navigation/main-header/appBarConfig';
+import * as AppBarConfig from '../../navigation/main-header/appBarConfig';
 
 describe('AppBarComponent - src/navigation/main-header/appBar', () => {
 

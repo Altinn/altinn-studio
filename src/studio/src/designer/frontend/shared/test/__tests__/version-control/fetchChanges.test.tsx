@@ -1,7 +1,7 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import FetchChangesComponenet from '../../src/version-control/fetchChanges';
+import FetchChangesComponenet from '../../../version-control/fetchChanges';
 
 jest.mock('react-truncate-markup');
 
