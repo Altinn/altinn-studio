@@ -3,7 +3,7 @@ import List from '@material-ui/core/List';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { advancedComponents, ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';

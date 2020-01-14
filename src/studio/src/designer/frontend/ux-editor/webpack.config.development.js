@@ -10,13 +10,16 @@ module.exports = {
     "core-js/modules/es.object.assign",
     "core-js/modules/es.array.find-index",
     "core-js/modules/es.array.find",
-    "./src/index.tsx"
+    "./index.tsx"
   ],
   output: {
     filename: "ui-editor.js"
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
+    alias: {
+      "app-shared": path.resolve(__dirname, "../shared/")
+    }
   },
   performance: {
     hints: 'warning',

@@ -1,8 +1,8 @@
 import { createStyles, List, ListItem, ListItemIcon, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
-import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
+import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
+import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 
 const styles = createStyles({

@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
-import * as SharedNetwork from '../../../../shared/src/utils/networking';
-import postMessages from '../../../../shared/src/utils/postMessages';
+import * as SharedNetwork from 'app-shared/utils/networking';
+import postMessages from 'app-shared/utils/postMessages';
 import conditionalRenderingActionDispatcher from '../../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
 import * as FormDesignerActions from '../../actions/formDesignerActions/actions';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';

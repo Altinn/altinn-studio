@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 
-import { CheckboxContainerComponent } from '../../..//..components/base/CheckboxesContainerComponent';
+import { CheckboxContainerComponent } from '../../../../components/base/CheckboxesContainerComponent';
 
 describe('>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot', () => {
   let mockId: string;

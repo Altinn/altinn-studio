@@ -2,9 +2,9 @@ import { createStyles, Grid, IconButton, Input, Typography, withStyles } from '@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
-import AltinnRadio from '../../../../shared/src/components/AltinnRadio';
-import AltinnRadioGroup from '../../../../shared/src/components/AltinnRadioGroup';
-import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
+import AltinnRadio from 'app-shared/components/AltinnRadio';
+import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
+import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getCodeListIndexByName } from '../../utils/apiConnection';
 import { noOptionsMessage, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 import { customInput } from './EditModalContent';

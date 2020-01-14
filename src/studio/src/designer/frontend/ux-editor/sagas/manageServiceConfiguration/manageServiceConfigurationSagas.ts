@@ -1,6 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
-import postMessages from '../../../../shared/src/utils/postMessages';
+import postMessages from 'app-shared/utils/postMessages';
 import * as ManageJsonFileActions from '../../actions/manageServiceConfigurationActions/actions/index';
 import ManageJsonFileActionDispatcher from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import * as ManageJsonFileActionTypes from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionTypes';

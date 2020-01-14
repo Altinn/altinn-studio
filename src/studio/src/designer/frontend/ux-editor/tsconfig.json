@@ -16,18 +16,24 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": false,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "baseUrl": ".",
+    "paths": {
+      "app-shared/*": [
+        "../shared/*"
+      ]
+    }
   },
   "include": [
-    "./src/**/*",
+    "./**/*",
   ],
   "exclude": [
     "node_modules",
     "build",
+    "test",
     "scripts",
     "acceptance-tests",
     "webpack",
     "jest",
-    "src/setupTests.ts"
   ],
 }

@@ -4,7 +4,7 @@ import {
 import * as React from 'react';
 import { connect } from 'react-redux';
 import uuid = require('uuid');
-import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
+import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import ApiActionDispatchers from '../actions/apiActions/apiActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
