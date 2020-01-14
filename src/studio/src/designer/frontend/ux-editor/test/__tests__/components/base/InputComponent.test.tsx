@@ -2,7 +2,7 @@ import { shallow } from 'enzyme';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 
-import { InputComponent } from '../../../src/components/base/InputComponent';
+import { InputComponent } from '../../../../components/base/InputComponent';
 
 describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
   let mockId: string;

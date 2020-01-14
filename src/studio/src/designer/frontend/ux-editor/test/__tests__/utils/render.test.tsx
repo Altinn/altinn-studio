@@ -1,5 +1,5 @@
 import 'jest';
-import { renderSelectTextFromResources } from '../../src/utils/render';
+import { renderSelectTextFromResources } from '../../../utils/render';
 
 describe('>>> utils/render', () => {
   let mockLabelText: string;

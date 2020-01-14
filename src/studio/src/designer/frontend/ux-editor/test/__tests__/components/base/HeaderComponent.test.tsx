@@ -3,7 +3,7 @@ import * as renderer from 'react-test-renderer';
 
 import { mount } from 'enzyme';
 
-import { HeaderComponent } from '../../../src/components/base/HeaderComponent';
+import { HeaderComponent } from '../../../../components/base/HeaderComponent';
 
 describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
   let mockComponent: any;

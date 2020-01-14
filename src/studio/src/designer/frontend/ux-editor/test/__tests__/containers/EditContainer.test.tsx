@@ -5,8 +5,8 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import FormDesignerActionDispatchers from '../../src/actions/formDesignerActions/formDesignerActionDispatcher';
-import { Edit, EditContainer } from '../../src/containers/EditContainer';
+import FormDesignerActionDispatchers from '../../../actions/formDesignerActions/formDesignerActionDispatcher';
+import { Edit, EditContainer } from '../../../containers/EditContainer';
 
 describe('>>> containers/EditContainer', () => {
   let mockId: string;

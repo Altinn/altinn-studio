@@ -4,7 +4,7 @@ import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { EditModalContent, EditModalContentComponent } from '../../../src/components/config/EditModalContent';
+import { EditModalContent, EditModalContentComponent } from '../../../../components/config/EditModalContent';
 
 describe('>>> containers/EditModalContent', () => {
   let mockComponent: any;

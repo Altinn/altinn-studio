@@ -4,7 +4,7 @@ import {
   convertInternalToLayoutFormat,
   extractChildrenFromContainer,
   getParentContainerId,
-} from '../../src/utils/formLayout';
+} from '../../../utils/formLayout';
 
 describe('>>> utils/formLayout', () => {
   let mockInternal: any;

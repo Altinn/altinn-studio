@@ -1,9 +1,9 @@
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 
-import { RadioButtonContainerComponent } from '../../../src/components/base/RadioButtonsContainerComponent';
+import { DropdownComponent } from '../../../../components/base/DropdownComponent';
 
-describe('>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot', () => {
+describe('>>> components/base/DropdownComponent.tsx --- Snapshot', () => {
   let mockId: string;
   let mockComponent: any;
   // tslint:disable-next-line:prefer-const
@@ -17,7 +17,7 @@ describe('>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot', 
     mockId = 'mock-id';
     mockComponent = {
       id: mockId,
-      title: 'test-radiobuttonscontainer',
+      title: 'test-dropdowncomponent',
       component: 'Checkboxes',
       options: [{
         label: 'test-label-1',
@@ -33,9 +33,9 @@ describe('>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot', 
     mockDesignMode = true;
   });
 
-  it('>>> Capture snapshot of RadioButtonsContainerComponent', () => {
+  it('>>> Capture snapshot of DropdownComponent', () => {
     const rendered = renderer.create(
-      <RadioButtonContainerComponent
+      <DropdownComponent
         id={mockId}
         component={mockComponent}
         formData={mockFormData}
