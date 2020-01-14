@@ -16,10 +16,16 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": false,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "baseUrl": ".",
+    "paths": {
+      "app-shared/*": [
+        "../shared/src/*"
+      ]
+    }
   },
   "include": [
-    "./src/**/*",
+    "./**/*",
     "../shared/src/**/*"
   ],
   "exclude": [
