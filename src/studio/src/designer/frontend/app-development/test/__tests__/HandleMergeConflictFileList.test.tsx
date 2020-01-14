@@ -2,7 +2,7 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 
-import { HandleMergeConflictFileList } from '../src/features/handleMergeConflict/components/HandleMergeConflictFileList';
+import { HandleMergeConflictFileList } from '../../features/handleMergeConflict/components/HandleMergeConflictFileList';
 
 describe('HandleMergeConflictFileList', () => {
   let mockClasses: any;

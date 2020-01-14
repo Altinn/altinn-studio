@@ -3,7 +3,7 @@ import 'jest';
 import * as React from 'react';
 import * as networking from 'app-shared/utils/networking';
 
-import { HandleMergeConflictAbort } from '../src/features/handleMergeConflict/components/HandleMergeConflictAbort';
+import { HandleMergeConflictAbort } from '../../features/handleMergeConflict/components/HandleMergeConflictAbort';
 
 describe('HandleMergeConflictAbort', () => {
   let mockLanguage: any;

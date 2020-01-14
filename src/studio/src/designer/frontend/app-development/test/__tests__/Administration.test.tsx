@@ -1,10 +1,10 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import handleServiceInformationActionDispatchers from '../src/features/administration/handleServiceInformationDispatcher';
+import handleServiceInformationActionDispatchers from '../../features/administration/handleServiceInformationDispatcher';
 
-import { AdministrationComponent } from '../src/features/administration/components/Administration';
-import { ICommit, IRepository } from '../src/types/global';
+import { AdministrationComponent } from '../../features/administration/components/Administration';
+import { ICommit, IRepository } from '../../types/global';
 
 describe('HandleMergeConflictAbort', () => {
   let mockLanguage: any;

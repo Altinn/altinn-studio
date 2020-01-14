@@ -3,7 +3,7 @@ import 'jest';
 import * as React from 'react';
 import * as networking from 'app-shared/utils/networking';
 
-import { HandleMergeConflictDiscardChanges } from '../src/features/handleMergeConflict/components/HandleMergeConflictDiscardChanges';
+import { HandleMergeConflictDiscardChanges } from '../../features/handleMergeConflict/components/HandleMergeConflictDiscardChanges';
 
 describe('HandleMergeConflictDiscardChanges', () => {
   let mockClasses: any;

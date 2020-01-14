@@ -1,5 +1,5 @@
 import 'jest';
-import { makeGetApplicationMetadata } from '../src/sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
+import { makeGetApplicationMetadata } from '../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 
 describe('ApplicationMetadata', () => {
   let mockApplicationMetadata: any;
