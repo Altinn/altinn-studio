@@ -1,6 +1,6 @@
 const path = require('path');
 module.exports = {
-  components: 'src/components/**/*.tsx',
+  components: 'components/**/*.tsx',
   webpackConfig: require('./styleguide.webpack.config'),
   propsParser: require('react-docgen-typescript').withDefaultConfig({propFilter: {skipPropsWithName: 'classes'}}).parse,
   styles: {
@@ -46,28 +46,28 @@ module.exports = {
     {
       name: "Atoms",
       content: 'styleguide/atoms.md',
-      components: 'src/components/atoms/*.tsx',
+      components: 'components/atoms/*.tsx',
       exampleMode: 'expand',
       usageMode: 'expand'
     },
     {
       name: "Molecules",
       content: 'styleguide/molecules.md',
-      components: 'src/components/molecules/*.tsx',
+      components: 'components/molecules/*.tsx',
       exampleMode: 'expand',
       usageMode: 'expand'
     },
     {
       name: "Organisms",
       content: 'styleguide/organisms.md',
-      components: 'src/components/organisms/*.tsx',
+      components: 'components/organisms/*.tsx',
       exampleMode: 'expand',
       usageMode: 'expand'
     },
     {
       name: 'Shared Components',
       content: 'styleguide/components.md',
-      components: 'src/components/*.tsx',
+      components: 'components/*.tsx',
       exampleMode: 'expand',
       usageMode: 'expand'
     }
