@@ -1,7 +1,7 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import * as networking from '../../shared/src/utils/networking';
+import * as networking from 'app-shared/utils/networking';
 
 import { HandleMergeConflictDiscardChanges } from '../src/features/handleMergeConflict/components/HandleMergeConflictDiscardChanges';
 

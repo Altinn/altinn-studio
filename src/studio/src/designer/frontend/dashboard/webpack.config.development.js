@@ -13,6 +13,7 @@ module.exports = {
     "./src/index.tsx"
   ],
   output: {
+    path: path.resolve(__dirname, "../dist/dashboard"),
     filename: "dashboard.js"
   },
   resolve: {
