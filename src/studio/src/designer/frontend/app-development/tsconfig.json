@@ -16,20 +16,31 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": false,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "baseUrl": ".",
+    "paths": {
+      "app-shared/*": [
+        "../shared/src/*"
+      ],
+      "ux-editor/*": [
+        "../ux-editor/src/*"
+      ]
+    }
   },
   "include": [
-    "./src/**/*",
+    "./**/*",
     "../shared/src/**/*",
     "../ux-editor/src/**/*"
   ],
   "exclude": [
     "node_modules",
+    "public",
     "build",
+    "test",
     "scripts",
     "acceptance-tests",
     "webpack",
     "jest",
-    "src/setupTests.ts"
+    "setupTests.ts"
   ],
 }

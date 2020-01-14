@@ -11,14 +11,19 @@ module.exports = {
     "core-js/modules/es.object.assign",
     "core-js/modules/es.array.find-index",
     "core-js/modules/es.array.find",
-    "./src/index.tsx"
+    "./index.tsx"
   ],
   output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: "service-development.js"
+    path: path.resolve(__dirname, '../dist/app-development'),
+    filename: "app-development.js"
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
+    alias: {
+      // SHARED
+      "app-shared": path.resolve(__dirname, "../shared/src/"),
+      "ux-editor": path.resolve(__dirname, "../ux-editor/src/")
+    }
   },
   performance: {
     hints: 'warning',
@@ -86,11 +91,11 @@ module.exports = {
       filename: 'index.html'
     }),
     new MiniCssExtractPlugin({
-      filename: "service-development.css",
+      filename: "app-development.css",
     }),
     new CheckerPlugin(),
     new MonacoPlugin({
-      output: path.join('..', 'js', 'react'),
+      output: path.join('../app-development', 'js', 'react'),
       languages: ['typescript', 'javascript', 'csharp']
     }),
   ],
