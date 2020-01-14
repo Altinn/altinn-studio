@@ -20,7 +20,7 @@
     "baseUrl": ".",
     "paths": {
       "app-shared/*": [
-        "../shared/src/*"
+        "../shared/*"
       ],
       "ux-editor/*": [
         "../ux-editor/src/*"
@@ -29,7 +29,7 @@
   },
   "include": [
     "./**/*",
-    "../shared/src/**/*",
+    "../shared/**/*",
     "../ux-editor/src/**/*"
   ],
   "exclude": [

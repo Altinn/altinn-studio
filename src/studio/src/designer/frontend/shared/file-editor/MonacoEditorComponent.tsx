@@ -2,7 +2,7 @@ import { CircularProgress, Grid } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import MonacoEditor from 'react-monaco-editor';
-import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
+import altinnTheme from '../theme/altinnStudioTheme';
 
 const theme = createMuiTheme(altinnTheme);
 

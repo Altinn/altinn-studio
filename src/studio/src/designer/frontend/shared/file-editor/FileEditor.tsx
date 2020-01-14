@@ -3,8 +3,8 @@ import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styl
 import classNames from 'classnames';
 import * as diff from 'diff';
 import * as React from 'react';
-import MonacoEditorComponent from '../../../shared/src/file-editor/MonacoEditorComponent';
-import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
+import MonacoEditorComponent from './MonacoEditorComponent';
+import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
 import { IAltinnWindow } from '../types';
 import { get, post } from '../utils/networking';

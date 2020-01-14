@@ -20,13 +20,13 @@
     "baseUrl": ".",
     "paths": {
       "app-shared/*": [
-        "../shared/src/*"
+        "../shared/*"
       ]
     }
   },
   "include": [
     "./**/*",
-    "../shared/src/**/*"
+    "../shared/**/*"
   ],
   "exclude": [
     "node_modules",

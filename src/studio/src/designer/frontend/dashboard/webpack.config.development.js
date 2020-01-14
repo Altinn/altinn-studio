@@ -19,7 +19,7 @@ module.exports = {
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
     alias: {
-      "app-shared": path.resolve(__dirname, "../shared/src/")
+      "app-shared": path.resolve(__dirname, "../shared/")
     }
   },
   performance: {

@@ -1,7 +1,7 @@
 import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
 import axios from 'axios';
 import * as React from 'react';
-import { get, post } from '../../../shared/src/utils/networking';
+import { get, post } from '../utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { IAltinnWindow } from '../types';
 import { getLanguageFromKey } from '../utils/language';

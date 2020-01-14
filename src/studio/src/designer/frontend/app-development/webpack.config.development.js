@@ -21,7 +21,7 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
     alias: {
       // SHARED
-      "app-shared": path.resolve(__dirname, "../shared/src/"),
+      "app-shared": path.resolve(__dirname, "../shared/"),
       "ux-editor": path.resolve(__dirname, "../ux-editor/src/")
     }
   },
