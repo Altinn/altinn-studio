@@ -5,7 +5,10 @@
     }
   },
   "packages": [
-    "applications/*"
+    "dashboard/",
+	"app-development",
+	"shared",
+	"ux-editor"
   ],
   "version": "independent"
 }

@@ -1,13 +1,17 @@
 {
-  "name": "root",
+  "name": "altinn-studio-frontend",
   "private": true,
   "scripts": {
+    "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --open",
+    "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
     "install-deps": "lerna bootstrap --hoist --ci",
     "no-ci-hoist": "lerna bootstrap --hoist --no-ci",
     "test": "lerna exec --concurrency 1 -- npm test",
     "install-all": "lerna exec -- npm ci",
     "clean-lock": "lerna exec -- rm ./package-lock.json",
-    "clean-node-modules": "lerna exec --concurrency 1 -- rm -rf ./node_modules"
+    "clean-node-modules": "lerna exec --concurrency 1 -- rm -rf ./node_modules",
+    "build-dashboard": "npm run build --prefix dashboard/",
+    "build-app-development": "npm run build --prefix app-development/"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.11.0",
