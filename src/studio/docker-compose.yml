@@ -1,0 +1,90 @@
+version: '3.6'
+
+networks:
+  altinncore_network:
+    external: false
+
+volumes:
+  gitea-data:
+
+services:
+  altinn_dashboard:
+    container_name: studiodashboard
+    image: altinn-studio-dashboard:latest
+    build:
+      context: .
+      dockerfile: ./src/designer/frontend/dashboard/Dockerfile
+
+  altinn_app_development:
+    container_name: studiodev
+    image: altinn-studio-app-development:latest
+    build:
+      context: .
+      dockerfile: ./src/designer/frontend/app-development/Dockerfile
+
+  altinn_loadbalancer:
+    container_name: altinn-loadbalancer
+    image: loadbalancer:latest
+    restart: always
+    networks:
+      - altinncore_network
+    ports:
+      - "80:80"
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+    depends_on:
+      - altinn_repositories
+      - altinn_designer
+    build:
+      context: ./src/load-balancer
+
+  altinn_designer:
+    container_name: altinn-designer
+    image: altinncore:latest
+    restart: always
+    networks:
+      - altinncore_network
+    volumes:
+      - "C:/AltinnCore/Repos:/AltinnCore/Repos"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
+      - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1/
+      - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
+      - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000
+      - ServiceRepositorySettings:GiteaLoginUrl=http://altinn3.no/repos/user/login
+      - GeneralSettings:TemplateLocation=/Templates
+      - GeneralSettings:DeploymentLocation=/Templates/deployment
+      - GeneralSettings:LanguageFilesLocation=Languages/
+      - GeneralSettings:TemplateLocation=Templates/AspNet
+      - GeneralSettings:DeploymentLocation=Templates/AspNet/deployment
+      - GeneralSettings:AppLocation=Templates/AspNet/App
+      - GeneralSettings:IntegrationTestsLocation=Templates/AspNet/App.IntegrationTests
+      - GeneralSettings:AltinnStudioEndpoint=http://altinn3.no/
+      - TestdataRepositorySettings:RepositoryLocation=/Testdata
+    ports:
+      - "5000:5000"
+    depends_on:
+      - altinn_repositories
+      - altinn_dashboard
+      - altinn_app_development
+    build:
+      context: .
+      dockerfile: ./src/designer/backend/Dockerfile
+
+  altinn_repositories:
+    container_name: altinn-repositories
+    image: gitea/gitea:1.10.2
+    restart: always
+    networks:
+      - altinncore_network
+    volumes:
+      - "gitea-data:/data"
+    ports:
+      - "3000:3000"
+      - "222:22"
+    build:
+      context: .
+      dockerfile: ./src/repositories/Dockerfile
