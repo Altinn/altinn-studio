@@ -15,16 +15,16 @@ const cleanGlobs = [
 ];
 
 
-const jsServDevFile = '../Frontend/applications/service-development/dist/service-development.js';
-const jsServDevModuleFile0 = '../Frontend/applications/service-development/dist/0.service-development.js';
-const jsServDevModuleFile1 = '../Frontend/applications/service-development/dist/1.service-development.js';
-const jsServDevModuleFile2 = '../Frontend/applications/service-development/dist/2.service-development.js';
-const jsServDevModuleFile3 = '../Frontend/applications/service-development/dist/3.service-development.js';
-const jsServDevMonacoWorker1 = '../Frontend/applications/service-development/js/react/editor.worker.js';
-const jsServDevMonacoWorker2 = '../Frontend/applications/service-development/js/react/typescript.worker.js';
-const jsDashboardFile = '../Frontend/applications/dashboard/dist/dashboard.js';
-const cssServDevFile = '../Frontend/applications/service-development/dist/service-development.css';
-const cssDashboardFile = '../Frontend/applications/dashboard/dist/dashboard.css';
+const jsServDevFile = '../frontend/app-development/dist/app-development.js';
+const jsServDevModuleFile0 = '../frontend/app-development/dist/0.app-development.js';
+const jsServDevModuleFile1 = '../frontend/app-development/dist/1.app-development.js';
+const jsServDevModuleFile2 = '../frontend/app-development/dist/2.app-development.js';
+const jsServDevModuleFile3 = '../frontend/app-development/dist/3.app-development.js';
+const jsServDevMonacoWorker1 = '../frontend/app-development/js/react/editor.worker.js';
+const jsServDevMonacoWorker2 = '../frontend/app-development/js/react/typescript.worker.js';
+const jsDashboardFile = '../frontend/dashboard/dist/dashboard.js';
+const cssServDevFile = '../frontend/app-development/dist/app-development.css';
+const cssDashboardFile = '../frontend/dashboard/dist/dashboard.css';
 
 let jsWatcher = null;
 let cssWatcher = null;
@@ -161,7 +161,7 @@ function copyServDevCss() {
 }
 
 function deleteServDevJs() {
-  return del('wwwroot/designer/js/react/service-development.js');
+  return del('wwwroot/designer/js/react/app-development.js');
 }
 
 function deleteDashboardJs() {
@@ -169,7 +169,7 @@ function deleteDashboardJs() {
 }
 
 function deleteServDevCss() {
-  return del('wwwroot/designer/css/react/service-development.css');
+  return del('wwwroot/designer/css/react/app-development.css');
 }
 
 function deleteDashboardCss() {
@@ -233,10 +233,10 @@ gulp.task('clean', gulp.series(
   deleteDashboardJs,
   cleanNodeModulePackages,
   run('npm run clean', {
-    cwd: '../Frontend/applications/dashboard',
+    cwd: '../frontend/dashboard',
   }),
   run('npm run clean', {
-    cwd: '../Frontend/applications/service-development',
+    cwd: '../frontend/app-development',
   })
 ));
 
@@ -245,7 +245,7 @@ gulp.task('develop', gulp.parallel(
   setupWatchers,
   run('dotnet run'),
   run('npm run webpack-watch', {
-    cwd: '../Frontend/applications/service-development',
+    cwd: '../frontend/app-development',
   })
 ));
 
@@ -254,13 +254,13 @@ gulp.task('develop-dashboard', gulp.parallel(
   setupWatchers,
   run('dotnet run'),
   run('npm run webpack-watch', {
-    cwd: '../Frontend/applications/dashboard',
+    cwd: '../frontend/dashboard',
   })
 ));
 
 gulp.task('build-ux-editor', gulp.series(
   run('npm run build', {
-    cwd: '../Frontend/applications/ux-editor',
+    cwd: '../frontend/ux-editor',
   }),
   'copy-files'
 ));
@@ -273,13 +273,13 @@ gulp.task('install-react-app-dependencies', gulp.series(
 
 gulp.task('default', gulp.series([
   run('npm run build', {
-    cwd: '../Frontend/applications/service-development',
+    cwd: '../frontend/app-development',
   }),
   run('npm run build', {
-    cwd: '../Frontend/applications/dashboard',
+    cwd: '../frontend/dashboard',
   }),
   run('npm run build', {
-    cwd: '../Frontend/applications/ux-editor',
+    cwd: '../frontend/ux-editor',
   }),
   'copy-files'
 ]));

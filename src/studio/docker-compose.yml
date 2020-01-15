@@ -15,12 +15,12 @@ services:
       context: .
       dockerfile: ./src/designer/frontend/dashboard/Dockerfile
 
-  altinn_service_development:
+  altinn_app_development:
     container_name: studiodev
     image: altinn-studio-app-development:latest
     build:
       context: .
-      dockerfile: .src/designer/frontend/app-development/Dockerfile
+      dockerfile: ./src/designer/frontend/app-development/Dockerfile
 
   altinn_loadbalancer:
     container_name: altinn-loadbalancer
@@ -69,7 +69,7 @@ services:
     depends_on:
       - altinn_repositories
       - altinn_dashboard
-      - altinn_service_development
+      - altinn_app_development
     build:
       context: .
       dockerfile: ./src/designer/backend/Dockerfile

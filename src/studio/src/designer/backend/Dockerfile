@@ -1,19 +1,19 @@
 FROM node:10.13.0 AS generate-designer-js
-COPY /Designer/Designer/package.json .
-COPY /Designer/Designer/package-lock.json .
+COPY src/designer/backend/package.json .
+COPY src/designer/backend/package-lock.json .
 RUN npm ci
-COPY /Designer/Designer .
+COPY src/designer/backend .
 RUN npm run gulp build
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-alpine AS build
-COPY /Designer/Designer ./Designer/
-COPY --from=generate-designer-js /wwwroot /Designer/Designer/wwwroot
+COPY src/designer/backend ./designer/
+COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
 
-RUN dotnet build Designer/Designer.csproj -c Release -o /app_output
-RUN dotnet publish Designer/Designer.csproj -c Release -o /app_output
+RUN dotnet build designer/Designer.csproj -c Release -o /app_output
+RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 
-# Altinn-Studio Service-Development
-FROM altinn-studio-service-development:latest AS altinn-studio-service-development
+# Altinn-Studio app-development
+FROM altinn-studio-app-development:latest AS altinn-studio-app-development
 
 # Altinn-Studio Dashboard
 FROM altinn-studio-dashboard:latest AS altinn-studio-dashboard
@@ -22,26 +22,25 @@ FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-alpine AS final
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .
-COPY --from=altinn-studio-service-development /dist/service-development.js ./wwwroot/designer/js/react/service-development.js
-COPY --from=altinn-studio-service-development /dist/0.service-development.js ./wwwroot/designer/js/react/0.service-development.js
-COPY --from=altinn-studio-service-development /dist/1.service-development.js ./wwwroot/designer/js/react/1.service-development.js
-COPY --from=altinn-studio-service-development /dist/2.service-development.js ./wwwroot/designer/js/react/2.service-development.js
-COPY --from=altinn-studio-service-development /dist/3.service-development.js ./wwwroot/designer/js/react/3.service-development.js
-COPY --from=altinn-studio-service-development /dist/editor.worker.js ./wwwroot/designer/js/react/editor.worker.js
-COPY --from=altinn-studio-service-development /dist/typescript.worker.js ./wwwroot/designer/js/react/typescript.worker.js
-COPY --from=altinn-studio-service-development /dist/service-development.css ./wwwroot/designer/css/react/service-development.css
+COPY --from=altinn-studio-app-development /dist/app-development.js ./wwwroot/designer/js/react/app-development.js
+COPY --from=altinn-studio-app-development /dist/0.app-development.js ./wwwroot/designer/js/react/0.app-development.js
+COPY --from=altinn-studio-app-development /dist/1.app-development.js ./wwwroot/designer/js/react/1.app-development.js
+COPY --from=altinn-studio-app-development /dist/2.app-development.js ./wwwroot/designer/js/react/2.app-development.js
+COPY --from=altinn-studio-app-development /dist/3.app-development.js ./wwwroot/designer/js/react/3.app-development.js
+COPY --from=altinn-studio-app-development /dist/editor.worker.js ./wwwroot/designer/js/react/editor.worker.js
+COPY --from=altinn-studio-app-development /dist/typescript.worker.js ./wwwroot/designer/js/react/typescript.worker.js
+COPY --from=altinn-studio-app-development /dist/app-development.css ./wwwroot/designer/css/react/app-development.css
 COPY --from=altinn-studio-dashboard /dist/dashboard.js ./wwwroot/designer/js/react/dashboard.js
 COPY --from=altinn-studio-dashboard /dist/dashboard.css ./wwwroot/designer/css/dashboard.css
 
 ## Copying app template
 ## TODO: how to solve this?
-# COPY /src/Altinn.Apps/AppTemplates/AspNet/App ./Templates/AspNet/App
-# COPY /src/Altinn.Apps/AppTemplates/AspNet/App.IntegrationTests ./Templates/AspNet/App.IntegrationTests
-# COPY /src/Altinn.Apps/AppTemplates/AspNet/deployment ./Templates/AspNet/deployment
-# COPY /src/Altinn.Apps/AppTemplates/AspNet/.gitignore ./Templates/AspNet
-# COPY /src/Altinn.Apps/AppTemplates/AspNet/App.sln ./Templates/AspNet
+COPY /AppTemplates/AspNet/App ./Templates/AspNet/App
+COPY /AppTemplates/AspNet/deployment ./Templates/AspNet/deployment
+COPY /AppTemplates/AspNet/.gitignore ./Templates/AspNet
+COPY /AppTemplates/AspNet/App.sln ./Templates/AspNet
 
-COPY /Designer/Designer/Languages/ini ./Languages
+COPY src/designer/backend/Languages/ini ./Languages
 
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

@@ -21,16 +21,13 @@
     "paths": {
       "app-shared/*": [
         "../shared/*"
-      ],
-      "ux-editor/*": [
-        "../ux-editor/src/*"
       ]
     }
   },
   "include": [
     "./**/*",
     "../shared/**/*",
-    "../ux-editor/src/**/*"
+    "../ux-editor/**/*"
   ],
   "exclude": [
     "node_modules",
