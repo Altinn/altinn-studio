@@ -77,6 +77,15 @@
     var t = "nb";
     var cultures = [];
 
+    function getCookieValue(name) {
+      var match = document.cookie.match(new RegExp("(^| )" + encodeURIComponent(name) + "=([^;]+)"));
+      if (match) {
+        return match[2];
+      }
+
+      return "";
+  }
+
 $(document).ready(function () {
     // Populate tabs with culture names
     $.getJSON("/designer/json/cultures.json", function(data) {
@@ -89,7 +98,7 @@ $(document).ready(function () {
         });
     });
 
-    $('CurrentLangResource').value = t;
+  $('CurrentLangResource').value = t;
 
     // Search functionality
     $('#search').keyup( function() {
@@ -207,6 +216,7 @@ $(document).ready(function () {
                 url: "/designer/@org/@app/Text/SaveResource/" + t,
                 contentType: "application/json; charset=UTF-8",
                 data: jsonString,
+                headers: { "X-XSRF-TOKEN": getCookieValue("XSRF-TOKEN") },
                 success: function (data) {
                     //$("#message").html(data.Message);
                     //$("#json").html(jsonString);
@@ -250,6 +260,8 @@ $(document).ready(function () {
         jQuery.post({
             url: "/designer/@org/@app/Text/SaveResource/" + code,
             contentType: "application/json; charset=UTF-8",
+            headers: { "X-XSRF-TOKEN": getCookieValue("XSRF-TOKEN") },
+
             data: jsonString,
             success: function (data) {
                 //$("#message").html(data.Message);
@@ -281,6 +293,7 @@ $(document).ready(function () {
             type: "DELETE",
             url: deleteUrl,
             contentType: "application/json; charset=UTF-8",
+            headers: { "X-XSRF-TOKEN": getCookieValue("XSRF-TOKEN") },
             success: function (data) {
                 if (data && data.gikkBra) {
                     currentTab.parent().remove();
