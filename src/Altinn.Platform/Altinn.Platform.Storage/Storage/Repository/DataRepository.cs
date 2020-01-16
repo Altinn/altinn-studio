@@ -4,12 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -31,10 +30,13 @@ namespace Altinn.Platform.Storage.Repository
         private readonly AzureStorageConfiguration _storageConfiguration;
         private readonly CloudBlobClient _blobClient;
         private readonly CloudBlobContainer _container;
+        private CloudBlobContainer _orgBlobContainer;
+        private bool _useOrgBlobClient = false;
 
-        private bool _useAppBlobClient = false;
-
-        private CloudBlobContainer AppBlobContainer { get; set; }
+        /// <summary>
+        /// Gets or sets the data context for the application owner
+        /// </summary>
+        public OrgDataContext OrgDataContext { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataRepository"/> class
@@ -189,55 +191,25 @@ namespace Altinn.Platform.Storage.Repository
             return true;
         }
 
-        /// <summary>
-        /// Sets the blob client to point to app owner blob 
-        /// </summary>
-        /// <param name="org">Name of the application owner</param>
-        public void SetAppBlobClient(string org)
-        {
-            _useAppBlobClient = false;
-            if (!string.IsNullOrEmpty(org))
-            {
-                try
-                {
-                    AppBlobContainer = GetCloudBlobContainer(org);
-                    _useAppBlobClient = true;
-                }
-                catch
-                {
-                    _useAppBlobClient = false;
-                }
-            }
-        }
-
         private CloudBlobContainer GetBlobContainer()
         {
-            if (_useAppBlobClient)
+            if (OrgDataContext != null)
             {
-                return AppBlobContainer;
+                return OrgDataContext.OrgBlobContainer;
             }
 
             return _container;
         }
 
-        private CloudBlobContainer GetCloudBlobContainer(string org)
+        /// <summary>
+        /// Gets the correct context for the current application
+        /// </summary>
+        /// <param name="org">Name of the application owner</param>
+        /// <returns></returns>
+        public OrgDataContext GetOrgContext(string org)
         {
-            string containerName = string.Format(_storageConfiguration.OrgStorageContainer, org, Startup.EnvironmentName);
-            return GetCloudBlobClient(org).GetContainerReference(containerName);
-        }
-
-        private CloudBlobClient GetCloudBlobClient(string org)
-        {
-            string secretUri = string.Format(_storageConfiguration.OrgKeyVaultURI, org, Startup.EnvironmentName);
-            string storageAccount = string.Format(_storageConfiguration.OrgStorageAccount, org, Startup.EnvironmentName);
-            string sasDefinition = string.Format(_storageConfiguration.OrgSasDefinition, org, Startup.EnvironmentName);
-
-            KeyVaultClient kv = Startup.PlatformKeyVaultClient;
-            SecretBundle sb = kv.GetSecretAsync(secretUri, $@"{storageAccount}-{sasDefinition}").Result;
-            StorageCredentials accountSasCredential = new StorageCredentials(sb.Value);
-            CloudStorageAccount accountWithSas = new CloudStorageAccount(accountSasCredential, new Uri($@"https://{storageAccount}.blob.core.windows.net/"), null, null, null);
-
-            return accountWithSas.CreateCloudBlobClient();
+            OrgDataContext = new OrgDataContext(org, _storageConfiguration);
+            return OrgDataContext;
         }
     }
 }

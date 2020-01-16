@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Platform.Storage.Models;
 
 namespace Altinn.Platform.Storage.Repository
 {
@@ -13,6 +12,11 @@ namespace Altinn.Platform.Storage.Repository
     /// </summary>
     public interface IDataRepository
     {
+        /// <summary>
+        /// Gets or Sets the data context for a current request
+        /// </summary>
+        OrgDataContext OrgDataContext { get; set; }
+
         /// <summary>
         /// Create a new file in blob storage.
         /// </summary>
@@ -72,9 +76,10 @@ namespace Altinn.Platform.Storage.Repository
         Task<bool> Delete(DataElement dataElement);
 
         /// <summary>
-        /// Sets the blob client
+        /// Gets the correct data contaxt for the current application owner
         /// </summary>
-        /// <param name="org">App owner identifier</param>
-        void SetAppBlobClient(string org);
+        /// <param name="org">name of application owner</param>
+        /// <returns></returns>
+        OrgDataContext GetOrgContext(string org);
     }
 }
