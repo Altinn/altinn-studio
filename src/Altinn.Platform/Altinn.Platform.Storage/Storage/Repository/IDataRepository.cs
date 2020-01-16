@@ -80,6 +80,6 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="org">name of application owner</param>
         /// <returns></returns>
-        OrgDataContext GetOrgContext(string org);
+        OrgDataContext GetOrgDataContext(string org);
     }
 }

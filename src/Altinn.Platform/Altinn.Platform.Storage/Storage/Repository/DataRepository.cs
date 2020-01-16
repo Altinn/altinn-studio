@@ -204,7 +204,7 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="org">Name of the application owner</param>
         /// <returns></returns>
-        public OrgDataContext GetOrgContext(string org)
+        public OrgDataContext GetOrgDataContext(string org)
         {
             OrgDataContext = new OrgDataContext(org, _storageConfiguration);
             return OrgDataContext;

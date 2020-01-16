@@ -81,7 +81,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound("Provided instanceId is unknown to storage service");
             }
 
-            using (OrgDataContext context = _dataRepository.GetOrgContext(instance.Org))
+            using (OrgDataContext context = _dataRepository.GetOrgDataContext(instance.Org))
             {
                 DataElement dataElement = await _dataRepository.Read(instanceGuid, dataId);
 
@@ -141,7 +141,7 @@ namespace Altinn.Platform.Storage.Controllers
             string storageFileName =
                 DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataGuid.ToString());
 
-            using (OrgDataContext context = _dataRepository.GetOrgContext(instance.Org))
+            using (OrgDataContext context = _dataRepository.GetOrgDataContext(instance.Org))
             {
                 DataElement dataElement = await _dataRepository.Read(instanceGuid, dataGuid);
 
@@ -214,7 +214,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<DataElement> dataList;
 
-            using (OrgDataContext context = _dataRepository.GetOrgContext(instance.Org))
+            using (OrgDataContext context = _dataRepository.GetOrgDataContext(instance.Org))
             {
                  dataList = await _dataRepository.ReadAll(instanceGuid);
             }
@@ -277,7 +277,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                using (OrgDataContext context = _dataRepository.GetOrgContext(instance.Org))
+                using (OrgDataContext context = _dataRepository.GetOrgDataContext(instance.Org))
                 {
                     // store file as blob
                     newData.Size = await _dataRepository.WriteDataToStorage(theStream, newData.BlobStoragePath);
@@ -333,7 +333,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return errorMessage;
             }
 
-            using (OrgDataContext context = _dataRepository.GetOrgContext(instance.Org))
+            using (OrgDataContext context = _dataRepository.GetOrgDataContext(instance.Org))
             {
                 _dataRepository.OrgDataContext = context;
                 DataElement dataElement = await _dataRepository.Read(instanceGuid, dataGuid);
