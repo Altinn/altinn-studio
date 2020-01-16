@@ -209,7 +209,7 @@ The script wil also listen to changes in the receipt react app, rebuild and copy
 
 **Docker**
 - Open a terminal in `src/Altinn.Platform/Altinn.Platform.Receipt`
-- run `docker compose up`
+- run `docker-compose up`
 - The application should now be available at `localhost:5060/receipt/{instanceOwnerId}/{instanceId}`
 
 ## Running the tests
