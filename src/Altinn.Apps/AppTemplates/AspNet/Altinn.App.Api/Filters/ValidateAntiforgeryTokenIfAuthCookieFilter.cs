@@ -74,7 +74,7 @@ namespace Altinn.App.Api.Filters
             }
 
             // Anything else requires a token.
-            return true;
+            return false;
         }
     }
 }
