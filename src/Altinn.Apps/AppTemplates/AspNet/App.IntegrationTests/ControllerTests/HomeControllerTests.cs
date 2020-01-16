@@ -4,6 +4,8 @@ using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -27,7 +29,6 @@ namespace App.IntegrationTests.ControllerTests
         {
             string token = PrincipalUtil.GetToken(1);
 
-
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/")
@@ -36,8 +37,13 @@ namespace App.IntegrationTests.ControllerTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
+            IEnumerable<string> cookieHeaders = response.Headers.GetValues("Set-Cookie");
 
+            // Verify that 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(2, cookieHeaders.Count());
+            Assert.StartsWith("AS-", cookieHeaders.ElementAt(0));
+            Assert.StartsWith("XSR", cookieHeaders.ElementAt(1));
         }
 
 
@@ -57,6 +63,30 @@ namespace App.IntegrationTests.ControllerTests
             string responseContent = response.Content.ReadAsStringAsync().Result;
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetHome_OK_WithAuthCookie()
+        {
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/")
+            {
+            };
+
+            httpRequestMessage.Headers.Add(Altinn.App.Services.Constants.General.RuntimeCookieName, token);
+
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+            IEnumerable<string> cookieHeaders = response.Headers.GetValues("Set-Cookie");
+
+            // Verify that 
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(2, cookieHeaders.Count());
+            Assert.StartsWith("AS-", cookieHeaders.ElementAt(0));
+            Assert.StartsWith("XSR", cookieHeaders.ElementAt(1));
         }
     }
 }

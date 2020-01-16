@@ -74,7 +74,7 @@ namespace Altinn.App.Services.Implementation
                         InstanceId = instance.Id,
                         Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,                        
                         Severity = ValidationIssueSeverity.Error,
-                        Description = ServiceTextHelper.GetServiceText(
+                        Description = AppTextHelper.GetAppText(
                             ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceText, null, "nb")
                     };
                     messages.Add(message);
@@ -87,7 +87,7 @@ namespace Altinn.App.Services.Implementation
                         InstanceId = instance.Id,
                         Code = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
                         Severity = ValidationIssueSeverity.Error,
-                        Description = ServiceTextHelper.GetServiceText(
+                        Description = AppTextHelper.GetAppText(
                             ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, null, null, "nb")
                     };
                     messages.Add(message);
@@ -128,7 +128,7 @@ namespace Altinn.App.Services.Implementation
                     Code = ValidationIssueCodes.DataElementCodes.MissingContentType,
                     DataElementId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = ServiceTextHelper.GetServiceText(
+                    Description = AppTextHelper.GetAppText(
                         ValidationIssueCodes.DataElementCodes.MissingContentType, serviceText, null, "nb")
                 };
                 messages.Add(message);
@@ -145,7 +145,7 @@ namespace Altinn.App.Services.Implementation
                         DataElementId = dataElement.Id,
                         Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                         Severity = ValidationIssueSeverity.Error,
-                        Description = ServiceTextHelper.GetServiceText(
+                        Description = AppTextHelper.GetAppText(
                             ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceText, null, "nb")
                     };
                     messages.Add(message);
@@ -160,7 +160,7 @@ namespace Altinn.App.Services.Implementation
                     DataElementId = dataElement.Id,
                     Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = ServiceTextHelper.GetServiceText(
+                    Description = AppTextHelper.GetAppText(
                         ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceText, null, "nb")
                 };
                 messages.Add(message);
@@ -217,7 +217,7 @@ namespace Altinn.App.Services.Implementation
                             Code = error.ErrorMessage,
                             Field = modelKey,
                             Severity = ValidationIssueSeverity.Error,
-                            Description = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceText, null, "nb")
+                            Description = AppTextHelper.GetAppText(error.ErrorMessage, serviceText, null, "nb")
                         });
                     }
                 }

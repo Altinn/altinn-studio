@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.Api.Filters;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
@@ -19,6 +20,7 @@ using Altinn.App.Services.Models.Validation;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -34,6 +36,7 @@ namespace Altinn.App.Api.Controllers
     /// You can create a new instance (POST), update it (PUT) and retreive a specific instance (GET).
     /// </summary>
     [Authorize]
+    [AutoValidateAntiforgeryTokenIfAuthCookie]
     [Route("{org}/{app}/instances")]
     [ApiController]
     public class InstancesController : ControllerBase
@@ -95,20 +98,19 @@ namespace Altinn.App.Api.Controllers
             try
             {
                 Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-                if (instance == null)
-                {
-                    return NotFound();
-                }
-
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
                 return Ok(instance);
+            }
+            catch (PlatformHttpException e)
+            {
+                return HandlePlatformHttpException(e, $"Get instance {instanceOwnerPartyId}/{instanceGuid} failed");
             }
             catch (Exception exception)
             {
                 return ExceptionResponse(exception, $"Get instance {instanceOwnerPartyId}/{instanceGuid} failed");
             }
-        }       
+        }
 
         /// <summary>
         ///  Updates an instance object in storage.
@@ -145,18 +147,17 @@ namespace Altinn.App.Api.Controllers
             {
                 Instance updatedInstance = await _instanceService.UpdateInstance(instance);
 
-                if (updatedInstance == null)
-                {
-                    return NotFound();
-                }
-
                 SelfLinkHelper.SetInstanceAppSelfLinks(updatedInstance, Request);
 
                 return Ok(updatedInstance);
             }
+            catch (PlatformHttpException e)
+            {
+                return HandlePlatformHttpException(e, $"Update of instance {instanceOwnerPartyId}/{instanceGuid} failed.");
+            }
             catch (Exception exception)
             {
-                return ExceptionResponse(exception, $"Update of instance {instanceOwnerPartyId}/{instanceGuid} failed.");               
+                return ExceptionResponse(exception, $"Update of instance {instanceOwnerPartyId}/{instanceGuid} failed.");
             }
         }
 
@@ -289,9 +290,13 @@ namespace Altinn.App.Api.Controllers
                 // create the instance
                 instance = await _instanceService.CreateInstance(org, app, instanceTemplate);
             }
+            catch (PlatformHttpException e)
+            {
+                return HandlePlatformHttpException(e, $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}");
+            }
             catch (Exception exception)
             {
-                return ExceptionResponse(exception, $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}"); 
+                return ExceptionResponse(exception, $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
 
             try
@@ -304,6 +309,10 @@ namespace Altinn.App.Api.Controllers
                 // notify app and store events
                 await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events);
                 await _processService.DispatchProcessEventsToStorage(instance, processResult.Events);
+            }
+            catch (PlatformHttpException e)
+            {
+                HandlePlatformHttpException(e, $"Instatiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
             catch (Exception exception)
             {
@@ -495,6 +504,26 @@ namespace Altinn.App.Api.Controllers
             }
 
             return instanceTemplate;
+        }
+
+        private ActionResult HandlePlatformHttpException(PlatformHttpException e, string defaultMessage)
+        {
+            if (e.Response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                return Forbid();
+            }
+            else if (e.Response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return NotFound();
+            }
+            else if (e.Response.StatusCode == HttpStatusCode.Conflict)
+            {
+                return Conflict();
+            }
+            else
+            {
+                return ExceptionResponse(e, defaultMessage);
+            }
         }
     }
 }

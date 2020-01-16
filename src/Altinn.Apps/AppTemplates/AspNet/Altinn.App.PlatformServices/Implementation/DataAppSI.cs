@@ -92,7 +92,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instance.Id, response.StatusCode);
-            throw new PlatformHttpException(response);            
+            throw new PlatformHttpException(response);
         }
 
         /// <inheritdoc />
@@ -119,7 +119,7 @@ namespace Altinn.App.Services.Implementation
                 return dataElement;
             }
 
-            throw new PlatformHttpException(response);                        
+            throw new PlatformHttpException(response);
         }
 
         /// <inheritdoc />
@@ -329,7 +329,6 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
-
             throw new PlatformHttpException(response);
         }
 

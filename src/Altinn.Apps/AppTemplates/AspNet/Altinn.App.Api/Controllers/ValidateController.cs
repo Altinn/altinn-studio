@@ -132,7 +132,7 @@ namespace AltinnCore.Runtime.RestControllers
                     InstanceId = instance.Id,
                     Severity = ValidationIssueSeverity.Warning,
                     DataElementId = element.Id,
-                    Description = ServiceTextHelper.GetServiceText(
+                    Description = AppTextHelper.GetAppText(
                         ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceText, null, "nb")
                 };
                 messages.Add(message);

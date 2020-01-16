@@ -13,7 +13,7 @@ data:
       client_max_body_size 50M;
 
       upstream designer {
-        server altinn-designer:5000;
+        server altinn-designer:3000;
       }
 
       upstream repositories {
@@ -39,13 +39,12 @@ data:
         ssl_prefer_server_ciphers on;
         ssl_ciphers ECDH+AESGCM:ECDH+AES256:ECDH+AES128:DH+3DES:!ADH:!AECDH:!MD5;
 
-        ssl_certificate /etc/nginx/ssl/altinn_studio/ssl-bundle.crt;
-        ssl_certificate_key /etc/nginx/ssl/altinn_studio/altinn.studio.rsa;
-        ssl_dhparam /etc/nginx/ssl/altinn_studio/dhparam.pem;
+        ssl_certificate /etc/nginx/ssl/altinn_studio/star.altinn.studio.cert;
+        ssl_certificate_key /etc/nginx/ssl/altinn_studio/star.altinn.studio.key;
 
         ssl_stapling on;
         ssl_stapling_verify on;
-        ssl_trusted_certificate /etc/nginx/ssl/altinn_studio/ssl-bundle.crt;
+        ssl_trusted_certificate /etc/nginx/ssl/altinn_studio/star.altinn.studio.cert;
 
         ssl_session_cache   shared:SSL:40m;
         ssl_session_timeout 4h;

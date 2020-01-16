@@ -35,7 +35,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             Assert.Single(requestRoot.Request.AccessSubject);
             Assert.Equal(2, requestRoot.Request.Action.Count());
             Assert.Equal(3, requestRoot.Request.Resource.Count());
-            Assert.Equal(5, requestRoot.Request.Resource.First().Attribute.Count());
+            Assert.Equal(4, requestRoot.Request.Resource.First().Attribute.Count());
             Assert.Equal(6, requestRoot.Request.MultiRequests.RequestReference.Count());
             foreach (var refrenceId in requestRoot.Request.MultiRequests.RequestReference)
             {

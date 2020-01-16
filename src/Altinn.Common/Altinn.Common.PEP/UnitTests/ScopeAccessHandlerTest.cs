@@ -22,7 +22,7 @@ namespace UnitTests
         {
             _pepSettings = Options.Create(new PepSettings());
             _pepSettings.Value.DisablePEP = false;
-            _sah = new ScopeAccessHandler(_pepSettings);
+            _sah = new ScopeAccessHandler(_pepSettings, new Mock<ILogger<ScopeAccessHandler>>().Object);
         }
 
         /// <summary>
@@ -86,8 +86,9 @@ namespace UnitTests
             ClaimsPrincipal user = new ClaimsPrincipal(
                 new ClaimsIdentity(
                     new List<Claim>{
-                        new Claim("scope", scopeClaim, "string", "org"),
-                        new Claim("urn:altinn:org", "brg", "string", "org")}
+                        new Claim("urn:altinn:scope", scopeClaim, "string", "org"),
+                        new Claim("urn:altinn:org", "brg", "string", "org")},
+        "AuthenticationTypes.Federation"
                 ));
 
             AuthorizationHandlerContext context = new AuthorizationHandlerContext(

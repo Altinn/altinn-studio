@@ -1,4 +1,5 @@
 using Altinn.App.Services.Models;
+using Altinn.Platform.Register.Models;
 using System.Collections.Generic;
 
 namespace Altinn.App.Services.Models.Validation
