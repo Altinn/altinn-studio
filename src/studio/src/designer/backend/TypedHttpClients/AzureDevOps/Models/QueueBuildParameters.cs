@@ -37,7 +37,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
         /// </summary>
         [JsonProperty("APP_COMMIT_ID")]
         public string AppCommitId { get; set; }
-            
+
         /// <summary>
         /// The name of the environment the app should deploy to
         /// </summary>
@@ -55,5 +55,12 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
         /// </summary>
         [JsonProperty("TAGNAME")]
         public string TagName { get; set; }
+
+        /// <summary>
+        /// The hostname of the altinn studio env
+        /// </summary>
+        /// <value></value>
+        [JsonProperty("ALTINN_STUDIO_HOSTNAME")]
+        public string AltinnStudioHostname { get; set;}
     }
 }
