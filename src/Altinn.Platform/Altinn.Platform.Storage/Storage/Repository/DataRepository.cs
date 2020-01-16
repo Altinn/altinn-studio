@@ -30,8 +30,6 @@ namespace Altinn.Platform.Storage.Repository
         private readonly AzureStorageConfiguration _storageConfiguration;
         private readonly CloudBlobClient _blobClient;
         private readonly CloudBlobContainer _container;
-        private CloudBlobContainer _orgBlobContainer;
-        private bool _useOrgBlobClient = false;
 
         /// <summary>
         /// Gets or sets the data context for the application owner
