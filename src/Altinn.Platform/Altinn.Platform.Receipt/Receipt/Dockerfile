@@ -1,9 +1,5 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-alpine AS build
 
-# Copy common, used for exposing language ini files
-WORKDIR /src/AltinnCore/
-COPY src/AltinnCore/ .
-
 # Copy receipt backend
 WORKDIR /src/Altinn.Platform/Altinn.Platform.Receipt/Receipt
 COPY src/Altinn.Platform/Altinn.Platform.Receipt/Receipt .
