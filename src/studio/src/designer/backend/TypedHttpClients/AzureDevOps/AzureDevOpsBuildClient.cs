@@ -41,6 +41,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
         {
             queueBuildParameters.GiteaEnvironment = $"{_generalSettings.HostName}/repos";
             queueBuildParameters.AppDeployToken = _sourceControl.GetDeployToken();
+            queueBuildParameters.AltinnStudioHostname = _generalSettings.HostName;
 
             QueueBuildRequest queueBuildRequest = CreateBuildRequest(queueBuildParameters, buildDefinitionId);
             return await SendRequest(queueBuildRequest);
