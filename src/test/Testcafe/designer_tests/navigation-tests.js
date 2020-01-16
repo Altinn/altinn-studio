@@ -53,7 +53,6 @@ test('Deploy tab navigation', async () => {
   await t
     .click(designerPage.deployNavigationTab)
     .expect(getLocation()).contains('deploy')
-    .expect(Selector('p').withText(t.ctx.at21).visible).ok()
     .expect(Selector('p').withText(t.ctx.at22).visible).ok()
     .expect(Selector('p').withText(t.ctx.at23).visible).ok()
     .expect(Selector('p').withText(t.ctx.tt).visible).ok();
