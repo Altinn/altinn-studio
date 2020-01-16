@@ -10,7 +10,7 @@ services:
     image: altinn-receipt-react-app:latest
     build:
       context: ../../
-      dockerfile: react-apps/applications/receipt/Dockerfile
+      dockerfile: Altinn.Apps/AppFrontend/react/receipt/Dockerfile
 
   altinn_platform_receipt:
     container_name: altinn-platform-receipt
