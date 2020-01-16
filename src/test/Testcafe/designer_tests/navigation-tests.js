@@ -15,7 +15,6 @@ fixture('Navigating the App designer')
   .before(async () => {
   })
   .beforeEach(async t => {
-    t.ctx.at21 = "AT21-miljøet";
     t.ctx.at22 = "AT22-miljøet";
     t.ctx.at23 = "AT23-miljøet";
     t.ctx.tt = "TT02-miljøet";
