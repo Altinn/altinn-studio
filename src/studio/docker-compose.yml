@@ -8,20 +8,6 @@ volumes:
   gitea-data:
 
 services:
-  altinn_dashboard:
-    container_name: studiodashboard
-    image: altinn-studio-dashboard:latest
-    build:
-      context: .
-      dockerfile: ./src/designer/frontend/dashboard/Dockerfile
-
-  altinn_app_development:
-    container_name: studiodev
-    image: altinn-studio-app-development:latest
-    build:
-      context: .
-      dockerfile: ./src/designer/frontend/app-development/Dockerfile
-
   altinn_loadbalancer:
     container_name: altinn-loadbalancer
     image: loadbalancer:latest
@@ -68,11 +54,9 @@ services:
       - "5000:5000"
     depends_on:
       - altinn_repositories
-      - altinn_dashboard
-      - altinn_app_development
     build:
       context: .
-      dockerfile: ./src/designer/backend/Dockerfile
+      dockerfile: ./src/designer/Dockerfile
 
   altinn_repositories:
     container_name: altinn-repositories
