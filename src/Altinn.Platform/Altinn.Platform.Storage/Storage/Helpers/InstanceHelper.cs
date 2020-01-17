@@ -77,8 +77,8 @@ namespace Altinn.Platform.Storage.Helpers
 
             string lastChangedBy = instance.LastChangedBy;
 
-            /// last changed by is set to null if instance has only been modified by an organisation
-            /// to ensure correct rendering in messagebox.
+            // last changed by is set to null if instance has only been modified by an organisation
+            // to ensure correct rendering in messagebox.
             if (instance.Created.Value == instance.LastChanged.Value && IsValidOrganizationNumber(instance.LastChangedBy))
             {
                 lastChangedBy = "0";
