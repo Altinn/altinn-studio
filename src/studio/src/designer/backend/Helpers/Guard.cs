@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace AltinnCore.Common.Helpers
+namespace Altinn.Studio.Designer.Helpers
 {
     /// <summary>
     /// Helper methods to assert null/empty/whitespace

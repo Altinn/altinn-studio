@@ -1,9 +1,9 @@
-using AltinnCore.Common.Models;
-using AltinnCore.Common.Services.Interfaces;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AltinnCore.Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// Controller containing all actions related to basic configuration of an app.

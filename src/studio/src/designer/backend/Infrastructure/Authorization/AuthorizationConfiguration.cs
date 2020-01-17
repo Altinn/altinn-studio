@@ -1,8 +1,8 @@
-using AltinnCore.Designer.ModelBinding.Constants;
+using Altinn.Studio.Designer.ModelBinding.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AltinnCore.Designer.Infrastructure.Authorization
+namespace Altinn.Studio.Designer.Infrastructure.Authorization
 {
     /// <summary>
     /// Contains extension methods for authorization

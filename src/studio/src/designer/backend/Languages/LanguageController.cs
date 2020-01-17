@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using AltinnCore.Common.Configuration;
+using Altinn.Studio.Designer.Configuration;
 using IniParser;
 using IniParser.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// This service will create a language API from ini-files

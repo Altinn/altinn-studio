@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Models;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.RepositoryClient.Model;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using RepositoryModel = AltinnCore.RepositoryClient.Model.Repository;
+using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
-namespace AltinnCore.Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// This is the API controller for functionality related to repositories.
@@ -117,7 +117,7 @@ namespace AltinnCore.Designer.Controllers
 
             RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
 
-            if (pullStatus.RepositoryStatus != Common.Enums.RepositoryStatus.Ok)
+            if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
             {
                 status.RepositoryStatus = pullStatus.RepositoryStatus;
             }

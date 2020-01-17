@@ -1,10 +1,10 @@
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Common.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// Controller for serving/editing the application metadata json file

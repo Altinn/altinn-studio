@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace AltinnCore.Common.Helpers
+namespace Altinn.Studio.Designer.Helpers
 {
     /// <summary>
     /// helper class for functionalities related to application or application meta data

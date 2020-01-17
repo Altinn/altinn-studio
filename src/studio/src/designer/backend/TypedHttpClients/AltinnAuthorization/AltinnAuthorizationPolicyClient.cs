@@ -2,11 +2,11 @@ using System;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Designer.Services.Models;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Services.Models;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthorization
+namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
 {
     /// <summary>
     /// AltinnAuthorizationPolicyClient

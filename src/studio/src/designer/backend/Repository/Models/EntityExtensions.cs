@@ -5,7 +5,7 @@ using System.Security.Claims;
 using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Http;
 
-namespace AltinnCore.Designer.Repository.Models
+namespace Altinn.Studio.Designer.Repository.Models
 {
     /// <summary>
     /// Contains extension methods for entity classes

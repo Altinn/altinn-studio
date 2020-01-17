@@ -1,6 +1,6 @@
 using System;
 
-namespace AltinnCore.Common.Enums
+namespace Altinn.Studio.Designer.Enums
 {
     /// <summary>
     /// Enums with the different repo statuses

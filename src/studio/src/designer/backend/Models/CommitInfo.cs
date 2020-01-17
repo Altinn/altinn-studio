@@ -1,4 +1,4 @@
-namespace AltinnCore.Common.Models
+namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
     /// commit information

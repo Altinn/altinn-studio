@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
-using AltinnCore.Common.ModelMetadatalModels;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary.Extensions;
+using Altinn.Studio.Designer.Extensions;
+using Altinn.Studio.Designer.ModelMetadatalModels;
+using Altinn.Studio.Designer.Services.Interfaces;
 
-namespace AltinnCore.Common.Factories.ModelFactory
+namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
     /// <summary>
     ///     Transforms OR XSD to metadata (Json Instance Model)

@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Rest.TransientFaultHandling;
 
-namespace AltinnCore.Designer.TypedHttpClients.DelegatingHandlers
+namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
 {
     /// <summary>
     /// Delegating handler that ensures response success status code

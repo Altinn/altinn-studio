@@ -1,7 +1,7 @@
-using AltinnCore.Designer.Repository.Models;
-using AltinnCore.Designer.Services.Models;
+using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Services.Models;
 
-namespace AltinnCore.Designer.ViewModels.Request
+namespace Altinn.Studio.Designer.ViewModels.Request
 {
     /// <summary>
     /// Contains extension methods that converts from one model to another

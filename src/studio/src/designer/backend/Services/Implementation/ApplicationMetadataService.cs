@@ -1,23 +1,19 @@
 using System;
-using System.IO;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Models;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.Designer.Infrastructure.Extensions;
-using AltinnCore.Designer.Services.Interfaces;
-using AltinnCore.Designer.Services.Models;
-using AltinnCore.Designer.TypedHttpClients.AltinnStorage;
-using AltinnCore.Designer.TypedHttpClients.Exceptions;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Infrastructure.Extensions;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
+using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest.TransientFaultHandling;
-using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.Services
+namespace Altinn.Studio.Designer.Services.Implementation
 {
     /// <summary>
     /// Relevant application metadata functions

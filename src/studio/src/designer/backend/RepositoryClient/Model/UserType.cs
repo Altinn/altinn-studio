@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AltinnCore.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model
 {
     /// <summary>
     /// Enums that defines if a Gitea User is an organization or user

@@ -17,7 +17,7 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Extensions.Logging;
 
-namespace AltinnCore.Designer
+namespace Altinn.Studio.Designer
 {
     /// <summary>
     /// This is the main method for running this asp.net core application without IIS

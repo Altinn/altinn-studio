@@ -1,10 +1,10 @@
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Infrastructure.Models;
 using AltinnCore.Authentication.Constants;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Designer.Infrastructure.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AltinnCore.Designer.Infrastructure
+namespace Altinn.Studio.Designer.Infrastructure
 {
     /// <summary>
     /// Contains extension methods for registering configuration related classes to the DI container

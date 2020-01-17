@@ -1,4 +1,4 @@
-namespace AltinnCore.Common.Enums
+namespace Altinn.Studio.Designer.Enums
 {
     /// <summary>
     /// Enum for the different status a file in a AltinnCore service can have

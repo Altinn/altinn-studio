@@ -1,8 +1,8 @@
-using AltinnCore.Designer.ModelBinding;
+using Altinn.Studio.Designer.ModelBinding;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AltinnCore.Designer.Infrastructure
+namespace Altinn.Studio.Designer.Infrastructure
 {
     /// <summary>
     /// Contains extension methods for configuring Mvc

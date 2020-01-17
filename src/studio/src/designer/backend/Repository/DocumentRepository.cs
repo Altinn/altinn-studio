@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AltinnCore.Designer.Infrastructure.Models;
-using AltinnCore.Designer.Repository.Models;
-using AltinnCore.Designer.ViewModels.Request;
+using Altinn.Studio.Designer.Infrastructure.Models;
+using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.ViewModels.Request;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Designer.Repository
+namespace Altinn.Studio.Designer.Repository
 {
     /// <summary>
     /// Implementation of IDocumentRepository

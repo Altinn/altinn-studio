@@ -16,7 +16,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 
-namespace AltinnCore.RepositoryClient.Client
+namespace Altinn.Studio.Designer.RepositoryClient.Client
 {
     /// <summary>
     /// <see cref="GlobalConfiguration"/> provides a compile-time extension point for globally configuring

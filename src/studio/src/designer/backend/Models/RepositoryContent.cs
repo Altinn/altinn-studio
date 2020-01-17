@@ -1,8 +1,8 @@
-using AltinnCore.Common.Enums;
+using Altinn.Studio.Designer.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace AltinnCore.Common.Models
+namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
     /// content of the repository

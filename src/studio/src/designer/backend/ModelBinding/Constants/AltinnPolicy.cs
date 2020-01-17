@@ -1,4 +1,4 @@
-namespace AltinnCore.Designer.ModelBinding.Constants
+namespace Altinn.Studio.Designer.ModelBinding.Constants
 {
     /// <summary>
     /// Contains constants related to Authorization policies for Altinn

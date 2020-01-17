@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Designer.Services.Models;
+using Altinn.Studio.Designer.Services.Models;
 
-namespace AltinnCore.Designer.TypedHttpClients.AltinnStorage
+namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
 {
     /// <summary>
     /// IAltinnStorageAppMetadataClient

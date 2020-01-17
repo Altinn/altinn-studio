@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace AltinnCore.Designer.Services.Interfaces
+namespace Altinn.Studio.Designer.Services.Interfaces
 {
     /// <summary>
     /// IPipelineService

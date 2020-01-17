@@ -1,6 +1,6 @@
 using System;
 
-namespace AltinnCore.Common.Configuration
+namespace Altinn.Studio.Designer.Configuration
 {
     /// <summary>
     /// Class that defines the common test data settings

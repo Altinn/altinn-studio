@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Models;
-using AltinnCore.Common.Services.Interfaces;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
+using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Common.Services.Implementation
+namespace Altinn.Studio.Designer.Services.Implementation
 {
     /// <summary>
     /// Implementation of the source control service.
@@ -62,7 +63,7 @@ namespace AltinnCore.Common.Services.Implementation
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new CloneOptions();
             cloneOptions.CredentialsProvider = (a, b, c) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
-            return Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
+            return LibGit2Sharp.Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
         }
 
         /// <inheritdoc />
@@ -73,7 +74,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 try
                 {
-                    using (Repository repo = new Repository(localServiceRepoFolder))
+                    using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
                     {
                         return true;
                     }
@@ -92,7 +93,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             RepoStatus status = new RepoStatus();
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            using (var repo = new Repository(FindLocalRepoLocation(org, repository)))
+            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
             {
                 PullOptions pullOptions = new PullOptions()
                 {
@@ -101,7 +102,6 @@ namespace AltinnCore.Common.Services.Implementation
                         FastForwardStrategy = FastForwardStrategy.Default,
                     },
                 };
-
                 pullOptions.FetchOptions = new FetchOptions();
                 pullOptions.FetchOptions.CredentialsProvider = (_url, _user, _cred) =>
                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
@@ -137,7 +137,7 @@ namespace AltinnCore.Common.Services.Implementation
         public void FetchRemoteChanges(string org, string repository)
         {
             string logMessage = string.Empty;
-            using (var repo = new Repository(FindLocalRepoLocation(org, repository)))
+            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
             {
                 FetchOptions fetchOptions = new FetchOptions();
                 fetchOptions.CredentialsProvider = (_url, _user, _cred) =>
@@ -159,9 +159,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The number of commits behind</returns>
         public int? CheckRemoteUpdates(string org, string repository)
         {
-            using (var repo = new Repository(FindLocalRepoLocation(org, repository)))
+            using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
             {
-                Branch branch = repo.Branches["master"];
+                LibGit2Sharp.Branch branch = repo.Branches["master"];
                 if (branch == null)
                 {
                     return null;
@@ -179,7 +179,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            using (Repository repo = new Repository(localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 // Restrict users from empty commit
                 if (repo.RetrieveStatus().IsDirty)
@@ -223,7 +223,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            using (Repository repo = new Repository(localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 string remoteUrl = FindRemoteRepoLocation(org, repository);
                 Remote remote = repo.Network.Remotes["origin"];
@@ -253,7 +253,7 @@ namespace AltinnCore.Common.Services.Implementation
         public void Commit(CommitInfo commitInfo)
         {
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (Repository repo = new Repository(localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
                 Remote remote = repo.Network.Remotes["origin"];
@@ -286,7 +286,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<RepositoryContent> repoContent = new List<RepositoryContent>();
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (var repo = new Repository(localServiceRepoFolder))
+            using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 RepositoryStatus status = repo.RetrieveStatus(new LibGit2Sharp.StatusOptions());
                 foreach (StatusEntry item in status)
@@ -311,7 +311,7 @@ namespace AltinnCore.Common.Services.Implementation
             RepoStatus repoStatus = new RepoStatus();
             repoStatus.ContentStatus = new List<RepositoryContent>();
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (var repo = new Repository(localServiceRepoFolder))
+            using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 RepositoryStatus status = repo.RetrieveStatus(new LibGit2Sharp.StatusOptions());
@@ -323,7 +323,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     RepositoryContent content = new RepositoryContent();
                     content.FilePath = item.FilePath;
-                    content.FileStatus = (AltinnCore.Common.Enums.FileStatus)(int)item.State;
+                    content.FileStatus = (Altinn.Studio.Designer.Enums.FileStatus)(int)item.State;
                     if (content.FileStatus == Enums.FileStatus.Conflicted)
                     {
                         repoStatus.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
@@ -337,7 +337,7 @@ namespace AltinnCore.Common.Services.Implementation
                 _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "parsestatusentries - {0}", watch.ElapsedMilliseconds);
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
-                Branch branch = repo.Branches.FirstOrDefault(b => b.IsTracking == true);
+                LibGit2Sharp.Branch branch = repo.Branches.FirstOrDefault(b => b.IsTracking == true);
                 if (branch != null)
                 {
                     repoStatus.AheadBy = branch.TrackingDetails.AheadBy;
@@ -357,12 +357,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>The latest commit</returns>
-        public AltinnCore.Common.Models.Commit GetLatestCommitForCurrentUser(string org, string repository)
+        public Altinn.Studio.Designer.Models.Commit GetLatestCommitForCurrentUser(string org, string repository)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            List<AltinnCore.Common.Models.Commit> commits = Log(org, repository);
+            List<Altinn.Studio.Designer.Models.Commit> commits = Log(org, repository);
             var currentUser = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            AltinnCore.Common.Models.Commit latestCommit = commits.FirstOrDefault(commit => commit.Author.Name == currentUser);
+            Altinn.Studio.Designer.Models.Commit latestCommit = commits.FirstOrDefault(commit => commit.Author.Name == currentUser);
             watch.Stop();
             _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Get latest commit- {0} ", watch.ElapsedMilliseconds);
             return latestCommit;
@@ -374,27 +374,27 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>List of commits</returns>
-        public List<AltinnCore.Common.Models.Commit> Log(string org, string repository)
+        public List<Altinn.Studio.Designer.Models.Commit> Log(string org, string repository)
         {
-            List<AltinnCore.Common.Models.Commit> commits = new List<Models.Commit>();
+            List<Altinn.Studio.Designer.Models.Commit> commits = new List<Designer.Models.Commit>();
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            using (var repo = new Repository(localServiceRepoFolder))
+            using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 foreach (LibGit2Sharp.Commit c in repo.Commits.Take(50))
                 {
-                    Models.Commit commit = new Models.Commit();
+                    Designer.Models.Commit commit = new Designer.Models.Commit();
                     commit.Message = c.Message;
                     commit.MessageShort = c.MessageShort;
                     commit.Encoding = c.Encoding;
                     commit.Sha = c.Sha;
 
-                    commit.Author = new Models.Signature();
+                    commit.Author = new Designer.Models.Signature();
                     commit.Author.Email = c.Author.Email;
                     commit.Author.Name = c.Author.Name;
                     commit.Author.When = c.Author.When;
 
-                    commit.Comitter = new Models.Signature();
+                    commit.Comitter = new Designer.Models.Signature();
                     commit.Comitter.Name = c.Committer.Name;
                     commit.Comitter.Email = c.Committer.Email;
                     commit.Comitter.When = c.Committer.When;
@@ -410,25 +410,25 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public Models.Commit GetInitialCommit(string org, string repository)
+        public Altinn.Studio.Designer.Models.Commit GetInitialCommit(string org, string repository)
         {
-            List<AltinnCore.Common.Models.Commit> commits = new List<Models.Commit>();
+            List<Altinn.Studio.Designer.Models.Commit> commits = new List<Altinn.Studio.Designer.Models.Commit>();
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (var repo = new Repository(localServiceRepoFolder))
+            using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 LibGit2Sharp.Commit firstCommit = repo.Commits.First();
-                Models.Commit commit = new Models.Commit();
+                Designer.Models.Commit commit = new Designer.Models.Commit();
                 commit.Message = firstCommit.Message;
                 commit.MessageShort = firstCommit.MessageShort;
                 commit.Encoding = firstCommit.Encoding;
                 commit.Sha = firstCommit.Sha;
 
-                commit.Author = new Models.Signature();
+                commit.Author = new Designer.Models.Signature();
                 commit.Author.Email = firstCommit.Author.Email;
                 commit.Author.Name = firstCommit.Author.Name;
                 commit.Author.When = firstCommit.Author.When;
 
-                commit.Comitter = new Models.Signature();
+                commit.Comitter = new Designer.Models.Signature();
                 commit.Comitter.Name = firstCommit.Committer.Name;
                 commit.Comitter.Email = firstCommit.Committer.Email;
                 commit.Comitter.When = firstCommit.Committer.When;
@@ -443,7 +443,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">Options for the remote repository</param>
         /// <returns>The repostory from API</returns>
-        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption options)
+        public Altinn.Studio.Designer.RepositoryClient.Model.Repository CreateRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
         {
             return _gitea.CreateRepository(org, options).Result;
         }
@@ -558,7 +558,7 @@ namespace AltinnCore.Common.Services.Implementation
         public void ResetCommit(string org, string repository)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (Repository repo = new Repository(localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 if (repo.RetrieveStatus().IsDirty)
                 {
@@ -578,7 +578,7 @@ namespace AltinnCore.Common.Services.Implementation
         public void CheckoutLatestCommitForSpecificFile(string org, string repository, string fileName)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (Repository repo = new Repository(localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 CheckoutOptions checkoutOptions = new CheckoutOptions
                 {
@@ -599,7 +599,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            using (Repository repo = new Repository(localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 FileStatus fileStatus = repo.RetrieveStatus().SingleOrDefault(file => file.FilePath == fileName).State;
 
@@ -623,7 +623,7 @@ namespace AltinnCore.Common.Services.Implementation
         public void AbortMerge(string org, string repository)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (Repository repo = new Repository(localServiceRepoFolder))
+            using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 if (repo.RetrieveStatus().IsDirty)
                 {

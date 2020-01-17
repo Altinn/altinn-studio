@@ -2,7 +2,7 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.Infrastructure.Extensions
+namespace Altinn.Studio.Designer.Infrastructure.Extensions
 {
     /// <summary>
     /// Contains extensions for byte[]

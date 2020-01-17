@@ -17,6 +17,7 @@
   <PropertyGroup>
     <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
     <UserSecretsId>c958e7e5-da9b-411d-8ee0-70bcfe1f64ed</UserSecretsId>
+    <RootNamespace>Altinn.Studio.Designer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <None Update="wwwroot/**/*;Views/**/*;Areas/**/Views;">

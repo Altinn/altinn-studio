@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
-using AltinnCore.Designer.Services.Interfaces;
-using AltinnCore.Designer.ViewModels.Request;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.ViewModels.Request;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AltinnCore.Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// Controller for pipelines

@@ -1,13 +1,13 @@
 using System;
 using System.Net;
-using AltinnCore.Designer.TypedHttpClients.Exceptions;
+using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Rest.TransientFaultHandling;
 
-namespace AltinnCore.Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// Controller for error handling

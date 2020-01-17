@@ -4,13 +4,13 @@ using System.Globalization;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
-using AltinnCore.Common.Factories.ModelFactory.Manatee.Json;
+using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
-namespace AltinnCore.Common.Factories.ModelFactory
+namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
     /// <summary>
     ///     Utility class for converting JSON Schema to Xsd
