@@ -13,35 +13,6 @@ Use the [documentation](https://docs.altinn.studio/) to get started using Altinn
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-### Prerequisites
-
-1. Latest [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.1)
-2. [Node.js](https://nodejs.org) (Version 10.*)
-3. Newest [Git](https://git-scm.com/downloads)
-4. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
-    - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))
-5. [Docker Desktop](https://www.docker.com/products/docker-desktop)
-6. Update hosts file (C:/Windows/System32/drivers/etc/hosts) by adding the following values. On MacOS add the same values to values /private/etc/hosts using cmd `sudo nano /private/etc/hosts`.
-
-```cmd
-localhost altinn3.no
-127.0.0.1 altinn3.no
-localhost altinn3local.no
-127.0.0.1 altinn3local.no
-```
-
-7. Make sure your C drive is shared with docker, Docker Settings -> Shared Drives <br />
-   On MacOS: Change docker-compose.yml (both)
-    ```cmd
-      volumes:
-        - "C:/AltinnCore/Repos:/AltinnCore/Repos"
-    ```
-    to:
-    ```cmd
-      volumes:
-        - "/Users/<yourname>/AltinnCore/Repos:/AltinnCore/Repos"
-    ```
-8. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and choose "stop"
 
 ### Installing
 
@@ -52,63 +23,10 @@ git clone https://github.com/Altinn/altinn-studio
 cd altinn-studio
 ```
 
-Run all parts of the solution in containers (Make sure docker is running)
+#### Altinn Studio
 
-```cmd
-docker-compose up -d --build
-```
+Follow the instructions found [here](/src/studio/).
 
-The solution is now available locally at [altinn3.no](http://altinn3.no)
-
-If you make changes and want to rebuild a specific project using docker-compose this can be done using
-
-```cmd
-docker-compose up -d --build <container>
-```
-
-Example
-```cmd
-docker-compose up -d --build altinn_designer
-```
-
-### Running solutions locally
-
-#### Designer
-
-The Designer component can be run locally when developing/debugging. The rest of the solution (Repository and Loadbalancer) will still have to be running in containers. Follow the install steps above if this has not already been done.
-
-Stop the container running Designer
-
-```cmd
-docker stop altinn-designer
-```
-
-Navigate to the Designer folder. The first time running, or after any package changes, get the latest packages.
-
-```cmd
-cd src/AltinnCore/Designer
-npm ci
-npm run gulp-install-deps
-```
-
-Build and run the code.
-
-```cmd
-dotnet build
-npm run gulp # first time only
-npm run gulp-develop
-```
-
-If you are not going to edit the designer react app you can use
-
-```cmd
-cd src\AltinnCore\Designer
-npm ci
-npm run gulp
-dotnet run
-```
-
-Which will build the Designer .net backend and the designer react app, but not listen to changes to the react app.
 
 #### Apps
 > If you only need to develop and debug App-Frontend, you can follow the description in 5) (only) and deploy the app to any test environment. The App-Frontend will be loaded from your local webpack-dev-server.
