@@ -191,7 +191,7 @@ namespace Altinn.Platform.Storage.Repository
 
         private CloudBlobContainer GetBlobContainer()
         {
-            if (OrgDataContext != null)
+            if (OrgDataContext.OrgBlobContainer != null)
             {
                 return OrgDataContext.OrgBlobContainer;
             }
