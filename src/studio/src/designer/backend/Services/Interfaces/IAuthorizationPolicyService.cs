@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
-using AltinnCore.Designer.Services.Models;
+using Altinn.Studio.Designer.Services.Models;
 
-namespace AltinnCore.Designer.Services.Interfaces
+namespace Altinn.Studio.Designer.Services.Interfaces
 {
     /// <summary>
     /// IAuthorizationPolicyService

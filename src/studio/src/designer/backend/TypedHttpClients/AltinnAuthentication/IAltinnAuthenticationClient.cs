@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace AltinnCore.Designer.TypedHttpClients.AltinnAuthentication
+namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication
 {
     /// <summary>
     /// IAltinnAuthenticationClient

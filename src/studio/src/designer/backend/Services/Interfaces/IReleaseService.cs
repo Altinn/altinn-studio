@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
-using AltinnCore.Designer.Repository.Models;
-using AltinnCore.Designer.ViewModels.Request;
-using AltinnCore.Designer.ViewModels.Response;
+using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.ViewModels.Request;
+using Altinn.Studio.Designer.ViewModels.Response;
 
-namespace AltinnCore.Designer.Services.Interfaces
+namespace Altinn.Studio.Designer.Services.Interfaces
 {
     /// <summary>
     /// The interface for business logic service for release

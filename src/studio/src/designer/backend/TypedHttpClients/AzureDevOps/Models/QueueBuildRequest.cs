@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
+namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
 {
     /// <summary>
     /// Request model for queuing a build

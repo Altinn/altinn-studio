@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using AltinnCore.Common.Helpers.Extensions;
-using AltinnCore.Common.Models;
+using Altinn.Studio.Designer.Helpers.Extensions;
+using Altinn.Studio.Designer.Models;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Common.Configuration
+namespace Altinn.Studio.Designer.Configuration
 {
     /// <summary>
     /// Class that represents the ServiceRepositorySettings

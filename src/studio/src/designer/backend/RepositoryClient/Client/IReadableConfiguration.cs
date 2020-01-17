@@ -10,7 +10,7 @@
 
 using System.Collections.Generic;
 
-namespace AltinnCore.RepositoryClient.Client
+namespace Altinn.Studio.Designer.RepositoryClient.Client
 {
     /// <summary>
     /// Represents a readable-only configuration contract.

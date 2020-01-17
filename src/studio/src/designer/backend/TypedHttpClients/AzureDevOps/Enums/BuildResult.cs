@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums
+namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums
 {
     /// <summary>
     /// The Azure DevOps Build Result

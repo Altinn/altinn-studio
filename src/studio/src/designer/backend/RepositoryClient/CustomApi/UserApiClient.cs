@@ -6,7 +6,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AltinnCore.RepositoryClient.CustomApi
+namespace Altinn.Studio.Designer.RepositoryClient.CustomApi
 {
     /// <summary>
     /// client for user api
@@ -27,10 +27,10 @@ namespace AltinnCore.RepositoryClient.CustomApi
         /// </summary>
         /// <param name="giteaSession">the gitea session</param>
         /// <returns>The current user</returns>
-        public async Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser(string giteaSession)
+        public async Task<Altinn.Studio.Designer.RepositoryClient.Model.User> GetCurrentUser(string giteaSession)
         {
-            AltinnCore.RepositoryClient.Model.User user;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.User));
+            Altinn.Studio.Designer.RepositoryClient.Model.User user;
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Altinn.Studio.Designer.RepositoryClient.Model.User));
 
             Uri giteaUrl = new Uri("http://altinn3.no:3000/api/v1/user");
             Cookie cookie = new Cookie(giteaCoookieId, giteaSession, "/", "altinn3.no");
@@ -40,7 +40,7 @@ namespace AltinnCore.RepositoryClient.CustomApi
             using (HttpClient client = new HttpClient(handler))
             {
                 var streamTask = client.GetStreamAsync(giteaUrl);
-                user = serializer.ReadObject(await streamTask) as AltinnCore.RepositoryClient.Model.User;
+                user = serializer.ReadObject(await streamTask) as Altinn.Studio.Designer.RepositoryClient.Model.User;
             }
 
             return user;

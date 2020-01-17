@@ -9,7 +9,7 @@ using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
-namespace AltinnCore.Common.Factories.ModelFactory
+namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
     /// <summary>
     /// For, like, converting Xsd to JsonSchema

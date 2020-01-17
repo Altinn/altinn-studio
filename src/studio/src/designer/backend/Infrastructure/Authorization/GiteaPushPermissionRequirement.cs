@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace AltinnCore.Designer.Infrastructure.Authorization
+namespace Altinn.Studio.Designer.Infrastructure.Authorization
 {
     /// <summary>
     /// Requirement for GiteaPushPermission

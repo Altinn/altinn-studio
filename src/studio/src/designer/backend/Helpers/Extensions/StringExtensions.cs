@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace AltinnCore.Common.Helpers.Extensions
+namespace Altinn.Studio.Designer.Helpers.Extensions
 {
     /// <summary>
     /// Extensions to facilitate sanitization of string values

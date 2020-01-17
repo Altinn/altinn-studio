@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
-using AltinnCore.Designer.Infrastructure.Authentication;
+using Altinn.Studio.Designer.Infrastructure.Authentication;
 
-namespace AltinnCore.Designer.TypedHttpClients.Maskinporten
+namespace Altinn.Studio.Designer.TypedHttpClients.Maskinporten
 {
     /// <summary>
     /// IMaskinportenClient

@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.ModelMetadatalModels;
-using AltinnCore.Common.Models;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.ModelMetadatalModels;
+using Altinn.Studio.Designer.Models;
 
-namespace AltinnCore.Common.Services.Interfaces
+namespace Altinn.Studio.Designer.Services.Interfaces
 {
     /// <summary>
     /// Interface for repository functionality

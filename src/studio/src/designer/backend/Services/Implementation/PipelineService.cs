@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
-using AltinnCore.Designer.Repository.Models;
-using AltinnCore.Designer.Services.Interfaces;
-using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
-using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
+using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 
-namespace AltinnCore.Designer.Services
+namespace Altinn.Studio.Designer.Services.Implementation
 {
     /// <summary>
     /// PipelineService

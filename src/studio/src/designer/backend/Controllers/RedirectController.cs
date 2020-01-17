@@ -1,11 +1,11 @@
-using AltinnCore.Common.Configuration;
+using Altinn.Studio.Designer.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     ///  Controller for redirecting

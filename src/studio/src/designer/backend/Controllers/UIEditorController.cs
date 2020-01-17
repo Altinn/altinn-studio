@@ -1,12 +1,12 @@
 using System.Text;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Services.Interfaces;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// Controller containing all react-ions

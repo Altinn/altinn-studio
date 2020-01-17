@@ -1,4 +1,4 @@
-namespace AltinnCore.Common.Constants
+namespace Altinn.Studio.Designer.Constants
 {
     /// <summary>
     /// app token

@@ -1,16 +1,14 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Models;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.Designer.Infrastructure.Extensions;
-using AltinnCore.Designer.Services.Interfaces;
-using AltinnCore.Designer.Services.Models;
-using AltinnCore.Designer.TypedHttpClients.AltinnAuthorization;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Models;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Designer.Services
+namespace Altinn.Studio.Designer.Services.Implementation
 {
     /// <summary>
     /// AuthorizationPolicyService

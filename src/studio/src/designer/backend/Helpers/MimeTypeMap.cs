@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AltinnCore.Common.Helpers
+namespace Altinn.Studio.Designer.Helpers
 {
     /// <summary>
     /// MimeTypeMap from https://github.com/samuelneff/MimeTypeMap

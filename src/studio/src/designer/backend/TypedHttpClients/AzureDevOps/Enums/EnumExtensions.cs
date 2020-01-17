@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Runtime.Serialization;
 
-namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums
+namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums
 {
     /// <summary>
     /// Contains extension methods for Enum

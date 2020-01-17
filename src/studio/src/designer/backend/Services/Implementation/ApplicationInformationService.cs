@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AltinnCore.Common.Models;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.Designer.Services.Interfaces;
-using AltinnCore.Designer.Services.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Models;
 
-namespace AltinnCore.Designer.Services
+namespace Altinn.Studio.Designer.Services.Implementation
 {
     /// <summary>
     /// ApplicationInformationService

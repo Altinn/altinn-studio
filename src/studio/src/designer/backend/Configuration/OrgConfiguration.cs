@@ -1,4 +1,4 @@
-namespace AltinnCore.Common.Configuration
+namespace Altinn.Studio.Designer.Configuration
 {
     /// <summary>
     /// Class containing basic details about a service owner

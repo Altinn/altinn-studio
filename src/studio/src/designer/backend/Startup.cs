@@ -1,9 +1,9 @@
 using System;
 using System.IO;
 using System.Reflection;
-using AltinnCore.Designer.Infrastructure;
-using AltinnCore.Designer.Infrastructure.Authorization;
-using AltinnCore.Designer.TypedHttpClients;
+using Altinn.Studio.Designer.Infrastructure;
+using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.TypedHttpClients;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -15,7 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 
-namespace AltinnCore.Designer
+namespace Altinn.Studio.Designer
 {
     /// <summary>
     /// This is the class that set up the application during startup
@@ -57,7 +57,7 @@ namespace AltinnCore.Designer
             services.AddResponseCompression();
 
             CreateDirectory();
-
+            
             services.ConfigureMvc();
             services.ConfigureSettings(Configuration);
             services.RegisterTypedHttpClients(Configuration);

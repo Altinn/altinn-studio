@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.Infrastructure.Authentication
+namespace Altinn.Studio.Designer.Infrastructure.Authentication
 {
     /// <summary>
     /// Access token model

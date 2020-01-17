@@ -1,4 +1,4 @@
-namespace AltinnCore.Designer.ViewModels.Request.Enums
+namespace Altinn.Studio.Designer.ViewModels.Request.Enums
 {
     /// <summary>
     /// Enum that defines direction for sort

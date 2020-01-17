@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AltinnCore.Common.Models;
-using AltinnCore.RepositoryClient.Model;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 
-namespace AltinnCore.Common.Services.Interfaces
+namespace Altinn.Studio.Designer.Services.Interfaces
 {
     /// <summary>
     /// Gitea wrapper
@@ -20,7 +20,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
         /// <returns>List of repos</returns>
-        Task<IList<Repository>> GetUserRepos();
+        Task<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> GetUserRepos();
 
         /// <summary>
         /// Create repository for the org.
@@ -28,7 +28,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">the options for creating repository.</param>
         /// <returns>The newly created repository object.</returns>
-        Task<Repository> CreateRepository(string org, CreateRepoOption options);
+        Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options);
 
         /// <summary>
         /// Search the repository for the given parameters
@@ -45,7 +45,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">the repository</param>
         /// <returns>Information about the repository of the given org.</returns>
-        Task<Repository> GetRepository(string org, string repository);
+        Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> GetRepository(string org, string repository);
 
         /// <summary>
         /// Returns organisation that user has access to

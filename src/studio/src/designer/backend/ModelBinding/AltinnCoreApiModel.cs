@@ -1,4 +1,4 @@
-namespace AltinnCore.Designer.ModelBinding
+namespace Altinn.Studio.Designer.ModelBinding
 {
     /// <summary>
     /// This is an model special created to support both JSON and XML in the same endpoint.

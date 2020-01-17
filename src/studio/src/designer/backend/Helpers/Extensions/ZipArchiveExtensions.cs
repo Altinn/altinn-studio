@@ -6,7 +6,7 @@ using System.Linq;
 
 using Newtonsoft.Json;
 
-namespace AltinnCore.Common.Helpers.Extensions
+namespace Altinn.Studio.Designer.Helpers.Extensions
 {
     /// <summary>
     /// The zip archive extensions.

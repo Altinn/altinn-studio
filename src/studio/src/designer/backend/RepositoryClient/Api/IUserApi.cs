@@ -13,11 +13,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using AltinnCore.RepositoryClient.Client;
-using AltinnCore.RepositoryClient.Model;
+using Altinn.Studio.Designer.RepositoryClient.Client;
+using Altinn.Studio.Designer.RepositoryClient.Model;
 using RestSharp;
 
-namespace AltinnCore.RepositoryClient.Api
+namespace Altinn.Studio.Designer.RepositoryClient.Api
 {
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
@@ -32,7 +32,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Repository</returns>
-        Repository CreateCurrentUserRepo(CreateRepoOption body = null);
+        Altinn.Studio.Designer.RepositoryClient.Model.Repository CreateCurrentUserRepo(CreateRepoOption body = null);
 
         /// <summary>
         /// Create a repository
@@ -40,7 +40,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of Repository</returns>
-        ApiResponse<Repository> CreateCurrentUserRepoWithHttpInfo(CreateRepoOption body = null);
+        ApiResponse<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateCurrentUserRepoWithHttpInfo(CreateRepoOption body = null);
 
         /// <summary>
         /// Add email addresses
@@ -277,42 +277,42 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Repository&gt;</returns>
-        List<Repository> UserCurrentListRepos();
+        List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserCurrentListRepos();
 
         /// <summary>
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
-        ApiResponse<List<Repository>> UserCurrentListReposWithHttpInfo();
+        ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListReposWithHttpInfo();
 
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Repository&gt;</returns>
-        List<Repository> UserCurrentListStarred();
+        List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserCurrentListStarred();
 
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
-        ApiResponse<List<Repository>> UserCurrentListStarredWithHttpInfo();
+        ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListStarredWithHttpInfo();
 
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Repository&gt;</returns>
-        List<Repository> UserCurrentListSubscriptions();
+        List<Model.Repository> UserCurrentListSubscriptions();
 
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
-        ApiResponse<List<Repository>> UserCurrentListSubscriptionsWithHttpInfo();
+        ApiResponse<List<Model.Repository>> UserCurrentListSubscriptionsWithHttpInfo();
 
         /// <summary>
         /// Create a GPG key
@@ -534,7 +534,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;Repository&gt;</returns>
-        List<Repository> UserListRepos(string username);
+        List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserListRepos(string username);
 
         /// <summary>
         /// List the repos owned by the given user
@@ -542,7 +542,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
-        ApiResponse<List<Repository>> UserListReposWithHttpInfo(string username);
+        ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListReposWithHttpInfo(string username);
 
         /// <summary>
         /// The repos that the given user has starred
@@ -550,7 +550,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;Repository&gt;</returns>
-        List<Repository> UserListStarred(string username);
+        List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserListStarred(string username);
 
         /// <summary>
         /// The repos that the given user has starred
@@ -558,7 +558,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
-        ApiResponse<List<Repository>> UserListStarredWithHttpInfo(string username);
+        ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListStarredWithHttpInfo(string username);
 
         /// <summary>
         /// List the repositories watched by a user
@@ -566,7 +566,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>List&lt;Repository&gt;</returns>
-        List<Repository> UserListSubscriptions(string username);
+        List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserListSubscriptions(string username);
 
         /// <summary>
         /// List the repositories watched by a user
@@ -574,7 +574,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
-        ApiResponse<List<Repository>> UserListSubscriptionsWithHttpInfo(string username);
+        ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListSubscriptionsWithHttpInfo(string username);
 
         /// <summary>
         /// Search for users
@@ -622,7 +622,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of Repository</returns>
-        System.Threading.Tasks.Task<Repository> CreateCurrentUserRepoAsync(CreateRepoOption body = null);
+        System.Threading.Tasks.Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateCurrentUserRepoAsync(CreateRepoOption body = null);
 
         /// <summary>
         /// Create a repository
@@ -630,7 +630,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse (Repository)</returns>
-        System.Threading.Tasks.Task<ApiResponse<Repository>> CreateCurrentUserRepoAsyncWithHttpInfo(CreateRepoOption body = null);
+        System.Threading.Tasks.Task<ApiResponse<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> CreateCurrentUserRepoAsyncWithHttpInfo(CreateRepoOption body = null);
 
         /// <summary>
         /// Add email addresses
@@ -875,42 +875,42 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Repository&gt;</returns>
-        System.Threading.Tasks.Task<List<Repository>> UserCurrentListReposAsync();
+        System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListReposAsync();
 
         /// <summary>
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
-        System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListReposAsyncWithHttpInfo();
+        System.Threading.Tasks.Task<ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>> UserCurrentListReposAsyncWithHttpInfo();
 
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Repository&gt;</returns>
-        System.Threading.Tasks.Task<List<Repository>> UserCurrentListStarredAsync();
+        System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListStarredAsync();
 
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
-        System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListStarredAsyncWithHttpInfo();
+        System.Threading.Tasks.Task<ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>> UserCurrentListStarredAsyncWithHttpInfo();
 
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Repository&gt;</returns>
-        System.Threading.Tasks.Task<List<Repository>> UserCurrentListSubscriptionsAsync();
+        System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListSubscriptionsAsync();
 
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
-        System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListSubscriptionsAsyncWithHttpInfo();
+        System.Threading.Tasks.Task<ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>> UserCurrentListSubscriptionsAsyncWithHttpInfo();
 
         /// <summary>
         /// Create a GPG key
@@ -1136,7 +1136,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;Repository&gt;</returns>
-        System.Threading.Tasks.Task<List<Repository>> UserListReposAsync(string username);
+        System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListReposAsync(string username);
 
         /// <summary>
         /// List the repos owned by the given user
@@ -1144,7 +1144,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
-        System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListReposAsyncWithHttpInfo(string username);
+        System.Threading.Tasks.Task<ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>> UserListReposAsyncWithHttpInfo(string username);
 
         /// <summary>
         /// The repos that the given user has starred
@@ -1152,7 +1152,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;Repository&gt;</returns>
-        System.Threading.Tasks.Task<List<Repository>> UserListStarredAsync(string username);
+        System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListStarredAsync(string username);
 
         /// <summary>
         /// The repos that the given user has starred
@@ -1160,7 +1160,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
-        System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListStarredAsyncWithHttpInfo(string username);
+        System.Threading.Tasks.Task<ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>> UserListStarredAsyncWithHttpInfo(string username);
 
         /// <summary>
         /// List the repositories watched by a user
@@ -1168,7 +1168,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>Task of List&lt;Repository&gt;</returns>
-        System.Threading.Tasks.Task<List<Repository>> UserListSubscriptionsAsync(string username);
+        System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListSubscriptionsAsync(string username);
 
         /// <summary>
         /// List the repositories watched by a user
@@ -1176,7 +1176,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
-        System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListSubscriptionsAsyncWithHttpInfo(string username);
+        System.Threading.Tasks.Task<ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>> UserListSubscriptionsAsyncWithHttpInfo(string username);
 
         /// <summary>
         /// Search for users
@@ -1224,7 +1224,7 @@ namespace AltinnCore.RepositoryClient.Api
     [SuppressMessage("Microsoft.StyleCop.CSharp.DocumentationRules", "CS1574:XML comment has cref attribute '{0}' that could not be resolved", Justification = "Justification")]
     public partial class UserApi : IUserApi
     {
-        private AltinnCore.RepositoryClient.Client.ExceptionFactory _exceptionFactory = (name, response) => null;
+        private ExceptionFactory _exceptionFactory = (name, response) => null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UserApi"/> class.
@@ -1232,9 +1232,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="basePath">base path for the user api</param>
         public UserApi(string basePath)
         {
-            this.Configuration = new Configuration { BasePath = basePath };
+            this.Configuration = new Client.Configuration { BasePath = basePath };
 
-            ExceptionFactory = AltinnCore.RepositoryClient.Client.Configuration.DefaultExceptionFactory;
+            ExceptionFactory = Client.Configuration.DefaultExceptionFactory;
         }
 
         /// <summary>
@@ -1242,19 +1242,19 @@ namespace AltinnCore.RepositoryClient.Api
         /// using Configuration object
         /// </summary>
         /// <param name="configuration">An instance of Configuration</param>
-        public UserApi(Configuration configuration = null)
+        public UserApi(Client.Configuration configuration = null)
         {
             // use the default one in Configuration
             if (configuration == null)
             {
-                this.Configuration = Configuration.Default;
+                this.Configuration = Client.Configuration.Default;
             }
             else
             {
                 this.Configuration = configuration;
             }
 
-            ExceptionFactory = AltinnCore.RepositoryClient.Client.Configuration.DefaultExceptionFactory;
+            ExceptionFactory = Altinn.Studio.Designer.RepositoryClient.Client.Configuration.DefaultExceptionFactory;
         }
 
         /// <summary>
@@ -1282,12 +1282,12 @@ namespace AltinnCore.RepositoryClient.Api
         /// Gets or sets the configuration object
         /// </summary>
         /// <value>An instance of the Configuration</value>
-        public Configuration Configuration { get; set; }
+        public Client.Configuration Configuration { get; set; }
 
         /// <summary>
         /// Provides a factory method hook for the creation of exceptions.
         /// </summary>
-        public AltinnCore.RepositoryClient.Client.ExceptionFactory ExceptionFactory
+        public Altinn.Studio.Designer.RepositoryClient.Client.ExceptionFactory ExceptionFactory
         {
             get
             {
@@ -1332,9 +1332,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Repository</returns>
-        public Repository CreateCurrentUserRepo(CreateRepoOption body = null)
+        public Model.Repository CreateCurrentUserRepo(CreateRepoOption body = null)
         {
-             ApiResponse<Repository> localVarResponse = CreateCurrentUserRepoWithHttpInfo(body);
+             ApiResponse<Altinn.Studio.Designer.RepositoryClient.Model.Repository> localVarResponse = CreateCurrentUserRepoWithHttpInfo(body);
              return localVarResponse.Data;
         }
 
@@ -1344,7 +1344,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of Repository</returns>
-        public ApiResponse<Repository> CreateCurrentUserRepoWithHttpInfo(CreateRepoOption body = null)
+        public ApiResponse<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateCurrentUserRepoWithHttpInfo(CreateRepoOption body = null)
         {
             var localVarPath = "/user/repos";
             var localVarPathParams = new Dictionary<string, string>();
@@ -1429,10 +1429,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<Repository>(
+            return new ApiResponse<Altinn.Studio.Designer.RepositoryClient.Model.Repository>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (Repository)Configuration.ApiClient.Deserialize(localVarResponse, typeof(Repository)));
+                (Model.Repository)Configuration.ApiClient.Deserialize(localVarResponse, typeof(Model.Repository)));
         }
 
         /// <summary>
@@ -1441,9 +1441,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of Repository</returns>
-        public async System.Threading.Tasks.Task<Repository> CreateCurrentUserRepoAsync(CreateRepoOption body = null)
+        public async System.Threading.Tasks.Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateCurrentUserRepoAsync(CreateRepoOption body = null)
         {
-             ApiResponse<Repository> localVarResponse = await CreateCurrentUserRepoAsyncWithHttpInfo(body);
+             ApiResponse<Altinn.Studio.Designer.RepositoryClient.Model.Repository> localVarResponse = await CreateCurrentUserRepoAsyncWithHttpInfo(body);
              return localVarResponse.Data;
         }
 
@@ -1453,7 +1453,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse (Repository)</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Repository>> CreateCurrentUserRepoAsyncWithHttpInfo(CreateRepoOption body = null)
+        public async System.Threading.Tasks.Task<ApiResponse<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> CreateCurrentUserRepoAsyncWithHttpInfo(CreateRepoOption body = null)
         {
             var localVarPath = "/user/repos";
             var localVarPathParams = new Dictionary<string, string>();
@@ -1538,10 +1538,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<Repository>(
+            return new ApiResponse<Altinn.Studio.Designer.RepositoryClient.Model.Repository>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (Repository)Configuration.ApiClient.Deserialize(localVarResponse, typeof(Repository)));
+                (Model.Repository)Configuration.ApiClient.Deserialize(localVarResponse, typeof(Model.Repository)));
         }
 
         /// <summary>
@@ -4851,9 +4851,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Repository&gt;</returns>
-        public List<Repository> UserCurrentListRepos()
+        public List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserCurrentListRepos()
         {
-             ApiResponse<List<Repository>> localVarResponse = UserCurrentListReposWithHttpInfo();
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserCurrentListReposWithHttpInfo();
              return localVarResponse.Data;
         }
 
@@ -4862,7 +4862,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
-        public ApiResponse<List<Repository>> UserCurrentListReposWithHttpInfo()
+        public ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListReposWithHttpInfo()
         {
             var localVarPath = "/user/repos";
             var localVarPathParams = new Dictionary<string, string>();
@@ -4939,10 +4939,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<List<Repository>>(
+            return new ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
+                (List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)));
         }
 
         /// <summary>
@@ -4950,9 +4950,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Repository&gt;</returns>
-        public async System.Threading.Tasks.Task<List<Repository>> UserCurrentListReposAsync()
+        public async System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListReposAsync()
         {
-             ApiResponse<List<Repository>> localVarResponse = await UserCurrentListReposAsyncWithHttpInfo();
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserCurrentListReposAsyncWithHttpInfo();
              return localVarResponse.Data;
         }
 
@@ -4961,7 +4961,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListReposAsyncWithHttpInfo()
+        public async System.Threading.Tasks.Task<ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>> UserCurrentListReposAsyncWithHttpInfo()
         {
             var localVarPath = "/user/repos";
             var localVarPathParams = new Dictionary<string, string>();
@@ -5038,10 +5038,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<List<Repository>>(
+            return new ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
+                (List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)));
         }
 
         /// <summary>
@@ -5049,9 +5049,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Repository&gt;</returns>
-        public List<Repository> UserCurrentListStarred()
+        public List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserCurrentListStarred()
         {
-             ApiResponse<List<Repository>> localVarResponse = UserCurrentListStarredWithHttpInfo();
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserCurrentListStarredWithHttpInfo();
              return localVarResponse.Data;
         }
 
@@ -5060,7 +5060,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
-        public ApiResponse<List<Repository>> UserCurrentListStarredWithHttpInfo()
+        public ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListStarredWithHttpInfo()
         {
             var localVarPath = "/user/starred";
             var localVarPathParams = new Dictionary<string, string>();
@@ -5137,10 +5137,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<List<Repository>>(
+            return new ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
+                (List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)));
         }
 
         /// <summary>
@@ -5148,9 +5148,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Repository&gt;</returns>
-        public async System.Threading.Tasks.Task<List<Repository>> UserCurrentListStarredAsync()
+        public async System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListStarredAsync()
         {
-             ApiResponse<List<Repository>> localVarResponse = await UserCurrentListStarredAsyncWithHttpInfo();
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserCurrentListStarredAsyncWithHttpInfo();
              return localVarResponse.Data;
         }
 
@@ -5159,7 +5159,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListStarredAsyncWithHttpInfo()
+        public async System.Threading.Tasks.Task<ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>> UserCurrentListStarredAsyncWithHttpInfo()
         {
             var localVarPath = "/user/starred";
             var localVarPathParams = new Dictionary<string, string>();
@@ -5236,10 +5236,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<List<Repository>>(
+            return new ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
+                (List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)));
         }
 
         /// <summary>
@@ -5247,9 +5247,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Repository&gt;</returns>
-        public List<Repository> UserCurrentListSubscriptions()
+        public List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserCurrentListSubscriptions()
         {
-             ApiResponse<List<Repository>> localVarResponse = UserCurrentListSubscriptionsWithHttpInfo();
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserCurrentListSubscriptionsWithHttpInfo();
              return localVarResponse.Data;
         }
 
@@ -5258,7 +5258,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
-        public ApiResponse<List<Repository>> UserCurrentListSubscriptionsWithHttpInfo()
+        public ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListSubscriptionsWithHttpInfo()
         {
             var localVarPath = "/user/subscriptions";
             var localVarPathParams = new Dictionary<string, string>();
@@ -5335,10 +5335,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<List<Repository>>(
+            return new ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
+                (List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)));
         }
 
         /// <summary>
@@ -5346,9 +5346,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Repository&gt;</returns>
-        public async System.Threading.Tasks.Task<List<Repository>> UserCurrentListSubscriptionsAsync()
+        public async System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserCurrentListSubscriptionsAsync()
         {
-             ApiResponse<List<Repository>> localVarResponse = await UserCurrentListSubscriptionsAsyncWithHttpInfo();
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserCurrentListSubscriptionsAsyncWithHttpInfo();
              return localVarResponse.Data;
         }
 
@@ -5357,7 +5357,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListSubscriptionsAsyncWithHttpInfo()
+        public async System.Threading.Tasks.Task<ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>> UserCurrentListSubscriptionsAsyncWithHttpInfo()
         {
             var localVarPath = "/user/subscriptions";
             var localVarPathParams = new Dictionary<string, string>();
@@ -5434,10 +5434,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<List<Repository>>(
+            return new ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
+                (List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)));
         }
 
         /// <summary>
@@ -8480,9 +8480,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;Repository&gt;</returns>
-        public List<Repository> UserListRepos(string username)
+        public List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserListRepos(string username)
         {
-             ApiResponse<List<Repository>> localVarResponse = UserListReposWithHttpInfo(username);
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserListReposWithHttpInfo(username);
              return localVarResponse.Data;
         }
 
@@ -8492,7 +8492,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
-        public ApiResponse<List<Repository>> UserListReposWithHttpInfo(string username)
+        public ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListReposWithHttpInfo(string username)
         {
             // verify the required parameter 'username' is set
             if (username == null)
@@ -8580,10 +8580,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<List<Repository>>(
+            return new ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
+                (List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)));
         }
 
         /// <summary>
@@ -8592,9 +8592,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;Repository&gt;</returns>
-        public async System.Threading.Tasks.Task<List<Repository>> UserListReposAsync(string username)
+        public async System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListReposAsync(string username)
         {
-             ApiResponse<List<Repository>> localVarResponse = await UserListReposAsyncWithHttpInfo(username);
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserListReposAsyncWithHttpInfo(username);
              return localVarResponse.Data;
         }
 
@@ -8604,7 +8604,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListReposAsyncWithHttpInfo(string username)
+        public async System.Threading.Tasks.Task<ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>> UserListReposAsyncWithHttpInfo(string username)
         {
             // verify the required parameter 'username' is set
             if (username == null)
@@ -8692,10 +8692,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<List<Repository>>(
+            return new ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
+                (List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)));
         }
 
         /// <summary>
@@ -8704,9 +8704,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;Repository&gt;</returns>
-        public List<Repository> UserListStarred(string username)
+        public List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserListStarred(string username)
         {
-             ApiResponse<List<Repository>> localVarResponse = UserListStarredWithHttpInfo(username);
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserListStarredWithHttpInfo(username);
              return localVarResponse.Data;
         }
 
@@ -8716,7 +8716,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
-        public ApiResponse<List<Repository>> UserListStarredWithHttpInfo(string username)
+        public ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListStarredWithHttpInfo(string username)
         {
             // verify the required parameter 'username' is set
             if (username == null)
@@ -8804,10 +8804,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<List<Repository>>(
+            return new ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
+                (List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)));
         }
 
         /// <summary>
@@ -8816,9 +8816,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;Repository&gt;</returns>
-        public async System.Threading.Tasks.Task<List<Repository>> UserListStarredAsync(string username)
+        public async System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListStarredAsync(string username)
         {
-             ApiResponse<List<Repository>> localVarResponse = await UserListStarredAsyncWithHttpInfo(username);
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserListStarredAsyncWithHttpInfo(username);
              return localVarResponse.Data;
         }
 
@@ -8828,7 +8828,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListStarredAsyncWithHttpInfo(string username)
+        public async System.Threading.Tasks.Task<ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>> UserListStarredAsyncWithHttpInfo(string username)
         {
             // verify the required parameter 'username' is set
             if (username == null)
@@ -8916,10 +8916,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<List<Repository>>(
+            return new ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
+                (List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)));
         }
 
         /// <summary>
@@ -8928,9 +8928,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>List&lt;Repository&gt;</returns>
-        public List<Repository> UserListSubscriptions(string username)
+        public List<Altinn.Studio.Designer.RepositoryClient.Model.Repository> UserListSubscriptions(string username)
         {
-             ApiResponse<List<Repository>> localVarResponse = UserListSubscriptionsWithHttpInfo(username);
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = UserListSubscriptionsWithHttpInfo(username);
              return localVarResponse.Data;
         }
 
@@ -8940,7 +8940,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
-        public ApiResponse<List<Repository>> UserListSubscriptionsWithHttpInfo(string username)
+        public ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListSubscriptionsWithHttpInfo(string username)
         {
             // verify the required parameter 'username' is set
             if (username == null)
@@ -9028,10 +9028,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<List<Repository>>(
+            return new ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
+                (List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)));
         }
 
         /// <summary>
@@ -9040,9 +9040,9 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>Task of List&lt;Repository&gt;</returns>
-        public async System.Threading.Tasks.Task<List<Repository>> UserListSubscriptionsAsync(string username)
+        public async System.Threading.Tasks.Task<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> UserListSubscriptionsAsync(string username)
         {
-             ApiResponse<List<Repository>> localVarResponse = await UserListSubscriptionsAsyncWithHttpInfo(username);
+             ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> localVarResponse = await UserListSubscriptionsAsyncWithHttpInfo(username);
              return localVarResponse.Data;
         }
 
@@ -9052,7 +9052,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListSubscriptionsAsyncWithHttpInfo(string username)
+        public async System.Threading.Tasks.Task<ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>> UserListSubscriptionsAsyncWithHttpInfo(string username)
         {
             // verify the required parameter 'username' is set
             if (username == null)
@@ -9140,10 +9140,10 @@ namespace AltinnCore.RepositoryClient.Api
                 }
             }
 
-            return new ApiResponse<List<Repository>>(
+            return new ApiResponse<List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>(
                 localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
-                (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
+                (List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>)));
         }
 
         /// <summary>

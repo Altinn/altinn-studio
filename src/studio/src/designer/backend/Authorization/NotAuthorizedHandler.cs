@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
-namespace AltinnCore.Designer.Authorization
+namespace Altinn.Studio.Designer.Authorization
 {
     /// <summary>
     /// This handler is called by the authentication/Authorization framework when user is redirected by a authorization
