@@ -48,13 +48,13 @@ namespace Altinn.App.Services.Implementation
         public abstract Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance);
 
         public abstract Task RunDataCreation(Instance instance, object data);
-        
+
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
         {
             _logger.LogInformation($"OnInstantiate: GetStartEvent");
 
-            // return start event              
+            // return start event
             return Task.FromResult("StartEvent_1");
         }
 
@@ -87,12 +87,13 @@ namespace Altinn.App.Services.Implementation
             foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
             {
                 _logger.LogInformation($"autocreate data element: {dataType.Id}");
-                
+
                 DataElement dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
 
                 if (dataElement == null)
                 {
                     dynamic data = CreateNewAppModel(dataType.AppLogic.ClassRef);
+                    // TODO: Prefill from repo
                     await RunDataCreation(instance, data);
                     Type type = GetAppModelType(dataType.AppLogic.ClassRef);
 
@@ -100,7 +101,7 @@ namespace Altinn.App.Services.Implementation
                     instance.Data.Add(createdDataElement);
 
                     _logger.LogInformation($"created data element: {createdDataElement.Id}");
-                }                                
+                }
             }
         }
 
@@ -122,7 +123,7 @@ namespace Altinn.App.Services.Implementation
                 if (validationIssues.Count == 0)
                 {
                     return true;
-                }                
+                }
             }
 
             return false;
