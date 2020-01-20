@@ -64,7 +64,13 @@ public class FormDataUtils {
       if (nodeName.equals(keys[keyIndex].toLowerCase())) {
         if ((keys.length - 1) == keyIndex) {
           // If no more partial keys we have reached bottom node, return value if present
-          String value = childNode.getFirstChild().getNodeValue();
+          String value = null;
+          if (childNode.getFirstChild() != null) {
+            value = childNode.getFirstChild().getNodeValue();
+          }
+          else {
+            value = childNode.getNodeValue();
+          }
           if (value != null) {
             return value;
           } else {
