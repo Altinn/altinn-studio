@@ -199,7 +199,7 @@ export const nb = () => (
       invalid_selection_second_part: 'Denne tjenesten er kun for tilgjengelig for',
       invalid_selection_third_part: 'Velg ny aktør under.',
       no_valid_selection_first_part: 'Dette er en tjeneste for {1}',
-      no_valid_selection_second_part: 'Det ser ut som du ikke har tilgang til en aktør som har lov til å starte {1}.',
+      no_valid_selection_second_part: 'Det ser ut som du ikke har tilgang til en aktør som har lov til å starte <b>{1}</b>.',
       no_valid_selection_third_part: 'For å starte denne tjenesten må du ha tilganger som knytter deg til en {1}.',
       no_valid_selection_binding_word: 'og',
       change_party: 'skift aktør her',
