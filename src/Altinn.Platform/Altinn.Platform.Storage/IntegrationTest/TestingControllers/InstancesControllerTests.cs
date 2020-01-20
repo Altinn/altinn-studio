@@ -252,7 +252,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
             Application testApp1 = new Application() { Id = "test/testApp1", Org = "test" };
 
-            applicationRepository.Setup(s => s.FindOne(It.Is<string>(s => s.Equals("test/testApp1")), It.IsAny<string>())).ReturnsAsync(testApp1);
+            applicationRepository.Setup(s => s.FindOne(It.Is<string>(p => p.Equals("test/testApp1")), It.IsAny<string>())).ReturnsAsync(testApp1);
 
             // No setup required for these services. They are not in use by the ApplicationController
             Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
