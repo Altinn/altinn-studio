@@ -82,7 +82,11 @@ export const getHostname: () => string = () => {
     return `${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}`;
   } else if (domainSplitted.length === 4) {
     return `${domainSplitted[2]}.${domainSplitted[3]}`;
+  } else if (domainSplitted.length === 2 && domainSplitted[0] === "altinn3local") {
+    // Local test
+    return window.location.host;
   } else {
+    console.log('domain name split: ', domainSplitted);
     throw new Error('Unknown domain');
   }
 };
