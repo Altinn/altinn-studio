@@ -57,7 +57,7 @@ export function getValidationUrl(instanceId: string) {
 }
 
 export function getCompleteProcessUrl() {
- return `${appPath}/instances/${altinnWindow.instanceId}/process/completeProcess`;
+ return `${appPath}/instances/${altinnWindow.instanceId}/process/next`;
 }
 
 export const getEnvironmentLoginUrl: () => string = () => {
