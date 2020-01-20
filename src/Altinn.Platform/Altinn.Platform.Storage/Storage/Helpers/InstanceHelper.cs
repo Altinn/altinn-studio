@@ -41,7 +41,7 @@ namespace Altinn.Platform.Storage.Helpers
                 DateTime createdDateTime = visibleAfter != null && visibleAfter > instance.Created ? (DateTime)visibleAfter : instance.Created.Value;
 
                 messageBoxInstances.Add(new MessageBoxInstance
-                {                    
+                {
                     CreatedDateTime = createdDateTime,
                     DueDateTime = instance.DueBefore,
                     Id = instanceId,
@@ -57,7 +57,7 @@ namespace Altinn.Platform.Storage.Helpers
                     DeletedDateTime = status.SoftDeleted,
                     ArchivedDateTime = status.Archived,
                     DeleteStatus = status.SoftDeleted.HasValue ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
-                });               
+                });
             }
 
             return messageBoxInstances;
@@ -75,13 +75,22 @@ namespace Altinn.Platform.Storage.Helpers
 
             DateTime createdDateTime = visibleAfter != null && visibleAfter > instance.Created ? (DateTime)visibleAfter : instance.Created.Value;
 
+            string lastChangedBy = instance.LastChangedBy;
+
+            // last changed by is set to null if instance has only been modified by an organisation
+            // to ensure correct rendering in messagebox.
+            if (instance.Created.Value == instance.LastChanged.Value && IsValidOrganizationNumber(instance.LastChangedBy))
+            {
+                lastChangedBy = "0";
+            }
+
             MessageBoxInstance messageBoxInstance = new MessageBoxInstance
             {
                 CreatedDateTime = createdDateTime,
                 DueDateTime = instance.DueBefore,
                 Id = instanceGuid,
                 InstanceOwnerId = instance.InstanceOwner.PartyId,
-                LastChangedBy = instance.LastChangedBy,
+                LastChangedBy = lastChangedBy,
                 Org = instance.Org,
                 AppName = instance.AppId.Split('/')[1],
                 ProcessCurrentTask = GetSBLStatusForCurrentTask(instance),
@@ -109,7 +118,7 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
-        /// Returns app id 
+        /// Returns app id
         /// </summary>
         public static string GetAppId(MessageBoxInstance instance)
         {
@@ -170,6 +179,40 @@ namespace Altinn.Platform.Storage.Helpers
             {
                 return "default";
             }
+        }
+
+        private static bool IsValidOrganizationNumber(string orgNo)
+        {
+            int[] weight = { 3, 2, 7, 6, 5, 4, 3, 2 };
+
+            // Validation only done for 9 digit numbers
+            if (orgNo.Length == 9)
+            {
+                try
+                {
+                    int currentDigit = 0;
+                    int sum = 0;
+                    for (int i = 0; i < orgNo.Length - 1; i++)
+                    {
+                        currentDigit = int.Parse(orgNo.Substring(i, 1));
+                        sum += currentDigit * weight[i];
+                    }
+
+                    int ctrlDigit = 11 - (sum % 11);
+                    if (ctrlDigit == 11)
+                    {
+                        ctrlDigit = 0;
+                    }
+
+                    return int.Parse(orgNo.Substring(orgNo.Length - 1)) == ctrlDigit;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            return false;
         }
     }
 }

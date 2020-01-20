@@ -15,7 +15,6 @@ fixture('Navigating the App designer')
   .before(async () => {
   })
   .beforeEach(async t => {
-    t.ctx.at21 = "AT21-miljøet";
     t.ctx.at22 = "AT22-miljøet";
     t.ctx.at23 = "AT23-miljøet";
     t.ctx.tt = "TT02-miljøet";
@@ -54,7 +53,6 @@ test('Deploy tab navigation', async () => {
   await t
     .click(designerPage.deployNavigationTab)
     .expect(getLocation()).contains('deploy')
-    .expect(Selector('p').withText(t.ctx.at21).visible).ok()
     .expect(Selector('p').withText(t.ctx.at22).visible).ok()
     .expect(Selector('p').withText(t.ctx.at23).visible).ok()
     .expect(Selector('p').withText(t.ctx.tt).visible).ok();

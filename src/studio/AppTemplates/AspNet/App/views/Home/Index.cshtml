@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+  <title>@ViewBag.Org- @ViewBag.App</title>
+
+  <link rel="icon" href="https://altinncdn.no/favicon.ico">
+
+  <!-- Third Party CSS -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://altinncdn.no/toolkits/bootstrap/4.3.1/css/bootstrap.min.css" asp-append-version="true">
+  <script src="https://use.fortawesome.com/ed31cded.js"></script>
+  <script src="https://use.fortawesome.com/df832575.js"></script>
+  <script src="https://use.fortawesome.com/bdabc5c1.js"></script>
+
+  <!-- Javascript -->
+  <script src="https://altinncdn.no/toolkits/jquery/3.3.1/jquery-3.3.1.min.js" asp-append-version="true"></script>
+  <script src="https://altinncdn.no/toolkits/bootstrap/4.3.1/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+  <script src="https://altinncdn.no/toolkits/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+
+  <!-- Runtime CSS -->
+  <link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/1/altinn-app-frontend.css">
+
+</head>
+<body>
+  <style>
+    html, body {
+      height: 100%;
+    }
+  </style>
+  <div class="flex-column d-flex media-body">
+
+    <script>
+      function loadScript() {
+        var appId = window.location.pathname.split('/');
+        window.reportee = document.cookie.replace(/(?:(?:^|.*;\s*)AltinnPartyId\s*\=\s*([^;]*).*$)|^.*$/, "$1");;
+        window.org = appId[1];
+        window.app = appId[2];
+      }
+
+    </script>
+    <div id="root" class="media-body flex-column d-flex"></div>
+    <script>
+      loadScript();
+
+      (function ($) {
+        $.fn.datepicker.dates['no'] = {
+          days: ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'],
+          daysShort: ['søn', 'man', 'tir', 'ons', 'tor', 'fre', 'lør'],
+          daysMin: ['sø', 'ma', 'ti', 'on', 'to', 'fr', 'lø'],
+          months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'],
+          monthsShort: ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'],
+          today: 'i dag',
+          monthsTitle: 'Måneder',
+          clear: 'Nullstill',
+          weekStart: 1,
+          format: 'dd.mm.yyyy'
+        };
+      }(jQuery));
+
+      (function ($) {
+        $.fn.datepicker.dates['nn'] = {
+          days: ['sundag', 'måndag', 'tysdag', 'onsdag', 'torsdag', 'fredag', 'laurdag'],
+          daysShort: ['sun', 'mån', 'tys', 'ons', 'tor', 'fre', 'lau'],
+          daysMin: ['su', 'må', 'ty', 'on', 'to', 'fr', 'la'],
+          months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'],
+          monthsShort: ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'],
+          today: 'i dag',
+          monthsTitle: 'Månadar',
+          clear: 'Nullstill',
+          weekStart: 1,
+          format: 'dd.mm.yyyy'
+        };
+      }(jQuery));
+
+      function initDatePicker(dateId, dateFormat, dateLanguage) {
+        $('#' + dateId).datepicker({
+          format: dateFormat,
+          language: dateLanguage,
+          todayHighlight: true,
+          orientation: 'bottom left',
+          updateViewDate: false,
+          autoclose: true,
+          maxViewMode: 0,
+          templates: {
+            leftArrow: '<i class="fa fa-back"></i>',
+            rightArrow: '<i class="fa fa-arrowright"></i>'
+          }
+        }).on('show', function (e) {
+          $('#' + dateId).find('table').attr('cellpadding', '0');
+          $('#' + dateId).find('table').attr('cellspacing', '0');
+        });
+      }
+      window.initDatePicker = initDatePicker;
+    </script>
+  </div>
+  <script src="https://altinncdn.no/toolkits/altinn-app-frontend/1/altinn-app-frontend.js"></script>
+</body>
+</html>
