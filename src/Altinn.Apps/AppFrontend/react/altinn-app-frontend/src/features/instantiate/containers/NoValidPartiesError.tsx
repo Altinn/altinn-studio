@@ -58,7 +58,7 @@ function NoValidPartiesError() {
     return getParsedLanguageFromKey(
       'party_selection.no_valid_selection_second_part',
       language,
-      [(window as Window as IAltinnWindow).app]);
+      [appMetadata.title.nb]);
   }
 
   function getAllowedPartiesError() {
