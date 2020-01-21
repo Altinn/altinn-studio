@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { getParsedLanguageFromKey } from '../../../../../shared/src/utils/language';
+import { getParsedLanguageFromKey } from 'altinn-shared/utils';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { getHostname } from '../../../utils/urlHelper';

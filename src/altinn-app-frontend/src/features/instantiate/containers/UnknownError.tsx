@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { getParsedLanguageFromKey } from '../../../../../shared/src/utils/language';
+import { getParsedLanguageFromKey } from 'altinn-shared/utils';
 import { IRuntimeState } from '../../../types';
 import InstantiationErrorPage from './InstantiationErrorPage';
 

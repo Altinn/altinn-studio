@@ -1,6 +1,6 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IInstance } from './../../../../../shared/src/types/index.d';
+import { IInstance } from 'altinn-shared/types';
 import { IGetInstanceDataFulfilled, IGetInstanceDataRejected } from './get/getInstanceDataActions';
 import * as InstanceDataActionTypes from './get/getInstanceDataActionTypes';
 

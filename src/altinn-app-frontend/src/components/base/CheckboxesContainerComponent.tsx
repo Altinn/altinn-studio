@@ -4,7 +4,7 @@ import FormControl from '@material-ui/core/FormControl';
 import { makeStyles } from '@material-ui/core/styles';
 import classNames = require('classnames');
 import * as React from 'react';
-import altinnTheme from '../../../../shared/src/theme/altinnAppTheme';
+import {AltinnAppTheme} from 'altinn-shared/theme';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface ICheckboxContainerProps {
@@ -34,10 +34,10 @@ const useStyles = makeStyles({
     '$root.Mui-focusVisible &': {
       outline: '2px solid #ff0000',
       outlineOffset: 0,
-      outlineColor: altinnTheme.altinnPalette.primary.blueDark,
+      outlineColor: AltinnAppTheme.altinnPalette.primary.blueDark,
     },
     'input:hover ~ &': {
-      borderColor: altinnTheme.altinnPalette.primary.blueDark,
+      borderColor: AltinnAppTheme.altinnPalette.primary.blueDark,
     },
     'input:disabled ~ &': {
       boxShadow: 'none',
@@ -55,7 +55,7 @@ const useStyles = makeStyles({
       content: '""',
     },
     'input:hover ~ &': {
-      borderColor: altinnTheme.altinnPalette.primary.blueDark,
+      borderColor: AltinnAppTheme.altinnPalette.primary.blueDark,
     },
   },
 });
