@@ -76,12 +76,12 @@ namespace Altinn.Platform.Storage.Interface.Models
     /// Not when the list is a property of a separate class.
     /// </remarks>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class InstanceEvents
+    public class InstanceEventList
     {
         /// <summary>
         /// The actual list of instance events.
         /// </summary>
-        [JsonProperty(PropertyName = "data")]
-        public List<InstanceEvent> Data { get; set; }
+        [JsonProperty(PropertyName = "instanceEvents")]
+        public List<InstanceEvent> InstanceEvents { get; set; }
     }
 }

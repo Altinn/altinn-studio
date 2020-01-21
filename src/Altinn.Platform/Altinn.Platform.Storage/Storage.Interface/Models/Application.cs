@@ -77,15 +77,15 @@ namespace Altinn.Platform.Storage.Interface.Models
     /// </summary>
     /// <remarks>
     /// This should be used only when an API endpoint would otherwise return a list of applications.
-    /// Not when the list is a property of a separate class.
+    /// Not when a list is a property of a separate class.
     /// </remarks>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class Applications
+    public class ApplicationList
     {
         /// <summary>
         /// The actual list of applications.
         /// </summary>
-        [JsonProperty(PropertyName = "data")]
-        public List<Application> Data { get; set; }
+        [JsonProperty(PropertyName = "applications")]
+        public List<Application> Applications { get; set; }
     }
 }

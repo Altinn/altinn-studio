@@ -98,13 +98,13 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Not when the list is a property of a separate class.
         /// </remarks>
         [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-        public class Instances
+        public class InstanceList
         {
             /// <summary>
             /// The actual list of instances.
             /// </summary>
-            [JsonProperty(PropertyName = "data")]
-            public List<Instance> Data { get; set; }
+            [JsonProperty(PropertyName = "instances")]
+            public List<Instance> Instances { get; set; }
         }
     }
 }

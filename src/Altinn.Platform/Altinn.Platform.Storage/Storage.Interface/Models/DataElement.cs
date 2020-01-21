@@ -93,12 +93,12 @@ namespace Altinn.Platform.Storage.Interface.Models
     /// Not when the list is a property of a separate class.
     /// </remarks>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class DataElements
+    public class DataElementList
     {
         /// <summary>
         /// The actual list of data elements.
         /// </summary>
-        [JsonProperty(PropertyName = "data")]
-        public List<DataElement> Data { get; set; }
+        [JsonProperty(PropertyName = "dataElements")]
+        public List<DataElement> DataElements { get; set; }
     }
 }

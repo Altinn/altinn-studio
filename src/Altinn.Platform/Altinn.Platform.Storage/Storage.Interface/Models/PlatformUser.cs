@@ -9,7 +9,7 @@ namespace Altinn.Platform.Storage.Interface.Models
     public class PlatformUser
     {
         /// <summary>
-        /// Gets or sets the unique user id as given by Altinn, or null if the user is a organisation user.
+        /// Gets or sets the unique user id as given by Altinn, or null if the user is an organisation user.
         /// </summary>
         [JsonProperty(PropertyName = "userId")]
         public int? UserId { get; set; }
