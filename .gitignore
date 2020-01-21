@@ -304,42 +304,18 @@ src/AltinnRepositories/gitea-data/gitea/*
 !src/AltinnRepositories/gitea-data/gitea/public/
 !src/AltinnRepositories/gitea-data/gitea/templates/
 
-
-######### React apps ###########
-src/react-apps/node_modules
-src/react-apps/applications/ux-editor/node_modules
-src/react-apps/applications/ux-editor/compiled
-src/react-apps/applications/ux-editor/dist
-src/react-apps/applications/service-development/node_modules
-src/react-apps/applications/service-development/compiled
-src/react-apps/applications/service-development/dist
-src/react-apps/applications/service-development/js
-src/react-apps/applications/dashboard/node_modules
-src/react-apps/applications/dashboard/compiled
-src/react-apps/applications/dashboard/dist
-src/react-apps/applications/runtime/node_modules
-src/react-apps/applications/runtime/compiled
-src/react-apps/applications/runtime/dist
-src/react-apps/applications/receipt/node_modules
-src/react-apps/applications/receipt/compiled
-src/react-apps/applications/receipt/dist
-
 ######### Built react apps for receipt ###########
 src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/wwwroot/receipt/js/react
 src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/wwwroot/receipt/css
 
-######### Built react apps for runtime ###########
-src/AltinnCore/Runtime/wwwroot/runtime/css/react
-src/AltinnCore/Runtime/wwwroot/runtime/js/react
-
 ######### Built react apps for designer ###########
-src/AltinnCore/Designer/wwwroot/designer/css/react
-src/AltinnCore/Designer/wwwroot/designer/js/react
-src/AltinnCore/Designer/wwwroot/designer/js/lib
-src/AltinnCore/Designer/wwwroot/designer/css/lib
-src/AltinnCore/Designer/wwwroot/designer/css/font-awesome
-src/AltinnCore/Designer/wwwroot/designer/css/fonts
-src/AltinnCore/Designer/wwwroot/designer/css/bootstrap*.css
+src/studio/src/designer/backend/wwwroot/designer/css/react
+src/studio/src/designer/backend/wwwroot/designer/js/react
+src/studio/src/designer/backend/wwwroot/designer/js/lib
+src/studio/src/designer/backend/wwwroot/designer/css/lib
+src/studio/src/designer/backend/wwwroot/designer/css/font-awesome
+src/studio/src/designer/backend/wwwroot/designer/css/fonts
+src/studio/src/designer/backend/wwwroot/designer/css/bootstrap*.css
 
 # Jest test coverage
 coverage
