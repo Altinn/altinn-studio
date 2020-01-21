@@ -1,19 +1,11 @@
-using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 
 namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// Convenience type to handle multiple languages in a string.
+    /// Represents a dictionary collection of translated texts where the key is a language id and the value is the text.
     /// </summary>
     public class LanguageString : Dictionary<string, string>
-    {
-        /// <summary>
-        /// public constructor
-        /// </summary>
-        public LanguageString()
-        {
-        }       
+    { 
     }
 }

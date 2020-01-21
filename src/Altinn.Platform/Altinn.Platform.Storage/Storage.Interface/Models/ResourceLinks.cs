@@ -3,19 +3,19 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// represent actual links to resources in various enpoints
+    /// Represent actual links to resources in various endpoints.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ResourceLinks
     {
         /// <summary>
-        /// Application resource link. It is null if data is fetched from platform storage.
+        /// Gets or sets the application resource link. It is null if data is fetched from platform storage.
         /// </summary>
         [JsonProperty(PropertyName = "apps")]
         public string Apps { get; set; }
 
         /// <summary>
-        /// platform resource link.
+        /// Gets or sets platform resource link.
         /// </summary>
         [JsonProperty(PropertyName = "platform")]
         public string Platform { get; set; }
