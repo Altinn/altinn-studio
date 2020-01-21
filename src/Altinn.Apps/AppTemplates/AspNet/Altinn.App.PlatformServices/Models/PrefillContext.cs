@@ -3,19 +3,19 @@ using Altinn.Platform.Register.Models;
 namespace Altinn.App.Services.Models
 {
     /// <summary>
-    /// Class containing information for prefill 
+    /// Class containing information for prefill
     /// </summary>
     public class PrefillContext
     {
         /// <summary>
         /// Gets or sets the person
         /// </summary>
-        public Person Person { get; set; }
+        public string PartyId { get; set; }
 
         /// <summary>
-        /// Gets or sets the organization 
+        /// Gets or sets the organization
         /// </summary>
-        public Organization Organization { get; set; }
+        public string OrgNumber { get; set; }
 
         /// <summary>
         /// Gets or sets the userid
@@ -23,7 +23,7 @@ namespace Altinn.App.Services.Models
         public int UserId { get; set; }
 
         /// <summary>
-        /// Gets or sets the org name
+        /// Gets or sets the org name of
         /// </summary>
         public string Org { get; set; }
 

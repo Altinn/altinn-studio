@@ -1,5 +1,6 @@
 using Altinn.App.Common.Enums;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -19,13 +20,15 @@ namespace Altinn.App.Services.Implementation
         private readonly IData _dataService;
         private readonly IProcess _processService;
         private readonly IPDF _pdfService;
+        private readonly IPrefill _prefillService;
 
         public AppBase(
             IAppResources resourceService,
             ILogger<AppBase> logger,
             IData dataService,
             IProcess processService,
-            IPDF pdfService)
+            IPDF pdfService,
+            IPrefill prefillService)
         {
             _appMetadata = resourceService.GetApplication();
             _resourceService = resourceService;
@@ -33,6 +36,7 @@ namespace Altinn.App.Services.Implementation
             _dataService = dataService;
             _processService = processService;
             _pdfService = pdfService;
+            _prefillService = prefillService;
         }
 
         public abstract Type GetAppModelType(string dataType);
@@ -93,7 +97,14 @@ namespace Altinn.App.Services.Implementation
                 if (dataElement == null)
                 {
                     dynamic data = CreateNewAppModel(dataType.AppLogic.ClassRef);
-                    // TODO: Prefill from repo
+                    PrefillContext prefillContext = new PrefillContext {
+                        Org = instance.Org,
+                        App = instance.AppId.Split("/")[1],
+                        Organization = null,
+                        UserId = 0,
+                        Person = null
+                    };
+                    await _prefillService.PrefillDataModel(prefillContext, data);
                     await RunDataCreation(instance, data);
                     Type type = GetAppModelType(dataType.AppLogic.ClassRef);
 
