@@ -4,14 +4,16 @@ import * as React from 'react';
 import { useSelector } from 'react-redux';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
-import AltinnContentIconReceipt from '../../../../../shared/src/components/atoms/AltinnContentIconReceipt';
-import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
-import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
-import { IAttachment, IInstance, IParty } from '../../../../../shared/src/types/index.d';
-import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationMetaDataUtils';
-import { getInstancePdf, mapInstanceAttachments } from '../../../../../shared/src/utils/attachmentsUtils';
-import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
-import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
+import {AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent} from 'altinn-shared/components';
+import { IAttachment, IInstance, IParty } from 'altinn-shared/types';
+import {
+  getCurrentTaskData,
+  getInstancePdf,
+  mapInstanceAttachments,
+  getLanguageFromKey,
+  getUserLanguage,
+  returnUrlToMessagebox
+} from 'altinn-shared/utils';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IRuntimeState } from '../../../types';

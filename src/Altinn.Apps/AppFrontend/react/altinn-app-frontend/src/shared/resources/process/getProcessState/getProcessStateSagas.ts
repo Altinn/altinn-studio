@@ -1,6 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
-import { get } from '../../../../../../shared/src/utils/networking';
+import { get } from 'altinn-shared/utils';
 import { ProcessSteps } from '../../../../types';
 import { getProcessStateUrl } from '../../../../utils/urlHelper';
 import * as ProcessStateActionTypes from '../processActionTypes';

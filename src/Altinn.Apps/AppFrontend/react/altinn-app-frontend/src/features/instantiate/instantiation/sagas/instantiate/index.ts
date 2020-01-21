@@ -1,6 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
-import { IParty } from '../../../../../../../shared/src/types';
+import { IParty } from 'altinn-shared/types';
 import InstanceDataActions from '../../../../../shared/resources/instanceData/instanceDataActions';
 import { IRuntimeState } from '../../../../../types';
 import { post } from '../../../../../utils/networking';

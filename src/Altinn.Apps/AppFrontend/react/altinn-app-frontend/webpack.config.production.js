@@ -6,6 +6,7 @@ const webpack = require('webpack');
 const GitRevisionPlugin = require('git-revision-webpack-plugin');
 const gitRevisionPlugin = new GitRevisionPlugin();
 const package = require('./package.json');
+const path = require('path');
 
 module.exports = {
   mode: 'production',
@@ -38,6 +39,10 @@ module.exports = {
   },*/
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
+    alias: {
+      // CUSTOM PACKAGES
+      'altinn-shared': path.resolve(__dirname, './../shared/src'),
+    }
   },
   performance: {
     hints: false,

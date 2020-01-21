@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { IParty } from '../../../../../../shared/src/types';
+import { IParty } from 'altinn-shared/types';
 import * as ActionTypes from './selectPartyActionTypes';
 
 export interface ISelectParty extends Action {

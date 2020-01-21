@@ -7,9 +7,9 @@ import {
 } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AltinnPopover from '../../../../../shared/src/components/molecules/AltinnPopoverSimple';
-import AppTheme from '../../../../../shared/src/theme/altinnAppTheme';
-import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
+import {AltinnPopover} from 'altinn-shared/components';
+import {AltinnAppTheme} from 'altinn-shared/theme';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 import { makeGetLayout } from '../../../selectors/getLayoutData';
 import { makeGetComponentValidationsSelector } from '../../../selectors/getValidations';
 import { IRuntimeState } from '../../../types';
@@ -39,7 +39,7 @@ export interface IState {
   openPopover: boolean;
 }
 
-const theme = createMuiTheme(AppTheme);
+const theme = createMuiTheme(AltinnAppTheme);
 
 const styles = createStyles({
   helpTextIcon: {

@@ -7,8 +7,8 @@ import {
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { IRuntimeState } from 'src/types';
-import AltinnInput from '../../../../shared/src/components/AltinnInput';
-import AltinnAppTheme from '../../../../shared/src/theme/altinnAppTheme';
+import {AltinnInput} from 'altinn-shared/components';
+import {AltinnAppTheme} from 'altinn-shared/theme';
 
 const styles = createStyles({
   partySearchContainer: {

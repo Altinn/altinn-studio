@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { ILanguageState } from 'src/shared/resources/language/languageReducers';
+import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 import { formComponentWithHandlers } from '../features/form/containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/actions';
 import { IFormData } from '../features/form/data/reducer';
@@ -10,10 +10,10 @@ import FormDynamicsActions from '../features/form/dynamics/actions';
 import { IDataModelBindings, ILayoutComponent, ILayoutEntry, ITextResourceBindings } from '../features/form/layout';
 import FormLayoutActions from '../features/form/layout/actions/index';
 import RuleActions from '../features/form/rules/actions';
-import ValidationActions from '../features/form/validation/actions';
+//import ValidationActions from '../features/form/validation/actions';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
 import { makeGetFocus, makeGetHidden, makeGetLayoutElement } from '../selectors/getLayoutData';
-import { IAltinnWindow, IRuntimeState } from '../types';
+import { IRuntimeState } from '../types';
 import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
 
