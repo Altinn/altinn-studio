@@ -1,34 +1,35 @@
-using Newtonsoft.Json;
 using System;
+
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// Abstract supertype for holding change attributes.
+    /// Represents a super type for other classes that need properties associated with creation and editing.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public abstract class ChangableElement
     {
         /// <summary>
-        /// Creation time for the element.
+        /// Gets or sets the date and time for when the element was created.
         /// </summary>
         [JsonProperty(PropertyName = "created")]
         public DateTime? Created { get; set; }
 
         /// <summary>
-        /// User id of the user who created it.
+        /// Gets or sets the id of the user who created this element.
         /// </summary>
         [JsonProperty(PropertyName = "createdBy")]
         public string CreatedBy { get; set; }
 
         /// <summary>
-        /// Last changed date/time for the element.
+        /// Gets or sets the date and time for when the element was last edited.
         /// </summary>
         [JsonProperty(PropertyName = "lastChanged")]
         public DateTime? LastChanged { get; set; }
 
         /// <summary>
-        /// User id of the user who last changed it.
+        /// Gets or sets the id of the user who last changed this element.
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
         public string LastChangedBy { get; set; }
