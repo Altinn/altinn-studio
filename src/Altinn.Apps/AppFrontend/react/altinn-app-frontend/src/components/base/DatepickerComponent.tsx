@@ -3,7 +3,7 @@ import * as React from 'react';
 import { createRef } from 'react';
 import '../../styles/DatepickerComponent.css';
 import '../../styles/shared.css';
-import { returnDatestringFromDate } from './../../../../shared/src/utils/formatDate';
+import { returnDatestringFromDate } from 'altinn-shared/utils';
 
 export interface IDatePickerProps {
   id: string;

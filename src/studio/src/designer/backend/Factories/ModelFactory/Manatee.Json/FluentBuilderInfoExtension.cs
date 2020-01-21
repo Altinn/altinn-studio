@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AltinnCore.Common.Factories.ModelFactory.Manatee.Json;
+using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
 
 namespace Manatee.Json.Schema

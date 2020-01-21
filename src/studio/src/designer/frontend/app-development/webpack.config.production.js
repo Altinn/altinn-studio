@@ -74,7 +74,9 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: "app-development.css",
     }),
-    new UglifyJsPlugin(),
+    new UglifyJsPlugin({
+      parallel: true,
+    }),
     new MonacoPlugin({
       output: path.join('../app-development', 'js', 'react'),
       languages: ['typescript', 'javascript', 'csharp']

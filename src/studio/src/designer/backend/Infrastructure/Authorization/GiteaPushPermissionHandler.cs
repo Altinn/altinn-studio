@@ -1,12 +1,12 @@
 using System.Net;
 using System.Threading.Tasks;
-using AltinnCore.Common.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 
-namespace AltinnCore.Designer.Infrastructure.Authorization
+namespace Altinn.Studio.Designer.Infrastructure.Authorization
 {
     /// <summary>
     /// Authorization Handler for GiteaPushPermissionRequirement

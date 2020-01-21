@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using AltinnCore.Common.Models;
+using Altinn.Studio.Designer.Models;
 
-namespace AltinnCore.Common.Helpers.Extensions
+namespace Altinn.Studio.Designer.Helpers.Extensions
 {
     /// <summary>
     /// The resource collection extensions.

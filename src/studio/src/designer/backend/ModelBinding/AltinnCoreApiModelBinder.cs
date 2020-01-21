@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace AltinnCore.Designer.ModelBinding
+namespace Altinn.Studio.Designer.ModelBinding
 {
     /// <summary>
     /// Custom model binder to be able to read the Request Body and later Deserialize it.

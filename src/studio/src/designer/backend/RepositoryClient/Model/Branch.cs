@@ -12,7 +12,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace AltinnCore.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model
 {
     /// <summary>
     /// Branch represents a repository branch

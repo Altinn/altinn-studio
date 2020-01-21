@@ -5,20 +5,18 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Models;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.RepositoryClient.Model;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.RepositoryClient.Model;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
-namespace AltinnCore.Common.Services.Implementation
+namespace Altinn.Studio.Designer.Services.Implementation
 {
     /// <summary>
     /// Implementation of the gitea wrapper service.
@@ -70,16 +68,16 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Repository> CreateRepository(string org, CreateRepoOption options)
+        public async Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options)
         {
-            var repository = new Repository();
+            var repository = new Altinn.Studio.Designer.RepositoryClient.Model.Repository();
             string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string urlEnd = developerUserName == org ? "user/repos" : $"org/{org}/repos";
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(urlEnd, options);
 
             if (response.StatusCode == HttpStatusCode.Created)
             {
-                repository = await response.Content.ReadAsAsync<Repository>();
+                repository = await response.Content.ReadAsAsync<Altinn.Studio.Designer.RepositoryClient.Model.Repository>();
                 repository.RepositoryCreatedStatus = HttpStatusCode.Created;
             }
             else if (response.StatusCode == HttpStatusCode.Conflict)
@@ -98,16 +96,16 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<IList<Repository>> GetUserRepos()
+        public async Task<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> GetUserRepos()
         {
-            IList<Repository> repos = new List<Repository>();
+            IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository> repos = new List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>();
 
             HttpResponseMessage response = await _httpClient.GetAsync("user/repos");
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                repos = await response.Content.ReadAsAsync<IList<Repository>>();
+                repos = await response.Content.ReadAsAsync<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>();
 
-                foreach (Repository repo in repos)
+                foreach (Altinn.Studio.Designer.RepositoryClient.Model.Repository repo in repos)
                 {
                     if (string.IsNullOrEmpty(repo.Owner?.Login))
                     {
@@ -197,7 +195,7 @@ namespace AltinnCore.Common.Services.Implementation
                 return repository;
             }
 
-            foreach (Repository repo in repository.Data)
+            foreach (Altinn.Studio.Designer.RepositoryClient.Model.Repository repo in repository.Data)
             {
                 if (string.IsNullOrEmpty(repo.Owner?.Login))
                 {
@@ -216,15 +214,15 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Repository> GetRepository(string org, string repository)
+        public async Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> GetRepository(string org, string repository)
         {
-            Repository returnRepository = null;
+            Altinn.Studio.Designer.RepositoryClient.Model.Repository returnRepository = null;
 
             string giteaUrl = $"repos/{org}/{repository}";
             HttpResponseMessage response = await _httpClient.GetAsync(giteaUrl);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                returnRepository = await response.Content.ReadAsAsync<Repository>();
+                returnRepository = await response.Content.ReadAsAsync<Altinn.Studio.Designer.RepositoryClient.Model.Repository>();
             }
             else
             {

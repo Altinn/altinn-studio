@@ -1,6 +1,6 @@
 using System.Xml.Linq;
 
-namespace AltinnCore.Common.ModelMetadatalModels
+namespace Altinn.Studio.Designer.ModelMetadatalModels
 {
     /// <summary>
     /// Class containing XNamespace and XName for various xml and xsd element 

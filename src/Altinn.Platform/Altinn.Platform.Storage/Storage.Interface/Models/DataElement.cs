@@ -1,78 +1,79 @@
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// Model to hold metadata about a data type element.
+    /// Represents metadata about a data element.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class DataElement : ChangableElement
     {
         /// <summary>
-        /// The data element id, a guid.
+        /// Gets or sets the unique id, a guid.
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// The guid of the instance which the data element belongs to. This field is normally not populated if data element is part of instance metadata.
+        /// Gets or sets the id of the instance which the data element belongs to.
+        /// This field is normally not populated if data element is part of instance metadata.
         /// </summary>
         [JsonProperty(PropertyName = "instanceGuid")]
-        public string instanceGuid;
+        public string InstanceGuid;
 
         /// <summary>
-        /// the data type, must be equal to the ones defined in application data types.
+        /// Gets or sets the data type, must be equal to the ones defined in application data types.
         /// </summary>
         [JsonProperty(PropertyName = "dataType")]
         public string DataType { get; set; }
 
         /// <summary>
-        /// the name of the data element (file)
+        /// Gets or sets the name of the data element (file)
         /// </summary>
         [JsonProperty(PropertyName = "filename")]
         public string Filename { get; set; }
 
         /// <summary>
-        /// contentType of data element (file) stored
+        /// Gets or sets the content type in the stored data element (file).
         /// </summary>
         [JsonProperty(PropertyName = "contentType")]
         public string ContentType { get; set; }
 
         /// <summary>
-        /// path to blob storage. Might be nullified in export.
+        /// Gets or sets the path to blob storage. Might be nullified in export.
         /// </summary>
         [JsonProperty(PropertyName = "blobStoragePath")]
         public string BlobStoragePath { get; set; }
 
         /// <summary>
-        /// Links to access the data elements
+        /// Gets or sets links to access the data element.
         /// </summary>
         [JsonProperty(PropertyName = "selfLinks")]
         public ResourceLinks SelfLinks { get; set; }
 
         /// <summary>
-        /// Size of file in bytes
+        /// Gets or sets the size of file in bytes
         /// </summary>
         [JsonProperty(PropertyName = "size")]
         public long Size { get; set; }
 
         /// <summary>
-        /// Indicates that element cannot be updated
+        /// Gets or sets a value indicating whether the element can be updated.
         /// </summary>
         [JsonProperty(PropertyName = "locked")]
         public bool Locked { get; set; }
 
         /// <summary>
-        /// Holds information about when the application owner has downloaded and confirmed download of the element.
+        /// Gets or sets information about when the application owner downloaded and confirmed download of the element.
         /// </summary>
         [JsonProperty(PropertyName  = "appOwner")]
         public ApplicationOwnerDataState AppOwner;
 
         /// <summary>
-        /// an optional array of data element references.
+        /// Gets or sets an optional array of data element references.
         /// </summary>
         [JsonProperty(PropertyName = "refs")]
         public List<Guid> Refs { get; set; }
@@ -82,5 +83,22 @@ namespace Altinn.Platform.Storage.Interface.Models
         {
             return JsonConvert.SerializeObject(this);
         }
+    }
+
+    /// <summary>
+    /// Represents a container object with a list of data elements.
+    /// </summary>
+    /// <remarks>
+    /// This should be used only when an API endpoint would otherwise return a list of data elements.
+    /// Not when the list is a property of a separate class.
+    /// </remarks>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
+    public class DataElementList
+    {
+        /// <summary>
+        /// The actual list of data elements.
+        /// </summary>
+        [JsonProperty(PropertyName = "dataElements")]
+        public List<DataElement> DataElements { get; set; }
     }
 }

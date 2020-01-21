@@ -1,4 +1,4 @@
-namespace AltinnCore.Common.Configuration
+namespace Altinn.Studio.Designer.Configuration
 {
     /// <summary>
     /// Configuration for platform settings

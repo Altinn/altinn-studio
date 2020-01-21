@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.ModelMetadatalModels;
-using AltinnCore.RepositoryClient.Model;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.ModelMetadatalModels;
 
-namespace AltinnCore.Common.Models
+namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
     /// view model for the altinn studio
@@ -58,7 +57,7 @@ namespace AltinnCore.Common.Models
         /// <summary>
         /// Gets or sets repository list
         /// </summary>
-        public List<Repository> Repositories { get; set; }
+        public List<RepositoryClient.Model.Repository> Repositories { get; set; }
 
         /// <summary>
         /// Gets or sets parametes to search for repository

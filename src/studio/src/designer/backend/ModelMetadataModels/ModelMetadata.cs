@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Common.ModelMetadatalModels
+namespace Altinn.Studio.Designer.ModelMetadatalModels
 {
     /// <summary>
     /// Class representation for the metadata for a service

@@ -1,4 +1,4 @@
-namespace AltinnCore.Common.ModelMetadatalModels
+namespace Altinn.Studio.Designer.ModelMetadatalModels
 {
     /// <summary>
     /// Enumeration for language

@@ -1,14 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
-using System.Text;
 using AltinnCore.Authentication.Constants;
-using AltinnCore.Common.Constants;
 using Microsoft.AspNetCore.Http;
 
-namespace AltinnCore.Common.Helpers
+namespace Altinn.Studio.Designer.Helpers
 {
     /// <summary>
     /// helper class for authentication
@@ -115,7 +112,7 @@ namespace AltinnCore.Common.Helpers
         /// <returns>The cookie</returns>
         public static Cookie GetDesignerCookie(HttpContext context, string cookieHost)
         {
-            return new Cookie(AltinnCore.Common.Constants.General.DesignerCookieName, context.Request.Cookies[AltinnCore.Common.Constants.General.DesignerCookieName], "/", cookieHost);
+            return new Cookie(Altinn.Studio.Designer.Constants.General.DesignerCookieName, context.Request.Cookies[Altinn.Studio.Designer.Constants.General.DesignerCookieName], "/", cookieHost);
         }
 
         /// <summary>

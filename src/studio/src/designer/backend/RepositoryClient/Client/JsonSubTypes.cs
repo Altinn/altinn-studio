@@ -6,7 +6,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace AltinnCore.RepositoryClient.JsonSubTypes
+namespace Altinn.Studio.Designer.RepositoryClient.JsonSubTypes
 {
     // Copied from project https://github.com/manuc66/JsonSubTypes
     // https://raw.githubusercontent.com/manuc66/JsonSubTypes/07403192ea3f4959f6d42f5966ac56ceb0d6095b/JsonSubTypes/JsonSubtypes.cs

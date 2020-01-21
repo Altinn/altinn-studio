@@ -1,5 +1,5 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { IParty } from '../../../../../shared/src/types';
+import { IParty } from 'altinn-shared/types';
 import { store } from '../../../store';
 import * as GetPartiesActions from './getParties/getPartiesActions';
 import * as SelectPartyActions from './selectParty/selectPartyActions';

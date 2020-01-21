@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.Repository.Models
+namespace Altinn.Studio.Designer.Repository.Models
 {
     /// <summary>
     /// Base class for entities in a db

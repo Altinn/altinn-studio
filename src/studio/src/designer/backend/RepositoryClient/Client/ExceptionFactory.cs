@@ -11,7 +11,7 @@
 using System;
 using RestSharp;
 
-namespace AltinnCore.RepositoryClient.Client
+namespace Altinn.Studio.Designer.RepositoryClient.Client
 {
     /// <summary>
     /// A delegate to ExceptionFactory method

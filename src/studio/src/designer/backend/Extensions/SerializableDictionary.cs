@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 
-namespace AltinnCore.ServiceLibrary.Extensions
+namespace Altinn.Studio.Designer.Extensions
 {
     /// <summary>
     /// Serializable dictionary for the collections in Common

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.Services.Models
+namespace Altinn.Studio.Designer.Services.Models
 {
     /// <summary>
     /// Environment model

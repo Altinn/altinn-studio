@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using AltinnCore.Common.Factories.ModelFactory.Manatee.Json;
-using AltinnCore.Common.ModelMetadatalModels;
+using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
+using Altinn.Studio.Designer.ModelMetadatalModels;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
 
-namespace AltinnCore.Common.Factories.ModelFactory
+namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
     /// <summary>
     ///     Utility class for converting JSON Schema to a Json Instance model

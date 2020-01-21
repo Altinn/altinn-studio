@@ -72,6 +72,8 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: "dashboard.css",
     }),
-    new UglifyJsPlugin()
+    new UglifyJsPlugin({
+      parallel: true,
+    })
   ],
 }

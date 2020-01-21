@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
-using AltinnCore.Common.Models;
+using Altinn.Studio.Designer.Models;
 
-namespace AltinnCore.Common.Services.Interfaces
+namespace Altinn.Studio.Designer.Services.Interfaces
 {
     /// <summary>
     /// Interface for source control functionality

@@ -5,7 +5,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace AltinnCore.ServiceLibrary.Extensions
+namespace Altinn.Studio.Designer.Extensions
 {
     /// <summary>
     /// Class containing extension methods for the object-type

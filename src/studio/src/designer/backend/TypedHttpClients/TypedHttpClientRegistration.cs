@@ -1,23 +1,23 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Constants;
-using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Services.Implementation;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.Designer.Infrastructure.Models;
-using AltinnCore.Designer.TypedHttpClients.AltinnAuthentication;
-using AltinnCore.Designer.TypedHttpClients.AltinnAuthorization;
-using AltinnCore.Designer.TypedHttpClients.AltinnStorage;
-using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
-using AltinnCore.Designer.TypedHttpClients.DelegatingHandlers;
-using AltinnCore.Designer.TypedHttpClients.Maskinporten;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.Models;
+using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
+using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
+using Altinn.Studio.Designer.TypedHttpClients.Maskinporten;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AltinnCore.Designer.TypedHttpClients
+namespace Altinn.Studio.Designer.TypedHttpClients
 {
     /// <summary>
     /// Contains extension methods to register typed http clients

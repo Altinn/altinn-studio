@@ -138,9 +138,8 @@ namespace Altinn.Platform.Storage.Helpers
                     new SblInstanceEvent()
                     {
                         Id = instanceEvent.Id,
-                        UserId = instanceEvent.User.UserId,
+                        User = instanceEvent.User,
                         CreatedDateTime = instanceEvent.Created,
-                        EndUserSystemId = instanceEvent.User.EndUserSystemId,
                         EventType = instanceEvent.EventType
                     });
             }

@@ -1,4 +1,4 @@
-namespace AltinnCore.Designer.Services.Models
+namespace Altinn.Studio.Designer.Services.Models
 {
     /// <summary>
     /// Domain model for Deployment

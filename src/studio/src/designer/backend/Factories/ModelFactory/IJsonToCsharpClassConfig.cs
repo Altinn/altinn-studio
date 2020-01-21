@@ -1,4 +1,4 @@
-namespace AltinnCore.Common.Factories.ModelFactory
+namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
     /// <summary>
     /// Interface for json to csharp conversion

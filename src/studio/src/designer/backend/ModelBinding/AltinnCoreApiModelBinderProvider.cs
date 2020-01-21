@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace AltinnCore.Designer.ModelBinding
+namespace Altinn.Studio.Designer.ModelBinding
 {
     /// <summary>
     /// Special BinderProvider to support JSON and XML on the same method for posting through REST-API

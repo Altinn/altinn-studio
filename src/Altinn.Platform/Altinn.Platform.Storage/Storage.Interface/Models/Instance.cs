@@ -1,83 +1,85 @@
 using System;
 using System.Collections.Generic;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// Holds metadata of an application instance for a particular instance owner.
+    /// Represents an instance.
+    /// Instances are metadata containers that are used to track the state of one use of an application.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Instance : ChangableElement
     {
         /// <summary>
-        /// The unique id of the instance {instanceOwnerId}/{instanceGuid}.
+        /// Gets or sets the unique id of the instance {instanceOwnerId}/{instanceGuid}.
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// instance owner information. 
+        /// Gets or sets the instance owner information. 
         /// </summary>
         [JsonProperty(PropertyName = "instanceOwner")]
         public InstanceOwner InstanceOwner { get; set; }
 
         /// <summary>
-        /// id of the application this is an instance of, e.g. {org}/{app22}.
+        /// Gets or sets the id of the application this is an instance of, e.g. {org}/{app22}.
         /// </summary>
         [JsonProperty(PropertyName = "appId")]
         public string AppId { get; set; }
 
         /// <summary>
-        /// application owner identifier, usually a abbreviation of organisation name. All in lower case.
+        /// Gets or sets application owner identifier, usually a abbreviation of organisation name. All in lower case.
         /// </summary>
         [JsonProperty(PropertyName = "org")]
         public string Org { get; set; }
 
         /// <summary>
-        /// Links to access the instance metadata resource.
+        /// Gets or sets a set of URLs to access the instance metadata resource.
         /// </summary>
         [JsonProperty(PropertyName = "selfLinks")]
         public ResourceLinks SelfLinks { get; set; }
 
         /// <summary>
-        /// Due date to submit the instance to application owner.
+        /// Gets or sets the due date to submit the instance to application owner.
         /// </summary>
         [JsonProperty(PropertyName = "dueBefore")]
         public DateTime? DueBefore { get; set; }
 
         /// <summary>
-        /// The visible attribute controls when the instance should be visible for the party.
+        /// Gets or sets date and time for when the instance should first become visible for the instance owner.
         /// </summary>
         [JsonProperty(PropertyName = "visibleAfter")]
         public DateTime? VisibleAfter { get; set; }
 
         /// <summary>
-        /// The title of the instance, can be shown in message box.
+        /// Gets or sets the title of the instance. Used by message box in the portal. Usually the application title or name.
         /// </summary>
         [JsonProperty(PropertyName = "title")]
         public LanguageString Title { get; set; }
 
         /// <summary>
-        /// Process state section
+        /// Gets or sets an object containing the instance process state.
         /// </summary>
         [JsonProperty(PropertyName = "process")]
         public ProcessState Process { get; set; }
 
         /// <summary>
-        /// Section for status properties
+        /// Gets or sets the type of finished status of the instance.
         /// </summary>
         [JsonProperty(PropertyName = "status")]
         public InstanceStatus Status { get; set; }
 
         /// <summary>
-        /// Section for app owner properties.
+        /// Gets or sets an object for application owner properties.
         /// </summary>
         [JsonProperty(PropertyName = "appOwner")]
         public ApplicationOwnerState AppOwner { get; set; }
 
         /// <summary>
-        /// the data elements associated with the instance
+        /// Gets or sets a list of data elements associated with the instance
         /// </summary>
         [JsonProperty(PropertyName = "data")]
         public List<DataElement> Data { get; set; }
@@ -86,6 +88,23 @@ namespace Altinn.Platform.Storage.Interface.Models
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this);
+        }
+
+        /// <summary>
+        /// Represents a container object with a list of instances.
+        /// </summary>
+        /// <remarks>
+        /// This should be used only when an API endpoint would otherwise return a list of instances.
+        /// Not when the list is a property of a separate class.
+        /// </remarks>
+        [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
+        public class InstanceList
+        {
+            /// <summary>
+            /// The actual list of instances.
+            /// </summary>
+            [JsonProperty(PropertyName = "instances")]
+            public List<Instance> Instances { get; set; }
         }
     }
 }

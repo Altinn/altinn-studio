@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
-using AltinnCore.Common.ModelMetadatalModels;
-using AltinnCore.ServiceLibrary.Extensions;
+using Altinn.Studio.Designer.Extensions;
+using Altinn.Studio.Designer.ModelMetadatalModels;
 using Newtonsoft.Json.Linq;
 
-namespace AltinnCore.Common.Factories.ModelFactory
+namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
     /// <summary>
     /// Transforms OR XSD to metadata

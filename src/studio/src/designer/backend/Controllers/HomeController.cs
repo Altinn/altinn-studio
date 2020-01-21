@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
 using AltinnCore.Authentication.Constants;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Models;
-using AltinnCore.Common.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// The default MVC controller in the application
@@ -55,7 +55,7 @@ namespace AltinnCore.Designer.Controllers
 
             if (string.IsNullOrEmpty(userName))
             {
-                Response.Cookies.Delete(AltinnCore.Common.Constants.General.DesignerCookieName);
+                Response.Cookies.Delete(Altinn.Studio.Designer.Constants.General.DesignerCookieName);
                 Response.Cookies.Delete(_settings.GiteaCookieName);
                 return View("StartPage");
             }

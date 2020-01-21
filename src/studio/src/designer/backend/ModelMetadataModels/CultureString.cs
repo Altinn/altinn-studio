@@ -8,11 +8,11 @@ using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 
-using AltinnCore.ServiceLibrary.Extensions;
+using Altinn.Studio.Designer.Extensions;
 
 #endregion
 
-namespace AltinnCore.Common.ModelMetadatalModels
+namespace Altinn.Studio.Designer.ModelMetadatalModels
 {
     /// <summary>
     /// Culture string

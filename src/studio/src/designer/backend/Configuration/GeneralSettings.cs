@@ -1,6 +1,6 @@
 using System;
 
-namespace AltinnCore.Common.Configuration
+namespace Altinn.Studio.Designer.Configuration
 {
     /// <summary>
     /// General configuration settings

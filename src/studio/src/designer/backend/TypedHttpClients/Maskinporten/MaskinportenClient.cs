@@ -4,13 +4,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Designer.Infrastructure.Authentication;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Infrastructure.Authentication;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Rest.TransientFaultHandling;
 
-namespace AltinnCore.Designer.TypedHttpClients.Maskinporten
+namespace Altinn.Studio.Designer.TypedHttpClients.Maskinporten
 {
     /// <summary>
     /// MaskinportenClient

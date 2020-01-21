@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Xml.Linq;
-using AltinnCore.Common.ModelMetadatalModels;
+using Altinn.Studio.Designer.ModelMetadatalModels;
 
-namespace AltinnCore.ServiceLibrary.Extensions
+namespace Altinn.Studio.Designer.Extensions
 {
     /// <summary>
     /// XML to LINQ helper extensions
