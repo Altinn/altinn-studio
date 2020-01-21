@@ -4,7 +4,7 @@ import { IParty } from 'altinn-shared/types';
 import InstanceDataActions from '../../../../../shared/resources/instanceData/instanceDataActions';
 import { IRuntimeState } from '../../../../../types';
 import { post } from '../../../../../utils/networking';
-import { getCreateInstancesUrl } from '../../../../../utils/urlHelper';
+import { getCreateInstancesUrl, redirectToUpgrade } from '../../../../../utils/urlHelper';
 import InstantiationActions from '../../actions';
 import * as InstantiationActionTypes from '../../actions/types';
 import { IInstantiationState } from '../../reducer';
@@ -21,7 +21,18 @@ function* instantiationSaga(): SagaIterator {
       const selectedParty: IParty = yield select(SelectedPartySelector);
 
       // Creates a new instance
-      const instanceResponse: any = yield call(post, getCreateInstancesUrl(selectedParty.partyId));
+      let instanceResponse: any;
+      try {
+        instanceResponse = yield call(post, getCreateInstancesUrl(selectedParty.partyId));
+      } catch (error) {
+        if (error.response && error.response.status === 403 && error.response.data) {
+          const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
+          if (reqAuthLevel) {
+            yield call(redirectToUpgrade, reqAuthLevel);
+          }
+        }
+      }
+
       const instanceId = instanceResponse.data.id;
 
       // Fetch new instance metadata
