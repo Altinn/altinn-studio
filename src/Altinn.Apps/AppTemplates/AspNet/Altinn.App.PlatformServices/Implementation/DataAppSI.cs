@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.PlatformServices.Helpers;
@@ -12,7 +13,6 @@ using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
@@ -352,8 +352,9 @@ namespace Altinn.App.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+            StringContent content = new StringContent(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
 
-            HttpResponseMessage response = await _client.PutAsync(apiUrl, dataElement.AsJson());
+            HttpResponseMessage response = await _client.PutAsync(apiUrl, content);
 
             if (response.IsSuccessStatusCode)
             {
