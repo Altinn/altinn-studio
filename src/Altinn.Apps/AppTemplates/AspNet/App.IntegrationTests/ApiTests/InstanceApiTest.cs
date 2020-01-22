@@ -1,11 +1,13 @@
 using Altinn.App.Common.Enums;
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Common.PEP.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -314,6 +316,28 @@ namespace App.IntegrationTests
             string responseContent = response.Content.ReadAsStringAsync().Result;
   
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Instance_Post_WithLowAuthLevel_FailOk()
+        {
+            string token = PrincipalUtil.GetToken(1, 1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances?instanceOwnerPartyId=1000")
+            {
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+            Dictionary<string, string> failedObligations = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseContent);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.NotNull(failedObligations);
+
+            Dictionary<string, string> expectedFailedObligations = new Dictionary<string, string>() { { "RequiredAuthenticationLevel", "2" } };
+            Assert.Equal(expectedFailedObligations, failedObligations);
         }
     }
 }

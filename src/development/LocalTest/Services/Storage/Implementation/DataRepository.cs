@@ -1,7 +1,9 @@
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -16,7 +18,27 @@ namespace LocalTest.Services.Storage.Implementation
             _localPlatformSettings = localPlatformSettings.Value;
         }
 
+        public Task<DataElement> Create(DataElement dataElement)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> Delete(DataElement dataElement)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> DeleteDataInStorage(string fileName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<DataElement> Read(Guid instanceGuid, Guid dataElementId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<DataElement>> ReadAll(Guid instanceGuid)
         {
             throw new NotImplementedException();
         }
@@ -29,6 +51,11 @@ namespace LocalTest.Services.Storage.Implementation
             System.IO.Stream data = new System.IO.MemoryStream();
 
             return Task.FromResult(fs);
+        }
+
+        public Task<DataElement> Update(DataElement dataElement)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<long> WriteDataToStorage(Stream dataStream, string fileName)

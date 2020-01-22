@@ -29,19 +29,22 @@ namespace LocalTest.Controllers
         private readonly LocalPlatformSettings _localPlatformSettings;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserProfiles _userProfileService;
+        private readonly JwtCookieHandler jwtHandler;
 
         public HomeController(
             ILogger<HomeController> logger,
             IOptions<GeneralSettings> generalSettings,
             IOptions<LocalPlatformSettings> localPlatformSettings,
             IApplicationRepository applicationRepository,
-            IUserProfiles userProfileService)
+            IUserProfiles userProfileService,
+            JwtCookieHandler jwtHandler)
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;
             this._localPlatformSettings = localPlatformSettings.Value;
             this._applicationRepository = applicationRepository;
             this._userProfileService = userProfileService;
+            this.jwtHandler = jwtHandler;
         }
 
         [AllowAnonymous]
@@ -123,6 +126,64 @@ namespace LocalTest.Controllers
 
             return Redirect($"{_generalSettings.GetBaseUrl}/{app.Org}/{app.Id.Split("/")[1]}");
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<ActionResult> GetTestUserToken(int id)
+        {
+            UserProfile profile = await _userProfileService.GetUser(id);
+
+            if (profile == null)
+            {
+                return NotFound();
+            }
+
+            List<Claim> claims = new List<Claim>();
+            string issuer = "altinn3local.no";
+            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
+
+            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
+            identity.AddClaims(claims);
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+            DateTime later = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime));
+            // Create a test token with long duration
+            string token = jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(1337), 0)).Result;
+            return Ok(token);
+        }
+
+        /// <summary>
+        /// Returns a org token with the given org as claim
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<ActionResult> GetTestOrgToken(string id)
+        {
+            List<Claim> claims = new List<Claim>();
+            string issuer = "altinn3local.no";
+            claims.Add(new Claim(AltinnCoreClaimTypes.Org, id.ToLower(), ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
+
+            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
+            identity.AddClaims(claims);
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+            DateTime later = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime));
+            // Create a test token with long duration
+            string token = jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(1337), 0)).Result;
+            return Ok(token);
+        }
+
+
+
+
+
 
 
         private async Task<List<UserProfile>> GetTestUsers()
