@@ -798,7 +798,7 @@
 			"protocolProfileBehavior": {}
 		},
 		{
-			"name": "User with Lower Security Level Login",
+			"name": "Create Instances - User with Lower Security Level Login",
 			"item": [
 				{
 					"name": "App - Create Instance - 403",
@@ -950,6 +950,28 @@
 						}
 					},
 					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "231d202d-4e2f-42fd-89ba-286250e4dead",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "7d5be3f5-bd4a-4dd4-aa25-b9a4d215b019",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
 				}
 			],
 			"protocolProfileBehavior": {}
@@ -1181,7 +1203,7 @@
 					"response": []
 				},
 				{
-					"name": "GET App Instance by Id - 403",
+					"name": "Storage - GET App Instance by Id - 403",
 					"event": [
 						{
 							"listen": "test",
@@ -1243,7 +1265,69 @@
 					"response": []
 				},
 				{
-					"name": "App - Create Instance - 403 Copy",
+					"name": "App - GET App Instance by Id - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"exec": [
+									"pm.test(\"Negative Tests - Without Roles - App - GET Instance by ID - Status - Forbidden\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "App - Create Instance - 403",
 					"event": [
 						{
 							"listen": "test",
@@ -1298,7 +1382,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{level3-app}}/instances?instanceOwnerPartyId={{instanceOwnerId}}",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{level1-app}}/instances?instanceOwnerPartyId={{instanceOwnerId}}",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -1307,13 +1391,91 @@
 							],
 							"path": [
 								"{{org}}",
-								"{{level3-app}}",
+								"{{level1-app}}",
 								"instances"
 							],
 							"query": [
 								{
 									"key": "instanceOwnerPartyId",
 									"value": "{{instanceOwnerId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Storage - Create Instance - 403",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
+								"exec": [
+									"pm.test(\"Negative Tests - User Without Roles - Storage - Create App Instance - Status - Forbidden\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9c84f949-10f6-4b99-a342-b7cb58641ee2",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"instanceOwner\": {\n    \t\"partyId\": \"{{instanceOwnerId}}\"\n    },\n    \"appOwner\":{\n    \t\"labels\" : [ \"gr\", \"x2\" ]\n    },\n    \"appId\" : \"{{org}}/{{level1-app}}\",\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\n    \"visibleAfter\": \"2019-05-20T00:00:00Z\",\n    \"title\": { \"nb\": \"Arbeidsmelding\" },\n    \"process\": {\n        \"started\": \"{{current_timestamp}}\",\n        \"startEvent\": \"StartEvent_1\",\n        \"currentTask\": {\n            \"flow\": 2,\n            \"started\": \"{{current_timestamp}}\",\n            \"elementId\": \"Task_1\",\n            \"name\": \"Utfylling\",\n            \"altinnTaskType\": \"data\",\n            \"ended\": null,\n            \"validated\": null\n        },\n        \"ended\": null,\n        \"endEvent\": null\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{level1-app}}",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances"
+							],
+							"query": [
+								{
+									"key": "appId",
+									"value": "{{org}}/{{level1-app}}"
 								}
 							]
 						}
@@ -1341,6 +1503,152 @@
 							""
 						]
 					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Access Instances - User with Lower Security Level Login",
+			"item": [
+				{
+					"name": "Get Party Id of user 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6505cb59-4588-4d0c-af60-b5faa7dcb8c1",
+								"exec": [
+									"if(pm.response.code == 200)",
+									"{",
+									"    var jsonData = pm.response.json();",
+									"    var partyId = jsonData.partyId;",
+									"    pm.environment.set(\"instanceOwnerId\",partyId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/api/v1/profile/user",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"api",
+								"v1",
+								"profile",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Instances list does not have high security level app instances",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "86592b19-cde0-42f1-8b7c-297eaee24071",
+								"exec": [
+									"function checkForHighSecLevelInstances() {\r",
+									"    if (pm.response.code == 200)\r",
+									"    {\r",
+									"        var jsonData = pm.response.json();\r",
+									"        var instanceCount = jsonData.length;\r",
+									"        var level2App = pm.environment.get(\"app\");\r",
+									"        var highSecLevelInstanceFound = false ;\r",
+									"        for (var i=0;i<instanceCount;i++)\r",
+									"        {\r",
+									"            if(jsonData[i].appName == level2App)\r",
+									"            {\r",
+									"                highSecLevelInstanceFound = true ;\r",
+									"            }\r",
+									"        }\r",
+									"        return highSecLevelInstanceFound;\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Platform - Storage - SBL - High Security Level Instances - NotFound \", function () {\r",
+									"    var isFound = checkForHighSecLevelInstances();\r",
+									"    pm.expect(isFound).to.equal(false);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}?state=active&language=nb",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"sbl",
+								"instances",
+								"{{instanceOwnerId}}"
+							],
+							"query": [
+								{
+									"key": "state",
+									"value": "active"
+								},
+								{
+									"key": "language",
+									"value": "nb"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
