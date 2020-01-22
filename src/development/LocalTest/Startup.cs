@@ -31,6 +31,7 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Clients;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LocalTest
 {
@@ -66,7 +67,12 @@ namespace LocalTest
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IPDP, PDPAppSI>();
+
+            services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
+            services.AddTransient<IAuthorizationHandler, ScopeAccessHandler>();
+
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
@@ -102,6 +108,7 @@ namespace LocalTest
                 options.AddPolicy(AuthzConstants.POLICY_SCOPE_APPDEPLOY, policy => policy.Requirements.Add(new ScopeAccessRequirement("altinn:appdeploy")));
                 options.AddPolicy(AuthzConstants.POLICY_SCOPE_INSTANCE_READ, policy => policy.Requirements.Add(new ScopeAccessRequirement("altinn:instances.read")));
             });
+
 
             services.AddMvc(options =>
             {

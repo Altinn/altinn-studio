@@ -18,11 +18,14 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.0" />
-    <PackageReference Include="Altinn.Common.PEP" Version="1.0.16-alpha" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Models\Storage\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Altinn.Common\Altinn.Common.PEP\Altinn.Common.PEP\Altinn.Common.PEP.csproj" />
   </ItemGroup>
 
 </Project>
