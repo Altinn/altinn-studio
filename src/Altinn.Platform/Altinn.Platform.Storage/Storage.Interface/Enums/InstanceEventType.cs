@@ -7,7 +7,7 @@ namespace Altinn.Platform.Storage.Interface.Enums
     /// <summary>
     /// This enum defines the Instance event types supported by the AltinnCore platform.
     /// </summary>
-    public enum InstanceEventType
+    public enum InstanceEventType 
     {
         /// <summary>
         /// Unkown instance event.
@@ -37,7 +37,26 @@ namespace Altinn.Platform.Storage.Interface.Enums
         /// <summary>
         /// Instance deleted event.
         /// </summary>
-        Undeleted
+        Undeleted,
 
+        /// <summary>
+        /// Instance process start event.
+        /// </summary>
+        process_StartEvent,
+
+        /// <summary>
+        /// Instance process end event.
+        /// </summary>
+        process_EndEvent,
+
+        /// <summary>
+        /// Instance process task started event.
+        /// </summary>
+        process_StartTask,
+
+        /// <summary>
+        /// Instance process task ended event.
+        /// </summary>
+        process_EndTask
     }
 }
