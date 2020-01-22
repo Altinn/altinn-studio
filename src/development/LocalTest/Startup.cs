@@ -27,6 +27,10 @@ using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Services.Interface;
+using Altinn.Platform.Storage.Helpers;
+using Altinn.Common.PEP.Interfaces;
+using Altinn.Common.PEP.Implementation;
+using Altinn.Common.PEP.Clients;
 
 namespace LocalTest
 {
@@ -42,6 +46,9 @@ namespace LocalTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(Configuration.GetSection("PepSettings"));
+            services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
+
             services.Configure<LocalPlatformSettings>(Configuration.GetSection("LocalPlatformSettings"));
             services.AddControllersWithViews();
             services.AddSingleton(Configuration);
@@ -58,7 +65,8 @@ namespace LocalTest
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
-
+            services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
+            services.AddSingleton<IPDP, PDPAppSI>();
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
@@ -89,8 +97,10 @@ namespace LocalTest
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new AppAccessRequirement("read")));
-                options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new AppAccessRequirement("write")));
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_READ, policy => policy.Requirements.Add(new AppAccessRequirement("read")));
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_WRITE, policy => policy.Requirements.Add(new AppAccessRequirement("write")));
+                options.AddPolicy(AuthzConstants.POLICY_SCOPE_APPDEPLOY, policy => policy.Requirements.Add(new ScopeAccessRequirement("altinn:appdeploy")));
+                options.AddPolicy(AuthzConstants.POLICY_SCOPE_INSTANCE_READ, policy => policy.Requirements.Add(new ScopeAccessRequirement("altinn:instances.read")));
             });
 
             services.AddMvc(options =>
