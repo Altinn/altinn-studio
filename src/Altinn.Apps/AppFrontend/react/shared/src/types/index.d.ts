@@ -1,86 +1,9 @@
+import { IDataTaskIsloading } from "src/shared/resources/isLoading/dataTask/dataTaskIsLoadingActions";
+
 export interface IAltinnWindow extends Window {
   org: string;
   app: string;
 }
-
-export interface IInstanceState {
-  isDeleted: boolean;
-  isMarkedForHardDelete: boolean;
-  isArchived: boolean;
-}
-
-export interface ISelfLinks {
-  apps: string;
-  platform: string;
-}
-
-export interface IData {
-  id: string;
-  dataType: string;
-  filename: string;
-  contentType: string;
-  storageUrl: string;
-  selfLinks: ISelfLinks;
-  size: number;
-  locked: boolean;
-  created: Date;
-  lastChanged: Date;
-}
-
-export interface IInstance {
-  id: string;
-  instanceOwner: IInstanceOwner;
-  appId: string;
-  org: string;
-  created: Date;
-  lastChanged: Date;
-  instanceState: IInstanceState;
-  data: IData[];
-}
-
-export interface IInstanceOwner {
-  partyId: string;
-  personNumber: string;
-  organisationNumber: string;
-}
-
-export interface IPerson {
-  ssn: string;
-  name: string;
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  telephoneNumber: string;
-  mobileNumber: string;
-  mailingAddress: string;
-  mailingPostalCode: number;
-  mailingPostalCity: string;
-  addressMunicipalNumber: number;
-  addressMunicipalName: string;
-  addressStreetName: string;
-  addressHouseNumber: number;
-  addressHouseLetter: string;
-  addressPostalCode: number;
-  addressCity: string;
-}
-
-export interface IProfileSettingPreference {
-  language: number;
-  preSelectedPartyId: number;
-  doNotPromptForParty: boolean;
-}
-
-export interface IProfile {
-  userId: number;
-  userName: string;
-  phoneNumber?: any;
-  email?: any;
-  partyId: number;
-  party: IParty;
-  userType: number;
-  profileSettingPreference: IProfileSettingPreference;
-}
-
 
 export interface IApplication {
   createdBy: string;
@@ -98,6 +21,34 @@ export interface IApplication {
   WorkflowId: string;
 }
 
+export interface IAppOwner {
+  labels: string;
+  messages: string;
+  canBeDeletedAfter: string;
+}
+
+export interface IData {
+  id: string;
+  dataType: string;
+  filename: string;
+  contentType: string;
+  blobStoragePath: string;
+  selfLinks: ISelfLinks;
+  size: number;
+  locked: boolean;
+  refs: string[];
+  created: Date;
+  createdBy: string;
+  lastChanged: Date;
+  lastChangedBy: string;
+}
+
+export interface IAttachment {
+  name: string;
+  iconClass: string;
+  url: string;
+}
+
 export interface IDataType {
   id: string;
   description: string;
@@ -109,27 +60,34 @@ export interface IDataType {
   mincount: number;
 }
 
-export interface ITitle {
-  nb: string;
-}
-
-export interface IAttachment {
-  name: string;
-  iconClass: string;
-  url: string;
-}
-
-export interface IData {
+export interface IInstance {
+  appId: string;
+  appOwner?: IAppOwner;
+  created: Date;
+  data: IData[];
+  dueBefore?: Date;
   id: string;
-  elementType: string;
-  filename: string;
-  contentType: string;
-  storageUrl: string;
+  instanceOwner: IInstanceOwner;
+  instanceState: IInstanceState;
+  lastChanged: Date;
+  org: string;
+  process: IProcess;
   selfLinks: ISelfLinks;
-  size: number;
-  locked: boolean;
-  createdDateTime: Date;
-  lastChangedDateTime: Date;
+  status: string;
+  title: ITitle;
+  visibleAfter?: Date;
+}
+
+export interface IInstanceOwner {
+  partyId: string;
+  personNumber: string;
+  organisationNumber: string;
+}
+
+export interface IInstanceState {
+  isDeleted: boolean;
+  isMarkedForHardDelete: boolean;
+  isArchived: boolean;
 }
 
 export interface IOrganisation {
@@ -160,4 +118,68 @@ export interface IParty {
   person?: IPerson;
   organisation?: IOrganisation;
   childParties: IParty[];
+}
+
+export interface IPerson {
+  ssn: string;
+  name: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  telephoneNumber: string;
+  mobileNumber: string;
+  mailingAddress: string;
+  mailingPostalCode: number;
+  mailingPostalCity: string;
+  addressMunicipalNumber: number;
+  addressMunicipalName: string;
+  addressStreetName: string;
+  addressHouseNumber: number;
+  addressHouseLetter: string;
+  addressPostalCode: number;
+  addressCity: string;
+}
+
+export interface IProcess {
+  started: string;
+  startEvent: string;
+  currentTask: ITask;
+  ended: string;
+  endEvent: string;
+}
+
+export interface IProfile {
+  userId: number;
+  userName: string;
+  phoneNumber?: any;
+  email?: any;
+  partyId: number;
+  party: IParty;
+  userType: number;
+  profileSettingPreference: IProfileSettingPreference;
+}
+
+export interface IProfileSettingPreference {
+  language: number;
+  preSelectedPartyId: number;
+  doNotPromptForParty: boolean;
+}
+
+export interface ISelfLinks {
+  apps: string;
+  platform: string;
+}
+
+export interface ITask {
+  flow: number;
+  started: string;
+  elementId: string;
+  name: string;
+  altinnTaskType: string;
+  ended: string;
+  validated: string;
+}
+
+export interface ITitle {
+  nb: string;
 }
