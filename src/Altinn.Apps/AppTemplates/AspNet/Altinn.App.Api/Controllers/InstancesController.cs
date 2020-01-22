@@ -20,6 +20,7 @@ using Altinn.App.Services.Models.Validation;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Common.PEP.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -83,7 +84,6 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>the instance</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
@@ -95,6 +95,19 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
+            Party party = await _registerService.GetParty(instanceOwnerPartyId);
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, party, "read");
+
+            if (!enforcementResult.Authorized)
+            {
+                if (enforcementResult.FailedObligations != null && enforcementResult.FailedObligations.Count > 0)
+                {
+                    return StatusCode((int)HttpStatusCode.Forbidden, enforcementResult.FailedObligations);
+                }
+
+                return StatusCode((int)HttpStatusCode.Forbidden);
+            }
+
             try
             {
                 Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
@@ -257,10 +270,15 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"Cannot lookup party: {partyLookupException.Message}");
             }
 
-            bool authorized = await AuthorizeInstatiation(org, app, party);
+            EnforcementResult enforcementResult = await AuthorizeAction(org, app, party, "instantiate");
 
-            if (!authorized)
+            if (!enforcementResult.Authorized)
             {
+                if (enforcementResult.FailedObligations != null && enforcementResult.FailedObligations.Count > 0)
+                {
+                    return StatusCode((int)HttpStatusCode.Forbidden, enforcementResult.FailedObligations);
+                }
+
                 return StatusCode((int)HttpStatusCode.Forbidden);
             }
 
@@ -343,20 +361,20 @@ namespace Altinn.App.Api.Controllers
             return StatusCode(500, $"{message}");
         }
 
-        private async Task<bool> AuthorizeInstatiation(string org, string app, Party party)
+        private async Task<EnforcementResult> AuthorizeAction(string org, string app, Party party, string action)
         {
-            bool authorized = false;
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, "instantiate", party.PartyId.ToString(), null);
+            EnforcementResult enforcementResult = new EnforcementResult();
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, action, party.PartyId.ToString(), null);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)
             {
-                _logger.LogInformation($"// Instances Controller // Authorization of instantiation failed with request: {JsonConvert.SerializeObject(request)}.");
-                return authorized;
+                _logger.LogInformation($"// Instances Controller // Authorization of action {action} failed with request: {JsonConvert.SerializeObject(request)}.");
+                return enforcementResult;
             }
 
-            authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
-            return authorized;
+            enforcementResult = DecisionHelper.ValidatePdpDecisionDetailed(response.Response, HttpContext.User);
+            return enforcementResult;
         }
 
         private async Task<Party> LookupParty(Instance instanceTemplate)
