@@ -1,6 +1,6 @@
 namespace Altinn.Common.PEP.Constants
 {
-    public class AltinnObligations
+    public static class AltinnObligations
     {
         public const string RequiredAuthenticationLevel = "RequiredAuthenticationLevel";
     }
