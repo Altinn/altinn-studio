@@ -6,19 +6,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.App.PlatformServices" Version="1.0.0-alpha" />
+    <PackageReference Include="Altinn.App.PlatformServices" Version="1.0.24-alpha" />
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.3-alpha" />
+    <PackageReference Include="Altinn.Common.PEP" Version="1.0.18-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.0.0" />
-    <PackageReference Include="AltinnCore.ServiceLibrary" Version="12.0.0" />
+    <PackageReference Include="AltinnCore.ServiceLibrary" Version="12.0.1" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.9.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.0">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.0" />
-    <PackageReference Include="Altinn.Common.PEP" Version="1.0.15-alpha" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\Storage\" />
   </ItemGroup>
 
 </Project>
