@@ -52,6 +52,8 @@ namespace Altinn.App.Api.Controllers
         private readonly IProcess _processService;
         private readonly IPDP _pdp;
 
+        private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
@@ -189,7 +191,7 @@ namespace Altinn.App.Api.Controllers
         [Produces("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [RequestSizeLimit(1000)]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         public async Task<ActionResult<Instance>> Post(
             [FromRoute] string org,
             [FromRoute] string app,
