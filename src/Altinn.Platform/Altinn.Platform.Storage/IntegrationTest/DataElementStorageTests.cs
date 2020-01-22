@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.IntegrationTest.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -117,7 +119,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Assert.NotNull(dataElement);
 
-            string dataPathWithDataGuid = $"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.instanceGuid}/data/{dataElement.Id}";
+            string dataPathWithDataGuid = $"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.InstanceGuid}/data/{dataElement.Id}";
 
             // Get data file once as ORG tests
             string token = PrincipalUtil.GetOrgToken("tests");
@@ -128,7 +130,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             // Get instance as user to check downloads
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
-            getResponse = await client.GetAsync($"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.instanceGuid}");
+            getResponse = await client.GetAsync($"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.InstanceGuid}");
             getResponse.EnsureSuccessStatusCode();
 
             Instance instance = JsonConvert.DeserializeObject<Instance>(await getResponse.Content.ReadAsStringAsync());
@@ -155,7 +157,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Assert.NotNull(dataElement);
 
-            string dataPathWithDataGuid = $"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.instanceGuid}/data/{dataElement.Id}";
+            string dataPathWithDataGuid = $"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.InstanceGuid}/data/{dataElement.Id}";
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
             HttpResponseMessage getResponse = await client.DeleteAsync($"{dataPathWithDataGuid}");
@@ -166,7 +168,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Assert.Equal("true", json);
 
-            getResponse = await client.GetAsync($"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.instanceGuid}");
+            getResponse = await client.GetAsync($"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.InstanceGuid}");
             getResponse.EnsureSuccessStatusCode();
 
             Instance instance = JsonConvert.DeserializeObject<Instance>(await getResponse.Content.ReadAsStringAsync());
@@ -194,7 +196,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Assert.NotNull(dataElement);
 
-            string instanceId = $"{testInstanceOwnerId}/{dataElement.instanceGuid}";
+            string instanceId = $"{testInstanceOwnerId}/{dataElement.InstanceGuid}";
 
             string dataPathWithDataGuid = $"{versionPrefix}/instances/{instanceId}/dataelements/{dataElement.Id}";
             HttpContent content = new StringContent(string.Empty);
@@ -231,7 +233,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Assert.NotNull(dataElements);
 
-            string instanceId = $"{testInstanceOwnerId}/{dataElements[0].instanceGuid}";
+            string instanceId = $"{testInstanceOwnerId}/{dataElements[0].InstanceGuid}";
 
             string dataPathWithData = $"{versionPrefix}/instances/{instanceId}/dataelements";
             HttpContent content = new StringContent(string.Empty);
@@ -242,11 +244,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
             getResponse.EnsureSuccessStatusCode();
 
             string json = await getResponse.Content.ReadAsStringAsync();
-            List<DataElement> actual = JsonConvert.DeserializeObject<List<DataElement>>(json);
+            DataElementList actual = JsonConvert.DeserializeObject<DataElementList>(json);
 
-            Assert.Equal(2, actual.Count);
-            Assert.NotNull(actual[0].AppOwner.DownloadConfirmed);
-            Assert.NotNull(actual[1].AppOwner.DownloadConfirmed);
+            Assert.Equal(2, actual.DataElements.Count);
+            Assert.NotNull(actual.DataElements[0].AppOwner.DownloadConfirmed);
+            Assert.NotNull(actual.DataElements[1].AppOwner.DownloadConfirmed);
         }
 
         /// <summary>
@@ -266,7 +268,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Assert.NotNull(dataElement);
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
-            string instanceId = $"{testInstanceOwnerId}/{dataElement.instanceGuid}";
+            string instanceId = $"{testInstanceOwnerId}/{dataElement.InstanceGuid}";
             string dataElementResourcePath = $"{versionPrefix}/instances/{instanceId}/dataelements/{dataElement.Id}";
             string dataResourcePath = $"{versionPrefix}/instances/{instanceId}/data/{dataElement.Id}";
 

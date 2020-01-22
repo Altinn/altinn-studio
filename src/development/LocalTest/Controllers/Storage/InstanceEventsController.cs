@@ -98,7 +98,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// GET  storage/api/v1/instances/{instanceId}/events?from=2019-05-03T11:55:23&to=2019-05-03T12:55:23&eventTypes=deleted,submited
         /// -->
         [HttpGet]
-        [ProducesResponseType(typeof(List<InstanceEvent>), 200)]
+        [ProducesResponseType(typeof(InstanceEventList), 200)]
         public async Task<ActionResult> Get(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
@@ -128,14 +128,16 @@ namespace Altinn.Platform.Storage.Controllers
                 }
             }
 
-            List<InstanceEvent> result = await _repository.ListInstanceEvents(instanceId, eventTypes, fromDateTime, toDateTime);
+            List<InstanceEvent> instanceEvents = await _repository.ListInstanceEvents(instanceId, eventTypes, fromDateTime, toDateTime);
 
-            if (result == null || result.Count == 0)
+            if (instanceEvents == null || instanceEvents.Count == 0)
             {
                 return NotFound($"Did not find any instance events for instanceId={instanceId} matching the given event types: {string.Join(", ", eventTypes)} and the given time frame {fromDateTime} : {toDateTime}.");
             }
 
-            return Ok(result);
+            InstanceEventList instanceEventList = new InstanceEventList { InstanceEvents = instanceEvents };
+
+            return Ok(instanceEventList);
         }
 
         /// <summary>

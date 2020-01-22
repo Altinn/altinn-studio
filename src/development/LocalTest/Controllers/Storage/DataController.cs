@@ -166,7 +166,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>The list of data elements</returns>
         /// <!-- GET /instances/{instanceId}/data -->
         [HttpGet]
-        [ProducesResponseType(typeof(List<DataElement>), 200)]
+        [ProducesResponseType(typeof(DataElementList), 200)]
         public async Task<IActionResult> GetMany(int instanceOwnerPartyId, Guid instanceGuid)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
@@ -192,7 +192,9 @@ namespace Altinn.Platform.Storage.Controllers
                     }
                 });
 
-            return Ok(dataList);
+            DataElementList dataElementList = new DataElementList { DataElements = dataList };
+
+            return Ok(dataElementList);
         }
 
         /// <summary>
