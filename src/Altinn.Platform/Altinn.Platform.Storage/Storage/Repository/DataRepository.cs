@@ -123,7 +123,7 @@ namespace Altinn.Platform.Storage.Repository
 
             IQueryable<DataElement> filter = _client
                 .CreateDocumentQuery<DataElement>(_collectionUri, feedOptions)
-                .Where(d => d.instanceGuid == instanceKey);
+                .Where(d => d.InstanceGuid == instanceKey);
 
             IDocumentQuery<DataElement> query = filter.AsDocumentQuery();
 
@@ -178,7 +178,7 @@ namespace Altinn.Platform.Storage.Repository
 
             await _client.DeleteDocumentAsync(
                 uri.ToString(),
-                new RequestOptions { PartitionKey = new PartitionKey(dataElement.instanceGuid) });
+                new RequestOptions { PartitionKey = new PartitionKey(dataElement.InstanceGuid) });
 
             return true;
         }

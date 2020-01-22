@@ -393,7 +393,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             _logger.LogInformation($"update data element for {instanceOwnerPartyId}");
 
-            if (!instanceGuid.ToString().Equals(dataElement.instanceGuid) || !dataId.ToString().Equals(dataElement.Id))
+            if (!instanceGuid.ToString().Equals(dataElement.InstanceGuid) || !dataId.ToString().Equals(dataElement.Id))
             {
                 return BadRequest("Mismatch between path and dataElement content");
             }
