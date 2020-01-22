@@ -110,7 +110,6 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-
                 Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
