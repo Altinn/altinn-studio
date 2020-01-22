@@ -8,6 +8,7 @@ import { getCreateInstancesUrl, redirectToUpgrade } from '../../../../../utils/u
 import InstantiationActions from '../../actions';
 import * as InstantiationActionTypes from '../../actions/types';
 import { IInstantiationState } from '../../reducer';
+import { AxiosResponse } from 'axios';
 
 const InstantiatingSelector = ((state: IRuntimeState) => state.instantiation);
 const SelectedPartySelector = ((state: IRuntimeState) => state.party.selectedParty);
@@ -21,7 +22,7 @@ function* instantiationSaga(): SagaIterator {
       const selectedParty: IParty = yield select(SelectedPartySelector);
 
       // Creates a new instance
-      let instanceResponse: any;
+      let instanceResponse: AxiosResponse;
       try {
         instanceResponse = yield call(post, getCreateInstancesUrl(selectedParty.partyId));
       } catch (error) {
@@ -33,13 +34,8 @@ function* instantiationSaga(): SagaIterator {
         }
       }
 
-      const instanceId = instanceResponse.data.id;
-
-      // Fetch new instance metadata
-      const splitInstanceId = instanceId.split('/');
-      yield call(InstanceDataActions.getInstanceData, splitInstanceId[0], splitInstanceId[1]);
-
-      yield call (InstantiationActions.instantiateFulfilled, instanceId);
+      yield call(InstanceDataActions.getInstanceDataFulfilled, instanceResponse.data);
+      yield call(InstantiationActions.instantiateFulfilled, instanceResponse.data.id);
     }
   } catch (err) {
     yield call(InstantiationActions.instantiateRejected, err);
