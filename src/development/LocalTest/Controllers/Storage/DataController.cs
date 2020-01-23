@@ -395,7 +395,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             _logger.LogInformation($"update data element for {instanceOwnerPartyId}");
 
-            if (!instanceGuid.ToString().Equals(dataElement.instanceGuid) || !dataId.ToString().Equals(dataElement.Id))
+            if (!instanceGuid.ToString().Equals(dataElement.InstanceGuid) || !dataId.ToString().Equals(dataElement.Id))
             {
                 return BadRequest("Mismatch between path and dataElement content");
             }
@@ -461,7 +461,9 @@ namespace Altinn.Platform.Storage.Controllers
                 resultElements.Add(updatedElement);
             }
 
-            return Ok(resultElements);
+            DataElementList dataElementList = new DataElementList { DataElements = resultElements };
+
+            return Ok(dataElementList);
         }
 
         private async Task<DataElement> SetConfirmedDataAndUpdateDataElement(DataElement dataElement, DateTime timestamp)
