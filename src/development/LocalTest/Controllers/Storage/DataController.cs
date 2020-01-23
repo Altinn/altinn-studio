@@ -189,7 +189,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <!-- GET /instances/{instanceId}/data -->
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("dataelements")]
-        [ProducesResponseType(typeof(List<DataElement>), 200)]
+        [ProducesResponseType(typeof(DataElementList), 200)]
         public async Task<IActionResult> GetMany(int instanceOwnerPartyId, Guid instanceGuid)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
@@ -208,7 +208,9 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<DataElement> dataList = await _dataRepository.ReadAll(instanceGuid);
 
-            return Ok(dataList);
+            DataElementList dataElementList = new DataElementList { DataElements = dataList };
+
+            return Ok(dataElementList);
         }
 
         /// <summary>
@@ -393,7 +395,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             _logger.LogInformation($"update data element for {instanceOwnerPartyId}");
 
-            if (!instanceGuid.ToString().Equals(dataElement.instanceGuid) || !dataId.ToString().Equals(dataElement.Id))
+            if (!instanceGuid.ToString().Equals(dataElement.InstanceGuid) || !dataId.ToString().Equals(dataElement.Id))
             {
                 return BadRequest("Mismatch between path and dataElement content");
             }
@@ -459,7 +461,9 @@ namespace Altinn.Platform.Storage.Controllers
                 resultElements.Add(updatedElement);
             }
 
-            return Ok(resultElements);
+            DataElementList dataElementList = new DataElementList { DataElements = resultElements };
+
+            return Ok(dataElementList);
         }
 
         private async Task<DataElement> SetConfirmedDataAndUpdateDataElement(DataElement dataElement, DateTime timestamp)

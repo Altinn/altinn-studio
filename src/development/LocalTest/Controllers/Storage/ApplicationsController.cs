@@ -43,7 +43,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>list of all applications for a given owner</returns>
         [Authorize]
         [HttpGet("{org}")]
-        [ProducesResponseType(typeof(List<Application>), 200)]
+        [ProducesResponseType(typeof(ApplicationList), 200)]
         public async Task<ActionResult> GetMany(string org)
         {
             if (string.IsNullOrEmpty(org) || org.Contains("-") || org.Contains(" "))
@@ -53,9 +53,11 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                List<Application> result = await repository.ListApplications(org);
+                List<Application> applications = await repository.ListApplications(org);
 
-                return Ok(result);
+                ApplicationList applicationList = new ApplicationList { Applications = applications };
+
+                return Ok(applicationList);
             }
             catch (DocumentClientException dce)
             {
@@ -276,7 +278,6 @@ namespace Altinn.Platform.Storage.Controllers
             existingApplication.ValidFrom = application.ValidFrom;
             existingApplication.Title = application.Title;
             existingApplication.ProcessId = application.ProcessId;
-            existingApplication.MaxSize = application.MaxSize;
             existingApplication.DataTypes = application.DataTypes;
 
             existingApplication.PartyTypesAllowed = application.PartyTypesAllowed ?? new PartyTypesAllowed();
