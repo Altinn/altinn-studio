@@ -64,7 +64,7 @@ namespace Altinn.App.AppLogic
         {
             _logger.LogInformation($"RunAppEvent {appEvent}");
 
-            return true;
+            return await Task.FromResult(true);
         }
 
         /// <summary>
