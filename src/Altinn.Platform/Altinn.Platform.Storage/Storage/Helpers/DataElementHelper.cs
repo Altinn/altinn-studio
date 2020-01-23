@@ -28,7 +28,7 @@ namespace Altinn.Platform.Storage.Helpers
             {
                 // update data record
                 Id = dataId,
-                instanceGuid = guidFromInstanceId,
+                InstanceGuid = guidFromInstanceId,
                 DataType = dataType,
                 ContentType = contentType,
                 CreatedBy = user,
