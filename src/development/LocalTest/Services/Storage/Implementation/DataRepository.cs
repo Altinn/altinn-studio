@@ -21,9 +21,9 @@ namespace LocalTest.Services.Storage.Implementation
 
         public Task<DataElement> Create(DataElement dataElement)
         {
-            string path = GetDataPath(dataElement.instanceGuid, dataElement.Id);
+            string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
             Directory.CreateDirectory(GetDataCollectionFolder());
-            Directory.CreateDirectory(GetDataForInstanceFolder(dataElement.instanceGuid));
+            Directory.CreateDirectory(GetDataForInstanceFolder(dataElement.InstanceGuid));
             File.WriteAllText(path, dataElement.ToString());
             return Task.FromResult(dataElement);
         }
@@ -75,9 +75,9 @@ namespace LocalTest.Services.Storage.Implementation
 
         public Task<DataElement> Update(DataElement dataElement)
         {
-            string path = GetDataPath(dataElement.instanceGuid, dataElement.Id);
+            string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
             Directory.CreateDirectory(GetDataCollectionFolder());
-            Directory.CreateDirectory(GetDataForInstanceFolder(dataElement.instanceGuid));
+            Directory.CreateDirectory(GetDataForInstanceFolder(dataElement.InstanceGuid));
             File.WriteAllText(path, dataElement.ToString());
             return Task.FromResult(dataElement);
         }
