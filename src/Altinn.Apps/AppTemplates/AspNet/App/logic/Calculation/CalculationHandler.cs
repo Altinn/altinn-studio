@@ -3,9 +3,7 @@ using System.Threading.Tasks;
 //using Altinn.App.Models; // <-- Uncomment this line to refer to app model(s)
 
 namespace Altinn.App.AppLogic.Calculation
-
 {
-
     public class CalculationHandler
     {
         public CalculationHandler()
@@ -25,7 +23,7 @@ namespace Altinn.App.AppLogic.Calculation
         /// <param name="instance">The data</param>
         public async Task<bool> Calculate(object instance)
         {
-            return false;
+            return await Task.FromResult(false);
         }
     }
 }
