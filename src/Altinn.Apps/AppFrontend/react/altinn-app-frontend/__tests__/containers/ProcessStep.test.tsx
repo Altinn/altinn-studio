@@ -8,7 +8,7 @@ import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import { ProcessStep } from '../../src/features/form/containers/ProcessStep';
 import { ProcessSteps } from '../../src/types';
-import AltinnAppTheme from '../../../shared/src/theme/altinnAppTheme';
+import {AltinnAppTheme} from 'altinn-shared/theme';
 
 describe('>>> containers/ProcessStep.tsx', () => {
   let mockHeader: string;

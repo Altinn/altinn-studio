@@ -1,6 +1,8 @@
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Constants;
 using Altinn.Common.PEP.Helpers;
+using Altinn.Common.PEP.Models;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -205,6 +207,41 @@ namespace UnitTests
 
             // Act & Assert
             Assert.Throws<ArgumentNullException>(() => DecisionHelper.ValidatePdpDecision(response.Response, null));
+        }
+
+        /// <summary>
+        /// Test case: Response contains obligation with min authentication level that the user do not meet, get detailed response
+        /// Expected: Returns false
+        /// </summary>
+        [Fact]
+        public void ValidatePdpDecision_TC08()
+        {
+            // Arrange
+            XacmlJsonResponse response = new XacmlJsonResponse();
+            response.Response = new List<XacmlJsonResult>();
+            XacmlJsonResult xacmlJsonResult = new XacmlJsonResult();
+            xacmlJsonResult.Decision = XacmlContextDecision.Permit.ToString();
+            response.Response.Add(xacmlJsonResult);
+            // Add obligation to result with a minimum authentication level attribute
+            XacmlJsonObligationOrAdvice obligation = new XacmlJsonObligationOrAdvice();
+            obligation.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
+            string minAuthLevel = "3";
+            XacmlJsonAttributeAssignment authenticationAttribute = new XacmlJsonAttributeAssignment()
+            {
+                Category = "urn:altinn:minimum-authenticationlevel",
+                Value = minAuthLevel
+            };
+            obligation.AttributeAssignment.Add(authenticationAttribute);
+            xacmlJsonResult.Obligations = new List<XacmlJsonObligationOrAdvice>();
+            xacmlJsonResult.Obligations.Add(obligation);
+
+            // Act
+            EnforcementResult result = DecisionHelper.ValidatePdpDecisionDetailed(response.Response, CreateUserClaims(false));
+
+            // Assert
+            Assert.False(result.Authorized);
+            Assert.Contains(AltinnObligations.RequiredAuthenticationLevel, result.FailedObligations.Keys);
+            Assert.Equal(minAuthLevel, result.FailedObligations[AltinnObligations.RequiredAuthenticationLevel]);
         }
 
         private ClaimsPrincipal CreateUserClaims(bool addExtraClaim)

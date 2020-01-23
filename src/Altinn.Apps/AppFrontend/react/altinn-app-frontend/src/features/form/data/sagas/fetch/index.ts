@@ -6,15 +6,14 @@ import {
   all,
   take,
 } from 'redux-saga/effects';
-import { get } from '../../../../../../../shared/src/utils/networking';
+import { get, getCurrentTaskDataTypeId } from 'altinn-shared/utils';
 import { convertModelToDataBinding } from '../../../../../utils/databindings';
 import FormActions from '../../actions';
 import { IFetchFormData } from '../../actions/fetch';
 import * as FormDataActionTypes from '../../actions/types';
 import { IRuntimeState, IAltinnWindow } from '../../../../../types';
 import { IApplicationMetadata } from '../../../../../shared/resources/applicationMetadata';
-import { IInstance } from '../../../../../../../shared/src/types';
-import { getCurrentTaskDataTypeId } from '../../../../../../../shared/src/utils/applicationMetaDataUtils';
+import { IInstance } from 'altinn-shared/types';
 import { FETCH_DATA_MODEL_FULFILLED } from '../../../datamodell/actions/types';
 import FormRulesActions from '../../../rules/actions';
 import FormDynamicsRules from '../../../dynamics/actions';

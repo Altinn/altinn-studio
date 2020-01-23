@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
-import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
+import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components'
+import { getLanguageFromKey, getUserLanguage } from 'altinn-shared/utils';
 import { IRuntimeState, ProcessSteps } from '../../../types';
-import AltinnContentIconFormData from './../../../../../shared/src/components/atoms/AltinnContentIconFormData';
 import { ProcessStep } from './ProcessStep';
 import Render from './Render';
 

@@ -1,0 +1,28 @@
+{
+  "name": "altinn-studio-frontend",
+  "private": true,
+  "scripts": {
+    "install-deps": "lerna bootstrap --hoist --ci",
+    "no-ci-hoist": "lerna bootstrap --hoist --no-ci",
+    "test": "lerna exec --concurrency 1 -- npm test",
+    "install-all": "lerna exec -- npm ci",
+    "clean-lock": "lerna exec -- rm ./package-lock.json",
+    "clean-node-modules": "lerna exec --concurrency 1 -- rm -rf ./node_modules",
+    "build-dashboard": "npm run build --prefix dashboard/",
+    "build-app-development": "npm run build --prefix app-development/",
+    "start-dashboard": "npm start --prefix dashboard/",
+    "start-app-development": "npm start --prefix dashboard"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.11.0",
+    "@typescript-eslint/parser": "^2.11.0",
+    "eslint": "^6.7.2",
+    "eslint-config-airbnb": "^18.0.1",
+    "eslint-plugin-import": "^2.19.1",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.17.0",
+    "eslint-plugin-react-hooks": "^1.7.0",
+    "ini": "1.3.5",
+    "lerna": "3.18.5"
+  }
+}

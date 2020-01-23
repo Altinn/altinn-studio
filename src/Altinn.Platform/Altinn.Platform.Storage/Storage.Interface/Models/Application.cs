@@ -1,72 +1,66 @@
 using System;
 using System.Collections.Generic;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// Model for application metadata.
+    /// Represents an application by providing information about it.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Application : ChangableElement
     {
         /// <summary>
-        /// Unique id of the application, e.g. test/app-34
+        /// Gets or sets the unique id of the application, e.g. test/app-34
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// the application version id.
+        /// Gets or sets the application version id.
         /// </summary>
         [JsonProperty(PropertyName = "versionId")]
         public string VersionId { get; set; }
 
         /// <summary>
-        /// Service owner code for the service, e.g. nav.
+        /// Gets or sets the short code representing the owner of the service. E.g. nav
         /// </summary>
         [JsonProperty(PropertyName = "org")]
         public string Org { get; set; }
 
         /// <summary>
-        /// Title of the application with language codes.
+        /// Gets or sets the title of the application with language codes.
         /// </summary>
         [JsonProperty(PropertyName = "title")]
         public Dictionary<string, string> Title { get; set; }
 
         /// <summary>
-        /// application is valid from this date-time
+        /// Gets or sets the date and time from when the application is valid/can be used.
         /// </summary>
         [JsonProperty(PropertyName = "validFrom")]
         public DateTime? ValidFrom { get; set; }
 
         /// <summary>
-        /// application is valid to this date-time
+        /// Gets or sets the date and time at when the application is no longer valid/can no longer be used.
         /// </summary>
         [JsonProperty(PropertyName = "validTo")]
         public DateTime? ValidTo { get; set; }
 
         /// <summary>
-        /// Identifier of the prosess model that is used by the application.
+        /// Gets or sets an identifier of the process model that is used by the application.
         /// </summary>
         [JsonProperty(PropertyName = "processId")]
         public string ProcessId { get; set; }
 
         /// <summary>
-        /// Maximum allowed size of all the data element files of an application instance in bytes.
-        /// If not set there is no limit on file size.
-        /// </summary>
-        [JsonProperty(PropertyName = "maxSize")]
-        public int? MaxSize { get; set; }
-
-        /// <summary>
-        /// Gets or sets the data types, the allowed elements of an application instance.
+        /// Gets or sets a list of data types that are allowed on an instance of this application.
         /// </summary>
         [JsonProperty(PropertyName = "dataTypes")]
         public List<DataType> DataTypes { get; set; }
 
         /// <summary>
-        /// Gets of sets the different party types allowed to instantiate the application
+        /// Gets of sets the different party types that are allowed to be owners of instances based on this application.
         /// </summary>
         [JsonProperty(PropertyName = "partyTypesAllowed")]
         public PartyTypesAllowed PartyTypesAllowed { get; set; }
@@ -76,5 +70,22 @@ namespace Altinn.Platform.Storage.Interface.Models
         {
             return JsonConvert.SerializeObject(this);
         }
+    }
+
+    /// <summary>
+    /// Represents a container object with a list of applications.
+    /// </summary>
+    /// <remarks>
+    /// This should be used only when an API endpoint would otherwise return a list of applications.
+    /// Not when a list is a property of a separate class.
+    /// </remarks>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
+    public class ApplicationList
+    {
+        /// <summary>
+        /// The actual list of applications.
+        /// </summary>
+        [JsonProperty(PropertyName = "applications")]
+        public List<Application> Applications { get; set; }
     }
 }

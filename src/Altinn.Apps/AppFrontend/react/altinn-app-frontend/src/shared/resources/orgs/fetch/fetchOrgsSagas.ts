@@ -6,7 +6,7 @@ import * as OrgsActionTypes from './fetchOrgsActionTypes';
 
 import {
   orgsListUrl,
-} from './../../../../../../shared/src/utils/urlHelper';
+} from 'altinn-shared/utils';
 
 export function* fetchOrgsSaga(): SagaIterator {
   try {

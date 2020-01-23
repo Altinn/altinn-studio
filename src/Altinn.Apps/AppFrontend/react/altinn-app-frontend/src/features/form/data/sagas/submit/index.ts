@@ -1,8 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
-import { getCurrentTaskDataTypeId } from '../../../../../../../shared/src/utils/applicationMetaDataUtils';
-import { get, put } from '../../../../../../../shared/src/utils/networking';
+import { getCurrentTaskDataTypeId, get, put } from 'altinn-shared/utils';
 import ProcessDispatcher from '../../../../../shared/resources/process/processDispatcher';
 import { IRuntimeStore } from '../../../../../types/global';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';

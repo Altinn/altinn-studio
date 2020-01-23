@@ -57,18 +57,23 @@ export function getValidationUrl(instanceId: string) {
 }
 
 export function getCompleteProcessUrl() {
- return `${appPath}/instances/${altinnWindow.instanceId}/process/completeProcess`;
+ return `${appPath}/instances/${altinnWindow.instanceId}/process/next`;
+}
+
+export function getUpgradeAuthLevelUrl(reqAuthLevel: string) {
+  return `https://${getHostname()}/ui/authentication/upgrade?goTo=${encodeURIComponent(appPath)}&reqAuthLevel=${reqAuthLevel}`;
 }
 
 export const getEnvironmentLoginUrl: () => string = () => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
   const domainSplitted: string[] = window.location.host.split('.');
+  const encodedGoToUrl = encodeURIComponent(window.location.href);
   if (domainSplitted.length === 5) {
     return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
-      `/authentication/api/v1/authentication?goto=${window.location.href}`;
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`;
   } else if (domainSplitted.length === 4) {
     return `https://platform${domainSplitted[2]}.${domainSplitted[3]}` +
-      `/authentication/api/v1/authentication?goto=${window.location.href}`;
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`;
   } else {
     // TODO: what if altinn3?
     throw new Error('Unknown domain');
@@ -82,7 +87,15 @@ export const getHostname: () => string = () => {
     return `${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}`;
   } else if (domainSplitted.length === 4) {
     return `${domainSplitted[2]}.${domainSplitted[3]}`;
+  } else if (domainSplitted.length === 2 && domainSplitted[0] === "altinn3local") {
+    // Local test
+    return window.location.host;
   } else {
+    console.log('domain name split: ', domainSplitted);
     throw new Error('Unknown domain');
   }
 };
+
+export const redirectToUpgrade = (reqAuthLevel: string) =>{
+  window.location.href = getUpgradeAuthLevelUrl(reqAuthLevel);
+}

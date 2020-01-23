@@ -1,7 +1,7 @@
 import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
+import {AltinnAppTheme} from 'altinn-shared/theme';
 import Header from '../../../shared/components/altinnAppHeader';
 import { IProfile } from '../../../shared/resources/profile';
 import { IRuntimeState } from '../../../types';

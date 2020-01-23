@@ -1,0 +1,14 @@
+{
+  "command": {
+    "bootstrap": {
+      "hoist": true
+    }
+  },
+  "packages": [
+    "dashboard/",
+	"app-development",
+	"shared",
+	"ux-editor"
+  ],
+  "version": "independent"
+}

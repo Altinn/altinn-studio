@@ -1,4 +1,5 @@
 using System;
+using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Models
@@ -28,17 +29,11 @@ namespace Altinn.Platform.Storage.Models
         public string EventType { get; set; }
 
         /// <summary>
-        /// the user who created
+        /// the user who triggered the event
         /// </summary>
-        [JsonProperty(PropertyName = "userId")]
-        public int? UserId { get; set; }
-
-        /// <summary>
-        /// the end user system that triggered the event
-        /// </summary>
-        [JsonProperty(PropertyName = "endUserSystemId")]
-        public int? EndUserSystemId { get; set; }
-
+        [JsonProperty(PropertyName = "user")]
+        public PlatformUser User { get; set; }
+        
         /// <inheritdoc/>
         public override string ToString()
         {
