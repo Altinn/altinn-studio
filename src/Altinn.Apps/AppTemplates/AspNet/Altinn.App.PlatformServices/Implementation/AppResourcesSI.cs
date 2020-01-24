@@ -22,7 +22,7 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly AppSettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly ILogger _logger;
 
         private readonly Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
@@ -36,7 +36,7 @@ namespace Altinn.App.Services.Implementation
         public AppResourcesSI(
             IOptions<AppSettings> settings,
             IHttpContextAccessor httpContextAccessor,
-            IHostingEnvironment hostingEnvironment,
+            IWebHostEnvironment hostingEnvironment,
             ILogger<AppResourcesSI> logger)
         {
             _settings = settings.Value;
