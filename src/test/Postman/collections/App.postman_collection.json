@@ -2310,7 +2310,7 @@
 					"response": []
 				},
 				{
-					"name": "PUT Complete Process",
+					"name": "PUT Move to Next Process",
 					"event": [
 						{
 							"listen": "test",
@@ -2355,7 +2355,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeProcess",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -2369,7 +2369,7 @@
 								"{{instanceOwnerId}}",
 								"{{instanceId}}",
 								"process",
-								"completeProcess"
+								"next"
 							]
 						}
 					},
