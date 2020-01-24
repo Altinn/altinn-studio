@@ -237,7 +237,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
                 pathParams,
                 contentType);
             InterceptRequest(request);
-            var response = await RestClient.ExecuteAsync(request, new System.Threading.CancellationToken());
+            var response = await RestClient.ExecuteAsync(request, default(System.Threading.CancellationToken));
             InterceptResponse(request, response);
             return (object)response;
         }
