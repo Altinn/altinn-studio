@@ -1,11 +1,13 @@
 using Altinn.App.Common.Enums;
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Common.PEP.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -39,7 +41,7 @@ namespace App.IntegrationTests
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713")
             {
             };
-         
+
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
 
@@ -113,9 +115,9 @@ namespace App.IntegrationTests
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances")
-            {                
+            {
                 Content = content,
-            };            
+            };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -181,7 +183,7 @@ namespace App.IntegrationTests
                 InstanceOwner = new InstanceOwner
                 {
                     PartyId = instanceOwnerPartyId,
-                }                
+                }
             };
 
             string instance = JsonConvert.SerializeObject(instanceTemplate);
@@ -195,7 +197,7 @@ namespace App.IntegrationTests
             };
 
             Uri uri = new Uri("/tdd/endring-av-navn/instances", UriKind.Relative);
-          
+
             /* TEST */
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
@@ -261,7 +263,7 @@ namespace App.IntegrationTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             HttpRequestMessage httpRequestMessageHome = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/")
             {
-                
+
             };
 
             SetupUtil.AddAuthCookie(httpRequestMessageHome, token);
@@ -274,7 +276,7 @@ namespace App.IntegrationTests
             };
 
             SetupUtil.AddAuthCookie(httpRequestMessage, token, xsrfToken);
-          
+
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             string responseContent = response.Content.ReadAsStringAsync().Result;
@@ -313,9 +315,31 @@ namespace App.IntegrationTests
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             string responseContent = response.Content.ReadAsStringAsync().Result;
-  
+
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
         */
+
+        [Fact]
+        public async Task Instance_Post_WithLowAuthLevel_FailOk()
+        {
+            string token = PrincipalUtil.GetToken(1, 1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances?instanceOwnerPartyId=1000")
+            {
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+            Dictionary<string, string> failedObligations = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseContent);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.NotNull(failedObligations);
+
+            Dictionary<string, string> expectedFailedObligations = new Dictionary<string, string>() { { "RequiredAuthenticationLevel", "2" } };
+            Assert.Equal(expectedFailedObligations, failedObligations);
+        }
     }
 }

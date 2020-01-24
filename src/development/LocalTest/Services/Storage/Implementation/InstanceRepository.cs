@@ -14,22 +14,25 @@ namespace LocalTest.Services.Storage.Implementation
     public class InstanceRepository : IInstanceRepository
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly IDataRepository _dataRepository;
 
-        public InstanceRepository(IOptions<LocalPlatformSettings> localPlatformSettings)
+        public InstanceRepository(IOptions<LocalPlatformSettings> localPlatformSettings, IDataRepository dataRepository)
         {
             _localPlatformSettings = localPlatformSettings.Value;
+            _dataRepository = dataRepository;
         }
 
-        public Task<Instance> Create(Instance instance)
+        public async Task<Instance> Create(Instance instance)
         {
             string partyId = instance.InstanceOwner.PartyId;
             Guid instanceGuid = Guid.NewGuid();
             instance.Id = partyId + "/" + instanceGuid.ToString();
             string path = GetInstancePath(instance.Id);
             Directory.CreateDirectory(GetInstanceFolder());
+            PreProcess(instance);
             File.WriteAllText(path, instance.ToString());
-
-            return Task.FromResult(instance);
+            await PostProcess(instance);
+            return instance;
         }
 
         public Task<bool> Delete(Instance item)
@@ -52,24 +55,27 @@ namespace LocalTest.Services.Storage.Implementation
             throw new NotImplementedException();
         }
 
-        public Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
+        public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
             string path = GetInstancePath(instanceId.Replace("/","_"));
             if (File.Exists(path))
             {
                 string content = System.IO.File.ReadAllText(path);
                 Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                return Task.FromResult(instance);
+                await PostProcess(instance);
+                return instance;
             }
             return null;
         }
 
-        public Task<Instance> Update(Instance instance)
+        public async Task<Instance> Update(Instance instance)
         {
             string path = GetInstancePath(instance.Id);
             Directory.CreateDirectory(GetInstanceFolder());
+            PreProcess(instance);
             File.WriteAllText(path, instance.ToString());
-            return Task.FromResult(instance);
+            await PostProcess(instance);
+            return instance;
         }
 
         private string GetInstancePath(string instanceId)
@@ -80,6 +86,39 @@ namespace LocalTest.Services.Storage.Implementation
         private string GetInstanceFolder()
         {
             return this._localPlatformSettings.LocalTestingStorageBasePath + this._localPlatformSettings.DocumentDbFolder + this._localPlatformSettings.InstanceCollectionFolder;
+        }
+
+        private void PreProcess(Instance instance)
+        {
+            instance.Id = InstanceIdToCosmosId(instance.Id);
+        }
+
+        private async Task PostProcess(Instance instance)
+        {
+            Guid instanceGuid = Guid.Parse(instance.Id);
+            string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
+
+            instance.Id = instanceId;
+            instance.Data = await _dataRepository.ReadAll(instanceGuid);
+        }
+
+        /// <summary>
+        /// An instanceId should follow this format {int}/{guid}.
+        /// Cosmos does not allow / in id.
+        /// But in some old cases instanceId is just {guid}.
+        /// </summary>
+        /// <param name="instanceId">the id to convert to cosmos</param>
+        /// <returns>the guid of the instance</returns>
+        private string InstanceIdToCosmosId(string instanceId)
+        {
+            string cosmosId = instanceId;
+
+            if (instanceId != null && instanceId.Contains("/"))
+            {
+                cosmosId = instanceId.Split("/")[1];
+            }
+
+            return cosmosId;
         }
     }
 }
