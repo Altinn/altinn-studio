@@ -45,7 +45,7 @@ namespace Altinn.App
             services.AddControllersWithViews().AddApplicationPart(typeof(InstancesController).Assembly).AddXmlSerializerFormatters()
             .AddJsonOptions(options =>
             {
-                // Use the default property (Pascal) casing.
+                // Use camel casing.
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             });
 
