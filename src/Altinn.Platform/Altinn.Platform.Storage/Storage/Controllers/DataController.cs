@@ -4,10 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -186,10 +188,9 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">the instance owner id (an integer)</param>
         /// <param name="instanceGuid">the guid of the instance</param>
         /// <returns>The list of data elements</returns>
-        /// <!-- GET /instances/{instanceId}/data -->
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("dataelements")]
-        [ProducesResponseType(typeof(List<DataElement>), 200)]
+        [ProducesResponseType(typeof(DataElementList), 200)]
         public async Task<IActionResult> GetMany(int instanceOwnerPartyId, Guid instanceGuid)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
@@ -206,9 +207,11 @@ namespace Altinn.Platform.Storage.Controllers
                 return errorResult;
             }
 
-            List<DataElement> dataList = await _dataRepository.ReadAll(instanceGuid);
+            List<DataElement> dataElements = await _dataRepository.ReadAll(instanceGuid);
 
-            return Ok(dataList);
+            DataElementList dataElementList = new DataElementList { DataElements = dataElements };
+
+            return Ok(dataElementList);
         }
 
         /// <summary>
@@ -393,7 +396,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             _logger.LogInformation($"update data element for {instanceOwnerPartyId}");
 
-            if (!instanceGuid.ToString().Equals(dataElement.instanceGuid) || !dataId.ToString().Equals(dataElement.Id))
+            if (!instanceGuid.ToString().Equals(dataElement.InstanceGuid) || !dataId.ToString().Equals(dataElement.Id))
             {
                 return BadRequest("Mismatch between path and dataElement content");
             }
@@ -436,11 +439,10 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>A list of data elements with updated confirmed download dates</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPut("dataelements/confirmDownload")]
-        [ProducesResponseType(typeof(List<DataElement>), 200)]
+        [ProducesResponseType(typeof(DataElementList), 200)]
         public async Task<IActionResult> ConfirmDownloadAll(int instanceOwnerPartyId, Guid instanceGuid)
         {
             List<DataElement> dataElements = await _dataRepository.ReadAll(instanceGuid);
-            List<DataElement> resultElements = new List<DataElement>();
 
             // check if data has been downloaded
             foreach (DataElement element in dataElements)
@@ -453,13 +455,16 @@ namespace Altinn.Platform.Storage.Controllers
                 }
             }
 
+            List<DataElement> resultElements = new List<DataElement>();
             foreach (DataElement element in dataElements)
             {
                 DataElement updatedElement = await SetConfirmedDataAndUpdateDataElement(element, DateTime.UtcNow);
                 resultElements.Add(updatedElement);
             }
 
-            return Ok(resultElements);
+            DataElementList dataElementList = new DataElementList { DataElements = resultElements };
+
+            return Ok(dataElementList);
         }
 
         private async Task<DataElement> SetConfirmedDataAndUpdateDataElement(DataElement dataElement, DateTime timestamp)
