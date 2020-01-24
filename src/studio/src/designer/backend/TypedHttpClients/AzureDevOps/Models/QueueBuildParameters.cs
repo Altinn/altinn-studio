@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
+namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
 {
     /// <summary>
     /// Parameters for build when queueing
@@ -59,8 +59,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
         /// <summary>
         /// The hostname of the altinn studio env
         /// </summary>
-        /// <value></value>
         [JsonProperty("ALTINN_STUDIO_HOSTNAME")]
-        public string AltinnStudioHostname { get; set;}
+        public string AltinnStudioHostname { get; set; }
     }
 }

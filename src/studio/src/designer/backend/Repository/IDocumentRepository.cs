@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AltinnCore.Designer.Repository.Models;
-using AltinnCore.Designer.ViewModels.Request;
+using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.ViewModels.Request;
 using Microsoft.Azure.Documents;
 
-namespace AltinnCore.Designer.Repository
+namespace Altinn.Studio.Designer.Repository
 {
     /// <summary>
     /// Interface

@@ -1,4 +1,4 @@
-import { IParty } from '../../../shared/src/types';
+import { IParty } from 'altinn-shared/types';
 
 function findPartyByPartyId(party: IParty, partyId: string) {
   if (party.partyId === partyId) {

@@ -39,8 +39,7 @@ namespace Altinn.App.AppLogic.Validation
         /// </example>
         public async Task Validate(object instance, ModelStateDictionary validationResults)
         {
-
+            await Task.CompletedTask;
         }
     }
-
 }

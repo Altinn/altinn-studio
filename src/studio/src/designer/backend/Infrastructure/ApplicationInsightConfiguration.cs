@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AltinnCore.Designer.Infrastructure
+namespace Altinn.Studio.Designer.Infrastructure
 {
     /// <summary>
     /// Contains extension methods for configuring application insight

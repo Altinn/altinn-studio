@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
-using AltinnCore.Designer.Repository.Models;
-using AltinnCore.Designer.ViewModels.Request;
-using AltinnCore.Designer.ViewModels.Request.Enums;
+using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.ViewModels.Request;
+using Altinn.Studio.Designer.ViewModels.Request.Enums;
 
-namespace AltinnCore.Designer.Repository
+namespace Altinn.Studio.Designer.Repository
 {
     /// <summary>
     /// Contains extension methods for IQueryable of T

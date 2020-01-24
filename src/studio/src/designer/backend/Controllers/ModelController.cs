@@ -4,9 +4,9 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using AltinnCore.Common.Factories.ModelFactory;
-using AltinnCore.Common.ModelMetadatalModels;
-using AltinnCore.Common.Services.Interfaces;
+using Altinn.Studio.Designer.Factories.ModelFactory;
+using Altinn.Studio.Designer.ModelMetadatalModels;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -16,7 +16,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// This is the controller responsible for handling model functionality in AltinnCore

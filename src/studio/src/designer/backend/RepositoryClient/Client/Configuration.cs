@@ -16,7 +16,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace AltinnCore.RepositoryClient.Client
+namespace Altinn.Studio.Designer.RepositoryClient.Client
 {
     /// <summary>
     /// Represents a set of configuration settings

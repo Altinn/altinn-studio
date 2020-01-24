@@ -1,4 +1,4 @@
-namespace AltinnCore.Common.Enums
+namespace Altinn.Studio.Designer.Enums
 {
     /// <summary>
     /// This enum defines the modes supported by embedded file editor

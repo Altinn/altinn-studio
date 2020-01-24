@@ -1,13 +1,10 @@
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Services.Implementation;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.Designer.Services;
-using AltinnCore.Designer.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc.Razor.Compilation;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Services.Implementation;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AltinnCore.Designer.Infrastructure
+namespace Altinn.Studio.Designer.Infrastructure
 {
     /// <summary>
     /// Contains extension methods for registering services to the DI container

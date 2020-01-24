@@ -2,7 +2,7 @@ using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Common.Configuration
+namespace Altinn.Studio.Designer.Configuration
 {
     /// <summary>
     /// The default file factory. See <see cref="IDefaultFileFactory"/>

@@ -2,11 +2,11 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using AltinnCore.Designer.Infrastructure.Authentication;
-using AltinnCore.Designer.TypedHttpClients.AltinnAuthentication;
-using AltinnCore.Designer.TypedHttpClients.Maskinporten;
+using Altinn.Studio.Designer.Infrastructure.Authentication;
+using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
+using Altinn.Studio.Designer.TypedHttpClients.Maskinporten;
 
-namespace AltinnCore.Designer.TypedHttpClients.DelegatingHandlers
+namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
 {
     /// <summary>
     /// Adds a Bearer token to the Authorization header

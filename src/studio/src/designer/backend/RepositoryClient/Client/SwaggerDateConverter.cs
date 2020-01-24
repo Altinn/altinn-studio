@@ -10,7 +10,7 @@
 
 using Newtonsoft.Json.Converters;
 
-namespace AltinnCore.RepositoryClient.Client
+namespace Altinn.Studio.Designer.RepositoryClient.Client
 {
     /// <summary>
     /// Formatter for 'date' swagger formats ss defined by full-date - RFC3339

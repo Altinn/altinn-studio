@@ -1,7 +1,7 @@
 using System;
-using AltinnCore.Common.Enums;
+using Altinn.Studio.Designer.Enums;
 
-namespace AltinnCore.Common.Models
+namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
     /// A entity describing a file that is part of a AltinnCore service

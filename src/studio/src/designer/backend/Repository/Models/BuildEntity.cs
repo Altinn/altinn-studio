@@ -1,9 +1,9 @@
 using System;
-using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace AltinnCore.Designer.Repository.Models
+namespace Altinn.Studio.Designer.Repository.Models
 {
     /// <summary>
     /// Build entity for a db

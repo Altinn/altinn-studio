@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AltinnCore.Designer.ModelBinding
+namespace Altinn.Studio.Designer.ModelBinding
 {
     /// <summary>
     /// Build a model

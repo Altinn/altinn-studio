@@ -19,12 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Runtime\**" />
-    <EmbeddedResource Remove="Runtime\**" />
-    <None Remove="Runtime\**" />
-  </ItemGroup>
-
-  <ItemGroup>
       <None Remove="Common\edag.melding.schema.json" />
   </ItemGroup>
 
@@ -68,9 +62,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Common\AltinnCore.Common.csproj" />
-    <ProjectReference Include="..\Designer\AltinnCore.Designer.csproj" />
-    <ProjectReference Include="..\Runtime\AltinnCore.Runtime.csproj" />
+    <ProjectReference Include="..\backend\AltinnCore.Designer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -136,24 +128,6 @@
     </None>
     <None Update="Designer\Edag-latin1.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Runtime\data\CreatedInstanceFromStorage.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Runtime\data\data-element.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Runtime\data\ServiceModel.xsd">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Runtime\data\DataAndSubmitTasks.bpmn">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Runtime\data\SingleDataTask.bpmn">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Runtime\ServiceModels\default\Metadata\applicationmetadata.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </None>   
   </ItemGroup>
 </Project>

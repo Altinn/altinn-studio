@@ -6,13 +6,13 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Factories.ModelFactory;
-using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Helpers.Extensions;
-using AltinnCore.Common.ModelMetadatalModels;
-using AltinnCore.Common.Models;
-using AltinnCore.Common.Services.Interfaces;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Factories.ModelFactory;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
+using Altinn.Studio.Designer.ModelMetadatalModels;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Http;
@@ -21,7 +21,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace AltinnCore.Common.Services.Implementation
+namespace Altinn.Studio.Designer.Services.Implementation
 {
     /// <summary>
     /// Implementation of the repository service needed for creating and updating apps in AltinnCore.
@@ -1204,7 +1204,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">the options for creating a repository</param>
         /// <returns>The newly created repository</returns>
-        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption options)
+        public Altinn.Studio.Designer.RepositoryClient.Model.Repository CreateRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
         {
             return _gitea.CreateRepository(org, options).Result;
         }

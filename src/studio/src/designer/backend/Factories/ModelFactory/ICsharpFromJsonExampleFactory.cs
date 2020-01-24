@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AltinnCore.Common.Factories.ModelFactory
+namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
     /// <summary>
     /// The c# from JSON example factory interface.

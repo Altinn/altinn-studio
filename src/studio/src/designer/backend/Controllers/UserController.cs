@@ -1,16 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Services.Interfaces;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Designer.Controllers
+namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// API controller for User functionality
@@ -40,7 +37,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <returns>The user object</returns>
         [HttpGet]
-        public async Task<AltinnCore.RepositoryClient.Model.User> Current()
+        public async Task<Altinn.Studio.Designer.RepositoryClient.Model.User> Current()
         {
             // See comments in the configuration of Antiforgery in MvcConfiguration.cs.
             var tokens = _antiforgery.GetAndStoreTokens(HttpContext);

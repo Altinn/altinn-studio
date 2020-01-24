@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -13,6 +15,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Repository
@@ -129,7 +132,7 @@ namespace Altinn.Platform.Storage.Repository
 
             IQueryable<DataElement> filter = _client
                 .CreateDocumentQuery<DataElement>(_collectionUri, feedOptions)
-                .Where(d => d.instanceGuid == instanceKey);
+                .Where(d => d.InstanceGuid == instanceKey);
 
             IDocumentQuery<DataElement> query = filter.AsDocumentQuery();
 
@@ -184,7 +187,7 @@ namespace Altinn.Platform.Storage.Repository
 
             await _client.DeleteDocumentAsync(
                 uri.ToString(),
-                new RequestOptions { PartitionKey = new PartitionKey(dataElement.instanceGuid) });
+                new RequestOptions { PartitionKey = new PartitionKey(dataElement.InstanceGuid) });
 
             return true;
         }

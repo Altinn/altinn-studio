@@ -1,23 +1,24 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// Model to hold application owner state for a specific data element
+    /// Represents records on when an application owner has downloaded data elements and confirmed the downloads.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ApplicationOwnerDataState
     {
         /// <summary>
-        /// List of date-timestamps for when the application owner has downloaded data
+        /// Gets or sets a list of dates for when the application owner has downloaded data.
         /// </summary>
         [JsonProperty(PropertyName = "downloaded")]
         public List<DateTime> Downloaded { get; set; }
 
         /// <summary>
-        /// List of date-timestamps when application owner has confirmed the download
+        /// Gets or sets a list of dates that the application owner has confirmed a data download.
         /// </summary>
         [JsonProperty(PropertyName = "downloadConfirmed")]
         public List<DateTime> DownloadConfirmed { get; set; }

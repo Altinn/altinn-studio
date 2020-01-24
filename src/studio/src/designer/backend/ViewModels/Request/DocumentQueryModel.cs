@@ -1,10 +1,10 @@
 using System.ComponentModel.DataAnnotations;
-using AltinnCore.Designer.ViewModels.Request.Enums;
+using Altinn.Studio.Designer.ViewModels.Request.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace AltinnCore.Designer.ViewModels.Request
+namespace Altinn.Studio.Designer.ViewModels.Request
 {
     /// <summary>
     /// Model used for querying DocumentDb

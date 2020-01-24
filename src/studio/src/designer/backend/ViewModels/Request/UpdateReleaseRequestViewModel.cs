@@ -1,8 +1,8 @@
 using System;
-using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.ViewModels.Request
+namespace Altinn.Studio.Designer.ViewModels.Request
 {
     /// <summary>
     /// Viewmodel for updating a release

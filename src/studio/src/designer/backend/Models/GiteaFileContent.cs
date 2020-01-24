@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace AltinnCore.Common.Models
+namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
     /// Represents the model Gitea returns when asking for contents and metadata for a file

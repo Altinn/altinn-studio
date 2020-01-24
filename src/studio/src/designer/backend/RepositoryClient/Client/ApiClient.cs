@@ -21,7 +21,7 @@ using System.Web;
 using Newtonsoft.Json;
 using RestSharp;
 
-namespace AltinnCore.RepositoryClient.Client
+namespace Altinn.Studio.Designer.RepositoryClient.Client
 {
     /// <summary>
     /// API client is mainly responsible for making the HTTP call to the API backend.
@@ -52,7 +52,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// </summary>
         public ApiClient()
         {
-            Configuration = AltinnCore.RepositoryClient.Client.Configuration.Default;
+            Configuration = Altinn.Studio.Designer.RepositoryClient.Client.Configuration.Default;
             RestClient = new RestClient("http://localhost/api/v1");
         }
 
@@ -63,7 +63,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// <param name="config">An instance of Configuration.</param>
         public ApiClient(Configuration config)
         {
-            Configuration = config ?? AltinnCore.RepositoryClient.Client.Configuration.Default;
+            Configuration = config ?? Altinn.Studio.Designer.RepositoryClient.Client.Configuration.Default;
 
             RestClient = new RestClient(Configuration.BasePath);
         }

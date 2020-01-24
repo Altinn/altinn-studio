@@ -2,8 +2,8 @@ import * as React from 'react';
 import DropZone from 'react-dropzone';
 import { connect } from 'react-redux';
 import uuid = require('uuid');
-import altinnTheme from './../../../../shared/src/theme/altinnStudioTheme';
-import { getLanguageFromKey } from './../../../../shared/src/utils/language';
+import {AltinnAppTheme} from 'altinn-shared/theme';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 import { IAttachment } from './../../shared/resources/attachments';
 import AttachmentDispatcher from './../../shared/resources/attachments/attachmentActions';
 import './../../styles/FileUploadComponent.css';
@@ -42,7 +42,7 @@ const baseStyle = {
   width: 'auto',
   height: '15.6rem',
   borderWidth: '2px',
-  borderColor: altinnTheme.altinnPalette.primary.blueMedium,
+  borderColor: AltinnAppTheme.altinnPalette.primary.blueMedium,
   borderStyle: 'dashed',
   cursor: 'pointer',
 };
@@ -51,11 +51,11 @@ const activeStyle = {
 };
 const rejectStyle = {
   borderStyle: 'solid',
-  borderColor: altinnTheme.altinnPalette.primary.red,
+  borderColor: AltinnAppTheme.altinnPalette.primary.red,
 };
 const validationErrorStyle = {
   borderStyle: 'dashed',
-  borderColor: altinnTheme.altinnPalette.primary.red,
+  borderColor: AltinnAppTheme.altinnPalette.primary.red,
 };
 
 export const bytesInOneMB = 1048576;

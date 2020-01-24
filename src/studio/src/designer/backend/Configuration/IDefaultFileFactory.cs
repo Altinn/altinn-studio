@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace AltinnCore.Common.Configuration
+namespace Altinn.Studio.Designer.Configuration
 {
     /// <summary>
     /// The DefaultFileFactory interface.

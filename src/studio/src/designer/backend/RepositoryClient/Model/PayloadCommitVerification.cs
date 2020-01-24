@@ -10,7 +10,7 @@
 
 using System.Runtime.Serialization;
 
-namespace AltinnCore.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model
 {
     /// <summary>
     /// PayloadCommitVerification represents the GPG verification of a commit

@@ -1,4 +1,4 @@
-namespace AltinnCore.Designer.Infrastructure.Models
+namespace Altinn.Studio.Designer.Infrastructure.Models
 {
     /// <summary>
     /// Settings for Azure Cosmos Db

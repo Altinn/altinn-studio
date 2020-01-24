@@ -7,7 +7,7 @@ using Manatee.Json.Pointer;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
 
-namespace AltinnCore.Common.Factories.ModelFactory.Manatee.Json
+namespace Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json
 {
     /// <summary>
     /// Defines the <code>texts</code> JSON Schema keyword. Based on Manatee.Json.Schema.DefinitionsKeyword

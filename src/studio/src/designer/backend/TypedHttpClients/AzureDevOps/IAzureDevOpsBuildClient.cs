@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
-using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 
-namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
+namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
 {
     /// <summary>
     /// Interface for communication with Azure DevOps

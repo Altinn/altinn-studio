@@ -1,4 +1,4 @@
-using AltinnCore.ServiceLibrary.Models;
+using Altinn.Platform.Profile.Models;
 using System.Threading.Tasks;
 
 namespace LocalTest.Services.Profile.Interface

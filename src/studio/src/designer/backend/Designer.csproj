@@ -6,7 +6,7 @@
     <AssemblyName>Altinn.Studio.Designer</AssemblyName>
     <Company>Altinn</Company>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
-    <TypeScriptToolsVersion>2.8</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>3.7</TypeScriptToolsVersion>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
     <MvcRazorExcludeRefAssembliesFromPublish>false</MvcRazorExcludeRefAssembliesFromPublish>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
@@ -17,6 +17,7 @@
   <PropertyGroup>
     <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
     <UserSecretsId>c958e7e5-da9b-411d-8ee0-70bcfe1f64ed</UserSecretsId>
+    <RootNamespace>Altinn.Studio.Designer</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <None Update="wwwroot/**/*;Views/**/*;Areas/**/Views;">
@@ -91,13 +92,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <AdditionalFiles Include="..\..\..\..\stylecop.json">
+    <AdditionalFiles Include="..\..\..\..\..\stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

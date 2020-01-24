@@ -35,6 +35,8 @@ environmentVariables:
       value: Templates/AspNet/App
     - name: GeneralSettings__IntegrationTestsLocation
       value: Templates/AspNet/App.IntegrationTests
+    - name: GeneralSettings__MaskinportenBaseAddress
+      value: https://ver2.maskinporten.no/
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -66,6 +68,8 @@ environmentVariables:
       value: Templates/AspNet/App
     - name: GeneralSettings__IntegrationTestsLocation
       value: Templates/AspNet/App.IntegrationTests
+    - name: GeneralSettings__MaskinportenBaseAddress
+      value: https://ver2.maskinporten.no/
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -97,6 +101,8 @@ environmentVariables:
       value: Templates/AspNet/App
     - name: GeneralSettings__IntegrationTestsLocation
       value: Templates/AspNet/App.IntegrationTests
+    - name: GeneralSettings__MaskinportenBaseAddress
+      value: https://maskinporten.no/
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint

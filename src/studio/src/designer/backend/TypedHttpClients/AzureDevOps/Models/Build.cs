@@ -1,9 +1,9 @@
 using System;
-using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
+namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models
 {
     /// <summary>
     /// Azure DevOps Build

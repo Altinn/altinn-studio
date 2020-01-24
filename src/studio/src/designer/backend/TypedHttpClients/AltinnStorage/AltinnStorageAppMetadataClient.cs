@@ -4,11 +4,11 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Designer.Services.Models;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Services.Models;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Designer.TypedHttpClients.AltinnStorage
+namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
 {
     /// <summary>
     /// AltinnStorageAppMetadataClient

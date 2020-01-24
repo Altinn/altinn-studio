@@ -15,16 +15,16 @@ const cleanGlobs = [
 ];
 
 
-const jsServDevFile = '../frontend/app-development/dist/app-development.js';
-const jsServDevModuleFile0 = '../frontend/app-development/dist/0.app-development.js';
-const jsServDevModuleFile1 = '../frontend/app-development/dist/1.app-development.js';
-const jsServDevModuleFile2 = '../frontend/app-development/dist/2.app-development.js';
-const jsServDevModuleFile3 = '../frontend/app-development/dist/3.app-development.js';
-const jsServDevMonacoWorker1 = '../frontend/app-development/js/react/editor.worker.js';
-const jsServDevMonacoWorker2 = '../frontend/app-development/js/react/typescript.worker.js';
-const jsDashboardFile = '../frontend/dashboard/dist/dashboard.js';
-const cssServDevFile = '../frontend/app-development/dist/app-development.css';
-const cssDashboardFile = '../frontend/dashboard/dist/dashboard.css';
+const jsServDevFile = '../frontend/dist/app-development/app-development.js';
+const jsServDevModuleFile0 = '../frontend/dist/app-development/0.app-development.js';
+const jsServDevModuleFile1 = '../frontend/dist/app-development/1.app-development.js';
+const jsServDevModuleFile2 = '../frontend/dist/app-development/2.app-development.js';
+const jsServDevModuleFile3 = '../frontend/dist/app-development/3.app-development.js';
+const jsServDevMonacoWorker1 = '../frontend/dist/app-development/js/react/editor.worker.js';
+const jsServDevMonacoWorker2 = '../frontend/dist/app-development/js/react/typescript.worker.js';
+const jsDashboardFile = '../frontend/dist/dashboard/dashboard.js';
+const cssServDevFile = '../frontend/dist/app-development/app-development.css';
+const cssDashboardFile = '../frontend/dist/dashboard/dashboard.css';
 
 let jsWatcher = null;
 let cssWatcher = null;

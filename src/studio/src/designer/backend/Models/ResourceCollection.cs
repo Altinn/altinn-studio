@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AltinnCore.Common.Models
+namespace Altinn.Studio.Designer.Models
 {
     using System;
     using System.Linq;

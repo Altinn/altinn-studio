@@ -21,9 +21,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using SwaggerDateConverter = AltinnCore.RepositoryClient.Client.SwaggerDateConverter;
+using SwaggerDateConverter = Altinn.Studio.Designer.RepositoryClient.Client.SwaggerDateConverter;
 
-namespace AltinnCore.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model
 {
     /// <summary>
     /// Repository represents a repository

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.ViewModels.Request
+namespace Altinn.Studio.Designer.ViewModels.Request
 {
     /// <summary>
     /// Azure DevOps Web hook event model

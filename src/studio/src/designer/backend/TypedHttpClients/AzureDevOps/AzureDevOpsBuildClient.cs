@@ -1,13 +1,13 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
+namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
 {
     /// <summary>
     /// Implementation of IAzureDevOpsService

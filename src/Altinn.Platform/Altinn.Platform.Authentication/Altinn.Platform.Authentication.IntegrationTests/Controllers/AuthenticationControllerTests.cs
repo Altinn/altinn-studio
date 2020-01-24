@@ -118,7 +118,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
                 ID = $"9908:{brgOrgNr}"
             };
 
-            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(iso6523Consumer)));
+            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(brgConsumer)));
             claims.Add(new Claim("client_orgno", orgNr));
             claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
 

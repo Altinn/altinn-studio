@@ -1,6 +1,6 @@
 using System;
 
-namespace AltinnCore.Designer.TypedHttpClients.Exceptions
+namespace Altinn.Studio.Designer.TypedHttpClients.Exceptions
 {
     /// <summary>
     /// Altinn specific exception which can be caught specifically when a response returns HttpStatusCode.NotFound (404)

@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.Repository.Models
+namespace Altinn.Studio.Designer.Repository.Models
 {
     /// <summary>
     /// Release entity for a db

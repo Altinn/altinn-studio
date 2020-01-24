@@ -1,12 +1,12 @@
 using System;
-using AltinnCore.Designer.Infrastructure.Models;
-using AltinnCore.Designer.Repository;
+using Altinn.Studio.Designer.Infrastructure.Models;
+using Altinn.Studio.Designer.Repository;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AltinnCore.Designer.Infrastructure
+namespace Altinn.Studio.Designer.Infrastructure
 {
     /// <summary>
     /// Contains extension methods for registering integrations

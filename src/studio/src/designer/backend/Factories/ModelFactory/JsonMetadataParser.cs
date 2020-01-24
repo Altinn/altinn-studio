@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AltinnCore.Common.Constants;
-using AltinnCore.Common.ModelMetadatalModels;
+using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.ModelMetadatalModels;
 using Newtonsoft.Json.Linq;
 
-namespace AltinnCore.Common.Factories.ModelFactory
+namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
     /// <summary>
     /// This class is responsible for building the metadata model from JSON

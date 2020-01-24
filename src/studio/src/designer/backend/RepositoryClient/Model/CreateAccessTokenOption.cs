@@ -11,7 +11,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
-namespace AltinnCore.RepositoryClient.Model
+namespace Altinn.Studio.Designer.RepositoryClient.Model
 {
     /// <summary>
     /// Access token
