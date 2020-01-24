@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Services.Interface;
-using AltinnCore.ServiceLibrary.Models;
+using Altinn.Platform.Register.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Authorization.Controllers

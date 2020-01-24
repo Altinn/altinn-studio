@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Constants;
-using AltinnCore.ServiceLibrary.Models;
 using LocalTest.Services.Profile.Interface;
 using Microsoft.AspNetCore.Mvc;
 
