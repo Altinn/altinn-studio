@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.16-alpha" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.1" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.2" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.0.0-alpha" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.8.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.0" />
