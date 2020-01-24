@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Altinn.Platform.Storage.Helpers;
@@ -125,6 +126,60 @@ namespace Altinn.Platform.Storage.UnitTest
 
             // Assert
             Assert.Equal(instanceGuid, actualId);     
+        }
+
+        /// <summary>
+        /// Scenario: Converting list containing a single instance with data element, where LastChanged for data element is newer than LastChanged for instance.
+        /// Expected: The LastChangedBy in MessageBoxInstance comes from data element
+        /// Success: MessageBoxInstance LastChangedBy equals {lastChangedBy}
+        /// </summary>
+        [Fact]
+        public void ConvertToMessageBoxInstance_TC05()
+        {
+            // Arrange
+            string lastChangedBy = "lastChangedBy";
+            Instance instance = TestData.Instance_1_1;
+            instance.Data = new List<DataElement>() {
+                new DataElement()
+                {
+                    LastChanged = Convert.ToDateTime("2019-08-21T19:19:22.2135489Z"),
+                    LastChangedBy = lastChangedBy
+                }
+            };
+
+            // Act
+            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(new List<Instance>() { instance }, TestData.AppTitles_Dict_App1, "nb");
+            string actualLastChangedBy = actual.FirstOrDefault().LastChangedBy;
+
+            // Assert
+            Assert.Equal(lastChangedBy, actualLastChangedBy);
+        }
+
+        /// <summary>
+        /// Scenario: Converting list containing a single instance with data element, where LastChanged for data element is older than LastChanged for instance.
+        /// Expected: The LastChangedBy in MessageBoxInstance comes from data element
+        /// Success: MessageBoxInstance LastChangedBy equals {lastChangedBy}
+        /// </summary>
+        [Fact]
+        public void ConvertToMessageBoxInstance_TC06()
+        {
+            // Arrange
+            string lastChangedBy = TestData.UserId_1;
+            Instance instance = TestData.Instance_1_1;
+            instance.Data = new List<DataElement>() {
+                new DataElement()
+                {
+                    LastChanged = Convert.ToDateTime("2019-08-21T19:19:22.2135489Z"),
+                    LastChangedBy = lastChangedBy
+                }
+            };
+
+            // Act
+            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(new List<Instance>() { instance }, TestData.AppTitles_Dict_App1, "nb");
+            string actualLastChangedBy = actual.FirstOrDefault().LastChangedBy;
+
+            // Assert
+            Assert.Equal(lastChangedBy, actualLastChangedBy);
         }
 
         /// <summary>
