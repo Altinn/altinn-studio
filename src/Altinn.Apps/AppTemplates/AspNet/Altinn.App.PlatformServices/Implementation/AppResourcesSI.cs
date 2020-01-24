@@ -72,7 +72,7 @@ namespace Altinn.App.Services.Implementation
                 }
                 else
                 {
-                    fileContent = new byte[0];                         
+                    fileContent = new byte[0];
                 }
             }
             else
@@ -165,9 +165,9 @@ namespace Altinn.App.Services.Implementation
             return fileContent;
         }
 
-        public string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel")
+        public string GetPrefillJson(string dataModelName = "ServiceModel")
         {
-            string filename = _settings.GetModelPath(org, app, dataModelName + ".prefill.json");
+            string filename = _settings.AppBasePath + _settings.ModelsFolder + dataModelName + ".prefill.json";
             string filedata = null;
             if (File.Exists(filename))
             {

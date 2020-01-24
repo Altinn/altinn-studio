@@ -1,0 +1,11 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/prefill/prefill.schema.v1.json",
+  "allowOverwrite": true,
+  "ER": {
+  },
+  "DSF": {
+    "SSN": "Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value"
+  },
+  "UserProfile": {
+  }
+}

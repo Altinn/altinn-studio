@@ -4,7 +4,10 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.App.Services.Helpers;
 using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Register.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
@@ -16,7 +19,10 @@ namespace Altinn.App.Services.Implementation
         private readonly ILogger _logger;
         private readonly IProfile _profile;
         private readonly IAppResources _appResourcesService;
-        
+        private readonly IRegister _registerService;
+        private readonly IDSF _dsfService;
+        private readonly IER _erService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private static readonly string ER_KEY = "ER";
         private static readonly string DSF_KEY = "DSF";
         private static readonly string USER_PROFILE_KEY = "UserProfile";
@@ -29,19 +35,31 @@ namespace Altinn.App.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="profile">The profile service</param>
         /// <param name="appResourcesService">The app's resource service</param>
-        public PrefillSI(ILogger<PrefillSI> logger, IProfile profile, IAppResources appResourcesService)
+        public PrefillSI(
+            ILogger<PrefillSI> logger,
+            IProfile profile,
+            IAppResources appResourcesService,
+            IRegister registerService,
+            IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
             _profile = profile;
             _appResourcesService = appResourcesService;
+            _registerService = registerService;
+            _dsfService = registerService.DSF;
+            _erService = registerService.ER;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <inheritdoc/>
-        public async Task PrefillDataModel(PrefillContext prefillContext, object dataModel)
+        public async Task PrefillDataModel(string ssn, string orgNumber, object dataModel)
         {
-            string jsonConfig = _appResourcesService.GetPrefillJson(prefillContext.Org, prefillContext.App);
+
+            _logger.LogInformation($"**PREFILL** Started PrefillDataModel");
+            string jsonConfig = _appResourcesService.GetPrefillJson();
             if (jsonConfig == null || jsonConfig == string.Empty)
             {
+                _logger.LogInformation($"**PREFILL** could not find config");
                 return;
             }
 
@@ -60,7 +78,8 @@ namespace Altinn.App.Services.Implementation
                 userProfileDict = profilePrefill.ToObject<Dictionary<string, string>>();
                 if (userProfileDict.Count > 0)
                 {
-                    UserProfile userProfile = await _profile.GetUserProfile(prefillContext.UserId);
+                    int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext);
+                    UserProfile userProfile = await _profile.GetUserProfile(userId);
                     if (userProfile != null)
                     {
                         JObject userProfileJsonObject = JObject.FromObject(userProfile);
@@ -84,9 +103,16 @@ namespace Altinn.App.Services.Implementation
                 enhetsregisterPrefill = enhetsregisteret.ToObject<Dictionary<string, string>>();
                 if (enhetsregisterPrefill.Count > 0)
                 {
-                    if (prefillContext.Organization != null)
+                    if (orgNumber != null)
                     {
-                        JObject orgJsonObject = JObject.FromObject(prefillContext.Organization);
+                        Organization org = await _erService.GetOrganization(orgNumber);
+                        if (org == null)
+                        {
+                            string errorMessage = $"Could not find org for orgnumber {orgNumber}";
+                            _logger.LogError(errorMessage);
+                            throw new Exception(errorMessage);
+                        }
+                        JObject orgJsonObject = JObject.FromObject(org);
                         _logger.LogInformation($"Started prefill from {ER_KEY}");
                         LoopThroughDictionaryAndAssignValuesToDataModel(enhetsregisterPrefill, orgJsonObject, dataModel);
                     }
@@ -107,9 +133,16 @@ namespace Altinn.App.Services.Implementation
                 folkeregisterPrefill = folkeregisteret.ToObject<Dictionary<string, string>>();
                 if (folkeregisterPrefill.Count > 0)
                 {
-                    if (prefillContext.Person != null)
+                    if (ssn != null)
                     {
-                        JObject personJsonObject = JObject.FromObject(prefillContext.Person);
+                        Person person = await _dsfService.GetPerson(ssn);
+                        if (person == null)
+                        {
+                            string errorMessage = $"Could not find person for ssn {ssn}";
+                            _logger.LogError(errorMessage);
+                            throw new Exception(errorMessage);
+                        }
+                        JObject personJsonObject = JObject.FromObject(person);
                         _logger.LogInformation($"Started prefill from {DSF_KEY}");
                         LoopThroughDictionaryAndAssignValuesToDataModel(folkeregisterPrefill, personJsonObject, dataModel);
                     }
@@ -163,7 +196,7 @@ namespace Altinn.App.Services.Implementation
                 else
                 {
                     if (propertyValue == null)
-                    { 
+                    {
                         // the object does not exsist, create a new one with the property type
                         var instance = Activator.CreateInstance(property.PropertyType);
                         property.SetValue(currentObject, instance, null);

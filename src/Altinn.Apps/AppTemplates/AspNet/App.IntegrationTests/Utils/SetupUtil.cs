@@ -59,7 +59,8 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddTransient<IProfile, ProfileMockSI>();
                     services.AddSingleton<IValidation, ValidationAppSI>();
                     services.AddSingleton<IPDF, PDFMockSI>();
-
+                    services.AddSingleton<IDSF, DSFMockSI>();
+                    services.AddSingleton<IER, ERMockSI>();
                     // Set up mock authentication so that not well known endpoint is used
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();

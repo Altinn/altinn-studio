@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.Api.Filters;
 using Altinn.App.Common.Constants;
-using Altinn.App.Common.Enums;
 using Altinn.App.Common.Helpers;
 using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +31,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IInstance _instanceService;
         private readonly IAltinnApp _altinnApp;
         private readonly IAppResources _appResourcesService;
+        private readonly IPrefill _prefillService;
 
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -48,7 +48,8 @@ namespace Altinn.App.Api.Controllers
             IInstance instanceService,
             IData dataService,
             IAltinnApp altinnApp,
-            IAppResources appResourcesService)
+            IAppResources appResourcesService,
+            IPrefill prefillService)
         {
             _logger = logger;
 
@@ -56,6 +57,7 @@ namespace Altinn.App.Api.Controllers
             _dataService = dataService;
             _altinnApp = altinnApp;
             _appResourcesService = appResourcesService;
+            _prefillService = prefillService;
         }
 
         /// <summary>
@@ -348,7 +350,8 @@ namespace Altinn.App.Api.Controllers
                 }
             }
 
-            // TODO: run prefill from repo configuration
+            // runs prefill from repo configuration if config exists
+            await _prefillService.PrefillDataModel(instance.InstanceOwner.PersonNumber, instance.InstanceOwner.OrganisationNumber, appModel);
 
             // send events to trigger application business logic
             await _altinnApp.RunDataCreation(instance, appModel);

@@ -1,19 +1,20 @@
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace App.IntegrationTests.Mocks.Services
 {
     class RegisterMockSI : IRegister
     {
-        public IDSF DSF => throw new NotImplementedException();
+        public RegisterMockSI(IDSF dsfService, IER erService)
+        {
+            DSF = dsfService;
+            ER = erService;
+        }
+        public IDSF DSF { get; }
 
-        public IER ER => throw new NotImplementedException();
+        public IER ER { get; }
 
         public Task<Party> GetParty(int partyId)
         {
