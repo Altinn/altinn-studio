@@ -132,8 +132,7 @@ namespace Altinn.Platform.Storage.Controllers
         public async Task<ActionResult> GetProcessHistory(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
-        {
-            // adding all process events to the query
+        {      
             string[] eventTypes = Enum.GetNames(typeof(InstanceEventType)).Where(x => x.StartsWith("process")).ToArray();
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             ProcessHistoryList processHistoryList = new ProcessHistoryList();

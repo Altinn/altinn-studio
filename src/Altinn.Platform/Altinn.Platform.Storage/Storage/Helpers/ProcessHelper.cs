@@ -44,12 +44,10 @@ namespace Altinn.Platform.Storage.Helpers
                               });
                         break;
                     case InstanceEventType.process_StartTask:
-
-                        // append data if element already in list
                         if (history.Any(i => i.ElementId.Equals(instanceEvent.ProcessInfo.CurrentTask.ElementId)))
                         {
                             history.Where(i => i.ElementId.Equals(instanceEvent.ProcessInfo.CurrentTask.ElementId))
-                                .AsEnumerable().Select(i =>
+                                .Select(i =>
                                 {
                                     i.Started = instanceEvent.Created;
                                     return i;
@@ -67,8 +65,6 @@ namespace Altinn.Platform.Storage.Helpers
 
                         break;
                     case InstanceEventType.process_EndTask:
-
-                        // append data if element already in list
                         if (history.Any(i => i.ElementId.Equals(instanceEvent?.ProcessInfo?.CurrentTask?.ElementId)))
                         {
                             history.Where(i => i.ElementId.Equals(instanceEvent.ProcessInfo.CurrentTask.ElementId))

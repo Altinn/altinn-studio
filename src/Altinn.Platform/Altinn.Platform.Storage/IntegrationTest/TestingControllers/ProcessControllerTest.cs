@@ -136,7 +136,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         /// Expected: Returns status forbidden.
         /// </summary>
         [Fact]
-        public async void PutProcess_ResponseIdDeny_ReturnStatusForbidden()
+        public async void PutProcess_PDPResponseIsDeny_ReturnStatusForbidden()
         {
             // Arrange
             string requestUri = $"{BasePath}{InstanceId}/process";
