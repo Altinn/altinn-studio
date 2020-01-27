@@ -1,5 +1,6 @@
 using Altinn.App.Common.Enums;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -19,13 +20,15 @@ namespace Altinn.App.Services.Implementation
         private readonly IData _dataService;
         private readonly IProcess _processService;
         private readonly IPDF _pdfService;
+        private readonly IPrefill _prefillService;
 
         public AppBase(
             IAppResources resourceService,
             ILogger<AppBase> logger,
             IData dataService,
             IProcess processService,
-            IPDF pdfService)
+            IPDF pdfService,
+            IPrefill prefillService)
         {
             _appMetadata = resourceService.GetApplication();
             _resourceService = resourceService;
@@ -33,6 +36,7 @@ namespace Altinn.App.Services.Implementation
             _dataService = dataService;
             _processService = processService;
             _pdfService = pdfService;
+            _prefillService = prefillService;
         }
 
         public abstract Type GetAppModelType(string dataType);
@@ -48,13 +52,13 @@ namespace Altinn.App.Services.Implementation
         public abstract Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance);
 
         public abstract Task RunDataCreation(Instance instance, object data);
-        
+
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
         {
             _logger.LogInformation($"OnInstantiate: GetStartEvent");
 
-            // return start event              
+            // return start event
             return Task.FromResult("StartEvent_1");
         }
 
@@ -87,12 +91,14 @@ namespace Altinn.App.Services.Implementation
             foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.AutoCreate == true))
             {
                 _logger.LogInformation($"autocreate data element: {dataType.Id}");
-                
+
                 DataElement dataElement = instance.Data.Find(d => d.DataType == dataType.Id);
 
                 if (dataElement == null)
                 {
                     dynamic data = CreateNewAppModel(dataType.AppLogic.ClassRef);
+                    // runs prefill from repo configuration if config exists
+                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, data);
                     await RunDataCreation(instance, data);
                     Type type = GetAppModelType(dataType.AppLogic.ClassRef);
 
@@ -100,7 +106,7 @@ namespace Altinn.App.Services.Implementation
                     instance.Data.Add(createdDataElement);
 
                     _logger.LogInformation($"created data element: {createdDataElement.Id}");
-                }                                
+                }
             }
         }
 
@@ -122,7 +128,7 @@ namespace Altinn.App.Services.Implementation
                 if (validationIssues.Count == 0)
                 {
                     return true;
-                }                
+                }
             }
 
             return false;

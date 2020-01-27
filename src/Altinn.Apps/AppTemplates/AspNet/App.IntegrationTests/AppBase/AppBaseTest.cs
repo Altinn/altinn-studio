@@ -20,7 +20,7 @@ namespace App.IntegrationTestsRef.AppBase
 
         public AppBaseTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
-            _factory = factory;            
+            _factory = factory;
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace App.IntegrationTestsRef.AppBase
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(process.Started);
             Assert.NotNull(process.CurrentTask);
-            Assert.Equal("Task_1", process.CurrentTask.ElementId);            
+            Assert.Equal("Task_1", process.CurrentTask.ElementId);
         }
 
 
@@ -82,7 +82,7 @@ namespace App.IntegrationTestsRef.AppBase
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.NotNull(instanceWData.Data);
-            
+
             DeleteInstance(instance);
         }
 
