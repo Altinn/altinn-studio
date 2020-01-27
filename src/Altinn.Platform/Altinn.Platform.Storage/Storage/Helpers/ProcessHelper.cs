@@ -53,7 +53,7 @@ namespace Altinn.Platform.Storage.Helpers
                                 {
                                     i.Started = instanceEvent.Created;
                                     return i;
-                                });
+                                }).ToList();
                         }
                         else
                         {
