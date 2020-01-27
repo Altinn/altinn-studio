@@ -2,6 +2,9 @@
   "$schema": "https://altinncdn.no/schemas/json/prefill/prefill.schema.v1.json",
   "allowOverwrite": true,
   "ER": {
+    "MailingAddress": "Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value",
+    "Name": "Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value",
+    "InternetAddress": "Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value"
   },
   "DSF": {
     "SSN": "Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value",

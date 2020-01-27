@@ -20,8 +20,6 @@ namespace Altinn.App.Services.Implementation
         private readonly IProfile _profile;
         private readonly IAppResources _appResourcesService;
         private readonly IRegister _registerService;
-        private readonly IDSF _dsfService;
-        private readonly IER _erService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private static readonly string ER_KEY = "ER";
         private static readonly string DSF_KEY = "DSF";
@@ -46,8 +44,6 @@ namespace Altinn.App.Services.Implementation
             _profile = profile;
             _appResourcesService = appResourcesService;
             _registerService = registerService;
-            _dsfService = registerService.DSF;
-            _erService = registerService.ER;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -96,7 +92,6 @@ namespace Altinn.App.Services.Implementation
                     {
                         string errorMessage = $"Could not  prefill from {USER_PROFILE_KEY}, user profile is not defined.";
                         _logger.LogError(errorMessage);
-                        throw new Exception(errorMessage);
                     }
                 }
             }
@@ -120,7 +115,6 @@ namespace Altinn.App.Services.Implementation
                     {
                         string errorMessage = $"Could not  prefill from {ER_KEY}, organisation is not defined.";
                         _logger.LogError(errorMessage);
-                        throw new Exception(errorMessage);
                     }
                 }
             }
@@ -144,7 +138,6 @@ namespace Altinn.App.Services.Implementation
                     {
                         string errorMessage = $"Could not  prefill from {DSF_KEY}, person is not defined.";
                         _logger.LogError(errorMessage);
-                        throw new Exception(errorMessage);
                     }
                 }
             }
