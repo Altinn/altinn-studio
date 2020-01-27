@@ -4,7 +4,10 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.App.Services.Helpers;
 using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Register.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
@@ -16,7 +19,8 @@ namespace Altinn.App.Services.Implementation
         private readonly ILogger _logger;
         private readonly IProfile _profile;
         private readonly IAppResources _appResourcesService;
-        
+        private readonly IRegister _registerService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private static readonly string ER_KEY = "ER";
         private static readonly string DSF_KEY = "DSF";
         private static readonly string USER_PROFILE_KEY = "UserProfile";
@@ -29,17 +33,24 @@ namespace Altinn.App.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="profile">The profile service</param>
         /// <param name="appResourcesService">The app's resource service</param>
-        public PrefillSI(ILogger<PrefillSI> logger, IProfile profile, IAppResources appResourcesService)
+        public PrefillSI(
+            ILogger<PrefillSI> logger,
+            IProfile profile,
+            IAppResources appResourcesService,
+            IRegister registerService,
+            IHttpContextAccessor httpContextAccessor)
         {
             _logger = logger;
             _profile = profile;
             _appResourcesService = appResourcesService;
+            _registerService = registerService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <inheritdoc/>
-        public async Task PrefillDataModel(PrefillContext prefillContext, object dataModel)
+        public async Task PrefillDataModel(string partyId, object dataModel)
         {
-            string jsonConfig = _appResourcesService.GetPrefillJson(prefillContext.Org, prefillContext.App);
+            string jsonConfig = _appResourcesService.GetPrefillJson();
             if (jsonConfig == null || jsonConfig == string.Empty)
             {
                 return;
@@ -52,6 +63,15 @@ namespace Altinn.App.Services.Implementation
                 allowOverwrite = allowOverwriteToken.ToObject<bool>();
             }
 
+
+            Party party = await _registerService.GetParty(Int32.Parse(partyId));
+            if (party == null)
+            {
+                string errorMessage = $"Could find party for partyId: {partyId}";
+                _logger.LogError(errorMessage);
+                throw new Exception(errorMessage);
+            }
+
             // Prefill from user profile
             JToken profilePrefill = prefillConfiguration.SelectToken(USER_PROFILE_KEY);
             Dictionary<string, string> userProfileDict;
@@ -60,7 +80,8 @@ namespace Altinn.App.Services.Implementation
                 userProfileDict = profilePrefill.ToObject<Dictionary<string, string>>();
                 if (userProfileDict.Count > 0)
                 {
-                    UserProfile userProfile = await _profile.GetUserProfile(prefillContext.UserId);
+                    int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext);
+                    UserProfile userProfile = await _profile.GetUserProfile(userId);
                     if (userProfile != null)
                     {
                         JObject userProfileJsonObject = JObject.FromObject(userProfile);
@@ -71,7 +92,6 @@ namespace Altinn.App.Services.Implementation
                     {
                         string errorMessage = $"Could not  prefill from {USER_PROFILE_KEY}, user profile is not defined.";
                         _logger.LogError(errorMessage);
-                        throw new Exception(errorMessage);
                     }
                 }
             }
@@ -84,9 +104,10 @@ namespace Altinn.App.Services.Implementation
                 enhetsregisterPrefill = enhetsregisteret.ToObject<Dictionary<string, string>>();
                 if (enhetsregisterPrefill.Count > 0)
                 {
-                    if (prefillContext.Organization != null)
+                    Organization org = party.Organization;
+                    if (org != null)
                     {
-                        JObject orgJsonObject = JObject.FromObject(prefillContext.Organization);
+                        JObject orgJsonObject = JObject.FromObject(org);
                         _logger.LogInformation($"Started prefill from {ER_KEY}");
                         LoopThroughDictionaryAndAssignValuesToDataModel(enhetsregisterPrefill, orgJsonObject, dataModel);
                     }
@@ -94,7 +115,6 @@ namespace Altinn.App.Services.Implementation
                     {
                         string errorMessage = $"Could not  prefill from {ER_KEY}, organisation is not defined.";
                         _logger.LogError(errorMessage);
-                        throw new Exception(errorMessage);
                     }
                 }
             }
@@ -107,9 +127,10 @@ namespace Altinn.App.Services.Implementation
                 folkeregisterPrefill = folkeregisteret.ToObject<Dictionary<string, string>>();
                 if (folkeregisterPrefill.Count > 0)
                 {
-                    if (prefillContext.Person != null)
+                    Person person = party.Person;
+                    if (person != null)
                     {
-                        JObject personJsonObject = JObject.FromObject(prefillContext.Person);
+                        JObject personJsonObject = JObject.FromObject(person);
                         _logger.LogInformation($"Started prefill from {DSF_KEY}");
                         LoopThroughDictionaryAndAssignValuesToDataModel(folkeregisterPrefill, personJsonObject, dataModel);
                     }
@@ -117,7 +138,6 @@ namespace Altinn.App.Services.Implementation
                     {
                         string errorMessage = $"Could not  prefill from {DSF_KEY}, person is not defined.";
                         _logger.LogError(errorMessage);
-                        throw new Exception(errorMessage);
                     }
                 }
             }
@@ -163,7 +183,7 @@ namespace Altinn.App.Services.Implementation
                 else
                 {
                     if (propertyValue == null)
-                    { 
+                    {
                         // the object does not exsist, create a new one with the property type
                         var instance = Activator.CreateInstance(property.PropertyType);
                         property.SetValue(currentObject, instance, null);
