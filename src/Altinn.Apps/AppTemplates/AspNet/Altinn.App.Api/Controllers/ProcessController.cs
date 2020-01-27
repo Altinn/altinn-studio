@@ -140,7 +140,6 @@ namespace Altinn.App.Api.Controllers
                 }
 
                 // trigger start event and goto next task
-                _logger.LogInformation("////////// Triggered from process controller");
                 ProcessStateChange processStateChange = _processService.ProcessStartAndGotoNextTask(instance, validStartElement, User);
                 Instance updatedInstance = await UpdateInstanceAndDispatchEvents(instance, processStateChange);
 
@@ -332,7 +331,7 @@ namespace Altinn.App.Api.Controllers
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 
             bool canEndTask;
-            // check if 
+            // check if
             if (instance.Process?.CurrentTask?.Validated == null || !instance.Process.CurrentTask.Validated.CanCompleteTask)
             {
                 validationIssues = await _validationService.ValidateAndUpdateInstance(instance, currentElementId);
@@ -349,7 +348,7 @@ namespace Altinn.App.Api.Controllers
 
         /// <summary>
         /// Attemts to end the process by running next until an end event is reached.
-        /// Notice that process must have been started.       
+        /// Notice that process must have been started.
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
@@ -478,7 +477,7 @@ namespace Altinn.App.Api.Controllers
             {
                 _logger.LogError($"Unable to find retrieve process history for instance {instanceOwnerPartyId}/{instanceGuid}. Exception: {processException}");
                 return ExceptionResponse(processException, $"Unable to find retrieve process history for instance {instanceOwnerPartyId}/{instanceGuid}. Exception: {processException}");
-            }           
+            }
         }
 
         private ActionResult ExceptionResponse(Exception exception, string message)
