@@ -33,9 +33,9 @@ namespace Altinn.Platform.Storage.UnitTest
             string app2 = TestData.App_2;
             string app3 = TestData.App_3;
 
-            string expected_title_app1 = "Test applikasjon 1 bokmål";
-            string expected_title_app2 = "Test applikasjon 2 bokmål";
-            string expected_title_app3 = "Test applikasjon 3 bokmål";
+            string expected_title_app1 = "Test applikasjon 1 bokmÃ¥l";
+            string expected_title_app2 = "Test applikasjon 2 bokmÃ¥l";
+            string expected_title_app3 = "Test applikasjon 3 bokmÃ¥l";
 
             // Act
             List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(TestData.InstanceList_InstanceOwner1, TestData.AppTitles_InstanceList_InstanceOwner1, language);
@@ -61,7 +61,7 @@ namespace Altinn.Platform.Storage.UnitTest
             // Arrange
             string language = "en";
             string app = TestData.App_3;
-            string expected_title = "Test applikasjon 3 bokmål";
+            string expected_title = "Test applikasjon 3 bokmÃ¥l";
 
             // Act
             List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(new List<Instance>() { TestData.Instance_3_2 }, TestData.AppTitles_Dict_App3, language);
@@ -92,7 +92,7 @@ namespace Altinn.Platform.Storage.UnitTest
                 { TestData.Application_3.Id, TestData.AppTitles_App3 }
             };
 
-            string expected_title_app2 = "Test applikasjon 2 bokmål";
+            string expected_title_app2 = "Test applikasjon 2 bokmÃ¥l";
             string expected_title_app3 = "Test applikasjon 3 nynorsk";
 
             // Act
@@ -180,6 +180,55 @@ namespace Altinn.Platform.Storage.UnitTest
 
             // Assert
             Assert.Equal(lastChangedBy, actualLastChangedBy);
+        }
+
+        /// <summary>
+        /// Scenario: Converting list containing a single instance with data element, where LastChanged for data element is older than LastChanged for instance.
+        /// Expected: The LastChangedBy in MessageBoxInstance comes from data element
+        /// Success: MessageBoxInstance LastChangedBy equals {lastChangedBy}
+        /// </summary>
+        [Fact]
+        public void ConvertToMessageBoxSingleInstance_TC01()
+        {
+            // Arrange
+            string lastChangedBy = TestData.UserId_1;
+            Instance instance = TestData.Instance_1_1;
+            instance.Data = new List<DataElement>() {
+                new DataElement()
+                {
+                    LastChanged = Convert.ToDateTime("2019-08-21T19:19:22.2135489Z"),
+                    LastChangedBy = lastChangedBy
+                }
+            };
+
+            // Act
+            MessageBoxInstance actual = InstanceHelper.ConvertToMessageBoxInstance(instance);
+            string actualLastChangedBy = actual.LastChangedBy;
+
+            // Assert
+            Assert.Equal(lastChangedBy, actualLastChangedBy);
+        }
+
+        /// <summary>
+        /// Scenario: Converting list containing a single instance whith id {instanceOwner}/{instanceGuid}
+        /// Expected: The instance is converted to a message box instance
+        /// Success: MessageBoxInstance Id equals {instanceGuid}
+        /// </summary>
+        [Fact]
+        public void ConvertToMessageBoxSingleInstance_TC02()
+        {
+            // Arrange
+            string instanceOwner = "instanceOwner";
+            string instanceGuid = "instanceGuid";
+            Instance instance = TestData.Instance_1_1;
+            instance.Id = $"{instanceOwner}/{instanceGuid}";
+
+            // Act
+            MessageBoxInstance actual = InstanceHelper.ConvertToMessageBoxInstance(instance);
+            string actualId = actual.Id;
+
+            // Assert
+            Assert.Equal(instanceGuid, actualId);
         }
 
         /// <summary>
