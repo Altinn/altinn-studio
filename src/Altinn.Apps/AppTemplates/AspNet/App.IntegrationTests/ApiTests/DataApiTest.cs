@@ -186,7 +186,10 @@ namespace App.IntegrationTests.ApiTests
             response = await client.SendAsync(httpRequestMessage);
             responseContent = response.Content.ReadAsStringAsync().Result;
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
             Assert.Contains("\"personMellomnavnAndreTilknyttetGardNavndatadef34931\":{\"orid\":34931,\"value\":\"12345678901\"}", responseContent);
+            Assert.Contains("\"personMellomnavnAndreTilknyttetPersonsEtternavndatadef34930\":{\"orid\":34930,\"value\":\"Stokarknes\"}", responseContent);
+            Assert.Contains("\"personMellomnavnAndreTilknytningBeskrivelsedatadef34928\":{\"orid\":34928,\"value\":\"Blåbærveien\"}", responseContent);
 
             TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1000, guid);
         }
