@@ -131,6 +131,52 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
+        /// <summary>
+        /// Test case: Response is deny. 
+        /// Expected: Returns status forbidden.
+        /// </summary>
+        [Fact]
+        public async void PutProcess_ResponseIdDeny_ReturnStatusForbidden()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}{InstanceId}/process";
+            ProcessState state = new ProcessState();
+            StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
+
+            HttpClient client = GetTestClient(_repositoryMock.Object);
+            string token = PrincipalUtil.GetToken(2);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.PutAsync(requestUri, jsonString);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: User is Authorized
+        /// Expected: Returns status ok. 
+        /// </summary>
+        [Fact]
+        public async void PutProcess_UserIsAuthorized_ReturnStatusOK()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}{InstanceId}/process";
+            ProcessState state = new ProcessState();
+            StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
+
+            HttpClient client = GetTestClient(_repositoryMock.Object);
+            string token = PrincipalUtil.GetToken(1);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.PutAsync(requestUri, jsonString);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
         private HttpClient GetTestClient(IInstanceEventRepository instanceEventRepository)
         {
             // No setup required for these services. They are not in use by the ApplicationController
@@ -142,6 +188,8 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                 new Instance
                 {
                     Id = InstanceId,
+                    Org = "ttd",
+                    AppId = "ttd/testapp",
                     Process = new ProcessState
                     {
                         StartEvent = "StartEvent_1",
@@ -156,6 +204,8 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                         }
                     }
                 });
+            instanceRepository.Setup(r => r.Update(It.IsAny<Instance>())).ReturnsAsync((Instance i) => { return i; });
+
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
