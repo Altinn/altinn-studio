@@ -98,7 +98,7 @@ namespace Altinn.App.Services.Implementation
                 {
                     dynamic data = CreateNewAppModel(dataType.AppLogic.ClassRef);
                     // runs prefill from repo configuration if config exists
-                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PersonNumber, instance.InstanceOwner.OrganisationNumber, data);
+                    await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, data);
                     await RunDataCreation(instance, data);
                     Type type = GetAppModelType(dataType.AppLogic.ClassRef);
 

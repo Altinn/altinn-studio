@@ -52,14 +52,11 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task PrefillDataModel(string ssn, string orgNumber, object dataModel)
+        public async Task PrefillDataModel(string partyId, object dataModel)
         {
-
-            _logger.LogInformation($"**PREFILL** Started PrefillDataModel");
             string jsonConfig = _appResourcesService.GetPrefillJson();
             if (jsonConfig == null || jsonConfig == string.Empty)
             {
-                _logger.LogInformation($"**PREFILL** could not find config");
                 return;
             }
 
@@ -68,6 +65,15 @@ namespace Altinn.App.Services.Implementation
             if (allowOverwriteToken != null)
             {
                 allowOverwrite = allowOverwriteToken.ToObject<bool>();
+            }
+
+
+            Party party = await _registerService.GetParty(Int32.Parse(partyId));
+            if (party == null)
+            {
+                string errorMessage = $"Could find party for partyId: {partyId}";
+                _logger.LogError(errorMessage);
+                throw new Exception(errorMessage);
             }
 
             // Prefill from user profile
@@ -103,15 +109,9 @@ namespace Altinn.App.Services.Implementation
                 enhetsregisterPrefill = enhetsregisteret.ToObject<Dictionary<string, string>>();
                 if (enhetsregisterPrefill.Count > 0)
                 {
-                    if (orgNumber != null)
+                    Organization org = party.Organization;
+                    if (org != null)
                     {
-                        Organization org = await _erService.GetOrganization(orgNumber);
-                        if (org == null)
-                        {
-                            string errorMessage = $"Could not find org for orgnumber {orgNumber}";
-                            _logger.LogError(errorMessage);
-                            throw new Exception(errorMessage);
-                        }
                         JObject orgJsonObject = JObject.FromObject(org);
                         _logger.LogInformation($"Started prefill from {ER_KEY}");
                         LoopThroughDictionaryAndAssignValuesToDataModel(enhetsregisterPrefill, orgJsonObject, dataModel);
@@ -133,15 +133,9 @@ namespace Altinn.App.Services.Implementation
                 folkeregisterPrefill = folkeregisteret.ToObject<Dictionary<string, string>>();
                 if (folkeregisterPrefill.Count > 0)
                 {
-                    if (ssn != null)
+                    Person person = party.Person;
+                    if (person != null)
                     {
-                        Person person = await _dsfService.GetPerson(ssn);
-                        if (person == null)
-                        {
-                            string errorMessage = $"Could not find person for ssn {ssn}";
-                            _logger.LogError(errorMessage);
-                            throw new Exception(errorMessage);
-                        }
                         JObject personJsonObject = JObject.FromObject(person);
                         _logger.LogInformation($"Started prefill from {DSF_KEY}");
                         LoopThroughDictionaryAndAssignValuesToDataModel(folkeregisterPrefill, personJsonObject, dataModel);
