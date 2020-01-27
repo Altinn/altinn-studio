@@ -14,7 +14,7 @@ Use the [documentation](https://docs.altinn.studio/) to get started using Altinn
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 
-### Installing 
+### Installing
 
 Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder.
 
@@ -78,19 +78,21 @@ cd \.\<path to app on disk>
 - If you need to debug (or run locally) the app front-end:
   - Open the file `views/Home/Index.cshtml` and change the line
 
-    ```
-    <script src="https://altinncdn.no/altinn-apps/runtime/js/react/runtime.js"></script>
+  ```html
+   <script src="https://altinncdn.no/toolkits/altinn-app-frontend/1/altinn-app-frontend.js"></script>
     ```
 
     to
 
-    ```
-    <script src="http://localhost:8080/runtime.js"></script>
+    ```html
+     <script src="http://localhost:8080/altinn-app-frontend.js"></script>
     ```
 
-    - Build and run the runtime front-end project locally (`altinn-studio/src/react-apps/applications/runtime`):
+    - Build and run the runtime front-end project locally (`altinn-studio/src/Altinn.Apps/AppFrontend/react`):
     ```cmd
     npm install # only needed first time, or when dependencies are updated
+    npm run install-deps # only needed first time, or when dependencies are updated
+    cd altinn-app-frontend
     npm start
     ```
 
