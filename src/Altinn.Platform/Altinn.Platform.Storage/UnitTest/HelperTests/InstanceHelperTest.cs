@@ -183,6 +183,55 @@ namespace Altinn.Platform.Storage.UnitTest
         }
 
         /// <summary>
+        /// Scenario: Converting list containing a single instance with data element, where LastChanged for data element is older than LastChanged for instance.
+        /// Expected: The LastChangedBy in MessageBoxInstance comes from data element
+        /// Success: MessageBoxInstance LastChangedBy equals {lastChangedBy}
+        /// </summary>
+        [Fact]
+        public void ConvertToMessageBoxSingleInstance_TC01()
+        {
+            // Arrange
+            string lastChangedBy = TestData.UserId_1;
+            Instance instance = TestData.Instance_1_1;
+            instance.Data = new List<DataElement>() {
+                new DataElement()
+                {
+                    LastChanged = Convert.ToDateTime("2019-08-21T19:19:22.2135489Z"),
+                    LastChangedBy = lastChangedBy
+                }
+            };
+
+            // Act
+            MessageBoxInstance actual = InstanceHelper.ConvertToMessageBoxInstance(instance);
+            string actualLastChangedBy = actual.LastChangedBy;
+
+            // Assert
+            Assert.Equal(lastChangedBy, actualLastChangedBy);
+        }
+
+        /// <summary>
+        /// Scenario: Converting list containing a single instance whith id {instanceOwner}/{instanceGuid}
+        /// Expected: The instance is converted to a message box instance
+        /// Success: MessageBoxInstance Id equals {instanceGuid}
+        /// </summary>
+        [Fact]
+        public void ConvertToMessageBoxSingleInstance_TC02()
+        {
+            // Arrange
+            string instanceOwner = "instanceOwner";
+            string instanceGuid = "instanceGuid";
+            Instance instance = TestData.Instance_1_1;
+            instance.Id = $"{instanceOwner}/{instanceGuid}";
+
+            // Act
+            MessageBoxInstance actual = InstanceHelper.ConvertToMessageBoxInstance(instance);
+            string actualId = actual.Id;
+
+            // Assert
+            Assert.Equal(instanceGuid, actualId);
+        }
+
+        /// <summary>
         /// Scenario: Getting sbl status for a given instance when the current task is Task_1
         /// Expected: The SBL status "FormFilling" is returned
         /// Success: SBL status is as expected
