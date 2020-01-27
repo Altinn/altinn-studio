@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Common.PEP.Interfaces;
+
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
@@ -33,6 +36,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
         /// <param name="pdp">the policy decision point</param>
+        /// <param name="logger">The logger to be used to perform logging from the controller.</param>
         public MessageBoxInstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,

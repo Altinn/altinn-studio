@@ -178,7 +178,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         /// Success:
         ///   A single instance is returned and the task has the value of end event. 
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void GetMessageBoxInstanceList_RequestArchivedInstancesForGivenOwner_ReturnsCorrectListOfInstancesWithEndEventTask()
         {
             // Arrange
@@ -201,13 +201,15 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}?state=archived");
 
             // Assert
+            instanceRepository.VerifyAll();
+
             Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
 
             string responseContent = await responseMessage.Content.ReadAsStringAsync();
             List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseContent);
 
             int actualCount = messageBoxInstances.Count;
-            int expectedCount = 3;
+            int expectedCount = 1;
             Assert.Equal(expectedCount, actualCount);
         }
 

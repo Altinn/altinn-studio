@@ -96,16 +96,18 @@ function AltinnInput(props: IAltinnInputProps) {
         null
       }
         <Input
+          inputProps={{
+            'aria-label': `${label}`,
+            'aria-required': 'true',
+            ...rest
+          }}
+          className={classes.altinnInputField}
+          disableUnderline={true}
           style={{
             padding: '0rem 0.5rem 0rem 0.5rem',
           }}
           inputRef={inputRef}
-          className={classes.altinnInputField}
-          aria-label={label}
-          aria-required={'true'}
           tabIndex={0}
-          disableUnderline={true}
-          {...rest}
         />
       </Grid>
     </Grid>

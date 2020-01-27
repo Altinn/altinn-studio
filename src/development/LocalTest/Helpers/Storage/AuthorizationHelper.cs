@@ -34,7 +34,6 @@ namespace Altinn.Platform.Storage.Helpers
         /// Initializes a new instance of the <see cref="AuthorizationHelper"/> class.
         /// </summary>
         /// <param name="pdp">The policy decision point</param>
-        /// <param name="logger">The logger to use by the class.</param>
         public AuthorizationHelper(IPDP pdp, ILogger<AuthorizationHelper> logger)
         {
             _pdp = pdp;

@@ -170,6 +170,7 @@ namespace Altinn.Studio.Designer.Controllers
                     RepositoryName = app,
                     ServiceDescription = serviceConfig.serviceDescription.ToString(),
                     ServiceId = serviceConfig.serviceId.ToString(),
+                    ServiceName = serviceConfig.serviceName.ToString()
                 };
             }
 

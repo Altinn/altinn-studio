@@ -180,16 +180,16 @@ namespace Altinn.App.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            List<DataElement> dataList;
+            DataElementList dataList;
             List<AttachmentList> attachmentList = new List<AttachmentList>();
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                dataList = JsonConvert.DeserializeObject<List<DataElement>>(instanceData);
+                dataList = JsonConvert.DeserializeObject<DataElementList>(instanceData);
 
-                ExtractAttachments(dataList, attachmentList);
+                ExtractAttachments(dataList.DataElements, attachmentList);
 
                 return attachmentList;
             }
@@ -352,9 +352,8 @@ namespace Altinn.App.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-            StringContent content = new StringContent(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await _client.PutAsync(apiUrl, content);
+            StringContent jsonString = new StringContent(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await _client.PutAsync(apiUrl, jsonString);
 
             if (response.IsSuccessStatusCode)
             {

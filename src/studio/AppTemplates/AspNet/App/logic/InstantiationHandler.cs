@@ -37,7 +37,7 @@ namespace Altinn.App.AppLogic
         /// <returns>The validation result object (null if no errors) </returns>
         public async Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
-            return null;
+            return await Task.FromResult((InstantiationValidationResult)null);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Altinn.App.AppLogic
         /// <param name="data">The data object created</param>
         public async Task DataCreation(Instance instance, object data)
         {
-
+            await Task.CompletedTask;
         }
     }
 }
