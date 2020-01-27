@@ -10,14 +10,14 @@ namespace Altinn.Studio.Designer.Configuration
     public class DefaultFileFactory : IDefaultFileFactory
     {
         private readonly ServiceRepositorySettings _settings;
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IWebHostEnvironment _hostingEnvironment;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultFileFactory"/> class.
         /// </summary>
         /// <param name="repositorySettings"> The service repository settings. </param>
         /// <param name="hostingEnvironment"> The hosting environment. </param>
-        public DefaultFileFactory(IOptions<ServiceRepositorySettings> repositorySettings, IHostingEnvironment hostingEnvironment)
+        public DefaultFileFactory(IOptions<ServiceRepositorySettings> repositorySettings, IWebHostEnvironment hostingEnvironment)
         {
             _settings = repositorySettings.Value;
             _hostingEnvironment = hostingEnvironment;
