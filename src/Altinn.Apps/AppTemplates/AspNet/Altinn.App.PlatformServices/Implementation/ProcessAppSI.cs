@@ -172,7 +172,7 @@ namespace Altinn.App.Services.Implementation
 
         public async Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId)
         {
-            string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/process";
+            string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/process/history";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _appSettings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -181,9 +181,9 @@ namespace Altinn.App.Services.Implementation
             if (response.IsSuccessStatusCode)
             {
                 string eventData = await response.Content.ReadAsStringAsync();
-                List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
+                ProcessHistoryList processHistoryList = JsonConvert.DeserializeObject<ProcessHistoryList>(eventData);
 
-                return instanceEvents;
+                return processHistoryList;
             }
 
             throw new PlatformHttpException(response);
