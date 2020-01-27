@@ -33,7 +33,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceEvent">The instance event object to be inserted</param>
         /// <returns>The stored instance event object</returns>
         /// POST storage/api/v1/instances/{instanceId}/events
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpPost]
         [ProducesResponseType(typeof(InstanceEvent), 201)]
         public async Task<ActionResult> Post([FromBody] InstanceEvent instanceEvent)

@@ -22,7 +22,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// This field is normally not populated if data element is part of instance metadata.
         /// </summary>
         [JsonProperty(PropertyName = "instanceGuid")]
-        public string InstanceGuid;
+        public string InstanceGuid { get; set; }
 
         /// <summary>
         /// Gets or sets the data type, must be equal to the ones defined in application data types.

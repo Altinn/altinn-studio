@@ -18,7 +18,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using System.IO;
 using LocalTest.Services.Profile.Interface;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using AltinnCore.ServiceLibrary.Models;
+using Altinn.Platform.Profile.Models;
 
 namespace LocalTest.Controllers
 {

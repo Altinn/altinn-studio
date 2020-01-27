@@ -1,6 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
-using AltinnCore.ServiceLibrary.Models;
+using Altinn.Platform.Register.Models;
 using LocalTest.Configuration;
 using LocalTest.Services.Register.Interface;
 using Microsoft.Extensions.Options;

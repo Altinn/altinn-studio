@@ -1,7 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Services.Interface;
-using AltinnCore.ServiceLibrary.Models;
+using Altinn.Platform.Profile.Models;
 using LocalTest.Configuration;
 using LocalTest.Services.Profile.Interface;
 using Microsoft.Extensions.Options;

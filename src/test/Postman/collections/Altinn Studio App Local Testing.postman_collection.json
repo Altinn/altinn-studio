@@ -1,0 +1,212 @@
+{
+	"info": {
+		"_postman_id": "d18a2a42-3d61-40c7-a57b-b85c35cb7409",
+		"name": "Altinn Studio App Local Testing",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Test User Token",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				},
+				"description": "Request to retrieve a test token to be used in tests"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Test Org Token",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://altinn3local.no/Home/GetTestOrgToken/ttd",
+					"protocol": "http",
+					"host": [
+						"altinn3local",
+						"no"
+					],
+					"path": [
+						"Home",
+						"GetTestOrgToken",
+						"ttd"
+					]
+				},
+				"description": "Request to retrieve a test token to be used in tests"
+			},
+			"response": []
+		},
+		{
+			"name": "Instansiate empty",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwQTEyRDkyRTRDNEMxQTI5REZCOTU2QTAzMzQwNDYwRDYwNTlDMDkiLCJ4NXQiOiJBS0V0a3VURXdhS2QtNVZxQXpRRVlOWUZuQWsiLCJ0eXAiOiJKV1QifQ.eyJ1cm46YWx0aW5uOnVzZXJpZCI6IjEzMzciLCJ1cm46YWx0aW5uOnVzZXJuYW1lIjoiU29waGllRERHIiwidXJuOmFsdGlubjpwYXJ0eWlkIjoxMzM3LCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6MiwibmJmIjoxNTc5NTE4NDI4LCJleHAiOjE1Nzk1OTg2NDgsImlhdCI6MTU3OTUxODQyOH0.A0y5JJtOxklh3lOi14j5RDywNXnIc2ELiNA01V5Ug-kcYOx5E6-mmEcgoe2HKqHGtts5airuvx05w1aFcOV99idf2dd3p4ulhVHfan2Ktpjxi7m3dQ_1z5kYXf89c3eVrhs0W-8YykbxJDYDX_tHjgLHt2uKtD3APlhEVoPYNLR8obH8SZor6wcpU0oJ2j2hbaTWVjidgxjRuoLat2l9REREN-N8jop57hnLVQjCGqoiJDPLQ9TZT6RM4VG9tV0hUVoDgcOnaR-TcTmAxJZviO7EmjuxoCcRm5jlSYuWoAEV1ooRs1yJN2RkUfuZac-_uDFlcik8nSilKf8KPa0OvA",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://altinn3local.no/ttd/mva/instances?instanceOwnerPartyId=1337",
+					"protocol": "http",
+					"host": [
+						"altinn3local",
+						"no"
+					],
+					"path": [
+						"ttd",
+						"mva",
+						"instances"
+					],
+					"query": [
+						{
+							"key": "instanceOwnerPartyId",
+							"value": "1337"
+						}
+					]
+				},
+				"description": "This request create a new instance of this app. \nThis is with no data inputed. \n\nA empty form with the possible defined prefill will be created\n"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Data",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwQTEyRDkyRTRDNEMxQTI5REZCOTU2QTAzMzQwNDYwRDYwNTlDMDkiLCJ4NXQiOiJBS0V0a3VURXdhS2QtNVZxQXpRRVlOWUZuQWsiLCJ0eXAiOiJKV1QifQ.eyJ1cm46YWx0aW5uOnVzZXJpZCI6IjEzMzciLCJ1cm46YWx0aW5uOnVzZXJuYW1lIjoiU29waGllRERHIiwidXJuOmFsdGlubjpwYXJ0eWlkIjoxMzM3LCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6MiwibmJmIjoxNTc5NTE4NDI4LCJleHAiOjE1Nzk1OTg2NDgsImlhdCI6MTU3OTUxODQyOH0.A0y5JJtOxklh3lOi14j5RDywNXnIc2ELiNA01V5Ug-kcYOx5E6-mmEcgoe2HKqHGtts5airuvx05w1aFcOV99idf2dd3p4ulhVHfan2Ktpjxi7m3dQ_1z5kYXf89c3eVrhs0W-8YykbxJDYDX_tHjgLHt2uKtD3APlhEVoPYNLR8obH8SZor6wcpU0oJ2j2hbaTWVjidgxjRuoLat2l9REREN-N8jop57hnLVQjCGqoiJDPLQ9TZT6RM4VG9tV0hUVoDgcOnaR-TcTmAxJZviO7EmjuxoCcRm5jlSYuWoAEV1ooRs1yJN2RkUfuZac-_uDFlcik8nSilKf8KPa0OvA",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://altinn3local.no/ttd/mva/instances/1337/d3f22c61-ba82-4f5c-9fd7-e260c28ce18d/data/85264404-f9a9-4870-99bd-4d1bffd891c3",
+					"protocol": "http",
+					"host": [
+						"altinn3local",
+						"no"
+					],
+					"path": [
+						"ttd",
+						"mva",
+						"instances",
+						"1337",
+						"d3f22c61-ba82-4f5c-9fd7-e260c28ce18d",
+						"data",
+						"85264404-f9a9-4870-99bd-4d1bffd891c3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Instance",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwQTEyRDkyRTRDNEMxQTI5REZCOTU2QTAzMzQwNDYwRDYwNTlDMDkiLCJ4NXQiOiJBS0V0a3VURXdhS2QtNVZxQXpRRVlOWUZuQWsiLCJ0eXAiOiJKV1QifQ.eyJ1cm46YWx0aW5uOnVzZXJpZCI6IjEzMzciLCJ1cm46YWx0aW5uOnVzZXJuYW1lIjoiU29waGllRERHIiwidXJuOmFsdGlubjpwYXJ0eWlkIjoxMzM3LCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6MiwibmJmIjoxNTc5NjAxODM4LCJleHAiOjE1Nzk2ODIwNTgsImlhdCI6MTU3OTYwMTgzOH0.i9iUpboTU4cmn1S7JQ-uzN-8BTOjv8fHLwzQCDfY2NKmfKX137OnX4yf15PM4dHR_K8i7x9s2fbiM-ThfLDZlTL8chyRuJ3vt_tTDOHe50JUyP2t_wmIwwNcD5O5q7prJ7FIO1MNsHcgBSouWDfz2sl7utqH9xgYT5L6AyS1iRDS4z7O-48V25W8ryTFBfm8Vgcw3AJrSfQxJe37QQ1DFggcW9-RI0oam2J8KoLfNFPkM6wENKSlALTD7ug0whvrqcl6vMGYXyUtrbbXgVi3ny1Osml4C8Yi1Ic6qUQRwQC--CU6oyX9vuOuItCt5alZdwnFWChDhNaQPywt21Zs2g",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://altinn3local.no/ttd/mva/instances/500000/d536a623-cbbe-41f3-a303-ee5577890065",
+					"protocol": "http",
+					"host": [
+						"altinn3local",
+						"no"
+					],
+					"path": [
+						"ttd",
+						"mva",
+						"instances",
+						"500000",
+						"d536a623-cbbe-41f3-a303-ee5577890065"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post Multipart",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer  eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwQTEyRDkyRTRDNEMxQTI5REZCOTU2QTAzMzQwNDYwRDYwNTlDMDkiLCJ4NXQiOiJBS0V0a3VURXdhS2QtNVZxQXpRRVlOWUZuQWsiLCJ0eXAiOiJKV1QifQ.eyJ1cm46YWx0aW5uOnVzZXJpZCI6IjEzMzciLCJ1cm46YWx0aW5uOnVzZXJuYW1lIjoiU29waGllRERHIiwidXJuOmFsdGlubjpwYXJ0eWlkIjoxMzM3LCJ1cm46YWx0aW5uOmF1dGhsZXZlbCI6MiwibmJmIjoxNTc5NjAxODM4LCJleHAiOjE1Nzk2ODIwNTgsImlhdCI6MTU3OTYwMTgzOH0.i9iUpboTU4cmn1S7JQ-uzN-8BTOjv8fHLwzQCDfY2NKmfKX137OnX4yf15PM4dHR_K8i7x9s2fbiM-ThfLDZlTL8chyRuJ3vt_tTDOHe50JUyP2t_wmIwwNcD5O5q7prJ7FIO1MNsHcgBSouWDfz2sl7utqH9xgYT5L6AyS1iRDS4z7O-48V25W8ryTFBfm8Vgcw3AJrSfQxJe37QQ1DFggcW9-RI0oam2J8KoLfNFPkM6wENKSlALTD7ug0whvrqcl6vMGYXyUtrbbXgVi3ny1Osml4C8Yi1Ic6qUQRwQC--CU6oyX9vuOuItCt5alZdwnFWChDhNaQPywt21Zs2g",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data; boundary=\"abcdefg\"",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwner\": {\r\n    \t\"partyId\": \"500000\"\r\n    }\r\n}\r\n\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"RF0002\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"212\" spesifikasjonsnummer=\"10420\" blankettnummer=\"RF-0002\" tittel=\"Alminnelig omsetningsoppgave\" gruppeid=\"20\">\r\n\t<GenerellInformasjon-grp-2581 gruppeid=\"2581\">\r\n\t\t<Avgiftspliktig-grp-50 gruppeid=\"50\">\r\n\t\t\t<RapporteringsenhetNavn-datadef-21771 orid=\"21771\">DDG Fitness</RapporteringsenhetNavn-datadef-21771>\r\n\t\t\t<RapporteringsenhetAdresse-datadef-21773 orid=\"21773\">Sofies Gate 1</RapporteringsenhetAdresse-datadef-21773>\r\n\t\t\t<RapporteringsenhetPostnummer-datadef-21774 orid=\"21774\">0170</RapporteringsenhetPostnummer-datadef-21774>\r\n            <RapporteringsenhetPoststed-datadef-21775 orid=\"21775\">By</RapporteringsenhetPoststed-datadef-21775>\r\n            <RapporteringsenhetOrganisasjonsnummer-datadef-21772 orid=\"21772\">897069650</RapporteringsenhetOrganisasjonsnummer-datadef-21772>\r\n        </Avgiftspliktig-grp-50>\r\n    </GenerellInformasjon-grp-2581>\r\n</Skjema>\r\n\r\n--abcdefg--"
+				},
+				"url": {
+					"raw": "http://altinn3local.no/ttd/mva/instances",
+					"protocol": "http",
+					"host": [
+						"altinn3local",
+						"no"
+					],
+					"path": [
+						"ttd",
+						"mva",
+						"instances"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Post Multipart From Org",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"description": "The JWT token from authentication API",
+						"key": "Authorization",
+						"type": "text",
+						"value": "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwQTEyRDkyRTRDNEMxQTI5REZCOTU2QTAzMzQwNDYwRDYwNTlDMDkiLCJ4NXQiOiJBS0V0a3VURXdhS2QtNVZxQXpRRVlOWUZuQWsiLCJ0eXAiOiJKV1QifQ.eyJ1cm46YWx0aW5uOm9yZyI6InR0ZCIsInVybjphbHRpbm46YXV0aGxldmVsIjoyLCJuYmYiOjE1Nzk4NDc4NDIsImV4cCI6MTU3OTkyODA2MiwiaWF0IjoxNTc5ODQ3ODQyfQ.0TJpsE61oDPxVf4KgE0YRvNfid8lmtCbqBczs2tgYCIu1UKZUDAvczEeQQK65z4A-DHzHFi1ORMz6KB3AlYA5Cxu8LpUtVtRSdvfnfaLlkmyuvrGzC9AyDH0nj4R2U_Jnjx26YkMxgpsgBK4ifIlTsDzKTbF96CT-_ZNgHm6vScEf74-JyK0gRoovp_ykVC5cMZ67H6Q9wyipOwf7in62OIqvYgWEq0QfzGWMvfBA7hUcUP538VQQoJzSJ4Zf7_hkClPdSF1R5bxzHkGBpvmvrojq1aLefOOgkr4dGMEeMN8nHUPHfZfPYyRufcwFzhNUDbE0XoGBzf03z_AK4H-DA"
+					},
+					{
+						"description": "Tells the API that it is a multipart request and the boundary uses",
+						"key": "Content-Type",
+						"type": "text",
+						"value": "multipart/form-data; boundary=\"abcdefg\""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwner\": {\r\n    \t\"organisationNumber\" : \"897069650\"\r\n    }\r\n}\r\n\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"RF0002\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"212\" spesifikasjonsnummer=\"10420\" blankettnummer=\"RF-0002\" tittel=\"Alminnelig omsetningsoppgave\" gruppeid=\"20\">\r\n\t<GenerellInformasjon-grp-2581 gruppeid=\"2581\">\r\n\t\t<Avgiftspliktig-grp-50 gruppeid=\"50\">\r\n\t\t\t<RapporteringsenhetNavn-datadef-21771 orid=\"21771\">DDG Fitness</RapporteringsenhetNavn-datadef-21771>\r\n\t\t\t<RapporteringsenhetAdresse-datadef-21773 orid=\"21773\">Sofies Gate 1</RapporteringsenhetAdresse-datadef-21773>\r\n\t\t\t<RapporteringsenhetPostnummer-datadef-21774 orid=\"21774\">0170</RapporteringsenhetPostnummer-datadef-21774>\r\n            <RapporteringsenhetPoststed-datadef-21775 orid=\"21775\">By</RapporteringsenhetPoststed-datadef-21775>\r\n            <RapporteringsenhetOrganisasjonsnummer-datadef-21772 orid=\"21772\">897069650</RapporteringsenhetOrganisasjonsnummer-datadef-21772>\r\n        </Avgiftspliktig-grp-50>\r\n    </GenerellInformasjon-grp-2581>\r\n</Skjema>\r\n\r\n--abcdefg--"
+				},
+				"url": {
+					"raw": "http://altinn3local.no/ttd/mva/instances",
+					"protocol": "http",
+					"host": [
+						"altinn3local",
+						"no"
+					],
+					"path": [
+						"ttd",
+						"mva",
+						"instances"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

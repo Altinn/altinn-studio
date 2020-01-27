@@ -1,5 +1,5 @@
 using Altinn.Platform.Authorization.Services.Interface;
-using AltinnCore.ServiceLibrary.Models;
+using Altinn.Platform.Register.Models;
 using LocalTest.Configuration;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
