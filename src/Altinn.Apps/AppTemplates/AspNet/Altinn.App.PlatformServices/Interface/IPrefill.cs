@@ -13,7 +13,7 @@ namespace Altinn.App.Services.Interface
         /// </summary>
         /// <param name="partyId">The partyId of the instance owner</param>
         /// <param name="dataModel">The data model name</param>
-        /// <param name="dataModel">The data model object</param>
+        /// <param name="dataModelName">The data model object</param>
         /// <returns></returns>
         Task PrefillDataModel(string partyId, string dataModelName, object dataModel);
     }
