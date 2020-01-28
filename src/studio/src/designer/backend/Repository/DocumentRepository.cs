@@ -67,7 +67,7 @@ namespace Altinn.Studio.Designer.Repository
         {
             FeedOptions feedOptions = new FeedOptions
             {
-                PartitionKey = new PartitionKey(_partitionKey),
+                PartitionKey = new PartitionKey(query.Org),
                 MaxItemCount = query.Top ?? int.MaxValue
             };
 
@@ -89,16 +89,21 @@ namespace Altinn.Studio.Designer.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<T>> GetWithSqlAsync<T>(SqlQuerySpec sqlQuerySpec)
+        public async Task<IEnumerable<T>> GetWithSqlAsync<T>(SqlQuerySpec sqlQuerySpec, string partitionKey)
             where T : BaseEntity
         {
-            FeedOptions feedOptions = new FeedOptions
+            FeedOptions options = new FeedOptions();
+            if (!string.IsNullOrEmpty(partitionKey))
             {
-                PartitionKey = new PartitionKey(_partitionKey)
-            };
+                options.PartitionKey = new PartitionKey(partitionKey);
+            }
+            else
+            {
+                options.EnableCrossPartitionQuery = true;
+            }
 
             IDocumentQuery<T> documentQuery = _documentClient
-                .CreateDocumentQuery<T>(_collectionUri, sqlQuerySpec, feedOptions)
+                .CreateDocumentQuery<T>(_collectionUri, sqlQuerySpec, options)
                 .AsDocumentQuery();
 
             FeedResponse<T> response = await documentQuery.ExecuteNextAsync<T>();
