@@ -12,8 +12,9 @@ namespace Altinn.App.Services.Interface
         /// Prefills the data model based on the prefill json configuration file
         /// </summary>
         /// <param name="partyId">The partyId of the instance owner</param>
-        /// <param name="dataModel">The data model</param>
+        /// <param name="dataModelName">The data model name</param>
+        /// <param name="dataModel">The data model object</param>
         /// <returns></returns>
-        Task PrefillDataModel(string partyId, object dataModel);
+        Task PrefillDataModel(string partyId, string dataModelName, object dataModel);
     }
 }
