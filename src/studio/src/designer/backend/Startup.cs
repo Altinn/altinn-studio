@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 
@@ -28,13 +29,16 @@ namespace Altinn.Studio.Designer
         /// </summary>
         public IConfiguration Configuration { get; }
 
+        private readonly ILogger<Startup> _logger;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
         /// <param name="configuration">the configuration for designer</param>
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory)
         {
             Configuration = configuration;
+            _logger = loggerFactory.CreateLogger<Startup>();
         }
 
         /// <summary>
@@ -57,7 +61,8 @@ namespace Altinn.Studio.Designer
             services.AddResponseCompression();
 
             CreateDirectory();
-            
+
+            services.ConfigureDataProtection(Configuration, _logger);
             services.ConfigureMvc();
             services.ConfigureSettings(Configuration);
             services.RegisterTypedHttpClients(Configuration);

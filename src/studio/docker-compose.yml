@@ -6,6 +6,7 @@ networks:
 
 volumes:
   gitea-data:
+  keys:
 
 services:
   altinn_loadbalancer:
@@ -33,6 +34,7 @@ services:
       - altinncore_network
     volumes:
       - "C:/AltinnCore/Repos:/AltinnCore/Repos"
+      - "keys:/mnt/keys"   
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000

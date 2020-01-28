@@ -1,4 +1,7 @@
+using System.IO;
+using System.Runtime.InteropServices;
 using Altinn.Studio.Designer.ModelBinding;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -28,8 +31,9 @@ namespace Altinn.Studio.Designer.Infrastructure
                 // Adding custom modelbinders
                 options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
             });
-            mvc.AddXmlSerializerFormatters();
 
+            mvc.AddXmlSerializerFormatters();
+            
             services.AddAntiforgery(options =>
             {
                 // asp .net core expects two types of tokens: One that is attached to the request as header, and the other one as cookie.
@@ -45,6 +49,6 @@ namespace Altinn.Studio.Designer.Infrastructure
             });
 
             return services;
-        }
+        }      
     }
 }
