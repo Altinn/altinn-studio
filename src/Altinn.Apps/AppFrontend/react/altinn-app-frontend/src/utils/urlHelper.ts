@@ -26,7 +26,7 @@ export const reactErrorPage: string = `${appPath}/#/error`;
 
 export function fileUploadUrl(attachmentType: string, attachmentName: string) {
   return `${appPath}/instances/` +
-  `${altinnWindow.instanceId}/data?dataType=${attachmentType}&attachmentName=${attachmentName}`;
+  `${altinnWindow.instanceId}/data?dataType=${attachmentType}`;
 }
 
 export function dataElementUrl(dataGuid: string) {
