@@ -44,7 +44,9 @@ namespace Altinn.Platform.Storage.Helpers
                               });
                         break;
                     case InstanceEventType.process_StartTask:
-                        if (history.Any(i => i.ElementId.Equals(instanceEvent.ProcessInfo.CurrentTask.ElementId)))
+                        ProcessHistoryItem task_1 = history.FirstOrDefault(i => i.ElementId.Equals(instanceEvent.ProcessInfo.CurrentTask.ElementId));
+
+                        if (task_1 != null)
                         {
                             history.Where(i => i.ElementId.Equals(instanceEvent.ProcessInfo.CurrentTask.ElementId))
                                 .Select(i =>
@@ -65,7 +67,8 @@ namespace Altinn.Platform.Storage.Helpers
 
                         break;
                     case InstanceEventType.process_EndTask:
-                        if (history.Any(i => i.ElementId.Equals(instanceEvent?.ProcessInfo?.CurrentTask?.ElementId)))
+                        ProcessHistoryItem task_2 = history.FirstOrDefault(i => i.ElementId.Equals(instanceEvent?.ProcessInfo?.CurrentTask?.ElementId));
+                        if (task_2 != null)
                         {
                             history.Where(i => i.ElementId.Equals(instanceEvent.ProcessInfo.CurrentTask.ElementId))
                                 .AsEnumerable().Select(i =>

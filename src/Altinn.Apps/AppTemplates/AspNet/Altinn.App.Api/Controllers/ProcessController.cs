@@ -331,7 +331,7 @@ namespace Altinn.App.Api.Controllers
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 
             bool canEndTask;
-            // check if
+
             if (instance.Process?.CurrentTask?.Validated == null || !instance.Process.CurrentTask.Validated.CanCompleteTask)
             {
                 validationIssues = await _validationService.ValidateAndUpdateInstance(instance, currentElementId);

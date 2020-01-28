@@ -329,12 +329,23 @@ namespace Altinn.App.Services.Implementation
                         Name = e.ProcessInfo?.CurrentTask.Name,
                         Started = e.ProcessInfo?.CurrentTask.Started,
                         Ended = e.ProcessInfo?.CurrentTask.Ended,
-                        Validated = e.ProcessInfo?.CurrentTask.Validated
+                        Validated = new ValidationStatus
+                        {
+                            CanCompleteTask = e.ProcessInfo?.CurrentTask.Validated.CanCompleteTask ?? false,
+                            Timestamp = e.ProcessInfo?.CurrentTask.Validated.Timestamp
+                        }
+
                     },
 
                     StartEvent = e.ProcessInfo?.StartEvent
                 },
-                User = e.User
+                User = new PlatformUser
+                {
+                    AuthenticationLevel = e.User.AuthenticationLevel,
+                    EndUserSystemId = e.User.EndUserSystemId,
+                    OrgId = e.User.OrgId,
+                    UserId = e.User.UserId
+                }
             };
         }
 

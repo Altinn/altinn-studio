@@ -42,8 +42,13 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return BadRequest("Missing parameter values: instance event must exist and instanceId must be set");
             }
-
-            instanceEvent.Created ??= DateTime.UtcNow;
+            
+            // Pre specified timestamp for an event is only allowed when in UTC format
+            DateTime externalTime = instanceEvent.Created ?? DateTime.MinValue;
+            if (externalTime == DateTime.MinValue || externalTime.Kind != DateTimeKind.Utc)
+            {
+                instanceEvent.Created = DateTime.UtcNow;
+            }            
 
             InstanceEvent result = await _repository.InsertInstanceEvent(instanceEvent);
             if (result == null)
