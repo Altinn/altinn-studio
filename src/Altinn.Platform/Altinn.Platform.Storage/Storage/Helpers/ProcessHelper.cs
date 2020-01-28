@@ -48,12 +48,7 @@ namespace Altinn.Platform.Storage.Helpers
 
                         if (task_1 != null)
                         {
-                            history.Where(i => i.ElementId.Equals(instanceEvent.ProcessInfo.CurrentTask.ElementId))
-                                .Select(i =>
-                                {
-                                    i.Started = instanceEvent.Created;
-                                    return i;
-                                }).ToList();
+                            task_1.Started = instanceEvent.Created;            
                         }
                         else
                         {
@@ -70,12 +65,7 @@ namespace Altinn.Platform.Storage.Helpers
                         ProcessHistoryItem task_2 = history.FirstOrDefault(i => i.ElementId.Equals(instanceEvent?.ProcessInfo?.CurrentTask?.ElementId));
                         if (task_2 != null)
                         {
-                            history.Where(i => i.ElementId.Equals(instanceEvent.ProcessInfo.CurrentTask.ElementId))
-                                .AsEnumerable().Select(i =>
-                                {
-                                    i.Ended = instanceEvent.Created;
-                                    return i;
-                                }).ToList();
+                            task_2.Ended = instanceEvent.Created;
                         }
                         else
                         {
