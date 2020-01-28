@@ -34,7 +34,7 @@ namespace Altinn.Studio.Designer.Repository
         public async Task<ReleaseEntity> GetSucceededReleaseFromDb(string org, string app, string tagName)
         {
             SqlQuerySpec sqlQuerySpec = CreateSqlQueryToGetSucceededRelease(org, app, tagName);
-            IEnumerable<ReleaseEntity> releases = await GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
+            IEnumerable<ReleaseEntity> releases = await GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec, org);
             return releases.Single();
         }
 

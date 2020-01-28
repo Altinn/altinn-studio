@@ -51,11 +51,9 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Gets the prefill json file
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="dataModelName">the data model name</param>
         /// <returns></returns>
-        string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel");
+        string GetPrefillJson(string dataModelName = "ServiceModel");
 
         /// <summary>
         /// Returns the class ref for a given datatype. Defaults to first applogic type if not prent

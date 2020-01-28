@@ -106,19 +106,19 @@ namespace Altinn.App.Services.Configuration
         /// </summary>
         public string RuleHandlerFileName { get; set; } = "RuleHandler.js";
 
-         /// <summary> 
-         /// Open Id Connect Well known endpoint 
-         /// </summary> 
-        public string OpenIdWellKnownEndpoint { get; set; } 
- 
-         /// <summary> 
-         /// Hostname 
-         /// </summary> 
-        public string Hostname { get; set; } 
- 
-          /// <summary> 
-         /// Name of the cookie for runtime 
-         /// </summary> 
+         /// <summary>
+         /// Open Id Connect Well known endpoint
+         /// </summary>
+        public string OpenIdWellKnownEndpoint { get; set; }
+
+         /// <summary>
+         /// Hostname
+         /// </summary>
+        public string Hostname { get; set; }
+
+          /// <summary>
+         /// Name of the cookie for runtime
+         /// </summary>
         public string RuntimeCookieName { get; set; }
 
         /// <summary>
@@ -143,17 +143,5 @@ namespace Altinn.App.Services.Configuration
         {
             return RESOURCE_FOLDER_NAME;
         }
-
-        /// <summary>
-        /// Gets the full path to model directory
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="developer">the developer for the current app.</param>
-        /// <returns>The full path, ending with "/"</returns>
-        public string GetModelPath(string org, string app, string developer)
-        {
-            return  "Models/";
-        } 
     }
 }

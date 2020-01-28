@@ -1,0 +1,19 @@
+{
+  "SSN": "12345678902",
+  "Name": "Tore Nordmann",
+  "FirstName": "Ola",
+  "MiddleName": "",
+  "LastName": "Nordmann",
+  "TelephoneNumber": "12345678",
+  "MobileNumber": "87654321",
+  "MailingAddress": "Blåbæreveien 7",
+  "MailingPostalCode": "8450",
+  "MailingPostalCity": "Stokmarknes",
+  "AddressMunicipalNumber": "1866",
+  "AddressMunicipalName": "Hadsel",
+  "AddressStreetName": "Blåbærveien",
+  "AddressHouseNumber": "7",
+  "AddressHouseLetter": null,
+  "AddressPostalCode": "8450",
+  "AddressCity": "Stokarknes"
+}
