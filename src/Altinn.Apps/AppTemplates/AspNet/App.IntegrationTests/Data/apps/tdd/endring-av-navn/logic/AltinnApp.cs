@@ -14,7 +14,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
     public class AltinnApp : AppBase, IAltinnApp
     {
 
-        public AltinnApp(IAppResources appResourcesService, ILogger<AltinnApp> logger, IData dataService, IProcess processService, IPDF pdfService) : base(appResourcesService, logger, dataService, processService, pdfService)
+        public AltinnApp(IAppResources appResourcesService, ILogger<AltinnApp> logger, IData dataService, IProcess processService, IPDF pdfService, IPrefill prefillService) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
         {
         }
 
@@ -70,7 +70,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
         /// <returns>Task to indicate when calculation is completed</returns>
         public override async Task RunDataCreation(Instance instance, object data)
         {
-            
+
         }
     }
 }

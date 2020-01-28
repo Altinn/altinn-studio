@@ -1,0 +1,13 @@
+{
+  "PartyId": "1337",
+  "PartyTypeName": 1,
+  "OrgNumber": null,
+  "SSN": "01039012345",
+  "UnitType": null,
+  "Name": "Sophie Salt",
+  "IsDeleted": false,
+  "OnlyHierarchyElementWithNoAccess": false,
+  "Person": null,
+  "Organization": null,
+  "ChildParties": null
+}

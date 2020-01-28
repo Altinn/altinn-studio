@@ -217,12 +217,16 @@ namespace Altinn.Platform.Storage.Helpers
         private static string FindLastChangedBy(Instance instance)
         {
             string result = instance.LastChangedBy;
-            if (instance.Data == null)
+            if (instance.Data == null || instance.Data.Count == 0)
             {
                 return result;
             }
 
-            List<DataElement> newerDataElements = instance.Data.FindAll(dataElement => dataElement.LastChanged != null && dataElement.LastChanged > instance.LastChanged);
+            List<DataElement> newerDataElements = instance.Data.FindAll(dataElement =>
+                dataElement.LastChanged != null
+                && dataElement.LastChangedBy != null
+                && dataElement.LastChanged > instance.LastChanged);
+
             if (newerDataElements.Count == 0)
             {
                 return result;

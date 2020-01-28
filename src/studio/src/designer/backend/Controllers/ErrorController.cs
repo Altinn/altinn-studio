@@ -18,7 +18,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Action for local error handling
         /// </summary>
-        /// <param name="webHostEnvironment">IHostingEnvironment</param>
+        /// <param name="webHostEnvironment">IWebHostEnvironment</param>
         /// <returns></returns>
         [Route("/error-local-development")]
         [ApiExplorerSettings(IgnoreApi = true)]
@@ -48,7 +48,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Action for other environment handling than local
         /// </summary>
-        /// <param name="webHostEnvironment">IHostingEnvironment</param>
+        /// <param name="webHostEnvironment">IWebHostEnvironment</param>
         /// <returns></returns>
         [Route("/error")]
         [ApiExplorerSettings(IgnoreApi = true)]
