@@ -151,7 +151,11 @@ namespace Altinn.App.Services.Implementation
             string key = keys[index];
             bool isLastKey = (keys.Length - 1) == index;
             Type current = currentObject.GetType();
-            PropertyInfo property = current.GetProperty(key);
+            PropertyInfo property = current.GetProperty(
+                key,
+                BindingFlags.IgnoreCase |
+                BindingFlags.Public |
+                BindingFlags.Instance); // BindingsFlags.Public & Instance is enabled by default.
 
             if (property == null)
             {

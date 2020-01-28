@@ -110,9 +110,10 @@ namespace App.IntegrationTests.ApiTests
             response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Contains("\"personMellomnavnAndreTilknyttetGardNavndatadef34931\":{\"orid\":34931,\"value\":\"12345678901\"}", responseContent);
-            Assert.Contains("\"personMellomnavnAndreTilknyttetPersonsEtternavndatadef34930\":{\"orid\":34930,\"value\":\"Stokarknes\"}", responseContent);
-            Assert.Contains("\"personMellomnavnAndreTilknytningBeskrivelsedatadef34928\":{\"orid\":34928,\"value\":\"Blåbærveien\"}", responseContent);
+            var skjema = JsonConvert.DeserializeObject<App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn.Skjema>(responseContent);
+            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value, "12345678901");
+            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value, "Stokarknes");
+            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value, "Blåbærveien");
             TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
         }
 
