@@ -70,7 +70,7 @@ namespace Altinn.Studio.Designer.Configuration
         {
             get
             {
-                return "App/Config/Authorization/policy.xml";
+                return "App/config/authorization/policy.xml";
             }
         }
 

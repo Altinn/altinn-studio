@@ -1,4 +1,4 @@
-version: '3.6'
+version: '3.7'
 
 networks:
   altinncore_network:
@@ -27,7 +27,7 @@ services:
 
   altinn_designer:
     container_name: altinn-designer
-    image: altinncore:latest
+    image: designer:latest
     restart: always
     networks:
       - altinncore_network
@@ -60,7 +60,7 @@ services:
 
   altinn_repositories:
     container_name: altinn-repositories
-    image: gitea/gitea:1.10.3
+    image: repositories:latest
     restart: always
     networks:
       - altinncore_network

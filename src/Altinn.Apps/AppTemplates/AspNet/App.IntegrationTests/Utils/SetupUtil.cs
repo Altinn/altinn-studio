@@ -52,6 +52,8 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddSingleton<IInstance, InstanceMockSI>();
                     services.AddSingleton<IData, DataMockSI>();
                     services.AddSingleton<IInstanceEvent, InstanceEventAppSIMock>();
+                    services.AddSingleton<IDSF, DSFMockSI>();
+                    services.AddSingleton<IER, ERMockSI>();
                     services.AddSingleton<IRegister, RegisterMockSI>();
                     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
                     services.AddSingleton<IApplication, ApplicationMockSI>();
@@ -59,7 +61,6 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddTransient<IProfile, ProfileMockSI>();
                     services.AddSingleton<IValidation, ValidationAppSI>();
                     services.AddSingleton<IPDF, PDFMockSI>();
-
                     // Set up mock authentication so that not well known endpoint is used
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();

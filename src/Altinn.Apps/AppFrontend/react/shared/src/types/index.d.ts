@@ -1,5 +1,3 @@
-import { IDataTaskIsloading } from "src/shared/resources/isLoading/dataTask/dataTaskIsLoadingActions";
-
 export interface IAltinnWindow extends Window {
   org: string;
   app: string;

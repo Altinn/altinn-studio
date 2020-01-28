@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Xunit;
+using System.Linq;
 
 namespace App.IntegrationTests.ApiTests
 {
@@ -37,7 +38,7 @@ namespace App.IntegrationTests.ApiTests
 
             ProcessState processState= (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
 
-          
+
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
         }
@@ -78,8 +79,40 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
-         
+
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+        }
+
+                [Fact]
+        public async Task Proceess_Start_With_Prefill_OK()
+        {
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1000/26233fb5-a9f2-45d4-90b1-f6d93ad40713/process/start"){};
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // fetch instance and get data element id
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/1000/26233fb5-a9f2-45d4-90b1-f6d93ad40713/"){};
+            response = await client.SendAsync(httpRequestMessage);
+            Instance instance = JsonConvert.DeserializeObject<Instance>(response.Content.ReadAsStringAsync().Result);
+            DataElement dataElement = instance.Data.First();
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            // fetch actual data and compare to expected prefill
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/1000/26233fb5-a9f2-45d4-90b1-f6d93ad40713/data/{dataElement.Id}"){};
+            response = await client.SendAsync(httpRequestMessage);
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Contains("\"personMellomnavnAndreTilknyttetGardNavndatadef34931\":{\"orid\":34931,\"value\":\"12345678901\"}", responseContent);
+            Assert.Contains("\"personMellomnavnAndreTilknyttetPersonsEtternavndatadef34930\":{\"orid\":34930,\"value\":\"Stokarknes\"}", responseContent);
+            Assert.Contains("\"personMellomnavnAndreTilknytningBeskrivelsedatadef34928\":{\"orid\":34928,\"value\":\"Blåbærveien\"}", responseContent);
             TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
         }
 

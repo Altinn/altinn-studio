@@ -22,7 +22,7 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly AppSettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly ILogger _logger;
 
         private readonly Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
@@ -36,7 +36,7 @@ namespace Altinn.App.Services.Implementation
         public AppResourcesSI(
             IOptions<AppSettings> settings,
             IHttpContextAccessor httpContextAccessor,
-            IHostingEnvironment hostingEnvironment,
+            IWebHostEnvironment hostingEnvironment,
             ILogger<AppResourcesSI> logger)
         {
             _settings = settings.Value;
@@ -72,7 +72,7 @@ namespace Altinn.App.Services.Implementation
                 }
                 else
                 {
-                    fileContent = new byte[0];                         
+                    fileContent = new byte[0];
                 }
             }
             else
@@ -165,9 +165,9 @@ namespace Altinn.App.Services.Implementation
             return fileContent;
         }
 
-        public string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel")
+        public string GetPrefillJson(string dataModelName = "ServiceModel")
         {
-            string filename = _settings.GetModelPath(org, app, dataModelName + ".prefill.json");
+            string filename = _settings.AppBasePath + _settings.ModelsFolder + dataModelName + ".prefill.json";
             string filedata = null;
             if (File.Exists(filename))
             {
