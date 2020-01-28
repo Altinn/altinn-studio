@@ -155,7 +155,7 @@ namespace Altinn.App.Services.Implementation
                 key,
                 BindingFlags.IgnoreCase |
                 BindingFlags.Public |
-                BindingFlags.Instance); // BindingsFlags.Public && Instance is enabled by default.
+                BindingFlags.Instance); // BindingsFlags.Public & Instance is enabled by default.
 
             if (property == null)
             {
