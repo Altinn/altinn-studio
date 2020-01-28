@@ -48,9 +48,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task PrefillDataModel(string partyId, object dataModel)
+        public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel)
         {
-            string jsonConfig = _appResourcesService.GetPrefillJson();
+            string jsonConfig = _appResourcesService.GetPrefillJson(dataModelName);
             if (jsonConfig == null || jsonConfig == string.Empty)
             {
                 return;
