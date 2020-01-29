@@ -46,7 +46,7 @@ namespace Altinn.Platform.Storage.Helpers
                     DueDateTime = instance.DueBefore,
                     Id = instanceId,
                     InstanceOwnerId = instance.InstanceOwner.PartyId,
-                    LastChangedBy = instance.LastChangedBy,
+                    LastChangedBy = FindLastChangedBy(instance),
                     Org = instance.Org,
                     AppName = instance.AppId.Split('/')[1],
                     Title = title,
@@ -75,11 +75,11 @@ namespace Altinn.Platform.Storage.Helpers
 
             DateTime createdDateTime = visibleAfter != null && visibleAfter > instance.Created ? (DateTime)visibleAfter : instance.Created.Value;
 
-            string lastChangedBy = instance.LastChangedBy;
+            string lastChangedBy = FindLastChangedBy(instance);
 
             // last changed by is set to null if instance has only been modified by an organisation
             // to ensure correct rendering in messagebox.
-            if (instance.Created.Value == instance.LastChanged.Value && IsValidOrganizationNumber(instance.LastChangedBy))
+            if (instance.Created.Value == instance.LastChanged.Value && IsValidOrganizationNumber(lastChangedBy))
             {
                 lastChangedBy = "0";
             }
@@ -138,9 +138,8 @@ namespace Altinn.Platform.Storage.Helpers
                     new SblInstanceEvent()
                     {
                         Id = instanceEvent.Id,
-                        UserId = instanceEvent.User.UserId,
+                        User = instanceEvent.User,
                         CreatedDateTime = instanceEvent.Created,
-                        EndUserSystemId = instanceEvent.User.EndUserSystemId,
                         EventType = instanceEvent.EventType
                     });
             }
@@ -213,6 +212,37 @@ namespace Altinn.Platform.Storage.Helpers
             }
 
             return false;
+        }
+
+        private static string FindLastChangedBy(Instance instance)
+        {
+            string result = instance.LastChangedBy;
+            if (instance.Data == null || instance.Data.Count == 0)
+            {
+                return result;
+            }
+
+            List<DataElement> newerDataElements = instance.Data.FindAll(dataElement =>
+                dataElement.LastChanged != null
+                && dataElement.LastChangedBy != null
+                && dataElement.LastChanged > instance.LastChanged);
+
+            if (newerDataElements.Count == 0)
+            {
+                return result;
+            }
+
+            DateTime lastChanged = (DateTime)instance.LastChanged;
+            newerDataElements.ForEach((DataElement dataElement) =>
+            {
+                if (dataElement.LastChanged > lastChanged)
+                {
+                    result = dataElement.LastChangedBy;
+                    lastChanged = (DateTime)dataElement.LastChanged;
+                }
+            });
+
+            return result;
         }
     }
 }
