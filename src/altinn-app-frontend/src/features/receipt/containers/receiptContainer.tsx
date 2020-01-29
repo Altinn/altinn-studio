@@ -79,7 +79,8 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
     !appName ||
     !allOrgs ||
     !instance ||
-    !lastChangedDateTime
+    !lastChangedDateTime ||
+    !parties
   );
 
 
@@ -90,11 +91,11 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   }, []);
 
   React.useEffect(() => {
-    const instanceOwnerParty = parties.find((party: IParty) => {
-      return party.partyId.toString() === instance.instanceOwner.partyId;
-    });
+    if (allOrgs != null && instance && instance.org && allOrgs && parties) {
+      const instanceOwnerParty = parties.find((party: IParty) => {
+        return party.partyId.toString() === instance.instanceOwner.partyId;
+      });
 
-    if (allOrgs != null && instanceOwnerParty && instance && instance.org && allOrgs) {
       const obj = returnInstanceMetaDataObject(
         allOrgs,
         language,
