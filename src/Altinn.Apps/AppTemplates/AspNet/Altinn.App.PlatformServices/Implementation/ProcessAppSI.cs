@@ -331,10 +331,9 @@ namespace Altinn.App.Services.Implementation
                         Ended = e.ProcessInfo?.CurrentTask.Ended,
                         Validated = new ValidationStatus
                         {
-                            CanCompleteTask = e.ProcessInfo?.CurrentTask.Validated.CanCompleteTask ?? false,
-                            Timestamp = e.ProcessInfo?.CurrentTask.Validated.Timestamp
+                            CanCompleteTask = e.ProcessInfo?.CurrentTask?.Validated?.CanCompleteTask ?? false,
+                            Timestamp = e.ProcessInfo?.CurrentTask?.Validated?.Timestamp
                         }
-
                     },
 
                     StartEvent = e.ProcessInfo?.StartEvent
