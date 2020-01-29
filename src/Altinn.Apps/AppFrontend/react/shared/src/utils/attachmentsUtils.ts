@@ -1,6 +1,6 @@
 import { IAttachment, IData } from '../types/index';
 
-export const mapInstanceAttachments = (data: IData[], defaultElementId: string): IAttachment[] => {
+export const mapInstanceAttachments = (data: IData[], defaultElementId: string, platform?: boolean): IAttachment[] => {
   if (!data) {
     return [];
   } else {
@@ -9,7 +9,7 @@ export const mapInstanceAttachments = (data: IData[], defaultElementId: string):
       if (dataElement.id !== defaultElementId && dataElement.dataType !== 'ref-data-as-pdf') {
         tempAttachments.push({
         name: dataElement.filename,
-        url: dataElement.selfLinks.apps,
+        url: platform ? dataElement.selfLinks.platform : dataElement.selfLinks.apps,
         iconClass: 'reg reg-attachment' });
       }
     });
