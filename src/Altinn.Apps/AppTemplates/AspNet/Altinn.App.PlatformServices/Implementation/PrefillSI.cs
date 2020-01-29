@@ -48,9 +48,9 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task PrefillDataModel(string partyId, object dataModel)
+        public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel)
         {
-            string jsonConfig = _appResourcesService.GetPrefillJson();
+            string jsonConfig = _appResourcesService.GetPrefillJson(dataModelName);
             if (jsonConfig == null || jsonConfig == string.Empty)
             {
                 return;
@@ -151,7 +151,11 @@ namespace Altinn.App.Services.Implementation
             string key = keys[index];
             bool isLastKey = (keys.Length - 1) == index;
             Type current = currentObject.GetType();
-            PropertyInfo property = current.GetProperty(key);
+            PropertyInfo property = current.GetProperty(
+                key,
+                BindingFlags.IgnoreCase |
+                BindingFlags.Public |
+                BindingFlags.Instance); // BindingsFlags.Public & Instance is enabled by default.
 
             if (property == null)
             {

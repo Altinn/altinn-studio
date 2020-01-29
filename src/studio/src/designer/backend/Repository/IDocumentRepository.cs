@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.Repository
         /// </summary>
         /// <typeparam name="T">Type of item to return</typeparam>
         /// <returns></returns>
-        Task<IEnumerable<T>> GetWithSqlAsync<T>(SqlQuerySpec sqlQuerySpec)
+        Task<IEnumerable<T>> GetWithSqlAsync<T>(SqlQuerySpec sqlQuerySpec, string partitionKey)
             where T : BaseEntity;
 
         /// <summary>

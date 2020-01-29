@@ -102,7 +102,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     new SqlParameter("@buildId", deployment.Build.Id),
                 }
             };
-            IEnumerable<DeploymentEntity> deploymentDocuments = await _deploymentRepository.GetWithSqlAsync<DeploymentEntity>(sqlQuerySpec);
+            IEnumerable<DeploymentEntity> deploymentDocuments = await _deploymentRepository.GetWithSqlAsync<DeploymentEntity>(sqlQuerySpec, _org);
             DeploymentEntity deploymentEntity = deploymentDocuments.Single();
 
             deploymentEntity.Build.Status = deployment.Build.Status;
