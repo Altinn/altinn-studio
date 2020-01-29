@@ -1,16 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.PlatformServices.Extentions;
+using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Models;
+using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
+using AltinnCore.Authentication.Utils;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -25,8 +32,10 @@ namespace Altinn.App.Services.Implementation
         private readonly AppSettings _appSettings;
         private readonly ILogger<ProcessAppSI> _logger;
         private readonly IInstanceEvent _eventService;
+        private readonly HttpClient _client;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProcessHelper ProcessHelper { get;  }
+        public ProcessHelper ProcessHelper { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessAppSI"/> class.
@@ -34,11 +43,16 @@ namespace Altinn.App.Services.Implementation
         public ProcessAppSI(
             IOptions<AppSettings> appSettings,
             IInstanceEvent eventService,
-            ILogger<ProcessAppSI> logger)
+            ILogger<ProcessAppSI> logger,
+            IHttpContextAccessor httpContextAccessor,
+            IHttpClientAccessor httpClientAccessor)
         {
             _appSettings = appSettings.Value;
             _eventService = eventService;
+            _httpContextAccessor = httpContextAccessor;
+            _client = httpClientAccessor.StorageClient;
             _logger = logger;
+
             ProcessHelper = new ProcessHelper(GetProcessDefinition());
         }
 
@@ -75,14 +89,15 @@ namespace Altinn.App.Services.Implementation
                 {
                     Started = now,
                     StartEvent = validStartEvent,
-                };
-
-                List<InstanceEvent> events = new List<InstanceEvent>
-                {
-                    GenerateProcessChangeEvent("process:StartEvent", instance, now, user),
+                    CurrentTask = new ProcessElementInfo { Flow = 1 }
                 };
 
                 instance.Process = startState;
+
+                List<InstanceEvent> events = new List<InstanceEvent>
+                {
+                    GenerateProcessChangeEvent(InstanceEventType.process_StartEvent.ToString(), instance, now, user),
+                };
 
                 return new ProcessStateChange
                 {
@@ -94,7 +109,7 @@ namespace Altinn.App.Services.Implementation
 
             return null;
         }
-      
+
         /// <summary>
         /// Start process start and goto next. Returns
         /// </summary>
@@ -104,18 +119,22 @@ namespace Altinn.App.Services.Implementation
 
             // start process
             ProcessStateChange startChange = ProcessStart(instance, proposedStartEvent, user);
-
-            string nextValidElement = GetNextElement(instance.Process.StartEvent);
+            InstanceEvent startEvent = CopyInstanceEventValue(startChange.Events.First());
 
             // move next
+            string nextValidElement = GetNextElement(instance.Process.StartEvent);
             ProcessStateChange nextChange = ProcessNext(instance, nextValidElement, user);
+            InstanceEvent goToNextEvent = CopyInstanceEventValue(nextChange.Events.First());
 
-            // consolidate events
-            startChange.Events.AddRange(nextChange.Events);
-            startChange.NewProcessState = nextChange.NewProcessState;
+            ProcessStateChange processStateChange = new ProcessStateChange
+            {
+                OldProcessState = startChange.OldProcessState,
+                NewProcessState = nextChange.NewProcessState,
+                Events = new List<InstanceEvent> { startEvent, goToNextEvent }
+            };
 
-            return startChange;
-        }      
+            return processStateChange;
+        }
 
         /// <summary>
         /// Moves instance's process to nextElement id. Returns the instance together with process events.
@@ -130,12 +149,16 @@ namespace Altinn.App.Services.Implementation
 
                     ProcessStateChange result = new ProcessStateChange
                     {
-                        OldProcessState = instance.Process,
+                        OldProcessState = new ProcessState()
+                        {
+                            Started = instance.Process.Started,
+                            CurrentTask = instance.Process.CurrentTask,
+                            StartEvent = instance.Process.StartEvent
+                        }
                     };
 
                     result.Events = MoveProcessToNext(instance, validNextEmentId, userContext);
                     result.NewProcessState = instance.Process;
-
                     return result;
                 }
                 catch
@@ -146,6 +169,26 @@ namespace Altinn.App.Services.Implementation
 
             return null;
         }
+
+        public async Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId)
+        {
+            string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/process/history";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _appSettings.RuntimeCookieName);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string eventData = await response.Content.ReadAsStringAsync();
+                ProcessHistoryList processHistoryList = JsonConvert.DeserializeObject<ProcessHistoryList>(eventData);
+
+                return processHistoryList;
+            }
+
+            throw new PlatformHttpException(response);
+        }
+
 
         private string GetNextElement(string proposedStartEvent)
         {
@@ -170,7 +213,6 @@ namespace Altinn.App.Services.Implementation
             return validStartEvent;
         }
 
-
         private string CheckNextElementId(Instance instance, string proposedNextElementId)
         {
             string currentElementId = instance.Process?.CurrentTask?.ElementId ?? instance.Process?.StartEvent;
@@ -178,7 +220,7 @@ namespace Altinn.App.Services.Implementation
             {
                 throw new ArgumentException("Process has not started");
             }
-                
+
             if (instance.Process?.EndEvent != null)
             {
                 throw new ArgumentException("Process has ended. Cannot do next");
@@ -218,47 +260,38 @@ namespace Altinn.App.Services.Implementation
 
             ProcessState previousState = JsonConvert.DeserializeObject<ProcessState>(JsonConvert.SerializeObject(instance.Process));
             ProcessState currentState = instance.Process;
-
             string previousElementId = currentState.CurrentTask?.ElementId;
 
             ElementInfo nextElementInfo = ProcessHelper.Process.GetElementInfo(nextElementId);
 
             DateTime now = DateTime.UtcNow;
-            int flow = 1;
 
-            if (previousElementId == null && instance.Process.StartEvent != null)
-            {
-                flow = 1;
-            }
-
+            // ending previous element if task
             if (ProcessHelper.IsTask(previousElementId))
             {
-                if (currentState.CurrentTask != null && currentState.CurrentTask.Flow.HasValue)
-                {
-                    flow = currentState.CurrentTask.Flow.Value;
-                }
                 instance.Process = previousState;
-                events.Add(GenerateProcessChangeEvent("process:EndTask", instance, now, user));
+                events.Add(GenerateProcessChangeEvent(InstanceEventType.process_EndTask.ToString(), instance, now, user));
                 instance.Process = currentState;
             }
 
+            // ending process if next element is end event
             if (ProcessHelper.IsEndEvent(nextElementId))
             {
                 currentState.CurrentTask = null;
                 currentState.Ended = now;
                 currentState.EndEvent = nextElementId;
 
-                events.Add(GenerateProcessChangeEvent("process:EndEvent", instance, now, user));
+                events.Add(GenerateProcessChangeEvent(InstanceEventType.process_EndEvent.ToString(), instance, now, user));
 
                 // add submit event (to support Altinn2 SBL)
                 events.Add(GenerateProcessChangeEvent(InstanceEventType.Submited.ToString(), instance, now, user));
             }
-            else if (ProcessHelper.IsTask(nextElementId))
+            else if (ProcessHelper.IsTask(nextElementId)) // starting next task
             {
 
                 currentState.CurrentTask = new ProcessElementInfo
                 {
-                    Flow = flow + 1,
+                    Flow = currentState.CurrentTask.Flow + 1,
                     ElementId = nextElementId,
                     Name = nextElementInfo.Name,
                     Started = now,
@@ -266,7 +299,7 @@ namespace Altinn.App.Services.Implementation
                     Validated = null,
                 };
 
-                events.Add(GenerateProcessChangeEvent("process:StartTask", instance, now, user));
+                events.Add(GenerateProcessChangeEvent(InstanceEventType.process_StartTask.ToString(), instance, now, user));
             }
 
             // current state points to the instance's process object. The following statement is unnecessary, but clarifies logic.
@@ -274,6 +307,48 @@ namespace Altinn.App.Services.Implementation
 
             return events;
         }
+
+        private InstanceEvent CopyInstanceEventValue(InstanceEvent e)
+        {
+            return new InstanceEvent
+            {
+                Created = e.Created,
+                DataId = e.DataId,
+                EventType = e.EventType,
+                Id = e.Id,
+                InstanceId = e.InstanceId,
+                InstanceOwnerPartyId = e.InstanceOwnerPartyId,
+                ProcessInfo = new ProcessState
+                {
+                    Started = e.ProcessInfo?.Started,
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        Flow = e.ProcessInfo?.CurrentTask.Flow,
+                        AltinnTaskType = e.ProcessInfo?.CurrentTask.AltinnTaskType,
+                        ElementId = e.ProcessInfo?.CurrentTask.ElementId,
+                        Name = e.ProcessInfo?.CurrentTask.Name,
+                        Started = e.ProcessInfo?.CurrentTask.Started,
+                        Ended = e.ProcessInfo?.CurrentTask.Ended,
+                        Validated = new ValidationStatus
+                        {
+                            CanCompleteTask = e.ProcessInfo?.CurrentTask.Validated.CanCompleteTask ?? false,
+                            Timestamp = e.ProcessInfo?.CurrentTask.Validated.Timestamp
+                        }
+
+                    },
+
+                    StartEvent = e.ProcessInfo?.StartEvent
+                },
+                User = new PlatformUser
+                {
+                    AuthenticationLevel = e.User.AuthenticationLevel,
+                    EndUserSystemId = e.User.EndUserSystemId,
+                    OrgId = e.User.OrgId,
+                    UserId = e.User.UserId
+                }
+            };
+        }
+
 
         private InstanceEvent GenerateProcessChangeEvent(string eventType, Instance instance, DateTime now, ClaimsPrincipal user)
         {
@@ -293,6 +368,6 @@ namespace Altinn.App.Services.Implementation
             };
 
             return instanceEvent;
-       }
+        }
     }
 }
