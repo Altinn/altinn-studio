@@ -1,12 +1,13 @@
 using System;
-using System.IO;
 using System.Net.Http;
-using System.Runtime.Serialization.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Helpers;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Services.Interfaces;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -34,16 +35,15 @@ namespace Altinn.Platform.Register.Services.Implementation
         /// <inheritdoc />
         public async Task<Organization> GetOrganization(string orgNr)
         {
-            Organization org = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Organization));
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}organizations/{orgNr}");
+            Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}organizations/{orgNr}");
+
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
+
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    Stream stream = await response.Content.ReadAsStreamAsync();
-                    org = serializer.ReadObject(stream) as Organization;
+                    return await JsonSerializer.DeserializeAsync<Organization>(await response.Content.ReadAsStreamAsync());
                 }
                 else
                 {
@@ -51,7 +51,7 @@ namespace Altinn.Platform.Register.Services.Implementation
                 }
             }
 
-            return org;
+            return null;
         }
     }
 }
