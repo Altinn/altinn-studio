@@ -65,7 +65,6 @@ namespace KubernetesWrapper
         /// <param name="env">Hosting environment</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-           System.Console.WriteLine("Environment name: " + env.EnvironmentName);
             if (env.EnvironmentName.Equals("Development"))
             {
                 app.UseDeveloperExceptionPage();
