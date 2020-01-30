@@ -1,0 +1,16 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/prefill/prefill.schema.v1.json",
+  "allowOverwrite": true,
+  "ER": {
+    "MailingAddress": "Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value",
+    "Name": "Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value",
+    "InternetAddress": "Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value"
+  },
+  "DSF": {
+    "SSN": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningMellomnavn2grp9353.personMellomnavnAndreTilknyttetGardNavndatadef34931.value",
+    "AddressCity": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningMellomnavn2grp9353.personMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value",
+    "AddressStreetName": "tilknytninggrp9315.tilknytningTilNavnetgrp9316.tilknytningMellomnavn2grp9353.personMellomnavnAndreTilknytningBeskrivelsedatadef34928.value"
+  },
+  "UserProfile": {
+  }
+}

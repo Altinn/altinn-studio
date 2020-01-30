@@ -42,7 +42,8 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
-
+            System.Console.WriteLine("**** RESPONSE CONTENT: " + responseContent);
+            System.Console.WriteLine("**** RESPONSE STATUD CODE: " + response.StatusCode);
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

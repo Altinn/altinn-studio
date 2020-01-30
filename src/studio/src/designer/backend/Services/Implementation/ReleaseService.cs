@@ -107,7 +107,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     new SqlParameter("@buildId", release.Build.Id),
                 }
             };
-            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
+
+            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec, _org);
             ReleaseEntity releaseEntity = releaseDocuments.Single();
 
             releaseEntity.Build.Status = release.Build.Status;
@@ -121,7 +122,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task ValidateUniquenessOfRelease(ReleaseEntity release)
         {
             SqlQuerySpec sqlQuery = CreateSqlQueryForUniqueness(release);
-            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuery);
+            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuery, _org);
             if (existingReleaseEntity.Any())
             {
                 throw new HttpRequestWithStatusException("A release with the same properties already exist.")

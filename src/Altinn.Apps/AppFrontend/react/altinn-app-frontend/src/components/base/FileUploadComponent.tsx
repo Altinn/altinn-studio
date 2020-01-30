@@ -128,6 +128,12 @@ export class FileUploadComponentClass
     });
   }
 
+  public handleDeleteKeypress = (index: number, event: any) => {
+    if (event.key === 'Enter') {
+      this.handleDeleteFile(index);
+    }
+  }
+  
   public handleDeleteFile = (index: number) => {
     const attachmentToDelete = this.state.attachments[index];
     if (!attachmentToDelete.uploaded) {
@@ -182,15 +188,20 @@ export class FileUploadComponentClass
           <tbody>
             {this.state.attachments.map((attachment: IAttachment, index: number) => {
               return (
-                <tr key={index} className={'blue-underline-dotted'} id={'altinn-file-list-row-' + attachment.id}>
-                  <td>{attachment.name}</td>
-                  <td>
+                <tr
+                  key={index}
+                  className={'blue-underline-dotted'}
+                  id={'altinn-file-list-row-' + attachment.id}
+                  tabIndex={0}
+                >
+                  <td tabIndex={0}>{attachment.name}</td>
+                  <td tabIndex={0}>
                     {(attachment.size / bytesInOneMB).toFixed(2) + ' ' +
                       getLanguageFromKey('form_filler.file_uploader_mb', this.props.language)}
-                  </td>
+                  </td >
                   <td>
                     {attachment.uploaded &&
-                      <div>
+                      <div tabIndex={0}>
                         {getLanguageFromKey('form_filler.file_uploader_list_status_done', this.props.language)}
                         < i className='ai ai-check-circle' />
                       </div>
@@ -205,7 +216,12 @@ export class FileUploadComponentClass
                     }
                   </td>
                   <td>
-                    <div onClick={this.handleDeleteFile.bind(this, index)} id={'attachment-delete-' + index}>
+                    <div
+                      onClick={this.handleDeleteFile.bind(this, index)}
+                      id={'attachment-delete-' + index}
+                      onKeyPress={this.handleDeleteKeypress.bind(this, index)}
+                      tabIndex={0}
+                    >
                       {!attachment.deleting &&
                         <>
                           {getLanguageFromKey('form_filler.file_uploader_list_delete', this.props.language)}
@@ -302,7 +318,11 @@ export class FileUploadComponentClass
     const showFileUpload: boolean = this.shouldShowFileUpload();
     const hasValidationMessages: boolean = validationMessages.simpleBinding.errors.length > 0;
     return (
-      <div className={'container'} id={'altinn-fileuploader-' + this.props.id}>
+      <div
+        className={'container'}
+        id={'altinn-fileuploader-' + this.props.id}
+        tabIndex={0}
+      >
         {showFileUpload &&
           <div>
             <p className={'file-upload-text-bold-small'}>

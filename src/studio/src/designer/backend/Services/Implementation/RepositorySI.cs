@@ -140,7 +140,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 PartyTypesAllowed = new PartyTypesAllowed()
             };
 
-            string metadata = JsonConvert.SerializeObject(appMetadata);
+            string metadata = JsonConvert.SerializeObject(appMetadata, Newtonsoft.Json.Formatting.Indented);
             string filePath = _settings.GetAppMetadataFilePath(org, app, developer);
 
             // This creates metadata
@@ -152,7 +152,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             try
             {
-                string applicationMetadataAsJson = JsonConvert.SerializeObject(applicationMetadata);
+                string applicationMetadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Newtonsoft.Json.Formatting.Indented);
                 string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
                 File.WriteAllText(filePath, applicationMetadataAsJson, Encoding.UTF8);
                 return true;
@@ -195,7 +195,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Application existingApplicationMetadata = GetApplication(org, app);
                 existingApplicationMetadata.DataTypes.Add(formMetadata);
 
-                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
                 string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
@@ -258,7 +258,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     existingApplicationMetadata.DataTypes.Remove(removeForm);
                 }
 
-                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
                 string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
@@ -1647,7 +1647,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     existingApplicationMetadata.Title.Add("nb", applicationInformation.ServiceName);
                 }
 
-                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata, Newtonsoft.Json.Formatting.Indented);
                 string filePath = _settings.GetAppMetadataFilePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);

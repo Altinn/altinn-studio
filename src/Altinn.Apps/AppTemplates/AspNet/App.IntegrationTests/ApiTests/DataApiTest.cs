@@ -159,5 +159,78 @@ namespace App.IntegrationTests.ApiTests
             TestDataUtil.DeleteDataForInstance("tdd", "custom-validation", 1000, guid);
         }
 
+        /// <summary>
+        /// Test case: post data with prefill setup
+        /// Expected: returning data should contain prefilled values
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_With_Prefill_OK()
+        {
+            Guid guid = new Guid("36133fb5-a9f2-45d4-90b1-f6d93ad40713");
+            TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1000, guid);
+
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Fetch data element
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"/tdd/endring-av-navn/instances/1000/{guid}/data?dataType=default"){};
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
+
+            // Fetch data and compare with expected prefill
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/1000/{guid}/data/{dataElement.Id}"){};
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = response.Content.ReadAsStringAsync().Result;
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var skjema = JsonConvert.DeserializeObject<App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn.Skjema>(responseContent);
+            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value, "12345678901");
+            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value, "Stokarknes");
+            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value, "Blåbærveien");
+
+            TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1000, guid);
+        }
+
+        /// <summary>
+        /// Test case: post data with prefill setup for an org
+        /// Expected: returning data should contain prefilled values
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_With_Prefill_Org_OK()
+        {
+            Guid guid = new Guid("37133fb5-a9f2-45d4-90b1-f6d93ad40713");
+            TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1002, guid);
+
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Fetch data element
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"/tdd/endring-av-navn/instances/1002/{guid}/data?dataType=default"){};
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
+
+            // Fetch data and compare with expected prefill
+            httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/1002/{guid}/data/{dataElement.Id}"){};
+            response = await client.SendAsync(httpRequestMessage);
+            responseContent = response.Content.ReadAsStringAsync().Result;
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var skjema = JsonConvert.DeserializeObject<App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn.Skjema>(responseContent);
+            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value, "Sofies Gate 2");
+            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value, "EAS Health Consulting");
+            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value, "http://setrabrl.no");
+
+            TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1002, guid);
+        }
+
+
     }
 }

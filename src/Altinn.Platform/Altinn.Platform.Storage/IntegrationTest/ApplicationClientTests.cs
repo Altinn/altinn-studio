@@ -39,9 +39,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 string json = listResponse.Content.ReadAsStringAsync().Result;
 
-                List<Application> applications = JsonConvert.DeserializeObject<List<Application>>(json);
+                ApplicationList applicationList = JsonConvert.DeserializeObject<ApplicationList>(json);
 
-                foreach (Application app in applications)
+                foreach (Application app in applicationList.Applications)
                 {
                     string appId = app.Id;
 
