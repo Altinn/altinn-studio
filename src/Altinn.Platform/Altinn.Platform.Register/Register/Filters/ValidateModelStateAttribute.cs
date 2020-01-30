@@ -14,18 +14,18 @@ namespace Altinn.Platform.Register.Filters
         /// <summary>
         /// Called by the ASP.NET API framework before the action method executes.
         /// </summary>
-        /// <param name="filterContext">The filter context.</param>
-        public override void OnActionExecuting(ActionExecutingContext filterContext)
+        /// <param name="context">The filter context.</param>
+        public override void OnActionExecuting(ActionExecutingContext context)
         {
-            if (filterContext.Result != null)
+            if (context.Result != null)
             {
                 // Do not overwrite an existing result.
                 return;
             }
 
-            if (!filterContext.ModelState.IsValid)
+            if (!context.ModelState.IsValid)
             {
-                filterContext.Result = new BadRequestObjectResult(filterContext.ModelState);
+                context.Result = new BadRequestObjectResult(context.ModelState);
             }
         }
     }
