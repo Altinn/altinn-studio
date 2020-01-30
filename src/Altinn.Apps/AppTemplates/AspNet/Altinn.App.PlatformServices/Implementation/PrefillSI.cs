@@ -179,9 +179,6 @@ namespace Altinn.App.Services.Implementation
                     else
                     {
                         // The target field has a value, and we do not have permission to overwrite values
-                        string errorMessage = $"Could not prefill, the field {string.Join(".", keys)} has a value and {ALLOW_OVERWRITE_KEY} is set to false";
-                        _logger.LogError(errorMessage);
-                        throw new Exception(errorMessage);
                     }
                 }
                 else
