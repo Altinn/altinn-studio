@@ -43,7 +43,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Missing parameter values: instance event must exist and instanceId must be set");
             }
 
-            instanceEvent.Created = DateTime.UtcNow;
+            instanceEvent.Created = instanceEvent.Created == null ? DateTime.UtcNow : instanceEvent.Created.Value.ToUniversalTime();
 
             InstanceEvent result = await _repository.InsertInstanceEvent(instanceEvent);
             if (result == null)
@@ -82,7 +82,7 @@ namespace Altinn.Platform.Storage.Controllers
             catch (Exception e)
             {
                 return StatusCode(500, $"Exception {e.Message}");
-            }                       
+            }
         }
 
         /// <summary>

@@ -149,7 +149,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Clients
         /// <param name="from"> Lower bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
         /// <param name="to"> Upper bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
         /// <returns>List of intance events.</returns>
-        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string[] eventTypes, string from, string to)
+        public async Task<InstanceEventList> GetInstanceEvents(string instanceId, string[] eventTypes, string from, string to)
         {
             string requestUri = $"{_versionPrefix}/instances/{instanceId}/events?";
             if (eventTypes != null)
@@ -178,7 +178,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Clients
             if (response.IsSuccessStatusCode)
             {
                 string eventData = await response.Content.ReadAsStringAsync();
-                List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
+                InstanceEventList instanceEvents = JsonConvert.DeserializeObject<InstanceEventList>(eventData);
                 return instanceEvents;
             }
 

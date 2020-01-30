@@ -18,8 +18,6 @@ spec:
   {{- $host := index $.Values.hosts $.Values.environment }}
   - host: {{ $host }}
     http:
-      backend:
-        serviceName: {{ $serviceName }}
       paths:
       {{- range $path := $ingress.paths }}
       - path: {{ $path.path }}
