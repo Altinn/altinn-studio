@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using KubernetesWrapper.Models;
 using KubernetesWrapper.Services.Interfaces;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -41,13 +43,45 @@ namespace KubernetesWrapper.Controllers
             try
             {
                 var deployments = await _apiWrapper.GetDeployments(null, null, fieldSelector, labelSelector);
-                return Ok(deployments.Items);
+                var mappedList = MapDeployments(deployments.Items);
+                return Ok(mappedList);
             }
             catch (Exception exception)
             {
                 _logger.LogError(exception, "Unable to GetDeployments");
                 return StatusCode(500);
             }
+        }
+
+        /// <summary>
+        /// Maps a list of k8s.Models.V1Deployment to Deployment
+        /// </summary>
+        /// <param name="list">The list to be mapped</param>
+        private IList<Deployment> MapDeployments(IList<k8s.Models.V1Deployment> list)
+        {
+            IList<Deployment> mappedList = new List<Deployment>();
+            if (list == null || list.Count == 0)
+            {
+                return mappedList;
+            }
+
+            foreach (k8s.Models.V1Deployment element in list)
+            {
+                Deployment deployment = new Deployment();
+                IList<k8s.Models.V1Container> containers = element.Spec?.Template?.Spec?.Containers;
+                if (containers != null && containers.Count > 0)
+                {
+                    string[] splittedVersion = containers[0].Image?.Split(":");
+                    if (splittedVersion != null && splittedVersion.Length > 1)
+                    {
+                        deployment.Version = splittedVersion[1];
+                    }
+                }
+
+                mappedList.Add(deployment);
+            }
+
+            return mappedList;
         }
     }
 }
