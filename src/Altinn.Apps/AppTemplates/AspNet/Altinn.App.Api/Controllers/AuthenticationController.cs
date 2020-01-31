@@ -43,6 +43,10 @@ namespace Altinn.App.Api.Controllers
             CookieOptions runtimeCookieSetting = new CookieOptions
             {
                 Domain = _settings.HostName,
+                HttpOnly = true,
+                Secure = true,
+                IsEssential = true,
+                SameSite = SameSiteMode.Lax
             };
 
             if (!string.IsNullOrWhiteSpace(token))
