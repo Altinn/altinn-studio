@@ -70,6 +70,6 @@ public class AltinnOrgUtils {
         fetchAltinnOrgs();
       }
     };
-    timer.schedule (hourlyTask, 0l, (long) 1000*60);
+    timer.schedule (hourlyTask, 0l, (long) 1000*60*60);
   }
 }
