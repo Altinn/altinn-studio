@@ -9,10 +9,14 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 
 public class AltinnOrgUtils {
   private static AltinnOrgs altinnOrgs;
+  private static Timer timer;
+  private static TimerTask hourlyTask;
 
   /**
    * Gets the org full name by their short name
@@ -38,23 +42,36 @@ public class AltinnOrgUtils {
    * Fetches the altinn orgs form our cdn
    */
   public static void fetchAltinnOrgs() {
-      try {
-        URL url = new URL("https://altinncdn.no/orgs/altinn-orgs.json");
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuilder content = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-          content.append(inputLine);
-        }
-        in.close();
-        Gson gson = new Gson();
-        altinnOrgs = gson.fromJson(content.toString(), AltinnOrgs.class);
-        con.disconnect();
-      } catch (Exception e) {
-        BasicLogger.log(Level.SEVERE, e.getMessage());
+    try {
+      URL url = new URL("https://altinncdn.no/orgs/altinn-orgs.json");
+      HttpURLConnection con = (HttpURLConnection) url.openConnection();
+      con.setRequestMethod("GET");
+      BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+      String inputLine;
+      StringBuilder content = new StringBuilder();
+      while ((inputLine = in.readLine()) != null) {
+        content.append(inputLine);
       }
+      in.close();
+      Gson gson = new Gson();
+      altinnOrgs = gson.fromJson(content.toString(), AltinnOrgs.class);
+      con.disconnect();
+    } catch (Exception e) {
+      BasicLogger.log(Level.SEVERE, e.getMessage());
     }
+  }
 
+  /*
+    Inits hourly task to fetch altinn orgs
+   */
+  public static void initAltinnOrgsHarvesting() {
+    timer = new Timer();
+    hourlyTask = new TimerTask() {
+      @Override
+      public void run() {
+        fetchAltinnOrgs();
+      }
+    };
+    timer.schedule (hourlyTask, 0l, 1000*60*60);
+  }
 }
