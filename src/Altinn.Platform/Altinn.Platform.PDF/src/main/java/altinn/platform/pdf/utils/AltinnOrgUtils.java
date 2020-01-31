@@ -15,8 +15,6 @@ import java.util.logging.Level;
 
 public class AltinnOrgUtils {
   private static AltinnOrgs altinnOrgs;
-  private static Timer timer;
-  private static TimerTask hourlyTask;
 
   /**
    * Gets the org full name by their short name
@@ -65,13 +63,13 @@ public class AltinnOrgUtils {
     Inits hourly task to fetch altinn orgs
    */
   public static void initAltinnOrgsHarvesting() {
-    timer = new Timer();
-    hourlyTask = new TimerTask() {
+    Timer timer = new Timer();
+    TimerTask hourlyTask = new TimerTask() {
       @Override
       public void run() {
         fetchAltinnOrgs();
       }
     };
-    timer.schedule (hourlyTask, 0l, 1000*60*60);
+    timer.schedule (hourlyTask, 0l, (long) 1000*60);
   }
 }
