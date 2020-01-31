@@ -25,7 +25,7 @@ public class App {
   private static String vaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Pdf";
 
   public static void main(String[] args) {
-    AltinnOrgUtils.fetchAltinnOrgs();
+    AltinnOrgUtils.initAltinnOrgsHarvesting();
     try {
       connectToKeyVaultAndSetApplicationInsight();
     } catch (Exception e) {

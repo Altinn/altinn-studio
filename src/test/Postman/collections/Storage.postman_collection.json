@@ -1623,6 +1623,56 @@
 					"response": []
 				},
 				{
+					"name": "GET Process History",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9c778a29-2034-48fc-96be-4d6696d51085",
+								"exec": [
+									"pm.test(\"Platform - Storage - Instance Event - Get Process History - Status - 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/process/history",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "GET Event by Id",
 					"event": [
 						{

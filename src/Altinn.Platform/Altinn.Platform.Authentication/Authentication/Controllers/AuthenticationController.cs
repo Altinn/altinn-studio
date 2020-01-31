@@ -267,7 +267,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 //// To support OAuth authentication, a lax mode is required, see https://github.com/aspnet/Security/issues/1231.
                 SameSite = SameSiteMode.Lax,
                 HttpOnly = true,
-                SecurePolicy = CookieSecurePolicy.SameAsRequest,
+                SecurePolicy = CookieSecurePolicy.Always,
                 IsEssential = true,
                 Domain = _generalSettings.HostName
             };
