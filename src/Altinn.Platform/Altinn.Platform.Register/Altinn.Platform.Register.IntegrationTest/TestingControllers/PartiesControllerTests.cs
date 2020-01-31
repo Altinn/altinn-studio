@@ -32,7 +32,7 @@ namespace Altinn.Platform.Register.IntegrationTest.TestingControllers
         }
 
         /// <summary>
-        /// Test that seeks to ensure that the lookup endpoint has model validation.
+        /// Test that seeks to ensure that the lookup endpoint has model validation. It does not test model validation.
         /// </summary>
         [Fact]
         public async Task PostPartyLookup_ModelIsInvalid_ReturnsBadRequest()
@@ -107,6 +107,8 @@ namespace Altinn.Platform.Register.IntegrationTest.TestingControllers
             HttpResponseMessage response = await client.PostAsync("/register/api/v1/parties/lookup", requestBody);
 
             // Assert
+            partiesService.VerifyAll();
+
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             
             Party actual = await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
