@@ -12,8 +12,9 @@ namespace KubernetesWrapper.Services.Interfaces
         /// Gets a list of deployments on the cluster. Parameters are described in further detail in the kubernetes api doc.
         /// </summary>
         /// <param name="continueParameter">Continue parameter. Defaults to null.</param>
-        /// <param name="fieldSelector">A selector to restrict the list of returned objects by their labels. Defaults to everything</param>
-        /// <param name="labelSelector">A selector to restrict the list of returned objects by their fields. Defaults to everything</param>
+        /// <param name="allowWatchBookmarks">allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion.</param>
+        /// <param name="fieldSelector">A selector to restrict the list of returned objects by their fields. Defaults to everything</param>
+        /// <param name="labelSelector">A selector to restrict the list of returned objects by their labels. Defaults to everything</param>
         /// <param name="limit">Limits the response length. </param>
         /// <param name="resourceVersion">Resource versions type</param>
         /// <param name="timeoutSeconds">Timeout in seconds</param>
@@ -22,6 +23,7 @@ namespace KubernetesWrapper.Services.Interfaces
         /// <returns>A V1DeploymentList</returns>
         Task<k8s.Models.V1DeploymentList> GetDeployments(
             string continueParameter = null,
+            bool? allowWatchBookmarks = null,
             string fieldSelector = null,
             string labelSelector = null,
             int? limit = null,

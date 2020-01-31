@@ -9,6 +9,7 @@ import { fileUploadUrl } from './../../../../utils/urlHelper';
 import AttachmentDispatcher from './../attachmentActions';
 import * as AttachmentActionsTypes from './../attachmentActionTypes';
 import * as uploadActions from './uploadAttachmentActions';
+import { AxiosRequestConfig } from 'axios';
 
 export function* uploadAttachmentSaga(
   { file, attachmentType, tmpAttachmentId, componentId }: uploadActions.IUploadAttachmentAction): SagaIterator {
@@ -20,13 +21,16 @@ export function* uploadAttachmentSaga(
     const newValidations = getFileUploadComponentValidations(null, null);
     yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
 
-    const data = new FormData();
-    data.append('file', file);
-
     const fileUploadLink = fileUploadUrl(attachmentType, file.name);
-    const response: any = yield call(post, fileUploadLink, null, data);
+    const config: AxiosRequestConfig = {
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': `attachment; filename=${file.name}`
+      }
+    }
+    const response: any = yield call(post, fileUploadLink, config, file);
 
-    if (response.status === 200) {
+    if (response.status === 201) {
       const attachment: IAttachment
         = { name: file.name, size: file.size, uploaded: true, id: response.data.id, deleting: false };
       yield call(AttachmentDispatcher.uploadAttachmentFulfilled,

@@ -29,5 +29,10 @@ namespace Altinn.Studio.Designer.Infrastructure.Models
         /// DeploymentCollection
         /// </summary>
         public string DeploymentCollection { get; set; }
+
+        /// <summary>
+        /// Partition key for deployment and release collection
+        /// </summary>
+        public string PartitionKey { get; set; }
     }
 }

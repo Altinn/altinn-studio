@@ -14,6 +14,7 @@ using Altinn.App.Services.Models.Validation;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -330,7 +331,7 @@ namespace Altinn.App.Api.Controllers
             List<ValidationIssue> validationIssues = new List<ValidationIssue>();
 
             bool canEndTask;
-            // check if 
+
             if (instance.Process?.CurrentTask?.Validated == null || !instance.Process.CurrentTask.Validated.CanCompleteTask)
             {
                 validationIssues = await _validationService.ValidateAndUpdateInstance(instance, currentElementId);
@@ -347,7 +348,7 @@ namespace Altinn.App.Api.Controllers
 
         /// <summary>
         /// Attemts to end the process by running next until an end event is reached.
-        /// Notice that process must have been started.       
+        /// Notice that process must have been started.
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
@@ -453,6 +454,32 @@ namespace Altinn.App.Api.Controllers
             return Ok(instance.Process);
         }
 
+        /// <summary>
+        /// Get the process history for an instance.
+        /// </summary>
+        /// <returns>Returns a list of the process events.</returns>
+        [HttpGet("history")]
+        [Authorize(Policy = "InstanceRead")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult> GetProcessHistory(
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid)
+        {
+            try
+            {
+                return Ok(await _processService.GetProcessHistory(instanceGuid.ToString(), instanceOwnerPartyId.ToString()));
+            }
+            catch (PlatformHttpException e)
+            {
+                return HandlePlatformHttpException(e, $"Unable to find retrieve process history for instance {instanceOwnerPartyId}/{instanceGuid}. Exception: {e}");
+            }
+            catch (Exception processException)
+            {
+                _logger.LogError($"Unable to find retrieve process history for instance {instanceOwnerPartyId}/{instanceGuid}. Exception: {processException}");
+                return ExceptionResponse(processException, $"Unable to find retrieve process history for instance {instanceOwnerPartyId}/{instanceGuid}. Exception: {processException}");
+            }
+        }
+
         private ActionResult ExceptionResponse(Exception exception, string message)
         {
             _logger.LogError($"{message}: {exception}");
@@ -475,23 +502,26 @@ namespace Altinn.App.Api.Controllers
         {
             foreach (InstanceEvent processEvent in events)
             {
-                switch (processEvent.EventType)
+                if (Enum.TryParse<InstanceEventType>(processEvent.EventType, true, out InstanceEventType eventType))
                 {
-                    case "process:StartEvent":
-                        await altinnApp.OnStartProcess(processEvent.ProcessInfo?.StartEvent, instance);
-                        break;
+                    switch (eventType)
+                    {
+                        case InstanceEventType.process_StartEvent:
 
-                    case "process:StartTask":
-                        await altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
-                        break;
+                            break; ;
 
-                    case "process:EndTask":
-                        await altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
-                        break;
+                        case InstanceEventType.process_StartTask:
+                            await altinnApp.OnStartProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
+                            break;
 
-                    case "process:EndEvent":
-                        await altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, instance);
-                        break;
+                        case InstanceEventType.process_EndTask:
+                            await altinnApp.OnEndProcessTask(processEvent.ProcessInfo?.CurrentTask?.ElementId, instance);
+                            break;
+
+                        case InstanceEventType.process_EndEvent:
+                            await altinnApp.OnEndProcess(processEvent.ProcessInfo?.EndEvent, instance);
+                            break;
+                    }
                 }
             }
         }

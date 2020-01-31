@@ -1293,6 +1293,56 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "GET Process history",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
+								"exec": [
+									"pm.test(\"App - Process - Get Process History - Status - 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/history",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"history"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
@@ -2310,7 +2360,7 @@
 					"response": []
 				},
 				{
-					"name": "PUT Complete Process",
+					"name": "PUT Move to Next Process",
 					"event": [
 						{
 							"listen": "test",
@@ -2355,7 +2405,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeProcess",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -2369,7 +2419,7 @@
 								"{{instanceOwnerId}}",
 								"{{instanceId}}",
 								"process",
-								"completeProcess"
+								"next"
 							]
 						}
 					},

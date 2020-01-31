@@ -68,10 +68,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
             // Act
             await CleanDB();
             await PopulateDatabase();
-            List<InstanceEvent> instanceEvents = await _instanceClient.GetInstanceEvents(testInstanceId, null, null, null);
+            InstanceEventList instanceEvents = await _instanceClient.GetInstanceEvents(testInstanceId, null, null, null);
 
             // Assert
-            Assert.Equal(expectedNoEvents, instanceEvents.Count());
+            Assert.Equal(expectedNoEvents, instanceEvents.InstanceEvents.Count());
         }
 
         /// <summary>
@@ -87,10 +87,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
             // Act
             await CleanDB();
             await PopulateDatabase();
-            List<InstanceEvent> instanceEvents = await _instanceClient.GetInstanceEvents(testInstanceId, new string[] { "deleted" }, null, null);
+            InstanceEventList instanceEvents = await _instanceClient.GetInstanceEvents(testInstanceId, new string[] { "deleted" }, null, null);
 
             // Assert
-            Assert.Equal(expectedNoEvents, instanceEvents.Count());
+            Assert.Equal(expectedNoEvents, instanceEvents.InstanceEvents.Count());
         }
 
         /// <summary>
@@ -111,10 +111,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
             await PopulateDatabase();
 
             string to = DateTime.UtcNow.AddMinutes(1.5).ToString("s", CultureInfo.InvariantCulture);
-            List<InstanceEvent> instanceEvents = await _instanceClient.GetInstanceEvents(testInstanceId, null, from, to);
+            InstanceEventList instanceEvents = await _instanceClient.GetInstanceEvents(testInstanceId, null, from, to);
 
             // Assert
-            Assert.Equal(expectedNoEvents, instanceEvents.Count());
+            Assert.Equal(expectedNoEvents, instanceEvents.InstanceEvents.Count());
         }
 
         private async Task<bool> PopulateDatabase()

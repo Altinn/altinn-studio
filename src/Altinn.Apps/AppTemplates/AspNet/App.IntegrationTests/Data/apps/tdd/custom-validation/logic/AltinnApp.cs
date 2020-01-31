@@ -24,7 +24,8 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
             IProcess processService,
             IPDF pdfService,
             IProfile profileService,
-            IRegister registerService) : base(appResourcesService, logger, dataService, processService, pdfService)
+            IRegister registerService,
+            IPrefill prefillService) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
         {
             _validationHandler = new ValidationHandler();
             _calculationHandler = new CalculationHandler();

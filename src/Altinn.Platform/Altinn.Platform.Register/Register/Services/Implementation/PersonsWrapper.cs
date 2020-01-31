@@ -1,22 +1,21 @@
 using System;
-using System.IO;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Helpers;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Services.Interfaces;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Register.Services.Implementation
 {
     /// <summary>
-    /// The persons wrapper
+    /// The persons wrapper.
     /// </summary>
     public class PersonsWrapper : IPersons
     {
@@ -24,10 +23,10 @@ namespace Altinn.Platform.Register.Services.Implementation
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PersonsWrapper"/> class
+        /// Initializes a new instance of the <see cref="PersonsWrapper"/> class.
         /// </summary>
-        /// <param name="generalSettings">the general settings</param>
-        /// <param name="logger">the logger</param>
+        /// <param name="generalSettings">The GeneralSettings section of appsettings.</param>
+        /// <param name="logger">The logger.</param>
         public PersonsWrapper(IOptions<GeneralSettings> generalSettings, ILogger<PersonsWrapper> logger)
         {
             _generalSettings = generalSettings.Value;
@@ -37,18 +36,17 @@ namespace Altinn.Platform.Register.Services.Implementation
         /// <inheritdoc />
         public async Task<Person> GetPerson(string ssn)
         {
-            Person person = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Person));
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}persons");
+            Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}persons");
 
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
-                string ssnData = JsonConvert.SerializeObject(ssn);
-                HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(ssnData, Encoding.UTF8, "application/json"));
+                StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await client.PostAsync(endpointUrl, requestBody);
+
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    Stream stream = await response.Content.ReadAsStreamAsync();
-                    person = serializer.ReadObject(stream) as Person;
+                    return await JsonSerializer.DeserializeAsync<Person>(await response.Content.ReadAsStreamAsync());
                 }
                 else
                 {
@@ -56,7 +54,7 @@ namespace Altinn.Platform.Register.Services.Implementation
                 }
             }
 
-            return person;
+            return null;
         }
     }
 }

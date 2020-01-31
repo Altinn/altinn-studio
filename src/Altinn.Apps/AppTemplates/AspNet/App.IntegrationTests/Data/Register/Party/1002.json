@@ -1,0 +1,13 @@
+{
+  "PartyId": "1002",
+  "PartyTypeName": 2,
+  "OrgNumber": "897069631",
+  "SSN": null,
+  "UnitType": "AS",
+  "Name": "EAS Health Consulting",
+  "IsDeleted": false,
+  "OnlyHierarchyElementWithNoAccess": false,
+  "Person": null,
+  "Organization": null,
+  "ChildParties": null
+}
