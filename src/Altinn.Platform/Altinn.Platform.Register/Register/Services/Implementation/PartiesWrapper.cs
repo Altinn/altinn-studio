@@ -1,16 +1,16 @@
 using System;
-using System.IO;
 using System.Net.Http;
-using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Helpers;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Services.Interfaces;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Register.Services.Implementation
 {
@@ -36,16 +36,15 @@ namespace Altinn.Platform.Register.Services.Implementation
         /// <inheritdoc />
         public async Task<Party> GetParty(int partyId)
         {
-            Party party = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Party));
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}parties/{partyId}");
+            Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}parties/{partyId}");
+
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
+
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    Stream stream = await response.Content.ReadAsStreamAsync();
-                    party = serializer.ReadObject(stream) as Party;
+                    return await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
                 }
                 else
                 {
@@ -53,22 +52,23 @@ namespace Altinn.Platform.Register.Services.Implementation
                 }
             }
 
-            return party;
+            return null;
         }
 
         /// <inheritdoc />
         public async Task<Party> LookupPartyBySSNOrOrgNo(string lookupValue)
         {
-            string lookupData = JsonConvert.SerializeObject(lookupValue);
+            Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}parties/lookupObject");
 
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}parties/lookupObject");
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
-                HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(lookupData, Encoding.UTF8, "application/json"));
+                StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookupValue), Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await client.PostAsync(endpointUrl, requestBody);
+
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    string partyString = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<Party>(partyString);
+                    return await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
                 }
                 else
                 {
@@ -82,16 +82,17 @@ namespace Altinn.Platform.Register.Services.Implementation
         /// <inheritdoc />
         public async Task<int> LookupPartyIdBySSNOrOrgNo(string lookupValue)
         {
-            string lookupData = JsonConvert.SerializeObject(lookupValue);
+            Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}parties/lookup");
 
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}parties/lookup");
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
-                HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(lookupData, Encoding.UTF8, "application/json"));
+                StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookupValue), Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await client.PostAsync(endpointUrl, requestBody);
+
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    string partyIdString = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<int>(partyIdString);
+                    return await JsonSerializer.DeserializeAsync<int>(await response.Content.ReadAsStreamAsync());
                 }
                 else
                 {
