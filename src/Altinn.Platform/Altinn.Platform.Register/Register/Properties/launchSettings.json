@@ -20,11 +20,11 @@
     "Altinn.Platform.Register": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/v1/parties",
-      "applicationUrl": "https://localhost:5020",
+      "launchUrl": "http://localhost:5020/register/swagger",
+      "applicationUrl": "http://localhost:5020",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "https://localhost:5020"
+        "ASPNETCORE_URLS": "http://localhost:5020"
       }
     }
   }
