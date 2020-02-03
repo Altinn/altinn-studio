@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.539
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Register", "Register\Altinn.Platform.Register.csproj", "{91E74788-1C44-4767-9112-3B795370EE45}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Register", "Register\Altinn.Platform.Register.csproj", "{245B9C40-E4F7-47CB-96C8-E027078FE1B5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D81E58CB-7CCB-48B0-9F5F-FCA3C474CF6F}"
 	ProjectSection(SolutionItems) = preProject
@@ -13,20 +13,26 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Register.IntegrationTest", "Altinn.Platform.Register.IntegrationTest\Altinn.Platform.Register.IntegrationTest.csproj", "{3DEE634C-C822-43E7-AA33-1F940FE2D4A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{91E74788-1C44-4767-9112-3B795370EE45}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{91E74788-1C44-4767-9112-3B795370EE45}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{91E74788-1C44-4767-9112-3B795370EE45}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{91E74788-1C44-4767-9112-3B795370EE45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{245B9C40-E4F7-47CB-96C8-E027078FE1B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{245B9C40-E4F7-47CB-96C8-E027078FE1B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{245B9C40-E4F7-47CB-96C8-E027078FE1B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{245B9C40-E4F7-47CB-96C8-E027078FE1B5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DEE634C-C822-43E7-AA33-1F940FE2D4A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DEE634C-C822-43E7-AA33-1F940FE2D4A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DEE634C-C822-43E7-AA33-1F940FE2D4A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DEE634C-C822-43E7-AA33-1F940FE2D4A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
