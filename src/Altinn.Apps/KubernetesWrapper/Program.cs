@@ -43,6 +43,5 @@ namespace KubernetesWrapper
                     logging.AddProvider(new SerilogLoggerProvider(logger));
                 })
                 .UseStartup<Startup>();
-
     }
 }
