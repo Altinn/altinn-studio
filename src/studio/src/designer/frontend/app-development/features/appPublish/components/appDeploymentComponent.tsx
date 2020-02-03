@@ -167,7 +167,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
   } = props;
 
   const appDeployedVersion = deploymentList && deploymentList.items && deploymentList.items.length > 0 ?
-    deploymentList.items[0].spec.template.spec.containers[0].image.split(':')[1] : undefined;
+    deploymentList.items[0].version : undefined;
 
   // TODO: SHared enum with releases.
   enum deploymentStatusEnum {
