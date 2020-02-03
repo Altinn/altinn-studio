@@ -45,7 +45,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<IActionResult> CheckDeploymentStatus([FromBody] AzureDevOpsWebHookEventModel model)
         {
-            await _pipelineService.UpdateDeploymentStatus(model?.Resource?.BuildNumber);
+            await _pipelineService.UpdateDeploymentStatus(model?.Resource?.BuildNumber, model?.Resource?.ResourceOwner);
             return Ok();
         }
     }
