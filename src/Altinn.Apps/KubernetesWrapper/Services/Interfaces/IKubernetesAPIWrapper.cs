@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using KubernetesWrapper.Models;
 
 namespace KubernetesWrapper.Services.Interfaces
 {
@@ -20,8 +21,8 @@ namespace KubernetesWrapper.Services.Interfaces
         /// <param name="timeoutSeconds">Timeout in seconds</param>
         /// <param name="watch">Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.</param>
         /// <param name="pretty">If 'true', then the output is pretty printed.</param>
-        /// <returns>A V1DeploymentList</returns>
-        Task<k8s.Models.V1DeploymentList> GetDeployments(
+        /// <returns>A list of deployments</returns>
+        Task<IList<Deployment>> GetDeployments(
             string continueParameter = null,
             bool? allowWatchBookmarks = null,
             string fieldSelector = null,
