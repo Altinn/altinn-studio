@@ -30,6 +30,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Updates a deployment entity
         /// </summary>
         /// <param name="deployment">DeploymentEntity</param>
-        Task UpdateAsync(DeploymentEntity deployment);
+        /// <param name="appOwner">Application ownwer.</param>
+        Task UpdateAsync(DeploymentEntity deployment, string appOwner);
     }
 }

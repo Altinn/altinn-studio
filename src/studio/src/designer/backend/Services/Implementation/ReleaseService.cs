@@ -14,6 +14,7 @@ using Altinn.Studio.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Azure.Documents;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Rest.TransientFaultHandling;
 using SqlParameter = Microsoft.Azure.Documents.SqlParameter;
@@ -32,6 +33,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly HttpContext _httpContext;
         private readonly string _org;
         private readonly string _app;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Constructor
@@ -40,11 +42,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="azureDevOpsBuildClient">IAzureDevOpsBuildClient</param>
         /// <param name="azureDevOpsOptions">IOptionsMonitor of Type AzureDevOpsSettings</param>
+        /// <param name="logger">The logger.</param>
         public ReleaseService(
             ReleaseRepository releaseRepository,
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildClient azureDevOpsBuildClient,
-            IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions)
+            IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions,
+            ILogger<ReleaseService> logger)
         {
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _releaseRepository = releaseRepository;
@@ -52,6 +56,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _httpContext = httpContextAccessor.HttpContext;
             _org = _httpContext.GetRouteValue("org")?.ToString();
             _app = _httpContext.GetRouteValue("app")?.ToString();
+            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -89,6 +94,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             query.Org = _org;
             query.App = _app;
+
             IEnumerable<ReleaseEntity> results = await _releaseRepository.GetAsync<ReleaseEntity>(query);
             return new SearchResults<ReleaseEntity>
             {
@@ -97,7 +103,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateAsync(ReleaseEntity release)
+        public async Task UpdateAsync(ReleaseEntity release, string appOwner)
         {
             SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
             {
@@ -108,7 +114,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             };
 
-            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec, _org);
+            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec, appOwner);
             ReleaseEntity releaseEntity = releaseDocuments.Single();
 
             releaseEntity.Build.Status = release.Build.Status;

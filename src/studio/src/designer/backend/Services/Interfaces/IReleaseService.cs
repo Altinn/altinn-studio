@@ -29,6 +29,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Updates a release document
         /// </summary>
         /// <param name="release">ReleaseDocument</param>
-        Task UpdateAsync(ReleaseEntity release);
+        /// <param name="appOwner">Application owner</param>
+        Task UpdateAsync(ReleaseEntity release, string appOwner);
     }
 }
