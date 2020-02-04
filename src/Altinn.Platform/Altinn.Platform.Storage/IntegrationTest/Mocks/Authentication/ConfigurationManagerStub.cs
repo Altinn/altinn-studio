@@ -52,7 +52,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication
         {
             List<SecurityKey> signingKeys = new List<SecurityKey>();
 
-            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
+            X509Certificate2 cert = new X509Certificate2("selfSignedTestCertificatePublic.cer");
             SecurityKey key = new X509SecurityKey(cert);
 
             signingKeys.Add(key);

@@ -110,7 +110,10 @@
     <None Update="data\xmlfile.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="jwtselfsignedcert.pfx">
+    <None Update="selfSignedTestCertificate.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="selfSignedTestCertificatePublic.cer">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
