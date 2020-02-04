@@ -159,7 +159,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = await RequiresAppLogic(org, app, dataType);
+                bool? appLogic = RequiresAppLogic(org, app, dataType);
 
                 if (appLogic == null)
                 {
@@ -214,7 +214,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = await RequiresAppLogic(org, app, dataType);
+                bool? appLogic = RequiresAppLogic(org, app, dataType);
 
                 if (appLogic == null)
                 {
@@ -269,7 +269,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = await RequiresAppLogic(org, app, dataType);
+                bool? appLogic = RequiresAppLogic(org, app, dataType);
 
                 if (appLogic == null)
                 {
@@ -462,7 +462,7 @@ namespace Altinn.App.Api.Controllers
             return serviceModel;
         }
 
-        private async Task<bool?> RequiresAppLogic(string org, string app, string dataType)
+        private bool? RequiresAppLogic(string org, string app, string dataType)
         {
             bool? appLogic = false;
 
