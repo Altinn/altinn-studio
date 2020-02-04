@@ -75,7 +75,8 @@ namespace Altinn.App.Services.Implementation
                         Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,                        
                         Severity = ValidationIssueSeverity.Error,
                         Description = AppTextHelper.GetAppText(
-                            ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceText, null, "nb")
+                            ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceText, null, "nb"),
+                        Field = dataType.Id
                     };
                     messages.Add(message);
                 }
@@ -88,7 +89,8 @@ namespace Altinn.App.Services.Implementation
                         Code = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
                         Severity = ValidationIssueSeverity.Error,
                         Description = AppTextHelper.GetAppText(
-                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, null, null, "nb")
+                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, null, null, "nb"),
+                        Field = dataType.Id
                     };
                     messages.Add(message);
                 }                
@@ -146,7 +148,8 @@ namespace Altinn.App.Services.Implementation
                         Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                         Severity = ValidationIssueSeverity.Error,
                         Description = AppTextHelper.GetAppText(
-                            ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceText, null, "nb")
+                            ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceText, null, "nb"),
+                        Field = dataType.Id
                     };
                     messages.Add(message);
                 }
@@ -161,7 +164,8 @@ namespace Altinn.App.Services.Implementation
                     Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
                     Severity = ValidationIssueSeverity.Error,
                     Description = AppTextHelper.GetAppText(
-                        ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceText, null, "nb")
+                        ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceText, null, "nb"),
+                    Field = dataType.Id
                 };
                 messages.Add(message);
             }
