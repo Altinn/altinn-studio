@@ -41,7 +41,7 @@ namespace KubernetesWrapper.Controllers
             try
             {
                 var deployments = await _apiWrapper.GetDeployments(null, null, fieldSelector, labelSelector);
-                return Ok(deployments.Items);
+                return Ok(deployments);
             }
             catch (Exception exception)
             {

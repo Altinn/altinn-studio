@@ -11,14 +11,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Updates the release status in db
         /// </summary>
         /// <param name="buildNumber">Azure DevOps build number</param>
+        /// <param name="appOwner">Application ownwer.</param>
         /// <returns></returns>
-        Task UpdateReleaseStatus(string buildNumber);
+        Task UpdateReleaseStatus(string buildNumber, string appOwner);
 
         /// <summary>
         /// Updates the deployment status in db
         /// </summary>
         /// <param name="buildNumber">Azure DevOps build number</param>
+        /// <param name="appOwner">Application ownwer.</param>
         /// <returns></returns>
-        Task UpdateDeploymentStatus(string buildNumber);
+        Task UpdateDeploymentStatus(string buildNumber, string appOwner);
     }
 }

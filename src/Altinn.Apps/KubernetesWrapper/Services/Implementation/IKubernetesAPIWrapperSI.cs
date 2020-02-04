@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using k8s;
+using k8s.Models;
+using KubernetesWrapper.Models;
 using KubernetesWrapper.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -33,7 +36,7 @@ namespace KubernetesWrapper.Services.Implementation
         }
 
         /// <inheritdoc/>
-        async Task<k8s.Models.V1DeploymentList> IKubernetesAPIWrapper.GetDeployments(
+        async Task<IList<Deployment>> IKubernetesAPIWrapper.GetDeployments(
             string continueParameter,
             bool? allowWatchBookmarks,
             string fieldSelector,
@@ -44,8 +47,50 @@ namespace KubernetesWrapper.Services.Implementation
             bool? watch,
             string pretty)
         {
-            var deployments = await client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, timeoutSeconds, watch, pretty);
-            return deployments;
+            V1DeploymentList deployments = await client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, timeoutSeconds, watch, pretty);
+            IList<Deployment> mappedDeployments = MapDeployments(deployments.Items);
+            return mappedDeployments;
+        }
+
+        /// <summary>
+        /// Maps a list of k8s.Models.V1Deployment to Deployment
+        /// </summary>
+        /// <param name="list">The list to be mapped</param>
+        private IList<Deployment> MapDeployments(IList<V1Deployment> list)
+        {
+            IList<Deployment> mappedList = new List<Deployment>();
+            if (list == null || list.Count == 0)
+            {
+                return mappedList;
+            }
+
+            foreach (V1Deployment element in list)
+            {
+                Deployment deployment = new Deployment();
+                IList<V1Container> containers = element.Spec?.Template?.Spec?.Containers;
+                if (containers != null && containers.Count > 0)
+                {
+                    string[] splittedVersion = containers[0].Image?.Split(":");
+                    if (splittedVersion != null && splittedVersion.Length > 1)
+                    {
+                        deployment.Version = splittedVersion[1];
+                    }
+                }
+
+                var labels = element.Metadata?.Labels;
+                if (labels != null)
+                {
+                    string release;
+                    if (labels.TryGetValue("release", out release))
+                    {
+                        deployment.Release = release;
+                    }
+                }
+
+                mappedList.Add(deployment);
+            }
+
+            return mappedList;
         }
     }
 }

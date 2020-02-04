@@ -26,5 +26,11 @@ namespace Altinn.Studio.Designer.ViewModels.Request
         [Required(ErrorMessage = "buildNumber property can not be null, empty string or containing only whitespace")]
         [JsonProperty("buildNumber")]
         public string BuildNumber { get; set; }
+
+        /// <summary>
+        /// Application owner
+        /// </summary>
+        [JsonProperty("resourceOwner")]
+        public string ResourceOwner { get; set; }
     }
 }

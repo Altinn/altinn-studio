@@ -92,7 +92,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateAsync(DeploymentEntity deployment)
+        public async Task UpdateAsync(DeploymentEntity deployment, string appOwner)
         {
             SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
             {
@@ -102,7 +102,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     new SqlParameter("@buildId", deployment.Build.Id),
                 }
             };
-            IEnumerable<DeploymentEntity> deploymentDocuments = await _deploymentRepository.GetWithSqlAsync<DeploymentEntity>(sqlQuerySpec, _org);
+            IEnumerable<DeploymentEntity> deploymentDocuments = await _deploymentRepository.GetWithSqlAsync<DeploymentEntity>(sqlQuerySpec, appOwner);
             DeploymentEntity deploymentEntity = deploymentDocuments.Single();
 
             deploymentEntity.Build.Status = deployment.Build.Status;
