@@ -75,8 +75,7 @@ namespace App.IntegrationTests.ControllerTests
             {
             };
 
-            httpRequestMessage.Headers.Add(Altinn.App.Services.Constants.General.RuntimeCookieName, token);
-
+            SetupUtil.AddAuthCookie(httpRequestMessage, token);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
