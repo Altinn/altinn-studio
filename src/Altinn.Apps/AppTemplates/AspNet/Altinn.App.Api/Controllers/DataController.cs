@@ -98,7 +98,7 @@ namespace Altinn.App.Api.Controllers
 
                 if (dataTypeFromMetadata == null)
                 {
-                    return BadRequest($"Element type {dataType} not allowed for instance {instanceGuid}.");
+                    return BadRequest($"Element type {dataType} not allowed for instance {instanceOwnerPartyId}/{instanceGuid}.");
                 }
 
                 bool appLogic = dataTypeFromMetadata.AppLogic != null;
@@ -107,6 +107,11 @@ namespace Altinn.App.Api.Controllers
                 if (instance == null)
                 {
                     return NotFound($"Did not find instance {instance}");
+                }
+
+                if (instance.Status.Archived.HasValue || instance.Status.SoftDeleted.HasValue || instance.Status.HardDeleted.HasValue)
+                {
+                    return Conflict($"Cannot upload data for archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}");
                 }
 
                 if (appLogic)
@@ -205,6 +210,11 @@ namespace Altinn.App.Api.Controllers
             {
                 Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
+                if (instance.Status.Archived.HasValue || instance.Status.SoftDeleted.HasValue || instance.Status.HardDeleted.HasValue)
+                {
+                    return Conflict($"Cannot update data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}");
+                }
+
                 DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
 
                 if (dataElement == null)
@@ -258,6 +268,11 @@ namespace Altinn.App.Api.Controllers
                 if (instance == null)
                 {
                     return NotFound("Did not find instance");
+                }
+
+                if (instance.Status.Archived.HasValue || instance.Status.SoftDeleted.HasValue || instance.Status.HardDeleted.HasValue)
+                {
+                    return Conflict($"Cannot delete data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}");
                 }
 
                 DataElement dataElement = instance.Data.Find(m => m.Id.Equals(dataGuid.ToString()));
