@@ -450,7 +450,7 @@ namespace Altinn.App.Api.Controllers
                     }
                     catch (Exception ex)
                     {
-                        error = $"Cannot parse json content due to {ex.Message}";
+                        error = $"An error occured while deserialising json content into '{modelType}'. \n Please verify that the content is based on the correct data model. \n See exception for more information: {ex}";
                         return null;
                     }
                 }
