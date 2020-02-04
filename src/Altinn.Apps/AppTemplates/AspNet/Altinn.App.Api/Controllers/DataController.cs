@@ -463,7 +463,8 @@ namespace Altinn.App.Api.Controllers
                     }
                     catch (Exception ex)
                     {
-                        error = $"Cannot parse xml content: {ex.Message}, {ex.InnerException}";
+                        error = $"An error occured while deserializing xml content into '{modelType}'. \n Please verify that the content is based on the correct data model. \n See exception for more information: {ex}";
+
                         return null;
                     }
                 }
