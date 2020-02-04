@@ -65,7 +65,7 @@ namespace App.IntegrationTests.ControllerTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
-        // [Fact] TODO - Fix test and enable.
+        [Fact]
         public async Task GetHome_OK_WithAuthCookie()
         {
             string token = PrincipalUtil.GetToken(1);
@@ -75,8 +75,7 @@ namespace App.IntegrationTests.ControllerTests
             {
             };
 
-            httpRequestMessage.Headers.Add(Altinn.App.Services.Constants.General.RuntimeCookieName, token);
-
+            SetupUtil.AddAuthCookie(httpRequestMessage, token);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
