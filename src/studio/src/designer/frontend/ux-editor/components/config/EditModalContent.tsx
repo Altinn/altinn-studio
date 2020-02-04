@@ -148,10 +148,14 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
     }, () => this.props.handleComponentUpdate(this.state.component));
   }
 
-  public handleUpdateOptionLabel = (index: number, event: any) => {
+  public handleUpdateOptionLabel = (
+    index: number,
+    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ) => {
+    event.persist();
     this.setState((prevState: IEditModalContentState) => {
       const updatedComponent: IFormComponent = prevState.component;
-      updatedComponent.options[index].label = event.target.value;
+      updatedComponent.options[index].label = event.target?.value;
       return {
         component: {
           ...prevState.component,
@@ -161,10 +165,14 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
     }, () => this.props.handleComponentUpdate(this.state.component));
   }
 
-  public handleUpdateOptionValue = (index: number, event: any) => {
+  public handleUpdateOptionValue = (
+    index: number,
+    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ) => {
+    event.persist();
     this.setState((prevState: IEditModalContentState) => {
       const updatedComponent: IFormComponent = prevState.component;
-      updatedComponent.options[index].value = event.target.value;
+      updatedComponent.options[index].value = event.target?.value;
       return {
         component: {
           ...prevState.component,

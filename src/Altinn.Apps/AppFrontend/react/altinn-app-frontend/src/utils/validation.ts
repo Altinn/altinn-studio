@@ -352,20 +352,20 @@ export function mapDataElementValidationToRedux(validations: IValidationIssue[],
     const component = layout.find((layoutElement) => {
       const componentCandidate = layoutElement as ILayoutComponent;
       let found = false;
-      Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
-        // tslint:disable-next-line: max-line-length
-        if (validation.field && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === validation.field.toLowerCase()) {
-          found = true;
-          if (!componentValidations[dataModelBindingKey]) {
-            componentValidations[dataModelBindingKey] = {errors: [], warnings: []};
+
+      if (validation.field === componentCandidate.id) {
+        found = true;
+        addValidation(componentValidations, validation, 'simpleBinding');
+      } else {
+        Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
+          // tslint:disable-next-line: max-line-length
+          if (validation.field && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === validation.field.toLowerCase()) {
+            found = true;
+            addValidation(componentValidations, validation, dataModelBindingKey);
           }
-          if (validation.severity === Severity.Error) {
-            componentValidations[dataModelBindingKey].errors.push(validation.description);
-          } else {
-            componentValidations[dataModelBindingKey].warnings.push(validation.description);
-          }
-        }
-      });
+        });
+      }
+
       return found;
     });
     if (component) {
@@ -402,6 +402,17 @@ export function mapDataElementValidationToRedux(validations: IValidationIssue[],
   });
 
   return validationResult;
+}
+
+function addValidation(componentValidations: IComponentValidations, validation: IValidationIssue, dataModelBindingKey: string) {
+  if (!componentValidations[dataModelBindingKey]) {
+    componentValidations[dataModelBindingKey] = {errors: [], warnings: []};
+  }
+  if (validation.severity === Severity.Error) {
+    componentValidations[dataModelBindingKey].errors.push(validation.description);
+  } else {
+    componentValidations[dataModelBindingKey].warnings.push(validation.description);
+  }
 }
 
 function runValidation(
