@@ -75,7 +75,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
-            // check if instance id exist and user is allowed to change the instance data
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
             if (instance == null)
@@ -92,7 +91,6 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound("Provided dataId is unknown to storage service");
                 }
 
-                // delete blob stored file and data element object 
                 try
                 {
                     string storageFileName = DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataId.ToString());
@@ -338,7 +336,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             using (OrgDataContext context = _dataRepository.GetOrgDataContext(instance.Org))
             {
-                _dataRepository.OrgDataContext = context;
                 DataElement dataElement = await _dataRepository.Read(instanceGuid, dataGuid);
 
                 if (dataElement == null)

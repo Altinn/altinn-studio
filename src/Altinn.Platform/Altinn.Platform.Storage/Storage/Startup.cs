@@ -1,14 +1,18 @@
 using System;
 using System.IO;
 using System.Reflection;
+
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
+
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Repository;
+
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.AspNetCore.Authorization;
@@ -20,9 +24,9 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
 using Serilog;
 using Serilog.Core;
 
@@ -47,11 +51,6 @@ namespace Altinn.Platform.Storage
         /// Key Vault client represnting Platform
         /// </summary>
         internal static KeyVaultClient PlatformKeyVaultClient { get; set; }
-
-        /// <summary>
-        /// Holds the current environement name
-        /// </summary>
-        internal static string EnvironmentName { get; set; } 
 
         private readonly IWebHostEnvironment _env;
 
@@ -97,19 +96,11 @@ namespace Altinn.Platform.Storage
             services.Configure<Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-
-            string envname = generalSettings.Hostname.Split('.')[0].Trim();
-            if (!string.IsNullOrEmpty(envname))
-            {
-                EnvironmentName = envname;
-            }
             
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                 {
-                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                    options.Cookie.Name = generalSettings.RuntimeCookieName;
-                    options.Cookie.Domain = generalSettings.Hostname;
+                    options.JwtCookieName = generalSettings.RuntimeCookieName;
                     options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
@@ -134,8 +125,8 @@ namespace Altinn.Platform.Storage
                 options.AddPolicy(AuthzConstants.POLICY_SCOPE_INSTANCE_READ, policy => policy.Requirements.Add(new ScopeAccessRequirement("altinn:instances.read")));
             });
 
-            services.AddSingleton<IDataRepository, DataRepository>();
-            services.AddSingleton<IInstanceRepository, InstanceRepository>();
+            services.AddTransient<IDataRepository, DataRepository>();
+            services.AddTransient<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

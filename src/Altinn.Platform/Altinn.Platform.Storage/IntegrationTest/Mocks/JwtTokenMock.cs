@@ -66,10 +66,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 
         private static SigningCredentials GetSigningCredentials()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.CodeBase).LocalPath);
-
-            string certPath = Path.Combine(unitTestFolder, @"..\..\..\jwtselfsignedcert.pfx");
-            X509Certificate2 cert = new X509Certificate2(certPath, "qwer1234");
+            X509Certificate2 cert = new X509Certificate2("jwtselfsignedcert.pfx", "qwer1234");
             return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
         }
     }

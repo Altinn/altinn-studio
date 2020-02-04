@@ -1,17 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Altinn.Platform.Storage.Configuration
 {
     /// <summary>
-    /// Settings for accessing bridge functionality
+    /// Configuration object used to hold general settings for the storage application.
     /// </summary>
     public class GeneralSettings
     {
         /// <summary>
-        /// Open Id Connect Well known endpoint
+        /// Gets or sets the name of the environment. (dev, at22, tt02, prod, etc)
+        /// </summary>
+        public string EnvironmentName { get; set; }
+
+        /// <summary>
+        /// Open Id Connect Well known endpoint. Related to JSON WEB token validation.
         /// </summary>
         public string OpenIdWellKnownEndpoint { get; set; }
 

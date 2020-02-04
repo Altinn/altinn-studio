@@ -1,8 +1,9 @@
 using System;
+
 using Altinn.Platform.Storage.Configuration;
+
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
-using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -10,32 +11,38 @@ using Microsoft.WindowsAzure.Storage.Blob;
 namespace Altinn.Platform.Storage.Helpers
 {
     /// <summary>
-    /// Contaxt to manage the organisations storage client
+    /// Context to manage the organisations storage client
     /// </summary>
-    public class OrgDataContext: IDisposable
+    public class OrgDataContext : IDisposable
     {
+        private bool disposed = false;
+
         /// <summary>
         /// Gets the application owner blog container
         /// </summary>
         public CloudBlobContainer OrgBlobContainer { get; private set; }
 
+        private readonly GeneralSettings _generalSettings;
         private readonly AzureStorageConfiguration _storageConfiguration;
 
         /// <summary>
         /// Creates an instance of a <see cref="OrgDataContext"></see>
         /// </summary>
         /// <param name="org">Application owner name</param>
+        /// <param name="generalSettings">The application general settings section.</param>
         /// <param name="storageConfiguration">the storage configuration for azure blob storage</param>
-        public OrgDataContext(string org, AzureStorageConfiguration storageConfiguration)
+        public OrgDataContext(string org, GeneralSettings generalSettings, AzureStorageConfiguration storageConfiguration)
         {
+            _generalSettings = generalSettings;
             _storageConfiguration = storageConfiguration;
-            OrgBlobContainer = GetCloudBlobContainer(org);
+
+            OrgBlobContainer = CreateCloudBlobContainer(org);
         }
 
-        private CloudBlobContainer GetCloudBlobContainer(string org)
+        private CloudBlobContainer CreateCloudBlobContainer(string org)
         {
-            string containerName = string.Format(_storageConfiguration.OrgStorageContainer, org, Startup.EnvironmentName);
-            CloudBlobClient blobClient = GetCloudBlobClient(org);
+            string containerName = string.Format(_storageConfiguration.OrgStorageContainer, org, _generalSettings.EnvironmentName);
+            CloudBlobClient blobClient = CreateCloudBlobClient(org);
             if (blobClient != null)
             {
                 return blobClient.GetContainerReference(containerName);
@@ -44,18 +51,20 @@ namespace Altinn.Platform.Storage.Helpers
             return null;
         }
 
-        private CloudBlobClient GetCloudBlobClient(string org)
+        private CloudBlobClient CreateCloudBlobClient(string org)
         {
             try
             {
-                string secretUri = string.Format(_storageConfiguration.OrgKeyVaultURI, org, Startup.EnvironmentName);
-                string storageAccount = string.Format(_storageConfiguration.OrgStorageAccount, org, Startup.EnvironmentName);
-                string sasDefinition = string.Format(_storageConfiguration.OrgSasDefinition, org, Startup.EnvironmentName);
+                string secretUri = string.Format(_storageConfiguration.OrgKeyVaultURI, org, _generalSettings.EnvironmentName);
+                string storageAccount = string.Format(_storageConfiguration.OrgStorageAccount, org, _generalSettings.EnvironmentName);
+                string sasDefinition = string.Format(_storageConfiguration.OrgSasDefinition, org, _generalSettings.EnvironmentName);
+                string blobEndpoint = string.Format(_storageConfiguration.BlobEndPoint, storageAccount);
 
                 KeyVaultClient kv = Startup.PlatformKeyVaultClient;
                 SecretBundle sb = kv.GetSecretAsync(secretUri, $@"{storageAccount}-{sasDefinition}").Result;
                 StorageCredentials accountSasCredential = new StorageCredentials(sb.Value);
-                CloudStorageAccount accountWithSas = new CloudStorageAccount(accountSasCredential, new Uri($@"https://{storageAccount}.blob.core.windows.net/"), null, null, null);
+
+                CloudStorageAccount accountWithSas = new CloudStorageAccount(accountSasCredential, new Uri(blobEndpoint), null, null, null);
 
                 return accountWithSas.CreateCloudBlobClient();
             }
@@ -65,7 +74,14 @@ namespace Altinn.Platform.Storage.Helpers
             }
         }
 
-        private bool disposedValue = false; // To detect redundant calls
+        /// <summary>
+        /// Disposes organisation storage client
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
         /// <summary>
         /// Disposes organisation storage client
@@ -73,23 +89,17 @@ namespace Altinn.Platform.Storage.Helpers
         /// <param name="disposing">Flag for disposing values</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (disposed)
             {
-                if (disposing)
-                {
-                    OrgBlobContainer = null;
-                }
-
-                disposedValue = true;
+                return;
             }
-        }
 
-        /// <summary>
-        /// Disposes organisation storage client
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
+            if (disposing)
+            {
+                OrgBlobContainer = null;
+            }
+            
+            disposed = true;
         }
     }
 }
