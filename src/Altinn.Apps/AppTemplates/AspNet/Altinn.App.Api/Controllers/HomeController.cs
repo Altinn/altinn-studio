@@ -41,7 +41,7 @@ namespace Altinn.App.Api.Controllers
             }
             else
             {
-                string goToUrl = HttpUtility.UrlEncode($"{Request.Host.ToUriComponent()}/{org}/{app}");
+                string goToUrl = HttpUtility.UrlEncode($"{Request.Scheme}://{Request.Host.ToString()}/{org}/{app}");
                 string redirectUrl = $"{_platformSettings.ApiAuthenticationEndpoint}authentication?goto={goToUrl}";
                 return Redirect(redirectUrl);
             }
