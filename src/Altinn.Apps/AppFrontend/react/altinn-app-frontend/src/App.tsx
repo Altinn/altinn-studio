@@ -30,12 +30,14 @@ export default function() {
     window.addEventListener('mousemove', refreshJwtToken);
     window.addEventListener('scroll', refreshJwtToken);
     window.addEventListener('onfocus', refreshJwtToken);
+    window.addEventListener('keydown', refreshJwtToken);
   }
 
   function removeEventListeners() {
     window.removeEventListener('mousemove', refreshJwtToken);
     window.removeEventListener('scroll', refreshJwtToken);
     window.removeEventListener('onfocus', refreshJwtToken);
+    window.removeEventListener('keydown', refreshJwtToken);
   }
 
   function refreshJwtToken() {
@@ -55,6 +57,7 @@ export default function() {
   }
 
   React.useEffect(() => {
+    refreshJwtToken();
     TextResourcesActions.fetchTextResources();
     ProfileActions.fetchProfile(profileApiUrl);
     LanguageActions.fetchLanguage(languageUrl, 'nb');
