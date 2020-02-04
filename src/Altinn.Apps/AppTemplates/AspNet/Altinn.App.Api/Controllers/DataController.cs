@@ -109,7 +109,7 @@ namespace Altinn.App.Api.Controllers
                     return NotFound($"Did not find instance {instance}");
                 }
 
-                if (instance.Status.Archived.HasValue || instance.Status.SoftDeleted.HasValue || instance.Status.HardDeleted.HasValue)
+                if (!InstanceIsActive(instance))
                 {
                     return Conflict($"Cannot upload data for archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}");
                 }
@@ -210,7 +210,7 @@ namespace Altinn.App.Api.Controllers
             {
                 Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
-                if (instance.Status.Archived.HasValue || instance.Status.SoftDeleted.HasValue || instance.Status.HardDeleted.HasValue)
+                if (!InstanceIsActive(instance))
                 {
                     return Conflict($"Cannot update data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}");
                 }
@@ -270,7 +270,7 @@ namespace Altinn.App.Api.Controllers
                     return NotFound("Did not find instance");
                 }
 
-                if (instance.Status.Archived.HasValue || instance.Status.SoftDeleted.HasValue || instance.Status.HardDeleted.HasValue)
+                if (!InstanceIsActive(instance))
                 {
                     return Conflict($"Cannot delete data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}");
                 }
@@ -602,6 +602,16 @@ namespace Altinn.App.Api.Controllers
             {
                 return ExceptionResponse(e, defaultMessage);
             }
+        }
+
+        private bool InstanceIsActive(Instance i)
+        {
+            if (i?.Status?.Archived != null || i?.Status?.SoftDeleted != null || i?.Status?.HardDeleted != null)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
