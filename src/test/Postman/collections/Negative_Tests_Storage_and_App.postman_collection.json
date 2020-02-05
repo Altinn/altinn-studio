@@ -1606,7 +1606,7 @@
 									"    }\r",
 									"}\r",
 									"\r",
-									"pm.test(\"Platform - Storage - SBL - High Security Level Instances - NotFound \", function () {\r",
+									"pm.test(\"Negative Tests - Access High Security Level Instances - SBL - NotFound \", function () {\r",
 									"    var isFound = checkForHighSecLevelInstances();\r",
 									"    pm.expect(isFound).to.equal(false);\r",
 									"});"
@@ -1662,6 +1662,91 @@
 								{
 									"key": "language",
 									"value": "nb"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "App instantion only by App Owner",
+			"item": [
+				{
+					"name": "Apps instantiation only for App Owner",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
+								"exec": [
+									"pm.test(\"Negative Tests - Apps instantiation only for App Owner - App - Create App Instance for InstanceOwner - Status - Forbidden\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9c84f949-10f6-4b99-a342-b7cb58641ee2",
+								"exec": [
+									"pm.environment.set(\"instanceId\",\"\");",
+									"pm.environment.set(\"dataGuid\",\"\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{appOwner-only-app}}/instances?instanceOwnerPartyId={{instanceOwnerId}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{appOwner-only-app}}",
+								"instances"
+							],
+							"query": [
+								{
+									"key": "instanceOwnerPartyId",
+									"value": "{{instanceOwnerId}}"
 								}
 							]
 						}
