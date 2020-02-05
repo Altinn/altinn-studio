@@ -86,8 +86,8 @@ test('App cannot build due to compilation error', async () => {
     .click(designer.deployNavigationTab)
     .typeText(designer.versionNumber, buildVersion)
     .typeText(designer.versionDescription, "Testcafe compilation error build", {replace: true})
-    .click(designer.buildButton)
     .expect(designer.buildButton.exists).ok({timeout: 120000})
+    .click(designer.buildButton)    
     .click(designer.deployVersionDropDown)
   var lastbuildVersion = await designer.getlatestBuildVersion(t);
   await t
