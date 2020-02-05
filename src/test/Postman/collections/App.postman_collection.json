@@ -81,22 +81,23 @@
 							"script": {
 								"id": "3642e91a-7bdc-486a-ab19-86d68fb3acee",
 								"exec": [
-									"const jar = pm.cookies.jar();",
+									"var responseAltinnStudioCookie = postman.getResponseCookie(\"AltinnStudioRuntime\");",
+									"responseAltinnStudioCookie = responseAltinnStudioCookie.value.toString();",
+									"pm.environment.set(\"AltinnStudioRuntime\",responseAltinnStudioCookie);",
+									"",
+									"const cookieJar = pm.cookies.jar();",
 									"var domain = pm.environment.get(\"envUrl\");",
-									"jar.get(domain,\"AltinnStudioRuntime\", function (error,altinnStudioRuntimeToken){",
+									"cookieJar.set(domain,\"AltinnStudioRuntime\",responseAltinnStudioCookie,function(error,cookie){",
 									"    if(error)",
 									"    {",
 									"        console.log(\"error\",error);",
 									"    }",
-									"    else",
+									"});",
+									"",
+									"cookieJar.clear(domain, function (error){",
+									"    if(error)",
 									"    {",
-									"        pm.environment.set(\"AltinnStudioRuntime\",altinnStudioRuntimeToken);",
-									"        jar.clear(domain, function (error){",
-									"            if(error)",
-									"            {",
-									"                console.log(\"error\",error);",
-									"            }",
-									"        });",
+									"        console.log(\"error\",error);",
 									"    }",
 									"});"
 								],
@@ -154,6 +155,23 @@
 									"    var partyId = jsonData.partyId;",
 									"    pm.environment.set(\"instanceOwnerId\",partyId);",
 									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "247bde40-1e7d-4473-a1bb-ed62cba7ea18",
+								"exec": [
+									"const cookieJar = pm.cookies.jar();",
+									"var domain = pm.environment.get(\"envUrl\");",
+									"cookieJar.clear(domain, function (error){",
+									"    if(error)",
+									"    {",
+									"        console.log(\"error\",error);",
+									"    }",
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -1818,7 +1836,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\"?>\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\n    </Skjemainstans-grp-8854>\n  </OpplysningerOmArbeidstakeren-grp-8819>\n</Skjema>",
+							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>",
 							"options": {
 								"raw": {
 									"language": "xml"
@@ -1959,9 +1977,6 @@
 							}
 						}
 					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -1975,10 +1990,6 @@
 						},
 						"method": "GET",
 						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}/validate",
 							"protocol": "https",

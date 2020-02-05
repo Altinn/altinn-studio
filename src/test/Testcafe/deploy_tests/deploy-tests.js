@@ -54,7 +54,7 @@ fixture('Deploy of app to a test environment tests')
     await t
       .typeText(designer.versionNumber, newBuildVersion.toString())
       .typeText(designer.versionDescription, "Autotest build " + dateTime.toString(), {replace: true})
-      .click(designer.buildButton)     
+      .click(designer.buildButton);   
 
     await t
       .click(designer.deployVersionDropDown)
@@ -86,9 +86,9 @@ test('App cannot build due to compilation error', async () => {
     .click(designer.deployNavigationTab)
     .typeText(designer.versionNumber, buildVersion)
     .typeText(designer.versionDescription, "Testcafe compilation error build", {replace: true})
-    .click(designer.buildButton)
     .expect(designer.buildButton.exists).ok({timeout: 120000})
-    .click(designer.deployVersionDropDown)
+    .click(designer.buildButton)    
+    .click(designer.deployVersionDropDown);
   var lastbuildVersion = await designer.getlatestBuildVersion(t);
   await t
     .expect(lastbuildVersion).notEql(buildVersion);  
@@ -101,15 +101,15 @@ test('App cannot be built due to uncommited local changes', async () => {
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok({ timeout: 120000 })
-    .click(designer.omNavigationTab) //remove pop up
+    .click(designer.omNavigationTab); //remove pop up
   await designer.deleteUIComponentsMethod(t);
   await t
     .dragToElement(designer.radioButtonComponent, designer.dragToArea)
-  await t.eval(() => location.reload(true))
+  await t.eval(() => location.reload(true));
   await t
     .expect(designer.delEndringer.exists).ok({ timeout: 120000 })
     .click(designer.deployNavigationTab)
-    .expect(designer.buildButton.exists).notOk()
+    .expect(designer.buildButton.exists).notOk();
 });
 
 test('User does not have write access to app, and cannot deploy', async () => {
