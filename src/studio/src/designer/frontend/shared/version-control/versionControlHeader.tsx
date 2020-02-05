@@ -25,7 +25,6 @@ export interface IVersionControlHeaderState {
   anchorEl: any;
   modalState: any;
   mergeConflict: boolean;
-  timeoutIsRunning: boolean;
   cloneModalOpen: boolean;
   cloneModalAnchor: any;
 }
@@ -66,7 +65,6 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       anchorEl: null,
       mergeConflict: false,
       modalState: initialModalState,
-      timeoutIsRunning: false,
       cloneModalOpen: false,
       cloneModalAnchor: null,
     };
@@ -166,16 +164,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public changeToRepoOccured = (event: any) => {
-    if (event.data === postMessages.filesAreSaved && this._isMounted && !this.state.timeoutIsRunning) {
-      this.setState({
-        timeoutIsRunning: true,
-      });
-      this.timeout = setTimeout(() => {
-        this.setState({
-          timeoutIsRunning: false,
-        });
-        this.getStatus();
-      }, 10000);
+    if (event.data === postMessages.filesAreSaved && this._isMounted) {
+      this.getStatus();
     }
   }
 

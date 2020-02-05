@@ -18,7 +18,14 @@
         "autoCreate": true,
         "ClassRef": "App.IntegrationTests.Mocks.Apps.tdd.custom_validation.Skjema"
       },
-      "taskId":  "Task_1"
+      "taskId": "Task_1"
+    },
+    {
+      "id": "9edd53de-f46f-40a1-bb4d-3efb93dc113d",
+      "taskId": "Task_1",
+      "maxSize": 1,
+      "maxCount": 1,
+      "minCount": 0
     }
   ]
 }
