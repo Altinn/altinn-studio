@@ -1,5 +1,3 @@
-using System;
-
 namespace Altinn.Platform.Storage.Configuration
 {
     /// <summary>

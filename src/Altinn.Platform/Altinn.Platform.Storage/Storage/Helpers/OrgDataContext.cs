@@ -22,18 +22,15 @@ namespace Altinn.Platform.Storage.Helpers
         /// </summary>
         public CloudBlobContainer OrgBlobContainer { get; private set; }
 
-        private readonly GeneralSettings _generalSettings;
         private readonly AzureStorageConfiguration _storageConfiguration;
 
         /// <summary>
         /// Creates an instance of a <see cref="OrgDataContext"></see>
         /// </summary>
         /// <param name="org">Application owner name</param>
-        /// <param name="generalSettings">The application general settings section.</param>
         /// <param name="storageConfiguration">the storage configuration for azure blob storage</param>
-        public OrgDataContext(string org, GeneralSettings generalSettings, AzureStorageConfiguration storageConfiguration)
+        public OrgDataContext(string org, AzureStorageConfiguration storageConfiguration)
         {
-            _generalSettings = generalSettings;
             _storageConfiguration = storageConfiguration;
 
             OrgBlobContainer = CreateCloudBlobContainer(org);
@@ -41,7 +38,7 @@ namespace Altinn.Platform.Storage.Helpers
 
         private CloudBlobContainer CreateCloudBlobContainer(string org)
         {
-            string containerName = string.Format(_storageConfiguration.OrgStorageContainer, org, _generalSettings.EnvironmentName);
+            string containerName = string.Format(_storageConfiguration.OrgStorageContainer, org);
             CloudBlobClient blobClient = CreateCloudBlobClient(org);
             if (blobClient != null)
             {
@@ -55,9 +52,10 @@ namespace Altinn.Platform.Storage.Helpers
         {
             try
             {
-                string secretUri = string.Format(_storageConfiguration.OrgKeyVaultURI, org, _generalSettings.EnvironmentName);
-                string storageAccount = string.Format(_storageConfiguration.OrgStorageAccount, org, _generalSettings.EnvironmentName);
-                string sasDefinition = string.Format(_storageConfiguration.OrgSasDefinition, org, _generalSettings.EnvironmentName);
+                string secretUri = string.Format(_storageConfiguration.OrgKeyVaultURI, org);
+                string storageAccount = string.Format(_storageConfiguration.OrgStorageAccount, org);
+                string sasDefinition = string.Format(_storageConfiguration.OrgSasDefinition, org);
+
                 string blobEndpoint = string.Format(_storageConfiguration.BlobEndPoint, storageAccount);
 
                 KeyVaultClient kv = Startup.PlatformKeyVaultClient;
