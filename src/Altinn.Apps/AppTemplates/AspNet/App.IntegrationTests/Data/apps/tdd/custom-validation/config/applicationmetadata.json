@@ -25,7 +25,7 @@
       "taskId": "Task_1",
       "maxSize": 1,
       "maxCount": 1,
-      "minCount": 1
+      "minCount": 0
     }
   ]
 }
