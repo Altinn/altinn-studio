@@ -101,5 +101,30 @@ namespace App.IntegrationTestsRef.ApiTests
             Assert.Equal(ValidationIssueSeverity.Error, messages[0].Severity);
             Assert.Equal("ERROR: Max length is 11", messages[0].Code);
         }
+
+        /// <summary>
+        /// Test that verifies that custom validation allows valid data.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task ValidateAttachment_ValidData()
+        {
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            string url = "/tdd/custom-validation/instances/1000/16314483-65f3-495a-aaec-79445b4edb0b/data/b862f944-3f04-45e3-b445-6bbd09f65ad5/validate";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            {
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+
+            List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Empty(messages);
+        }
     }
 }
