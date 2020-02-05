@@ -49,5 +49,10 @@ namespace Altinn.Platform.Storage.Configuration
         /// name of storage container in app owner storage account
         /// </summary>
         public string OrgStorageContainer { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether Storage should use private blob storage accounts for each application owner.
+        /// </summary>
+        public bool OrgPrivateBlobStorageEnabled { get; set; }
     }
 }

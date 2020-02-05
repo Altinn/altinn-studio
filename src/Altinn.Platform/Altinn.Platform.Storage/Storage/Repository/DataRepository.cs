@@ -34,8 +34,8 @@ namespace Altinn.Platform.Storage.Repository
 
         private readonly AzureStorageConfiguration _storageConfiguration;
 
-        private readonly CloudBlobClient _blobClient;
-        private readonly CloudBlobContainer _container;
+        private readonly CloudBlobClient _commonBlobClient = null;
+        private readonly CloudBlobContainer _commonBlobContainer = null;
 
         /// <summary>
         /// Gets or sets the data context for the application owner
@@ -66,28 +66,14 @@ namespace Altinn.Platform.Storage.Repository
 
             _documentClient.OpenAsync();
 
-            // connect to azure blob storage
-            StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-
-            _blobClient = CreateBlobClient(storageCredentials, storageAccount);
-            _container = _blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
-        }
-
-        private CloudBlobClient CreateBlobClient(StorageCredentials storageCredentials, CloudStorageAccount storageAccount)
-        {
-            CloudBlobClient blobClient;
-            if (_storageConfiguration.AccountName.StartsWith("devstoreaccount1"))
+            if (!_storageConfiguration.OrgPrivateBlobStorageEnabled)
             {
-                StorageUri storageUrl = new StorageUri(new Uri(_storageConfiguration.BlobEndPoint));
-                blobClient = new CloudBlobClient(storageUrl, storageCredentials);
-            }
-            else
-            {
-                blobClient = storageAccount.CreateCloudBlobClient();
-            }
+                StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
+                CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
 
-            return blobClient;
+                _commonBlobClient = CreateBlobClient(storageCredentials, storageAccount);
+                _commonBlobContainer = _commonBlobClient.GetContainerReference(_storageConfiguration.StorageContainer);
+            }
         }
 
         /// <inheritdoc/>
@@ -208,12 +194,28 @@ namespace Altinn.Platform.Storage.Repository
 
         private CloudBlobContainer GetBlobContainer()
         {
-            if (OrgDataContext.OrgBlobContainer != null)
+            if (_storageConfiguration.OrgPrivateBlobStorageEnabled)
             {
                 return OrgDataContext.OrgBlobContainer;
             }
 
-            return _container;
+            return _commonBlobContainer;
+        }
+
+        private CloudBlobClient CreateBlobClient(StorageCredentials storageCredentials, CloudStorageAccount storageAccount)
+        {
+            CloudBlobClient blobClient;
+            if (_storageConfiguration.AccountName.StartsWith("devstoreaccount1"))
+            {
+                StorageUri storageUrl = new StorageUri(new Uri(_storageConfiguration.BlobEndPoint));
+                blobClient = new CloudBlobClient(storageUrl, storageCredentials);
+            }
+            else
+            {
+                blobClient = storageAccount.CreateCloudBlobClient();
+            }
+
+            return blobClient;
         }
     }
 }
