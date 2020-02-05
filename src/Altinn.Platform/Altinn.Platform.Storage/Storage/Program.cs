@@ -43,14 +43,7 @@ namespace Altinn.Platform.Storage
             Host.CreateDefaultBuilder(args)
             .ConfigureWebHostDefaults(webBuilder =>
             {
-                webBuilder.UseStartup<Startup>()
-
-                    // Parameters required for integration with SBL in local development
-                    ////.UseKestrel()
-                    ////.UseContentRoot(Directory.GetCurrentDirectory())
-                    ////.UseIISIntegration()
-
-                    .UseUrls("http://*:5010");
+                webBuilder.UseStartup<Startup>().UseUrls("http://*:5010");
             })
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
