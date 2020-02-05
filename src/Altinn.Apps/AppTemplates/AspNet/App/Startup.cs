@@ -56,7 +56,7 @@ namespace Altinn.App
 
             // Internal Application services
             services.AddTransient<IApplication, ApplicationAppSI>();
-            services.AddTransient<IAppResources, AppResourcesSI>();
+            services.AddSingleton<IAppResources, AppResourcesSI>();
             services.AddTransient<IPDF, PDFSI>();
             services.AddTransient<IProcess, ProcessAppSI>();
             services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
