@@ -30,6 +30,7 @@ namespace Altinn.App.Services.Helpers
 
             parties.ForEach(party =>
             {
+                bool canPartyInstantiate = IsPartyAllowedToInstantiate(party, partyTypesAllowed);
                 bool isChildPartyAllowed = false;
                 List<Party> allowedChildParties = null;
                 if (party.ChildParties != null)
@@ -45,20 +46,20 @@ namespace Altinn.App.Services.Helpers
                     }
                 }
 
-                if (IsPartyAllowedToInstantiate(party, partyTypesAllowed) && isChildPartyAllowed)
+                if (canPartyInstantiate && isChildPartyAllowed)
                 {
                     party.ChildParties = new List<Party>();
                     party.ChildParties.AddRange(allowedChildParties);
                     allowed.Add(party);
                 }
-                else if (!IsPartyAllowedToInstantiate(party, partyTypesAllowed) && isChildPartyAllowed)
+                else if (!canPartyInstantiate && isChildPartyAllowed)
                 {
                     party.ChildParties = new List<Party>();
                     party.OnlyHierarchyElementWithNoAccess = true;
                     party.ChildParties.AddRange(allowedChildParties);
                     allowed.Add(party);
                 }
-                else if (IsPartyAllowedToInstantiate(party, partyTypesAllowed))
+                else if (canPartyInstantiate)
                 {
                     party.ChildParties = new List<Party>();
                     allowed.Add(party);
