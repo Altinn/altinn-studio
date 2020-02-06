@@ -11,6 +11,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -33,6 +34,7 @@ namespace Altinn.Platform.Storage.Repository
         private readonly DocumentClient _documentClient;
 
         private readonly AzureStorageConfiguration _storageConfiguration;
+        private readonly ILogger<DataRepository> _logger;
 
         private readonly CloudBlobClient _commonBlobClient = null;
         private readonly CloudBlobContainer _commonBlobContainer = null;
@@ -47,9 +49,11 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for azure cosmos database</param>
         /// <param name="storageConfiguration">the storage configuration for azure blob storage</param>
-        public DataRepository(IOptions<AzureCosmosSettings> cosmosettings, IOptions<AzureStorageConfiguration> storageConfiguration)
+        /// <param name="logger">The logger to use when writing to logs.</param>
+        public DataRepository(IOptions<AzureCosmosSettings> cosmosettings, IOptions<AzureStorageConfiguration> storageConfiguration, ILogger<DataRepository> logger)
         {
             _storageConfiguration = storageConfiguration.Value;
+            _logger = logger;
 
             CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosettings.Value);
 
@@ -188,7 +192,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <returns></returns>
         public OrgDataContext GetOrgDataContext(string org)
         {
-            OrgDataContext = new OrgDataContext(org, _storageConfiguration);
+            OrgDataContext = new OrgDataContext(org, _storageConfiguration, _logger);
             return OrgDataContext;
         }
 

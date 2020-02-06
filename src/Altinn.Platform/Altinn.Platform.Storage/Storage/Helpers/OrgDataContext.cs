@@ -1,9 +1,11 @@
 using System;
 
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Repository;
 
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -23,15 +25,18 @@ namespace Altinn.Platform.Storage.Helpers
         public CloudBlobContainer OrgBlobContainer { get; private set; }
 
         private readonly AzureStorageConfiguration _storageConfiguration;
+        private readonly ILogger<DataRepository> _logger;
 
         /// <summary>
         /// Creates an instance of a <see cref="OrgDataContext"></see>
         /// </summary>
         /// <param name="org">Application owner name</param>
         /// <param name="storageConfiguration">the storage configuration for azure blob storage</param>
-        public OrgDataContext(string org, AzureStorageConfiguration storageConfiguration)
+        /// <param name="logger">The logger to use when writing to logs.</param>
+        public OrgDataContext(string org, AzureStorageConfiguration storageConfiguration, ILogger<DataRepository> logger)
         {
             _storageConfiguration = storageConfiguration;
+            _logger = logger;
 
             OrgBlobContainer = CreateCloudBlobContainer(org);
         }
@@ -52,22 +57,32 @@ namespace Altinn.Platform.Storage.Helpers
         {
             try
             {
+                _logger.LogInformation($"Preparing to connect to storage for '{org}'.");
+
                 string secretUri = string.Format(_storageConfiguration.OrgKeyVaultURI, org);
                 string storageAccount = string.Format(_storageConfiguration.OrgStorageAccount, org);
                 string sasDefinition = string.Format(_storageConfiguration.OrgSasDefinition, org);
 
                 string blobEndpoint = string.Format(_storageConfiguration.BlobEndPoint, storageAccount);
 
+                _logger.LogInformation($"Getting secret '{storageAccount}-{sasDefinition}' from '{secretUri}'.");
+
                 KeyVaultClient kv = Startup.PlatformKeyVaultClient;
                 SecretBundle sb = kv.GetSecretAsync(secretUri, $@"{storageAccount}-{sasDefinition}").Result;
                 StorageCredentials accountSasCredential = new StorageCredentials(sb.Value);
 
-                CloudStorageAccount accountWithSas = new CloudStorageAccount(accountSasCredential, new Uri(blobEndpoint), null, null, null);
+                _logger.LogInformation($"Creating CloudStorageAccount for storage endpoint '{blobEndpoint}'.");
 
-                return accountWithSas.CreateCloudBlobClient();
+                CloudStorageAccount accountWithSas = new CloudStorageAccount(accountSasCredential, new Uri(blobEndpoint), null, null, null);
+                CloudBlobClient cloudBlobClient = accountWithSas.CreateCloudBlobClient();
+
+                _logger.LogInformation($"Successfully connected");
+
+                return cloudBlobClient;
             }
-            catch
+            catch (Exception e)
             {
+                _logger.LogError(e, "Exception when attempting to create a CloudBlobClient.");
                 return null;
             }
         }
