@@ -39,6 +39,8 @@ namespace UnitTests
         
             UserProfile user = JsonConvert.DeserializeObject<UserProfile>(await response.Content.ReadAsStringAsync());
             Assert.Equal(1337, user.UserId);
+            Assert.Equal("SophieDDG", user.UserName);
+            Assert.Equal("Sophie Salt", user.Party.Name);
         }
 
         [Fact]
