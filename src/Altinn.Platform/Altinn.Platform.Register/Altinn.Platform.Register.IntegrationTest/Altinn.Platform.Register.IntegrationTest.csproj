@@ -38,6 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="jwtselfsignedcert.pfx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="JWTValidationCert.cer">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -142,7 +142,6 @@ namespace Altinn.Platform.Register.IntegrationTest.TestingControllers
                     services.AddSingleton(partiesService);
 
                     // Set up mock authentication so that not well known endpoint is used
-                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
                 builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
