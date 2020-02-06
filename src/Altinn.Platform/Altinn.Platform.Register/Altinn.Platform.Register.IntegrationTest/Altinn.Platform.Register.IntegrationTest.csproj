@@ -37,4 +37,13 @@
     <ProjectReference Include="..\Register\Altinn.Platform.Register.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="jwtselfsignedcert.pfx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="JWTValidationCert.cer">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
