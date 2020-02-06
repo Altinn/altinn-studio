@@ -24,7 +24,7 @@ namespace Altinn.App.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly ILogger _logger;
-        private Application _application;
+        private static Application _application;
 
         private readonly Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
