@@ -228,7 +228,7 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value, "EAS Health Consulting");
             Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value, "http://setrabrl.no");
 
-            TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1002, guid);
+            TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 500600, guid);
         }
 
 
