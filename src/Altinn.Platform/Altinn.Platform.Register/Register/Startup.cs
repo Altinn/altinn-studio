@@ -5,7 +5,7 @@ using System.Reflection;
 using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Services.Implementation;
 using Altinn.Platform.Register.Services.Interfaces;
-
+using AltinnCore.Authentication.JwtCookie;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.AspNetCore.Builder;
@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 using Serilog;
@@ -40,13 +41,16 @@ namespace Altinn.Platform.Register
           .WriteTo.Console()
           .CreateLogger();
 
+        private readonly IWebHostEnvironment _env;
+
         /// <summary>
         ///  Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
         /// <param name="configuration">The configuration for the register component</param>
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            _env = env;
         }
 
         /// <summary>
@@ -70,6 +74,29 @@ namespace Altinn.Platform.Register
 
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+
+            GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+            services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
+                  .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
+                  {
+                      GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+                      options.JwtCookieName = generalSettings.JwtCookieName;
+                      options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+                      options.TokenValidationParameters = new TokenValidationParameters
+                      {
+                          ValidateIssuerSigningKey = true,
+                          ValidateIssuer = false,
+                          ValidateAudience = false,
+                          RequireExpirationTime = true,
+                          ValidateLifetime = true
+                      };
+
+                      if (_env.IsDevelopment())
+                      {
+                          options.RequireHttpsMetadata = false;
+                      }
+                  });
+
             services.AddSingleton<IOrganizations, OrganizationsWrapper>();
             services.AddSingleton<IPersons, PersonsWrapper>();
             services.AddSingleton<IParties, PartiesWrapper>();
@@ -132,6 +159,8 @@ namespace Altinn.Platform.Register
             });
 
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

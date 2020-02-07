@@ -30,11 +30,11 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task Instance_Get_FailsOK()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "platform-fails");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/platform-fails/instances/1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/platform-fails/instances/1337/26133fb5-a9f2-45d4-90b1-f6d93ad40713");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             
@@ -46,24 +46,24 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task Instance_Put_FailsOK()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "platform-fails");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             Instance instance = new Instance
             {
-                Id = $"1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713",
+                Id = $"1337/26133fb5-a9f2-45d4-90b1-f6d93ad40713",
                 Org = "tdd",
                 AppId = "tdd/platform-fails",
                 InstanceOwner = new InstanceOwner
                 {
-                    PartyId = "1000",
+                    PartyId = "1337",
                 },
             };
 
             StringContent httpContent = new StringContent(instance.ToString(), Encoding.UTF8, "application/json");
     
-            HttpResponseMessage response = await client.PutAsync("/tdd/platform-fails/instances/1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713",
+            HttpResponseMessage response = await client.PutAsync("/tdd/platform-fails/instances/1337/26133fb5-a9f2-45d4-90b1-f6d93ad40713",
                 httpContent);
 
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
@@ -72,11 +72,11 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task Instance_Post_Instance_FailOk()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "platform-fails");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/platform-fails/instances?instanceOwnerPartyId=1000");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/platform-fails/instances?instanceOwnerPartyId=1337");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 

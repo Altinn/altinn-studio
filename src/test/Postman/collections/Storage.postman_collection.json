@@ -2789,10 +2789,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
 						"url": {
 							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
 							"protocol": "https",

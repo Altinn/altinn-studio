@@ -1,0 +1,33 @@
+{
+  "id": "1337/182e053b-3c74-46d4-92ec-a2828289a877",
+  "instanceOwner": {
+    "partyId": "1337",
+    "personNumber": "12345678901"
+  },
+  "appId": "tdd/custom-validation",
+  "org": "tdd",
+  "process": {
+    "started": "2019-12-05T13:24:34.8412179Z",
+    "startEvent": "StartEvent_1",
+    "currentTask": {
+      "flow": 2,
+      "started": "2019-12-05T13:24:34.9196661Z",
+      "elementId": "Task_1",
+      "name": "Utfylling",
+      "altinnTaskType": "data",
+      "validated": {
+        "timestamp": "2019-12-05T21:02:14.7194072+01:00",
+        "canCompleteTask": true
+      }
+    }
+  },
+  "data": [
+    {
+      "id": "7dfeffd1-1750-4e4a-8107-c6741e05d2a9",
+      "dataType": "default",
+      "contentType": "application/xml",
+      "size": 0,
+      "locked": false
+    }
+  ]
+}

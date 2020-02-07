@@ -10,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-
 using Serilog;
 using Serilog.Core;
 using Serilog.Extensions.Logging;
@@ -44,24 +43,16 @@ namespace Altinn.Platform.Storage
             Host.CreateDefaultBuilder(args)
             .ConfigureWebHostDefaults(webBuilder =>
             {
-                webBuilder.UseStartup<Startup>()
-
-                  // Parameters required for integration with SBL in local development
-                   /* .UseKestrel()
-                    .UseContentRoot(Directory.GetCurrentDirectory())
-                    .UseIISIntegration()*/
-                    .UseUrls("http://*:5010");
+                webBuilder.UseStartup<Startup>().UseUrls("http://*:5010");
             })
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-                _logger.Information("Program // ConfigureAppConfiguration");
+                LoadAppSettingsFiles(config);
 
-                string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+                ConnectToKeyVaultAndSetApplicationInsigths(config);
 
-                string basePathCurrentDirectory = Directory.GetCurrentDirectory();
-                _logger.Information($"Current directory is: {basePathCurrentDirectory}");
-
-                LoadConfigurationSettings(config, basePath, args);
+                config.AddEnvironmentVariables();
+                config.AddCommandLine(args);
             })
             .ConfigureLogging((hostingContext, logging) =>
             {
@@ -82,27 +73,27 @@ namespace Altinn.Platform.Storage
         /// Load the configuration settings for the program.
         /// </summary>
         /// <param name="config">the config</param>
-        /// <param name="basePath">the base path to look for application settings files</param>
-        /// <param name="args">programs arguments</param>
-        public static void LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
+        public static void LoadAppSettingsFiles(IConfigurationBuilder config)
         {
-            _logger.Information("Program // LoadConfigurationSettings");
-            config.SetBasePath(basePath);
-            config.AddJsonFile(basePath + "altinn-appsettings/altinn-dbsettings-secret.json", true, true);
+            _logger.Information("Program // ConfigureAppConfiguration");
 
-            if (basePath == "/")
+            string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+            config.SetBasePath(basePath);
+            config.AddJsonFile(basePath + @"altinn-appsettings\altinn-dbsettings-secret.json", true, true);
+            if (basePath == "/") 
             {
-                config.AddJsonFile(basePath + "app/appsettings.json", false, true);
+                // On a pod/container where the app is located in an app folder on the root of the filesystem.
+                string filePath = basePath + @"app\appsettings.json";
+                _logger.Information($"Loading configuration file: {filePath}");
+                config.AddJsonFile(filePath, false, true);
             }
             else
             {
-                config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", false, true);
+                // Running on development machine.
+                string filePath = Directory.GetCurrentDirectory() + @"\appsettings.json";
+                _logger.Information($"Loading configuration file: {filePath}");
+                config.AddJsonFile(filePath, false, true);
             }
-
-            config.AddEnvironmentVariables();
-            config.AddCommandLine(args);
-
-            ConnectToKeyVaultAndSetApplicationInsigths(config);            
         }
 
         private static void ConnectToKeyVaultAndSetApplicationInsigths(IConfigurationBuilder config)
@@ -122,8 +113,10 @@ namespace Altinn.Platform.Storage
                                           $"AppKey={keyVaultSettings.ClientSecret}";
                 AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider(connectionString);
                 KeyVaultClient keyVaultClient = new KeyVaultClient(
-                    new KeyVaultClient.AuthenticationCallback(
-                        azureServiceTokenProvider.KeyVaultTokenCallback));
+                    new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+
+                Startup.PlatformKeyVaultClient = keyVaultClient;
+
                 config.AddAzureKeyVault(
                     keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
                 try

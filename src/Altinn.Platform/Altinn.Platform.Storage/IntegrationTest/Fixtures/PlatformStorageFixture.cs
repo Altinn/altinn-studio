@@ -30,22 +30,19 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
         /// </summary>
         public PlatformStorageFixture()
         {
-            string[] args = { };
-
             ConfigurationBuilder config = new ConfigurationBuilder();
-            Program.LoadConfigurationSettings(config, GetContentRootPath(), args);
+            Program.LoadAppSettingsFiles(config);
 
             IWebHostBuilder builder = new WebHostBuilder()
                 .UseContentRoot(GetContentRootPath())
                 .UseEnvironment("Development")
                 .UseConfiguration(config.Build())
-                .UseStartup<Altinn.Platform.Storage.Startup>()
+                .UseStartup<Startup>()
                 .ConfigureTestServices(services =>
                 {
                     services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
 
                     // Set up mock authentication so that not well known endpoint is used
-                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
 

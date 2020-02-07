@@ -35,41 +35,9 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
             return tokenstring;
         }
 
-        /// <summary>
-        /// Validates a token and return the ClaimsPrincipal if successful. The validation key used is from the self signed certificate
-        /// and is included in the integration test project as a separate file.
-        /// </summary>
-        /// <param name="token">The token to be validated.</param>
-        /// <returns>ClaimsPrincipal</returns>
-        public static ClaimsPrincipal ValidateToken(string token)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.CodeBase).LocalPath);
-
-            string certPath = Path.Combine(unitTestFolder, @"..\..\..\JWTValidationCert.cer");
-
-            X509Certificate2 cert = new X509Certificate2(certPath);
-            SecurityKey key = new X509SecurityKey(cert);
-
-            TokenValidationParameters validationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = key,
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                RequireExpirationTime = true,
-                ValidateLifetime = true
-            };
-
-            JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
-            return validator.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
-        }
-
         private static SigningCredentials GetSigningCredentials()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.CodeBase).LocalPath);
-
-            string certPath = Path.Combine(unitTestFolder, @"..\..\..\jwtselfsignedcert.pfx");
-            X509Certificate2 cert = new X509Certificate2(certPath, "qwer1234");
+            X509Certificate2 cert = new X509Certificate2("selfSignedTestCertificate.pfx", "qwer1234");
             return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
         }
     }

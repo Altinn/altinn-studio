@@ -2045,12 +2045,6 @@
 								"value": "application/octet-stream"
 							}
 						],
-						"body": {
-							"mode": "file",
-							"file": {
-								"src": ""
-							}
-						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
 							"protocol": "https",
@@ -2604,10 +2598,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
-						},
 						"url": {
 							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
 							"protocol": "https",
