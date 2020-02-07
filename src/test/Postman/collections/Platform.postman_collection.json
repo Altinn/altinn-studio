@@ -7,6 +7,240 @@
 	},
 	"item": [
 		{
+			"name": "SetUp TestData",
+			"item": [
+				{
+					"name": "Authenticate user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "405f0af9-b1dd-42cb-acad-8835c9f15dd3",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "b4c59095-e73f-4b65-9290-a748b25c7357",
+								"exec": [
+									"const jar = pm.cookies.jar();",
+									"var domain = pm.environment.get(\"envUrl\");",
+									"jar.clear(domain, function (error){",
+									"    if(error)",
+									"    {",
+									"        console.log(\"error\",error);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/hal+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"UserName\": \"{{testUserName}}\",\r\n    \"UserPassword\": \"{{testUserPassword}}\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{envUrl}}/api/authentication/authenticatewithpassword",
+							"protocol": "https",
+							"host": [
+								"{{envUrl}}"
+							],
+							"path": [
+								"api",
+								"authentication",
+								"authenticatewithpassword"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Runtime Cookie",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3642e91a-7bdc-486a-ab19-86d68fb3acee",
+								"exec": [
+									"var responseAltinnStudioCookie = postman.getResponseCookie(\"AltinnStudioRuntime\");",
+									"responseAltinnStudioCookie = responseAltinnStudioCookie.value.toString();",
+									"pm.environment.set(\"AltinnStudioRuntime\",responseAltinnStudioCookie);",
+									"",
+									"const cookieJar = pm.cookies.jar();",
+									"var domain = pm.environment.get(\"envUrl\");",
+									"cookieJar.set(domain,\"AltinnStudioRuntime\",responseAltinnStudioCookie,function(error,cookie){",
+									"    if(error)",
+									"    {",
+									"        console.log(\"error\",error);",
+									"    }",
+									"});",
+									"",
+									"cookieJar.clear(domain, function (error){",
+									"    if(error)",
+									"    {",
+									"        console.log(\"error\",error);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "e2e69b4a-b07a-48bb-b8a7-736a954aa30d",
+								"exec": [
+									"pm.environment.set(\"AltinnStudioRuntime\",\"\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authentication/api/v1/authentication?goto=https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authentication",
+								"api",
+								"v1",
+								"authentication"
+							],
+							"query": [
+								{
+									"key": "goto",
+									"value": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Party Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6505cb59-4588-4d0c-af60-b5faa7dcb8c1",
+								"exec": [
+									"if(pm.response.code == 200)",
+									"{",
+									"    var jsonData = pm.response.json();",
+									"    var partyId = jsonData.partyId;",
+									"    var ssn = jsonData.party.ssn;",
+									"    var userId = jsonData.userId;",
+									"    pm.environment.set(\"partyID\",partyId);",
+									"    pm.environment.set(\"SSN\",ssn);",
+									"    pm.environment.set(\"userID\",userId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "5a8073fb-c692-41da-9b4c-d65247522491",
+								"exec": [
+									"const cookieJar = pm.cookies.jar();",
+									"var domain = pm.environment.get(\"envUrl\");",
+									"cookieJar.clear(domain, function (error){",
+									"    if(error)",
+									"    {",
+									"        console.log(\"error\",error);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/api/v1/profile/user",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"api",
+								"v1",
+								"profile",
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "147b7979-a781-4be9-870e-cc9349a6419d",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "9f54a269-3647-4af6-b1e9-2d15d187ff32",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
 			"name": "Register",
 			"item": [
 				{
@@ -31,6 +265,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -73,6 +317,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -114,6 +368,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -165,6 +429,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -217,6 +491,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -273,6 +557,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -329,6 +623,16 @@
 						"disableBodyPruning": true
 					},
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [
 							{
@@ -602,7 +906,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://platform.{{envUrl}}/authorization/api/v1/policies?org={{org}}&app={{app}}",
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/policies?org={{org}}&app={{testApp}}",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -621,7 +925,7 @@
 								},
 								{
 									"key": "app",
-									"value": "{{app}}"
+									"value": "{{testApp}}"
 								}
 							]
 						}
@@ -665,7 +969,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Request xsi:schemaLocation=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd\" ReturnPolicyIdList=\"false\" CombinedDecision=\"false\" xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:userid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{userID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:partyid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{partyID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:org\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{org}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:app\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{app}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:task\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">Task_1</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">read</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:environment\" />\r\n</Request>",
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Request xsi:schemaLocation=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd\" ReturnPolicyIdList=\"false\" CombinedDecision=\"false\" xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:userid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{userID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:partyid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{partyID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:org\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{org}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:app\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{testApp}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:task\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">Task_1</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">read</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:environment\" />\r\n</Request>",
 							"options": {
 								"raw": {
 									"language": "xml"
@@ -726,7 +1030,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Request xsi:schemaLocation=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd\" ReturnPolicyIdList=\"false\" CombinedDecision=\"false\" xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:userid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{userID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:partyid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{partyID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:org\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{org}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:app\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{app}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:task\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">formfilling</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">sign</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:environment\" />\r\n</Request>",
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Request xsi:schemaLocation=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd\" ReturnPolicyIdList=\"false\" CombinedDecision=\"false\" xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:userid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{userID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:partyid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{partyID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:org\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{org}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:app\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{testApp}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:task\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">formfilling</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">sign</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:environment\" />\r\n</Request>",
 							"options": {
 								"raw": {
 									"language": "xml"
@@ -788,7 +1092,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": true,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"read\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{app}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
+							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": true,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"read\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{testApp}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -850,7 +1154,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": true,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"sign\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{app}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
+							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": true,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"sign\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{testApp}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
