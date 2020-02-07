@@ -26,7 +26,7 @@ namespace App.IntegrationTestsRef.AppBase
         [Fact]
         public async void OnInstantiation_ProcessIsStarted()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
 
@@ -62,7 +62,7 @@ namespace App.IntegrationTestsRef.AppBase
         [Fact]
         public async void OnTaskStart_DataElementIsCreated()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
 
@@ -89,7 +89,7 @@ namespace App.IntegrationTestsRef.AppBase
         [Fact]
         public async void OnTaskEnd_DataElementIsLocked()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
 
@@ -119,7 +119,7 @@ namespace App.IntegrationTestsRef.AppBase
         [Fact]
         public async void OnProcessEnd_InstanceIsArchived()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -151,13 +151,13 @@ namespace App.IntegrationTestsRef.AppBase
 
         private async Task<Instance> CreateInstance()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             Instance instanceTemplate = new Instance
             {
                 InstanceOwner = new InstanceOwner
                 {
-                    PartyId = "1000",
+                    PartyId = "1337",
                 },
                 DueBefore = DateTime.Parse("2020-01-01"),
             };

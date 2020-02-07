@@ -27,7 +27,7 @@ namespace App.IntegrationTests.ControllerTests
         [Fact]
         public async Task GetHome_OK()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -50,7 +50,7 @@ namespace App.IntegrationTests.ControllerTests
         [Fact]
         public async Task GetHomeWithInstanceId_OK()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
@@ -68,7 +68,7 @@ namespace App.IntegrationTests.ControllerTests
         [Fact]
         public async Task GetHome_OK_WithAuthCookie()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/")
