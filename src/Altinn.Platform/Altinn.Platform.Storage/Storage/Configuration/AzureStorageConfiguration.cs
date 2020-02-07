@@ -29,5 +29,30 @@ namespace Altinn.Platform.Storage.Configuration
         /// url for the blob end point
         /// </summary>
         public string BlobEndPoint { get; set; }
+
+        /// <summary>
+        /// url for the app owner Key Vault
+        /// </summary>
+        public string OrgKeyVaultURI { get; set; }
+
+        /// <summary>
+        /// name of app owner storage account
+        /// </summary>
+        public string OrgStorageAccount { get; set; }
+
+        /// <summary>
+        /// name of SAS definition in app owner Key Vault
+        /// </summary>
+        public string OrgSasDefinition { get; set; }
+
+        /// <summary>
+        /// name of storage container in app owner storage account
+        /// </summary>
+        public string OrgStorageContainer { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether Storage should use private blob storage accounts for each application owner.
+        /// </summary>
+        public bool OrgPrivateBlobStorageEnabled { get; set; }
     }
 }
