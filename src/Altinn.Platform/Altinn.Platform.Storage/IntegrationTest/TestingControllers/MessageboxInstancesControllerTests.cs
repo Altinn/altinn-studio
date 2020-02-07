@@ -8,7 +8,6 @@ using System.Reflection;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.IntegrationTest.Mocks;
 using Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
@@ -35,7 +34,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         private const string BasePath = "/storage/api/v1";
 
         private readonly WebApplicationFactory<Startup> _factory;
-        private string _validToken;
+        private readonly string _validToken;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageboxInstancesControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
@@ -602,7 +601,6 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                     services.AddSingleton(applicationRepository);
                     services.AddSingleton(instanceEventRepository);
                     services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
-                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
             }).CreateClient();

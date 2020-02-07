@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Services.Interfaces;
-
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Register.Controllers
@@ -10,6 +10,7 @@ namespace Altinn.Platform.Register.Controllers
     /// <summary>
     /// The persons controller
     /// </summary>
+    [Authorize]
     [Route("register/api/v1/persons")]
     public class PersonsController : Controller
     {

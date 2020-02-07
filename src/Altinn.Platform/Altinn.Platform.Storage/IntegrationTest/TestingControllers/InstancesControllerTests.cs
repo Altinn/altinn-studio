@@ -267,7 +267,6 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                     services.AddSingleton(instanceEventRepository.Object);
                     services.AddSingleton(instanceRepository);
                     services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
-                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
             }).CreateClient();
