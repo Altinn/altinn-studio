@@ -32,11 +32,11 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task ValidateForm_CustomValidation_InvalidData()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1000/0fc98a23-fe31-4ef5-8fb9-dd3f479354cd/validate");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/0fc98a23-fe31-4ef5-8fb9-dd3f479354cd/validate");
             {
             };
 
@@ -59,11 +59,11 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task ValidateForm_ValidData()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1000/16314483-65f3-495a-aaec-79445b4edb0b/validate");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/16314483-65f3-495a-aaec-79445b4edb0b/validate");
             {
             };
 
@@ -83,11 +83,11 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task ValidateForm_ModelValidation_InvalidData()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/validate");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/46133fb5-a9f2-45d4-90b1-f6d93ad40713/validate");
             {
             };
 
@@ -109,11 +109,11 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task ValidateAttachment_ValidData()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            string url = "/tdd/custom-validation/instances/1000/16314483-65f3-495a-aaec-79445b4edb0b/data/b862f944-3f04-45e3-b445-6bbd09f65ad5/validate";
+            string url = "/tdd/custom-validation/instances/1337/16314483-65f3-495a-aaec-79445b4edb0b/data/b862f944-3f04-45e3-b445-6bbd09f65ad5/validate";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
             {
             };

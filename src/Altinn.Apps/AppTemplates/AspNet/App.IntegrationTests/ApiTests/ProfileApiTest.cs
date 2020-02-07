@@ -1,6 +1,8 @@
 using Altinn.App.IntegrationTests;
+using Altinn.Platform.Profile.Models;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -29,7 +31,7 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task Profile_Get_OK()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -38,9 +40,12 @@ namespace App.IntegrationTestsRef.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
-
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            string profileData = await response.Content.ReadAsStringAsync();
+            UserProfile profile = JsonConvert.DeserializeObject<UserProfile>(profileData);
+            Assert.Equal(1337, profile.UserId);
+            Assert.Equal("SophieDDG", profile.UserName);
+            Assert.Equal("Sophie Salt", profile.Party.Name);
         }
 
     }

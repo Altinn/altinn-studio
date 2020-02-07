@@ -34,11 +34,11 @@ namespace App.IntegrationTests
         [Fact]
         public async Task Instance_Get_OK()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713")
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/26133fb5-a9f2-45d4-90b1-f6d93ad40713")
             {
             };
 
@@ -48,7 +48,7 @@ namespace App.IntegrationTests
             Instance instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("1000", instance.InstanceOwner.PartyId);
+            Assert.Equal("1337", instance.InstanceOwner.PartyId);
         }
 
         /// <summary>
@@ -74,11 +74,11 @@ namespace App.IntegrationTests
         [Fact]
         public async Task Instance_Post_WithQueryParamOk()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances?instanceOwnerPartyId=1000")
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances?instanceOwnerPartyId=1337")
             {
             };
 
@@ -88,21 +88,21 @@ namespace App.IntegrationTests
             Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotNull(instance);
-            Assert.Equal("1000", instance.InstanceOwner.PartyId);
+            Assert.Equal("1337", instance.InstanceOwner.PartyId);
 
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
         [Fact]
         public async void Instance_Post_With_InstanceTemplate()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             Instance instanceTemplate = new Instance
             {
                 InstanceOwner = new InstanceOwner
                 {
-                    PartyId = "1000",
+                    PartyId = "1337",
                 },
                 DueBefore = DateTime.Parse("2020-01-01"),
             };
@@ -126,8 +126,8 @@ namespace App.IntegrationTests
 
             Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
 
-            Assert.Equal("1000", createdInstance.InstanceOwner.PartyId);
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn",1000, new Guid(createdInstance.Id.Split('/')[1]));
+            Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn",1337, new Guid(createdInstance.Id.Split('/')[1]));
 
         }
 
@@ -140,7 +140,7 @@ namespace App.IntegrationTests
             {
                 InstanceOwner = new InstanceOwner
                 {
-                    PartyId = "1000",
+                    PartyId = "1337",
                 },
                 DueBefore = DateTime.Parse("2020-01-01"),
             };
@@ -164,8 +164,8 @@ namespace App.IntegrationTests
 
             Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
 
-            Assert.Equal("1000", createdInstance.InstanceOwner.PartyId);
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new Guid(createdInstance.Id.Split('/')[1]));
+            Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
 
         }
 
@@ -176,7 +176,7 @@ namespace App.IntegrationTests
         public async void Instance_Post_WithMultipartPrefill()
         {
             /* SETUP */
-            string instanceOwnerPartyId = "1000";
+            string instanceOwnerPartyId = "1337";
 
             Instance instanceTemplate = new Instance()
             {
@@ -201,7 +201,7 @@ namespace App.IntegrationTests
             /* TEST */
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             HttpResponseMessage response =  await client.PostAsync(uri, formData);
@@ -216,17 +216,17 @@ namespace App.IntegrationTests
             Assert.Single(createdInstance.Data);
             Assert.Equal("default", createdInstance.Data[0].DataType);
 
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new Guid(createdInstance.Id.Split('/')[1]));
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
         [Fact]
         public async Task Instance_Post_WithInstantiationValidationFail()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/custom-validation/instances?instanceOwnerPartyId=1000")
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/custom-validation/instances?instanceOwnerPartyId=1337")
             {
             };
 
@@ -250,7 +250,7 @@ namespace App.IntegrationTests
                 Assert.Single(createdInstance.Data);
                 Assert.Equal("default", createdInstance.Data[0].DataType);
 
-                TestDataUtil.DeletInstanceAndData("tdd", "custom-validering", 1000, new Guid(createdInstance.Id.Split('/')[1]));
+                TestDataUtil.DeletInstanceAndData("tdd", "custom-validering", 1337, new Guid(createdInstance.Id.Split('/')[1]));
             }
 
         }
@@ -258,7 +258,7 @@ namespace App.IntegrationTests
         [Fact]
         public async Task Instance_Post_WithQueryParamOk_AuthCookie()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             HttpRequestMessage httpRequestMessageHome = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/")
@@ -271,7 +271,7 @@ namespace App.IntegrationTests
             HttpResponseMessage responseHome = await client.SendAsync(httpRequestMessageHome);
 
             string xsrfToken = SetupUtil.GetXsrfCookieValue(responseHome);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances?instanceOwnerPartyId=1000")
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances?instanceOwnerPartyId=1337")
             {
             };
 
@@ -283,9 +283,9 @@ namespace App.IntegrationTests
             Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotNull(instance);
-            Assert.Equal("1000", instance.InstanceOwner.PartyId);
+            Assert.Equal("1337", instance.InstanceOwner.PartyId);
 
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
         /*
@@ -323,11 +323,11 @@ namespace App.IntegrationTests
         [Fact]
         public async Task Instance_Post_WithLowAuthLevel_FailOk()
         {
-            string token = PrincipalUtil.GetToken(1, 1);
+            string token = PrincipalUtil.GetToken(1337, 1);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances?instanceOwnerPartyId=1000")
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances?instanceOwnerPartyId=1337")
             {
             };
 
