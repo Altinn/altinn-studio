@@ -54,7 +54,7 @@ namespace KubernetesWrapper
             services.AddControllers();
 
             // dependency injection
-            services.AddSingleton<IKubernetesAPIWrapper, KubernetesAPIWrapperSI>();
+            services.AddSingleton<IKubernetesApiWrapper, KubernetesApiWrapper>();
         }
 
         /// <summary>

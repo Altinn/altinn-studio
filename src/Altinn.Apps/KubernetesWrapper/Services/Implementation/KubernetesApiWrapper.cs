@@ -10,18 +10,18 @@ using Microsoft.Extensions.Logging;
 namespace KubernetesWrapper.Services.Implementation
 {
     /// <summary>
-    ///  An implementation of the kubernetes api wrapper
+    ///  An implementation of the Kubernetes API wrapper
     /// </summary>
-    public class KubernetesAPIWrapperSI : IKubernetesAPIWrapper
+    public class KubernetesApiWrapper : IKubernetesApiWrapper
     {
-        private Kubernetes _client;
-        private ILogger _logger;
+        private readonly Kubernetes _client;
+        private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KubernetesAPIWrapperSI"/> class
+        /// Initializes a new instance of the <see cref="KubernetesApiWrapper"/> class
         /// </summary>
         /// <param name="logger">The logger</param>
-        public KubernetesAPIWrapperSI(ILogger<KubernetesAPIWrapperSI> logger)
+        public KubernetesApiWrapper(ILogger<KubernetesApiWrapper> logger)
         {
             _logger = logger;
             try
@@ -31,12 +31,12 @@ namespace KubernetesWrapper.Services.Implementation
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Unable to initialize KubernetesAPIWrapperSI");
+                _logger.LogError(e, "Unable to initialize KubernetesApiWrapper");
             }
         }
 
         /// <inheritdoc/>
-        async Task<IList<Deployment>> IKubernetesAPIWrapper.GetDeployments(
+        async Task<IList<Deployment>> IKubernetesApiWrapper.GetDeployments(
             string continueParameter,
             bool? allowWatchBookmarks,
             string fieldSelector,
