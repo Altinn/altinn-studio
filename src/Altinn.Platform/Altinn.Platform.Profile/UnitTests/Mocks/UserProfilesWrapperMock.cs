@@ -17,7 +17,6 @@ namespace UnitTests.Mocks
         {
             UserProfile user = null;
             string path = "../../../Testdata/Profile/User/" + userId + ".json";
-            Directory.GetCurrentDirectory();
             if (File.Exists(path))
             {
                 string content = File.ReadAllText(path);

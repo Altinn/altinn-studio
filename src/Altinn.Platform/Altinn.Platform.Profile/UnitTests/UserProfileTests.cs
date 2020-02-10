@@ -1,4 +1,5 @@
 using Altinn.App.IntegrationTests;
+using Altinn.Platform.Profile;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Profile.UnitTests.Utils;
 using Newtonsoft.Json;
@@ -12,11 +13,11 @@ using Xunit;
 
 namespace UnitTests
 {
-    public class UserProfileTests : IClassFixture<CustomWebApplicationFactory<Altinn.Platform.Profile.Startup>>
+    public class UserProfileTests : IClassFixture<CustomWebApplicationFactory<Startup>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.Platform.Profile.Startup> _factory;
+        private readonly CustomWebApplicationFactory<Startup> _factory;
 
-        public UserProfileTests(CustomWebApplicationFactory<Altinn.Platform.Profile.Startup> factory)
+        public UserProfileTests(CustomWebApplicationFactory<Startup> factory)
         {
             _factory = factory;
         }
