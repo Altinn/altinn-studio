@@ -75,22 +75,25 @@ namespace Altinn.Platform.Storage
         /// <param name="config">the config</param>
         public static void LoadAppSettingsFiles(IConfigurationBuilder config)
         {
-            _logger.Information("Program // ConfigureAppConfiguration");
+            _logger.Information("Program // LoadAppSettingsFiles");
+
+            string currentDirectory = Directory.GetCurrentDirectory();
+            _logger.Information($"Current directory: {currentDirectory}");
 
             string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
             config.SetBasePath(basePath);
-            config.AddJsonFile(basePath + @"altinn-appsettings\altinn-dbsettings-secret.json", true, true);
+            config.AddJsonFile(basePath + @"altinn-appsettings/altinn-dbsettings-secret.json", true, true);
             if (basePath == "/") 
             {
                 // On a pod/container where the app is located in an app folder on the root of the filesystem.
-                string filePath = basePath + @"app\appsettings.json";
+                string filePath = basePath + @"app/appsettings.json";
                 _logger.Information($"Loading configuration file: {filePath}");
                 config.AddJsonFile(filePath, false, true);
             }
             else
             {
                 // Running on development machine.
-                string filePath = Directory.GetCurrentDirectory() + @"\appsettings.json";
+                string filePath = Directory.GetCurrentDirectory() + @"/appsettings.json";
                 _logger.Information($"Loading configuration file: {filePath}");
                 config.AddJsonFile(filePath, false, true);
             }
