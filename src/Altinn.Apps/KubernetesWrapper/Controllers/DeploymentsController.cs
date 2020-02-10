@@ -43,9 +43,9 @@ namespace KubernetesWrapper.Controllers
                 var deployments = await _apiWrapper.GetDeployments(null, null, fieldSelector, labelSelector);
                 return Ok(deployments);
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                _logger.LogError(exception, "Unable to GetDeployments");
+                _logger.LogError(e, "Unable to GetDeployments");
                 return StatusCode(500);
             }
         }
