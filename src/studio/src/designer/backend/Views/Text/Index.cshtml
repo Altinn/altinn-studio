@@ -217,14 +217,14 @@ $(document).ready(function () {
                 contentType: "application/json; charset=UTF-8",
                 data: jsonString,
                 headers: { "X-XSRF-TOKEN": getCookieValue("XSRF-TOKEN") },
-                success: function (data) {
+              success: function (data) {                
                     //$("#message").html(data.Message);
                     //$("#json").html(jsonString);
                     //$("#saveConfirmation").show();
-                },
-                failure: function (errMsg) {
-                    alert(errMsg);
-                }
+              },
+              error: function (data) {
+                alert(data.responseText);
+              }
             });
         }
     }

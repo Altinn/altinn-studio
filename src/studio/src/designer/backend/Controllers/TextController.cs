@@ -91,8 +91,13 @@ namespace Altinn.Studio.Designer.Controllers
             id = id.Split('-')[0];
             JObject json = jsonData;
 
-            // Sort resource texts by id
             JArray resources = json["resources"] as JArray;
+            string[] duplicateKeys = resources.GroupBy(obj => obj["id"]).Where(grp => grp.Count() > 1).Select(grp => grp.Key.ToString()).ToArray();
+            if (duplicateKeys.Length > 0)
+            {
+                return BadRequest($"Text keys must be unique. Please review keys: {string.Join( ", ", duplicateKeys)}");
+            }
+
             JArray sorted = new JArray(resources.OrderBy(obj => obj["id"]));
             json["resources"].Replace(sorted);
 
