@@ -1,6 +1,4 @@
-1. Get the application URL by running these commands:
-{{- if .Values.ingress.enabled }}
-{{- range .Values.ingress.hosts }}
-  http://{{ . }}
-{{- end }}
+1. The application can be reached at:
+{{- range .Values.ingressRoute.routes }}
+  {{ .match }}
 {{- end }}

@@ -17,15 +17,30 @@ service:
   # If your application is running on another port, change only the internal port.
   internalPort: 80
 
-ingress:
-  enabled: true
-  annotations:
-    traefik.ingress.kubernetes.io/rewrite-target: /
-  paths:
-    # The first path will automatically be overwritten during deploy
-    # Additional paths needs to be configured manually
-    - path: /kuberneteswrapper
-  hosts:
-  # The first hosts entry host is configured automatically during deployment in Altinn Studio
-  # For manual deploy, or more hosts, configure hosts
-    - tdd.apps.at22.altinn.cloud
+middlewares:
+- apiVersion: traefik.containo.us/v1alpha1
+  kind: Middleware
+  metadata:
+    name: kuberneteswrapper-strip-prefix
+  spec:
+    replacePathRegex:
+      regex: ^/kuberneteswrapper/(.*)
+      replacement: /$1
+
+ingressRoute:
+  name: Will be inserted during deploy
+  entryPoints:
+    - http
+    - https
+  routes:
+    - match: Will be inserted during deploy
+      kind: Rule
+      services:
+        - name: Will be inserted during deploy
+          port: 80
+      middlewares:
+        - name: kuberneteswrapper-strip-prefix
+  tls:
+    options:
+      name: tls-options
+    secretName: ssl-cert
