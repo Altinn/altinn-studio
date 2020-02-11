@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { IProfile } from './..';
+import { IProfile } from 'altinn-shared/types';
 import * as ActionTypes from './fetchProfileActionTypes';
 
 export interface IFetchProfile extends Action {

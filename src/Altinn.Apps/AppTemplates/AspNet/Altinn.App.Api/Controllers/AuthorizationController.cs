@@ -4,6 +4,7 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
+using Altinn.Platform.Register.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +22,7 @@ namespace Altinn.App.Api.Controllers
         private readonly ILogger _logger;
         private readonly UserHelper _userHelper;
         private readonly GeneralSettings _settings;
+        private readonly IRegister _registerService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthorizationController"/> class
@@ -36,6 +38,7 @@ namespace Altinn.App.Api.Controllers
             _authroization = authorization;
             _logger = logger;
             _settings = settings.Value;
+            _registerService = registerService;
         }
 
         /// <summary>
@@ -43,7 +46,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <returns>Party id for selected party. If invalid, partyId for logged in user is returned.</returns>
         [HttpGet("{org}/{app}/api/authorization/parties/current")]
-        public async Task<ActionResult> GetCurrentParty()
+        public async Task<ActionResult> GetCurrentParty(bool returnPartyObject = false)
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             int userId = userContext.UserId;
@@ -56,6 +59,12 @@ namespace Altinn.App.Api.Controllers
 
                 if (isValid == true)
                 {
+                    if (returnPartyObject)
+                    {
+                        Party party = await _registerService.GetParty(partyId);
+                        return Ok(party);
+                    }
+
                     return Ok(partyId);
                 }
             }
@@ -68,7 +77,11 @@ namespace Altinn.App.Api.Controllers
             {
                 Domain = _settings.HostName
             });
-
+            if (returnPartyObject)
+            {
+                Party party = await _registerService.GetParty(userContext.PartyId);
+                return Ok(party);
+            }
             return Ok(userContext.PartyId);
         }
 

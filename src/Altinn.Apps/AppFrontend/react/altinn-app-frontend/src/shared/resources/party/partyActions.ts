@@ -8,6 +8,7 @@ export interface IPartyActions extends ActionCreatorsMapObject {
   getParties: () => Action;
   getPartiesFulfilled: (parties: IParty[]) => GetPartiesActions.IGetPartiesFulfilled;
   getPartiesRejected: (error: Error) => GetPartiesActions.IGetPartiesRejected;
+  getCurrentParty: () => Action;
   selectParty: (party: IParty, redirect: boolean) => SelectPartyActions.ISelectParty;
   selectPartyFulfilled: (party: IParty) => SelectPartyActions.ISelectPartyFulfilled;
   selectPartyRejected: (error: Error) => SelectPartyActions.ISelectPartyRejected;
@@ -17,6 +18,7 @@ const actions: IPartyActions = {
   getParties: GetPartiesActions.getParties,
   getPartiesFulfilled: GetPartiesActions.getPartiesFulfilled,
   getPartiesRejected: GetPartiesActions.getPartiesRejected,
+  getCurrentParty: GetPartiesActions.getCurrentParty,
   selectParty: SelectPartyActions.selectParty,
   selectPartyFulfilled: SelectPartyActions.selectPartyFulfilled,
   selectPartyRejected: SelectPartyActions.selectPartyRejected,

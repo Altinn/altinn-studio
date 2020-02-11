@@ -18,7 +18,8 @@ export const validPartiesUrl: string =
 export const allPartiesUrl: string =
 `${appPath}/api/v1/parties?allowedtoinstantiatefilter=false`;
 export const instantiateUrl: string = `${appPath}/instances`;
-export const currentPartyUrl: string = `${appPath}/api/authorization/parties/current`;
+export const currentPartyUrl: string = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
+export const currentPartyIdUrl: string = `${appPath}/api/authorization/parties/current`;
 export const instancesControllerUrl: string = `${appPath}/instances`;
 export const partySelectionUrl: string = `${appPath}/#/partyselection`;
 export const refreshJwtTokenUrl: string = `${appPath}/api/authentication/keepAlive`;
