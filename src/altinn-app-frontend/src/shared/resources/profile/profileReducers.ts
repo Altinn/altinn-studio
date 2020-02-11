@@ -1,6 +1,6 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IProfile } from '.';
+import { IProfile } from 'altinn-shared/types';
 import {
   IFetchProfileFulfilled,
   IFetchProfileRejected,

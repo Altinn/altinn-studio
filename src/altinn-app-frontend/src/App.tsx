@@ -62,7 +62,7 @@ export default function() {
     ProfileActions.fetchProfile(profileApiUrl);
     LanguageActions.fetchLanguage(languageUrl, 'nb');
     ApplicationMetadataActions.getApplicationMetadata();
-    PartyActions.getParties();
+    PartyActions.getCurrentParty();
     setUpEventListeners();
     return function cleanup() {
      removeEventListeners();
