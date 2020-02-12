@@ -5,6 +5,7 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -30,13 +31,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Inserts new instance event into the instanceEvent collection.
         /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance that the event is associated with.</param>
         /// <param name="instanceEvent">The instance event object to be inserted</param>
-        /// <returns>The stored instance event object</returns>
-        /// POST storage/api/v1/instances/{instanceId}/events
+        /// <returns>The stored instance event.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpPost]
-        [ProducesResponseType(typeof(InstanceEvent), 201)]
-        public async Task<ActionResult> Post([FromBody] InstanceEvent instanceEvent)
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Produces("application/json")]
+        public async Task<ActionResult<string>> Post(int instanceOwnerPartyId, Guid instanceGuid, [FromBody] InstanceEvent instanceEvent)
         {
             if (instanceEvent == null || instanceEvent.InstanceId == null)
             {
@@ -55,16 +60,18 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Get one event.
+        /// Get information about one specific event.
         /// </summary>
-        /// <param name="instanceOwnerPartyId">instance owner</param>
-        /// <param name="instanceGuid">instance guid</param>
-        /// <param name="eventGuid">event guid</param>
-        /// <returns>the event</returns>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance that the event is associated with.</param>
+        /// <param name="eventGuid">The unique id of the specific event to retrieve.</param>
+        /// <returns>Information about the specified event.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("{eventGuid:guid}")]
-        [ProducesResponseType(typeof(InstanceEvent), 200)]
-        public async Task<ActionResult> GetOne(int instanceOwnerPartyId, Guid instanceGuid, Guid eventGuid)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Produces("application/json")]
+        public async Task<ActionResult<InstanceEvent>> GetOne(int instanceOwnerPartyId, Guid instanceGuid, Guid eventGuid)
         {
             try
             {
@@ -88,11 +95,11 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Retrieves all instance events related to given instance id, listed event types, and given time frame from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceOwnerPartyId">instance owner id</param>
-        /// <param name="instanceGuid"> Id of instance to retrieve events for. </param>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance that the event(s) is associated with.</param>
         /// <param name="eventTypes">Array of event types to filter the events by.</param>
-        /// <param name="from"> Lower bound for DateTime span to filter events by.</param>
-        /// <param name="to"> Upper bound for DateTime span to filter events by.</param>
+        /// <param name="from">Lower bound for DateTime span to filter events by.</param>
+        /// <param name="to">Upper bound for DateTime span to filter events by.</param>
         /// <returns>List of instance events.</returns>
         /// <!--
         /// GET  storage/api/v1/instances/{instanceId}/events
@@ -102,8 +109,10 @@ namespace Altinn.Platform.Storage.Controllers
         /// -->
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet]
-        [ProducesResponseType(typeof(InstanceEventList), 200)]
-        public async Task<ActionResult> Get(
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Produces("application/json")]
+        public async Task<ActionResult<InstanceEventList>> Get(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromQuery] string[] eventTypes,
@@ -134,26 +143,23 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<InstanceEvent> instanceEvents = await _repository.ListInstanceEvents(instanceId, eventTypes, fromDateTime, toDateTime);
 
-            if (instanceEvents == null || instanceEvents.Count == 0)
-            {
-                return NotFound($"Did not find any instance events for instanceId={instanceId} matching the given event types: {string.Join(", ", eventTypes)} and the given time frame {fromDateTime} : {toDateTime}.");
-            }
-
             InstanceEventList instanceEventList = new InstanceEventList { InstanceEvents = instanceEvents };
 
             return Ok(instanceEventList);
         }
 
         /// <summary>
-        /// Deletes all events related to an instance id.
+        /// Deletes all events related to an instance.
         /// </summary>
-        /// <param name="instanceOwnerPartyId">Id of instance owner to retrieve events for. .</param>
-        /// <param name="instanceGuid">Guid of the instance</param>
-        /// <returns>Number of deleted events.</returns>
-        /// DELETE storage/api/v1/instances/{instanceId}/events
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance that the event(s) is associated with.</param>
+        /// <returns>A message containing the number of events that were deleted.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpDelete]
-        public async Task<ActionResult> Delete(int instanceOwnerPartyId, Guid instanceGuid)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Produces("application/json")]
+        public async Task<ActionResult<string>> Delete(int instanceOwnerPartyId, Guid instanceGuid)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
