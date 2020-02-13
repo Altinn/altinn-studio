@@ -11,6 +11,46 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="data\apps\tests-sailor.json" />
+    <Content Remove="data\m1000-instances.json" />
+    <Content Remove="data\response_deny.json" />
+    <Content Remove="data\response_multi_permit.json" />
+    <Content Remove="data\response_permit.json" />
+    <Content Remove="data\Roles\user_1\party_1000\roles.json" />
+    <Content Remove="data\Roles\user_1\party_1600\roles.json" />
+    <Content Remove="data\Roles\user_1\party_50000000\roles.json" />
+    <Content Remove="data\Roles\user_1\party_500\roles.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="data\apps\tests-sailor.json" />
+    <None Include="data\m1000-instances.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="data\response_deny.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="data\response_multi_permit.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="data\response_permit.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="data\Roles\user_1\party_1000\roles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="data\Roles\user_1\party_1600\roles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="data\Roles\user_1\party_50000000\roles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="data\Roles\user_1\party_500\roles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="Moq" Version="4.13.1" />
@@ -23,6 +63,45 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Storage\Altinn.Platform.Storage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="data\apps\spf\test-applikasjon-3\config\authorization\policy.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="data\apps\tdd\m1000\config\authorization\policy.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="data\apps\tdd\test-applikasjon-1\config\authorization\policy.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="data\apps\tdd\test-applikasjon-2\config\authorization\policy.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="data\apps\tests\sailor\config\authorization\policy.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="data\binary_file.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="data\cat.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="data\example.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="data\image.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="data\xmlfile.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="selfSignedTestCertificate.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="selfSignedTestCertificatePublic.cer">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
