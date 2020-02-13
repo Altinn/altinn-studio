@@ -2,25 +2,27 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+
 using Altinn.Common.PEP.Interfaces;
-using Altinn.Platform.Storage.IntegrationTest.Mocks;
-using Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication;
-using Altinn.Platform.Storage.IntegrationTest.Utils;
+
+using Altinn.Platform.Storage.UnitTest.Mocks;
+using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
+using Altinn.Platform.Storage.UnitTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
-#pragma warning disable 1591
-#pragma warning disable SA1600
-
-namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
+namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
     [Collection("Sequential")]
     public class InstanceEventsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
@@ -216,7 +218,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
         private HttpClient GetTestClient(IInstanceEventRepository instanceEventRepository)
         {
-            // No setup required for these services. They are not in use by the ApplicationController
+            // No setup required for these services. They are not in use by the InstanceEventController
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
             Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
             Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
