@@ -2,6 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { IParty } from 'altinn-shared/types';
 import InstanceDataActions from '../../../../../shared/resources/instanceData/instanceDataActions';
+import AttachmentActions from '../../../../../shared/resources/attachments/attachmentActions';
 import { IRuntimeState } from '../../../../../types';
 import { post } from '../../../../../utils/networking';
 import { getCreateInstancesUrl, redirectToUpgrade } from '../../../../../utils/urlHelper';
@@ -35,6 +36,7 @@ function* instantiationSaga(): SagaIterator {
       }
 
       yield call(InstanceDataActions.getInstanceDataFulfilled, instanceResponse.data);
+      yield call(AttachmentActions.mapAttachments);
       yield call(InstantiationActions.instantiateFulfilled, instanceResponse.data.id);
     }
   } catch (err) {
