@@ -290,7 +290,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             HttpResponseMessage response = await client.DeleteAsync(requestUri);
 
             // Assert
-            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = response.Content.ReadAsStringAsync().Result;
             Application application = JsonConvert.DeserializeObject(content, typeof(Application)) as Application;

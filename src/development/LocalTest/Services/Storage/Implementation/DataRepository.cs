@@ -1,12 +1,17 @@
-using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Platform.Storage.Repository;
-using LocalTest.Configuration;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+
+using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Repository;
+
+using LocalTest.Configuration;
+
+using Microsoft.Extensions.Options;
+
+using Newtonsoft.Json;
 
 namespace LocalTest.Services.Storage.Implementation
 {
@@ -41,7 +46,7 @@ namespace LocalTest.Services.Storage.Implementation
         public Task<DataElement> Read(Guid instanceGuid, Guid dataElementId)
         {
             string dataPath = GetDataPath(instanceGuid.ToString(), dataElementId.ToString());
-            string content = System.IO.File.ReadAllText(dataPath);
+            string content = File.ReadAllText(dataPath);
             DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
             return Task.FromResult(dataElement);
         }
@@ -55,7 +60,7 @@ namespace LocalTest.Services.Storage.Implementation
                 string[] files = Directory.GetFiles(path);
                 for (int i = 0; i < files.Length; i++)
                 {
-                    string content = System.IO.File.ReadAllText(files[i]);
+                    string content = File.ReadAllText(files[i]);
                     DataElement instance = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
                     dataElements.Add(instance);
                 }
@@ -68,7 +73,7 @@ namespace LocalTest.Services.Storage.Implementation
             string filePath = GetFilePath(fileName);
             Stream fs = File.OpenRead(filePath);
 
-            System.IO.Stream data = new System.IO.MemoryStream();
+            Stream data = new MemoryStream();
 
             return Task.FromResult(fs);
         }
@@ -100,6 +105,16 @@ namespace LocalTest.Services.Storage.Implementation
             }
 
             return filesize;
+        }
+
+        /// <summary>
+        /// Gets the correct context for the current application
+        /// </summary>
+        /// <param name="org">Name of the application owner</param>
+        /// <returns></returns>
+        public OrgDataContext GetOrgDataContext(string org)
+        {
+            return new OrgDataContext();
         }
 
         private string GetFilePath(string fileName)
