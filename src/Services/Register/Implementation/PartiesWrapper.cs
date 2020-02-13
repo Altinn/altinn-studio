@@ -65,7 +65,7 @@ namespace LocalTest.Services.Register.Implementation
                 if (content.Contains(targetOrgNbr) || content.Contains(targetSSN))
                 {
                     Party party = (Party)JsonConvert.DeserializeObject(content, typeof(Party));
-                    return party;
+                    return await Task.FromResult(party);
                 }
             }
 
@@ -87,7 +87,7 @@ namespace LocalTest.Services.Register.Implementation
                 if (content.Contains(targetOrgNbr) || content.Contains(targetSSN))
                 {
                     Party party = (Party)JsonConvert.DeserializeObject(content, typeof(Party));
-                    return party.PartyId;
+                    return await Task.FromResult(party.PartyId);
                 }
             }
 

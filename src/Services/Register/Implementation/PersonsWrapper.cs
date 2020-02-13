@@ -32,7 +32,7 @@ namespace LocalTest.Services.Register.Implementation
                 person = (Person)JsonConvert.DeserializeObject(content, typeof(Person));
             }
 
-            return person;
+            return await Task.FromResult(person);
         }
     }
 }

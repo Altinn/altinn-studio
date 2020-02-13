@@ -1,13 +1,10 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
-using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Platform.Authorization.Repositories.Interface;
 using LocalTest.Configuration;
 using Microsoft.Extensions.Options;
 
@@ -19,8 +16,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// </summary>
     public class PolicyRetrievalPoint : IPolicyRetrievalPoint
     {
-        private readonly string orgAttributeId = "urn:altinn:org";
-        private readonly string appAttributeId = "urn:altinn:app";
         private readonly LocalPlatformSettings _localPlatformSettings;
 
         /// <summary>
