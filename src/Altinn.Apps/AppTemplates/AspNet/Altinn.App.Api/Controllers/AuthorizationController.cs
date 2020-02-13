@@ -61,8 +61,7 @@ namespace Altinn.App.Api.Controllers
                 {
                     if (returnPartyObject)
                     {
-                        Party party = await _registerService.GetParty(partyId);
-                        return Ok(party);
+                        return Ok(userContext.Party);
                     }
 
                     return Ok(partyId);
@@ -79,9 +78,9 @@ namespace Altinn.App.Api.Controllers
             });
             if (returnPartyObject)
             {
-                Party party = await _registerService.GetParty(userContext.PartyId);
-                return Ok(party);
+                return Ok(userContext.Party);
             }
+
             return Ok(userContext.PartyId);
         }
 
