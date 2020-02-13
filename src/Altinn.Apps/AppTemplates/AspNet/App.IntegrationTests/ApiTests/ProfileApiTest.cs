@@ -46,7 +46,16 @@ namespace App.IntegrationTestsRef.ApiTests
             Assert.Equal(1337, profile.UserId);
             Assert.Equal("SophieDDG", profile.UserName);
             Assert.Equal("Sophie Salt", profile.Party.Name);
+            Assert.Equal("90001337", profile.PhoneNumber);
+            Assert.Equal(1337, profile.PartyId);
+            Assert.Equal("01039012345", profile.Party.SSN);
+            Assert.Equal("1337@altinnstudiotestusers.com", profile.Email);
+            Assert.Equal("Sophie", profile.Party.Person.FirstName);
+            Assert.Equal("Salt", profile.Party.Person.LastName);
+            Assert.Equal("0151", profile.Party.Person.AddressPostalCode);
+            Assert.Equal("Oslo", profile.Party.Person.AddressCity);
+            Assert.Equal("Grev Wedels Plass", profile.Party.Person.AddressStreetName);
+            Assert.Equal("9", profile.Party.Person.AddressHouseNumber);
         }
-
     }
 }

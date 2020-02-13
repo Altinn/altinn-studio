@@ -10,33 +10,33 @@ using Microsoft.Extensions.Logging;
 namespace KubernetesWrapper.Services.Implementation
 {
     /// <summary>
-    ///  An implementation of the kubernetes api wrapper
+    ///  An implementation of the Kubernetes API wrapper
     /// </summary>
-    public class IKubernetesAPIWrapperSI : IKubernetesAPIWrapper
+    public class KubernetesApiWrapper : IKubernetesApiWrapper
     {
-        private Kubernetes client;
-        private ILogger _logger;
+        private readonly Kubernetes _client;
+        private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IKubernetesAPIWrapperSI"/> class
+        /// Initializes a new instance of the <see cref="KubernetesApiWrapper"/> class
         /// </summary>
         /// <param name="logger">The logger</param>
-        public IKubernetesAPIWrapperSI(ILogger<IKubernetesAPIWrapperSI> logger)
+        public KubernetesApiWrapper(ILogger<KubernetesApiWrapper> logger)
         {
             _logger = logger;
             try
             {
                 var config = KubernetesClientConfiguration.InClusterConfig();
-                client = new Kubernetes(config);
+                _client = new Kubernetes(config);
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                _logger.LogError(exception, "Unable to initialize IKubernetesAPIWrapperSI");
+                _logger.LogError(e, "Unable to initialize KubernetesApiWrapper");
             }
         }
 
         /// <inheritdoc/>
-        async Task<IList<Deployment>> IKubernetesAPIWrapper.GetDeployments(
+        async Task<IList<Deployment>> IKubernetesApiWrapper.GetDeployments(
             string continueParameter,
             bool? allowWatchBookmarks,
             string fieldSelector,
@@ -47,7 +47,7 @@ namespace KubernetesWrapper.Services.Implementation
             bool? watch,
             string pretty)
         {
-            V1DeploymentList deployments = await client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, timeoutSeconds, watch, pretty);
+            V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, timeoutSeconds, watch, pretty);
             IList<Deployment> mappedDeployments = MapDeployments(deployments.Items);
             return mappedDeployments;
         }

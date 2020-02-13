@@ -4,7 +4,7 @@ import * as React from 'react';
 import {AltinnLogo} from 'altinn-shared/components';
 import {AltinnAppTheme} from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import { IProfile } from '../resources/profile';
+import { IProfile } from 'altinn-shared/types';
 import { renderParty } from '../resources/utils/party';
 
 export interface IHeaderProps {

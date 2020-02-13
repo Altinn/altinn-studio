@@ -663,6 +663,132 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Fetch Party Info by SSN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "db2a3525-6d7c-447c-8254-497db124f622",
+								"exec": [
+									"pm.test(\"Platform - Register - Fetch Party Info by SSN - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Platform - Register - Fetch Party Info by SSN - Content - 200\", function (){\r",
+									"   var response = pm.response.json();\r",
+									"   var ssnToCheck = pm.environment.get(\"SSN\");\r",
+									"   pm.expect(response.person.ssn).equal(ssnToCheck);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"SSN\": \"{{SSN}}\"}"
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/lookup",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"register",
+								"api",
+								"v1",
+								"parties",
+								"lookup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fetch Party Info by Org",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "db2a3525-6d7c-447c-8254-497db124f622",
+								"exec": [
+									"pm.test(\"Platform - Register - Fetch Party Info by SSN - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Platform - Register - Fetch Party Info by SSN - Content - 200\", function (){\r",
+									"   var response = pm.response.json();\r",
+									"   var orgToCheck = pm.environment.get(\"orgNr\");\r",
+									"   pm.expect(response.organization.orgNumber).equal(orgToCheck);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"OrgNo\": \"{{orgNr}}\"}"
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/lookup",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"register",
+								"api",
+								"v1",
+								"parties",
+								"lookup"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}

@@ -4,10 +4,11 @@ import { get } from '../../../../utils/networking';
 import ProfileActions from '../profileActions';
 import { IFetchProfile } from './fetchProfileActions';
 import * as ProfileActionTypes from './fetchProfileActionTypes';
+import { IProfile } from 'altinn-shared/types';
 
 function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {
   try {
-    const profile = yield call(get, url);
+    const profile: IProfile = yield call(get, url);
     yield call(
       ProfileActions.fetchProfileFulfilled,
       profile,

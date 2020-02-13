@@ -117,7 +117,7 @@ export function CloneModal(props: ICloneModalProps) {
         </Grid>
         <Grid item={true} className={props.classes.itemSeparator}>
           <AltinnInputField
-            id='repository-url'
+            id='repository-url-form'
             inputValue={repositoryGitUrl}
             textFieldId={'repository-url'}
             fullWidth={true}

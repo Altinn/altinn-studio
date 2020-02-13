@@ -14,7 +14,7 @@ namespace KubernetesWrapper.Controllers
     [ApiController]
     public class DeploymentsController : ControllerBase
     {
-        private readonly IKubernetesAPIWrapper _apiWrapper;
+        private readonly IKubernetesApiWrapper _apiWrapper;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -22,7 +22,7 @@ namespace KubernetesWrapper.Controllers
         /// </summary>
         /// <param name="apiWrapper">The kubernetes api wrapper client</param>
         /// <param name="logger">The logger</param>
-        public DeploymentsController(IKubernetesAPIWrapper apiWrapper, ILogger<DeploymentsController> logger)
+        public DeploymentsController(IKubernetesApiWrapper apiWrapper, ILogger<DeploymentsController> logger)
         {
             _apiWrapper = apiWrapper;
             _logger = logger;
@@ -43,9 +43,9 @@ namespace KubernetesWrapper.Controllers
                 var deployments = await _apiWrapper.GetDeployments(null, null, fieldSelector, labelSelector);
                 return Ok(deployments);
             }
-            catch (Exception exception)
+            catch (Exception e)
             {
-                _logger.LogError(exception, "Unable to GetDeployments");
+                _logger.LogError(e, "Unable to GetDeployments");
                 return StatusCode(500);
             }
         }

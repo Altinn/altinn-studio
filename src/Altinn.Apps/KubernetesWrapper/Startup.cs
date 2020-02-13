@@ -17,7 +17,7 @@ namespace KubernetesWrapper
 {
     /// <summary>
     /// This is the class that set up the application during startup
-    /// <see href="https://docs.asp.net/en/latest/fundamentals/startup.html#the-startup-class"/>
+    /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-startup-class"/>
     /// </summary>
     public class Startup
     {
@@ -54,7 +54,7 @@ namespace KubernetesWrapper
             services.AddControllers();
 
             // dependency injection
-            services.AddSingleton<IKubernetesAPIWrapper, IKubernetesAPIWrapperSI>();
+            services.AddSingleton<IKubernetesApiWrapper, KubernetesApiWrapper>();
         }
 
         /// <summary>
