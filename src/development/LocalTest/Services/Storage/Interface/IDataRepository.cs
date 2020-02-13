@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
+
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 
 
 namespace Altinn.Platform.Storage.Repository
 {
     /// <summary>
-    /// the interface contains methods for operations on form data document
+    /// The interface contains methods for operations on form data document
     /// </summary>
     public interface IDataRepository
     {
@@ -70,5 +71,12 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="dataElement">the element to delete</param>
         /// <returns>true if delete went well.</returns>
         Task<bool> Delete(DataElement dataElement);
+
+        /// <summary>
+        /// Gets the correct data contaxt for the current application owner
+        /// </summary>
+        /// <param name="org">name of application owner</param>
+        /// <returns></returns>
+        OrgDataContext GetOrgDataContext(string org);
     }
 }
