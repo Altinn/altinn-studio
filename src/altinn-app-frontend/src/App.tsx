@@ -4,19 +4,13 @@ import { Route, Switch } from 'react-router-dom';
 import {AltinnAppTheme} from 'altinn-shared/theme';
 import FormFillerWrapper from './features/form/containers/FormFillerWrapper';
 import Instantiate from './features/instantiate/containers';
+import UnknownError from './features/instantiate/containers/UnknownError';
 import PartySelection from './features/instantiate/containers/PartySelection';
-import ApplicationMetadataActions from './shared/resources/applicationMetadata/actions';
-import LanguageActions from './shared/resources/language/languageActions';
-import PartyActions from './shared/resources/party/partyActions';
-import ProfileActions from './shared/resources/profile/profileActions';
-import TextResourcesActions from './shared/resources/textResources/actions';
+import QueueActions from './shared/resources/queue/queueActions';
 import { get } from './utils/networking';
-import {
-  getEnvironmentLoginUrl,
-  languageUrl,
-  profileApiUrl,
-  refreshJwtTokenUrl,
-} from './utils/urlHelper';
+import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from './utils/urlHelper';
+import { useSelector } from 'react-redux';
+import { IRuntimeState } from './types';
 
 const theme = createMuiTheme(AltinnAppTheme);
 
@@ -24,6 +18,8 @@ const theme = createMuiTheme(AltinnAppTheme);
 const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
 
 export default function() {
+  const appTaskError: any = useSelector((state: IRuntimeState) => state.queue.appTask.error);
+
   let lastRefreshTokenTimestamp: number = 0;
 
   function setUpEventListeners() {
@@ -58,16 +54,16 @@ export default function() {
 
   React.useEffect(() => {
     refreshJwtToken();
-    TextResourcesActions.fetchTextResources();
-    ProfileActions.fetchProfile(profileApiUrl);
-    LanguageActions.fetchLanguage(languageUrl, 'nb');
-    ApplicationMetadataActions.getApplicationMetadata();
-    PartyActions.getCurrentParty();
+    QueueActions.startInitialAppTaskQueue();
     setUpEventListeners();
     return function cleanup() {
      removeEventListeners();
     };
   }, []);
+
+  if (appTaskError) {
+    return <UnknownError />
+  }
 
   return (
     <MuiThemeProvider theme={theme}>

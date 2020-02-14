@@ -6,6 +6,7 @@ import { get } from '../../../../utils/networking';
 import { currentPartyUrl, validPartiesUrl } from '../../../../utils/urlHelper';
 import PartyActions from '../partyActions';
 import * as GetPartyActionTypes from './getPartiesActionTypes';
+import QueueActions from '../../queue/queueActions';
 
 const PartiesSelector = ((state: IRuntimeState) => state.party.parties);
 
@@ -32,7 +33,7 @@ function* getCurrentPartySaga(): SagaIterator {
       yield call(PartyActions.getPartiesFulfilled, [currentParty]);
     }
   } catch (err) {
-    yield 
+    yield call(QueueActions.appTaskQueueError, err);
   }
 }
 
