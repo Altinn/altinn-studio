@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
 using Altinn.App.AppLogic.Validation;
+using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
@@ -92,6 +93,8 @@ namespace Altinn.App
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             AppSettings appSettings = Configuration.GetSection("AppSettings").Get<AppSettings>();
+
+            services.ConfigureDataProtection();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(options =>
