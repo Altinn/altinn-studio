@@ -1,0 +1,9 @@
+version: "3"
+services:
+  k6:
+    build: .
+    ports:
+      - "6565:6565"
+    volumes:
+      - "./src:/src"
+    command: "version"
