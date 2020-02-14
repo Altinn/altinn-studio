@@ -1,13 +1,24 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import * as DataTaskQueueActionTypes from './dataTask/dataTaskQueueActionTypes';
+import * as AppTaskQueueActionTypes from './appTask/appTaskQueueActionTypes';
+import {IQueueError} from './queueActions';
+import { IQueueTask } from 'src/types/global';
 
 export interface IQueueState {
-  dataTaskFinished: boolean;
+  dataTask: IQueueTask;
+  appTask: IQueueTask;
 }
 
 const initialState: IQueueState = {
-  dataTaskFinished: null,
+  dataTask: {
+    isDone: null,
+    error: null
+  },
+  appTask: {
+    isDone: null,
+    error: null
+  }
 };
 
 const queueReducer: Reducer<IQueueState> = (
@@ -20,15 +31,57 @@ const queueReducer: Reducer<IQueueState> = (
   switch (action.type) {
     case DataTaskQueueActionTypes.START_INITIAL_DATA_TASK_QUEUE: {
       return update<IQueueState>(state, {
-        dataTaskFinished: {
-          $set: false,
+        dataTask: {
+          isDone: {
+            $set: false,
+          },
         },
       });
     }
     case DataTaskQueueActionTypes.START_INITIAL_DATA_TASK_QUEUE_FULFILLED: {
       return update<IQueueState>(state, {
-        dataTaskFinished: {
-          $set: true,
+        dataTask: {
+          isDone: {
+            $set: true,
+          },
+        },
+      });
+    }
+    case DataTaskQueueActionTypes.DATA_TASK_QUEUE_ERROR: {
+      const { error } = action as IQueueError;
+      return update<IQueueState>(state, {
+        dataTask: {
+          error: {
+            $set: error,
+          },
+        },
+      });
+    }
+    case AppTaskQueueActionTypes.START_INITIAL_APP_TASK_QUEUE: {
+      return update<IQueueState>(state, {
+        appTask: {
+          isDone: {
+            $set: false,
+          },
+        },
+      });
+    }
+    case AppTaskQueueActionTypes.START_INITIAL_APP_TASK_QUEUE_FULFILLED: {
+      return update<IQueueState>(state, {
+        appTask: {
+          isDone: {
+            $set: true,
+          },
+        },
+      });
+    }
+    case AppTaskQueueActionTypes.APP_TASK_QUEUE_ERROR: {
+      const { error } = action as IQueueError;
+      return update<IQueueState>(state, {
+        appTask: {
+          error: {
+            $set: error,
+          },
         },
       });
     }
