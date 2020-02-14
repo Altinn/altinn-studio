@@ -1,3 +1,11 @@
+## Local testing of apps
+
+It is possible to test and debug applications created in Altinn Studio on local development machine.
+
+Currently we have not been able to provide a 100% common setup between Windows and Linux.
+
+
+
 ### Prerequisites
 
 1. Latest [.NET Core 3.1 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.1)
@@ -11,12 +19,9 @@
 127.0.0.1 altinn3local.no
 ```
 
-## Setting up local testing of App
+### Setup
 
-It is possible to test and debug applications created in Altinn Studio.
-
-Currently we have not been able to provide a 100% common setup between Windows and Linux.
-
+Clode the Altinn Studio repository
 
 ```bash
 git clone https://github.com/Altinn/altinn-studio
