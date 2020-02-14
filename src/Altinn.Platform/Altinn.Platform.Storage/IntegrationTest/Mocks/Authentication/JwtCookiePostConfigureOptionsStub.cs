@@ -17,29 +17,14 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication
         /// <inheritdoc />
         public void PostConfigure(string name, JwtCookieOptions options)
         {
-            if (string.IsNullOrEmpty(options.Cookie.Name))
+            if (string.IsNullOrEmpty(options.JwtCookieName))
             {
-                options.Cookie.Name = JwtCookieDefaults.CookiePrefix + name;
+                options.JwtCookieName = JwtCookieDefaults.CookiePrefix + name;
             }
 
             if (options.CookieManager == null)
             {
                 options.CookieManager = new ChunkingCookieManager();
-            }
-
-            if (!options.LoginPath.HasValue)
-            {
-                options.LoginPath = JwtCookieDefaults.LoginPath;
-            }
-
-            if (!options.LogoutPath.HasValue)
-            {
-                options.LogoutPath = JwtCookieDefaults.LogoutPath;
-            }
-
-            if (!options.AccessDeniedPath.HasValue)
-            {
-                options.AccessDeniedPath = JwtCookieDefaults.AccessDeniedPath;
             }
 
             if (!string.IsNullOrEmpty(options.MetadataAddress))

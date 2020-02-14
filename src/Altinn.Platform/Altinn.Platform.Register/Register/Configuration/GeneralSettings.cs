@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Altinn.Platform.Register.Configuration
 {
     /// <summary>
@@ -16,12 +11,13 @@ namespace Altinn.Platform.Register.Configuration
         public string BridgeApiEndpoint { get; set; }
 
         /// <summary>
-        /// Gets the api base url for sbl bridge
+        /// Open Id Connect Well known endpoint
         /// </summary>
-        /// <returns>the api base url</returns>
-        public string GetApiBaseUrl()
-        {
-            return Environment.GetEnvironmentVariable("GeneralSettings__BridgeApiEndpoint") ?? BridgeApiEndpoint;
-        }
+        public string OpenIdWellKnownEndpoint { get; set; }
+
+        /// <summary>
+        /// Name of the cookie for where JWT is stored
+        /// </summary>
+        public string JwtCookieName { get; set; }
     }
 }

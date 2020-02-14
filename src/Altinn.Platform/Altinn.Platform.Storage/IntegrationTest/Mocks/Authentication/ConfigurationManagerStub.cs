@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,8 +31,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication
         /// <inheritdoc />
         public async Task<OpenIdConnectConfiguration> GetConfigurationAsync(CancellationToken cancel)
         {
-            SigningKeysRetrieverStub signingKeysRetriever = new SigningKeysRetrieverStub();
-            ICollection<SecurityKey> signingKeys = await signingKeysRetriever.GetSigningKeys(string.Empty);
+            ICollection<SecurityKey> signingKeys = await GetSigningKeys();
 
             OpenIdConnectConfiguration configuration = new OpenIdConnectConfiguration();
             foreach (var securityKey in signingKeys)
@@ -46,6 +46,18 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication
         public void RequestRefresh()
         {
             throw new NotImplementedException();
+        }
+
+        private async Task<ICollection<SecurityKey>> GetSigningKeys()
+        {
+            List<SecurityKey> signingKeys = new List<SecurityKey>();
+
+            X509Certificate2 cert = new X509Certificate2("selfSignedTestCertificatePublic.cer");
+            SecurityKey key = new X509SecurityKey(cert);
+
+            signingKeys.Add(key);
+
+            return await Task.FromResult(signingKeys);
         }
     }
 }

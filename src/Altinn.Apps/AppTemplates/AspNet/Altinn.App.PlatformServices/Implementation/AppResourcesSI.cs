@@ -24,6 +24,7 @@ namespace Altinn.App.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly ILogger _logger;
+        private Application _application;
 
         private readonly Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
@@ -100,6 +101,12 @@ namespace Altinn.App.Services.Implementation
 
         public Application GetApplication()
         {
+            // Cache application metadata
+            if (_application != null)
+            {
+                return _application;
+            }
+
             string filedata = string.Empty;
             string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.ApplicationMetadataFileName;
             try
@@ -108,8 +115,8 @@ namespace Altinn.App.Services.Implementation
                 {
                     filedata = File.ReadAllText(filename, Encoding.UTF8);
                 }
-
-                return JsonConvert.DeserializeObject<Application>(filedata);
+                _application = JsonConvert.DeserializeObject<Application>(filedata);
+                return _application;
             }
             catch (Exception ex)
             {

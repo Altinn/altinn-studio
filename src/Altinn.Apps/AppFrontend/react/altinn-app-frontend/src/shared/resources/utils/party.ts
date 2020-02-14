@@ -1,4 +1,4 @@
-import { IProfile } from '../profile';
+import { IProfile } from 'altinn-shared/types';
 
 export function renderParty(profile: IProfile) {
   const party = profile ? profile.party : null;

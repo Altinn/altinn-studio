@@ -283,7 +283,7 @@ namespace App.IntegrationTests.Mocks.Services
         private string GetRolesPath(int userId, int resourcePartyId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepAuthorizationMockSI).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\pip\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\authorization\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
         }
 
         private async Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)

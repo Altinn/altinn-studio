@@ -60,26 +60,28 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Get all instances that match the given query parameters. Parameters can be combined. Unknown or illegal parameter values will result in 400 - bad request.
         /// </summary>
-        /// <param name="org">application owner</param>
-        /// <param name="appId">application id</param>
-        /// <param name="currentTaskId">running process current task id</param>
-        /// <param name="processIsComplete">is process complete</param>
-        /// <param name="processEndEvent">process end state</param>
-        /// <param name="processEnded">process ended value</param>
-        /// <param name="instanceOwnerPartyId">instance owner id</param>
-        /// <param name="labels">labels</param>
-        /// <param name="lastChanged">last changed date</param>
-        /// <param name="created">created time</param>
-        /// <param name="visibleAfter">the visible after date time</param>
-        /// <param name="dueBefore">the due before date time</param>
-        /// <param name="continuationToken">continuation token</param>
-        /// <param name="size">the page size</param>
-        /// <returns>list of all instances for given instance owner</returns>
+        /// <param name="org">application owner.</param>
+        /// <param name="appId">application id.</param>
+        /// <param name="currentTaskId">Running process current task id.</param>
+        /// <param name="processIsComplete">Is process complete.</param>
+        /// <param name="processEndEvent">Process end state.</param>
+        /// <param name="processEnded">Process ended value.</param>
+        /// <param name="instanceOwnerPartyId">Instance owner id.</param>
+        /// <param name="labels">Labels.</param>
+        /// <param name="lastChanged">Last changed date.</param>
+        /// <param name="created">Created time.</param>
+        /// <param name="visibleAfter">The visible after date time.</param>
+        /// <param name="dueBefore">The due before date time.</param>
+        /// <param name="continuationToken">Continuation token.</param>
+        /// <param name="size">The page size.</param>
+        /// <returns>List of all instances for given instance owner.</returns>
         /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
         [Authorize(Policy = AuthzConstants.POLICY_SCOPE_INSTANCE_READ)]
         [HttpGet]
-        [ProducesResponseType(typeof(QueryResponse<Instance>), 200)]
-        public async Task<ActionResult> GetInstances(
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Produces("application/json")]
+        public async Task<ActionResult<QueryResponse<Instance>>> GetInstances(
             [FromQuery] string org,
             [FromQuery] string appId,
             [FromQuery(Name = "process.currentTask")] string currentTaskId,
@@ -187,15 +189,17 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Gets an instance for a given instance id.
+        /// Gets a specific instance with the given instance id.
         /// </summary>
-        /// <param name="instanceOwnerPartyId">instance owner id.</param>
-        /// <param name="instanceGuid">the guid of the instance.</param>
-        /// <returns>an instance.</returns>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to retrieve.</param>
+        /// <returns>The information about the specific instance.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
-        [ProducesResponseType(typeof(Instance), 200)]
-        public async Task<ActionResult> Get(int instanceOwnerPartyId, Guid instanceGuid)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> Get(int instanceOwnerPartyId, Guid instanceGuid)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
@@ -217,17 +221,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// Inserts new instance into the instance collection.
         /// </summary>
         /// <param name="appId">the application id</param>
-        /// <param name="instance">instance</param>
-        /// <returns>instance object</returns>
+        /// <param name="instance">The instance details to store.</param>
+        /// <returns>The stored instance.</returns>
         /// <!-- POST /instances?appId={appId} -->
         [Authorize]
         [HttpPost]
         [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        [ProducesResponseType(typeof(Instance), 201)]
-        public async Task<ActionResult> Post(string appId, [FromBody] Instance instance)
+        public async Task<ActionResult<Instance>> Post(string appId, [FromBody] Instance instance)
         {
-            // check if metadata exists
             Application appInfo = GetApplicationOrError(appId, out ActionResult appInfoError);
             if (appInfoError != null)
             {
@@ -286,15 +290,18 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Updates an instance.
         /// </summary>
-        /// <param name="instanceOwnerPartyId">instance owner party id</param>
-        /// <param name="instanceGuid">instance guid</param>
-        /// <param name="instance">instance with updated parameters</param>
-        /// <returns>The updated instance</returns>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance that should be updated.</param>
+        /// <param name="instance">The instance details to store in place of the existing instance.</param>
+        /// <returns>The updated instance.</returns>
         [Authorize]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
-        [ProducesResponseType(typeof(Instance), 200)]
-        [ProducesResponseType(404)]
-        public async Task<ActionResult> Put(int instanceOwnerPartyId, Guid instanceGuid, [FromBody] Instance instance)
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> Put(int instanceOwnerPartyId, Guid instanceGuid, [FromBody] Instance instance)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
@@ -344,19 +351,21 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(result);
         }
        
-        /// <summary>.
-        /// Delete an instance
+        /// <summary>
+        /// Delete an instance.
         /// </summary>
-        /// <param name="instanceGuid">instance guid</param>
-        /// <param name="instanceOwnerPartyId">instance owner party id</param>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance that should be deleted.</param>
         /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribut set to todays date and time.</param>
-        /// <returns>(202) updated instance object or (204) no content if hard delete</returns>
+        /// <returns>Information from the deleted instance.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
-        [ProducesResponseType(typeof(Instance), 202)] // Accepted
-        [ProducesResponseType(204)] // No Content
-        [ProducesResponseType(404)]
-        public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerPartyId, bool? hard)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> Delete(int instanceOwnerPartyId, Guid instanceGuid, bool? hard)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
@@ -407,7 +416,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     Instance softDeletedInstance = await _instanceRepository.Update(instance);
 
-                    return Accepted(softDeletedInstance);
+                    return Ok(softDeletedInstance);
                 }
                 catch (Exception e)
                 {

@@ -139,7 +139,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       serviceIsValid = false;
     }
 
-    if (this.state.repoName.length > 100) {
+    if (this.state.repoName.length > 30) {
       this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_is_too_long', this.props.language));
       serviceIsValid = false;
     }

@@ -98,7 +98,7 @@ namespace Altinn.App.Api.Controllers
 
                 if (dataTypeFromMetadata == null)
                 {
-                    return BadRequest($"Element type {dataType} not allowed for instance {instanceGuid}.");
+                    return BadRequest($"Element type {dataType} not allowed for instance {instanceOwnerPartyId}/{instanceGuid}.");
                 }
 
                 bool appLogic = dataTypeFromMetadata.AppLogic != null;
@@ -107,6 +107,11 @@ namespace Altinn.App.Api.Controllers
                 if (instance == null)
                 {
                     return NotFound($"Did not find instance {instance}");
+                }
+
+                if (!InstanceIsActive(instance))
+                {
+                    return Conflict($"Cannot upload data for archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}");
                 }
 
                 if (appLogic)
@@ -159,7 +164,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = await RequiresAppLogic(org, app, dataType);
+                bool? appLogic = RequiresAppLogic(org, app, dataType);
 
                 if (appLogic == null)
                 {
@@ -205,6 +210,11 @@ namespace Altinn.App.Api.Controllers
             {
                 Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
 
+                if (!InstanceIsActive(instance))
+                {
+                    return Conflict($"Cannot update data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}");
+                }
+
                 DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
 
                 if (dataElement == null)
@@ -214,7 +224,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = await RequiresAppLogic(org, app, dataType);
+                bool? appLogic = RequiresAppLogic(org, app, dataType);
 
                 if (appLogic == null)
                 {
@@ -260,6 +270,11 @@ namespace Altinn.App.Api.Controllers
                     return NotFound("Did not find instance");
                 }
 
+                if (!InstanceIsActive(instance))
+                {
+                    return Conflict($"Cannot delete data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}");
+                }
+
                 DataElement dataElement = instance.Data.Find(m => m.Id.Equals(dataGuid.ToString()));
 
                 if (dataElement == null)
@@ -269,7 +284,7 @@ namespace Altinn.App.Api.Controllers
 
                 string dataType = dataElement.DataType;
 
-                bool? appLogic = await RequiresAppLogic(org, app, dataType);
+                bool? appLogic = RequiresAppLogic(org, app, dataType);
 
                 if (appLogic == null)
                 {
@@ -435,7 +450,7 @@ namespace Altinn.App.Api.Controllers
                     }
                     catch (Exception ex)
                     {
-                        error = $"Cannot parse json content due to {ex.Message}";
+                        error = $"An error occured while deserialising json content into '{modelType}'. \n Please verify that the content is based on the correct data model. \n See exception for more information: {ex}";
                         return null;
                     }
                 }
@@ -448,7 +463,8 @@ namespace Altinn.App.Api.Controllers
                     }
                     catch (Exception ex)
                     {
-                        error = $"Cannot parse xml content: {ex.Message}, {ex.InnerException}";
+                        error = $"An error occured while deserializing xml content into '{modelType}'. \n Please verify that the content is based on the correct data model. \n See exception for more information: \n {ex}";
+
                         return null;
                     }
                 }
@@ -462,7 +478,7 @@ namespace Altinn.App.Api.Controllers
             return serviceModel;
         }
 
-        private async Task<bool?> RequiresAppLogic(string org, string app, string dataType)
+        private bool? RequiresAppLogic(string org, string app, string dataType)
         {
             bool? appLogic = false;
 
@@ -587,6 +603,16 @@ namespace Altinn.App.Api.Controllers
             {
                 return ExceptionResponse(e, defaultMessage);
             }
+        }
+
+        private bool InstanceIsActive(Instance i)
+        {
+            if (i?.Status?.Archived != null || i?.Status?.SoftDeleted != null || i?.Status?.HardDeleted != null)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

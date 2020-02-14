@@ -1,6 +1,8 @@
 using Altinn.App.IntegrationTests;
+using Altinn.Platform.Profile.Models;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -29,7 +31,7 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task Profile_Get_OK()
         {
-            string token = PrincipalUtil.GetToken(1);
+            string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -38,10 +40,22 @@ namespace App.IntegrationTestsRef.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
-
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            string profileData = await response.Content.ReadAsStringAsync();
+            UserProfile profile = JsonConvert.DeserializeObject<UserProfile>(profileData);
+            Assert.Equal(1337, profile.UserId);
+            Assert.Equal("SophieDDG", profile.UserName);
+            Assert.Equal("Sophie Salt", profile.Party.Name);
+            Assert.Equal("90001337", profile.PhoneNumber);
+            Assert.Equal(1337, profile.PartyId);
+            Assert.Equal("01039012345", profile.Party.SSN);
+            Assert.Equal("1337@altinnstudiotestusers.com", profile.Email);
+            Assert.Equal("Sophie", profile.Party.Person.FirstName);
+            Assert.Equal("Salt", profile.Party.Person.LastName);
+            Assert.Equal("0151", profile.Party.Person.AddressPostalCode);
+            Assert.Equal("Oslo", profile.Party.Person.AddressCity);
+            Assert.Equal("Grev Wedels Plass", profile.Party.Person.AddressStreetName);
+            Assert.Equal("9", profile.Party.Person.AddressHouseNumber);
         }
-
     }
 }

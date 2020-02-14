@@ -21,7 +21,7 @@ namespace AltinnCore.Runtime.RestControllers
     public class ValidateController : ControllerBase
     {
         private readonly IInstance _instanceService;
-        private readonly IApplication _appService;
+        private readonly IAppResources _appResourceService;
         private readonly IValidation _validationService;
 
         /// <summary>
@@ -29,12 +29,12 @@ namespace AltinnCore.Runtime.RestControllers
         /// </summary>
         public ValidateController(
             IInstance instanceService,
-            IApplication appService,
-            IValidation validationService)
+            IValidation validationService,
+            IAppResources appResources)
         {
             _instanceService = instanceService;
-            _appService = appService;
             _validationService = validationService;
+            _appResourceService = appResources;
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace AltinnCore.Runtime.RestControllers
                 throw new ValidationException("Unable to validate data element.");
             }
 
-            Application application = await _appService.GetApplication(org, app);
+            Application application = _appResourceService.GetApplication();
 
             DataType dataType = application.DataTypes.FirstOrDefault(et => et.Id == element.DataType);
 

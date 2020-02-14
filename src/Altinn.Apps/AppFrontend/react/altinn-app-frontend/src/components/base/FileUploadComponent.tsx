@@ -16,7 +16,7 @@ export interface IFileUploadProvidedProps {
   hasCustomFileEndings?: boolean;
   id: string;
   isValid?: boolean;
-  validationMessages?: IComponentValidations;
+  componentValidations?: IComponentValidations;
   language: any;
   maxFileSizeInMB: number;
   maxNumberOfAttachments: number;
@@ -151,7 +151,7 @@ export class FileUploadComponentClass
 
   public getComponentValidations = (): IComponentValidations => {
     const { validations } = this.state;
-    let { validationMessages } = this.props;
+    let validationMessages = this.props.componentValidations;
     validationMessages = JSON.parse(JSON.stringify(validationMessages || {}));
     if (!validationMessages || !validationMessages.simpleBinding) {
       validationMessages = {

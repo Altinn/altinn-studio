@@ -1,0 +1,13 @@
+{
+  "id": "b862f944-3f04-45e3-b445-6bbd09f65ad5",
+  "instanceGuid": "4d565594-549e-49dd-a206-f6afc0965999",
+  "dataType": "9edd53de-f46f-40a1-bb4d-3efb93dc113d",
+  "filename": "HelloWorld.txt",
+  "contentType": "application/octet-stream",
+  "blobStoragePath": "ttd/nina-testapp/4d565594-549e-49dd-a206-f6afc0965999/data/b862f944-3f04-45e3-b445-6bbd09f65ad5",
+  "size": 13,
+  "locked": false,
+  "refs": [],
+  "created": "2020-02-05T08:23:02.3637527Z",
+  "lastChanged": "2020-02-05T08:23:02.3637527Z"
+}

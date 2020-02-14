@@ -164,9 +164,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             getResponse.EnsureSuccessStatusCode();
 
-            string json = await getResponse.Content.ReadAsStringAsync();            
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(await getResponse.Content.ReadAsStringAsync());
 
-            Assert.Equal("true", json);
+            Assert.NotNull(updatedInstance);
 
             getResponse = await client.GetAsync($"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.InstanceGuid}");
             getResponse.EnsureSuccessStatusCode();

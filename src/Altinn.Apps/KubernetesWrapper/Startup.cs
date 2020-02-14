@@ -17,7 +17,7 @@ namespace KubernetesWrapper
 {
     /// <summary>
     /// This is the class that set up the application during startup
-    /// <see href="https://docs.asp.net/en/latest/fundamentals/startup.html#the-startup-class"/>
+    /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-startup-class"/>
     /// </summary>
     public class Startup
     {
@@ -51,10 +51,10 @@ namespace KubernetesWrapper
                     builder.AllowAnyHeader();
                 });
             });
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddControllers();
 
             // dependency injection
-            services.AddSingleton<IKubernetesAPIWrapper, IKubernetesAPIWrapperSI>();
+            services.AddSingleton<IKubernetesApiWrapper, KubernetesApiWrapper>();
         }
 
         /// <summary>
@@ -63,9 +63,9 @@ namespace KubernetesWrapper
         /// </summary>
         /// <param name="app">The application builder</param>
         /// <param name="env">Hosting environment</param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (env.EnvironmentName.Equals("Development"))
             {
                 app.UseDeveloperExceptionPage();
             }
@@ -74,9 +74,12 @@ namespace KubernetesWrapper
                 app.UseHsts();
             }
 
-            //app.UseHttpsRedirection();
+            app.UseRouting();
             app.UseCors();
-            app.UseMvc();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
     }
 }

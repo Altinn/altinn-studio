@@ -54,15 +54,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Updates the process of an instance.
         /// </summary>
-        /// <param name="instanceOwnerPartyId">instance owner party id</param>
-        /// <param name="instanceGuid">instance guid</param>
-        /// <param name="processState">the new process state of the instance</param>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance that should have its process updated.</param>
+        /// <param name="processState">The new process state of the instance.</param>
         /// <returns>The updated instance</returns>
         [Authorize]
         [HttpPut]
-        [ProducesResponseType(typeof(Instance), 200)]
-        [ProducesResponseType(404)]
-        public async Task<ActionResult> PutProcess(
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> PutProcess(
                 int instanceOwnerPartyId,
                 Guid instanceGuid,
                 [FromBody] ProcessState processState)
@@ -105,12 +107,12 @@ namespace Altinn.Platform.Storage.Controllers
             existingInstance.LastChangedBy = User.GetUserOrOrgId();
             existingInstance.LastChanged = DateTime.UtcNow;
 
-            Instance result;
+            Instance updatedInstance;
             try
             {
-                result = await _instanceRepository.Update(existingInstance);
+                updatedInstance = await _instanceRepository.Update(existingInstance);
 
-                InstancesController.AddSelfLinks(Request, result);
+                InstancesController.AddSelfLinks(Request, updatedInstance);
             }
             catch (Exception e)
             {
@@ -118,18 +120,20 @@ namespace Altinn.Platform.Storage.Controllers
                 return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
             }
 
-            return Ok(result);
+            return Ok(updatedInstance);
         }
 
         /// <summary>
         /// Get the process history for an instance.
         /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance whos process history to retrieve.</param>
         /// <returns>Returns a list of the process events.</returns>        
         [HttpGet("history")]
         [Authorize(Policy = "InstanceRead")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> GetProcessHistory(
+        [Produces("application/json")]
+        public async Task<ActionResult<ProcessHistoryList>> GetProcessHistory(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {      
