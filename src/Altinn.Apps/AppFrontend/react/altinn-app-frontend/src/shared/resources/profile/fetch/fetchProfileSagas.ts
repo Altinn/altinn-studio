@@ -5,6 +5,7 @@ import ProfileActions from '../profileActions';
 import { IFetchProfile } from './fetchProfileActions';
 import * as ProfileActionTypes from './fetchProfileActionTypes';
 import { IProfile } from 'altinn-shared/types';
+import QueueActions from '../../queue/queueActions';
 
 function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {
   try {
@@ -15,6 +16,7 @@ function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {
     );
   } catch (err) {
     yield call(ProfileActions.fetchProfileRejected, err);
+    yield call(QueueActions.appTaskQueueError, err);
   }
 }
 

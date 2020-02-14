@@ -5,6 +5,7 @@ import { getRuleModelFields } from '../../../../utils/rules';
 import Actions from '../rulesActions';
 import * as FetchActions from './fetchRulesActions';
 import * as ActionTypes from '../rulesActionTypes';
+import QueueActions from '../../../../shared/resources/queue/queueActions';
 
 function* fetchRuleModelSaga({
   url,
@@ -22,6 +23,7 @@ function* fetchRuleModelSaga({
     );
   } catch (err) {
     yield call(Actions.fetchRuleModelRejected, err);
+    yield call(QueueActions.dataTaskQueueError, err);
   }
 }
 

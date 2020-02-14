@@ -186,3 +186,8 @@ export interface IUiConfig {
   focus: boolean;
   hiddenFields: string[];
 }
+
+export interface IQueueTask {
+  isDone: boolean;
+  error: any;
+}

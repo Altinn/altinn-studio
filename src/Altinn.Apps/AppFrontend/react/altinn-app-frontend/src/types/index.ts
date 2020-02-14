@@ -14,7 +14,8 @@ import { IOrgsState } from '../shared/resources/orgs/orgsReducers';
 import { IPartyState } from '../shared/resources/party/partyReducers';
 import { IProcessState } from '../shared/resources/process/processReducer';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
-import { ITextResourcesState } from '../shared/resources/textResources/reducer';
+import {IQueueState} from '../shared/resources/queue/queueReducer';
+import { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
 
 export interface IRuntimeState {
   applicationMetadata: IApplicationMetadataState;
@@ -33,6 +34,7 @@ export interface IRuntimeState {
   party: IPartyState;
   process: IProcessState;
   profile: IProfileState;
+  queue: IQueueState;
   textResources: ITextResourcesState;
 }
 

@@ -20,7 +20,7 @@ import OrgsReducer, { IOrgsState } from '../shared/resources/orgs/orgsReducers';
 import PartyReducer, { IPartyState } from '../shared/resources/party/partyReducers';
 import processReducer, { IProcessState } from '../shared/resources/process/processReducer';
 import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
-import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/reducer';
+import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
 import IsLoadingReducer, { IIsLoadingState } from './../shared/resources/isLoading/isLoadingReducers';
 import QueueReducer, { IQueueState } from './../shared/resources/queue/queueReducer';
 

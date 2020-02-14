@@ -4,10 +4,13 @@ import { get } from '../../../../utils/networking';
 import FormDynamicsActions from '../formDynamicsActions';
 import { IFetchServiceConfig } from './fetchFormDynamicsActions';
 import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';
+import QueueActions from '../../../../shared/resources/queue/queueActions';
 
 function* fetchDynamicsSaga({ url }: IFetchServiceConfig): SagaIterator {
   try {
-    const { data }: any = yield call(get, url);
+    let data: any = yield call(get, url);
+    data = data ? data : {};
+
     yield call(
       FormDynamicsActions.fetchFormDynamicsFulfilled,
       data.APIs,
@@ -16,6 +19,7 @@ function* fetchDynamicsSaga({ url }: IFetchServiceConfig): SagaIterator {
     );
   } catch (err) {
     yield call(FormDynamicsActions.fetchFormDynamicsRejected, err);
+    yield call(QueueActions.dataTaskQueueError, err);
   }
 }
 

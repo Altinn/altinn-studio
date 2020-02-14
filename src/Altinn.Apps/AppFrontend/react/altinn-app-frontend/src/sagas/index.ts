@@ -18,7 +18,7 @@ import OrgsSagas from '../shared/resources/orgs/orgsSagas';
 import PartySagas from '../shared/resources/party/partySagas';
 import { processSagas } from '../shared/resources/process/processSagas';
 import ProfileSagas from '../shared/resources/profile/profileSagas';
-import TextResourcesSagas from '../shared/resources/textResources/sagas';
+import TextResourcesSagas from '../shared/resources/textResources/textResourcesSagas';
 import IsLoadingSagas from './../shared/resources/isLoading/isLoadingSagas';
 import QueueSagas from './../shared/resources/queue/queueSagas';
 
