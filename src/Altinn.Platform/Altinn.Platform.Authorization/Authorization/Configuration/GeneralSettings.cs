@@ -32,6 +32,11 @@ namespace Altinn.Platform.Authorization.Configuration
         public string SBLBaseAdress { get; set; }
 
         /// <summary>
+        /// Gets or sets the cache timeout
+        /// </summary>
+        public int RoleCacheTimeout { get; set; }
+
+        /// <summary>
         /// Gets the SBL base adress from kubernetes environment variables and appsettings if environment variable is not set
         /// </summary>
         public string GetSBLBaseAdress

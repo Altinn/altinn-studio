@@ -10,6 +10,9 @@ using System.Collections.Generic;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using Authorization.Platform.Authorization.Models;
+using Microsoft.Extensions.Caching.Memory;
+using Altinn.Platform.Authorization.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authorization.UnitTest
 {
@@ -21,12 +24,16 @@ namespace Altinn.Platform.Authorization.UnitTest
         private readonly Mock<IPolicyInformationRepository> _policyInformationRepositoryMock;
         private readonly Mock<IRoles> _rolesMock;
         private readonly ContextHandler _contextHandler;
+        private readonly IMemoryCache _memoryCache;
+
 
         public ContextHandlerTest()
         {
             _policyInformationRepositoryMock = new Mock<IPolicyInformationRepository>();
             _rolesMock = new Mock<IRoles>();
-            _contextHandler = new ContextHandler(_policyInformationRepositoryMock.Object, _rolesMock.Object);
+            _memoryCache = new MemoryCache(new MemoryCacheOptions());
+            IOptions<GeneralSettings> settingsOption = Options.Create<GeneralSettings>(new GeneralSettings() { RoleCacheTimeout = 5 });
+            _contextHandler = new ContextHandler(_policyInformationRepositoryMock.Object, _rolesMock.Object, _memoryCache, settingsOption);
         }
 
         /// <summary>
