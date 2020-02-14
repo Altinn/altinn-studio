@@ -21,7 +21,7 @@ Currently we have not been able to provide a 100% common setup between Windows a
 
 ### Setup
 
-Clode the Altinn Studio repository
+Clone the Altinn Studio repository
 
 ```bash
 git clone https://github.com/Altinn/altinn-studio
@@ -117,6 +117,13 @@ http {
 ```
 
 Save and go back to src/develpment folder in altinn-studio
+
+
+Reload NGINX configuration
+
+```bash
+sudo nginx -s reload
+```
 
 
 3. Set path to app folder in local platform services:
