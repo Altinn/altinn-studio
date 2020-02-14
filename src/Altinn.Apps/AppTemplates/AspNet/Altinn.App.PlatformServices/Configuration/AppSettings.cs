@@ -122,6 +122,11 @@ namespace Altinn.App.Services.Configuration
         public string RuntimeCookieName { get; set; }
 
         /// <summary>
+        /// Option to disable csrf check
+        /// </summary>
+        public bool DisableCsrfCheck { get; set; }
+
+        /// <summary>
         /// Gets the styles config element
         /// </summary>
         public string GetStylesConfig()
