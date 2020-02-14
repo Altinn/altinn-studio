@@ -1,4 +1,4 @@
-import { IFormConfigState } from '../features/form/config/reducer';
+import { IFormConfigState } from '../features/form/config/formConfigReducer';
 import { IFormDataState } from '../features/form/data/reducer';
 import { IDataModelState } from '../features/form/datamodell/reducer';
 import { IFormDynamicState } from '../features/form/dynamics';

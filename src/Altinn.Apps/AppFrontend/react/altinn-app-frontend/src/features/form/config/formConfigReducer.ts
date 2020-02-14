@@ -3,8 +3,8 @@ import { Action, Reducer } from 'redux';
 import {
   IFetchFormConfigFulfilled,
   IFetchFormConfigRejected,
-} from '../actions/fetch';
-import * as ActionTypes from '../actions/types';
+} from './fetch/fetchFormConfigActions';
+import * as ActionTypes from './fetch/fetchFormConfigActionTypes';
 
 export interface IFormConfigState {
   org: string;

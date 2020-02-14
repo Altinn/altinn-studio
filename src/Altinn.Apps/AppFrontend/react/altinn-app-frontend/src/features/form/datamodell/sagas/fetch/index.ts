@@ -5,7 +5,7 @@ import DataModelActions from '../../actions';
 import { IFetchDataModel } from '../../actions/fetch';
 import * as ActionTypes from '../../actions/types';
 
-import ConfigActions from '../../../config/actions';
+import ConfigActions from '../../../config/formConfigActions';
 
 import { get } from '../../../../../utils/networking';
 

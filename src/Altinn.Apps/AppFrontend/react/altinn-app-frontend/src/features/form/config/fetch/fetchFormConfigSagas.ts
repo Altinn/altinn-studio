@@ -1,9 +1,9 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
-import { get } from '../../../../../utils/networking';
-import FormConfigActions from '../../actions';
-import { IFetchFormConfig } from '../../actions/fetch';
-import * as FormConfigActionTypes from '../../actions/types';
+import { get } from '../../../../utils/networking';
+import FormConfigActions from '../formConfigActions';
+import { IFetchFormConfig } from './fetchFormConfigActions';
+import * as FormConfigActionTypes from './fetchFormConfigActionTypes';
 
 function* fetchFormConfigSaga({ url }: IFetchFormConfig): SagaIterator {
   try {

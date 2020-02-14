@@ -3,7 +3,7 @@ import {
   Reducer,
   ReducersMapObject,
 } from 'redux';
-import FormConfigState, { IFormConfigState } from '../features/form/config/reducer';
+import FormConfigState, { IFormConfigState } from '../features/form/config/formConfigReducer';
 import FormDataReducer, { IFormDataState } from '../features/form/data/reducer';
 import FormDataModel, { IDataModelState } from '../features/form/datamodell/reducer';
 import { IFormDynamicState } from '../features/form/dynamics';

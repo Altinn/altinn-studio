@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import * as ActionTypes from '../types';
+import * as ActionTypes from './fetchFormConfigActionTypes';
 
 export interface IFetchFormConfig extends Action {
   url: string;
