@@ -1,6 +1,6 @@
 import { Action } from 'redux';
-import { IDataModelFieldElement } from '../../';
-import * as ActionTypes from '../types';
+import { IDataModelFieldElement } from '../index';
+import * as ActionTypes from '../rulesActionTypes';
 
 export interface ICheckIfRuleShouldRun extends Action {
   lastUpdatedComponentId: string;

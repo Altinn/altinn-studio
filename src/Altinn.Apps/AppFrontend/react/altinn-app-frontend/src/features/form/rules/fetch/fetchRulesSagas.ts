@@ -1,10 +1,10 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
-import { get } from '../../../../../utils/networking';
-import { getRuleModelFields } from '../../../../../utils/rules';
-import Actions from '../../actions';
-import * as FetchActions from '../../actions/fetch';
-import * as ActionTypes from '../../actions/types';
+import { get } from '../../../../utils/networking';
+import { getRuleModelFields } from '../../../../utils/rules';
+import Actions from '../rulesActions';
+import * as FetchActions from './fetchRulesActions';
+import * as ActionTypes from '../rulesActionTypes';
 
 function* fetchRuleModelSaga({
   url,

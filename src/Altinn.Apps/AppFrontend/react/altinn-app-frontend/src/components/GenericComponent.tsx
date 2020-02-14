@@ -9,7 +9,7 @@ import { IFormData } from '../features/form/data/formDataReducer';
 import FormDynamicsActions from '../features/form/dynamics/formDynamicsActions';
 import { IDataModelBindings, ILayoutComponent, ILayoutEntry, ITextResourceBindings } from '../features/form/layout';
 import FormLayoutActions from '../features/form/layout/formLayoutActions';
-import RuleActions from '../features/form/rules/actions';
+import RuleActions from '../features/form/rules/rulesActions';
 //import ValidationActions from '../features/form/validation/actions';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
 import { makeGetFocus, makeGetHidden, makeGetLayoutElement } from '../selectors/getLayoutData';

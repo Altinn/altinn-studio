@@ -9,7 +9,7 @@ import FormDataModel, { IDataModelState } from '../features/form/datamodel/formD
 import { IFormDynamicState } from '../features/form/dynamics';
 import FormDynamicsReducer from '../features/form/dynamics/formDynamicsReducer';
 import FormLayoutReducer, { ILayoutState } from '../features/form/layout/formLayoutReducer';
-import FormRuleReducer, { IFormRuleState } from '../features/form/rules/reducer';
+import FormRuleReducer, { IFormRuleState } from '../features/form/rules/rulesReducer';
 import ValidationReducer, { IValidationState } from '../features/form/validation/reducer';
 import InstantiationReducer, { IInstantiationState } from '../features/instantiate/instantiation/reducer';
 import ApplicationMetadataReducer, { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';

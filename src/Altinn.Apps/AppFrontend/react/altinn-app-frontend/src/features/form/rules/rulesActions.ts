@@ -1,8 +1,8 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { IDataModelFieldElement } from '../';
-import { store } from '../../../../store';
-import * as FetchRuleModel from './fetch';
-import * as RuleActions from './rule';
+import { IDataModelFieldElement } from './index';
+import { store } from '../../../store';
+import * as FetchRuleModel from './fetch/fetchRulesActions';
+import * as RuleActions from './check/checkRulesActions';
 
 export interface IFormRulesActions extends ActionCreatorsMapObject {
   checkIfRuleShouldRun: (

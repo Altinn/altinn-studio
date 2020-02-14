@@ -6,7 +6,7 @@ import { FETCH_FORM_CONFIG_FULFILLED } from '../../../../features/form/config/fe
 import { FETCH_FORM_DATA_FULFILLED } from '../../../../features/form/data/formDataActionTypes';
 import { FETCH_DATA_MODEL_FULFILLED } from '../../../../features/form/datamodel/fetch/fetchFormDatamodelActionTypes';
 import { FETCH_FORM_LAYOUT_FULFILLED } from '../../../../features/form/layout/formLayoutActionTypes';
-import { FETCH_RULE_MODEL_FULFILLED } from './../../../../features/form/rules/actions/types';
+import { FETCH_RULE_MODEL_FULFILLED } from '../../../../features/form/rules/rulesActionTypes';
 // import { FETCH_LANGUAGE_FULFILLED } from './../../language/fetch/fetchLanguageActionTypes';
 import IsLoadingActions from './../isLoadingActions';
 

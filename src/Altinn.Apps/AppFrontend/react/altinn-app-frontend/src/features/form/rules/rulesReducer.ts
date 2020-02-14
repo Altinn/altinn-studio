@@ -1,8 +1,8 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IRuleModelFieldElement } from '../';
-import * as FetchActions from '../actions/fetch';
-import * as ActionTypes from '../actions/types';
+import { IRuleModelFieldElement } from '.';
+import * as FetchActions from './fetch/fetchRulesActions';
+import * as ActionTypes from './rulesActionTypes';
 
 export interface IFormRuleState {
   model: IRuleModelFieldElement[];

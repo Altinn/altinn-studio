@@ -15,7 +15,7 @@ import { IRuntimeState, IAltinnWindow } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
 import { IInstance } from 'altinn-shared/types';
 import { FETCH_DATA_MODEL_FULFILLED } from '../../datamodel/fetch/fetchFormDatamodelActionTypes';
-import FormRulesActions from '../../rules/actions';
+import FormRulesActions from '../../rules/rulesActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 
 const SelectFormDataModel: (store: any) => any = (store: any) => store.formDataModel.dataModel;

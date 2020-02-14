@@ -1,14 +1,14 @@
 import { SagaIterator } from 'redux-saga';
 import { all, call, select, takeLatest } from 'redux-saga/effects';
-import { IRuntimeState } from '../../../../../types';
-import { checkIfRuleShouldRun } from '../../../../../utils/rules';
-import FormDataActions from '../../../data/formDataActions';
-import { IFormData } from '../../../data/formDataReducer';
-import { IDataModelState } from '../../../datamodel/formDatamodelReducer';
-import { IRuleConnections } from '../../../dynamics/';
-import { ILayoutState } from '../../../layout/formLayoutReducer';
-import * as RuleActions from '../../actions/rule';
-import * as ActionTypes from '../../actions/types';
+import { IRuntimeState } from '../../../../types';
+import { checkIfRuleShouldRun } from '../../../../utils/rules';
+import FormDataActions from '../../data/formDataActions';
+import { IFormData } from '../../data/formDataReducer';
+import { IDataModelState } from '../../datamodel/formDatamodelReducer';
+import { IRuleConnections } from '../../dynamics';
+import { ILayoutState } from '../../layout/formLayoutReducer';
+import * as RuleActions from './checkRulesActions';
+import * as ActionTypes from '../rulesActionTypes';
 
 const selectRuleConnection = (state: IRuntimeState): IRuleConnections => state.formDynamics.ruleConnection;
 const selectFormDataConnection = (state: IRuntimeState): IFormData => state.formData;
