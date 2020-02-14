@@ -1,8 +1,8 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { ILayoutComponent, ILayoutGroup } from '..';
-import { store } from '../../../../store';
-import * as FetchForm from './fetch';
-import * as UpdateFormLayout from './update';
+import { ILayoutComponent, ILayoutGroup } from './index';
+import { store } from '../../../store';
+import * as FetchForm from './fetch/fetchFormLayoutActions';
+import * as UpdateFormLayout from './update/updateFormLayoutActions';
 
 export interface IFormLayoutActions extends ActionCreatorsMapObject {
   fetchFormLayout: (url: string) => FetchForm.IFetchFormLayout;

@@ -13,7 +13,7 @@ import {
   validateFormComponents,
   validateFormData,
 } from '../../../../utils/validation';
-import { ILayoutState } from '../../layout/reducer';
+import { ILayoutState } from '../../layout/formLayoutReducer';
 import FormValidationActions from '../../validation/actions';
 import FormDataActions from '../formDataActions';
 import {

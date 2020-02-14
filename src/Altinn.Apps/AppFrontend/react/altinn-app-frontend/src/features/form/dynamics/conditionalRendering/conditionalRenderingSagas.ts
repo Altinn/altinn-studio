@@ -7,8 +7,8 @@ import * as FormConfigActionTypes from '../../config/fetch/fetchFormConfigAction
 import * as FormDataActionTypes from '../../data/formDataActionTypes';
 import { IFormData } from '../../data/formDataReducer';
 import { ILayout } from '../../layout';
-import FormLayoutActions from '../../layout/actions';
-import * as FormLayoutActionTypes from '../../layout/actions/types';
+import FormLayoutActions from '../../layout/formLayoutActions';
+import * as FormLayoutActionTypes from '../../layout/formLayoutActionTypes';
 import FormValidationActions from '../../validation/actions';
 import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';
 import { IConditionalRenderingRules } from '../types';

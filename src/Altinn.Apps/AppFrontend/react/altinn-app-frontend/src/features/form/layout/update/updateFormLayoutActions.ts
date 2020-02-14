@@ -1,12 +1,12 @@
 import { Action } from 'redux';
-import { ILayoutComponent, ILayoutGroup } from '../..';
+import { ILayoutComponent, ILayoutGroup } from '..';
 import {
   UPDATE_FOCUS,
   UPDATE_FOCUS_FULFUILLED,
   UPDATE_FOCUS_REJECTED,
   UPDATE_FORM_LAYOUT,
   UPDATE_HIDDEN_COMPONENTS,
-} from '../types';
+} from '../formLayoutActionTypes';
 
 export interface IUpdateFocus extends Action {
   currentComponentId: string;

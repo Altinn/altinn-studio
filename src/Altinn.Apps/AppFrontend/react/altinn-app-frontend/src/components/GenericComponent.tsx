@@ -8,7 +8,7 @@ import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
 import FormDynamicsActions from '../features/form/dynamics/formDynamicsActions';
 import { IDataModelBindings, ILayoutComponent, ILayoutEntry, ITextResourceBindings } from '../features/form/layout';
-import FormLayoutActions from '../features/form/layout/actions/index';
+import FormLayoutActions from '../features/form/layout/formLayoutActions';
 import RuleActions from '../features/form/rules/actions';
 //import ValidationActions from '../features/form/validation/actions';
 import { makeGetFormDataSelector } from '../selectors/getFormData';

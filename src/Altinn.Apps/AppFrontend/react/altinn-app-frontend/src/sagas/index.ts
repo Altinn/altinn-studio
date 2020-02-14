@@ -6,7 +6,7 @@ import FormConfigSagas from '../features/form/config/formConfigSagas';
 import FormDataSagas from '../features/form/data/formDataSagas';
 import FormDataModelSagas from '../features/form/datamodel/formDatamodelSagas';
 import FormDynamicsSagas from '../features/form/dynamics/formDynamicsSagas';
-import FormLayoutSagas from '../features/form/layout/sagas';
+import FormLayoutSagas from '../features/form/layout/formLayoutSagas';
 import FormRulesSagas from '../features/form/rules/sagas';
 import FormValidationSagas from '../features/form/validation/sagas';
 import InstantiationSagas from '../features/instantiate/instantiation/sagas';

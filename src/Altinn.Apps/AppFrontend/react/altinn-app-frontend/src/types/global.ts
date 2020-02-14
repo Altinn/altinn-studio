@@ -2,7 +2,7 @@ import { IFormConfigState } from '../features/form/config/formConfigReducer';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
-import { ILayoutState } from '../features/form/layout/reducer';
+import { ILayoutState } from '../features/form/layout/formLayoutReducer';
 import { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 

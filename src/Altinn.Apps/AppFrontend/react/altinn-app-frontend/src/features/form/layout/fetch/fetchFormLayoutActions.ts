@@ -1,6 +1,6 @@
 import { Action } from 'redux';
-import { ILayout } from '../../';
-import * as actionTypes from '../types';
+import { ILayout } from '..';
+import * as actionTypes from '../formLayoutActionTypes';
 
 export interface IFetchFormLayout extends Action {
   url: string;

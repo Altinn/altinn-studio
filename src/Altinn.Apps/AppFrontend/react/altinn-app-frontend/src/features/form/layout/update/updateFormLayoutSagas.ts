@@ -1,11 +1,11 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
-import { ILayoutComponent } from '../..';
-import FormLayoutActions from '../../actions';
-import * as ActionTypes from '../../actions/types';
-import { IUpdateFocus } from '../../actions/update';
-import { ILayoutState } from '../../reducer';
+import { ILayoutComponent } from '..';
+import FormLayoutActions from '../formLayoutActions';
+import * as ActionTypes from '../formLayoutActionTypes';
+import { IUpdateFocus } from './updateFormLayoutActions';
+import { ILayoutState } from '../formLayoutReducer';
 
 const selectFormLayoutConnection = (state: IRuntimeState): ILayoutState => state.formLayout;
 

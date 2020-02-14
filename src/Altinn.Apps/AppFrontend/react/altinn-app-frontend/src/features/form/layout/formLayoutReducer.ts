@@ -2,14 +2,14 @@ import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import {
   ILayout,
-} from '../';
+} from './index';
 import {
   IFetchFormLayoutFulfilled,
   IFetchFormLayoutRejected,
-} from '../actions/fetch';
-import * as ActionTypes from '../actions/types';
-import { IUpdateFocusFulfilled, IUpdateFormLayout, IUpdateHiddenComponents } from '../actions/update';
-import { IUiConfig } from './../../../../types/global';
+} from './fetch/fetchFormLayoutActions';
+import * as ActionTypes from './formLayoutActionTypes';
+import { IUpdateFocusFulfilled, IUpdateFormLayout, IUpdateHiddenComponents } from './update/updateFormLayoutActions';
+import { IUiConfig } from '../../../types/global';
 
 export interface ILayoutState {
   layout: ILayout;

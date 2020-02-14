@@ -6,7 +6,7 @@ import FormDataActions from '../../../data/formDataActions';
 import { IFormData } from '../../../data/formDataReducer';
 import { IDataModelState } from '../../../datamodel/formDatamodelReducer';
 import { IRuleConnections } from '../../../dynamics/';
-import { ILayoutState } from '../../../layout/reducer';
+import { ILayoutState } from '../../../layout/formLayoutReducer';
 import * as RuleActions from '../../actions/rule';
 import * as ActionTypes from '../../actions/types';
 
