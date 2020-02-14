@@ -39,6 +39,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <param name="policyInformationRepository">the policy information repository handler</param>
         /// <param name="rolesWrapper">the roles handler</param>
         /// <param name="memoryCache">The cache handler </param>
+        /// <param name="settings">The app settings</param>
         public ContextHandler(
             IPolicyInformationRepository policyInformationRepository, IRoles rolesWrapper, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
         {
