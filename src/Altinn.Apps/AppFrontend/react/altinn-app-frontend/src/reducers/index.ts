@@ -7,7 +7,7 @@ import FormConfigState, { IFormConfigState } from '../features/form/config/formC
 import FormDataReducer, { IFormDataState } from '../features/form/data/formDataReducer';
 import FormDataModel, { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
-import FormDynamics from '../features/form/dynamics/reducer';
+import FormDynamicsReducer from '../features/form/dynamics/formDynamicsReducer';
 import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer';
 import FormRuleReducer, { IFormRuleState } from '../features/form/rules/reducer';
 import ValidationReducer, { IValidationState } from '../features/form/validation/reducer';
@@ -76,7 +76,7 @@ const reducers: IRuntimeReducers = {
   formConfig: FormConfigState,
   formData: FormDataReducer,
   formDataModel: FormDataModel,
-  formDynamics: FormDynamics,
+  formDynamics: FormDynamicsReducer,
   formLayout: FormLayoutReducer,
   formRules: FormRuleReducer,
   formValidations: ValidationReducer,

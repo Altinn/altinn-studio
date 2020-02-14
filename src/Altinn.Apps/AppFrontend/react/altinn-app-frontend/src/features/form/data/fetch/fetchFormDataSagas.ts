@@ -16,7 +16,7 @@ import { IApplicationMetadata } from '../../../../shared/resources/applicationMe
 import { IInstance } from 'altinn-shared/types';
 import { FETCH_DATA_MODEL_FULFILLED } from '../../datamodel/fetch/fetchFormDatamodelActionTypes';
 import FormRulesActions from '../../rules/actions';
-import FormDynamicsRules from '../../dynamics/actions';
+import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 
 const SelectFormDataModel: (store: any) => any = (store: any) => store.formDataModel.dataModel;
 const appMetaDataSelector = (state: IRuntimeState): IApplicationMetadata =>
@@ -60,7 +60,7 @@ function* fetchFormDataInitialSaga(): SagaIterator {
     );
   
     yield call(
-      FormDynamicsRules.fetchFormDynamics,
+      FormDynamicsActions.fetchFormDynamics,
       `${window.location.origin}/${org}/${app}/api/resource/RuleConfiguration.json`,
     );
     

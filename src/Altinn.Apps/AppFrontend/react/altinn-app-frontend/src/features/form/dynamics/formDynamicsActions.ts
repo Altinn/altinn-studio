@@ -1,9 +1,9 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../../../store';
+import { store } from '../../../store';
 
-import * as ApiActions from './api';
-import * as ConditionalRenderActions from './conditionalRendering';
-import * as FetchDynamicActions from './fetch';
+import * as ApiActions from './api/apiActions';
+import * as ConditionalRenderActions from './conditionalRendering/conditionalRenderingActions';
+import * as FetchDynamicActions from './fetch/fetchFormDynamicsActions';
 
 export interface IFormDynamicsActions extends ActionCreatorsMapObject {
   checkIfApiShouldFetch: (

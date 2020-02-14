@@ -1,17 +1,17 @@
 import { SagaIterator } from 'redux-saga';
 import { all, call, select, take, takeLatest } from 'redux-saga/effects';
-import { IRuntimeState } from '../../../../../types';
-import { IValidations } from '../../../../../types/global';
-import { runConditionalRenderingRules } from '../../../../../utils/conditionalRendering';
-import * as FormConfigActionTypes from '../../../config/fetch/fetchFormConfigActionTypes';
-import * as FormDataActionTypes from '../../../data/formDataActionTypes';
-import { IFormData } from '../../../data/formDataReducer';
-import { ILayout } from '../../../layout';
-import FormLayoutActions from '../../../layout/actions';
-import * as FormLayoutActionTypes from '../../../layout/actions/types';
-import FormValidationActions from '../../../validation/actions';
-import * as FormDynamicsActionTypes from '../../actions/types';
-import { IConditionalRenderingRules } from '../../types';
+import { IRuntimeState } from '../../../../types';
+import { IValidations } from '../../../../types/global';
+import { runConditionalRenderingRules } from '../../../../utils/conditionalRendering';
+import * as FormConfigActionTypes from '../../config/fetch/fetchFormConfigActionTypes';
+import * as FormDataActionTypes from '../../data/formDataActionTypes';
+import { IFormData } from '../../data/formDataReducer';
+import { ILayout } from '../../layout';
+import FormLayoutActions from '../../layout/actions';
+import * as FormLayoutActionTypes from '../../layout/actions/types';
+import FormValidationActions from '../../validation/actions';
+import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';
+import { IConditionalRenderingRules } from '../types';
 
 export const ConditionalRenderingSelector:
   (store: IRuntimeState) => any = (store: IRuntimeState) => store.formDynamics.conditionalRendering;

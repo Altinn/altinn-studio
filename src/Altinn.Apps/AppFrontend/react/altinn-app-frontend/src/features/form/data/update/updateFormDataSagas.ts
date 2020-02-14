@@ -5,7 +5,7 @@ import { IRuntimeState } from '../../../../types';
 import { IComponentValidations } from '../../../../types/global';
 import { getLayoutComponentById } from '../../../../utils/layout';
 import { validateComponentFormData } from '../../../../utils/validation';
-import FormDynamicActions from '../../dynamics/actions';
+import FormDynamicActions from '../../dynamics/formDynamicsActions';
 import FormValidationActions from '../../validation/actions';
 import FormDataActions from '../formDataActions';
 import * as FormDataActionTypes from '../formDataActionTypes';

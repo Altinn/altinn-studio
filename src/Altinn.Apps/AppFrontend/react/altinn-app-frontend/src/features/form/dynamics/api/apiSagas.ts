@@ -1,8 +1,8 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 
-import { ICheckIfApiShouldFetchAction } from '../../actions/api';
-import * as FormDynamicsActionTypes from '../../actions/types';
+import { ICheckIfApiShouldFetchAction } from './apiActions';
+import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';
 
 function * checkIfApiShouldFetchSaga({
   updatedComponentId,

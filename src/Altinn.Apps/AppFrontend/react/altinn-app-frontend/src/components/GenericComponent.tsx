@@ -6,7 +6,7 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import { formComponentWithHandlers } from '../features/form/containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
-import FormDynamicsActions from '../features/form/dynamics/actions';
+import FormDynamicsActions from '../features/form/dynamics/formDynamicsActions';
 import { IDataModelBindings, ILayoutComponent, ILayoutEntry, ITextResourceBindings } from '../features/form/layout';
 import FormLayoutActions from '../features/form/layout/actions/index';
 import RuleActions from '../features/form/rules/actions';

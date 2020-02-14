@@ -1,9 +1,9 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
-import { get } from '../../../../../utils/networking';
-import FormDynamicsActions from '../../actions';
-import { IFetchServiceConfig } from '../../actions/fetch';
-import * as FormDynamicsActionTypes from '../../actions/types';
+import { get } from '../../../../utils/networking';
+import FormDynamicsActions from '../formDynamicsActions';
+import { IFetchServiceConfig } from './fetchFormDynamicsActions';
+import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';
 
 function* fetchDynamicsSaga({ url }: IFetchServiceConfig): SagaIterator {
   try {
