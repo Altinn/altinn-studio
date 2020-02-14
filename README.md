@@ -9,6 +9,9 @@ An early test version of Altinn Studio is available at https://altinn.studio.
 
 Use the [documentation](https://docs.altinn.studio/) to get started using Altinn Studio.
 
+## Develop Apps?
+if you just want to run app locally go [here](LOCALAPP.md)
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
