@@ -38,7 +38,8 @@ Start the loadbalancer container that routes between the local platform services
 docker-compose up -d --build
 ```
 
-2b
+2b. Setting up loadbalancer Linux
+
 Install NGINX
 
 ```bash
@@ -49,6 +50,8 @@ sudo service nginx start
 
 ```
 
+Edit the NGINX configuration
+
 ```bash
 
 cd /etc/nginx
@@ -56,7 +59,7 @@ sudo nano nginx.conf
 
 ```
 
-Add comments
+Modify the default to this.
 
 ```
 worker_processes 1;
@@ -107,8 +110,8 @@ http {
 }
 
 ```
-Save and go back to src/develpment folder in altinn-studio
 
+Save and go back to src/develpment folder in altinn-studio
 
 
 3. Set path to app folder in local platform services:
