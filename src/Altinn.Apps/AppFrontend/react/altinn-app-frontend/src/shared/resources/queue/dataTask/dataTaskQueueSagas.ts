@@ -1,6 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { all, call, take } from 'redux-saga/effects';
-import FormDataActions from './../../../../features/form/data/actions';
+import FormDataActions from '../../../../features/form/data/formDataActions';
 import DataModelActions from './../../../../features/form/datamodell/actions';
 import FormLayoutActions from './../../../../features/form/layout/actions';
 import { IAltinnWindow } from './../../../../types/global';

@@ -1,6 +1,6 @@
 import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducers';
 import { IFormConfigState } from '../features/form/config/formConfigReducer';
-import { IFormDataState } from '../features/form/data/reducer';
+import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IDataModelState } from '../features/form/datamodell/reducer';
 import { IFormDynamicState } from '../features/form/dynamics';
 import { ILayoutState } from '../features/form/layout/reducer';

@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import * as actionTypes from '../types';
+import * as actionTypes from '../formDataActionTypes';
 
 export interface IUpdateFormData extends Action {
   field: string;

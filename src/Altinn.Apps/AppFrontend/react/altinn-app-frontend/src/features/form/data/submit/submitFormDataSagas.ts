@@ -2,24 +2,24 @@ import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
 import { getCurrentTaskDataTypeId, get, put } from 'altinn-shared/utils';
-import ProcessDispatcher from '../../../../../shared/resources/process/processDispatcher';
-import { IRuntimeStore } from '../../../../../types/global';
-import { convertDataBindingToModel } from '../../../../../utils/databindings';
-import { dataElementUrl, getValidationUrl } from '../../../../../utils/urlHelper';
+import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
+import { IRuntimeStore } from '../../../../types/global';
+import { convertDataBindingToModel } from '../../../../utils/databindings';
+import { dataElementUrl, getValidationUrl } from '../../../../utils/urlHelper';
 import {
   canFormBeSaved,
   mapDataElementValidationToRedux,
   validateEmptyFields,
   validateFormComponents,
   validateFormData,
-} from '../../../../../utils/validation';
-import { ILayoutState } from '../../../layout/reducer';
-import FormValidationActions from '../../../validation/actions';
-import FormDataActions from '../../actions';
+} from '../../../../utils/validation';
+import { ILayoutState } from '../../layout/reducer';
+import FormValidationActions from '../../validation/actions';
+import FormDataActions from '../formDataActions';
 import {
   ISubmitDataAction,
-} from '../../actions/submit';
-import * as FormDataActionTypes from '../../actions/types';
+} from './submitFormDataActions';
+import * as FormDataActionTypes from '../formDataActionTypes';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 

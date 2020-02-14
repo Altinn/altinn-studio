@@ -7,16 +7,16 @@ import {
   take,
 } from 'redux-saga/effects';
 import { get, getCurrentTaskDataTypeId } from 'altinn-shared/utils';
-import { convertModelToDataBinding } from '../../../../../utils/databindings';
-import FormActions from '../../actions';
-import { IFetchFormData } from '../../actions/fetch';
-import * as FormDataActionTypes from '../../actions/types';
-import { IRuntimeState, IAltinnWindow } from '../../../../../types';
-import { IApplicationMetadata } from '../../../../../shared/resources/applicationMetadata';
+import { convertModelToDataBinding } from '../../../../utils/databindings';
+import FormActions from '../formDataActions';
+import { IFetchFormData } from './fetchFormDataActions';
+import * as FormDataActionTypes from '../formDataActionTypes';
+import { IRuntimeState, IAltinnWindow } from '../../../../types';
+import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
 import { IInstance } from 'altinn-shared/types';
-import { FETCH_DATA_MODEL_FULFILLED } from '../../../datamodell/actions/types';
-import FormRulesActions from '../../../rules/actions';
-import FormDynamicsRules from '../../../dynamics/actions';
+import { FETCH_DATA_MODEL_FULFILLED } from '../../datamodell/actions/types';
+import FormRulesActions from '../../rules/actions';
+import FormDynamicsRules from '../../dynamics/actions';
 
 const SelectFormDataModel: (store: any) => any = (store: any) => store.formDataModel.dataModel;
 const appMetaDataSelector = (state: IRuntimeState): IApplicationMetadata =>

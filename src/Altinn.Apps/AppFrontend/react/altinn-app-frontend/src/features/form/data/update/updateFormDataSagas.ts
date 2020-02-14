@@ -1,15 +1,15 @@
 import { SagaIterator } from 'redux-saga';
 import { actionChannel, call, select, take } from 'redux-saga/effects';
 
-import { IRuntimeState } from '../../../../../types';
-import { IComponentValidations } from '../../../../../types/global';
-import { getLayoutComponentById } from '../../../../../utils/layout';
-import { validateComponentFormData } from '../../../../../utils/validation';
-import FormDynamicActions from '../../../dynamics/actions';
-import FormValidationActions from '../../../validation/actions';
-import FormDataActions from '../../actions';
-import * as FormDataActionTypes from '../../actions/types';
-import { IUpdateFormData } from '../../actions/update';
+import { IRuntimeState } from '../../../../types';
+import { IComponentValidations } from '../../../../types/global';
+import { getLayoutComponentById } from '../../../../utils/layout';
+import { validateComponentFormData } from '../../../../utils/validation';
+import FormDynamicActions from '../../dynamics/actions';
+import FormValidationActions from '../../validation/actions';
+import FormDataActions from '../formDataActions';
+import * as FormDataActionTypes from '../formDataActionTypes';
+import { IUpdateFormData } from '../update/updateFormDataActions';
 
 function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): SagaIterator {
   try {

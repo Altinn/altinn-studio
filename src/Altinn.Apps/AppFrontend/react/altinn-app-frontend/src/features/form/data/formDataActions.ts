@@ -1,8 +1,8 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../../../store';
-import * as FetchFormData from './fetch';
-import * as SubmitFormData from './submit';
-import * as UpdateFormData from './update';
+import { store } from '../../../store';
+import * as FetchFormData from './fetch/fetchFormDataActions';
+import * as SubmitFormData from './submit/submitFormDataActions';
+import * as UpdateFormData from './update/updateFormDataActions';
 
 export interface IFormDataActions extends ActionCreatorsMapObject {
   updateFormData: (field: string, data: any, componentId: string) => UpdateFormData.IUpdateFormData;

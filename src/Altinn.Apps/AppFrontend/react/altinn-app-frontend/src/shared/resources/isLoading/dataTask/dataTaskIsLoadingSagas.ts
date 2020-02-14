@@ -3,7 +3,7 @@ import { all, call, take } from 'redux-saga/effects';
 import { MAP_ATTACHMENTS_FULFILLED } from '../../attachments/attachmentActionTypes';
 import { GET_INSTANCEDATA_FULFILLED } from '../../instanceData/get/getInstanceDataActionTypes';
 import { FETCH_FORM_CONFIG_FULFILLED } from '../../../../features/form/config/fetch/fetchFormConfigActionTypes';
-import { FETCH_FORM_DATA_FULFILLED } from './../../../../features/form/data/actions/types';
+import { FETCH_FORM_DATA_FULFILLED } from '../../../../features/form/data/formDataActionTypes';
 import { FETCH_DATA_MODEL_FULFILLED } from './../../../../features/form/datamodell/actions/types';
 import { FETCH_FORM_LAYOUT_FULFILLED } from './../../../../features/form/layout/actions/types';
 import { FETCH_RULE_MODEL_FULFILLED } from './../../../../features/form/rules/actions/types';

@@ -1,5 +1,5 @@
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
-import { IFormData } from '../features/form/data/reducer';
+import { IFormData } from '../features/form/data/formDataReducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
 import { IValidationIssue, Severity } from '../types';
 import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';

@@ -1,9 +1,9 @@
 import Immutable from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IFetchFormDataFulfilled, IFetchFormDataRejected } from '../actions/fetch';
-import { ISubmitFormDataRejected } from '../actions/submit';
-import * as actionTypes from '../actions/types';
-import { IUpdateFormDataFulfilled, IUpdateFormDataRejected } from '../actions/update';
+import { IFetchFormDataFulfilled, IFetchFormDataRejected } from './fetch/fetchFormDataActions';
+import { ISubmitFormDataRejected } from './submit/submitFormDataActions';
+import * as actionTypes from './formDataActionTypes';
+import { IUpdateFormDataFulfilled, IUpdateFormDataRejected } from './update/updateFormDataActions';
 
 export interface IFormData {
   [dataFieldKey: string]: any;

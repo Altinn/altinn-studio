@@ -1,4 +1,4 @@
-import { IFormData } from '../../features/form/data/reducer';
+import { IFormData } from '../../features/form/data/formDataReducer';
 import { IDataModelState } from '../../features/form/datamodell/reducer';
 import { IRuleConnections } from '../../features/form/dynamics/';
 import { ILayoutComponent } from '../../features/form/layout';
