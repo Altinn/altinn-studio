@@ -1,13 +1,13 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 
-import DataModelActions from '../../actions';
-import { IFetchDataModel } from '../../actions/fetch';
-import * as ActionTypes from '../../actions/types';
+import DataModelActions from '../formDatamodelActions';
+import { IFetchDataModel } from './fetchFormDatamodelActions';
+import * as ActionTypes from './fetchFormDatamodelActionTypes';
 
-import ConfigActions from '../../../config/formConfigActions';
+import ConfigActions from '../../config/formConfigActions';
 
-import { get } from '../../../../../utils/networking';
+import { get } from '../../../../utils/networking';
 
 // import { testData } from './testData';
 

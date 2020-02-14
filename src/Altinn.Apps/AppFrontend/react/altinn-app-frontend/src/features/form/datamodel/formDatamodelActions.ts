@@ -1,7 +1,7 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../../../store';
+import { store } from '../../../store';
 
-import * as fetchActions from './fetch';
+import * as fetchActions from './fetch/fetchFormDatamodelActions';
 
 interface IFormDataModelActions extends ActionCreatorsMapObject {
   fetchDataModel: (url: string) => fetchActions.IFetchDataModel;

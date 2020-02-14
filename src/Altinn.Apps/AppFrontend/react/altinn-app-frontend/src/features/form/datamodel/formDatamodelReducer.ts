@@ -1,11 +1,11 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IDataModelFieldElement } from '../../../../types/global';
+import { IDataModelFieldElement } from '../../../types/global';
 import {
   IFetchDataModelFulfilled,
   IFetchDataModelRejected,
-} from '../actions/fetch';
-import * as ActionTypes from '../actions/types';
+} from './fetch/fetchFormDatamodelActions';
+import * as ActionTypes from './fetch/fetchFormDatamodelActionTypes';
 
 export interface IDataModelState {
   dataModel: IDataModelFieldElement[];

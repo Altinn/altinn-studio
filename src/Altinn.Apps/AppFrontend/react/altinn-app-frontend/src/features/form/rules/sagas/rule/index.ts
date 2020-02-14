@@ -4,7 +4,7 @@ import { IRuntimeState } from '../../../../../types';
 import { checkIfRuleShouldRun } from '../../../../../utils/rules';
 import FormDataActions from '../../../data/formDataActions';
 import { IFormData } from '../../../data/formDataReducer';
-import { IDataModelState } from '../../../datamodell/reducer';
+import { IDataModelState } from '../../../datamodel/formDatamodelReducer';
 import { IRuleConnections } from '../../../dynamics/';
 import { ILayoutState } from '../../../layout/reducer';
 import * as RuleActions from '../../actions/rule';

@@ -1,5 +1,5 @@
 import { IFormData } from '../../features/form/data/formDataReducer';
-import { IDataModelState } from '../../features/form/datamodell/reducer';
+import { IDataModelState } from '../../features/form/datamodel/formDatamodelReducer';
 import { IRuleConnections } from '../../features/form/dynamics/';
 import { ILayoutComponent } from '../../features/form/layout';
 import { ILayoutState } from '../../features/form/layout/reducer';

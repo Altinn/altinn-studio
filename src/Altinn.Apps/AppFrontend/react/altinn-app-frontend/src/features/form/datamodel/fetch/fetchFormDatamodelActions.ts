@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import * as ActionTypes from '../types';
+import * as ActionTypes from './fetchFormDatamodelActionTypes';
 
 export interface IFetchDataModel extends Action {
   url: string;

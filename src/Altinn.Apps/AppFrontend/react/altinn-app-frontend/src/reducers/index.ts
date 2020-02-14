@@ -5,7 +5,7 @@ import {
 } from 'redux';
 import FormConfigState, { IFormConfigState } from '../features/form/config/formConfigReducer';
 import FormDataReducer, { IFormDataState } from '../features/form/data/formDataReducer';
-import FormDataModel, { IDataModelState } from '../features/form/datamodell/reducer';
+import FormDataModel, { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
 import FormDynamics from '../features/form/dynamics/reducer';
 import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer';

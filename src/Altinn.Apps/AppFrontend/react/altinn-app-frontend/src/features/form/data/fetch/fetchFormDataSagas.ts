@@ -14,7 +14,7 @@ import * as FormDataActionTypes from '../formDataActionTypes';
 import { IRuntimeState, IAltinnWindow } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
 import { IInstance } from 'altinn-shared/types';
-import { FETCH_DATA_MODEL_FULFILLED } from '../../datamodell/actions/types';
+import { FETCH_DATA_MODEL_FULFILLED } from '../../datamodel/fetch/fetchFormDatamodelActionTypes';
 import FormRulesActions from '../../rules/actions';
 import FormDynamicsRules from '../../dynamics/actions';
 
