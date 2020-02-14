@@ -5,25 +5,29 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.IntegrationTest.Mocks;
-using Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication;
-using Altinn.Platform.Storage.IntegrationTest.Utils;
+using Altinn.Platform.Storage.UnitTest.Mocks;
+using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
+using Altinn.Platform.Storage.UnitTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using AltinnCore.Authentication.JwtCookie;
+
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
+namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
     /// <summary>
     /// Represents a collection of integration tests of the <see cref="MessageBoxInstancesController"/>.
@@ -58,7 +62,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void GetMessageBoxInstanceList_RequestAllInstancesForAnOwnerWithtoutLanguage_ReturnsAllElementsUsingDefaultLanguage()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             List<Instance> testInstances = testData.GetInstances_App3();
             
             Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
@@ -99,7 +103,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void GetMessageBoxInstanceList_RequestAllInstancesForAnOwnerInEnglish_ReturnsAllElementsWithEnglishTitles()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             List<Instance> testInstances = testData.GetInstances_App2();
             
             Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
@@ -140,7 +144,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void GetMessageBoxInstanceList_RequestArchivedInstancesForGivenOwner_ReturnsCorrectListOfInstances()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             List<Instance> testInstances = testData.GetInstances_App1();
             
             Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
@@ -181,7 +185,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void GetMessageBoxInstanceList_RequestArchivedInstancesForGivenOwner_ReturnsCorrectListOfInstancesWithEndEventTask()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             List<Instance> testInstances = testData.GetInstances_App4();
 
             Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
@@ -224,8 +228,9 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void Undelete_RestoreSoftDeletedInstance_ReturnsTrue()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             Instance instance = testData.GetSoftDeletedInstance();
+            instance.Status.HardDeleted = null;
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
 
@@ -267,7 +272,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void Undelete_UserHasTooLowAuthLv_ReturnsStatusForbidden()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             Instance instance = testData.GetSoftDeletedInstance();
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
@@ -305,7 +310,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void Undelete_ResponseIsDeny_ReturnsStatusForbidden()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             Instance instance = testData.GetSoftDeletedInstance();
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
@@ -345,7 +350,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void Undelete_AttemptToRestoreHardDeletedInstance_ReturnsBadRequest()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             Instance instance = testData.GetHardDeletedInstance();
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
@@ -382,7 +387,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void Undelete_RestoreNonExistentInstance_ReturnsNotFound()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             string instanceGuid = Guid.NewGuid().ToString();
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
@@ -420,7 +425,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void Delete_SoftDeleteActiveInstance_InstanceIsMarked_EventIsCreated_ReturnsTrue()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             Instance instance = testData.GetActiveInstance();
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
@@ -467,7 +472,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void Delete_UserHasTooLowAuthLv_ReturnsStatusForbidden()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             Instance instance = testData.GetActiveInstance();
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
@@ -507,7 +512,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void Delete_ResponseIsDeny_ReturnsStatusForbidden()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             Instance instance = testData.GetActiveInstance();
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
@@ -549,7 +554,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         public async void DeleteInstance_TC02()
         {
             // Arrange
-            TestData testData = new TestData();
+            MessageBoxTestData testData = new MessageBoxTestData();
             Instance instance = testData.GetSoftDeletedInstance();
 
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();

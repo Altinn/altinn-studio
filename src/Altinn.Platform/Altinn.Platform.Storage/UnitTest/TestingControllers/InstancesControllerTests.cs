@@ -1,25 +1,26 @@
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading.Tasks;
+
 using Altinn.Common.PEP.Interfaces;
-using Altinn.Platform.Storage.IntegrationTest.Mocks;
-using Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication;
-using Altinn.Platform.Storage.IntegrationTest.Utils;
+using Altinn.Platform.Storage.UnitTest.Mocks;
+using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
+using Altinn.Platform.Storage.UnitTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
+namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
     /// <summary>
     /// Creates new instance of InstancesControllerTests.
