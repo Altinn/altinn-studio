@@ -3,7 +3,7 @@ import { fork } from 'redux-saga/effects';
 
 import {
   watchRunSingleFieldValidationSaga,
-} from './singleFieldValidation';
+} from './singleField/singleFieldValidationSagas';
 
 export default function*(): SagaIterator {
   yield fork(watchRunSingleFieldValidationSaga);

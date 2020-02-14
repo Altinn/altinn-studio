@@ -6,7 +6,7 @@ import { IComponentValidations } from '../../../../types/global';
 import { getLayoutComponentById } from '../../../../utils/layout';
 import { validateComponentFormData } from '../../../../utils/validation';
 import FormDynamicActions from '../../dynamics/formDynamicsActions';
-import FormValidationActions from '../../validation/actions';
+import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
 import * as FormDataActionTypes from '../formDataActionTypes';
 import { IUpdateFormData } from '../update/updateFormDataActions';

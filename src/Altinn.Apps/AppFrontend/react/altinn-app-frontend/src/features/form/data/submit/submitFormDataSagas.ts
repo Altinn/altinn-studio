@@ -14,7 +14,7 @@ import {
   validateFormData,
 } from '../../../../utils/validation';
 import { ILayoutState } from '../../layout/formLayoutReducer';
-import FormValidationActions from '../../validation/actions';
+import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
 import {
   ISubmitDataAction,

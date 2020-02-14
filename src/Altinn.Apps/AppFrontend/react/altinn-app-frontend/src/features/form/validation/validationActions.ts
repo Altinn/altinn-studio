@@ -1,9 +1,9 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../../../store';
-import { IComponentValidations, IValidations } from '../../../../types/global';
-import * as ComponentValidation from './componentValidations';
-import * as SingleFieldValidationActions from './singleFieldValidation';
-import * as Validations from './validations';
+import { store } from '../../../store';
+import { IComponentValidations, IValidations } from '../../../types/global';
+import * as ComponentValidation from './component/componentValidationsActions';
+import * as SingleFieldValidationActions from './singleField/singleFieldValidationActions';
+import * as Validations from './update/updateValidationsActions';
 
 export interface IFormValidationActions extends ActionCreatorsMapObject {
   updateValidations: (validations: IValidations) => Validations.IUpdateValidations;

@@ -1,10 +1,10 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IValidations } from '../../../../types/global';
-import { IUpdateComponentValidations } from '../actions/componentValidations';
-import { IRunSingleFieldValidationActionFulfilled } from '../actions/singleFieldValidation';
-import * as ActionTypes from '../actions/types';
-import { IUpdateValidations } from '../actions/validations';
+import { IValidations } from '../../../types/global';
+import { IUpdateComponentValidations } from './component/componentValidationsActions';
+import { IRunSingleFieldValidationActionFulfilled } from './singleField/singleFieldValidationActions';
+import * as ActionTypes from './validationActionTypes';
+import { IUpdateValidations } from './update/updateValidationsActions';
 
 export interface IValidationState {
   validations: IValidations;

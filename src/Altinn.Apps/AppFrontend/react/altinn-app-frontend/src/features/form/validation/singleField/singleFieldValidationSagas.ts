@@ -1,13 +1,13 @@
 import { AxiosRequestConfig } from 'axios';
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
-import { IRuntimeStore } from '../../../../../types/global';
-import { convertDataBindingToModel } from '../../../../../utils/databindings';
-import { get, put } from '../../../../../utils/networking';
-import { mapApiValidationsToRedux } from '../../../../../utils/validation';
-import Actions from '../../actions';
-import { IRunSingleFieldValidationAction } from '../../actions/singleFieldValidation';
-import * as ActionTypes from '../../actions/types';
+import { IRuntimeStore } from '../../../../types/global';
+import { convertDataBindingToModel } from '../../../../utils/databindings';
+import { get, put } from '../../../../utils/networking';
+import { mapApiValidationsToRedux } from '../../../../utils/validation';
+import Actions from '../validationActions';
+import { IRunSingleFieldValidationAction } from './singleFieldValidationActions';
+import * as ActionTypes from '../validationActionTypes';
 
 export function* runSingleFieldValidationSaga({
   url,

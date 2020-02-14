@@ -9,7 +9,7 @@ import { IFormData } from '../../data/formDataReducer';
 import { ILayout } from '../../layout';
 import FormLayoutActions from '../../layout/formLayoutActions';
 import * as FormLayoutActionTypes from '../../layout/formLayoutActionTypes';
-import FormValidationActions from '../../validation/actions';
+import FormValidationActions from '../../validation/validationActions';
 import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';
 import { IConditionalRenderingRules } from '../types';
 
