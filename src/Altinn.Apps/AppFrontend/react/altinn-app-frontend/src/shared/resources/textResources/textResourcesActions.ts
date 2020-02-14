@@ -1,8 +1,8 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import * as Actions from './fetch';
+import * as Actions from './fetch/fetchTextResourcesActions';
 
 import { ITextResource } from 'src/types/global';
-import { store } from '../../../../store';
+import { store } from '../../../store';
 
 export interface ITextResourcesActions extends ActionCreatorsMapObject {
   fetchTextResources: () => Action;

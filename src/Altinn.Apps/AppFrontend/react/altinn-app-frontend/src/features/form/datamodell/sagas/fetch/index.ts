@@ -6,15 +6,13 @@ import { IFetchDataModel } from '../../actions/fetch';
 import * as ActionTypes from '../../actions/types';
 
 import ConfigActions from '../../../config/actions';
+import QueueActions from '../../../../../shared/resources/queue/queueActions';
 
 import { get } from '../../../../../utils/networking';
-
-// import { testData } from './testData';
 
 function* fetchFormDataModelSaga({ url }: IFetchDataModel): SagaIterator {
   try {
     const dataModel: any = yield call(get, url);
-    // const dataModel: any = testData;
 
     const {
       Org,
@@ -33,6 +31,7 @@ function* fetchFormDataModelSaga({ url }: IFetchDataModel): SagaIterator {
     yield call(ConfigActions.fetchFormConfigFulfilled, Org, ServiceName, RepositoryName, ServiceId);
   } catch (err) {
     yield call(DataModelActions.fetchDataModelRejected, err);
+    yield call(QueueActions.dataTaskQueueError, err)
   }
 }
 

@@ -1,8 +1,8 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { ITextResource } from '../../../../types/global';
-import { IFetchTextResourcesFulfilled, IFetchTextResourcesRejected} from '../actions/fetch';
-import * as ActionTypes from '../actions/types';
+import { ITextResource } from '../../../types/global';
+import { IFetchTextResourcesFulfilled, IFetchTextResourcesRejected} from './fetch/fetchTextResourcesActions';
+import * as ActionTypes from './fetch/fetchTextResourcesActionTypes';
 
 export interface ITextResourcesState {
   language: string;
