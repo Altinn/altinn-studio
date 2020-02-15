@@ -20,13 +20,13 @@ export function setup(){
     return userData;
 };
 
-//Test for platform profile
+//Test for platform profile and validate response
 export default function(userData) {
     var userId = userData["userId"];
     var res = profile.getProfile(userId);
     var success = check(res, {
-      "status is 200": (r) => r.status === 200,
-      "response contains userId": (r) => (JSON.parse(r.body)).userId === userId
+      "GET Profile: status is 200": (r) => r.status === 200,
+      "GET Profile: response contains userId": (r) => (JSON.parse(r.body)).userId === userId
   });  
   if (!success){
       ErrorCount.add(1);
