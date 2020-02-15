@@ -20,10 +20,10 @@ export function postPolicy(data, appOwner, appName){
 };
 
 //Request to get decision from PDP and return response
-export function postGetDecision(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId){    
+export function postGetDecision(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask){    
     var endpoint =   config.platformAuthorization["decision"];    
-    var pdpJson = buildPdpJson(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId);
-    var requestBody = JSON.stringify(pdpJson);      
+    var pdpJson = buildPdpJson(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask);
+    var requestBody = JSON.stringify(pdpJson);       
     var params = {
         headers: {            
             "Content-Type": "application/json"        
@@ -37,7 +37,9 @@ function buildPdpJson(pdpInputJson, jsonPermitData, appOwner, testappName, userI
     var action = jsonPermitData["Action"];
     var accessSubject = jsonPermitData["AccessSubject"];
     var resource = jsonPermitData["Resource"];    
-    pdpInputJson = JSON.parse(pdpInputJson);    
+    pdpInputJson = JSON.parse(pdpInputJson);
+    
+    //Loop through action and add to the json input template under Action
     for(var i = 0; i < action.length; i++){  
         var emptyObject = {};
         pdpInputJson.Request.Action[0].Attribute.push(emptyObject);              
@@ -45,6 +47,8 @@ function buildPdpJson(pdpInputJson, jsonPermitData, appOwner, testappName, userI
         pdpInputJson.Request.Action[0].Attribute[i].Value = action[i];
         pdpInputJson.Request.Action[0].Attribute[i].DataType = "http://www.w3.org/2001/XMLSchema#string";
     };
+
+    //Loop through access Subject and add to the json input template under AccessSubject
     for(var i = 0; i < accessSubject.length; i++){        
         var value = "";
         var emptyObject = {};
@@ -60,7 +64,8 @@ function buildPdpJson(pdpInputJson, jsonPermitData, appOwner, testappName, userI
         pdpInputJson.Request.AccessSubject[0].Attribute[i].AttributeId = accessSubject[i];
         pdpInputJson.Request.AccessSubject[0].Attribute[i].Value = value;        
    };
-      
+
+   //Loop through Resource array and add to the json input template under resources
    for(var i = 0; i < resource.length; i++){        
         var value = "";
         var emptyObject = {};

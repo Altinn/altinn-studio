@@ -26,7 +26,8 @@ export function setup(){
 //Test for platform Authorization
 export default function(data) {
     var userId = data["userId"];
-    var partyId = data["partyId"];     
+    var partyId = data["partyId"];
+    var altinnTask = "";     
 
     //Api call to Platform: Authorization: Get parties of an user and validate response
     var res = authz.getParties(userId);    
@@ -60,20 +61,53 @@ export default function(data) {
     }
     sleep(1);
 
-    //Api call to Platform: Authorization: Get a decision from PDP and validate response to have Permit
+    //Api call to Platform: Authorization: Get a decision from PDP with appOwner details 
+    //and validate response to have Permit
     var jsonPermitData = {
         "AccessSubject": ["urn:altinn:org"], 
         "Action": ["read"], 
-        "Resource": ["urn:altinn:app", "urn:altinn:org"]};
-    var altinnTask = ""; 
+        "Resource": ["urn:altinn:app", "urn:altinn:org"]};    
     var res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask);
     var success = check(res, {
-      "Get PDP Decision: Status is 200": (r) => r.status === 200,      
-      "Get PDP Decision: Decision is Permit": (r) => (JSON.parse(r.body)).response[0].decision === "Permit", 
+      "Get PDP Decision for appOwner: Status is 200": (r) => r.status === 200,      
+      "Get PDP Decision for appOwner: Decision is Permit": (r) => (JSON.parse(r.body)).response[0].decision === "Permit", 
     });  
     if (!success){
       ErrorCount.add(1);
     }
     sleep(1);
 
+    //Api call to Platform: Authorization: Get a decision from PDP with appOwner details
+    //and validate response to have NotApplicable
+    var jsonPermitData = {
+      "AccessSubject": ["urn:altinn:org"], 
+      "Action": ["sign"], 
+      "Resource": ["urn:altinn:app", "urn:altinn:org"]};
+    altinnTask = ""; 
+    var res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask);
+    var success = check(res, {
+      "Get PDP Decision for appOwner: Status is 200": (r) => r.status === 200,      
+      "Get PDP Decision for appOwner: Decision is NotApplicable": (r) => (JSON.parse(r.body)).response[0].decision === "NotApplicable", 
+    });  
+    if (!success){
+      ErrorCount.add(1);
+    }
+    sleep(1);
+
+    //Api call to Platform: Authorization: Get a decision from PDP with user details
+    //and validate response to have Permit
+    var jsonPermitData = {
+      "AccessSubject": ["urn:altinn:userid"], 
+      "Action": ["read"], 
+      "Resource": ["urn:altinn:app", "urn:altinn:org", "urn:altinn:partyid", "urn:altinn:task"]};
+    var altinnTask = "Task_1"; 
+    var res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask);    
+    var success = check(res, {
+      "Get PDP Decision for User: Status is 200": (r) => r.status === 200,      
+      "Get PDP Decision for User: Decision is Permit": (r) => (JSON.parse(r.body)).response[0].decision === "Permit", 
+    });  
+    if (!success){
+      ErrorCount.add(1);
+    }
+    sleep(1);
 };
