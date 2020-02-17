@@ -1,8 +1,8 @@
 import { SagaIterator } from 'redux-saga';
 import { all, call, take } from 'redux-saga/effects';
-import FormDataActions from './../../../../features/form/data/actions';
-import DataModelActions from './../../../../features/form/datamodell/actions';
-import FormLayoutActions from './../../../../features/form/layout/actions';
+import FormDataActions from '../../../../features/form/data/formDataActions';
+import DataModelActions from '../../../../features/form/datamodel/formDatamodelActions';
+import FormLayoutActions from '../../../../features/form/layout/formLayoutActions';
 import { IAltinnWindow } from './../../../../types/global';
 import { FETCH_APPLICATION_METADATA_FULFILLED } from './../../applicationMetadata/actions/types';
 import { GET_INSTANCEDATA_FULFILLED } from './../../instanceData/get/getInstanceDataActionTypes';

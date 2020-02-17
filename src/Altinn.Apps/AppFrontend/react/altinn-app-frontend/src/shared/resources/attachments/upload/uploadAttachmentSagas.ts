@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, select, takeEvery } from 'redux-saga/effects';
 import { IAttachment } from './..';
 import { getFileUploadComponentValidations } from './../../../../components/base/FileUploadComponent';
-import FormValidationsDispatcher from './../../../../features/form/validation/actions';
+import FormValidationsDispatcher from '../../../../features/form/validation/validationActions';
 import { IRuntimeState } from './../../../../types';
 import { post } from './../../../../utils/networking';
 import { fileUploadUrl } from './../../../../utils/urlHelper';

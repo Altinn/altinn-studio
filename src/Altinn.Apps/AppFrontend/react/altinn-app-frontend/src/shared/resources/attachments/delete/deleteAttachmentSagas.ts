@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeEvery } from 'redux-saga/effects';
 import { getFileUploadComponentValidations } from './../../../../components/base/FileUploadComponent';
-import FormValidationsDispatcher from './../../../../features/form/validation/actions';
+import FormValidationsDispatcher from '../../../../features/form/validation/validationActions';
 import { IRuntimeState } from './../../../../types';
 import { httpDelete } from './../../../../utils/networking';
 import { dataElementUrl } from './../../../../utils/urlHelper';
