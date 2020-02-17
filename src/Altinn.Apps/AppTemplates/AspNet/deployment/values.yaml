@@ -31,3 +31,12 @@ ingressRoute:
     options:
       name: tls-options
     secretName: ssl-cert
+
+volumeMounts:
+  - name: datakeys
+    mountPath: /mnt/keys
+
+volumes:
+  - name : datakeys
+    persistentVolumeClaim:
+      claimName: keys

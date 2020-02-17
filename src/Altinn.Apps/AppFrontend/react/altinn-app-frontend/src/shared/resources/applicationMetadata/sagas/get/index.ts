@@ -4,6 +4,7 @@ import { get } from '../../../../../utils/networking';
 import { applicationMetadataApiUrl } from '../../../../../utils/urlHelper';
 import ApplicationMetadataActions from '../../actions';
 import { FETCH_APPLICATION_METADATA } from '../../actions/types';
+import QueueActions from '../../../queue/queueActions';
 
 function* getApplicationMetadata(): SagaIterator {
   try {
@@ -11,6 +12,7 @@ function* getApplicationMetadata(): SagaIterator {
     yield call(ApplicationMetadataActions.getApplicationMetadataFulfilled, applicationMetadata);
   } catch (err) {
     yield call(ApplicationMetadataActions.getApplicationMetadataRejected, err);
+    yield call(QueueActions.appTaskQueueError, err);
   }
 }
 

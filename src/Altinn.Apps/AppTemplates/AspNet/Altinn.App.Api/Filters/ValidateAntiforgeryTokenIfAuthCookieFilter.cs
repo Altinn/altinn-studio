@@ -1,8 +1,10 @@
+using Altinn.App.Services.Configuration;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;
 
@@ -12,8 +14,10 @@ namespace Altinn.App.Api.Filters
     {
         private readonly IAntiforgery _antiforgery;
         private readonly ILogger _logger;
+        private readonly AppSettings _settings;
 
-        public ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter(IAntiforgery antiforgery, ILoggerFactory loggerFactory)
+        public ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter(IAntiforgery antiforgery, ILoggerFactory loggerFactory,
+            IOptionsMonitor<AppSettings> settings)
         {
             if (antiforgery == null)
             {
@@ -22,6 +26,7 @@ namespace Altinn.App.Api.Filters
 
             _antiforgery = antiforgery;
             _logger = loggerFactory.CreateLogger(GetType());
+            _settings = settings.CurrentValue;
         }
 
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
@@ -73,8 +78,13 @@ namespace Altinn.App.Api.Filters
                 return false;
             }
 
+            if(_settings.DisableCsrfCheck)
+            {
+                return false;
+            }
+
             // Anything else requires a token.
-            return false;
+            return true;
         }
     }
 }

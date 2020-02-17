@@ -4,6 +4,7 @@ import { get } from '../../../../../utils/networking';
 import Actions from '../../actions';
 import { IFetchFormLayout } from '../../actions/fetch';
 import * as ActionTypes from '../../actions/types';
+import QueueActions from '../../../../../shared/resources/queue/queueActions';
 
 function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
   try {
@@ -14,6 +15,7 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
     );
   } catch (err) {
     yield call(Actions.fetchFormLayoutRejected, err);
+    yield call(QueueActions.dataTaskQueueError, err);
   }
 
 }
