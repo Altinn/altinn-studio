@@ -46,6 +46,10 @@ export var platformAuthorization = {
     "roles": "https://platform." + baseUrl + "/authorization/api/v1/roles"    
 };
 
+//PDF
+export var platformPdf = {
+    "generate": "https://platform." + baseUrl + "/pdf/api/v1/generate"    
+};
 
 //App APIs
 export var appProfile =  {

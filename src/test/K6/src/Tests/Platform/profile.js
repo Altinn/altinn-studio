@@ -5,8 +5,7 @@ import * as setUpData from "../../setup.js";
 
 let ErrorCount = new Counter("errors");
 
-export const options = {
-    vus: 1,
+export const options = {    
     thresholds:{
         "errors": ["rate<0.000001"]
     }
