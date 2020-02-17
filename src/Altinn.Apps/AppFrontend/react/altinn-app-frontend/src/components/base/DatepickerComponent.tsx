@@ -4,6 +4,9 @@ import { createRef } from 'react';
 import '../../styles/DatepickerComponent.css';
 import '../../styles/shared.css';
 import { returnDatestringFromDate } from 'altinn-shared/utils';
+import { Grid } from '@material-ui/core';
+import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
+import MomentUtils from '@date-io/moment';
 
 export interface IDatePickerProps {
   id: string;
@@ -19,7 +22,32 @@ export interface IDatePickerState {
   isChanged: boolean;
 }
 
-export class DatepickerComponent extends React.Component<IDatePickerProps, IDatePickerState> {
+export function DatepickerComponent(props: IDatePickerProps) {
+  return (
+    // Move muiPicker util to root of app? https://material-ui-pickers.dev/getting-started/installation
+    /*
+    <Grid container justify="space-around">
+        <KeyboardDatePicker
+          disableToolbar
+          variant="inline" // default to dialog => can use dialog on mobile devices?
+          format="MM/dd/yyyy"
+          margin="normal"
+          id={"altinn-date-picker-" + props.id}
+          value={null}
+          onChange={props.handleDataChange}
+        />
+      </Grid>
+
+    */
+      <Grid container justify="space-around">
+        Here comes that boi
+      </Grid>
+  )
+}
+
+export default DatepickerComponent;
+
+export class DatepickerComponent2 extends React.Component<IDatePickerProps, IDatePickerState> {
   private datePickerRef = createRef<HTMLInputElement>();
   constructor(_props: IDatePickerProps, _state: IDatePickerState) {
     super(_props, _state);
