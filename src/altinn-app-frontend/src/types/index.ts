@@ -1,10 +1,10 @@
 import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducers';
-import { IFormConfigState } from '../features/form/config/reducer';
-import { IFormDataState } from '../features/form/data/reducer';
-import { IDataModelState } from '../features/form/datamodell/reducer';
+import { IFormConfigState } from '../features/form/config/formConfigReducer';
+import { IFormDataState } from '../features/form/data/formDataReducer';
+import { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
-import { ILayoutState } from '../features/form/layout/reducer';
-import { IValidationState } from '../features/form/validation/reducer';
+import { ILayoutState } from '../features/form/layout/formLayoutReducer';
+import { IValidationState } from '../features/form/validation/validationReducer';
 import { IInstantiationState } from '../features/instantiate/instantiation/reducer';
 import { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
 import { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';

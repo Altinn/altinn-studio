@@ -3,14 +3,14 @@ import {
   Reducer,
   ReducersMapObject,
 } from 'redux';
-import FormConfigState, { IFormConfigState } from '../features/form/config/reducer';
-import FormDataReducer, { IFormDataState } from '../features/form/data/reducer';
-import FormDataModel, { IDataModelState } from '../features/form/datamodell/reducer';
+import FormConfigState, { IFormConfigState } from '../features/form/config/formConfigReducer';
+import FormDataReducer, { IFormDataState } from '../features/form/data/formDataReducer';
+import FormDataModel, { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
-import FormDynamics from '../features/form/dynamics/reducer';
-import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer';
-import FormRuleReducer, { IFormRuleState } from '../features/form/rules/reducer';
-import ValidationReducer, { IValidationState } from '../features/form/validation/reducer';
+import FormDynamicsReducer from '../features/form/dynamics/formDynamicsReducer';
+import FormLayoutReducer, { ILayoutState } from '../features/form/layout/formLayoutReducer';
+import FormRuleReducer, { IFormRuleState } from '../features/form/rules/rulesReducer';
+import ValidationReducer, { IValidationState } from '../features/form/validation/validationReducer';
 import InstantiationReducer, { IInstantiationState } from '../features/instantiate/instantiation/reducer';
 import ApplicationMetadataReducer, { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
 import AttachmentReducer, { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
@@ -76,7 +76,7 @@ const reducers: IRuntimeReducers = {
   formConfig: FormConfigState,
   formData: FormDataReducer,
   formDataModel: FormDataModel,
-  formDynamics: FormDynamics,
+  formDynamics: FormDynamicsReducer,
   formLayout: FormLayoutReducer,
   formRules: FormRuleReducer,
   formValidations: ValidationReducer,

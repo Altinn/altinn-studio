@@ -1,5 +1,5 @@
 import 'jest';
-import { IFormData } from '../../src/features/form/data/reducer';
+import { IFormData } from '../../src/features/form/data/formDataReducer';
 import { IValidationIssue, Severity } from '../../src/types';
 import * as validation from '../../src/utils/validation';
 import { length, max, maxLength, min, minLength, pattern } from '../../src/utils/validation';

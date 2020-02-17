@@ -1,4 +1,4 @@
-import { IFormData } from '../features/form/data/reducer';
+import { IFormData } from '../features/form/data/formDataReducer';
 import { IConditionalRenderingRule, IConditionalRenderingRules } from '../features/form/dynamics/types';
 import { IAltinnWindow } from '../types/global';
 

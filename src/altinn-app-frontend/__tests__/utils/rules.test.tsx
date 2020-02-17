@@ -1,5 +1,5 @@
 import 'jest';
-import { IFormData } from '../../src/features/form/data/reducer';
+import { IFormData } from '../../src/features/form/data/formDataReducer';
 import { ILayoutComponent } from '../../src/features/form/layout';
 import { IDataModelFieldElement } from '../../src/features/form/rules';
 import { checkIfRuleShouldRun, getRuleModelFields } from '../../src/utils/rules';
