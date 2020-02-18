@@ -40,7 +40,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
       validations = Object.assign(validations, emptyFieldsValidations);
     }
 
-    if (canFormBeSaved(validations)) {
+    if (canFormBeSaved(validations, apiMode)) {
       // updates the default data element
       const defaultDataElementGuid = getCurrentTaskDataTypeId(
         state.applicationMetadata.applicationMetadata,

@@ -276,12 +276,15 @@ describe('>>> utils/validations.ts', () => {
         },
       },
     };
-    const falseResult = validation.canFormBeSaved(mockFormValidationResult);
-    const trueResult = validation.canFormBeSaved(validValidationResult);
+    const apiModeComplete = "Complete";
+    const falseResult = validation.canFormBeSaved(mockFormValidationResult, apiModeComplete);
+    const trueResult = validation.canFormBeSaved(validValidationResult, apiModeComplete);
     const trueResult2 = validation.canFormBeSaved(null);
+    const trueResult3 = validation.canFormBeSaved(mockFormValidationResult);
     expect(falseResult).toBeFalsy();
     expect(trueResult).toBeTruthy();
     expect(trueResult2).toBeTruthy();
+    expect(trueResult3).toBeTruthy();
   });
   it('+++ validateFormComponents should return error on fileUpload if its not enough files', () => {
     const componentSpesificValidations =
