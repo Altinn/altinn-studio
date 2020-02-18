@@ -29,6 +29,6 @@ export default function(userData) {
   });  
   if (!success){
       ErrorCount.add(1);
-  }
+  };
   sleep(1);
 };

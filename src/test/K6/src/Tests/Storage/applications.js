@@ -23,11 +23,11 @@ export function setup(){
 };
 
 
-//Test for platform Storage: Applications
+//Tests for platform Storage: Applications
 export default function(data) {
     var runtimeToken = data;
 
-    //Api call to Platform: Storage: Get All applicaions under an appOwner
+    //Test Platform: Storage: Get All applicaions under an appOwner
     var res = application.getAllApplications(runtimeToken, appOwner);    
     var success = check(res, {
       "GET All Apps under an Org: status is 200": (r) => r.status === 200,
@@ -35,40 +35,40 @@ export default function(data) {
     });  
     if (!success){
       ErrorCount.add(1);
-    }
+    };
     sleep(1); 
 
-    //Api call to Platform: Storage: Get application by app name and validate response
+    //Test Platform: Storage: Get application by app name and validate response
     res = application.getAppByName(runtimeToken, appOwner, level2App);
     var appId = appOwner + "/" + level2App;
-    var success = check(res, {
+    success = check(res, {
       "GET App by Name: status is 200": (r) => r.status === 200,
       "GET App by Name: Metadata is OK": (r) => (JSON.parse(r.body)).id === appId
     });  
     if (!success){
       ErrorCount.add(1);
-    }
+    };
     sleep(1);
 
-    //Api call to Platform: Storage: Post create an app with metadata
+    //Test Platform: Storage: Post create an app with metadata
     //expected: 403 as it is not possible to create App with an user token
     res = application.postCreateApp(runtimeToken, appOwner, testApp, metadata);    
-    var success = check(res, {
+    success = check(res, {
       "POST Create App: status is 403": (r) => r.status === 403      
     });  
     if (!success){
       ErrorCount.add(1);
-    }
+    };
     sleep(1); 
 
     //Api call to Platform: Storage: PUT Edit an app metadata
-    //expected: 403 as it is not possible to Edit App with an user token
+    //expected: 200 as response code
     res = application.putEditApp(runtimeToken, appOwner, testApp, metadata);    
-    var success = check(res, {
-      "PUT Edit App: status is 403": (r) => r.status === 403      
+    success = check(res, {
+      "PUT Edit App: status is 200": (r) => r.status === 200      
     });  
     if (!success){
       ErrorCount.add(1);
-    }
+    };
     sleep(1); 
 };

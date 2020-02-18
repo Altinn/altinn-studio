@@ -63,13 +63,13 @@ export var platformStorage = {
 export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type){
     var value = "";
     switch(type){
-        case instanceid:
+        case "instanceid":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId;
             break;
-        case dataid:
+        case "dataid":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/data/" + dataId;
             break;
-        case dataelements:
+        case "dataelements":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/" + "dataelements";
             break;
     };
