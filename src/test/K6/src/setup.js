@@ -2,8 +2,8 @@ import http from "k6/http";
 import * as config from "./config.js";
 import {getParties} from "././Apicalls/Platform/authorization.js";
 
-let userName = __ENV.userName;
-let userPassword = __ENV.userPwd;
+let userName = __ENV.username;
+let userPassword = __ENV.userpwd;
 
 //Request to Authenticate an user with Altinn userName and password and returns ASPXAUTH Cookie
 export function authenticateUser(){

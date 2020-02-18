@@ -9,7 +9,7 @@ export var baseUrls = {
 //Get values from environment
 let environment = __ENV.env;
 let appOwner = __ENV.org;
-let appName = __ENV.app;
+let appName = __ENV.level2app;
 let baseUrl =  baseUrls[environment];
 
 //Altinn API
