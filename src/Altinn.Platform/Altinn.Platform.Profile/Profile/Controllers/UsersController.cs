@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Profile.Services.Interfaces;
 using AltinnCore.Authentication.Constants;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Profile.Controllers
@@ -10,6 +11,7 @@ namespace Altinn.Platform.Profile.Controllers
     /// <summary>
     /// The users controller
     /// </summary>
+    [Authorize]
     [Route("profile/api/v1/[controller]")]
     public class UsersController : Controller
     {
