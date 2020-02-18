@@ -66,14 +66,22 @@ namespace Altinn.App.Services.Helpers
             }
 
             UserProfile userProfile = await _profileService.GetUserProfile(userContext.UserId);
-            userContext.UserParty = await _registerService.GetParty(userProfile.PartyId);
+            userContext.UserParty = userProfile.Party;
 
             if (context.Request.Cookies[_settings.GetAltinnPartyCookieName] != null)
             {
                 userContext.PartyId = Convert.ToInt32(context.Request.Cookies[_settings.GetAltinnPartyCookieName]);
             }
 
-            userContext.Party = await _registerService.GetParty(userContext.PartyId);
+            if (userContext.PartyId == userProfile.PartyId)
+            {
+                userContext.Party = userProfile.Party;
+            }
+            else
+            {
+                userContext.Party = await _registerService.GetParty(userContext.PartyId);
+            }
+
             return userContext;
         }
     }

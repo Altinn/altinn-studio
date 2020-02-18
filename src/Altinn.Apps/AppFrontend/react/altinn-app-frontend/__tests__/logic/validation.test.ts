@@ -1,5 +1,5 @@
 import 'jest';
-import { IFormData } from '../../src/features/form/data/reducer';
+import { IFormData } from '../../src/features/form/data/formDataReducer';
 import { IValidationIssue, Severity } from '../../src/types';
 import * as validation from '../../src/utils/validation';
 import { length, max, maxLength, min, minLength, pattern } from '../../src/utils/validation';
@@ -276,12 +276,15 @@ describe('>>> utils/validations.ts', () => {
         },
       },
     };
-    const falseResult = validation.canFormBeSaved(mockFormValidationResult);
-    const trueResult = validation.canFormBeSaved(validValidationResult);
+    const apiModeComplete = "Complete";
+    const falseResult = validation.canFormBeSaved(mockFormValidationResult, apiModeComplete);
+    const trueResult = validation.canFormBeSaved(validValidationResult, apiModeComplete);
     const trueResult2 = validation.canFormBeSaved(null);
+    const trueResult3 = validation.canFormBeSaved(mockFormValidationResult);
     expect(falseResult).toBeFalsy();
     expect(trueResult).toBeTruthy();
     expect(trueResult2).toBeTruthy();
+    expect(trueResult3).toBeTruthy();
   });
   it('+++ validateFormComponents should return error on fileUpload if its not enough files', () => {
     const componentSpesificValidations =

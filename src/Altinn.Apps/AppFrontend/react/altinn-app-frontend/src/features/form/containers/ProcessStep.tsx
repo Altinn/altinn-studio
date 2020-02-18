@@ -10,7 +10,7 @@ import { getLanguageFromKey, returnUrlToMessagebox } from 'altinn-shared/utils';
 import { IAltinnWindow, IRuntimeState, ProcessSteps } from '../../../types';
 import { IValidations } from '../../../types/global';
 import ReceiptContainer from '../../receipt/containers/receiptContainer';
-import FormFillerActions from '../data/actions';
+import FormFillerActions from '../data/formDataActions';
 
 export interface IProcessStepProvidedProps {
   header: string;

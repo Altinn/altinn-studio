@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "39ff785a-dcc0-4165-ab13-c427b4b78e6f",
+		"_postman_id": "111b1429-65c4-4491-949f-52d1ba0ffdb3",
 		"name": "Platform",
 		"description": "Collection that tests the full integration between current Altinn platform and SBL bridge",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -663,6 +663,137 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Fetch Party Info by SSN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "db2a3525-6d7c-447c-8254-497db124f622",
+								"exec": [
+									"pm.test(\"Platform - Register - Fetch Party Info by SSN - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Platform - Register - Fetch Party Info by SSN - Content - 200\", function (){\r",
+									"   var response = pm.response.json();\r",
+									"   var ssnToCheck = pm.environment.get(\"SSN\");\r",
+									"   pm.expect(response.person.ssn).equal(ssnToCheck);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"SSN\": \"{{SSN}}\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/lookup",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"register",
+								"api",
+								"v1",
+								"parties",
+								"lookup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Fetch Party Info by Org",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "db2a3525-6d7c-447c-8254-497db124f622",
+								"exec": [
+									"pm.test(\"Platform - Register - Fetch Party Info by SSN - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Platform - Register - Fetch Party Info by SSN - Content - 200\", function (){\r",
+									"   var response = pm.response.json();\r",
+									"   var orgToCheck = pm.environment.get(\"orgNr\");\r",
+									"   pm.expect(response.organization.orgNumber).equal(orgToCheck);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"OrgNo\": \"{{orgNr}}\"}"
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/lookup",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"register",
+								"api",
+								"v1",
+								"parties",
+								"lookup"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
@@ -688,6 +819,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -1092,7 +1233,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": true,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"read\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{testApp}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
+							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": false,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"read\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{testApp}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"

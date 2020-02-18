@@ -288,7 +288,7 @@ namespace App.IntegrationTests
             TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
-        /*
+        
         [Fact]
         public async Task Instance_Post_WithQueryParamInvalidCsrf_AuthCookie()
         {
@@ -318,7 +318,7 @@ namespace App.IntegrationTests
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
-        */
+       
 
         [Fact]
         public async Task Instance_Post_WithLowAuthLevel_FailOk()

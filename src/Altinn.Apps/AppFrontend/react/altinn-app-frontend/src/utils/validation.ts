@@ -1,5 +1,5 @@
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
-import { IFormData } from '../features/form/data/reducer';
+import { IFormData } from '../features/form/data/formDataReducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
 import { IValidationIssue, Severity } from '../types';
 import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
@@ -252,8 +252,8 @@ export function getErrorCount(validations: IValidations) {
 /*
 * Checks if form can be saved. If it contains anything other than valid error messages it returns false
 */
-export function canFormBeSaved(validations: IValidations): boolean {
-  if (!validations) {
+export function canFormBeSaved(validations: IValidations, apiMode?: string): boolean {
+  if (!validations || apiMode !== "Complete") {
     return true;
   }
   const layoutCanBeSaved = Object.keys(validations).every((componentId: string) => {

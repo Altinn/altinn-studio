@@ -1883,12 +1883,13 @@
 							"script": {
 								"id": "546d0678-0ca9-44bd-a160-ebfc385882e7",
 								"exec": [
-									"pm.test(\"Platform - Storage - Instance Event - No Instance Events - Status - 404\", function () {",
-									"    pm.response.to.have.status(404);",
+									"pm.test(\"Platform - Storage - Instance Event - No Instance Events - Status - 200\", function () {",
+									"    pm.response.to.have.status(200);",
 									"});",
 									"",
 									"pm.test(\"Platform - Storage - Instance Event - No Instance Events - Content - Matches\", function () {",
-									"    pm.expect(pm.response.text()).to.include(\"Did not find any instance events\");",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.instanceEvents.length === 0);",
 									"});"
 								],
 								"type": "text/javascript"

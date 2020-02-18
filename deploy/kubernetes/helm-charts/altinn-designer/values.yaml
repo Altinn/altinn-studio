@@ -121,6 +121,8 @@ volumeMounts:
     mountPath: "/AltinnCore/Repos"
   - name: altinn-appsettings
     mountPath: "/altinn-appsettings"
+  - name: datakeys
+    mountPath: /mnt/keys
 
 volumes:
   - name: altinn-repo-storage
@@ -129,6 +131,9 @@ volumes:
   - name: altinn-appsettings
     secret:
       secretName: altinn-appsettings-secret
+  - name : datakeys
+    persistentVolumeClaim:
+      claimName: keys
 
 ingress:
   - metadata:

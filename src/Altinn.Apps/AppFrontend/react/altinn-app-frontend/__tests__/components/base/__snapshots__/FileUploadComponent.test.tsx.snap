@@ -4,6 +4,7 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
 <div
   className="container"
   id="altinn-fileuploader-mockId"
+  tabIndex={0}
 >
   <div
     id="altinn-file-list-mockId"
@@ -32,15 +33,22 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
         <tr
           className="blue-underline-dotted"
           id="altinn-file-list-row-attachment-id-1"
+          tabIndex={0}
         >
-          <td>
+          <td
+            tabIndex={0}
+          >
             attachment-name-1
           </td>
-          <td>
+          <td
+            tabIndex={0}
+          >
             0.00 form_filler.file_uploader_mb
           </td>
           <td>
-            <div>
+            <div
+              tabIndex={0}
+            >
               form_filler.file_uploader_list_status_done
               <i
                 className="ai ai-check-circle"
@@ -51,6 +59,8 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             <div
               id="attachment-delete-0"
               onClick={[Function]}
+              onKeyPress={[Function]}
+              tabIndex={0}
             >
               form_filler.file_uploader_list_delete
               <i
@@ -62,11 +72,16 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
         <tr
           className="blue-underline-dotted"
           id="altinn-file-list-row-attachment-id-2"
+          tabIndex={0}
         >
-          <td>
+          <td
+            tabIndex={0}
+          >
             attachment-name-2
           </td>
-          <td>
+          <td
+            tabIndex={0}
+          >
             0.00 form_filler.file_uploader_mb
           </td>
           <td>
@@ -89,6 +104,8 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             <div
               id="attachment-delete-1"
               onClick={[Function]}
+              onKeyPress={[Function]}
+              tabIndex={0}
             >
               form_filler.file_uploader_list_delete
               <i
@@ -100,15 +117,22 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
         <tr
           className="blue-underline-dotted"
           id="altinn-file-list-row-attachment-id-3"
+          tabIndex={0}
         >
-          <td>
+          <td
+            tabIndex={0}
+          >
             attachment-name-3
           </td>
-          <td>
+          <td
+            tabIndex={0}
+          >
             0.00 form_filler.file_uploader_mb
           </td>
           <td>
-            <div>
+            <div
+              tabIndex={0}
+            >
               form_filler.file_uploader_list_status_done
               <i
                 className="ai ai-check-circle"
@@ -119,6 +143,8 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             <div
               id="attachment-delete-2"
               onClick={[Function]}
+              onKeyPress={[Function]}
+              tabIndex={0}
             >
               <div
                 className="a-loader"

@@ -5,6 +5,7 @@ import { nb } from '../languages';
 import LanguageActions from './../languageActions';
 import { IFetchLanguage } from './fetchLanguageActions';
 import * as LanguageActionTypes from './fetchLanguageActionTypes';
+import QueueActions from '../../queue/queueActions';
 
 export function* fetchLanguageSaga({
   url,
@@ -15,6 +16,7 @@ export function* fetchLanguageSaga({
     yield call(LanguageActions.fetchLanguageFulfilled, nb());
   } catch (err) {
     yield call(LanguageActions.fetchLanguageRecjeted, err);
+    yield call(QueueActions.appTaskQueueError, err);
   }
 }
 

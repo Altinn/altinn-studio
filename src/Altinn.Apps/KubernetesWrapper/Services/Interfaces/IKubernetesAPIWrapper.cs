@@ -7,7 +7,7 @@ namespace KubernetesWrapper.Services.Interfaces
     /// <summary>
     /// Interface for the kubernetes api wrapper
     /// </summary>
-    public interface IKubernetesAPIWrapper
+    public interface IKubernetesApiWrapper
     {
         /// <summary>
         /// Gets a list of deployments on the cluster. Parameters are described in further detail in the kubernetes api doc.

@@ -31,7 +31,7 @@ namespace LocalTest.Services.Register.Implementation
                 org = (Organization)JsonConvert.DeserializeObject(content, typeof(Organization));
             }
 
-            return org;
+            return await Task.FromResult(org);
         }
     }
 }

@@ -1,6 +1,6 @@
 import {createStyles, Grid, Typography, WithStyles, withStyles} from '@material-ui/core';
 import * as React from 'react';
-import { IProfile } from '../resources/profile';
+import { IProfile } from 'altinn-shared/types';
 
 const styles = createStyles({
   profileIcon: {
