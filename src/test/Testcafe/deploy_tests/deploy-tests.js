@@ -30,8 +30,7 @@ fixture('Deploy of app to a test environment tests')
     await t
       .useRole(AutoTestUser)
       .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/ui-editor')
-      .click(designer.hentEndringer)
-      .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok({ timeout: 180000 })
+      .click(designer.hentEndringer)      
       .click(designer.omNavigationTab); //remove pop up
     await designer.deleteUIComponentsMethod(t);
     await t
@@ -74,8 +73,7 @@ test('App cannot build due to compilation error', async () => {
   await t
     .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + 'designer/ttd/compileerror1219#/ui-editor')
-    .click(designer.hentEndringer)
-    .expect(designer.ingenEndringer.exists).ok({timeout: 120000});
+    .click(designer.hentEndringer);    
   await t.eval(() => location.reload(true)); 
   await designer.deleteUIComponentsMethod(t);
   await t
@@ -99,8 +97,7 @@ test('App cannot be built due to uncommited local changes', async () => {
     .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/about')
     .click(designer.lageNavigationTab)
-    .click(designer.hentEndringer)
-    .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok({ timeout: 120000 })
+    .click(designer.hentEndringer)    
     .click(designer.omNavigationTab); //remove pop up
   await designer.deleteUIComponentsMethod(t);
   await t

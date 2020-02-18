@@ -5,7 +5,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
   className="AltinnAppHeader-appBarWrapper-1"
 >
   <header
-    className="MuiPaper-root MuiPaper-elevation4 MuiAppBar-root MuiAppBar-positionStatic AltinnAppHeader-partyChoice-8 MuiAppBar-colorPrimary"
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic AltinnAppHeader-partyChoice-8 MuiAppBar-colorPrimary MuiPaper-elevation4"
   >
     <div
       className="MuiToolbar-root MuiToolbar-regular container AltinnAppHeader-toolbarContainer-13 MuiToolbar-gutters"
