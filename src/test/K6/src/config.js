@@ -51,6 +51,31 @@ export var platformPdf = {
     "generate": "https://platform." + baseUrl + "/pdf/api/v1/generate"    
 };
 
+//Platform Storage
+export var platformStorage = {
+    "applications": "https://platform." + baseUrl + "/storage/api/v1/applications",
+    "instances": "https://platform." + baseUrl + "/storage/api/v1/instances",
+    "messageBoxInstances": "https://platform." + baseUrl + "/storage/api/v1/sbl/instances",
+};
+
+//Function to build endpoints in storage with instanceOwnerId, instanceId, dataId, type
+//and returns the endpoint
+export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type){
+    var value = "";
+    switch(type){
+        case instanceid:
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId;
+            break;
+        case dataid:
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/data/" + dataId;
+            break;
+        case dataelements:
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/" + "dataelements";
+            break;
+    };
+    return value;
+};
+
 //App APIs
 export var appProfile =  {
     user: "https://" + appOwner + ".apps." + baseUrl + "/" + appOwner + "/" + appName + "/api/v1/profile/user"

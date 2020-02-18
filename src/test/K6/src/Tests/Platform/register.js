@@ -50,9 +50,7 @@ export default function(data) {
     sleep(1);
 
     //Api call to Platform: Register: POST party lookup by SSN and validate response
-    res = register.postPartieslookup(runtimeToken, ssn);
-    console.log(res.status);
-    console.log(JSON.stringify(res.body));
+    res = register.postPartieslookup(runtimeToken, ssn);    
     var success = check(res, {
         "GET Party info: status is 200": (r) => r.status === 200,
         "GET Party info: party id matches": (r) => (JSON.parse(r.body)).partyId === partyId
