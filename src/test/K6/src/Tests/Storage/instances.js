@@ -14,7 +14,7 @@ export const options = {
     }
 };
 
-//Function to setup data and reurn AltinnstudioRuntime Token
+//Function to setup data and return AltinnstudioRuntime Token
 export function setup(){
     var aspxauthCookie = setUpData.authenticateUser();    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
@@ -28,8 +28,7 @@ export function setup(){
 export default function(data) {
     var runtimeToken = data["RuntimeToken"];
     var partyId = data["partyId"];
-    var instanceId = "";   
-    //var orgNr = data["orgNumber"];
+    var instanceId = "";    
 
     //Test to create an instance with storage api and validate the response
     var res = instances.postIntance(runtimeToken, partyId, appOwner, level2App, instanceJson);    
@@ -43,9 +42,7 @@ export default function(data) {
     sleep(1);
     
     if((JSON.parse(res.body)).id != null){
-        instanceId = (JSON.parse(res.body)).id;
-        instanceId = instanceId.split('/');
-        instanceId = instanceId[1];        
+        instanceId = instances.findInstanceId(res.body);
     };
 
     //Test to get an instance by id from storage and validate the response

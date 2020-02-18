@@ -40,3 +40,18 @@ export function putEditApp(altinnStudioRuntimeCookie, appOwner, appName, metadat
     var requestBody = JSON.stringify(metadata);
     return http.put(endpoint, requestBody, params);
 };
+
+//Function to find and return attachment data type from app metadata
+export function findAttachmentDataType(appMetadata){
+    appMetadata = JSON.parse(appMetadata);
+    var value = "";
+    var dataTypes = appMetadata.dataTypes;
+    var dataTypesCount = dataTypes.length;
+    for(var i=0; i<dataTypesCount; i++){
+        if (dataTypes[i].id !== "default" && dataTypes[i].id !== "ref-data-as-pdf"){
+            value = dataTypes[i].id
+            break;
+        }
+    }
+    return value;
+};

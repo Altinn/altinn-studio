@@ -15,7 +15,7 @@ export const options = {
     }
 };
 
-//Function to setup data and reurn AltinnstudioRuntime Token
+//Function to setup data and return AltinnstudioRuntime Token
 export function setup(){
     var aspxauthCookie = setUpData.authenticateUser();    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    

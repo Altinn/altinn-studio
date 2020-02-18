@@ -51,3 +51,11 @@ export function putInstanceById(altinnStudioRuntimeCookie, partyId, instanceId){
     requestbody = JSON.stringify(requestbody);    
     return http.put(endpoint, requestbody, params);
 };
+
+//Function to clip out the instance owner id and return only instance id
+export function findInstanceId(responseBody){
+    var instanceId = (JSON.parse(responseBody)).id;
+    instanceId = instanceId.split('/');
+    instanceId = instanceId[1];
+    return instanceId;
+};
