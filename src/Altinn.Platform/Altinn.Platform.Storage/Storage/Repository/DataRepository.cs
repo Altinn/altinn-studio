@@ -71,11 +71,11 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<long> WriteDataToStorage(string org, Stream fileStream, string fileName)
+        public async Task<long> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
         {
             try
             {
-                return await UploadFromStreamAsync(org, fileStream, fileName);
+                return await UploadFromStreamAsync(org, stream, blobStoragePath);
             }
             catch (StorageException storageException)
             {
@@ -84,16 +84,16 @@ namespace Altinn.Platform.Storage.Repository
 
                 _sasTokenProvider.InvalidateSasToken(org);
                 
-                return await UploadFromStreamAsync(org, fileStream, fileName);
+                return await UploadFromStreamAsync(org, stream, blobStoragePath);
             }
         }
 
         /// <inheritdoc/>
-        public async Task<Stream> ReadDataFromStorage(string org, string fileName)
+        public async Task<Stream> ReadDataFromStorage(string org, string blobStoragePath)
         {
             try
             {
-                return await DownloadToStreamAsync(org, fileName);
+                return await DownloadToStreamAsync(org, blobStoragePath);
             }
             catch (StorageException storageException)
             {
@@ -102,16 +102,16 @@ namespace Altinn.Platform.Storage.Repository
 
                 _sasTokenProvider.InvalidateSasToken(org);
                 
-                return await DownloadToStreamAsync(org, fileName);
+                return await DownloadToStreamAsync(org, blobStoragePath);
             }
         }
 
         /// <inheritdoc/>
-        public async Task<bool> DeleteDataInStorage(string org, string fileName)
+        public async Task<bool> DeleteDataInStorage(string org, string blobStoragePath)
         {
             try
             {
-                return await DeleteIfExistsAsync(org, fileName);
+                return await DeleteIfExistsAsync(org, blobStoragePath);
             }
             catch (StorageException storageException)
             {
@@ -120,7 +120,7 @@ namespace Altinn.Platform.Storage.Repository
 
                 _sasTokenProvider.InvalidateSasToken(org);
                 
-                return await DeleteIfExistsAsync(org, fileName);
+                return await DeleteIfExistsAsync(org, blobStoragePath);
             }
         }
 

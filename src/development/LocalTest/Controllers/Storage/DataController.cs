@@ -96,7 +96,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 string storageFileName = DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataGuid.ToString());
-                bool result = await _dataRepository.DeleteDataInStorage(instance.Org, storageFileName);
+                _ = await _dataRepository.DeleteDataInStorage(instance.Org, storageFileName);
 
                 await _dataRepository.Delete(dataElement);
 
