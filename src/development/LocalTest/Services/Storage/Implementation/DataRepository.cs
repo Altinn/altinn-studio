@@ -38,7 +38,7 @@ namespace LocalTest.Services.Storage.Implementation
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteDataInStorage(string fileName)
+        public Task<bool> DeleteDataInStorage(string org, string fileName)
         {
             throw new NotImplementedException();
         }
@@ -68,12 +68,10 @@ namespace LocalTest.Services.Storage.Implementation
             return Task.FromResult(dataElements);
         }
 
-        public Task<Stream> ReadDataFromStorage(string fileName)
+        public Task<Stream> ReadDataFromStorage(string org, string fileName)
         {
             string filePath = GetFilePath(fileName);
             Stream fs = File.OpenRead(filePath);
-
-            Stream data = new MemoryStream();
 
             return Task.FromResult(fs);
         }
@@ -87,7 +85,7 @@ namespace LocalTest.Services.Storage.Implementation
             return Task.FromResult(dataElement);
         }
 
-        public async Task<long> WriteDataToStorage(Stream dataStream, string fileName)
+        public async Task<long> WriteDataToStorage(string org, Stream dataStream, string fileName)
         {
             string filePath = GetFilePath(fileName);
             if (!Directory.Exists(Path.GetDirectoryName(filePath)))
@@ -105,16 +103,6 @@ namespace LocalTest.Services.Storage.Implementation
             }
 
             return filesize;
-        }
-
-        /// <summary>
-        /// Gets the correct context for the current application
-        /// </summary>
-        /// <param name="org">Name of the application owner</param>
-        /// <returns></returns>
-        public OrgDataContext GetOrgDataContext(string org)
-        {
-            return new OrgDataContext();
         }
 
         private string GetFilePath(string fileName)
