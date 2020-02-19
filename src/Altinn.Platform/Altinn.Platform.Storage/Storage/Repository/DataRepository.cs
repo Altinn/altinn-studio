@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Configuration;
-using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.Azure.Documents;
@@ -22,7 +21,8 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Storage.Repository
 {
     /// <summary>
-    /// repository for form data
+    /// Represents an implementation of <see cref="IDataRepository"/> using Azure CosmosDB to keep metadata
+    /// and Azure Blob storage to keep the actual data. Blob storage is again split based on application owner.
     /// </summary>
     public class DataRepository : IDataRepository
     {
@@ -34,25 +34,24 @@ namespace Altinn.Platform.Storage.Repository
         private readonly DocumentClient _documentClient;
 
         private readonly AzureStorageConfiguration _storageConfiguration;
+        private readonly ISasTokenProvider _sasTokenProvider;
         private readonly ILogger<DataRepository> _logger;
-
-        private readonly CloudBlobClient _commonBlobClient = null;
-        private readonly CloudBlobContainer _commonBlobContainer = null;
-
-        /// <summary>
-        /// Gets or sets the data context for the application owner
-        /// </summary>
-        public OrgDataContext OrgDataContext { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataRepository"/> class
         /// </summary>
+        /// <param name="sasTokenProvider">A provider that can be asked for SAS tokens.</param>
         /// <param name="cosmosettings">the configuration settings for azure cosmos database</param>
         /// <param name="storageConfiguration">the storage configuration for azure blob storage</param>
         /// <param name="logger">The logger to use when writing to logs.</param>
-        public DataRepository(IOptions<AzureCosmosSettings> cosmosettings, IOptions<AzureStorageConfiguration> storageConfiguration, ILogger<DataRepository> logger)
+        public DataRepository(
+            ISasTokenProvider sasTokenProvider,
+            IOptions<AzureCosmosSettings> cosmosettings,
+            IOptions<AzureStorageConfiguration> storageConfiguration,
+            ILogger<DataRepository> logger)
         {
             _storageConfiguration = storageConfiguration.Value;
+            _sasTokenProvider = sasTokenProvider;
             _logger = logger;
 
             CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosettings.Value);
@@ -69,47 +68,60 @@ namespace Altinn.Platform.Storage.Repository
                 documentCollection).GetAwaiter().GetResult();
 
             _documentClient.OpenAsync();
+        }
 
-            if (!_storageConfiguration.OrgPrivateBlobStorageEnabled)
+        /// <inheritdoc/>
+        public async Task<long> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
+        {
+            try
             {
-                StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
-                CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+                return await UploadFromStreamAsync(org, stream, blobStoragePath);
+            }
+            catch (StorageException storageException)
+            {
+                _logger.LogWarning($"StorageException when accessing blob storage for {org}: {Environment.NewLine}{storageException}");
+                _logger.LogWarning("Invalidating SAS token and retrying upload operation.");
 
-                _commonBlobClient = CreateBlobClient(storageCredentials, storageAccount);
-                _commonBlobContainer = _commonBlobClient.GetContainerReference(_storageConfiguration.StorageContainer);
+                _sasTokenProvider.InvalidateSasToken(org);
+                
+                return await UploadFromStreamAsync(org, stream, blobStoragePath);
             }
         }
 
         /// <inheritdoc/>
-        public async Task<long> WriteDataToStorage(Stream fileStream, string fileName)
+        public async Task<Stream> ReadDataFromStorage(string org, string blobStoragePath)
         {
-            CloudBlockBlob blockBlob = GetBlobContainer().GetBlockBlobReference(fileName);
+            try
+            {
+                return await DownloadToStreamAsync(org, blobStoragePath);
+            }
+            catch (StorageException storageException)
+            {
+                _logger.LogWarning($"StorageException when accessing blob storage for {org}: {Environment.NewLine}{storageException}");
+                _logger.LogWarning("Invalidating SAS token and retrying download operation.");
 
-            await blockBlob.UploadFromStreamAsync(fileStream);
-            blockBlob.FetchAttributes();
-            
-            return await Task.FromResult(blockBlob.Properties.Length);
+                _sasTokenProvider.InvalidateSasToken(org);
+                
+                return await DownloadToStreamAsync(org, blobStoragePath);
+            }
         }
 
         /// <inheritdoc/>
-        public async Task<Stream> ReadDataFromStorage(string fileName)
+        public async Task<bool> DeleteDataInStorage(string org, string blobStoragePath)
         {
-            CloudBlockBlob blockBlob = GetBlobContainer().GetBlockBlobReference(fileName);
+            try
+            {
+                return await DeleteIfExistsAsync(org, blobStoragePath);
+            }
+            catch (StorageException storageException)
+            {
+                _logger.LogWarning($"StorageException when accessing blob storage for {org}: {Environment.NewLine}{storageException}");
+                _logger.LogWarning("Invalidating SAS token and retrying delete operation.");
 
-            var memoryStream = new MemoryStream();
-            await blockBlob.DownloadToStreamAsync(memoryStream);
-            memoryStream.Position = 0;
-            return memoryStream;
-        }
-
-        /// <inheritdoc/>
-        public async Task<bool> DeleteDataInStorage(string fileName)
-        {           
-            CloudBlockBlob blockBlob = GetBlobContainer().GetBlockBlobReference(fileName);
-
-            bool result = await blockBlob.DeleteIfExistsAsync();
-
-            return result;
+                _sasTokenProvider.InvalidateSasToken(org);
+                
+                return await DeleteIfExistsAsync(org, blobStoragePath);
+            }
         }
 
         /// <inheritdoc/>
@@ -185,25 +197,62 @@ namespace Altinn.Platform.Storage.Repository
             return true;
         }
 
-        /// <summary>
-        /// Gets the correct context for the current application
-        /// </summary>
-        /// <param name="org">Name of the application owner</param>
-        /// <returns></returns>
-        public OrgDataContext GetOrgDataContext(string org)
+        private async Task<long> UploadFromStreamAsync(string org, Stream stream, string fileName)
         {
-            OrgDataContext = new OrgDataContext(org, _storageConfiguration, _logger);
-            return OrgDataContext;
+            CloudBlobContainer cloudBlobContainer = await GetBlobContainer(org);
+            CloudBlockBlob blockBlob = cloudBlobContainer.GetBlockBlobReference(fileName);
+
+            await blockBlob.UploadFromStreamAsync(stream);
+            blockBlob.FetchAttributes();
+
+            return blockBlob.Properties.Length;
         }
 
-        private CloudBlobContainer GetBlobContainer()
+        private async Task<Stream> DownloadToStreamAsync(string org, string fileName)
+        {
+            CloudBlobContainer cloudBlobContainer = await GetBlobContainer(org);
+            CloudBlockBlob blockBlob = cloudBlobContainer.GetBlockBlobReference(fileName);
+
+            var memoryStream = new MemoryStream();
+            await blockBlob.DownloadToStreamAsync(memoryStream);
+            memoryStream.Position = 0;
+
+            return memoryStream;
+        }
+
+        private async Task<bool> DeleteIfExistsAsync(string org, string fileName)
+        {
+            CloudBlobContainer cloudBlobContainer = await GetBlobContainer(org);
+            CloudBlockBlob blockBlob = cloudBlobContainer.GetBlockBlobReference(fileName);
+
+            bool result = await blockBlob.DeleteIfExistsAsync();
+
+            return result;
+        }
+
+        private async Task<CloudBlobContainer> GetBlobContainer(string org)
         {
             if (_storageConfiguration.OrgPrivateBlobStorageEnabled)
             {
-                return OrgDataContext.OrgBlobContainer;
-            }
+                string sasToken = await _sasTokenProvider.GetSasToken(org);
+                StorageCredentials accountSasCredential = new StorageCredentials(sasToken);
 
-            return _commonBlobContainer;
+                string accountName = string.Format(_storageConfiguration.OrgStorageAccount, org);
+                string blobEndpoint = string.Format(_storageConfiguration.BlobEndPoint, accountName);
+                string containerName = string.Format(_storageConfiguration.OrgStorageContainer, org);
+
+                CloudStorageAccount accountWithSas = new CloudStorageAccount(accountSasCredential, new Uri(blobEndpoint), null, null, null);
+                CloudBlobClient cloudBlobClient = accountWithSas.CreateCloudBlobClient();
+                CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(containerName);
+
+                return cloudBlobContainer;
+            }
+            
+            StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+
+            CloudBlobClient commonBlobClient = CreateBlobClient(storageCredentials, storageAccount);
+            return commonBlobClient.GetContainerReference(_storageConfiguration.StorageContainer);
         }
 
         private CloudBlobClient CreateBlobClient(StorageCredentials storageCredentials, CloudStorageAccount storageAccount)
