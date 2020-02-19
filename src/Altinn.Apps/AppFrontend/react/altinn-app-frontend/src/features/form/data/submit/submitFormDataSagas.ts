@@ -29,18 +29,18 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
     const model = convertDataBindingToModel(state.formData.formData, state.formDataModel.dataModel);
     let validations = validateFormData(state.formData, state.formDataModel.dataModel, state.formLayout.layout,
       state.language.language);
-    const componentSpesificValidations =
+    const componentSpecificValidations =
       validateFormComponents(state.attachments.attachments, state.formLayout.layout,
         state.language.language, state.formLayout.uiConfig.hiddenFields);
     const emptyFieldsValidations =
       validateEmptyFields(state.formData.formData, state.formLayout.layout, state.language.language, state.formLayout.uiConfig.hiddenFields);
 
-    validations = Object.assign(validations, componentSpesificValidations);
+    validations = Object.assign(validations, componentSpecificValidations);
     if (apiMode === 'Complete') {
       validations = Object.assign(validations, emptyFieldsValidations);
     }
 
-    if (canFormBeSaved(validations)) {
+    if (canFormBeSaved(validations, apiMode)) {
       // updates the default data element
       const defaultDataElementGuid = getCurrentTaskDataTypeId(
         state.applicationMetadata.applicationMetadata,
