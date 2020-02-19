@@ -177,15 +177,10 @@ namespace LocalTest.Controllers
 
             DateTime later = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime));
             // Create a test token with long duration
-            string token = jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(1337), 0)).Result;
+            string token = await jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(1337), 0));
+
             return Ok(token);
         }
-
-
-
-
-
-
 
         private async Task<List<UserProfile>> GetTestUsers()
         {
