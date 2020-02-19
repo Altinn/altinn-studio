@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, shallowEqual } from 'react-redux';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
 import { getLanguageFromKey } from 'altinn-shared/utils';
@@ -16,6 +16,7 @@ import { makeGetFocus, makeGetHidden, makeGetLayoutElement } from '../selectors/
 import { IRuntimeState } from '../types';
 import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
+// import { createSelector } from 'reselect';
 
 export interface IGenericComponentProps {
   id: string;
@@ -24,22 +25,43 @@ export interface IGenericComponentProps {
   dataModelBindings: IDataModelBindings;
 }
 
-export const GenericComponent = (props: IGenericComponentProps) => {
+// const selectFormDataForComponents = createSelector(
+//   (state: IRuntimeState) => state.formData.formData,
+//   (formData: IFormData) => 
+// );
 
-  const GetFormDataSelector = makeGetFormDataSelector();
-  const GetLayoutElementSelector = makeGetLayoutElement();
+export const getFormDataForComponent = (formData: any) => {
+  return formData ? formData : '';
+}
+
+export const GenericComponent = (props: IGenericComponentProps) => {
+  // const GetLayoutElementSelector = makeGetLayoutElement();
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
 
   const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
-  const formData: IFormData = useSelector((state: IRuntimeState) => GetFormDataSelector(state, props));
+  const formData: IFormData = useSelector((state: IRuntimeState) => getFormDataForComponent(state.formData.formData[props.dataModelBindings.simpleBinding]), shallowEqual);
+  // const formData: any = useSelector((state: IRuntimeState) => {
+  //   return state.formData.formData[props.dataModelBindings.simpleBinding] ? state.formData.formData[props.dataModelBindings.simpleBinding] : '';
+  // });
+  
+  // const formDataTest: any = useSelector((state: IRuntimeState) => state.formData);
   const isValid: boolean = useSelector((state: IRuntimeState) =>
     isComponentValid(state.formValidations.validations[props.id]));
   const language: ILanguageState = useSelector((state: IRuntimeState) => state.language.language);
-  const layoutElement: ILayoutEntry = useSelector((state: IRuntimeState) => GetLayoutElementSelector(state, props));
+  // const layoutElement: ILayoutEntry = useSelector((state: IRuntimeState) => GetLayoutElementSelector(state, props));
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, props));
   const shouldFocus: boolean = useSelector((state: IRuntimeState) => GetFocusSelector(state, props));
+
+  React.useEffect(() => {
+    console.log('formData is updated! ', props.dataModelBindings.simpleBinding);
+  }, [formData]);
+
+  // React.useEffect(() => {
+  //   console.log('formDataTest is updated! ', props.dataModelBindings.simpleBinding);
+  // }, [formDataTest]);
+
 
   const handleDataUpdate = (value: any, key: string = 'simpleBinding') => {
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
@@ -48,9 +70,8 @@ export const GenericComponent = (props: IGenericComponentProps) => {
 
     const dataModelField = props.dataModelBindings[key];
     FormDataActions.updateFormData(dataModelField, value, props.id);
-    FormDynamicsActions.checkIfConditionalRulesShouldRun();
-      const component = layoutElement as ILayoutComponent;
     // Disable single field validation, enable when supported server-side
+    // const component = layoutElement as ILayoutComponent;
     // if (component && component.triggerValidation) {
     //   const { org, app, instanceId } = window as Window as IAltinnWindow;
     //   const url = `${window.location.origin}/${org}/${app}/instances/${instanceId}`;
@@ -92,16 +113,17 @@ export const GenericComponent = (props: IGenericComponentProps) => {
       // Advanced component
       return valueArr;
     }
-
-  };
+  }
 
   if (hidden) {
     return null;
   }
 
-  const Component = formComponentWithHandlers(components.find((c: any) =>
-    c.name === props.type,
-  ).Tag);
+  function selectComponent(component: any): boolean {
+    return component.name === props.type;
+  }
+
+  const Component = formComponentWithHandlers(components.find(selectComponent).Tag);
 
   return (
     <Component
@@ -110,10 +132,11 @@ export const GenericComponent = (props: IGenericComponentProps) => {
       handleDataChange={handleDataUpdate}
       handleFocusUpdate={handleFocusUpdate}
       getTextResource={getTextResource}
-      formData={getFormData()}
+      formData={formData}
       isValid={isValid}
       language={language}
       shouldFocus={shouldFocus}
+      key={props.id}
     />
   );
 

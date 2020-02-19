@@ -104,6 +104,7 @@ export function checkIfRuleShouldRun(
       }
     }
   }
+  console.log('****RULES: ', rules);
   return rules;
 }
 
