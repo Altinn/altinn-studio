@@ -107,8 +107,7 @@ namespace Altinn.App
                         RequireExpirationTime = true,
                         ValidateLifetime = true
                     };
-                    options.Cookie.Domain = Configuration["GeneralSettings:HostName"];
-                    options.Cookie.Name = Services.Constants.General.RuntimeCookieName;
+                    options.JwtCookieName = Services.Constants.General.RuntimeCookieName;
                     options.MetadataAddress = Configuration["AppSettings:OpenIdWellKnownEndpoint"];
                     if (_env.IsDevelopment())
                     {
