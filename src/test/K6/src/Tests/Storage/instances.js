@@ -1,9 +1,9 @@
 import { check, sleep } from "k6";
-import {Counter} from "k6/metrics";
+import {addErrorCount} from "../../errorcounter.js";
 import * as instances from "../../Apicalls/Storage/instances.js"
 import * as setUpData from "../../setup.js";
 
-let ErrorCount = new Counter("errors");
+
 let appOwner = __ENV.org;
 let level2App = __ENV.level2app;
 let instanceJson = open("../../Data/instance.json");
@@ -26,8 +26,8 @@ export function setup(){
 
 //Tests for platform Storage: Instances
 export default function(data) {
-    var runtimeToken = data["RuntimeToken"];
-    var partyId = data["partyId"];
+    const runtimeToken = data["RuntimeToken"];
+    const partyId = data["partyId"];
     var instanceId = "";    
 
     //Test to create an instance with storage api and validate the response
@@ -36,9 +36,7 @@ export default function(data) {
       "POST Create Instance: status is 201": (r) => r.status === 201,
       "POST Create Instance: Instace Id is not null": (r) => (JSON.parse(r.body)).id != null
     });  
-    if (!success){
-      ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
     
     if((JSON.parse(res.body)).id != null){
@@ -50,9 +48,7 @@ export default function(data) {
     success = check(res, {
         "GET Instance by Id: status is 200": (r) => r.status === 200        
       });  
-    if (!success){
-        ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
 
     //Test to get all instances for a party from storage and validate the response to have 403 as code
@@ -60,9 +56,7 @@ export default function(data) {
     success = check(res, {
         "GET Instaces by instanceOwner: status is 403": (r) => r.status === 403        
         });  
-    if (!success){
-        ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
 
     //Test to edit an instance by id in storage and validate the response
@@ -70,8 +64,6 @@ export default function(data) {
     success = check(res, {
         "PUT Edit Instance: status is 200": (r) => r.status === 200        
         });  
-    if (!success){
-        ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
 };

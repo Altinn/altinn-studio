@@ -1,12 +1,11 @@
 import http from "k6/http";
 import * as config from "../../config.js";
+import * as header from "../../buildrequestheaders.js"
 
 //Request to get an org by org number and returns the response
 export function getOrganizations(altinnStudioRuntimeCookie, orgNr){    
     var endpoint =   config.platformRegister["organizations"] + orgNr;
-    var params = {
-        headers: {"Authorization": "Bearer " + altinnStudioRuntimeCookie}
-    };
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie);    
     return http.get(endpoint,params);
 };
 
@@ -14,9 +13,7 @@ export function getOrganizations(altinnStudioRuntimeCookie, orgNr){
 export function getParty(altinnStudioRuntimeCookie, partyId){
 
     var endpoint =   config.platformRegister["parties"] + partyId;
-    var params = {
-        headers: {"Authorization": "Bearer " + altinnStudioRuntimeCookie}
-    };
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie);    
     return http.get(endpoint,params);
 };
 
@@ -28,11 +25,6 @@ export function postPartieslookup(altinnStudioRuntimeCookie, ssn){
         "SSN": ssn     
     }; 
     requestBody = JSON.stringify(requestBody);
-    var params = {
-        headers: {
-            "Authorization": "Bearer " + altinnStudioRuntimeCookie,
-            "Content-Type": "application/json"        
-        }
-    };
+    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie);
     return http.post(endpoint, requestBody, params);
 };

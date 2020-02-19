@@ -1,8 +1,7 @@
 import { check, sleep } from "k6";
-import {Counter} from "k6/metrics";
+import {addErrorCount} from "../../errorcounter.js";
 import * as pdf from "../../Apicalls/Platform/pdf.js"
 
-let ErrorCount = new Counter("errors");
 let pdfInputJson = open("../../Data/pdfInput.json");
 
 export const options = {    
@@ -18,8 +17,6 @@ export default function() {
       "Generate PDF: Status is 200": (r) => r.status === 200,
       "Generate PDF: Content-Type is application/pdf": (r) => r.headers["Content-Type"] === "application/pdf"
   });  
-  if (!success){
-      ErrorCount.add(1);
-  };
+  addErrorCount(success);
   sleep(1);
 };

@@ -1,9 +1,8 @@
 import { check, sleep } from "k6";
-import {Counter} from "k6/metrics";
+import {addErrorCount} from "../../errorcounter.js";
 import * as authz from "../../Apicalls/Platform/authorization.js";
 import * as setUpData from "../../setup.js";
 
-let ErrorCount = new Counter("errors");
 let appOwner = __ENV.org;
 let testappName = __ENV.testapp;
 let policyFile = open("../../Data/policy.xml","b");
@@ -25,8 +24,8 @@ export function setup(){
 
 //Tests for platform Authorization
 export default function(data) {
-    var userId = data["userId"];
-    var partyId = data["partyId"];
+    const userId = data["userId"];
+    const partyId = data["partyId"];
     var altinnTask = "";     
 
     //Test Platform: Authorization: Get parties of an user and validate response
@@ -35,9 +34,7 @@ export default function(data) {
       "GET Parties: Status is 200": (r) => r.status === 200,
       "GET Parties: Parties list is not empty": (r) => (JSON.parse(r.body)).length != null
     });  
-    if (!success){
-      ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
 
     //Test Platform: Authorization: Get roles of the user self
@@ -46,9 +43,7 @@ export default function(data) {
       "GET Roles: Status is 200": (r) => r.status === 200,
       "GET Roles: Roles list is not empty": (r) => (JSON.parse(r.body)).length != null
     });  
-    if (!success){
-      ErrorCount.add(1);
-    }
+    addErrorCount(success);
     sleep(1);
 
     //Test Platform: Authorization: Upload app policy to storage    
@@ -56,9 +51,7 @@ export default function(data) {
     success = check(res, {
       "POST Policy: Status is 200": (r) => r.status === 200,      
     });  
-    if (!success){
-      ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
 
     //Test Platform: Authorization: Get a decision from PDP with appOwner details 
@@ -72,9 +65,7 @@ export default function(data) {
       "Get PDP Decision for appOwner: Status is 200": (r) => r.status === 200,      
       "Get PDP Decision for appOwner: Decision is Permit": (r) => (JSON.parse(r.body)).response[0].decision === "Permit", 
     });  
-    if (!success){
-      ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
 
     //Test Platform: Authorization: Get a decision from PDP with appOwner details
@@ -89,9 +80,7 @@ export default function(data) {
       "Get PDP Decision for appOwner: Status is 200": (r) => r.status === 200,      
       "Get PDP Decision for appOwner: Decision is NotApplicable": (r) => (JSON.parse(r.body)).response[0].decision === "NotApplicable", 
     });  
-    if (!success){
-      ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
 
     //Test Platform: Authorization: Get a decision from PDP with user details
@@ -106,8 +95,6 @@ export default function(data) {
       "Get PDP Decision for User: Status is 200": (r) => r.status === 200,      
       "Get PDP Decision for User: Decision is Permit": (r) => (JSON.parse(r.body)).response[0].decision === "Permit", 
     });  
-    if (!success){
-      ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
 };

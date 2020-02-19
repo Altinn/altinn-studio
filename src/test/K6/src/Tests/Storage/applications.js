@@ -1,9 +1,8 @@
 import { check, sleep } from "k6";
-import {Counter} from "k6/metrics";
+import {addErrorCount} from "../../errorcounter.js";
 import * as application from "../../Apicalls/Storage/applications.js"
 import * as setUpData from "../../setup.js";
 
-let ErrorCount = new Counter("errors");
 let appOwner = __ENV.org;
 let level2App = __ENV.level2app;
 let testApp = __ENV.testapp;
@@ -25,7 +24,7 @@ export function setup(){
 
 //Tests for platform Storage: Applications
 export default function(data) {
-    var runtimeToken = data;
+    const runtimeToken = data;
 
     //Test Platform: Storage: Get All applicaions under an appOwner
     var res = application.getAllApplications(runtimeToken, appOwner);    
@@ -33,9 +32,7 @@ export default function(data) {
       "GET All Apps under an Org: status is 200": (r) => r.status === 200,
       "GET All Apps under an Org: List is not empty": (r) => (JSON.parse(r.body)).applications.length != 0
     });  
-    if (!success){
-      ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1); 
 
     //Test Platform: Storage: Get application by app name and validate response
@@ -45,9 +42,7 @@ export default function(data) {
       "GET App by Name: status is 200": (r) => r.status === 200,
       "GET App by Name: Metadata is OK": (r) => (JSON.parse(r.body)).id === appId
     });  
-    if (!success){
-      ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
 
     //Test Platform: Storage: Post create an app with metadata
@@ -56,19 +51,15 @@ export default function(data) {
     success = check(res, {
       "POST Create App: status is 403": (r) => r.status === 403      
     });  
-    if (!success){
-      ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1); 
 
     //Api call to Platform: Storage: PUT Edit an app metadata
     //expected: 200 as response code
     res = application.putEditApp(runtimeToken, appOwner, testApp, metadata);    
     success = check(res, {
-      "PUT Edit App: status is 200": (r) => r.status === 200      
+      "PUT Edit App: status is 403": (r) => r.status === 403      
     });  
-    if (!success){
-      ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1); 
 };

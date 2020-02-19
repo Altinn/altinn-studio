@@ -1,9 +1,7 @@
 import { check, sleep } from "k6";
-import {Counter} from "k6/metrics";
+import {addErrorCount} from "../../errorcounter.js";
 import * as register from "../../Apicalls/Platform/register.js";
 import * as setUpData from "../../setup.js";
-
-let ErrorCount = new Counter("errors");
 
 export const options = {
     thresholds:{
@@ -22,10 +20,10 @@ export function setup(){
 
 //Tests for platform register
 export default function(data) {
-    var runtimeToken = data["RuntimeToken"];
-    var partyId = data["partyId"];
-    var ssn = data["ssn"];
-    var orgNr = data["orgNumber"];
+    const runtimeToken = data["RuntimeToken"];
+    const partyId = data["partyId"];
+    const ssn = data["ssn"];
+    const orgNr = data["orgNumber"];
 
     //Test Platform: Register: Get organization by orgno and validate response
     var res = register.getOrganizations(runtimeToken, orgNr);    
@@ -33,9 +31,7 @@ export default function(data) {
       "GET Org: status is 200": (r) => r.status === 200,
       "GET Org: org number is not empty": (r) => (JSON.parse(r.body)).orgNumber != null
     });  
-    if (!success){
-      ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
 
     //Test Platform: Register: Get parties by partyId and validate response
@@ -44,9 +40,7 @@ export default function(data) {
       "GET Party: status is 200": (r) => r.status === 200,
       "GET Party: party id matches": (r) => (JSON.parse(r.body)).partyId === partyId
     });  
-    if (!success){
-        ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
 
     //Test Platform: Register: POST party lookup by SSN and validate response
@@ -55,8 +49,6 @@ export default function(data) {
         "GET Party info: status is 200": (r) => r.status === 200,
         "GET Party info: party id matches": (r) => (JSON.parse(r.body)).partyId === partyId
     });  
-    if (!success){
-        ErrorCount.add(1);
-    };
+    addErrorCount(success);
     sleep(1);
 };

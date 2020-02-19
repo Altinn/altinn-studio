@@ -1,14 +1,12 @@
 import http from "k6/http";
 import * as config from "../../config.js";
+import * as header from "../../buildrequestheaders.js"
 
 //Api call to Storage:Instances to create an app instance and returns response
 export function postIntance(altinnStudioRuntimeCookie, partyId, appOwner, level2App, instanceJson){
     var appId = appOwner + "/" + level2App;
     var endpoint = config.platformStorage["instances"] + "?appId=" + appId;
-    var params = {
-        headers: {"Authorization": "Bearer " + altinnStudioRuntimeCookie,
-                  "Content-Type": "application/json"}
-    };
+    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie);
     var requestbody = JSON.stringify(buildInstanceInputJson(instanceJson, appId, partyId));
     return http.post(endpoint, requestbody, params);
 };
@@ -24,28 +22,21 @@ function buildInstanceInputJson(instanceJson, appId, partyId){
 //Api call to Storage:Instances to get an instance by id and return response
 export function getInstanceById(altinnStudioRuntimeCookie, partyId, instanceId){
     var endpoint = config.buildStorageUrls(partyId, instanceId, "", "instanceid");
-    var params = {
-        headers: {"Authorization": "Bearer " + altinnStudioRuntimeCookie}
-    };
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie);    
     return http.get(endpoint, params);
 };
 
 //Api call to Storage:Instances to get all instances under a party id and return response
 export function getAllinstances(altinnStudioRuntimeCookie, partyId){
     var endpoint = config.platformStorage["instances"] + "?instanceOwner.partyId=" + partyId;
-    var params = {
-        headers: {"Authorization": "Bearer " + altinnStudioRuntimeCookie}
-    };
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie);    
     return http.get(endpoint, params);
 };
 
 //Api call to Storage:Instances to edit an instance by id and return response
 export function putInstanceById(altinnStudioRuntimeCookie, partyId, instanceId){
     var endpoint = config.buildStorageUrls(partyId, instanceId, "", "instanceid");
-    var params = {
-        headers: {"Authorization": "Bearer " + altinnStudioRuntimeCookie,
-                  "Content-Type": "application/json"}
-    };
+    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie);
     var timeStamp = new Date();
     var requestbody = { "dueBefore":  timeStamp.toISOString()};
     requestbody = JSON.stringify(requestbody);    

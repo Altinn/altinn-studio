@@ -1,11 +1,10 @@
 import { check, sleep } from "k6";
-import {Counter} from "k6/metrics";
 import * as apps from "../../Apicalls/Storage/applications.js"
 import * as instances from "../../Apicalls/Storage/instances.js"
 import * as instanceData from "../../Apicalls/Storage/data.js"
 import * as setUpData from "../../setup.js";
+import {addErrorCount} from "../../errorcounter.js";
 
-let ErrorCount = new Counter("errors");
 let appOwner = __ENV.org;
 let level2App = __ENV.level2app;
 let instanceJson = open("../../Data/instance.json");
@@ -36,22 +35,64 @@ export function setup(){
 
 //Tests for platform Storage: Instances
 export default function(data) {
-    var runtimeToken = data["RuntimeToken"];
-    var partyId = data["partyId"];
-    var attachmentDataType = data["attachmentDataType"];
-    var instanceId = data["instanceId"];  
+    const runtimeToken = data["RuntimeToken"];
+    const partyId = data["partyId"];
+    const attachmentDataType = data["attachmentDataType"];
+    const instanceId = data["instanceId"];  
     var dataId = "";    
 
     //Test to add an form data to an instance with storage api and validate the response
-    var res = instanceData.postdata(runtimeToken, partyId, instanceId, "default", instanceFormDataXml);    
+    var res = instanceData.postData(runtimeToken, partyId, instanceId, "default", instanceFormDataXml);    
     var success = check(res, {
       "POST Create Data: status is 201": (r) => r.status === 201,
       "POST Create Instance: Data Id is not null": (r) => (JSON.parse(r.body)).id != null
     });  
-    if (!success){
-      ErrorCount.add(1);
-    };
-    sleep(1);    
+    addErrorCount(success);
+    sleep(1);
 
-    
+    dataId = (JSON.parse(res.body)).id;
+
+    //Test to get a data from an instance by id and validate the response
+    res = instanceData.getData(runtimeToken, partyId, instanceId, dataId);
+    success = check(res, {
+        "GET Data by Id: status is 200": (r) => r.status === 200        
+    });  
+    addErrorCount(success);
+    sleep(1);
+
+    //Test to edit a data in an instance and validate the response
+    res = instanceData.putData(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
+    success = check(res, {
+        "PUT Edit Data by Id: status is 200": (r) => r.status === 200        
+    });  
+    addErrorCount(success);
+    sleep(1);
+
+    //Test to add a pdf attachment to an instance with storage api and validate the response
+    var res = instanceData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment);    
+    var success = check(res, {
+      "POST Add Attachment: status is 201": (r) => r.status === 201,
+      "POST Add Attachment: Data Id is not null": (r) => (JSON.parse(r.body)).id != null
+    });  
+    addErrorCount(success);
+    sleep(1);
+
+    dataId = (JSON.parse(res.body)).id;
+
+    //Test to delete a data from an instance by id and validate the response
+    res = instanceData.deleteData(runtimeToken, partyId, instanceId, dataId);
+    success = check(res, {
+        "DELETE Attachment Data: status is 200": (r) => r.status === 200        
+    });    
+    addErrorCount(success);
+    sleep(1);
+
+    //Test to get all the dataelement of an instance and validate the response
+    res = instanceData.getAllDataElements(runtimeToken, partyId, instanceId);
+    success = check(res, {
+        "GET All DataElements: status is 200": (r) => r.status === 200,
+        "GET All DataElements: DataElements count is 1": (r) => (JSON.parse(r.body)).dataElements.length === 1        
+    });      
+    addErrorCount(success);
+    sleep(1);
 };

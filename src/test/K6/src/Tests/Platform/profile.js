@@ -1,9 +1,7 @@
 import { check, sleep } from "k6";
-import {Counter} from "k6/metrics";
+import {addErrorCount} from "../../errorcounter.js";
 import * as profile from "../../Apicalls/Platform/profile.js"
 import * as setUpData from "../../setup.js";
-
-let ErrorCount = new Counter("errors");
 
 export const options = {    
     thresholds:{
@@ -15,20 +13,20 @@ export const options = {
 export function setup(){
     var aspxauthCookie = setUpData.authenticateUser();    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
-    var userData = setUpData.getUserData(altinnStudioRuntimeCookie);    
-    return userData;
+    var data = setUpData.getUserData(altinnStudioRuntimeCookie);   
+    data.RuntimeToken = altinnStudioRuntimeCookie; 
+    return data;
 };
 
 //Test for platform profile and validate response
-export default function(userData) {
-    var userId = userData["userId"];
-    var res = profile.getProfile(userId);
+export default function(data) {
+    const userId = data["userId"];
+    const runtimeToken = data["RuntimeToken"];
+    var res = profile.getProfile(userId, runtimeToken);    
     var success = check(res, {
       "GET Profile: status is 200": (r) => r.status === 200,
       "GET Profile: response contains userId": (r) => (JSON.parse(r.body)).userId === userId
   });  
-  if (!success){
-      ErrorCount.add(1);
-  };
+  addErrorCount(success);
   sleep(1);
 };
