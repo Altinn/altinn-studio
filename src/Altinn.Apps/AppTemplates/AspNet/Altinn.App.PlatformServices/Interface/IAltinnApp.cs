@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Altinn.App.Common.Enums;
+using Altinn.App.Common.Models;
 using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -94,5 +95,13 @@ namespace Altinn.App.Services.Interface
         /// </summary>
         /// <param name="data">The data to perform data creation on</param>
         Task RunDataCreation(Instance instance, object data);
+
+        /// <summary>
+        /// Gets the App Options
+        /// </summary>
+        /// <param name="id">The option id</param>
+        /// <param name="appOptions">Possible option found by the platform itself</param>
+        /// <returns></returns>
+        Task<AppOptions> GetOptions(string id, AppOptions appOptions);
     }
 }

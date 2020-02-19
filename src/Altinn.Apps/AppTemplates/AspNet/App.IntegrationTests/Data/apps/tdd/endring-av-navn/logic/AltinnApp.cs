@@ -1,4 +1,5 @@
 using Altinn.App.Common.Enums;
+using Altinn.App.Common.Models;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
@@ -71,6 +72,11 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
         public override async Task RunDataCreation(Instance instance, object data)
         {
 
+        }
+
+        public override Task<AppOptions> GetOptions(string id, AppOptions options)
+        {
+            return Task.FromResult(options);
         }
     }
 }

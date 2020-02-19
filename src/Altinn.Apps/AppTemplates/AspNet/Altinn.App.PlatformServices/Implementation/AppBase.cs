@@ -1,4 +1,5 @@
 using Altinn.App.Common.Enums;
+using Altinn.App.Common.Models;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
@@ -52,6 +53,8 @@ namespace Altinn.App.Services.Implementation
         public abstract Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance);
 
         public abstract Task RunDataCreation(Instance instance, object data);
+
+        public abstract Task<AppOptions> GetOptions(string id, AppOptions options);
 
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
