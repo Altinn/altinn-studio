@@ -72,6 +72,9 @@ export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type){
         case "dataelements":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/" + "dataelements";
             break;
+        case "events":
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/" + "events";
+            break;
     };
     return value;
 };
