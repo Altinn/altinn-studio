@@ -20,10 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="1.0.51-alpha" />
-    <PackageReference Include="Altinn.App.Common" Version="1.0.51-alpha" />
-    <PackageReference Include="Altinn.App.PlatformServices" Version="1.0.51-alpha" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.1" />
+    <PackageReference Include="Altinn.App.Api" Version="1.0.54-alpha" />
+    <PackageReference Include="Altinn.App.Common" Version="1.0.54-alpha" />
+    <PackageReference Include="Altinn.App.PlatformServices" Version="1.0.54-alpha" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.2" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.1" />
   </ItemGroup>
 
