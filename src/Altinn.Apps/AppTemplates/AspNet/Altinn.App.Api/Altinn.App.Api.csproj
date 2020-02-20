@@ -4,9 +4,9 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.51.0</AssemblyVersion>
-    <FileVersion>1.0.51.0</FileVersion>
-    <Version>1.0.51-alpha</Version>
+    <AssemblyVersion>1.0.54.0</AssemblyVersion>
+    <FileVersion>1.0.54.0</FileVersion>
+    <Version>1.0.54-alpha</Version>
     <Description>Package that contains API controllers for the standard API for a Altinn App.</Description>
     <Company>Altinn</Company>
     <Authors>Altinn</Authors>
@@ -18,13 +18,6 @@
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.18-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>

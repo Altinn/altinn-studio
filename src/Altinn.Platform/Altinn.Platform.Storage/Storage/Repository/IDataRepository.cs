@@ -2,42 +2,40 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Helpers;
+
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Repository
 {
     /// <summary>
-    /// the interface contains methods for operations on form data document
+    /// Describes the implementation of a data element storage. 
     /// </summary>
     public interface IDataRepository
     {
         /// <summary>
-        /// Gets or Sets the data context for a current request
-        /// </summary>
-        OrgDataContext OrgDataContext { get; set; }
-
-        /// <summary>
         /// Create a new file in blob storage.
         /// </summary>
-        /// <param name="stream">data to be written to blob storage</param>
-        /// <param name="blobStoragePath">path to save the stream to in blob storage</param>
-        /// <returns>the size of the blob</returns>
-        Task<long> WriteDataToStorage(Stream stream, string blobStoragePath);
+        /// <param name="org">The application owner id.</param>
+        /// <param name="stream">Data to be written to blob storage.</param>
+        /// <param name="blobStoragePath">Path to save the stream to in blob storage.</param>
+        /// <returns>The size of the blob.</returns>
+        Task<long> WriteDataToStorage(string org, Stream stream, string blobStoragePath);
 
         /// <summary>
         /// Reads a data file from blob storage
         /// </summary>
-        /// <param name="blobStoragePath">path to be file to read blob storage</param>
-        /// <returns>the stream with the file</returns>
-        Task<Stream> ReadDataFromStorage(string blobStoragePath);
+        /// <param name="org">The application owner id.</param>
+        /// <param name="blobStoragePath">Path to be file to read blob storage.</param>
+        /// <returns>The stream with the file</returns>
+        Task<Stream> ReadDataFromStorage(string org, string blobStoragePath);
 
         /// <summary>
         /// Deletes the data element permanently
         /// </summary>
-        /// <param name="blobStoragePath">path to the file to delete</param>
-        /// <returns></returns>
-        Task<bool> DeleteDataInStorage(string blobStoragePath);
+        /// <param name="org">The application owner id.</param>
+        /// <param name="blobStoragePath">Path to the file to delete.</param>
+        /// <returns>A value indicating whether the delete was successful.</returns>
+        Task<bool> DeleteDataInStorage(string org, string blobStoragePath);
 
         /// <summary>
         /// Gets all data elements for a given instance
@@ -74,12 +72,5 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="dataElement">the element to delete</param>
         /// <returns>true if delete went well.</returns>
         Task<bool> Delete(DataElement dataElement);
-
-        /// <summary>
-        /// Gets the correct data contaxt for the current application owner
-        /// </summary>
-        /// <param name="org">name of application owner</param>
-        /// <returns></returns>
-        OrgDataContext GetOrgDataContext(string org);
     }
 }
