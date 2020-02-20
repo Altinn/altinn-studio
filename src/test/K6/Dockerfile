@@ -1,5 +1,7 @@
 FROM loadimpact/k6
 WORKDIR /src
-VOLUME C:/AltinnStudio/altinn-studio/src/test/K6/src:/src
+ENV env ${env}
+ENV vus ${vus}
+ENV duration ${duration}
 COPY . .
 RUN k6 run --vus ${vus} --duration ${duration} ./src/Tests/Platform/pdf.js -e env=${env}
