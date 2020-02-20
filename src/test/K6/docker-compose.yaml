@@ -1,12 +1,11 @@
 version: "3"
 services:
   k6:
-    image: loadimpact/k6
-    build: .
+    image: loadimpact/k6    
     ports:
       - "6565:6565"
     volumes:
       - "./src:/src"
-    environment: 
-      - env=${env}
-    command: "version"
+    build:
+      context: .
+      dockerfile: Dockerfile
