@@ -14,11 +14,13 @@ namespace Altinn.App.Api.Controllers
     public class OptionsController : ControllerBase
     {
         private readonly IAltinnApp _altinnApp;
+        private readonly IAppResources _appResourceService;
 
 
-        public OptionsController(IAltinnApp altinnApp)
+        public OptionsController(IAltinnApp altinnApp, IAppResources appResourcesService)
         {
             _altinnApp = altinnApp;
+            _appResourceService = appResourcesService;
         }
 
         /// <summary>
@@ -41,6 +43,8 @@ namespace Altinn.App.Api.Controllers
 
             // Todo
             // Add code that identifies options list stored on drive in app.
+
+            _appResourceService.Get
 
             appOptions = await _altinnApp.GetOptions(optionsId, appOptions);
 
