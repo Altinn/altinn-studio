@@ -2,6 +2,7 @@ import { check, sleep } from "k6";
 import * as apps from "../../Apicalls/Storage/applications.js"
 import * as instances from "../../Apicalls/Storage/instances.js"
 import * as instanceData from "../../Apicalls/Storage/data.js"
+import * as sbl from "../../Apicalls/Storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 import {addErrorCount} from "../../errorcounter.js";
 
@@ -95,4 +96,13 @@ export default function(data) {
     });      
     addErrorCount(success);
     sleep(1);
+};
+
+//Delete the instance created
+export function teardown(data){
+    const runtimeToken = data["RuntimeToken"];
+    const partyId = data["partyId"];    
+    const instanceId = data["instanceId"];
+
+    sbl.deleteSblInstance(runtimeToken, partyId, instanceId, "true");    
 };

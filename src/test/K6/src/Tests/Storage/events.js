@@ -1,6 +1,7 @@
 import { check, sleep } from "k6";
 import * as instances from "../../Apicalls/Storage/instances.js"
 import * as events from "../../Apicalls/Storage/events.js"
+import * as sbl from "../../Apicalls/Storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 import {addErrorCount} from "../../errorcounter.js";
 
@@ -28,7 +29,7 @@ export function setup(){
 };
 
 
-//Tests for platform Storage: Instances
+//Tests for platform Storage: Events
 export default function(data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
@@ -54,7 +55,7 @@ export default function(data) {
     addErrorCount(success);
     sleep(1);
 
-    //Test to get all instance events by id from an instance with storage api and validate the response
+    //Test to get all instance events from an instance with storage api and validate the response
     res = events.getAllEvents(runtimeToken, partyId, instanceId);    
     success = check(res, {
       "GET All Instance Events: status is 200": (r) => r.status === 200      
@@ -70,11 +71,20 @@ export default function(data) {
      addErrorCount(success);
      sleep(1);
 
-     //Test to get all instance events by id from an instance with storage api and validate the response
+     //Test to delete all instance events from an instance with storage api and validate the response
     res = events.deleteEvent(runtimeToken, partyId, instanceId);    
     success = check(res, {
       "DELETE All Instance Events: status is 200": (r) => r.status === 200      
     });  
     addErrorCount(success);
     sleep(1);
+};
+
+//Delete the instance created
+export function teardown(data){
+  const runtimeToken = data["RuntimeToken"];
+  const partyId = data["partyId"];    
+  const instanceId = data["instanceId"];
+
+  sbl.deleteSblInstance(runtimeToken, partyId, instanceId, "true");    
 };
