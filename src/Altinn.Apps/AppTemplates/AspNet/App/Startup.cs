@@ -13,6 +13,7 @@ using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
 using AltinnCore.Authentication.JwtCookie;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -137,6 +138,15 @@ namespace Altinn.App
             });
 
             services.TryAddSingleton<ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter>();
+
+            // Set up application insights
+            string applicationInsightsKey = GetApplicationInsightsKey();
+            if (!string.IsNullOrEmpty(applicationInsightsKey))
+            {
+                services.AddApplicationInsightsTelemetry(applicationInsightsKey);   // Enables Application Insights
+                services.AddApplicationInsightsKubernetesEnricher();                // Enables Application Insights for Kubernetes.
+                services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -155,6 +165,16 @@ namespace Altinn.App
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private string GetApplicationInsightsKey()
+        {
+            if (_env.IsDevelopment())
+            {
+                return Configuration["ApplicationInsights:InstrumentationKey"];
+            }
+            
+            return Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey");
         }
     }
 }
