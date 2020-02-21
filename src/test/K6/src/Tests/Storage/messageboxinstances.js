@@ -28,7 +28,7 @@ export function setup(){
 };
 
 
-//Tests for platform Storage: Instances
+//Tests for platform Storage: MessageBoxInstances
 export default function(data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];  

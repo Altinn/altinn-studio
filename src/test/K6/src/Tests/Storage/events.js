@@ -29,7 +29,7 @@ export function setup(){
 };
 
 
-//Tests for platform Storage: Events
+//Tests for platform Storage: Instance Events
 export default function(data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];

@@ -70,14 +70,17 @@ export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type){
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/data/" + dataId;
             break;
         case "dataelements":
-            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/" + "dataelements";
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/dataelements";
             break;
         case "events":
-            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/" + "events";
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/events";
             break;
         case "sblinstanceid":
             value = platformStorage["messageBoxInstances"] + "/" + instanceOwnerId + "/" + instanceId;
             break;
+        case "process":
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/process";
+            break;        
     };
     return value;
 };
