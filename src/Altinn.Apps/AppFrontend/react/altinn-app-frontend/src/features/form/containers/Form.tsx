@@ -5,10 +5,10 @@ import GenericComponent from '../../../components/GenericComponent';
 import { IRuntimeState } from '../../../types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 
-export function RenderComponent(props: any) {
+export function Form() {
   const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layout);
 
-  function renderComponent(component: ILayoutComponent | ILayoutGroup) {
+  function renderLayoutComponent(component: ILayoutComponent | ILayoutGroup) {
     if (component.type.toLowerCase() === 'group') {
       return (
         // TODO: Implement group features
@@ -30,9 +30,9 @@ export function RenderComponent(props: any) {
 
   return (
     <Grid container={true}>
-      {layout && layout.map(renderComponent)}
+      {layout && layout.map(renderLayoutComponent)}
     </Grid>
   );
 }
 
-export default RenderComponent;
+export default Form;
