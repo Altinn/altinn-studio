@@ -3,6 +3,8 @@
 
   <InstrumentationKey>This key is added in App.java</InstrumentationKey>
 
+  <RoleName>platform-pdf</RoleName>
+
   <TelemetryModules>
     <Add type="com.microsoft.applicationinsights.web.extensibility.modules.WebRequestTrackingTelemetryModule"/>
     <Add type="com.microsoft.applicationinsights.web.extensibility.modules.WebSessionTrackingTelemetryModule"/>
