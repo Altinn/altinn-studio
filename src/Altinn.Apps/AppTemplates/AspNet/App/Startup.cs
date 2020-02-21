@@ -140,7 +140,7 @@ namespace Altinn.App
             services.TryAddSingleton<ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter>();
 
             // Set up application insights
-            string applicationInsightsKey = Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey");
+            string applicationInsightsKey = GetApplicationInsightsKey();
             if (!string.IsNullOrEmpty(applicationInsightsKey))
             {
                 services.AddApplicationInsightsTelemetry(applicationInsightsKey);   // Enables Application Insights
@@ -165,6 +165,16 @@ namespace Altinn.App
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private string GetApplicationInsightsKey()
+        {
+            if (_env.IsDevelopment)
+            {
+                return Configuration["ApplicationInsights:InstrumentationKey"];
+            }
+            
+            return Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey");
         }
     }
 }
