@@ -1,6 +1,8 @@
 using System;
 using System.IO;
+
 using AltinnCore.Authentication.Constants;
+
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -10,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using Serilog;
 using Serilog.Core;
 using Serilog.Extensions.Logging;
@@ -118,10 +121,8 @@ namespace Altinn.Platform.Storage
                 KeyVaultClient keyVaultClient = new KeyVaultClient(
                     new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
 
-                Startup.PlatformKeyVaultClient = keyVaultClient;
+                config.AddAzureKeyVault(keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
 
-                config.AddAzureKeyVault(
-                    keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
                 try
                 {
                     SecretBundle secretBundle = keyVaultClient
