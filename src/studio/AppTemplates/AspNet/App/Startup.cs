@@ -169,7 +169,7 @@ namespace Altinn.App
 
         private string GetApplicationInsightsKey()
         {
-            if (_env.IsDevelopment)
+            if (_env.IsDevelopment())
             {
                 return Configuration["ApplicationInsights:InstrumentationKey"];
             }
