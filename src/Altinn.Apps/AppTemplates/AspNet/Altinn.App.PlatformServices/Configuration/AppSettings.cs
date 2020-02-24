@@ -32,6 +32,11 @@ namespace Altinn.App.Services.Configuration
         public string ConfigurationFolder { get; set; } = "config/";
 
         /// <summary>
+        /// The app options base folder where files are stored in the container
+        /// </summary>
+        public string OptionsFolder { get; set; } = "options/";
+
+        /// <summary>
         /// The ui configuration baseUrl where files are stored in the container
         /// </summary>
         public string UiFolder { get; set; } = "ui/";
