@@ -10,7 +10,7 @@ export var baseUrls = {
 let environment = __ENV.env;
 let appOwner = __ENV.org;
 let appName = __ENV.level2app;
-let baseUrl =  baseUrls[environment];
+export let baseUrl =  baseUrls[environment];
 
 //Altinn API
 export var authentication =  {
@@ -86,6 +86,26 @@ export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type){
 };
 
 //App APIs
+export var appApiBaseUrl = "https://" + appOwner + ".apps." + baseUrl + "/" + appOwner + "/" + appName;
+
 export var appProfile =  {
-    user: "https://" + appOwner + ".apps." + baseUrl + "/" + appOwner + "/" + appName + "/api/v1/profile/user"
+    user: appApiBaseUrl + "/api/v1/profile/user"
+};
+
+//Function to build endpoints in App Api with instanceOwnerId, instanceId, dataId, type
+//and returns the endpoint
+export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type){
+    var value = "";
+    switch(type){
+        case "instanceid":
+            value = appApiBaseUrl + "/instances/" + instanceOwnerId + "/" + instanceId;
+            break;
+        case "dataid":
+            value = appApiBaseUrl + "/instances/" + instanceOwnerId + "/" + instanceId + "/data/" + dataId;
+            break;        
+        case "process":
+            value = appApiBaseUrl + "/instances/" + instanceOwnerId + "/" + instanceId + "/process";
+            break;        
+    };
+    return value;
 };

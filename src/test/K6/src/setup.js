@@ -13,7 +13,7 @@ export function authenticateUser(){
         "UserPassword": userPassword
     };        
     var res = http.post(endpoint, requestBody); 
-    var cookieName = ".ASPXAUTH"    
+    const cookieName = ".ASPXAUTH"    
     var cookieValue = (res.cookies[cookieName])[0].value;
     return cookieValue;
 };
@@ -48,7 +48,14 @@ export function getUserData(altinnStudioRuntimeCookie){
         if(res[i].orgNumber != null){
             userData.orgNumber = res[i].orgNumber;
             break;
-        }
-    };
+            }
+        };
     return userData;
+};
+
+//Function to clear the cookies under baseurl by setting the expires field to a past date
+export function clearCookies(){
+    var jar = http.cookieJar();    
+    jar.set("https://" + config.baseUrl, "AltinnStudioRuntime", "test", {"expires": "Mon, 02 Jan 2010 15:04:05 MST"});
+    jar.set("https://" + config.baseUrl, ".ASPXAUTH", "test", {"expires": "Mon, 02 Jan 2010 15:04:05 MST"});         
 };

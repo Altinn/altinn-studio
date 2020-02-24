@@ -24,10 +24,11 @@ export function setup(){
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
     var data = setUpData.getUserData(altinnStudioRuntimeCookie);
     data.RuntimeToken = altinnStudioRuntimeCookie;
+    setUpData.clearCookies();
     var attachmentDataType = apps.getAppByName(altinnStudioRuntimeCookie, appOwner, level2App);
     attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body);
     data.attachmentDataType = attachmentDataType;
-    var instanceId = instances.postIntance(altinnStudioRuntimeCookie,  data["partyId"], appOwner, level2App, instanceJson);
+    var instanceId = instances.postInstance(altinnStudioRuntimeCookie,  data["partyId"], appOwner, level2App, instanceJson);
     instanceId = instances.findInstanceId(instanceId.body);
     data.instanceId = instanceId;
     return data;

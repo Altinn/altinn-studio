@@ -21,7 +21,8 @@ export function setup(){
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
     var data = setUpData.getUserData(altinnStudioRuntimeCookie);
     data.RuntimeToken = altinnStudioRuntimeCookie;
-    var instanceId = instances.postIntance(altinnStudioRuntimeCookie,  data["partyId"], appOwner, level2App, instanceJson);
+    setUpData.clearCookies();
+    var instanceId = instances.postInstance(altinnStudioRuntimeCookie,  data["partyId"], appOwner, level2App, instanceJson);
     instanceId = instances.findInstanceId(instanceId.body);
     data.instanceId = instanceId;
     return data;

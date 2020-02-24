@@ -3,7 +3,7 @@ import * as config from "../../config.js";
 import * as header from "../../buildrequestheaders.js"
 
 //Api call to Storage:Instances to create an app instance and returns response
-export function postIntance(altinnStudioRuntimeCookie, partyId, appOwner, level2App, instanceJson){
+export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, level2App, instanceJson){
     var appId = appOwner + "/" + level2App;
     var endpoint = config.platformStorage["instances"] + "?appId=" + appId;
     var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie);
