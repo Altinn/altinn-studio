@@ -7,12 +7,12 @@ import {AltinnAppHeader} from 'altinn-shared/components';
 import {AltinnAppTheme} from 'altinn-shared/theme';
 import { IParty } from 'altinn-shared/types';
 import { getLanguageFromKey, returnUrlToMessagebox } from 'altinn-shared/utils';
-import { IRuntimeState, ProcessSteps } from '../../../types';
-import { IValidations } from '../../../types/global';
-import ReceiptContainer from '../../receipt/containers/receiptContainer';
-import ErrorReport from '../../../components/message/ErrorReport';
-import Header from '../../../components/process-step/Header';
-import NavBar from '../../../components/process-step/NavBar';
+import { IRuntimeState, ProcessSteps } from '../../types';
+import { IValidations } from '../../types/global';
+import ReceiptContainer from '../../features/receipt/containers/receiptContainer';
+import ErrorReport from '../../components/message/ErrorReport';
+import Header from '../../components/process-step/Header';
+import NavBar from '../../components/process-step/NavBar';
 
 export interface IProcessStepProvidedProps {
   header: string;

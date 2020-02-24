@@ -2,7 +2,7 @@ import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import {AltinnAppTheme} from 'altinn-shared/theme';
-import ProcessStepWrapper from './features/form/containers/ProcessStepWrapper';
+import ProcessStepWrapper from './shared/containers/ProcessStepWrapper';
 import Instantiate from './features/instantiate/containers';
 import UnknownError from './features/instantiate/containers/UnknownError';
 import PartySelection from './features/instantiate/containers/PartySelection';

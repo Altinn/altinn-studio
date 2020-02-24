@@ -2,13 +2,12 @@ import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components'
 import { getLanguageFromKey, getUserLanguage } from 'altinn-shared/utils';
-import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
-import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
-import QueueActions from '../../../shared/resources/queue/queueActions';
-import { IRuntimeState, ProcessSteps, IAltinnWindow } from '../../../types';
+import InstanceDataActions from '../resources/instanceData/instanceDataActions';
+import ProcessDispatcher from '../resources/process/processDispatcher';
+import { IRuntimeState, ProcessSteps, IAltinnWindow } from '../../types';
 import ProcessStep from './ProcessStep';
-import Render from './Form';
-import UnknownError from '../../instantiate/containers/UnknownError';
+import Render from '../../features/form/containers/Form';
+import UnknownError from '../../features/instantiate/containers/UnknownError';
 
 export default (props) => {
   const {
@@ -33,7 +32,6 @@ export default (props) => {
   React.useEffect(() => {
     setUserLanguage(getUserLanguage());
     ProcessDispatcher.getProcessState();
-    QueueActions.startInitialDataTaskQueue();
   }, []);
 
   React.useEffect(() => {

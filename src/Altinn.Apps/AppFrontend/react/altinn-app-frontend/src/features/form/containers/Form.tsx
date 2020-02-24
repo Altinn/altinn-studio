@@ -4,9 +4,14 @@ import { useSelector } from 'react-redux';
 import GenericComponent from '../../../components/GenericComponent';
 import { IRuntimeState } from '../../../types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
+import QueueActions from '../../../shared/resources/queue/queueActions';
 
 export function Form() {
   const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layout);
+
+  React.useEffect(() => {
+    QueueActions.startInitialDataTaskQueue();
+  }, [])
 
   function renderLayoutComponent(component: ILayoutComponent | ILayoutGroup) {
     if (component.type.toLowerCase() === 'group') {
