@@ -6,17 +6,13 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import { formComponentWithHandlers } from '../features/form/containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
-import FormDynamicsActions from '../features/form/dynamics/formDynamicsActions';
-import { IDataModelBindings, ILayoutComponent, ILayoutEntry, ITextResourceBindings } from '../features/form/layout';
+import { IDataModelBindings, ITextResourceBindings } from '../features/form/layout';
 import FormLayoutActions from '../features/form/layout/formLayoutActions';
 import RuleActions from '../features/form/rules/rulesActions';
-//import ValidationActions from '../features/form/validation/actions';
-import { makeGetFormDataSelector } from '../selectors/getFormData';
-import { makeGetFocus, makeGetHidden, makeGetLayoutElement } from '../selectors/getLayoutData';
+import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
 import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
-// import { createSelector } from 'reselect';
 
 export interface IGenericComponentProps {
   id: string;
@@ -25,43 +21,23 @@ export interface IGenericComponentProps {
   dataModelBindings: IDataModelBindings;
 }
 
-// const selectFormDataForComponents = createSelector(
-//   (state: IRuntimeState) => state.formData.formData,
-//   (formData: IFormData) => 
-// );
-
 export const getFormDataForComponent = (formData: any) => {
   return formData ? formData : '';
 }
 
 export const GenericComponent = (props: IGenericComponentProps) => {
-  // const GetLayoutElementSelector = makeGetLayoutElement();
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
 
   const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
   const formData: IFormData = useSelector((state: IRuntimeState) => getFormDataForComponent(state.formData.formData[props.dataModelBindings.simpleBinding]), shallowEqual);
-  // const formData: any = useSelector((state: IRuntimeState) => {
-  //   return state.formData.formData[props.dataModelBindings.simpleBinding] ? state.formData.formData[props.dataModelBindings.simpleBinding] : '';
-  // });
-  
-  // const formDataTest: any = useSelector((state: IRuntimeState) => state.formData);
+
   const isValid: boolean = useSelector((state: IRuntimeState) =>
     isComponentValid(state.formValidations.validations[props.id]));
   const language: ILanguageState = useSelector((state: IRuntimeState) => state.language.language);
-  // const layoutElement: ILayoutEntry = useSelector((state: IRuntimeState) => GetLayoutElementSelector(state, props));
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, props));
   const shouldFocus: boolean = useSelector((state: IRuntimeState) => GetFocusSelector(state, props));
-
-  React.useEffect(() => {
-    console.log('formData is updated! ', props.dataModelBindings.simpleBinding);
-  }, [formData]);
-
-  // React.useEffect(() => {
-  //   console.log('formDataTest is updated! ', props.dataModelBindings.simpleBinding);
-  // }, [formDataTest]);
-
 
   const handleDataUpdate = (value: any, key: string = 'simpleBinding') => {
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
