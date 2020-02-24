@@ -7,8 +7,14 @@ namespace Altinn.App.Common.Models
     public class AppOption
     {
 
-        public string Key { get; set; }
-
+        /// <summary>
+        /// The value of a given option
+        /// </summary>
         public string Value { get; set; }
+
+        /// <summary>
+        /// The Label of a given option
+        /// </summary>
+        public string Label { get; set; }
     }
 }

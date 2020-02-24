@@ -85,13 +85,13 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
             {
                 options.Options = new List<AppOption>();
 
-                options.Options.Add(new AppOption() { Key = "1", Value = "Mandag" });
-                options.Options.Add(new AppOption() { Key = "2", Value = "Tirsdag" });
-                options.Options.Add(new AppOption() { Key = "3", Value = "Onsdag" });
-                options.Options.Add(new AppOption() { Key = "4", Value = "Torsdag" });
-                options.Options.Add(new AppOption() { Key = "5", Value = "Fredag" });
-                options.Options.Add(new AppOption() { Key = "6", Value = "Lørdag" });
-                options.Options.Add(new AppOption() { Key = "7", Value = "Søndag" });
+                options.Options.Add(new AppOption() { Value = "1", Label = "Mandag" });
+                options.Options.Add(new AppOption() { Value = "2", Label = "Tirsdag" });
+                options.Options.Add(new AppOption() { Value = "3", Label = "Onsdag" });
+                options.Options.Add(new AppOption() { Value = "4", Label = "Torsdag" });
+                options.Options.Add(new AppOption() { Value = "5", Label = "Fredag" });
+                options.Options.Add(new AppOption() { Value = "6", Label = "Lørdag" });
+                options.Options.Add(new AppOption() { Value = "7", Label = "Søndag" });
 
                 options.IsCacheable = true;
             }
@@ -100,23 +100,23 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
             {
                 options.Options = new List<AppOption>();
 
-                options.Options.Add(new AppOption() { Key = "1", Value = "Januar" });
-                options.Options.Add(new AppOption() { Key = "2", Value = "Februar" });
-                options.Options.Add(new AppOption() { Key = "3", Value = "Mars" });
-                options.Options.Add(new AppOption() { Key = "4", Value = "April" });
-                options.Options.Add(new AppOption() { Key = "5", Value = "Mai" });
-                options.Options.Add(new AppOption() { Key = "6", Value = "Juni" });
-                options.Options.Add(new AppOption() { Key = "7", Value = "Juli" });
-                options.Options.Add(new AppOption() { Key = "8", Value = "August" });
-                options.Options.Add(new AppOption() { Key = "9", Value = "September" });
-                options.Options.Add(new AppOption() { Key = "10", Value = "Oktober" });
-                options.Options.Add(new AppOption() { Key = "11", Value = "November" });
-                options.Options.Add(new AppOption() { Key = "12", Value = "Desember" });
+                options.Options.Add(new AppOption() { Value = "1", Label = "Januar" });
+                options.Options.Add(new AppOption() { Value = "2", Label = "Februar" });
+                options.Options.Add(new AppOption() { Value = "3", Label = "Mars" });
+                options.Options.Add(new AppOption() { Value = "4", Label = "April" });
+                options.Options.Add(new AppOption() { Value = "5", Label = "Mai" });
+                options.Options.Add(new AppOption() { Value = "6", Label = "Juni" });
+                options.Options.Add(new AppOption() { Value = "7", Label = "Juli" });
+                options.Options.Add(new AppOption() { Value = "8", Label = "August" });
+                options.Options.Add(new AppOption() { Value = "9", Label = "September" });
+                options.Options.Add(new AppOption() { Value = "10", Label = "Oktober" });
+                options.Options.Add(new AppOption() { Value = "11", Label = "November" });
+                options.Options.Add(new AppOption() { Value = "12", Label = "Desember" });
             }
 
             if(id.Equals("carbrands"))
             {
-                options.Options.Insert(0, new AppOption() { Key = "", Value = "Velg bilmerke" });
+                options.Options.Insert(0, new AppOption() { Value = "", Label = "Velg bilmerke" });
             }
 
             return Task.FromResult(options);
