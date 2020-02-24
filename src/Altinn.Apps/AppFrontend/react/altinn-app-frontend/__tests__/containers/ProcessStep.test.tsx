@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import { ProcessStep } from '../../src/features/form/containers/ProcessStep';
+import ProcessStep from '../../src/shared/containers/ProcessStep';
 import { ProcessSteps } from '../../src/types';
 import {AltinnAppTheme} from 'altinn-shared/theme';
 
