@@ -80,29 +80,6 @@ export const GenericComponent = (props: IGenericComponentProps) => {
     return textResource ? textResource.value : resourceKey;
   };
 
-  const getFormData = (): string | {} => {
-    if (!props.dataModelBindings ||
-      Object.keys(props.dataModelBindings).length === 0) {
-      return '';
-    }
-
-    const valueArr: { [id: string]: string } = {};
-    for (const dataBindingKey in props.dataModelBindings) {
-      if (!dataBindingKey) {
-        continue;
-      }
-      valueArr[dataBindingKey] = formData[props.dataModelBindings[dataBindingKey]];
-    }
-
-    if (Object.keys(valueArr).indexOf('simpleBinding') >= 0) {
-      // Simple component
-      return valueArr.simpleBinding;
-    } else {
-      // Advanced component
-      return valueArr;
-    }
-  }
-
   if (hidden) {
     return null;
   }
