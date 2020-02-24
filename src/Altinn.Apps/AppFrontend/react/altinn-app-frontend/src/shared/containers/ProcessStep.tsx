@@ -65,7 +65,7 @@ const ProcessStepComponent = (props) => {
         <div className='container'>
           <div className={classNames('row', {['d-print-none']: isProcessStepsArchived})}>
             <div className='col-xl-10 offset-xl-1 a-p-static'>
-              <ErrorReport formHasErrors={formHasErrors} />
+              <ErrorReport formHasErrors={formHasErrors} language={language}/>
               <NavBar handleClose={handleModalCloseButton} />
               <div className='a-modal-content-target'>
                 <div className='a-page a-current-page'>

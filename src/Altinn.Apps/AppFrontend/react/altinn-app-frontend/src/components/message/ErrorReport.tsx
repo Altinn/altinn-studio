@@ -26,7 +26,7 @@ const ErrorReport = (props: any) => {
                   </div>
                     <h2 className='a-fontReg' style={{marginBottom: '0px', marginLeft: '12px'}}>
                       <span className='a-iconText-text-large'>
-                        {getLanguageFromKey('form_filler.error_report_header', this.props.language)}
+                        {getLanguageFromKey('form_filler.error_report_header', props.language)}
                       </span>
                     </h2>
                 </div>
@@ -34,7 +34,7 @@ const ErrorReport = (props: any) => {
               <div className='modal-body a-modal-body' style={{paddingTop: '0px', paddingBottom: '24px'}}>
                 <h4 className='a-fontReg'>
                   <span>
-                  {getLanguageFromKey('form_filler.error_report_description', this.props.language)}
+                  {getLanguageFromKey('form_filler.error_report_description', props.language)}
                   </span>
                 </h4>
               </div>
