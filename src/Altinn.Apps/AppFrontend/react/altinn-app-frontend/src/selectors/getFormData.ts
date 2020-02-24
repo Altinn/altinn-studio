@@ -29,19 +29,6 @@ const formDataForContainerSelector = (state: IRuntimeState, props: any, index?: 
   return selectors;
 };
 
-const formDataSelector = (state: IRuntimeState, props: any) => {
-  const selectors: any = {};
-  const simpleBinding = 'simpleBinding';
-  if (Object.keys(state.formData.formData).length > 0) {
-    Object.keys(state.formData.formData).forEach((key) => {
-      if (props.dataModelBindings[simpleBinding] === key) {
-        selectors[key] = state.formData.formData[key];
-      }
-    });
-  }
-  return selectors;
-}
-
 const createDeepEqualSelector = createSelectorCreator(
   defaultMemoize,
   isEqual,
@@ -58,17 +45,5 @@ const getFormData = () => {
     },
   );
 };
-
-// const getFormData = () => {
-//   return createSelector(
-//     [formDataSelector],
-//     (formData: any) => {
-//       if (!formData) {
-//         return [];
-//       }
-//       return formData;
-//     },
-//   );
-// };
 
 export const makeGetFormDataSelector = getFormData;
