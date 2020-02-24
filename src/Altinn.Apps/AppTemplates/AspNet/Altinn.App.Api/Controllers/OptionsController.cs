@@ -41,10 +41,8 @@ namespace Altinn.App.Api.Controllers
             // TODO
             // Add code to identify standard options that can be retrieved from platform.
 
-            // Todo
-            // Add code that identifies options list stored on drive in app.
-
-            _appResourceService.Get
+            // Get options from configuration 
+            appOptions.Options = _appResourceService.GetOptions(optionsId);
 
             appOptions = await _altinnApp.GetOptions(optionsId, appOptions);
 

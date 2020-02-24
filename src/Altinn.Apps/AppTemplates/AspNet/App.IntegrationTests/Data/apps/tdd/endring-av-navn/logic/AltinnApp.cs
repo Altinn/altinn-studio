@@ -114,6 +114,11 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
                 options.Options.Add(new AppOption() { Key = "12", Value = "Desember" });
             }
 
+            if(id.Equals("carbrands"))
+            {
+                options.Options.Insert(0, new AppOption() { Key = "", Value = "Velg bilmerke" });
+            }
+
             return Task.FromResult(options);
         }
     }
