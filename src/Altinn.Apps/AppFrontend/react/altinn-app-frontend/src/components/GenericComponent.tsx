@@ -21,8 +21,20 @@ export interface IGenericComponentProps {
   dataModelBindings: IDataModelBindings;
 }
 
-export const getFormDataForComponent = (formData: any) => {
-  return formData ? formData : '';
+export const getFormDataForComponent = (formData: any, dataModelBindings: IDataModelBindings) => {
+  if (dataModelBindings.simpleBinding) {
+    const formDataVal = formData[dataModelBindings.simpleBinding];
+    return formDataVal ? formDataVal : '';
+  }
+
+  const formDataObj = {};
+  Object.keys(dataModelBindings).forEach((key: any) => {
+    const binding = dataModelBindings[key];
+    if (formData[binding]) {
+      formDataObj[key] = formData[binding];
+    }
+  });
+  return formDataObj;
 }
 
 export const GenericComponent = (props: IGenericComponentProps) => {
@@ -30,7 +42,7 @@ export const GenericComponent = (props: IGenericComponentProps) => {
   const GetFocusSelector = makeGetFocus();
 
   const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
-  const formData: IFormData = useSelector((state: IRuntimeState) => getFormDataForComponent(state.formData.formData[props.dataModelBindings.simpleBinding]), shallowEqual);
+  const formData: IFormData = useSelector((state: IRuntimeState) => getFormDataForComponent(state.formData.formData, props.dataModelBindings), shallowEqual);
 
   const isValid: boolean = useSelector((state: IRuntimeState) =>
     isComponentValid(state.formValidations.validations[props.id]));
