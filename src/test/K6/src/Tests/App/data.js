@@ -51,7 +51,41 @@ export default function(data) {
       "App: GET Data by Id: status is 200": (r) => r.status === 200      
     });  
     addErrorCount(success);
-    sleep(1);    
+    sleep(1);
+    
+    //Test to edit a form data in an instance with App APi and validate the response
+    res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
+    success = check(res, {
+        "PUT Edit Data by Id: status is 201": (r) => r.status === 201        
+    });  
+    addErrorCount(success);
+    sleep(1);
+
+    //Test to delete a form data in an instance with App API and validate the response
+    res = appData.deleteDataById(runtimeToken, partyId, instanceId, dataId);
+    success = check(res, {
+        "DELETE Form Data by Id: Not Allowed : status is 400": (r) => r.status === 400        
+    });  
+    addErrorCount(success);
+    sleep(1);
+
+    //Test to upload an attachment to an instance with App API and validate the response
+    res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment);
+    success = check(res, {
+        "POST Attachment is uploaded: status is 201": (r) => r.status === 201        
+    });  
+    addErrorCount(success);
+    sleep(1);
+
+    dataId = (JSON.parse(res.body)).id;
+
+    //Test to delete a an attachment from an instance with App API and validate the response
+    res = appData.deleteDataById(runtimeToken, partyId, instanceId, dataId);
+    success = check(res, {
+        "DELETE Attachment: Allowed : status is 200": (r) => r.status === 200        
+    });  
+    addErrorCount(success);
+    sleep(1);
 };
 
 //Delete the instance created
