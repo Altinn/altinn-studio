@@ -78,11 +78,11 @@ http {
     sendfile on;
 
 	upstream localtest {
-        server host.docker.internal:5101;
+        server 127.0.0.1:5101;
     }
 
     upstream app {
-        server host.docker.internal:5005;
+        server 127.0.0.1:5005;
     }
 
     server {
