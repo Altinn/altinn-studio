@@ -14,7 +14,8 @@ namespace App.IntegrationTests.Utils
         public static string GetToken(int userId, int authenticationLevel = 2)
         {
             List<Claim> claims = new List<Claim>();
-            string issuer = "www.altinn.no";
+            string issuer = "www.altinn.no"; 
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, userId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userId.ToString() , ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, "UserOne", ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userId.ToString(), ClaimValueTypes.Integer32, issuer));
