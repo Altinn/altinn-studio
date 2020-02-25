@@ -34,6 +34,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
+        private readonly AuthorizationHelper _authorizationHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -42,12 +43,14 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
         /// <param name="logger">the logger</param>
+        /// <param name="authzLogger">the logger for authorization helper</param>
         /// <param name="pdp">the policy decision point.</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
             ILogger<InstancesController> logger,
+            ILogger<AuthorizationHelper> authzLogger,
             IPDP pdp)
         {
             _instanceRepository = instanceRepository;
@@ -55,6 +58,7 @@ namespace Altinn.Platform.Storage.Controllers
             _applicationRepository = applicationRepository;
             _pdp = pdp;
             _logger = logger;
+            _authorizationHelper = new AuthorizationHelper(_pdp, authzLogger);
         }
 
         /// <summary>
@@ -242,7 +246,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
             }
-
+        
             // Checking that user is authorized to instantiate.
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instance.InstanceOwner.PartyId.ToString(), null);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
@@ -358,7 +362,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">The id of the instance that should be deleted.</param>
         /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribut set to todays date and time.</param>
         /// <returns>Information from the deleted instance.</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [Authorize]
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -388,6 +392,14 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 _logger.LogError($"Cannot delete instance {instanceId}. Due to {e}");
                 return StatusCode(500, $"Unknown exception in delete: {e}");
+            }
+
+            string action = (instance.Process.Ended != null) ? "delete" : "write";
+            bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, instance, action);
+
+            if (!authorized)
+            {
+                return Forbid();
             }
 
             if (hard.HasValue && hard == true)

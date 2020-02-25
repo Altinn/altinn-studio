@@ -1,6 +1,8 @@
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +17,12 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
         private const string app = "App";
         private const string urnName = "urn:name";
         private const string urnAuthLv = "urn:altinn:authlevel";
+        private readonly AuthorizationHelper _authzHelper;
+
+        public AuthorizeInstancesHelperTest()
+        {
+
+        }
 
         /// <summary>
         /// Test case: Send attributes and creates multiple request out of it 
@@ -59,9 +67,29 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
         }
 
         [Fact]
-        public void AuthorizeMesseageBoxInstances_TC01()
+        public async void AuthorizeInstanceAction_TC01()
         {
+            Instance instance = new Instance
+            {
+                Id = "1000/1",
+                Process = new ProcessState
+                {
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        Name = "test_task"
+                    }
+                },
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1000"
+                },
+                AppId = org + "/" + app,
+                Org = org
+            };
+      
 
+            bool res = await _authzHelper.AuthorizeInstanceAction(CreateUserClaims(), instance, "delete");
+            Assert.False(res);
         }
 
         private ClaimsPrincipal CreateUserClaims()

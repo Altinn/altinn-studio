@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 
 using Altinn.Platform.Storage.Helpers;
@@ -173,7 +174,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">instance owner</param>
         /// <param name="instanceGuid">instance id</param>
         /// <returns>True if the instance was undeleted.</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [Authorize]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/undelete")]
         public async Task<ActionResult> Undelete(int instanceOwnerPartyId, Guid instanceGuid)
         {
@@ -193,6 +194,14 @@ namespace Altinn.Platform.Storage.Controllers
                 }
 
                 return StatusCode(500, $"Unknown database exception in restore: {dce}");
+            }
+
+            string action = (instance.Process.Ended != null) ? "delete" : "write";
+            bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, instance, action);
+
+            if (!authorized)
+            {
+                return Forbid();
             }
 
             if (instance.Status.HardDeleted.HasValue)
@@ -242,7 +251,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="hard">if true is marked for hard delete.</param>
         /// <returns>true if instance was successfully deleted</returns>
         /// DELETE /instances/{instanceId}?instanceOwnerPartyId={instanceOwnerPartyId}?hard={bool}
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [Authorize]
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerPartyId, bool hard)
         {
@@ -265,6 +274,14 @@ namespace Altinn.Platform.Storage.Controllers
             catch (Exception e)
             {
                 return StatusCode(500, $"Unknown exception in delete: {e}");
+            }
+
+            string action = (instance.Process.Ended != null) ? "delete" : "write";
+            bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, instance, action);
+
+            if (!authorized)
+            {
+                return Forbid();
             }
 
             DateTime now = DateTime.UtcNow;
