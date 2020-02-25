@@ -63,7 +63,7 @@ const styles = createStyles({
   },
 });
 
-export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): any => {
+export function formComponentWithHandlers(WrappedComponent: React.ComponentType<any>): any {
   class FormComponentWithHandlers extends React.Component<IProps & WithStyles<typeof styles>, IState> {
     constructor(props: IProps) {
       super(props);

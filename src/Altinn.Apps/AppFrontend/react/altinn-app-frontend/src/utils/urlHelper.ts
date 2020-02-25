@@ -92,7 +92,6 @@ export const getHostname: () => string = () => {
     // Local test
     return window.location.host;
   } else {
-    console.log('domain name split: ', domainSplitted);
     throw new Error('Unknown domain');
   }
 };

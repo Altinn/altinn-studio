@@ -28,8 +28,12 @@ function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): Sag
       yield call(FormDataActions.updateFormDataFulfilled, field, data);
     }
 
-    yield call(FormValidationActions.updateComponentValidations, componentValidations, componentId);
-    yield call(FormDynamicActions.checkIfConditionalRulesShouldRun);
+    if (componentValidations) {
+      yield call(FormValidationActions.updateComponentValidations, componentValidations, componentId);
+    }
+    if (state.formDynamics.conditionalRendering) {
+      yield call(FormDynamicActions.checkIfConditionalRulesShouldRun);
+    }
   } catch (err) {
     console.error(err);
     yield call(FormDataActions.updateFormDataRejected, err);

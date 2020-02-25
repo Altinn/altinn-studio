@@ -1,4 +1,6 @@
+using Altinn.App.Common.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using System.Collections.Generic;
 
 namespace Altinn.App.Services.Interface
 {
@@ -61,5 +63,12 @@ namespace Altinn.App.Services.Interface
         /// <param name="dataType">The datatype</param>
         /// <returns></returns>
         string GetClassRefForLogicDataType(string dataType);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="optionId"></param>
+        /// <returns></returns>
+        List<AppOption> GetOptions(string optionId);
     }
 }

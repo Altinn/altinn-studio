@@ -1,18 +1,15 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, shallowEqual } from 'react-redux';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { formComponentWithHandlers } from '../features/form/containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
-import FormDynamicsActions from '../features/form/dynamics/formDynamicsActions';
-import { IDataModelBindings, ILayoutComponent, ILayoutEntry, ITextResourceBindings } from '../features/form/layout';
+import { IDataModelBindings, ITextResourceBindings } from '../features/form/layout';
 import FormLayoutActions from '../features/form/layout/formLayoutActions';
 import RuleActions from '../features/form/rules/rulesActions';
-//import ValidationActions from '../features/form/validation/actions';
-import { makeGetFormDataSelector } from '../selectors/getFormData';
-import { makeGetFocus, makeGetHidden, makeGetLayoutElement } from '../selectors/getLayoutData';
+import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
 import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
@@ -24,19 +21,32 @@ export interface IGenericComponentProps {
   dataModelBindings: IDataModelBindings;
 }
 
-export const GenericComponent = (props: IGenericComponentProps) => {
+export const getFormDataForComponent = (formData: any, dataModelBindings: IDataModelBindings) => {
+  if (dataModelBindings.simpleBinding) {
+    const formDataVal = formData[dataModelBindings.simpleBinding];
+    return formDataVal ? formDataVal : '';
+  }
 
-  const GetFormDataSelector = makeGetFormDataSelector();
-  const GetLayoutElementSelector = makeGetLayoutElement();
+  const formDataObj = {};
+  Object.keys(dataModelBindings).forEach((key: any) => {
+    const binding = dataModelBindings[key];
+    if (formData[binding]) {
+      formDataObj[key] = formData[binding];
+    }
+  });
+  return formDataObj;
+}
+
+export const GenericComponent = (props: IGenericComponentProps) => {
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
 
   const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
-  const formData: IFormData = useSelector((state: IRuntimeState) => GetFormDataSelector(state, props));
+  const formData: IFormData = useSelector((state: IRuntimeState) => getFormDataForComponent(state.formData.formData, props.dataModelBindings), shallowEqual);
+
   const isValid: boolean = useSelector((state: IRuntimeState) =>
     isComponentValid(state.formValidations.validations[props.id]));
   const language: ILanguageState = useSelector((state: IRuntimeState) => state.language.language);
-  const layoutElement: ILayoutEntry = useSelector((state: IRuntimeState) => GetLayoutElementSelector(state, props));
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, props));
   const shouldFocus: boolean = useSelector((state: IRuntimeState) => GetFocusSelector(state, props));
@@ -48,9 +58,8 @@ export const GenericComponent = (props: IGenericComponentProps) => {
 
     const dataModelField = props.dataModelBindings[key];
     FormDataActions.updateFormData(dataModelField, value, props.id);
-    FormDynamicsActions.checkIfConditionalRulesShouldRun();
-      const component = layoutElement as ILayoutComponent;
     // Disable single field validation, enable when supported server-side
+    // const component = layoutElement as ILayoutComponent;
     // if (component && component.triggerValidation) {
     //   const { org, app, instanceId } = window as Window as IAltinnWindow;
     //   const url = `${window.location.origin}/${org}/${app}/instances/${instanceId}`;
@@ -71,37 +80,15 @@ export const GenericComponent = (props: IGenericComponentProps) => {
     return textResource ? textResource.value : resourceKey;
   };
 
-  const getFormData = (): string | {} => {
-    if (!props.dataModelBindings ||
-      Object.keys(props.dataModelBindings).length === 0) {
-      return '';
-    }
-
-    const valueArr: { [id: string]: string } = {};
-    for (const dataBindingKey in props.dataModelBindings) {
-      if (!dataBindingKey) {
-        continue;
-      }
-      valueArr[dataBindingKey] = formData[props.dataModelBindings[dataBindingKey]];
-    }
-
-    if (Object.keys(valueArr).indexOf('simpleBinding') >= 0) {
-      // Simple component
-      return valueArr.simpleBinding;
-    } else {
-      // Advanced component
-      return valueArr;
-    }
-
-  };
-
   if (hidden) {
     return null;
   }
 
-  const Component = formComponentWithHandlers(components.find((c: any) =>
-    c.name === props.type,
-  ).Tag);
+  function selectComponent(component: any): boolean {
+    return component.name === props.type;
+  }
+
+  const Component = formComponentWithHandlers(components.find(selectComponent).Tag);
 
   return (
     <Component
@@ -110,10 +97,11 @@ export const GenericComponent = (props: IGenericComponentProps) => {
       handleDataChange={handleDataUpdate}
       handleFocusUpdate={handleFocusUpdate}
       getTextResource={getTextResource}
-      formData={getFormData()}
+      formData={formData}
       isValid={isValid}
       language={language}
       shouldFocus={shouldFocus}
+      key={props.id}
     />
   );
 
