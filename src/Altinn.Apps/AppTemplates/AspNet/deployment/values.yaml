@@ -27,6 +27,8 @@ ingressRoute:
       services:
         - name: Will be inserted during deploy
           port: 80
+      middlewares:
+        - name: hsts-header
   tls:
     options:
       name: tls-options
