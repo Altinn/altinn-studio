@@ -63,6 +63,7 @@ export const schemaComponents: IComponent[] = [
     Type: ComponentTypes.Datepicker,
     customProperties: {
       readOnly: false,
+      format: "DD/MM/YYYY"
     },
   },
   {

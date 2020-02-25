@@ -1,12 +1,11 @@
 import * as moment from 'moment';
 import * as React from 'react';
-import { createRef } from 'react';
 import '../../styles/DatepickerComponent.css';
 import '../../styles/shared.css';
-import { returnDatestringFromDate } from 'altinn-shared/utils';
 import { Grid } from '@material-ui/core';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 export interface IDatePickerProps {
   id: string;
@@ -15,101 +14,66 @@ export interface IDatePickerProps {
   formData: any;
   handleDataChange: (value: any) => void;
   isValid?: boolean;
-}
-
-export interface IDatePickerState {
-  value: string;
-  isChanged: boolean;
+  format: string;
+  language: any;
 }
 
 export function DatepickerComponent(props: IDatePickerProps) {
-  return (
-    // Move muiPicker util to root of app? https://material-ui-pickers.dev/getting-started/installation
-    /*
-    <Grid container justify="space-around">
-        <KeyboardDatePicker
-          disableToolbar
-          variant="inline" // default to dialog => can use dialog on mobile devices?
-          format="MM/dd/yyyy"
-          margin="normal"
-          id={"altinn-date-picker-" + props.id}
-          value={null}
-          onChange={props.handleDataChange}
-        />
-      </Grid>
 
-    */
-      <Grid container justify="space-around">
-        Here comes that boi
-      </Grid>
+  const [date, setDate] = React.useState(null);
+
+  React.useEffect(() => {
+    let locale = window.navigator?.language || (window.navigator as any)?.userLanguage || "nb-NO";
+    moment.locale(locale);
+  });
+
+  React.useEffect(() => {
+    let date = props.formData ? moment(props.formData) : moment.now();
+    setDate(date);
+  }, [props.formData]);
+
+  const handleDataChangeWrapper = (date: moment.Moment) => {
+    setDate(date);
+    if (date && date.isValid()) {
+      props.handleDataChange(date.toISOString());
+    }
+  }
+
+  const handleOnBlur = () => {
+    props.handleDataChange(date ? date.toISOString() : '');
+  }
+
+  return (
+    <MuiPickersUtilsProvider utils={MomentUtils}>
+      <Grid
+        container
+        xs={12}
+      >
+          <KeyboardDatePicker
+            readOnly={props.readOnly}
+            required={props.required}
+            variant="inline" // default to dialog => can use dialog on mobile devices?
+            format={props.format}
+            margin="normal"
+            id={"altinn-date-picker-" + props.id}
+            value={date}
+            onChange={handleDataChangeWrapper}
+            onBlur={handleOnBlur}
+            invalidDateMessage={getLanguageFromKey('date_picker.invalid_date_message', props.language)}
+            cancelLabel={getLanguageFromKey('date_picker.cancel_label', props.language)}
+            clearLabel={getLanguageFromKey('date_picker.clear_label', props.language)}
+            todayLabel={getLanguageFromKey('date_picker.today_label', props.language)}
+            InputProps={{
+              error: !props.isValid,
+              style: {
+                width: '100%'
+              }
+            }}
+            style={{width: '100%'}}
+          />
+        </Grid>
+      </MuiPickersUtilsProvider>
   )
 }
 
 export default DatepickerComponent;
-
-export class DatepickerComponent2 extends React.Component<IDatePickerProps, IDatePickerState> {
-  private datePickerRef = createRef<HTMLInputElement>();
-  constructor(_props: IDatePickerProps, _state: IDatePickerState) {
-    super(_props, _state);
-    this.state = {
-      value: _props.formData ? moment(_props.formData).format('DD.MM.YYYY') : '',
-      isChanged: false,
-    };
-  }
-
-  public onDateChange = () => {
-    this.setState({
-      value: this.datePickerRef.current.value,
-      isChanged: true,
-    });
-  }
-
-  public onDateBlur = () => {
-    setTimeout(() => {
-      if (this.state.value === this.datePickerRef.current.value && !this.state.isChanged) {
-        return;
-      } else {
-        this.setState({
-          value: this.datePickerRef.current.value,
-          isChanged: false,
-        });
-        this.props.handleDataChange(returnDatestringFromDate(this.datePickerRef.current.value, 'DD.MM.YYYY'));
-      }
-    }, 200);
-  }
-
-  public componentDidMount() {
-    // TODO: dateFormat and dateLanguage should be retrieved from either datamodel, formlayout or user language.
-    const dateFormat = 'dd.mm.yyyy';
-    const dateLanguage = 'no';
-    if (!this.props.readOnly) {
-      (window as any).initDatePicker(this.props.id, dateFormat, dateLanguage);
-    }
-  }
-
-  public render() {
-    return (
-      <div className='form-group a-form-group a-form-group-datepicker' style={{ marginBottom: '0' }}>
-        <div className={'input-group' + (this.props.readOnly ? ' disabled' : '')}>
-          <input
-            type='text'
-            id={this.props.id}
-            className={(this.props.readOnly ? 'disabled-date ' : '') +
-              (this.props.isValid ?
-                'form-control a-hasButton date' :
-                'form-control a-hasButton date validation-error')}
-            onBlur={this.onDateBlur}
-            onChange={this.onDateChange}
-            readOnly={this.props.readOnly}
-            required={this.props.required}
-            value={this.state.value}
-            ref={this.datePickerRef}
-          />
-          <div className={'input-group-prepend a-icon-right' + (this.props.readOnly ? ' disabled-date' : '')}>
-            <i className='ai ai-date' />
-          </div>
-        </div>
-      </div>
-    );
-  }
-}
