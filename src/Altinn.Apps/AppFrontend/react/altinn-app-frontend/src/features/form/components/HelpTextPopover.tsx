@@ -36,8 +36,6 @@ export default function HelpTextPopover(props: IHelpTextPopoverProps) {
     closePopover,
   } = props;
 
-  console.log('Hjelpetekst: ', helpText);
-
   return (
     <>
     {!!helpIconRef &&
@@ -60,13 +58,8 @@ export default function HelpTextPopover(props: IHelpTextPopoverProps) {
             root: classes.helpTextPopoverPaper,
           },
         }}
-      >
-        <Typography
-          className={classes.helpTextPopoverText}
-        >
-          {helpText}
-        </Typography>
-      </AltinnPopover>
+        descriptionText={helpText}
+      />
     }
     </>
   )
