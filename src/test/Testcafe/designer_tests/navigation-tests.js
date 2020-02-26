@@ -29,6 +29,7 @@ fixture('Navigating the App designer')
   .after(async () => {
   })
 
+//Test to navigate to about page and verify the links
 test('Om tab navigation', async () => {
   await t
     .click(designerPage.omNavigationTab)
@@ -36,6 +37,7 @@ test('Om tab navigation', async () => {
     .expect(designerPage.omLeftMenuItems[0].visible).ok()
 });
 
+//Test to navigate to Develop page and verify the links
 test('Lage tab navigation', async () => {
   await t
     .click(designerPage.lageNavigationTab)
@@ -45,6 +47,7 @@ test('Lage tab navigation', async () => {
     .expect(designerPage.lageLeftMenuItems[2].visible).ok()
 });
 
+//Test to navigate to Language page and verify the links
 test('Språk tab navigation', async () => {
   await t
     .click(designerPage.spraakNavigationTab)
@@ -52,6 +55,7 @@ test('Språk tab navigation', async () => {
     .expect(designerPage.spraakLeftMenuItems[0].visible).ok()
 });
 
+//Test to navigate to deploy page and verify the links
 test('Deploy tab navigation', async () => {
   await t
     .click(designerPage.deployNavigationTab)
@@ -61,6 +65,7 @@ test('Deploy tab navigation', async () => {
     .expect(Selector('p').withText(t.ctx.tt).visible).ok();
 });
 
+//Test to navigate to gitea repo page from studio designer
 test('Open Gitea repository Navigation', async () => {
   await t
     .hover(headerPage.userMenu)

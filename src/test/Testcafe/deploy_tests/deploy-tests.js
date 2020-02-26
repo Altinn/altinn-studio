@@ -69,6 +69,7 @@ fixture('Deploy of app to a test environment tests')
       .expect(designer.at23DeployTable.innerText).contains(newBuildVersion.toString(),"Fail",{timeout: 300000}); //deploy succeeded
 });
 
+//Tests that an app build shall fail when there is a fail in an app file
 test('App cannot build due to compilation error', async () => {
   var buildVersion = '0.0.3';
   var appName = config[environment].compilerErrorApp;
@@ -94,6 +95,7 @@ test('App cannot build due to compilation error', async () => {
     .expect(lastbuildVersion).notEql(buildVersion);  
 });
 
+//Tests to verify that one cannot build an app before committing the changes
 test('App cannot be built due to uncommited local changes', async () => {
   var appName = config[environment].deployApp; 
   await t
@@ -112,6 +114,7 @@ test('App cannot be built due to uncommited local changes', async () => {
     .expect(designer.buildButton.exists).notOk();
 });
 
+//Tests that Users without an write access to an app , cannot build or deploy app to a test environment
 test('User does not have write access to app, and cannot deploy', async () => {
   var appName = config[environment].deployApp; 
   await t

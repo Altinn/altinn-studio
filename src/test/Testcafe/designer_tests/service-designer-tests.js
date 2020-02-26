@@ -18,6 +18,7 @@ fixture('GUI service designer tests')
       .useRole(AutoTestUser)
   })
 
+// Test to verify the drag and drop functionality in designer
 test('Drag and drop test', async () => {
   var appName = config[environment].designerApp;  
   await t
@@ -29,6 +30,7 @@ test('Drag and drop test', async () => {
   await designer.deleteUIComponentsMethod(t);
 });
 
+//Test to add ui components using keyboard clicks
 test('Add one of each component to the designer using keyboard', async () => {
   var appName = config[environment].designerApp; 
   await t
@@ -52,6 +54,7 @@ test('Add one of each component to the designer using keyboard', async () => {
   await designer.deleteUIComponentsMethod(t);
 });
 
+//Tests to commit and push changes to the gitea repo
 test('Sync a service with master', async () => {
   var appName = config[environment].designerApp; 
   await t
@@ -75,6 +78,7 @@ test('Sync a service with master', async () => {
     .expect(designer.ingenEndringer.exists).ok({ timeout: 120000 })
 });
 
+//Tests toverify the functionlaity inside the about page of an app
 test('About page items and editing', async () => {
   const randNumOne = Math.floor(100 + Math.random() * 900);
   const randNumTwo = Math.floor(100 + Math.random() * 900);
@@ -105,6 +109,7 @@ test('About page items and editing', async () => {
     .expect(designer.omKommentarer.textContent).contains("Lorem")
 });
 
+//Test to verify that an app cannot be cloned when it lacks datamodel
 test("User cannot clone an app that does not have a data model", async () => {
   var appName = config[environment].withoutDataModelApp; 
   await t    

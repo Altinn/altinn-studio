@@ -17,12 +17,12 @@
   },
   "prod": {
     "baseUrl": "https://altinn.studio/",
-    "autoTestUser": "",
-    "noDeployUser": "",
-    "deployApp": "",
-    "compilerErrorApp": "",
-    "designerApp": "",
-    "withoutDataModelApp": "",
-    "rulesApp": ""
+    "autoTestUser": "AutoTest",
+    "noDeployUser": "noDeployUser",
+    "deployApp": "ttd/auto-deploy-app",
+    "compilerErrorApp": "ttd/compile-error-app",
+    "designerApp": "AutoTest/auto-designer-app",
+    "withoutDataModelApp": "AutoTest/appwithout-dm",
+    "rulesApp": "AutoTest/rules-service"
   }
 }
