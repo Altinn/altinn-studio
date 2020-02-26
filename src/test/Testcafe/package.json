@@ -4,8 +4,8 @@
   "description": "UI tests for Altinn tjenester 3.0",
   "main": "app.js",
   "scripts": {
-    "test": "node .\\testRunner --env=dev",
-    "wcag": "node .\\WCAGRunner --env=dev"
+    "test": "node .\\testRunner",
+    "wcag": "node .\\WCAGRunner"
   },
   "keywords": [],
   "author": "",

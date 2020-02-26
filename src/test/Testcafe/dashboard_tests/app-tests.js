@@ -6,11 +6,8 @@ import DashBoard from '../page-objects/DashboardPage';
 let app = new App();
 let dash = new DashBoard();
 
-fixture('Creating/Reading/Updating/Deleting services')
-  .page(app.baseUrl)
-  .before(async t => {
-    //app.before()
-  })
+fixture('Creating/Reading/Updating/Deleting App')
+  .page(app.baseUrl)  
   .beforeEach(async t => {
     t.ctx.newServiceName = "testcafe04";
     t.ctx.existingService = "autotestdeploy";
@@ -21,10 +18,7 @@ fixture('Creating/Reading/Updating/Deleting services')
     await t
       .maximizeWindow()
       .useRole(AutoTestUser)
-  })
-  .after(async (t) => {
-    //await dash.logout();
-  })
+  })  
 
 test('Cannot create new app, as app name already exists', async () => {
   await t

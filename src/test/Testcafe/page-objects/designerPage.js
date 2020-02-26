@@ -1,7 +1,4 @@
-import { t, Selector } from 'testcafe';
-import { ReactSelector } from 'testcafe-react-selectors';
-import App from '../app';
-
+import { Selector } from 'testcafe';
 
 export default class DesignerPage {
   constructor() {    
@@ -82,7 +79,6 @@ export default class DesignerPage {
     this.deployConfirm = Selector("#deployPopover");
     this.deployStatus = Selector('p').withText('deployer versjon');
 
-
     //preview tab
     this.previewSaveButton = Selector(".a-btn-success").withText("Save");
     this.controlAndSubmit = Selector(".a-btn-success");
@@ -130,21 +126,9 @@ export default class DesignerPage {
     this.renderingConnectionModal = Selector('span').withExactText('Konfigurer betingede renderingsregler');
     this.conditionalRulesDropDown = Selector('select').withAttribute('name', 'selectConditionalRule');
     this.conditionalRulesList = this.conditionalRulesDropDown.find('option');
-  }
+  };   
 
-  async deleteDataModelTexts(numberToDelete) {
-    let deleteButtons = await Selector(".tbn").withText("Slett");
-    let count = deleteButtons().count;
-
-    for (let i = 0; i < numberToDelete && i < count; i++) {
-      await t.click(deleteButtons.nth(i));
-    }
-  }
-
-  async whitePaperHeader(headerText) {
-    return Selector('h2').withExactText(headerText);
-  }
-
+  //Function to delete all the selected components in the designer page of an app
   async deleteUIComponentsMethod (t) {
     var addedUIComponents = await this.dragToArea.child('div').withAttribute('draggable','true');
     var numberOfComponents = await addedUIComponents.count;    
@@ -156,8 +140,9 @@ export default class DesignerPage {
         await t.hover(this.removeComponentsButton.parent('button'));
         await t.click(this.removeComponentsButton.parent('button'));
     }
-  }
+  };
 
+//Function to push and commit an app changes from the designer page
 async pushAndCommitChanges (t) {
  await t 
     .expect(this.delEndringer.exists).ok({ timeout: 180000 })
@@ -170,11 +155,12 @@ async pushAndCommitChanges (t) {
     .expect(this.delEndringerBlueButton.exists).ok({ timeout: 180000 })
     .click(this.delEndringerBlueButton)
     .expect(this.ingenEndringer.exists).ok({ timeout: 180000 })
-  }
+  };
 
+  //Function to find the last deployed version and return the version number
   async getlatestBuildVersion (t) {
     var lastBuildVersion = await this.deployVersionOptions.child(0).innerText; //first element of the dropdown list
     lastBuildVersion = lastBuildVersion.split(" ");    
     return lastBuildVersion[1];
-  }
-}
+  };
+};

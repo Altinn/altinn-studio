@@ -3,12 +3,20 @@
     "baseUrl": "http://altinn3.no/"
   },
   "dev": {
-    "baseUrl": "https://dev.altinn.studio/"
+    "baseUrl": "https://dev.altinn.studio/",
+    "autoTestUser": "AutoTest",
+    "noDeployUser": "automatedtest@email.com",
+    "deployApp": "ttd/autodeploy",
+    "compilerErrorApp": "ttd/compileerror1219"
   },
   "uat": {
     "baseUrl": "base for uat"
   },
   "prod": {
-    "baseUrl": "https://altinn.studio/"
+    "baseUrl": "https://altinn.studio/",
+    "autoTestUser": "",
+    "noDeployUser": "",
+    "deployApp": "ttd/autodeploy",
+    "compilerErrorApp": ""
   }
 }
