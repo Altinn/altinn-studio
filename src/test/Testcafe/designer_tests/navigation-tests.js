@@ -2,11 +2,14 @@ import { t, ClientFunction, Selector } from 'testcafe';
 import DesignerPage from '../page-objects/designerPage';
 import HeaderPage from '../page-objects/headerPage'
 import { AutoTestUser } from '../TestData';
+import config from '../config.json';
 import App from '../app';
 
 let app = new App();
 let designerPage = new DesignerPage();
 let headerPage = new HeaderPage();
+let environment = process.env.ENV;
+let appName = config[environment].deployApp; 
 
 const getLocation = ClientFunction(() => document.location.href);
 
@@ -21,7 +24,7 @@ fixture('Navigating the App designer')
     await t
       .maximizeWindow()
       .useRole(AutoTestUser)
-      .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/about');
+      .navigateTo(app.baseUrl + "designer/" + appName + "#/about");
   })
   .after(async () => {
   })
@@ -65,5 +68,5 @@ test('Open Gitea repository Navigation', async () => {
     .expect(headerPage.openGiteaRepo.exists).ok()
     .click(headerPage.openGiteaRepo)
     .switchToMainWindow()
-    .expect(getLocation()).contains('repos/ttd/autodeploy');
+    .expect(getLocation()).contains("repos/" + appName);
 });

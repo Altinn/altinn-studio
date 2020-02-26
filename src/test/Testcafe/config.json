@@ -7,7 +7,10 @@
     "autoTestUser": "AutoTest",
     "noDeployUser": "automatedtest@email.com",
     "deployApp": "ttd/autodeploy",
-    "compilerErrorApp": "ttd/compileerror1219"
+    "compilerErrorApp": "ttd/compileerror1219",
+    "designerApp": "AutoTest/auto_test",
+    "withoutDataModelApp": "AutoTest/appwithout-dm",
+    "rulesApp": "AutoTest/rulesservice"
   },
   "uat": {
     "baseUrl": "base for uat"
@@ -16,7 +19,10 @@
     "baseUrl": "https://altinn.studio/",
     "autoTestUser": "",
     "noDeployUser": "",
-    "deployApp": "ttd/autodeploy",
-    "compilerErrorApp": ""
+    "deployApp": "",
+    "compilerErrorApp": "",
+    "designerApp": "",
+    "withoutDataModelApp": "",
+    "rulesApp": ""
   }
 }

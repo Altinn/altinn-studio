@@ -1,13 +1,12 @@
-import { Selector, t } from 'testcafe';
-import axeCheck from 'axe-testcafe';
+import { t } from 'testcafe';
 import App from '../app';
 import { AutoTestUser } from '../TestData';
 import DesignerPage from '../page-objects/designerPage';
-import RuntimePage from '../page-objects/runTimePage';
+import config from '../config.json';
 
 let app = new App();
 let designer = new DesignerPage();
-let runtime = new RuntimePage();
+let environment = process.env.ENV;
 
 fixture('GUI service designer tests')
   .page(app.baseUrl)
@@ -20,8 +19,9 @@ fixture('GUI service designer tests')
   })
 
 test('Drag and drop test', async () => {
+  var appName = config[environment].designerApp;  
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/ui-editor')
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
     .expect(designer.inputComponent).ok()
     .dragToElement(designer.inputComponent, designer.dragToArea)
     .click(designer.advancedComponentsGroup)
@@ -30,8 +30,9 @@ test('Drag and drop test', async () => {
 });
 
 test('Add one of each component to the designer using keyboard', async () => {
+  var appName = config[environment].designerApp; 
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/about')
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
     .click(designer.lageNavigationTab)
     .expect(designer.inputComponent.visible).ok()
     .click(designer.inputComponent)
@@ -52,8 +53,9 @@ test('Add one of each component to the designer using keyboard', async () => {
 });
 
 test('Sync a service with master', async () => {
+  var appName = config[environment].designerApp; 
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/about')
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
   await t.eval(() => location.reload(true));
@@ -77,8 +79,9 @@ test('About page items and editing', async () => {
   const randNumOne = Math.floor(100 + Math.random() * 900);
   const randNumTwo = Math.floor(100 + Math.random() * 900);
   const randId = Math.floor(100000 + Math.random() * 900000);
+  var appName = config[environment].designerApp; 
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/ui-editor')
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
     .click(designer.omNavigationTab)
     .expect(designer.omTjenesteNavn.focused).notOk()
     .click(designer.omTjenesteNavn)
@@ -103,8 +106,9 @@ test('About page items and editing', async () => {
 });
 
 test("User cannot clone an app that does not have a data model", async () => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/ttd/cannotclone1219#/ui-editor')
+  var appName = config[environment].withoutDataModelApp; 
+  await t    
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
     .expect(designer.cloneButton.visible).ok()
     .click(designer.cloneButton)
     .expect(designer.dataModelMissing.visible).ok()
@@ -115,8 +119,9 @@ test("User cannot clone an app that does not have a data model", async () => {
 })
 
 test('Configure and delete rules', async () => {
+  var appName = config[environment].rulesApp;
   await t
-    .navigateTo(app.baseUrl + 'designer/ttd/rulesservice1219#/ui-editor')
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
     if (!await designer.serviceLogicmenu.exists) {
       await t.click(designer.openserviceLogicmenu)
     }   
@@ -138,8 +143,9 @@ test('Configure and delete rules', async () => {
 });
 
 test('Links in App Logic menu', async () => {
+  var appName = config[environment].rulesApp;
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/ui-editor')
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
    if (!await designer.serviceLogicmenu.exists) {
       await t.click(designer.openserviceLogicmenu)
    }   
@@ -156,8 +162,9 @@ test('Links in App Logic menu', async () => {
 });
 
 test('Add and delete conditional rendering connections', async () => {
+  var appName = config[environment].rulesApp;
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/ui-editor')
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
     if (!await designer.serviceLogicmenu.exists) {
       await t.click(designer.openserviceLogicmenu)
    }   
@@ -178,9 +185,10 @@ test('Add and delete conditional rendering connections', async () => {
 });
 
 test('Clone modal functionality', async () => {
+  var appName = config[environment].designerApp; 
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/ttd/autotestdeploy#/about')
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
     .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
     .hover(designer.cloneButton)
     .click(designer.cloneButton)
@@ -191,9 +199,10 @@ test('Clone modal functionality', async () => {
 
 
 test('Validation of missing datamodel in clone modal', async () => {
+  var appName = config[environment].withoutDataModelApp; 
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/AutoTest/withoutdatamodel#/ui-editor')
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
     .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
     .hover(designer.cloneButton)
     .click(designer.cloneButton)
