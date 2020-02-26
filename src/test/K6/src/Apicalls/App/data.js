@@ -31,6 +31,13 @@ export function deleteDataById(altinnStudioRuntimeCookie, partyId, instaceId, da
     return http.del(endpoint,"", params);
 };
 
+//Api call to App Api:Instances to validate an instance data and returns response
+export function getValidateInstanceData(altinnStudioRuntimeCookie, partyId, instanceId, dataId){    
+    var endpoint = config.buildAppApiUrls(partyId, instanceId, dataId, "dataid") + "/validate";
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie);    
+    return http.get(endpoint, params);
+};
+
 
 //Api call to App Api:Data to add a data to an app instance and returns response
 export function postData(altinnStudioRuntimeCookie, partyId, instaceId, dataType, data){    

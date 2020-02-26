@@ -30,3 +30,10 @@ export function putInstanceById(altinnStudioRuntimeCookie, partyId, instanceId, 
     var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie);    
     return http.put(endpoint, requestbody, params);
 };
+
+//Api call to App Api:Instances to validate an app instance and returns response
+export function getValidateInstance(altinnStudioRuntimeCookie, partyId, instanceId){    
+    var endpoint = config.buildAppApiUrls(partyId, instanceId, "", "instanceid") + "/validate";
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie);    
+    return http.get(endpoint, params);
+};

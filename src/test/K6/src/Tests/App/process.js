@@ -40,7 +40,7 @@ export default function(data) {
     addErrorCount(success);
     sleep(1);
 
-    //Test to get current process of an app instance again and verify response code to be 200
+    //Test to get current process of an app instance and verify response code to be 200
     res = appProcess.getCurrentProcess(runtimeToken, partyId, instanceId);
     success = check(res, {
         "App: GET current process: status is 200": (r) => r.status === 200      
