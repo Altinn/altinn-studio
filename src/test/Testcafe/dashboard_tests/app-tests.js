@@ -2,15 +2,14 @@ import { t, Selector } from 'testcafe';
 import { AutoTestUser } from '../TestData';
 import App from '../app';
 import DashBoard from '../page-objects/DashboardPage';
+import config from '../config.json'
 
 let app = new App();
 let dash = new DashBoard();
+let environment = process.env.ENV;
 
-fixture('Creating/Reading/Updating/Deleting services')
-  .page(app.baseUrl)
-  .before(async t => {
-    //app.before()
-  })
+fixture('Creating/Reading/Updating/Deleting App')
+  .page(app.baseUrl)  
   .beforeEach(async t => {
     t.ctx.newServiceName = "testcafe04";
     t.ctx.existingService = "autotestdeploy";
@@ -21,10 +20,7 @@ fixture('Creating/Reading/Updating/Deleting services')
     await t
       .maximizeWindow()
       .useRole(AutoTestUser)
-  })
-  .after(async (t) => {
-    //await dash.logout();
-  })
+  })  
 
 test('Cannot create new app, as app name already exists', async () => {
   await t
@@ -39,9 +35,12 @@ test('Cannot create new app, as app name already exists', async () => {
 });
 
 test('Error messages when app does not exist', async () => {
+  var appName = config[environment].deployApp.toString();
+  appName = appName.split("/");
+  appName = appName[1];
   await t
     .click(dash.serviceSearch)
-    .expect(Selector('h3').withExactText('servicedeploy').exists).ok({ timeout:120000 }) //To wait until the apps are loaded
+    .expect(Selector('h3').withExactText(appName).exists).ok({ timeout:120000 }) //To wait until the apps are loaded
     .typeText(dash.serviceSearch, "cannotfindapp")
     .pressKey("enter")
     .expect(Selector('p').withText(t.ctx.ingenSkriveApper)).ok({ timeout:120000 })
