@@ -21,7 +21,6 @@ const useStyle = makeStyles({
 export interface IHelpTextIconProps {
   helpIconRef: React.RefObject<any>;
   openPopover: boolean;
-  helpTextKey: string;
   language: any;
   toggleClickPopover: (event: any) => void;
   toggleKeypressPopover: (event: any) => void;
@@ -30,7 +29,7 @@ export interface IHelpTextIconProps {
 export default function HelpTextIcon(props: IHelpTextIconProps){
   const classes = useStyle();
 
-  if (!!props.helpTextKey) {
+  if (props.helpIconRef) {
     return (
       <span
         tabIndex={0}

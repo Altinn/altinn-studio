@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Typography, createMuiTheme, makeStyles } from '@material-ui/core';
+import { createMuiTheme, makeStyles } from '@material-ui/core';
 import { AltinnPopover } from 'altinn-shared/components';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
