@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Receipt.Configuration;
+using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -37,6 +38,7 @@ namespace Altinn.Platform.Receipt
             _client = new HttpClient();
             _client.DefaultRequestHeaders.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _platformSettings.GetSubscriptionKey());
         }
 
         /// <summary>
@@ -61,7 +63,6 @@ namespace Altinn.Platform.Receipt
         [Route("receipt/api/v1/users/current")]
         public async Task<IActionResult> GetCurrentUser()
         {
-            _logger.LogInformation($"// ReceiptController // GetCurrentUser // Claim count: {Request.HttpContext.User.Claims.Count()}");
             string userIdString = Request.HttpContext.User.Claims.Where(c => c.Type == AltinnCoreClaimTypes.UserId)
            .Select(c => c.Value).SingleOrDefault();
 
@@ -95,6 +96,42 @@ namespace Altinn.Platform.Receipt
             }
 
             return Ok(userProfile);
+        }
+
+        /// <summary>
+        /// Gets the party object for the requested partyId
+        /// </summary>
+        /// <returns>The party object</returns>
+        [HttpGet]
+        [Route("receipt/api/v1/parties/{partyId}")]
+        public async Task<ActionResult> GetParty(int partyId)
+        {
+            string userIdString = Request.HttpContext.User.Claims.Where(c => c.Type == AltinnCoreClaimTypes.UserId)
+            .Select(c => c.Value).SingleOrDefault();
+
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return BadRequest("Invalid request context. UserId must be provided in claims.");
+            }
+
+            int userId = int.Parse(userIdString);
+
+            string url = $"{_platformSettings.GetApiAuthorizationEndpoint()}parties/{partyId}/authorize?userId={userId}";
+
+            string token = JwtTokenUtil.GetTokenFromContext(Request.HttpContext, "AltinnStudioRuntime");
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            HttpResponseMessage response = await _client.GetAsync(url);
+            Party party = null;
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                party = await response.Content.ReadAsAsync<Party>();
+                return Ok(party);
+            }
+            else
+            {
+                return StatusCode((int)response.StatusCode, response);
+            }
         }
     }
 }

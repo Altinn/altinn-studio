@@ -50,6 +50,20 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc />
+        public async Task<Party> GetParty(int userId, int partyId)
+        {
+            Party result = null;
+
+            List<Party> partyList = await GetParties(userId);
+            if (partyList.Count > 0)
+            {
+                return partyList.FirstOrDefault(p => p.PartyId == partyId);
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc />
         public async Task<bool> ValidateSelectedParty(int userId, int partyId)
         {
             bool result = false;
