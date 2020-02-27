@@ -42,40 +42,30 @@ export enum AddressKeys {
 export function AddressComponent(props: IAddressComponentProps) {
   const cancelToken = axios.CancelToken;
   const source = cancelToken.source();
-  const initialAddressValues: any = {
-    address: '',
-    zipCode: '',
-    postPlace: '',
-    careOf: '',
-    houseNumber: '',
-  };
   
-  const [addressValues, setAddressValues] = React.useState(initialAddressValues);
+  const [address, setAddress] = React.useState(props.formData.address || '');
+  const [zipCode, setZipCode] = React.useState(props.formData.zipCode || '');
+  const [postPlace, setPostPlace] = React.useState(props.formData.postPlace || '');
+  const [careOf, setCareOf] = React.useState(props.formData.careOf || '');
+  const [houseNumber, setHouseNumber] = React.useState(props.formData.houseNumber || '');
   const [validations, setValidations] = React.useState({} as any);
 
-  // React.useEffect(() => {
-  //   return function cleanup() {
-  //     source.cancel('ComponentWillUnmount');
-  //   }
-  // });
-
   React.useEffect(() => {
-    const formData = props.formData;
-    setAddressValues({
-      address: formData.address || '',
-      zipCode: formData.zipCode || '',
-      postPlace: formData.postPlace || '',
-      careOf: formData.careOf || '',
-      houseNumber: formData.houseNumber || '',
-    });
-  }, [props.formData]);
+    const zipCode = props.formData.zipCode;
+    if (!zipCode || zipCode === ''){
+      return;
+    } 
 
-  React.useEffect(() => {
-  },[addressValues]);
+    if (!zipCode.match(new RegExp('^[0-9]{4}$'))) {
+      const errorMessage = getLanguageFromKey('address_component.validation_error_zipcode', props.language);
+      setPostPlace('');
+      setValidations({...validations, zipCode: errorMessage});
+      return;
+    }
 
-  const fetchPostPlace = async (zipCode: string, cancellationToken: any) => {
-    try {
-      if (zipCode.match(new RegExp('^[0-9]{4}$'))) {
+    const fetchPostPlace = async (zipCode: string, cancellationToken: any) => {
+
+      try {
         const response = await get('https://api.bring.com/shippingguide/api/postalCode.json',
           {
             params: {
@@ -85,44 +75,40 @@ export function AddressComponent(props: IAddressComponentProps) {
             cancelToken: cancellationToken,
           });
         if (response.valid) {
-          setAddressValues({...addressValues, postPlace: response.result});
+          setPostPlace(response.result);
           setValidations({...validations, zipCode: null});
-          props.handleDataChange(addressValues.zipCode, AddressKeys.zipCode);
-          onBlurField(AddressKeys.postPlace);
+          onBlurField(AddressKeys.postPlace, response.result);
 
         } else {
           const errorMessage = getLanguageFromKey('address_component.validation_error_zipcode', props.language);
-          setAddressValues({...addressValues, postPlace: ''});
+          setPostPlace('');
           setValidations({...validations, zipCode: errorMessage});
         }
-      } else {
-        setAddressValues({...addressValues, postPlace: ''});
-        onBlurField(AddressKeys.postPlace);
-      }
-    } catch (err) {
-      if (axios.isCancel(err)) {
-        // Intentionally ignored
-      } else {
-        console.error(err);
-      }
-    }
-  }
 
-  const onBlurField: (key: AddressKeys) => void = (key: AddressKeys) => {
+      } catch (err) {
+        if (axios.isCancel(err)) {
+          // Intentionally ignored
+        } else {
+          console.error(err);
+        }
+      }
+    };
+
+    fetchPostPlace(props.formData.zipCode, source.token);
+    return function cleanup() {
+      source.cancel('ComponentWillUnmount');
+    }
+  }, [props.formData.zipCode])
+
+  
+
+  const onBlurField: (key: AddressKeys, value: any) => void = (key: AddressKeys, value: any) => {
     const validationErrors: IAddressValidationErrors = validate();
-    if (!validationErrors.zipCode) {
-      if (key === AddressKeys.zipCode && addressValues.zipCode) {
-        fetchPostPlace(addressValues.zipCode, source.cancel);
-        return;
-      }
-    }
-
-    props.handleDataChange(addressValues[key], key);
+    props.handleDataChange(value, key);
     setValidations(validationErrors);
   }
 
   const validate: () => IAddressValidationErrors = () => {
-    const { zipCode, houseNumber } = addressValues;
     const validationErrors: IAddressValidationErrors = {
       zipCode: null,
       houseNumber: null,
@@ -131,7 +117,7 @@ export function AddressComponent(props: IAddressComponentProps) {
       validationErrors.zipCode = getLanguageFromKey(
         'address_component.validation_error_zipcode', props.language,
         );
-      setAddressValues({...addressValues, postPlace: ''});
+      setPostPlace('');
     } else {
       validationErrors.zipCode = null;
     }
@@ -148,14 +134,31 @@ export function AddressComponent(props: IAddressComponentProps) {
   const updateField: (key: AddressKeys, event: any) => void = (key: AddressKeys, event: any): void => {
     const changedFieldValue: string = event.target.value;
     const changedKey: string = AddressKeys[key];
-    console.log("update field. value: ", changedFieldValue, " key: ", changedKey);
-    const newValues = {
-      ...addressValues,
-      [changedKey]: changedFieldValue,
-    };
-    console.log('new values ', newValues);
-    setAddressValues(newValues);
-    console.log('Address values: ', addressValues);
+    
+    switch (changedKey) {
+      case (AddressKeys.address): {
+        setAddress(changedFieldValue);
+        break;
+      }
+      case (AddressKeys.careOf): {
+        setCareOf(changedFieldValue);
+        break;
+      }
+      case (AddressKeys.houseNumber): {
+        setHouseNumber(changedFieldValue);
+        break;
+      }
+      case (AddressKeys.postPlace): {
+        setPostPlace(changedFieldValue);
+        break;
+      }
+      case (AddressKeys.zipCode): {
+        setZipCode(changedFieldValue);
+        break;
+      }
+      default:
+        break;
+    }
   }
 
   const joinValidationMessages = (): IComponentValidations => {
@@ -207,7 +210,7 @@ export function AddressComponent(props: IAddressComponentProps) {
   const allValidations = joinValidationMessages();
 
   return(
-    <div className={'address-component'}>
+    <div className={'address-component'} key={'address_' + props.id}>
       {renderLabel('ux_editor.modal_configure_address_component_address')}
       <input
         className={classNames('form-control',
@@ -215,9 +218,9 @@ export function AddressComponent(props: IAddressComponentProps) {
             'validation-error': (allValidations.address.errors.length),
             'disabled': props.readOnly,
           })}
-        value={addressValues.address}
+        value={address}
         onChange={updateField.bind(null, AddressKeys.address)}
-        onBlur={onBlurField.bind(null, AddressKeys.address)}
+        onBlur={onBlurField.bind(null, AddressKeys.address, address)}
         readOnly={props.readOnly}
         required={props.required}
       />
@@ -235,9 +238,9 @@ export function AddressComponent(props: IAddressComponentProps) {
               'validation-error': (allValidations.careOf.errors.length),
               'disabled': props.readOnly,
             })}
-          value={addressValues.careOf}
+          value={careOf}
           onChange={updateField.bind(null, AddressKeys.careOf)}
-          onBlur={onBlurField.bind(null, AddressKeys.careOf)}
+          onBlur={onBlurField.bind(null, AddressKeys.careOf, careOf)}
           readOnly={props.readOnly}
         />
         {allValidations ?
@@ -256,9 +259,9 @@ export function AddressComponent(props: IAddressComponentProps) {
                   'validation-error': (allValidations.zipCode.errors.length),
                   'disabled': props.readOnly,
                 })}
-              value={addressValues.zipCode}
+              value={zipCode}
               onChange={updateField.bind(null, AddressKeys.zipCode)}
-              onBlur={onBlurField.bind(null, AddressKeys.zipCode)}
+              onBlur={onBlurField.bind(null, AddressKeys.zipCode, zipCode)}
               readOnly={props.readOnly}
               required={props.required}
             />
@@ -275,7 +278,7 @@ export function AddressComponent(props: IAddressComponentProps) {
                 {
                   'validation-error': (allValidations.postPlace.errors.length),
                 })}
-              value={addressValues.postPlace}
+              value={postPlace}
               readOnly={true}
             />
             {allValidations ?
@@ -299,9 +302,9 @@ export function AddressComponent(props: IAddressComponentProps) {
                 'validation-error': (allValidations.houseNumber.errors.length),
                 'disabled': props.readOnly,
               })}
-            value={addressValues.houseNumber}
+            value={houseNumber}
             onChange={updateField.bind(null, AddressKeys.houseNumber)}
-            onBlur={onBlurField.bind(null, AddressKeys.houseNumber)}
+            onBlur={onBlurField.bind(null, AddressKeys.houseNumber, houseNumber)}
             readOnly={props.readOnly}
           />
           {allValidations ?
