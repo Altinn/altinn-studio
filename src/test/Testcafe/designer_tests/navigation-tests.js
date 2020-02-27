@@ -30,7 +30,7 @@ fixture('Navigating the App designer')
   })
 
 //Test to navigate to about page and verify the links
-test.only('Om tab navigation', async () => {
+test('Om tab navigation', async () => {
   await t
     .click(designerPage.omNavigationTab)
     .hover(designerPage.leftDrawerMenu)
