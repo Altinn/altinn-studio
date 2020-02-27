@@ -7,7 +7,9 @@ using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
+using Altinn.Platform.Telemetry;
 using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,7 +32,7 @@ namespace Altinn.Platform.Authorization
         /// <summary>
         /// The key valt key for application insights.
         /// </summary>
-        internal static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Authorization";
+        internal static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey";
 
         /// <summary>
         /// The application insights key.
@@ -86,6 +88,8 @@ namespace Altinn.Platform.Authorization
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+                services.AddApplicationInsightsKubernetesEnricher();
+                services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
             }

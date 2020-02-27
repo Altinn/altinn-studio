@@ -1,6 +1,5 @@
-import { ClientFunction, Selector } from 'testcafe';
+import { ClientFunction } from 'testcafe';
 import App from '../app';
-import LoginPage from '../page-objects/loginPage';
 import LandingPage from '../page-objects/landingPage';
 import CommonPage from '../page-objects/common';
 import HeaderPage from '../page-objects/headerPage';
@@ -9,7 +8,6 @@ import { AutoTestUser } from '../TestData';
 
 let app = new App();
 let common = new CommonPage();
-let loginPage = new LoginPage();
 let landingPage = new LandingPage();
 let header = new HeaderPage();
 let repoPage = new RepoPage();
