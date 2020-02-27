@@ -5,17 +5,14 @@ export interface IParagraphProps {
   text: string;
 }
 
-export interface IParagraphState { }
 
-export class ParagraphComponent extends React.Component<IParagraphProps, IParagraphState> {
+export function ParagraphComponent(props: IParagraphProps) {
 
-  public style = {
+  const style = {
     marginTop: '2.4rem',
   };
 
-  public render() {
-    return (
-      <span id={this.props.id} style={this.style}>{this.props.text}</span>
-    );
-  }
+  return (
+    <span id={props.id} style={style}>{props.text}</span>
+  );
 }

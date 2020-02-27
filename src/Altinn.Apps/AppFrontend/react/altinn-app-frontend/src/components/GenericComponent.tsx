@@ -21,6 +21,7 @@ import {
   getTextResource,
   isComponentValid,
 } from '../utils/formComponentUtils';
+import { makeGetFormDataSelector } from '../selectors/getFormData';
 
 export interface IGenericComponentProps {
   id: string;
@@ -38,6 +39,7 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
+  const GetFormData = makeGetFormDataSelector();
 
   const [helpIconRef, setHelpIconRef] = React.useState(!!props.textResourceBindings.help ? React.createRef() : null);
   const [openPopover, setOpenPopover] = React.useState(false);
@@ -45,12 +47,9 @@ export function GenericComponent(props: IGenericComponentProps) {
   const [hasValidationMessages, setHasValidationMessages] = React.useState(false);
 
   const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
-  const formData: IFormData = useSelector((state: IRuntimeState) => 
-    getFormDataForComponent(state.formData.formData, props.dataModelBindings), shallowEqual);
+  const formData: IFormData = useSelector((state: IRuntimeState) => GetFormData(state, props));
   const component: ILayoutComponent = useSelector((state: IRuntimeState) => state.formLayout.layout[props.id] as ILayoutComponent);
-
-  const isValid: boolean = useSelector((state: IRuntimeState) =>
-    isComponentValid(state.formValidations.validations[props.id]));
+  const isValid: boolean = useSelector((state: IRuntimeState) => isComponentValid(state.formValidations.validations[props.id]));
   const language: ILanguageState = useSelector((state: IRuntimeState) => state.language.language);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, props));
@@ -85,6 +84,34 @@ export function GenericComponent(props: IGenericComponentProps) {
       (element) => element.dataBindingName === props.dataModelBindings[key],
     );
     RuleActions.checkIfRuleShouldRun(props.id, dataModelElement, value);
+  };
+
+  React.useEffect(() => {
+    console.log('GENERIC COMPONENT: FORM DATA CHANGED FOR COMPONENT TYPE ', props.id);
+  }, [formData]);
+
+  const getFormData = (): string | {} => {
+    if (!props.dataModelBindings ||
+      Object.keys(props.dataModelBindings).length === 0) {
+      return '';
+    }
+
+    const valueArr: { [id: string]: string } = {};
+    for (const dataBindingKey in props.dataModelBindings) {
+      if (!dataBindingKey) {
+        continue;
+      }
+      valueArr[dataBindingKey] = formData[props.dataModelBindings[dataBindingKey]];
+    }
+
+    if (Object.keys(valueArr).indexOf('simpleBinding') >= 0) {
+      // Simple component
+      return valueArr.simpleBinding;
+    } else {
+      // Advanced component
+      return valueArr;
+    }
+
   };
 
   const toggleClickPopover = (event: React.MouseEvent): void => {
@@ -143,10 +170,11 @@ export function GenericComponent(props: IGenericComponentProps) {
     {makeComponent({
       handleDataChange: handleDataUpdate,
       getTextResource: getTextResource,
-      formData,
+      formData: getFormData(),
       isValid,
       language,
       shouldFocus,
+      text: getTextResource(props.textResourceBindings.title, textResources),
       ...passThroughProps,
     })}
     {isSimple && hasValidationMessages &&

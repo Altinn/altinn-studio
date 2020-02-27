@@ -29,6 +29,26 @@ const formDataForContainerSelector = (state: IRuntimeState, props: any, index?: 
   return selectors;
 };
 
+const formDataForComponentSelector = (state: IRuntimeState, props: any) => {
+  const formData = state.formData.formData;
+  const dataModelBindings = props.dataModelBindings;
+  if (dataModelBindings.simpleBinding) {
+    const formDataVal = formData[dataModelBindings.simpleBinding];
+    return formDataVal ? formDataVal : '';
+  }
+
+  const formDataObj = {};
+  Object.keys(dataModelBindings).forEach((key: any) => {
+    const binding = dataModelBindings[key];
+    if (formData[binding]) {
+      formDataObj[key] = formData[binding];
+    } else {
+      formDataObj[key] = '';
+    }
+  });
+  return formDataObj;
+}
+
 const createDeepEqualSelector = createSelectorCreator(
   defaultMemoize,
   isEqual,

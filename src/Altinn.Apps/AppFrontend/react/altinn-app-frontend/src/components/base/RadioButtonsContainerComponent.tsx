@@ -68,7 +68,7 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
 
   React.useEffect(() => {
     returnSelected();
-  }, [props]);
+  }, [props.formData]);
 
   const returnSelected = () => {
     if (
@@ -98,7 +98,7 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
 
   const onDataChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelected(event.target.value);
-    props.handleFocusUpdate(props.id);
+    //props.handleFocusUpdate(props.id);
     props.handleDataChange(event.target.value);
   };
 

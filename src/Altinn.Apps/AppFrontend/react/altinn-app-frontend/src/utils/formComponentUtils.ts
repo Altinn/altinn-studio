@@ -35,6 +35,8 @@ export const getFormDataForComponent = (formData: any, dataModelBindings: IDataM
     const binding = dataModelBindings[key];
     if (formData[binding]) {
       formDataObj[key] = formData[binding];
+    } else {
+      formDataObj[key] = '';
     }
   });
   return formDataObj;
