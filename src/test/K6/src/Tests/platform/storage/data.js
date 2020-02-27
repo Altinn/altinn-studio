@@ -1,16 +1,16 @@
 import { check, sleep } from "k6";
-import * as apps from "../../Apicalls/Storage/applications.js"
-import * as instances from "../../Apicalls/Storage/instances.js"
-import * as instanceData from "../../Apicalls/Storage/data.js"
-import * as sbl from "../../Apicalls/Storage/messageboxinstances.js"
-import * as setUpData from "../../setup.js";
-import {addErrorCount} from "../../errorcounter.js";
+import * as apps from "../../../api/storage/applications.js"
+import * as instances from "../../../api/storage/instances.js"
+import * as instanceData from "../../../api/storage/data.js"
+import * as sbl from "../../../api/storage/messageboxinstances.js"
+import * as setUpData from "../../../setup.js";
+import {addErrorCount} from "../../../errorcounter.js";
 
 let appOwner = __ENV.org;
 let level2App = __ENV.level2app;
-let instanceJson = open("../../Data/instance.json");
-let instanceFormDataXml = open("../../Data/instanceformdata.xml");
-let pdfAttachment = open("../../Data/test_file_pdf.pdf", "b");
+let instanceJson = open("../../../data/instance.json");
+let instanceFormDataXml = open("../../../data/instanceformdata.xml");
+let pdfAttachment = open("../../../data/test_file_pdf.pdf", "b");
 
 export const options = {
     thresholds:{

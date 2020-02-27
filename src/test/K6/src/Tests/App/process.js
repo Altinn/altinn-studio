@@ -1,9 +1,9 @@
 import { check, sleep } from "k6";
 import {addErrorCount} from "../../errorcounter.js";
-import * as appInstances from "../../Apicalls/App/instances.js"
-import * as appProcess from "../../Apicalls/App/process.js"
-import * as platformInstances from "../../Apicalls/Storage/instances.js"
-import {deleteSblInstance} from "../../Apicalls/Storage/messageboxinstances.js"
+import * as appInstances from "../../api/app/instances.js"
+import * as appProcess from "../../api/app/process.js"
+import * as platformInstances from "../../api/storage/instances.js"
+import {deleteSblInstance} from "../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
 export const options = {

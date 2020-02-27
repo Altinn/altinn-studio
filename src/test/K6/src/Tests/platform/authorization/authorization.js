@@ -1,12 +1,12 @@
 import { check, sleep } from "k6";
-import {addErrorCount} from "../../errorcounter.js";
-import * as authz from "../../Apicalls/Platform/authorization.js";
-import * as setUpData from "../../setup.js";
+import {addErrorCount} from "../../../errorcounter.js";
+import * as authz from "../../../api/platform/authorization.js";
+import * as setUpData from "../../../setup.js";
 
 let appOwner = __ENV.org;
 let testappName = __ENV.testapp;
-let policyFile = open("../../Data/policy.xml","b");
-let pdpInputJson = open("../../Data/pdpinput.json");
+let policyFile = open("../../../data/policy.xml","b");
+let pdpInputJson = open("../../../data/pdpinput.json");
 
 export const options = {
     thresholds:{

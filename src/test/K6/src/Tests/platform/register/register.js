@@ -1,7 +1,7 @@
 import { check, sleep } from "k6";
-import {addErrorCount} from "../../errorcounter.js";
-import * as register from "../../Apicalls/Platform/register.js";
-import * as setUpData from "../../setup.js";
+import {addErrorCount} from "../../../errorcounter.js";
+import * as register from "../../../api/platform/register.js";
+import * as setUpData from "../../../setup.js";
 
 export const options = {
     thresholds:{

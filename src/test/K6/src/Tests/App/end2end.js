@@ -1,18 +1,18 @@
 import { check, sleep } from "k6";
 import {addErrorCount} from "../../errorcounter.js";
-import * as appInstances from "../../Apicalls/App/instances.js"
-import * as appData from "../../Apicalls/App/data.js"
-import * as appProcess from "../../Apicalls/App/process.js"
-import * as platformInstances from "../../Apicalls/Storage/instances.js"
-import * as apps from "../../Apicalls/Storage/applications.js"
-import {deleteSblInstance} from "../../Apicalls/Storage/messageboxinstances.js"
+import * as appInstances from "../../api/app/instances.js"
+import * as appData from "../../api/app/data.js"
+import * as appProcess from "../../api/app/process.js"
+import * as platformInstances from "../../api/storage/instances.js"
+import * as apps from "../../api/storage/applications.js"
+import {deleteSblInstance} from "../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
 let appOwner = __ENV.org;
 let level2App = __ENV.level2app;
-let instanceFormDataXml = open("../../Data/instanceformdata.xml");
-let pdfAttachment = open("../../Data/test_file_pdf.pdf", "b");
-let bigAttachment = open("../../Data/test_file_morethan_1mb.txt", "b");
+let instanceFormDataXml = open("../../data/instanceformdata.xml");
+let pdfAttachment = open("../../data/test_file_pdf.pdf", "b");
+let bigAttachment = open("../../data/test_file_morethan_1mb.txt", "b");
 
 export const options = {
     thresholds:{

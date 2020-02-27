@@ -1,12 +1,12 @@
 import { check, sleep } from "k6";
-import {addErrorCount} from "../../errorcounter.js";
-import * as application from "../../Apicalls/Storage/applications.js"
-import * as setUpData from "../../setup.js";
+import {addErrorCount} from "../../../errorcounter.js";
+import * as application from "../../../api/storage/applications.js"
+import * as setUpData from "../../../setup.js";
 
 let appOwner = __ENV.org;
 let level2App = __ENV.level2app;
 let testApp = __ENV.testapp;
-let metadata = open("../../Data/appmetadata.json");
+let metadata = open("../../../data/appmetadata.json");
 
 export const options = {
     thresholds:{

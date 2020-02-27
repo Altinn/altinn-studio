@@ -1,8 +1,8 @@
 import { check, sleep } from "k6";
-import {addErrorCount} from "../../errorcounter.js";
-import * as pdf from "../../Apicalls/Platform/pdf.js"
+import {addErrorCount} from "../../../errorcounter.js";
+import * as pdf from "../../../api/platform/pdf.js"
 
-let pdfInputJson = open("../../Data/pdfInput.json");
+let pdfInputJson = open("../../../data/pdfInput.json");
 
 export const options = {    
     thresholds:{

@@ -1,6 +1,6 @@
 import http from "k6/http";
 import * as config from "./config.js";
-import {getParties} from "././Apicalls/Platform/authorization.js";
+import {getParties} from "./api/platform/authorization.js";
 
 let userName = __ENV.username;
 let userPassword = __ENV.userpwd;
