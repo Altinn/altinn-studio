@@ -11,10 +11,8 @@ let environment = process.env.ENV;
 export const AutoTestUser = Role(app.baseUrl, async t => {
   var userName = config[environment].autoTestUser;
 
-  //Get password from environments with quotes and remove the quotes
-  var password= process.env.autoTestUserPwd.toString();
-  var passwordLength = password.length;
-  password = password.substring(1, passwordLength-1);
+  //Get password from environments
+  var password= process.env.autoTestUserPwd.toString();  
 
   //Login to Studio with an user who has all rights for the apps under an Org
   await t
