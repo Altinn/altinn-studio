@@ -27,10 +27,8 @@ export const AutoTestUser = Role(app.baseUrl, async t => {
 export const NoDeployUser = Role(app.baseUrl, async t => {  
   var userName = config[environment].noDeployUser;
 
-  //Get password from environments with quotes and remove the quotes
-  var password= process.env.noDeployUserPwd.toString();
-  var passwordLength = password.length;
-  password = password.substring(1, passwordLength-1);  
+  //Get password from environments
+  var password= process.env.noDeployUserPwd.toString();  
 
   //Login to Studio with an user without access to app deploy
   await t
