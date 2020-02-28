@@ -100,6 +100,27 @@ const theme = {
       caption: {
         fontSize: 14,
       },
+      MuiPickersToolbar: {
+        toolbar: {
+          backgroundColor: '#022F51',
+          height: '96px'
+        },
+      },
+      MuiPickersToolbarText: {
+        toolbarTxt: {
+          color: "#fff",
+        }
+      },
+      MuiPickersCalendarHeader: {
+        dayLabel: {
+          color: '#6A6A6A'
+        },
+      },
+      MuiPickersDay: {
+        daySelected: {
+          backgroundColor: '#022F51'
+        }
+      },
     },
   },
   palette: {
