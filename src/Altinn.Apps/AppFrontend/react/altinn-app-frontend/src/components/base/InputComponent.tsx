@@ -10,46 +10,40 @@ export interface IInputProps {
   handleDataChange: (value: any) => void;
   isValid?: boolean;
   type?: string;
+  helpTextProps: any;
+  title?: string;
 }
 
-export interface IInputState {
-  value: string;
-}
+export function InputComponent(props: IInputProps) {
+  const [value, setValue] = React.useState(props.formData? props.formData : '');
 
-export class InputComponent
-  extends React.Component<IInputProps, IInputState> {
+  React.useEffect(() => {
+    setValue(props.formData);
+  }, [props.formData])
 
-  constructor(_props: IInputProps, _state: IInputState) {
-    super(_props, _state);
-    this.state = {
-      value: _props.formData ? _props.formData : '',
-    };
+  const onDataChanged = (e: any) => {
+    setValue(e.target.value);
   }
 
-  public onDataChanged = (e: any) => {
-    this.setState({
-      value: e.target.value,
-    });
+  const onDataChangeSubmit = () => {
+    props.handleDataChange(value);
   }
 
-  public onDataChangeSubmit = () => {
-    this.props.handleDataChange(this.state.value);
-  }
-
-  public render() {
-    return (
-      <input
-        id={this.props.id}
-        type={this.props.type}
-        onBlur={this.onDataChangeSubmit}
-        onChange={this.onDataChanged}
-        readOnly={this.props.readOnly}
-        required={this.props.required}
-        className={classNames('form-control',
-          { 'validation-error': !this.props.isValid, 'disabled': this.props.readOnly },
-        )}
-        value={this.state.value}
-      />
-    );
-  }
+  return (
+    <>
+    <input
+      key={'input_' + props.id}
+      id={props.id}
+      type={props.type}
+      onBlur={onDataChangeSubmit}
+      onChange={onDataChanged}
+      readOnly={props.readOnly}
+      required={props.required}
+      className={classNames('form-control',
+        { 'validation-error': !props.isValid, 'disabled': props.readOnly },
+      )}
+      value={value}
+    />
+    </>
+  );
 }

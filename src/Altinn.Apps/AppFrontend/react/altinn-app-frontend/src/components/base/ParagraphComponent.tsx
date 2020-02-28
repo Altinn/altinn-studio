@@ -1,21 +1,21 @@
 import * as React from 'react';
+import { Typography } from '@material-ui/core';
 
 export interface IParagraphProps {
   id: string;
   text: string;
 }
 
-export interface IParagraphState { }
 
-export class ParagraphComponent extends React.Component<IParagraphProps, IParagraphState> {
+export function ParagraphComponent(props: IParagraphProps) {
 
-  public style = {
+  const style = {
     marginTop: '2.4rem',
   };
 
-  public render() {
-    return (
-      <span id={this.props.id} style={this.style}>{this.props.text}</span>
-    );
-  }
+  return (
+    <Typography id={props.id} style={style} tabIndex={0}>
+      {props.text}
+    </Typography>
+  );
 }
