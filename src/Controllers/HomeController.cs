@@ -101,7 +101,7 @@ namespace LocalTest.Controllers
 
             List<Claim> claims = new List<Claim>();
             string issuer = "altinn3local.no";
-            claims.Add(new Claim("sub", profile.UserId.ToString(), ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
