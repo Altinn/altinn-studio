@@ -40,8 +40,8 @@ function Receipt(props: WithStyles<typeof styles>) {
   const fetchInstanceAndParty = async () => {
     try {
       const response = await Axios.get<IExtendedInstance>(getExtendedInstanceUrl());
-      setParty(response.party);
-      setInstance(response.instance);
+      setParty(response.data.party);
+      setInstance(response.data.instance);
     } catch (error) {
       console.error(error);
     }
