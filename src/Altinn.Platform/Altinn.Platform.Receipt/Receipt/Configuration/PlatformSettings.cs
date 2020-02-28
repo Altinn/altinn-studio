@@ -7,11 +7,10 @@ namespace Altinn.Platform.Receipt.Configuration
     /// </summary>
     public class PlatformSettings
     {
-        /// <summary>
-        /// Gets or sets the url for the API Profile endpoint
-        /// The config value was needed for test purposes
-        /// </summary>
-        public string ApiProfileEndpoint { get; set; }
+        private string _subscriptionKey;
+        private string _apiStorageEndpoint;
+        private string _apiRegisterEndpoint;
+        private string _apiProfileEndpoint;
 
         /// <summary>
         /// Gets or sets the url for the API Authentication endpoint
@@ -19,31 +18,41 @@ namespace Altinn.Platform.Receipt.Configuration
         public string ApiAuthenticationEndpoint { get; set; }
 
         /// <summary>
-        /// Gets or sets url for the API Authorization endpoint
+        /// Gets or sets the url for the API profile endpoint
         /// </summary>
-        public string ApiAuthorizationEndpoint { get; set; }
-
-        /// <summary>
-        /// Gets or sets the subscription key for API management 
-        /// </summary>
-        public string SubscriptionKey { get; set; }
-
-        /// <summary>
-        /// Get url for the API Authorization endpoint
-        /// </summary>
-        /// <returns>Returns url</returns>
-        public string GetApiAuthorizationEndpoint()
+        public string ApiProfileEndpoint
         {
-            return Environment.GetEnvironmentVariable("Platformsettings__ApiAuthorizationEndpoint") ?? ApiAuthorizationEndpoint;
+            get => Environment.GetEnvironmentVariable("PlatformSettings__ApiProfileEndpoint") ?? _apiProfileEndpoint;
+            set => _apiProfileEndpoint = value;
         }
 
         /// <summary>
-        /// Gets subscription key for API management to access platform components
+        /// Gets or sets the url for the API register endpoint
         /// </summary>
-        /// <returns></returns>
-        public string GetSubscriptionKey()
+        public string ApiRegisterEndpoint
         {
-            return Environment.GetEnvironmentVariable("Platformsettings__SubscriptionKey") ?? SubscriptionKey;
+            get => Environment.GetEnvironmentVariable("PlatformSettings__ApiRegisterEndpoint") ?? _apiRegisterEndpoint;
+            set => _apiRegisterEndpoint = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the url for the API storage endpoint
+        /// </summary>
+        public string ApiStorageEndpoint
+        {
+            get => Environment.GetEnvironmentVariable("PlatformSettings__ApiStorageEndpoint") ?? _apiStorageEndpoint;
+            set => _apiStorageEndpoint = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the subscription key value to use in requests against the platform.
+        /// A new subscription key is generated automatically every time an app is deployed to an environment. The new key is then automatically
+        /// added to the environment for the app code during deploy. This will override the value stored in app settings.
+        /// </summary>
+        public string SubscriptionKey
+        {
+            get => Environment.GetEnvironmentVariable("PlatformSettings__SubscriptionKey") ?? _subscriptionKey;
+            set => _subscriptionKey = value;
         }
     }
 }

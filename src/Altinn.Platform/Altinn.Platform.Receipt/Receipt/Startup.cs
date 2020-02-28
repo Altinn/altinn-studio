@@ -1,17 +1,24 @@
 using System;
 using System.Net;
+
+using Altinn.Platform.Receipt.Clients;
 using Altinn.Platform.Receipt.Configuration;
+using Altinn.Platform.Receipt.Services;
+using Altinn.Platform.Receipt.Services.Interfaces;
 using Altinn.Platform.Telemetry;
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+
 using Serilog;
 using Serilog.Core;
 
@@ -66,9 +73,7 @@ namespace Altinn.Platform.Receipt
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                 {
-                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                    options.Cookie.Name = generalSettings.RuntimeCookieName;
-                    options.Cookie.Domain = generalSettings.Hostname;
+                    options.JwtCookieName = generalSettings.RuntimeCookieName;
                     options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
@@ -86,6 +91,12 @@ namespace Altinn.Platform.Receipt
                 });
 
             services.AddSingleton(Configuration);
+            services.AddSingleton<IRegister, RegisterWrapper>();
+            services.AddSingleton<IStorage, StorageWrapper>();
+            services.AddSingleton<IProfile, ProfileWrapper>();
+            services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))

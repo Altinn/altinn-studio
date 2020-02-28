@@ -1,11 +1,16 @@
 using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Receipt.Configuration;
+using Altinn.Platform.Receipt.Helpers;
+using Altinn.Platform.Receipt.Model;
+using Altinn.Platform.Receipt.Services.Interfaces;
 using Altinn.Platform.Register.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -24,21 +29,36 @@ namespace Altinn.Platform.Receipt
     {
         private readonly PlatformSettings _platformSettings;
         private readonly HttpClient _client;
+        private readonly IRegister _register;
+        private readonly IStorage _storage;
+        private readonly IProfile _profile;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiptController"/> class
         /// </summary>
         /// <param name="platformSettings">the platform settings</param>
+        /// <param name="register">the register service</param>
+        /// <param name="storage">the storage service</param>
+        /// <param name="profile">the profile service</param>
         /// <param name="logger">the logger</param>
-        public ReceiptController(IOptions<PlatformSettings> platformSettings, ILogger<ReceiptController> logger)
+        public ReceiptController(
+            IOptions<PlatformSettings> platformSettings,
+            IRegister register,
+            IStorage storage,
+            IProfile profile,
+            ILogger<ReceiptController> logger)
         {
             _platformSettings = platformSettings.Value;
             _logger = logger;
             _client = new HttpClient();
             _client.DefaultRequestHeaders.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _platformSettings.GetSubscriptionKey());
+            _client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _platformSettings.SubscriptionKey);
+
+            _register = register;
+            _storage = storage;
+            _profile = profile;
         }
 
         /// <summary>
@@ -71,31 +91,16 @@ namespace Altinn.Platform.Receipt
                 return BadRequest("Invalid request context. UserId must be provided in claims.");
             }
 
-            int userId = int.Parse(userIdString);
-            string userUrl = string.Empty;
-            if (Environment.GetEnvironmentVariable("Platformsettings__ApiProfileEndpoint") != null)
+            try
             {
-                userUrl = $"{Environment.GetEnvironmentVariable("Platformsettings__ApiProfileEndpoint")}users/{userId}";
+                int userId = int.Parse(userIdString);
+                UserProfile profile = await _profile.GetUser(userId);
+                return Ok(profile);
             }
-            else
+            catch (PlatformHttpException e)
             {
-                userUrl = $"{_platformSettings.ApiProfileEndpoint}users/{userId}";
+                return HandlePlatformHttpException(e);
             }
-
-            string token = JwtTokenUtil.GetTokenFromContext(Request.HttpContext, "AltinnStudioRuntime");
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-            HttpResponseMessage response = await _client.GetAsync(userUrl);
-            UserProfile userProfile = null;
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                userProfile = await response.Content.ReadAsAsync<UserProfile>();
-            }
-            else
-            {
-                _logger.LogError($"Getting user profile with userId {userId} failed with statuscode {response.StatusCode}");
-            }
-
-            return Ok(userProfile);
         }
 
         /// <summary>
@@ -103,34 +108,57 @@ namespace Altinn.Platform.Receipt
         /// </summary>
         /// <returns>The party object</returns>
         [HttpGet]
-        [Route("receipt/api/v1/parties/{partyId}")]
-        public async Task<ActionResult> GetParty(int partyId)
+        [Route("receipt/api/v1/instances/{instanceOwnerId}/{instanceGuid}")]
+        public async Task<ActionResult> GetInstanceIncludeParty(int instanceOwnerId, Guid instanceGuid, bool includeParty = false)
         {
-            string userIdString = Request.HttpContext.User.Claims.Where(c => c.Type == AltinnCoreClaimTypes.UserId)
-            .Select(c => c.Value).SingleOrDefault();
-
-            if (string.IsNullOrEmpty(userIdString))
-            {
-                return BadRequest("Invalid request context. UserId must be provided in claims.");
-            }
-
-            int userId = int.Parse(userIdString);
-
-            string url = $"{_platformSettings.GetApiAuthorizationEndpoint()}parties/{partyId}/authorize?userId={userId}";
-
+            ExtendedInstance result = new ExtendedInstance();
             string token = JwtTokenUtil.GetTokenFromContext(Request.HttpContext, "AltinnStudioRuntime");
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            HttpResponseMessage response = await _client.GetAsync(url);
-            Party party = null;
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            try
             {
-                party = await response.Content.ReadAsAsync<Party>();
-                return Ok(party);
+                Instance instance = await _storage.GetInstance(instanceOwnerId, instanceGuid);
+                result.Instance = instance;
+            }
+            catch (PlatformHttpException e)
+            {
+                return HandlePlatformHttpException(e);
+            }
+
+            string partyId = result?.Instance?.InstanceOwner?.PartyId;
+            if (includeParty && partyId != null && int.TryParse(partyId, out int partyIdInt))
+            {
+                try
+                {
+                    Party party = await _register.GetParty(partyIdInt);
+                    result.Party = party;
+                }
+                catch (PlatformHttpException e)
+                {
+                    return HandlePlatformHttpException(e);
+                }
+            }
+
+            return Ok(result);
+        }
+
+        private ActionResult HandlePlatformHttpException(PlatformHttpException e)
+        {
+            if (e.Response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                return StatusCode(401, e.Message);
+            }
+            else if (e.Response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                return StatusCode(403, e.Message);
+            }
+            else if (e.Response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return StatusCode(404, e.Message);
             }
             else
             {
-                return StatusCode((int)response.StatusCode, response);
+                return StatusCode(500, e.Message);
             }
         }
     }
