@@ -17,8 +17,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Options;
 
 using Moq;
@@ -83,8 +81,7 @@ namespace Test
                 HttpResponseMessage response = await client.GetAsync(url);
                 Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
             }
-
-
+            
             [Fact]
             public async void GetCurrentUser_TC03_ServiceThrowsException()
             {
@@ -129,8 +126,7 @@ namespace Test
                 Assert.NotNull(actual.Instance);
                 Assert.Equal("tdd/auth-level-3", actual.Instance.AppId);
             }
-
-
+            
             [Fact]
             public async void GetInstanceIncludeParty_TC02_IncludePartyTrue()
             {

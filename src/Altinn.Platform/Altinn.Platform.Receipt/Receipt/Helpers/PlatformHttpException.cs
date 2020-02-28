@@ -1,12 +1,12 @@
 using System;
 using System.Net.Http;
-using System.Net.Http;
 
 namespace Altinn.Platform.Receipt.Helpers
 {
     /// <summary>
     /// Exception class to hold exceptions when talking to the platform REST services
     /// </summary>
+    [Serializable]
     public class PlatformHttpException : Exception
     {
         /// <summary>
