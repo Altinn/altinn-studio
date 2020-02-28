@@ -1,4 +1,4 @@
-import { Button, CircularProgress, createMuiTheme, createStyles, Grid, makeStyles, Popover, TextField, Typography } from '@material-ui/core';
+import { createMuiTheme, createStyles, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnAppTheme';
@@ -34,7 +34,7 @@ const theme = createMuiTheme(altinnTheme);
 const useStyles = makeStyles(() =>
   createStyles({
     borderBottom: {
-      borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
+      borderBottom: '1px solid' + theme.altinnPalette.primary.blueDark,
     },
     header: {
       fontSize: '16px',
