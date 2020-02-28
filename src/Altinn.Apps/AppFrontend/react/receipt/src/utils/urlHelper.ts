@@ -11,7 +11,7 @@ export function getInstanceMetadataUrl(): string {
 }
 
 export function getPartyUrl(): string {
-  return `${getAltinnCloudUrl()}receipt/api/v1/parties/${getInstanceOwnerId()}`;
+  return `${getAltinnCloudUrl()}register/api/v1/parties/${getInstanceOwnerId()}`;
 }
 
 export function getAltinnCloudUrl(): string {

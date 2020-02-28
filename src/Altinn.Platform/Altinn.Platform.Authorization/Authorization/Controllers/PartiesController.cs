@@ -64,28 +64,5 @@ namespace Altinn.Platform.Authorization.Controllers
 
             return Ok(isValidParty);
         }
-
-        /// <summary>
-        /// Verifies that the user can represent the given party
-        /// </summary>
-        /// <param name="userId">The user id"</param>
-        /// <param name="partyId">The party id"</param>
-        [HttpGet("{partyId}/authorize")]
-        public async Task<ActionResult> GetPartyIfAuthorized(int userId, int partyId)
-        {
-            if (userId == 0 || partyId == 0)
-            {
-                return NotFound();
-            }
-
-            Party party = await _partiesWrapper.GetParty(userId, partyId);
-
-            if (party != null)
-            {
-                return Ok(party);
-            }
-
-            return Forbid($"User {userId} is not authorized to retrieve the selected party.");
-        }
     }
 }

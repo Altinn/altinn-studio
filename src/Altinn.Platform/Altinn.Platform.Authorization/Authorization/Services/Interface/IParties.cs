@@ -23,13 +23,5 @@ namespace Altinn.Platform.Authorization.Services.Interface
         /// <param name="partyId">The party id"</param>
         /// <returns> Boolean indicating whether or not the user can represent the selected party.</returns>
         Task<bool> ValidateSelectedParty(int userId, int partyId);
-
-        /// <summary>
-        /// Gets a party if the user is allowed to represent the given party
-        /// </summary>
-        /// <param name="userId">The user id</param>
-        /// <param name="partyId">The party id</param>
-        /// <returns>The party object</returns>
-        Task<Party> GetParty(int userId, int partyId);
     }
 }
