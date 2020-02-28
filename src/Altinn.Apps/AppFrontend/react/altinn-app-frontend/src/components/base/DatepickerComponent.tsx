@@ -2,14 +2,14 @@ import * as moment from 'moment';
 import * as React from 'react';
 import '../../styles/DatepickerComponent.css';
 import '../../styles/shared.css';
-import { Grid, createStyles, withStyles, WithStyles, useMediaQuery, useTheme, Icon } from '@material-ui/core';
+import { Grid, useMediaQuery, useTheme, Icon, makeStyles } from '@material-ui/core';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Moment } from 'moment';
 
-export interface IDatePickerProps extends WithStyles<typeof styles> {
+export interface IDatePickerProps{
   id: string;
   readOnly: boolean;
   required: boolean;
@@ -20,7 +20,7 @@ export interface IDatePickerProps extends WithStyles<typeof styles> {
   language: any;
 }
 
-const styles = () => createStyles({
+const useStyles = makeStyles({
   root: {
     fontSize: '1.6rem',
     borderWidth:'2px',
@@ -62,6 +62,7 @@ class AltinnMomentUtils extends MomentUtils {
 
 function DatepickerComponent(props: IDatePickerProps) {
 
+  const classes = useStyles();
   const [date, setDate] = React.useState<moment.Moment>(null);
   const [validDate, setValidDate] = React.useState<boolean>(true);
 
@@ -118,16 +119,16 @@ function DatepickerComponent(props: IDatePickerProps) {
               disableUnderline: true,
               error: !props.isValid,
               classes: {
-                root: props.classes.root + ((!props.isValid || !validDate) ? ' ' + props.classes.invalid : ''),
-                input: props.classes.input,
+                root: classes.root + ((!props.isValid || !validDate) ? ' ' + classes.invalid : ''),
+                input: classes.input,
               },
             }}
             FormHelperTextProps={{
               classes: {
-                root: props.classes.formHelperText
+                root: classes.formHelperText
               }
             }}
-            keyboardIcon={<Icon className={props.classes.icon + ' ai ai-date'}/>}
+            keyboardIcon={<Icon className={classes.icon + ' ai ai-date'}/>}
             style={{
               width: 'auto',
             }}
@@ -137,4 +138,4 @@ function DatepickerComponent(props: IDatePickerProps) {
   )
 }
 
-export default withStyles(styles)(DatepickerComponent);
+export default DatepickerComponent;
