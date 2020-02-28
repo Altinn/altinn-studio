@@ -1,7 +1,6 @@
 import classNames = require('classnames');
 import * as React from 'react';
 import '../../styles/shared.css';
-import Label from '../../features/form/components/Label';
 
 export interface IInputProps {
   id: string;

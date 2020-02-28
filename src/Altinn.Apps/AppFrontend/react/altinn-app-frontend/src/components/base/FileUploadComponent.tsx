@@ -1,6 +1,6 @@
 import * as React from 'react';
 import DropZone from 'react-dropzone';
-import { connect, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import uuid = require('uuid');
 import {AltinnAppTheme} from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
@@ -10,7 +10,6 @@ import './../../styles/FileUploadComponent.css';
 import { IRuntimeState } from './../../types';
 import { IComponentValidations } from './../../types/global';
 import { renderValidationMessagesForComponent } from './../../utils/render';
-import { reactErrorPage } from 'src/utils/urlHelper';
 
 export interface IFileUploadProvidedProps {
   displayMode: string;
@@ -52,8 +51,6 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
 
   const [attachments, dispatch] = React.useReducer(reducer, []);
 
-  const [title, setTitle] = React.useState('');
-  const [description, setDescription] = React.useState('');
   const [validations, setValidations] = React.useState([]);
   const [showFileUpload, setShowFileUpload] = React.useState(false);
 

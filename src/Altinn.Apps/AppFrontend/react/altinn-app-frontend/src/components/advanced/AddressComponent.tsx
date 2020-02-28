@@ -1,6 +1,5 @@
 import axios from 'axios';
 import classNames = require('classnames');
-import update from 'immutability-helper';
 import * as React from 'react';
 import { getLanguageFromKey, get } from 'altinn-shared/utils';
 import { IDataModelBindings, ITextResourceBindings } from '../../features/form/layout';

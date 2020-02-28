@@ -21,7 +21,6 @@ import {
   getTextResource,
   isComponentValid,
 } from '../utils/formComponentUtils';
-import { makeGetFormDataSelector } from '../selectors/getFormData';
 import FormLayoutActions from '../features/form/layout/formLayoutActions';
 
 export interface IGenericComponentProps {
@@ -40,7 +39,6 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
-  const GetFormData = makeGetFormDataSelector();
 
   const [helpIconRef, setHelpIconRef] = React.useState(!!props.textResourceBindings.help ? React.createRef() : null);
   const [openPopover, setOpenPopover] = React.useState(false);
