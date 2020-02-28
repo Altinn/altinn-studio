@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace Altinn.Platform.Receipt.Clients
 {
@@ -25,6 +21,5 @@ namespace Altinn.Platform.Receipt.Clients
         /// An Http ProfileClient that communicates with the Altinn Platform Profile component.
         /// </summary>
         HttpClient ProfileClient { get; }
-
     }
 }

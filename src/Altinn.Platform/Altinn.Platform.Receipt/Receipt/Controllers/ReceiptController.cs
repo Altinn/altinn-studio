@@ -27,8 +27,6 @@ namespace Altinn.Platform.Receipt
     [ApiController]
     public class ReceiptController : Controller
     {
-        private readonly PlatformSettings _platformSettings;
-        private readonly HttpClient _client;
         private readonly IRegister _register;
         private readonly IStorage _storage;
         private readonly IProfile _profile;
@@ -37,28 +35,20 @@ namespace Altinn.Platform.Receipt
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiptController"/> class
         /// </summary>
-        /// <param name="platformSettings">the platform settings</param>
         /// <param name="register">the register service</param>
         /// <param name="storage">the storage service</param>
         /// <param name="profile">the profile service</param>
         /// <param name="logger">the logger</param>
         public ReceiptController(
-            IOptions<PlatformSettings> platformSettings,
             IRegister register,
             IStorage storage,
             IProfile profile,
             ILogger<ReceiptController> logger)
         {
-            _platformSettings = platformSettings.Value;
-            _logger = logger;
-            _client = new HttpClient();
-            _client.DefaultRequestHeaders.Clear();
-            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", _platformSettings.SubscriptionKey);
-
             _register = register;
             _storage = storage;
             _profile = profile;
+            _logger = logger;
         }
 
         /// <summary>
@@ -112,8 +102,6 @@ namespace Altinn.Platform.Receipt
         public async Task<ActionResult> GetInstanceIncludeParty(int instanceOwnerId, Guid instanceGuid, bool includeParty = false)
         {
             ExtendedInstance result = new ExtendedInstance();
-            string token = JwtTokenUtil.GetTokenFromContext(Request.HttpContext, "AltinnStudioRuntime");
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             try
             {
