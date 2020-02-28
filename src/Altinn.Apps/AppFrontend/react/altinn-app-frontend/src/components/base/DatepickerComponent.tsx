@@ -7,6 +7,7 @@ import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/picker
 import MomentUtils from '@date-io/moment';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import { Moment } from 'moment';
 
 export interface IDatePickerProps extends WithStyles<typeof styles> {
   id: string;
@@ -33,6 +34,9 @@ const styles = () => createStyles({
       outline: '2px solid ' + AltinnAppTheme.altinnPalette.primary.blueDark,
     }
   },
+  input: {
+    marginLeft: '12px'
+  },
   invalid: {
     borderColor: AltinnAppTheme.altinnPalette.primary.red + ' !important',
     outlineColor: AltinnAppTheme.altinnPalette.primary.red + ' !important',
@@ -42,7 +46,19 @@ const styles = () => createStyles({
     fontSize: '30px',
     lineHeight: '30px'
   },
+  formHelperText: {
+    fontSize: '1.4rem',
+  }
 });
+
+class AltinnMomentUtils extends MomentUtils {
+  getDatePickerHeaderText(date: Moment) {
+    if (date && date.locale() == 'nb') {
+      return date.format("ddd, D MMM");
+    }
+    else return super.getDatePickerHeaderText(date);
+  }
+}
 
 function DatepickerComponent(props: IDatePickerProps) {
 
@@ -74,7 +90,7 @@ function DatepickerComponent(props: IDatePickerProps) {
   }
 
   return (
-    <MuiPickersUtilsProvider utils={MomentUtils}>
+    <MuiPickersUtilsProvider utils={AltinnMomentUtils}>
       <Grid
         container
         item
@@ -92,8 +108,9 @@ function DatepickerComponent(props: IDatePickerProps) {
             key={"altinn-date-picker-" + props.id}
             onChange={handleDataChangeWrapper}
             onBlur={handleOnBlur}
-
             invalidDateMessage={getLanguageFromKey('date_picker.invalid_date_message', props.language)}
+            maxDateMessage={getLanguageFromKey('date_picker.max_date_exeeded', props.language)}
+            minDateMessage={getLanguageFromKey('date_picker.min_date_exeeded', props.language)}
             cancelLabel={getLanguageFromKey('date_picker.cancel_label', props.language)}
             clearLabel={getLanguageFromKey('date_picker.clear_label', props.language)}
             todayLabel={getLanguageFromKey('date_picker.today_label', props.language)}
@@ -102,7 +119,13 @@ function DatepickerComponent(props: IDatePickerProps) {
               error: !props.isValid,
               classes: {
                 root: props.classes.root + ((!props.isValid || !validDate) ? ' ' + props.classes.invalid : ''),
+                input: props.classes.input,
               },
+            }}
+            FormHelperTextProps={{
+              classes: {
+                root: props.classes.formHelperText
+              }
             }}
             keyboardIcon={<Icon className={props.classes.icon + ' ai ai-date'}/>}
             style={{

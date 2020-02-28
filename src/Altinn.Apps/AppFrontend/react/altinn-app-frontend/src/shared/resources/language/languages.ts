@@ -299,7 +299,9 @@ export const nb = () => (
       invalid_date_message: 'Ugyldig datoformat',
       cancel_label: 'Avbryt',
       clear_label: 'Tøm',
-      today_label: 'I dag'
+      today_label: 'I dag',
+      min_date_exeeded: 'Dato valgt er før tidligste dato tillat',
+      max_date_eceeded: 'Dato valgt er etter seneste dato tillat'
     }
   }
 );

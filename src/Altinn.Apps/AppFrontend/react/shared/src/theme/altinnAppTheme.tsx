@@ -105,6 +105,9 @@ const AltinnAppTheme = {
       caption: {
         fontSize:  14,
       },
+      subtitle1: {
+        fontSize: 14,
+      }
     },
     MuiPickersToolbar: {
       toolbar: {
