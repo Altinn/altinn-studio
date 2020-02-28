@@ -22,7 +22,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
         id={props.id}
         style={{ marginBottom: '0' }}
       >
-        Send inn
+        {props.text}
       </button>
     );
   }

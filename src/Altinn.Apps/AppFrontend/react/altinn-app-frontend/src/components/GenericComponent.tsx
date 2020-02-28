@@ -22,6 +22,7 @@ import {
   isComponentValid,
 } from '../utils/formComponentUtils';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
+import FormLayoutActions from '../features/form/layout/formLayoutActions';
 
 export interface IGenericComponentProps {
   id: string;
@@ -86,6 +87,10 @@ export function GenericComponent(props: IGenericComponentProps) {
     RuleActions.checkIfRuleShouldRun(props.id, dataModelElement, value);
   };
 
+  const handleFocusUpdate = (id: string, step?: number) => {
+    FormLayoutActions.updateFocus(id, step ? step : 0);
+  };
+
   const toggleClickPopover = (event: React.MouseEvent): void => {
     event.stopPropagation();
     event.preventDefault();
@@ -141,6 +146,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     />
     {makeComponent({
       handleDataChange: handleDataUpdate,
+      handleFocusUpdate,
       getTextResource: getTextResource,
       formData: formData,
       isValid,
