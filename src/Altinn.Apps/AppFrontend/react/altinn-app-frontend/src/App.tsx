@@ -2,7 +2,7 @@ import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import {AltinnAppTheme} from 'altinn-shared/theme';
-import FormFillerWrapper from './features/form/containers/FormFillerWrapper';
+import ProcessStepWrapper from './shared/containers/ProcessStepWrapper';
 import Instantiate from './features/instantiate/containers';
 import UnknownError from './features/instantiate/containers/UnknownError';
 import PartySelection from './features/instantiate/containers/PartySelection';
@@ -70,7 +70,7 @@ export default function() {
       <Switch>
         <Route path={'/'} exact={true} component={Instantiate} />
         <Route path={'/partyselection/:errorCode?'} exact={true} component={PartySelection} />
-        <Route path={'/instance/:partyId/:instanceGuid'} exact={true} component={FormFillerWrapper} />
+        <Route path={'/instance/:partyId/:instanceGuid'} exact={true} component={ProcessStepWrapper} />
       </Switch>
     </MuiThemeProvider>
   );

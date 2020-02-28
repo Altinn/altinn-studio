@@ -1161,22 +1161,23 @@
 							"script": {
 								"id": "3642e91a-7bdc-486a-ab19-86d68fb3acee",
 								"exec": [
-									"const jar = pm.cookies.jar();",
+									"var responseAltinnStudioCookie = postman.getResponseCookie(\"AltinnStudioRuntime\");",
+									"responseAltinnStudioCookie = responseAltinnStudioCookie.value.toString();",
+									"pm.environment.set(\"AltinnStudioRuntime\",responseAltinnStudioCookie);",
+									"",
+									"const cookieJar = pm.cookies.jar();",
 									"var domain = pm.environment.get(\"envUrl\");",
-									"jar.get(domain,\"AltinnStudioRuntime\", function (error,altinnStudioRuntimeToken){",
+									"cookieJar.set(domain,\"AltinnStudioRuntime\",responseAltinnStudioCookie,function(error,cookie){",
 									"    if(error)",
 									"    {",
 									"        console.log(\"error\",error);",
 									"    }",
-									"    else",
+									"});",
+									"",
+									"cookieJar.clear(domain, function (error){",
+									"    if(error)",
 									"    {",
-									"        pm.environment.set(\"AltinnStudioRuntime\",altinnStudioRuntimeToken);",
-									"        jar.clear(domain, function (error){",
-									"            if(error)",
-									"            {",
-									"                console.log(\"error\",error);",
-									"            }",
-									"        });",
+									"        console.log(\"error\",error);",
 									"    }",
 									"});"
 								],
@@ -1390,15 +1391,6 @@
 								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{level1-app}}/instances?instanceOwnerPartyId={{instanceOwnerId}}",
 							"protocol": "https",

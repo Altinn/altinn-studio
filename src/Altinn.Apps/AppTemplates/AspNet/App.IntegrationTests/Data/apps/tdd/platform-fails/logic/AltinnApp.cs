@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 
 using Altinn.App.Common.Enums;
+using Altinn.App.Common.Models;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
@@ -70,6 +71,11 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
         public override async Task RunDataCreation(Instance instance, object data)
         {
 
+        }
+
+        public override Task<AppOptions> GetOptions(string id, AppOptions options)
+        {
+            return Task.FromResult(options);
         }
     }
 }

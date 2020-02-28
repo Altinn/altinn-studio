@@ -32,6 +32,8 @@ function* instantiationSaga(): SagaIterator {
           if (reqAuthLevel) {
             yield call(redirectToUpgrade, reqAuthLevel);
           }
+        } else {
+          throw error;
         }
       }
 

@@ -38,7 +38,7 @@ namespace LocalTest.Services.Storage.Implementation
             throw new NotImplementedException();
         }
 
-        public Task<bool> DeleteDataInStorage(string fileName)
+        public Task<bool> DeleteDataInStorage(string org, string blobStoragePath)
         {
             throw new NotImplementedException();
         }
@@ -68,12 +68,10 @@ namespace LocalTest.Services.Storage.Implementation
             return Task.FromResult(dataElements);
         }
 
-        public Task<Stream> ReadDataFromStorage(string fileName)
+        public Task<Stream> ReadDataFromStorage(string org, string blobStoragePath)
         {
-            string filePath = GetFilePath(fileName);
+            string filePath = GetFilePath(blobStoragePath);
             Stream fs = File.OpenRead(filePath);
-
-            Stream data = new MemoryStream();
 
             return Task.FromResult(fs);
         }
@@ -87,9 +85,9 @@ namespace LocalTest.Services.Storage.Implementation
             return Task.FromResult(dataElement);
         }
 
-        public async Task<long> WriteDataToStorage(Stream dataStream, string fileName)
+        public async Task<long> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
         {
-            string filePath = GetFilePath(fileName);
+            string filePath = GetFilePath(blobStoragePath);
             if (!Directory.Exists(Path.GetDirectoryName(filePath)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
@@ -99,22 +97,12 @@ namespace LocalTest.Services.Storage.Implementation
 
             using (Stream streamToWriteTo = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
-                await dataStream.CopyToAsync(streamToWriteTo);
+                await stream.CopyToAsync(streamToWriteTo);
                 streamToWriteTo.Flush();
                 filesize = streamToWriteTo.Length;
             }
 
             return filesize;
-        }
-
-        /// <summary>
-        /// Gets the correct context for the current application
-        /// </summary>
-        /// <param name="org">Name of the application owner</param>
-        /// <returns></returns>
-        public OrgDataContext GetOrgDataContext(string org)
-        {
-            return new OrgDataContext();
         }
 
         private string GetFilePath(string fileName)

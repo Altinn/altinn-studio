@@ -5,7 +5,7 @@ RUN npm ci
 COPY src/designer/backend .
 RUN npm run gulp build
 
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1.101-alpine AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.102-alpine AS build
 COPY src/designer/backend ./designer/
 COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
 
@@ -18,7 +18,7 @@ FROM altinn-studio-app-development:latest AS altinn-studio-app-development
 # Altinn-Studio Dashboard
 FROM altinn-studio-dashboard:latest AS altinn-studio-dashboard
 
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.1-alpine AS final
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.2-alpine AS final
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .

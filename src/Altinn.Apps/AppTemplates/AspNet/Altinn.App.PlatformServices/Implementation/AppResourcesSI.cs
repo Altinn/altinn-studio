@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Altinn.App.Common.Models;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
@@ -207,6 +208,28 @@ namespace Altinn.App.Services.Implementation
             }
 
             return classRef;
+        }
+
+        public List<AppOption> GetOptions(string optionId)
+        {
+            string filedata = string.Empty;
+            string filename = _settings.AppBasePath + _settings.OptionsFolder + optionId+".json";
+            try
+            {
+                if (File.Exists(filename))
+                {
+                    filedata = File.ReadAllText(filename, Encoding.UTF8);
+                    List<AppOption> options = JsonConvert.DeserializeObject<List<AppOption>>(filedata);
+                    return options;
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Something went wrong when fetching application metadata. {0}", ex);
+                return null;
+            }
         }
     }
 }

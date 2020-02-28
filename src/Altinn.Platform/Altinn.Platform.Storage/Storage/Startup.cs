@@ -10,17 +10,19 @@ using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Repository;
-
+using Altinn.Platform.Storage.Wrappers;
+using Altinn.Platform.Telemetry;
+using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.Azure.KeyVault;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -40,17 +42,12 @@ namespace Altinn.Platform.Storage
         /// <summary>
         /// application insights key in keyvault
         /// </summary>
-        public static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Storage";
+        public static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey";
 
         /// <summary>
         /// The application insights key.
         /// </summary>
         internal static string ApplicationInsightsKey { get; set; }
-
-        /// <summary>
-        /// Key Vault client represnting Platform
-        /// </summary>
-        internal static KeyVaultClient PlatformKeyVaultClient { get; set; }
 
         private readonly IWebHostEnvironment _env;
 
@@ -92,6 +89,7 @@ namespace Altinn.Platform.Storage
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<Common.PEP.Configuration.PepSettings>(Configuration.GetSection("PepSettings"));
             services.Configure<Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
@@ -125,12 +123,14 @@ namespace Altinn.Platform.Storage
                 options.AddPolicy(AuthzConstants.POLICY_SCOPE_INSTANCE_READ, policy => policy.Requirements.Add(new ScopeAccessRequirement("altinn:instances.read")));
             });
 
-            services.AddTransient<IDataRepository, DataRepository>();
-            services.AddTransient<IInstanceRepository, InstanceRepository>();
+            services.AddSingleton<IDataRepository, DataRepository>();
+            services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
+            services.AddSingleton<ISasTokenProvider, SasTokenProvider>();
+            services.AddSingleton<IKeyVaultClientWrapper, KeyVaultClientWrapper>();
             services.AddSingleton<IPDP, PDPAppSI>();
 
             services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
@@ -140,6 +140,8 @@ namespace Altinn.Platform.Storage
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+                services.AddApplicationInsightsKubernetesEnricher();
+                services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
                 _logger.Information($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
             }
