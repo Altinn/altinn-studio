@@ -1,4 +1,5 @@
 import { IDataModelBindings, IComponentValidations, ITextResource } from "../types/global";
+import { getLanguageFromKey } from "altinn-shared/utils";
 
 export const isSimpleComponent = (component: any): boolean => {
   if (!component || !component.dataModelBindings) {
@@ -61,3 +62,22 @@ export const getTextResource = (resourceKey: string, textResources: ITextResourc
   const textResource = textResources.find((resource: ITextResource) => resource.id === resourceKey);
   return textResource ? textResource.value : resourceKey;
 };
+
+export function getFileUploadComponentValidations(validationError: string, language: any): IComponentValidations {
+  const componentValidations: any = {
+    ['simpleBinding']: {
+      errors: [],
+      warnings: [],
+    },
+  };
+  if (validationError === 'upload') {
+    componentValidations.simpleBinding.errors.push(
+      getLanguageFromKey('form_filler.file_uploader_validation_error_upload', language),
+    );
+  } else if (validationError === 'delete') {
+    componentValidations.simpleBinding.errors.push(
+      getLanguageFromKey('form_filler.file_uploader_validation_error_delete', language),
+    );
+  }
+  return componentValidations;
+}
