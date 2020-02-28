@@ -34,7 +34,7 @@ export default function(data) {
     var res = instances.postInstance(runtimeToken, partyId, appOwner, level2App, instanceJson);    
     var success = check(res, {
       "POST Create Instance status is 201:": (r) => r.status === 201,
-      "POST Create Instance Instace Id is not null:": (r) => (JSON.parse(r.body)).id != null
+      "POST Create Instance Instace Id is not null:": (r) => JSON.parse(r.body).id != null
     });  
     addErrorCount(success);
     sleep(1);
