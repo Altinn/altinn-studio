@@ -17,7 +17,6 @@ export function* uploadAttachmentSaga(
   const language = state.language.language;
 
   try {
-    console.log('ATTACHMENTTYPE: ', attachmentType);
     // Sets validations to empty.
     const newValidations = getFileUploadComponentValidations(null, null);
     yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);

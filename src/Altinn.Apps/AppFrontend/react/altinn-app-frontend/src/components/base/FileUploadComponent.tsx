@@ -104,7 +104,6 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
 
   const onDrop = (acceptedFiles: File[], rejectedFiles: File[]) => {
     const newFiles: IAttachment[] = [];
-    console.log('props: ', props);
     const fileType = props.id; // component id used as filetype identifier for now, see issue #1364
     const validations: string[] = [];
     const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;

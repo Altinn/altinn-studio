@@ -20,7 +20,6 @@ export function InputComponent(props: IInputProps) {
 
   React.useEffect(() => {
     setValue(props.formData);
-    console.log('FORM DATA CHANGED - INPUT');
   }, [props.formData])
 
   const onDataChanged = (e: any) => {
