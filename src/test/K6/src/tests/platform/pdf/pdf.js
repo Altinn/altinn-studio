@@ -14,8 +14,8 @@ export const options = {
 export default function() {    
     var res = pdf.generatePdf(pdfInputJson);   
     var success = check(res, {
-      "Generate PDF: Status is 200": (r) => r.status === 200,
-      "Generate PDF: Content-Type is application/pdf": (r) => r.headers["Content-Type"] === "application/pdf"
+      "Generate PDF Status is 200:": (r) => r.status === 200,
+      "Generate PDF Content Type is application pdf:": (r) => r.headers["Content-Type"] === "application/pdf"
   });  
   addErrorCount(success);
   sleep(1);

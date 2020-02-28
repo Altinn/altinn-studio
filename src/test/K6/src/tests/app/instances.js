@@ -30,8 +30,8 @@ export default function(data) {
     //Test to create an instance with App api and validate the response
     var res = appInstances.postInstance(runtimeToken, partyId);    
     var success = check(res, {
-      "App: POST Create Instance: status is 201": (r) => r.status === 201,
-      "App: POST Create Instance: Instace Id is not null": (r) => (JSON.parse(r.body)).id != null
+      "App POST Create Instance status is 201:": (r) => r.status === 201,
+      "App POST Create Instance Instace Id is not null:": (r) => (JSON.parse(r.body)).id != null
     });  
     addErrorCount(success);
     sleep(1);
@@ -43,7 +43,7 @@ export default function(data) {
     //Test to edit an instance by id with App api and validate the response
     res = appInstances.putInstanceById(runtimeToken, partyId, instanceId, instanceJson);    
     success = check(res, {
-        "App: PUT Edit Instance: status is 200": (r) => r.status === 200        
+        "App PUT Edit Instance status is 200:": (r) => r.status === 200        
         });  
     addErrorCount(success);
     sleep(1);
@@ -51,7 +51,7 @@ export default function(data) {
     //Test to get an instance by id with App api and validate the response
     res = appInstances.getInstanceById(runtimeToken, partyId, instanceId);
     success = check(res, {
-        "App: GET Instance by Id: status is 200": (r) => r.status === 200        
+        "App GET Instance by Id status is 200:": (r) => r.status === 200        
       });  
     addErrorCount(success);
     sleep(1);

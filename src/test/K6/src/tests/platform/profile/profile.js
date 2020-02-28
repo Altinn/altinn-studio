@@ -24,8 +24,8 @@ export default function(data) {
     const runtimeToken = data["RuntimeToken"];
     var res = profile.getProfile(userId, runtimeToken);    
     var success = check(res, {
-      "GET Profile: status is 200": (r) => r.status === 200,
-      "GET Profile: response contains userId": (r) => (JSON.parse(r.body)).userId === userId
+      "GET Profile status is 200:": (r) => r.status === 200,
+      "GET Profile response contains userId:": (r) => (JSON.parse(r.body)).userId === userId
   });  
   addErrorCount(success);
   sleep(1);

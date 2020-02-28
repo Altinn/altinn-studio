@@ -33,8 +33,8 @@ export default function(data) {
     //Test to create an instance with storage api and validate the response
     var res = instances.postInstance(runtimeToken, partyId, appOwner, level2App, instanceJson);    
     var success = check(res, {
-      "POST Create Instance: status is 201": (r) => r.status === 201,
-      "POST Create Instance: Instace Id is not null": (r) => (JSON.parse(r.body)).id != null
+      "POST Create Instance status is 201:": (r) => r.status === 201,
+      "POST Create Instance Instace Id is not null:": (r) => (JSON.parse(r.body)).id != null
     });  
     addErrorCount(success);
     sleep(1);
@@ -46,7 +46,7 @@ export default function(data) {
     //Test to get an instance by id from storage and validate the response
     res = instances.getInstanceById(runtimeToken, partyId, instanceId);
     success = check(res, {
-        "GET Instance by Id: status is 200": (r) => r.status === 200        
+        "GET Instance by Id status is 200:": (r) => r.status === 200        
       });  
     addErrorCount(success);
     sleep(1);
@@ -54,7 +54,7 @@ export default function(data) {
     //Test to get all instances for a party from storage and validate the response to have 403 as code
     res = instances.getAllinstances(runtimeToken, partyId);
     success = check(res, {
-        "GET Instaces by instanceOwner: status is 403": (r) => r.status === 403        
+        "GET Instaces by instanceOwner status is 403:": (r) => r.status === 403        
         });  
     addErrorCount(success);
     sleep(1);
@@ -62,7 +62,7 @@ export default function(data) {
     //Test to edit an instance by id in storage and validate the response
     res = instances.putInstanceById(runtimeToken, partyId, instanceId);    
     success = check(res, {
-        "PUT Edit Instance: status is 200": (r) => r.status === 200        
+        "PUT Edit Instance status is 200:": (r) => r.status === 200        
         });  
     addErrorCount(success);
     sleep(1);

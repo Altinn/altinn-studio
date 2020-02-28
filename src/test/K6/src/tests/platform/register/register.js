@@ -28,8 +28,8 @@ export default function(data) {
     //Test Platform: Register: Get organization by orgno and validate response
     var res = register.getOrganizations(runtimeToken, orgNr);    
     var success = check(res, {
-      "GET Org: status is 200": (r) => r.status === 200,
-      "GET Org: org number is not empty": (r) => (JSON.parse(r.body)).orgNumber != null
+      "GET Org status is 200:": (r) => r.status === 200,
+      "GET Org org number is not empty:": (r) => (JSON.parse(r.body)).orgNumber != null
     });  
     addErrorCount(success);
     sleep(1);
@@ -37,8 +37,8 @@ export default function(data) {
     //Test Platform: Register: Get parties by partyId and validate response
     res = register.getParty(runtimeToken, partyId);    
     success = check(res, {
-      "GET Party: status is 200": (r) => r.status === 200,
-      "GET Party: party id matches": (r) => (JSON.parse(r.body)).partyId === partyId
+      "GET Party status is 200:": (r) => r.status === 200,
+      "GET Party party id matches:": (r) => (JSON.parse(r.body)).partyId === partyId
     });  
     addErrorCount(success);
     sleep(1);
@@ -46,8 +46,8 @@ export default function(data) {
     //Test Platform: Register: POST party lookup by SSN and validate response
     res = register.postPartieslookup(runtimeToken, ssn);    
     success = check(res, {
-        "GET Party info: status is 200": (r) => r.status === 200,
-        "GET Party info: party id matches": (r) => (JSON.parse(r.body)).partyId === partyId
+        "GET Party info status is 200:": (r) => r.status === 200,
+        "GET Party info party id matches:": (r) => (JSON.parse(r.body)).partyId === partyId
     });  
     addErrorCount(success);
     sleep(1);

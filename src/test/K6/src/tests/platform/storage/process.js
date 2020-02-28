@@ -40,7 +40,7 @@ export default function (data){
     //Test to edit the process of an instance and validate the response
     var res = process.putProcess(runtimeToken, partyId, instanceId, instanceProcess);    
     var success = check(res, {
-       "PUT Edit Process: status is 200": (r) => r.status === 200       
+       "PUT Edit Process status is 200:": (r) => r.status === 200       
     });  
     addErrorCount(success);
     sleep(1);
@@ -48,7 +48,7 @@ export default function (data){
     //Test to get the process history of an instance and validate the response
     res = process.getProcessHistory(runtimeToken, partyId, instanceId);    
     success = check(res, {
-        "GET Process history: status is 200": (r) => r.status === 200       
+        "GET Process history status is 200:": (r) => r.status === 200       
     });  
     addErrorCount(success);
     sleep(1);

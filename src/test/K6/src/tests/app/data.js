@@ -48,7 +48,7 @@ export default function(data) {
     //Test to Get instance data by id with App api and validate the response
     var res = appData.getDataById(runtimeToken, partyId, instanceId, dataId);    
     var success = check(res, {
-      "App: GET Data by Id: status is 200": (r) => r.status === 200      
+      "App GET Data by Id status is 200:": (r) => r.status === 200      
     });  
     addErrorCount(success);
     sleep(1);
@@ -56,7 +56,7 @@ export default function(data) {
     //Test to edit a form data in an instance with App APi and validate the response
     res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
     success = check(res, {
-        "PUT Edit Data by Id: status is 201": (r) => r.status === 201        
+        "PUT Edit Data by Id status is 201:": (r) => r.status === 201        
     });  
     addErrorCount(success);
     sleep(1);
@@ -64,7 +64,7 @@ export default function(data) {
     //Test to delete a form data in an instance with App API and validate the response
     res = appData.deleteDataById(runtimeToken, partyId, instanceId, dataId);
     success = check(res, {
-        "DELETE Form Data by Id: Not Allowed : status is 400": (r) => r.status === 400        
+        "DELETE Form Data by Id Not Allowed status is 400:": (r) => r.status === 400        
     });  
     addErrorCount(success);
     sleep(1);
@@ -72,7 +72,7 @@ export default function(data) {
     //Test to upload an attachment to an instance with App API and validate the response
     res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment);
     success = check(res, {
-        "POST Attachment is uploaded: status is 201": (r) => r.status === 201        
+        "POST Attachment is uploaded status is 201:": (r) => r.status === 201        
     });  
     addErrorCount(success);
     sleep(1);
@@ -82,7 +82,7 @@ export default function(data) {
     //Test to delete a an attachment from an instance with App API and validate the response
     res = appData.deleteDataById(runtimeToken, partyId, instanceId, dataId);
     success = check(res, {
-        "DELETE Attachment: Allowed : status is 200": (r) => r.status === 200        
+        "DELETE Attachment Allowed status is 200:": (r) => r.status === 200        
     });  
     addErrorCount(success);
     sleep(1);

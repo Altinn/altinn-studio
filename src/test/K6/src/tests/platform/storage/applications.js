@@ -29,8 +29,8 @@ export default function(data) {
     //Test Platform: Storage: Get All applicaions under an appOwner
     var res = application.getAllApplications(runtimeToken, appOwner);    
     var success = check(res, {
-      "GET All Apps under an Org: status is 200": (r) => r.status === 200,
-      "GET All Apps under an Org: List is not empty": (r) => (JSON.parse(r.body)).applications.length != 0
+      "GET All Apps under an Org status is 200:": (r) => r.status === 200,
+      "GET All Apps under an Org List is not empty:": (r) => (JSON.parse(r.body)).applications.length != 0
     });  
     addErrorCount(success);
     sleep(1); 
@@ -39,8 +39,8 @@ export default function(data) {
     res = application.getAppByName(runtimeToken, appOwner, level2App);
     var appId = appOwner + "/" + level2App;
     success = check(res, {
-      "GET App by Name: status is 200": (r) => r.status === 200,
-      "GET App by Name: Metadata is OK": (r) => (JSON.parse(r.body)).id === appId
+      "GET App by Name status is 200:": (r) => r.status === 200,
+      "GET App by Name Metadata is OK:": (r) => (JSON.parse(r.body)).id === appId
     });  
     addErrorCount(success);
     sleep(1);
@@ -49,7 +49,7 @@ export default function(data) {
     //expected: 403 as it is not possible to create App with an user token
     res = application.postCreateApp(runtimeToken, appOwner, testApp, metadata);    
     success = check(res, {
-      "POST Create App: status is 403": (r) => r.status === 403      
+      "POST Create App status is 403:": (r) => r.status === 403      
     });  
     addErrorCount(success);
     sleep(1); 
@@ -58,7 +58,7 @@ export default function(data) {
     //expected: 200 as response code
     res = application.putEditApp(runtimeToken, appOwner, testApp, metadata);    
     success = check(res, {
-      "PUT Edit App: status is 403": (r) => r.status === 403      
+      "PUT Edit App status is 403:": (r) => r.status === 403      
     });  
     addErrorCount(success);
     sleep(1); 
