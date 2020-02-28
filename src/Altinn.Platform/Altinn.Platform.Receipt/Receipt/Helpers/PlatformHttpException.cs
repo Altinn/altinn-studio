@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Runtime.Serialization;
 
 namespace Altinn.Platform.Receipt.Helpers
 {
