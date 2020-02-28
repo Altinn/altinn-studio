@@ -10,7 +10,6 @@ export interface IInputProps {
   handleDataChange: (value: any) => void;
   isValid?: boolean;
   type?: string;
-  helpTextProps: any;
   title?: string;
 }
 
