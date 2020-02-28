@@ -30,5 +30,12 @@ namespace Altinn.Platform.Receipt.Helpers
 
             return message;
         }
+
+        /// <summary>
+        /// Add serialization info.
+        /// </summary>
+        protected PlatformHttpException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
     }
 }
