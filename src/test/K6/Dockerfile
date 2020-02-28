@@ -1,7 +1,3 @@
-FROM loadimpact/k6
-WORKDIR /src
-ENV env ${env}
-ENV vus ${vus}
-ENV duration ${duration}
-COPY . .
-RUN k6 run --vus ${vus} --duration ${duration} ./src/Tests/Platform/pdf.js -e env=${env}
+FROM mhart/alpine-node:latest AS build
+RUN npm install k6-to-junit
+FROM loadimpact/k6 AS tests
