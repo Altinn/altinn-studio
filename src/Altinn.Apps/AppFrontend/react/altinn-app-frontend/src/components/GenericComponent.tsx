@@ -56,6 +56,9 @@ export function GenericComponent(props: IGenericComponentProps) {
   const componentValidations: IComponentValidations = useSelector((state: IRuntimeState) => state.formValidations.validations[props.id], shallowEqual);
 
   React.useEffect(() => {
+    console.log("issSimpleEffect");
+    console.log('component', component);
+    console.log('id', id);
     if (component) {
       setIsSimple(isSimpleComponent(component));
     }

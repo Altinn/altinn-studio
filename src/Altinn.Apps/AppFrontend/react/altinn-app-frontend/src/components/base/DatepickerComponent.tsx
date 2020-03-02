@@ -8,7 +8,8 @@ import MomentUtils from '@date-io/moment';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Moment } from 'moment';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
+import { renderValidationMessagesForComponent } from '../../utils/render';
+import { IComponentValidations, IComponentBindingValidation } from 'src/types/global';
 
 export interface IDatePickerProps{
   id: string;
@@ -19,7 +20,7 @@ export interface IDatePickerProps{
   isValid?: boolean;
   format: string;
   language: any;
-  componentValidations: any;
+  componentValidations: IComponentValidations;
 }
 
 const useStyles = makeStyles({
@@ -81,20 +82,23 @@ function DatepickerComponent(props: IDatePickerProps) {
     // merges the internal state with the validation messages supplied from redux
     console.log('componentValidations', props.componentValidations);
     console.log('validDate', validDate);
-    if (!props.componentValidations && validDate) {
+    if (!props.componentValidations?.simpleBinding && validDate) {
       return {};
     }
     if (validDate) {
-      return props.componentValidations;
+      return props.componentValidations.simpleBinding;
     }
-    let validations = props.componentValidations;
-    if (!props.componentValidations) {
+    let validations: IComponentBindingValidation = props.componentValidations?.simpleBinding;
+    if (!validations) {
       validations = {};
+    } else {
+      // deep copy
+      validations = JSON.parse(JSON.stringify(props.componentValidations?.simpleBinding));
     }
-    if (!validations.error) {
-      validations.error = [];
+    if (!validations.errors) {
+      validations.errors = [];
     }
-    validations.error.push('Test error');
+    validations.errors.push('Test error');
     return validations;
   }
 
@@ -117,11 +121,6 @@ function DatepickerComponent(props: IDatePickerProps) {
     props.handleDataChange(date ? date.toISOString() : '');
   }
 
-  const onError = (error: React.ReactNode, value: any) => {
-    //console.log('error', error);
-    //console.log('value', value);
-  }
-
   return (
     <MuiPickersUtilsProvider utils={AltinnMomentUtils}>
       <Grid
@@ -130,7 +129,6 @@ function DatepickerComponent(props: IDatePickerProps) {
         xs={12}
       >
           <KeyboardDatePicker
-            onError={onError}
             readOnly={props.readOnly}
             required={props.required}
             variant={inline ? 'inline' : 'dialog'}
