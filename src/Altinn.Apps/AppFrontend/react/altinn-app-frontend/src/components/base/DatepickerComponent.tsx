@@ -8,6 +8,7 @@ import MomentUtils from '@date-io/moment';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Moment } from 'moment';
+import { renderValidationMessagesForComponent } from 'src/utils/render';
 
 export interface IDatePickerProps{
   id: string;
@@ -18,6 +19,7 @@ export interface IDatePickerProps{
   isValid?: boolean;
   format: string;
   language: any;
+  componentValidations: any;
 }
 
 const useStyles = makeStyles({
@@ -25,6 +27,7 @@ const useStyles = makeStyles({
     fontSize: '1.6rem',
     borderWidth:'2px',
     borderStyle: 'solid',
+    marginBottom: '0px',
     borderColor: AltinnAppTheme.altinnPalette.primary.blueMedium,
     '&:hover': {
       borderColor: AltinnAppTheme.altinnPalette.primary.blueDark,
@@ -48,6 +51,10 @@ const useStyles = makeStyles({
   },
   formHelperText: {
     fontSize: '1.4rem',
+  },
+  datepicker: {
+    width: 'auto',
+    marginBottom: '0px'
   }
 });
 
@@ -61,7 +68,6 @@ class AltinnMomentUtils extends MomentUtils {
 }
 
 function DatepickerComponent(props: IDatePickerProps) {
-
   const classes = useStyles();
   const [date, setDate] = React.useState<moment.Moment>(null);
   const [validDate, setValidDate] = React.useState<boolean>(true);
@@ -70,6 +76,27 @@ function DatepickerComponent(props: IDatePickerProps) {
   moment.locale(locale);
   const theme = useTheme();
   const inline = useMediaQuery(theme.breakpoints.up('sm'));
+
+  const mergeValidations = () => {
+    // merges the internal state with the validation messages supplied from redux
+    console.log('componentValidations', props.componentValidations);
+    console.log('validDate', validDate);
+    if (!props.componentValidations && validDate) {
+      return {};
+    }
+    if (validDate) {
+      return props.componentValidations;
+    }
+    let validations = props.componentValidations;
+    if (!props.componentValidations) {
+      validations = {};
+    }
+    if (!validations.error) {
+      validations.error = [];
+    }
+    validations.error.push('Test error');
+    return validations;
+  }
 
   React.useEffect(() => {
     let date = props.formData ? moment(props.formData) : null;
@@ -90,6 +117,11 @@ function DatepickerComponent(props: IDatePickerProps) {
     props.handleDataChange(date ? date.toISOString() : '');
   }
 
+  const onError = (error: React.ReactNode, value: any) => {
+    //console.log('error', error);
+    //console.log('value', value);
+  }
+
   return (
     <MuiPickersUtilsProvider utils={AltinnMomentUtils}>
       <Grid
@@ -98,6 +130,7 @@ function DatepickerComponent(props: IDatePickerProps) {
         xs={12}
       >
           <KeyboardDatePicker
+            onError={onError}
             readOnly={props.readOnly}
             required={props.required}
             variant={inline ? 'inline' : 'dialog'}
@@ -109,9 +142,9 @@ function DatepickerComponent(props: IDatePickerProps) {
             key={"altinn-date-picker-" + props.id}
             onChange={handleDataChangeWrapper}
             onBlur={handleOnBlur}
-            invalidDateMessage={getLanguageFromKey('date_picker.invalid_date_message', props.language)}
-            maxDateMessage={getLanguageFromKey('date_picker.max_date_exeeded', props.language)}
-            minDateMessage={getLanguageFromKey('date_picker.min_date_exeeded', props.language)}
+            invalidDateMessage={''} // all validation messages intentionally left empty
+            maxDateMessage={''}
+            minDateMessage={''}
             cancelLabel={getLanguageFromKey('date_picker.cancel_label', props.language)}
             clearLabel={getLanguageFromKey('date_picker.clear_label', props.language)}
             todayLabel={getLanguageFromKey('date_picker.today_label', props.language)}
@@ -129,12 +162,12 @@ function DatepickerComponent(props: IDatePickerProps) {
               }
             }}
             keyboardIcon={<Icon className={classes.icon + ' ai ai-date'}/>}
-            style={{
-              width: 'auto',
-            }}
+            className={classes.datepicker}
           />
         </Grid>
+        {renderValidationMessagesForComponent(mergeValidations(),`${props.id}_validations`)}
       </MuiPickersUtilsProvider>
+
   )
 }
 
