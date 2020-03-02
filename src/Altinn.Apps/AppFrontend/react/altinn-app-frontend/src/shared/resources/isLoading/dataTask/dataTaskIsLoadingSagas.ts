@@ -7,6 +7,7 @@ import { FETCH_FORM_DATA_FULFILLED } from '../../../../features/form/data/formDa
 import { FETCH_DATA_MODEL_FULFILLED } from '../../../../features/form/datamodel/fetch/fetchFormDatamodelActionTypes';
 import { FETCH_FORM_LAYOUT_FULFILLED } from '../../../../features/form/layout/formLayoutActionTypes';
 import { FETCH_RULE_MODEL_FULFILLED } from '../../../../features/form/rules/rulesActionTypes';
+import { FETCH_SERVICE_CONFIG_FULFILLED } from '../../../../features/form/dynamics/formDynamicsActionTypes';
 // import { FETCH_LANGUAGE_FULFILLED } from './../../language/fetch/fetchLanguageActionTypes';
 import IsLoadingActions from './../isLoadingActions';
 
@@ -20,6 +21,7 @@ export function* watcherFinishDataTaskIsloadingSaga(): SagaIterator {
     take(FETCH_RULE_MODEL_FULFILLED),
     take(GET_INSTANCEDATA_FULFILLED),
     take(MAP_ATTACHMENTS_FULFILLED),
+    take(FETCH_SERVICE_CONFIG_FULFILLED),
   ]);
 
   yield call(IsLoadingActions.finishDataTaskIsloading);

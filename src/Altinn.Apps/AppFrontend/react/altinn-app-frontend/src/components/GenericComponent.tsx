@@ -122,8 +122,6 @@ export function GenericComponent(props: IGenericComponentProps) {
     passThroughProps.componentValidations = internalComponentValidations;
   }
 
-  const makeComponent = components.find((component: any) => component.name === props.type).Tag;
-
   if (hidden) {
     return null;
   }
@@ -136,28 +134,35 @@ export function GenericComponent(props: IGenericComponentProps) {
     helpTextKey: props.textResourceBindings.help,
   };
 
+  const componentProps = {
+    handleDataChange: handleDataUpdate,
+    handleFocusUpdate,
+    getTextResource: getTextResource,
+    formData: formData,
+    isValid,
+    language,
+    id,
+    shouldFocus,
+    text: getTextResource(props.textResourceBindings.title, textResources),
+    ...passThroughProps,
+  }
+
+  const RenderComponent = components.find((component: any) => component.name === props.type).Tag;
+
   return (
     <>
     <Label
-      labelText={getLanguageFromKey(props.textResourceBindings.title, textResources)}
+      labelText={getTextResource(props.textResourceBindings.title, textResources)}
       helpTextProps={helpTextProps}
       language={language}
       textResourceBindings={textResources}
       {...props}
       {...component}
     />
-    {makeComponent({
-      handleDataChange: handleDataUpdate,
-      handleFocusUpdate,
-      getTextResource: getTextResource,
-      formData: formData,
-      isValid,
-      language,
-      id,
-      shouldFocus,
-      text: getTextResource(props.textResourceBindings.title, textResources),
-      ...passThroughProps,
-    })}
+    <RenderComponent
+      {...componentProps}
+    />
+    {/* { React.createElement(RenderComponent, componentProps) } */}
     {isSimple && hasValidationMessages &&
           renderValidationMessagesForComponent(componentValidations.simpleBinding, props.id)
     }
