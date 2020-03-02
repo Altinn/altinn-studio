@@ -138,6 +138,11 @@ export interface IPerson {
   addressCity: string;
 }
 
+export interface IExtendedInstance {
+  instance: IInstance;
+  party: IParty;
+}
+
 export interface IProcess {
   started: string;
   startEvent: string;

@@ -68,7 +68,7 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
 
   React.useEffect(() => {
     returnSelected();
-  }, [props]);
+  }, [props.formData]);
 
   const returnSelected = () => {
     if (

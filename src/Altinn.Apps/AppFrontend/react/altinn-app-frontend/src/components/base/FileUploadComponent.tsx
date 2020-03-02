@@ -1,6 +1,6 @@
 import * as React from 'react';
 import DropZone from 'react-dropzone';
-import { connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 import uuid = require('uuid');
 import {AltinnAppTheme} from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
@@ -25,19 +25,6 @@ export interface IFileUploadProvidedProps {
   validFileEndings?: string;
 }
 
-export interface IFileUploadProps extends IFileUploadProvidedProps {
-  attachments: IAttachment[];
-}
-
-export interface IFileUploadState {
-  title: string;
-  description: string;
-  attachments: IAttachment[];
-  showFileUpload: boolean;
-  validations: string[];
-  test: string;
-}
-
 const baseStyle = {
   width: 'auto',
   height: '15.6rem',
@@ -60,98 +47,40 @@ const validationErrorStyle = {
 
 export const bytesInOneMB = 1048576;
 
-export class FileUploadComponentClass
-  extends React.Component<IFileUploadProps, IFileUploadState> {
+export function FileUploadComponent(props: IFileUploadProvidedProps) {
 
-  public static getDerivedStateFromProps(props: IFileUploadProps, state: IFileUploadState): IFileUploadState {
-    return {
-      ...state,
-      attachments: props.attachments,
-    };
-  }
+  const [attachments, dispatch] = React.useReducer(reducer, []);
 
-  constructor(props: IFileUploadProps, state: IFileUploadState) {
-    super(props, state);
-    this.state = {
-      attachments: props.attachments || [],
-      validations: [],
-      ...state,
-    };
-  }
+  const [validations, setValidations] = React.useState([]);
+  const [showFileUpload, setShowFileUpload] = React.useState(false);
 
-  public onDrop = (acceptedFiles: File[], rejectedFiles: File[]) => {
-    const newFiles: IAttachment[] = [];
-    const fileType = this.props.id; // component id used as filetype identifier for now, see issue #1364
-    const validations: string[] = [];
-    const totalAttachments = acceptedFiles.length + rejectedFiles.length + this.props.attachments.length;
-    let showFileUpload = this.state.showFileUpload;
-    if (totalAttachments > this.props.maxNumberOfAttachments) {
-      // if the user adds more attachments than max, all should be ignored
-      validations.push(
-        getLanguageFromKey('form_filler.file_uploader_validation_error_exceeds_max_files_1', this.props.language) +
-        ' ' + this.props.maxNumberOfAttachments + ' ' +
-        getLanguageFromKey('form_filler.file_uploader_validation_error_exceeds_max_files_2', this.props.language));
-    } else {
-      // we should upload all files, if any rejected files we should display an error
-      acceptedFiles.forEach((file: File) => {
-        if ((this.state.attachments.length + newFiles.length) < this.props.maxNumberOfAttachments) {
-          const tmpId: string = uuid();
-          newFiles.push({ name: file.name, size: file.size, uploaded: false, id: tmpId, deleting: false });
-          AttachmentDispatcher.uploadAttachment(file, fileType, tmpId, this.props.id);
-        }
-      });
-
-      if (acceptedFiles.length > 0) {
-        showFileUpload = (this.props.displayMode === 'simple') ? false :
-          (this.props.attachments.length < this.props.maxNumberOfAttachments);
+  function reducer(state, action) {
+    if (action.type === "replace") {
+      return action.value;
+    } else if (action.type === "add") {
+      return state.concat(action.value);
+    } else if (action.type === "delete") {
+      const attachmentToDelete = state[action.index];
+      if (!attachmentToDelete.uploaded) {
+        return state;
       }
-      if (rejectedFiles.length > 0) {
-        rejectedFiles.forEach((file) => {
-          if (file.size > (this.props.maxFileSizeInMB * bytesInOneMB)) {
-            validations.push(
-              file.name + ' ' +
-              getLanguageFromKey('form_filler.file_uploader_validation_error_file_size', this.props.language));
-          } else {
-            validations.push(
-              getLanguageFromKey('form_filler.file_uploader_validation_error_general_1', this.props.language) + ' ' +
-              file.name + ' ' +
-              getLanguageFromKey('form_filler.file_uploader_validation_error_general_2', this.props.language));
-          }
-        });
-      }
+      attachmentToDelete.deleting = true;
+      const newList = state.slice();
+      newList[action.index] = attachmentToDelete;
     }
-    this.setState({
-      attachments: this.state.attachments.concat(newFiles),
-      // if simple mode, we should hide list on each drop
-      showFileUpload,
-      validations,
-    });
+    return [];
   }
 
-  public handleDeleteKeypress = (index: number, event: any) => {
-    if (event.key === 'Enter') {
-      this.handleDeleteFile(index);
-    }
-  }
-  
-  public handleDeleteFile = (index: number) => {
-    const attachmentToDelete = this.state.attachments[index];
-    if (!attachmentToDelete.uploaded) {
-      return;
-    }
-    const fileType = this.props.id; // component id used as filetype identifier for now, see issue #1364
-    attachmentToDelete.deleting = true;
-    const newList = this.state.attachments.slice();
-    newList[index] = attachmentToDelete;
-    this.setState({
-      attachments: newList,
-    });
-    AttachmentDispatcher.deleteAttachment(attachmentToDelete, fileType, this.props.id);
-  }
 
-  public getComponentValidations = (): IComponentValidations => {
-    const { validations } = this.state;
-    let validationMessages = this.props.componentValidations;
+
+  const currentAttachments: IAttachment[] = useSelector((state: IRuntimeState) => state.attachments.attachments[props.id] || []);
+
+  React.useEffect(() => {
+    dispatch({type: "replace", value: currentAttachments})
+  }, [currentAttachments]);
+
+  const getComponentValidations = (): IComponentValidations => {
+    let validationMessages = props.componentValidations;
     validationMessages = JSON.parse(JSON.stringify(validationMessages || {}));
     if (!validationMessages || !validationMessages.simpleBinding) {
       validationMessages = {
@@ -170,23 +99,82 @@ export class FileUploadComponentClass
     return validationMessages;
   }
 
-  public renderFileList = (): JSX.Element => {
-    if (!this.state.attachments || this.state.attachments.length === 0) {
+  const onDrop = (acceptedFiles: File[], rejectedFiles: File[]) => {
+    const newFiles: IAttachment[] = [];
+    const fileType = props.id; // component id used as filetype identifier for now, see issue #1364
+    const validations: string[] = [];
+    const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;
+    
+    if (totalAttachments > props.maxNumberOfAttachments) {
+      // if the user adds more attachments than max, all should be ignored
+      validations.push(
+        getLanguageFromKey('form_filler.file_uploader_validation_error_exceeds_max_files_1', props.language) +
+        ' ' + props.maxNumberOfAttachments + ' ' +
+        getLanguageFromKey('form_filler.file_uploader_validation_error_exceeds_max_files_2', props.language));
+    } else {
+      // we should upload all files, if any rejected files we should display an error
+      acceptedFiles.forEach((file: File) => {
+        if ((attachments.length + newFiles.length) < props.maxNumberOfAttachments) {
+          const tmpId: string = uuid();
+          newFiles.push({ name: file.name, size: file.size, uploaded: false, id: tmpId, deleting: false });
+          AttachmentDispatcher.uploadAttachment(file, fileType, tmpId, props.id);
+        }
+      });
+
+      if (acceptedFiles.length > 0) {
+        setShowFileUpload((props.displayMode === 'simple') ? false :
+          (attachments.length < props.maxNumberOfAttachments));
+      }
+
+      if (rejectedFiles.length > 0) {
+        rejectedFiles.forEach((file) => {
+          if (file.size > (props.maxFileSizeInMB * bytesInOneMB)) {
+            validations.push(
+              file.name + ' ' +
+              getLanguageFromKey('form_filler.file_uploader_validation_error_file_size', props.language));
+          } else {
+            validations.push(
+              getLanguageFromKey('form_filler.file_uploader_validation_error_general_1', props.language) + ' ' +
+              file.name + ' ' +
+              getLanguageFromKey('form_filler.file_uploader_validation_error_general_2', props.language));
+          }
+        });
+      }
+    }
+    dispatch({type: "add", value: newFiles});
+    setValidations(validations);
+  }
+
+  const handleDeleteKeypress = (index: number, event: any) => {
+    if (event.key === 'Enter') {
+      handleDeleteFile(index);
+    }
+  }
+
+  const handleDeleteFile = (index: number) => {
+    const attachmentToDelete = attachments[index];
+    const fileType = props.id; // component id used as filetype identifier for now, see issue #1364
+    dispatch({type: "delete", index});
+    AttachmentDispatcher.deleteAttachment(attachmentToDelete, fileType, props.id);
+  }
+
+  const renderFileList = (): JSX.Element => {
+    if (!attachments || attachments.length === 0) {
       return null;
     }
     return (
-      <div id={'altinn-file-list-' + this.props.id}>
+      <div id={'altinn-file-list-' + props.id}>
         <table className={'file-upload-table'}>
           <thead>
             <tr className={'blue-underline'} id={'altinn-file-list-row-header'}>
-              <th>{getLanguageFromKey('form_filler.file_uploader_list_header_name', this.props.language)}</th>
-              <th>{getLanguageFromKey('form_filler.file_uploader_list_header_file_size', this.props.language)}</th>
-              <th>{getLanguageFromKey('form_filler.file_uploader_list_header_status', this.props.language)}</th>
+              <th>{getLanguageFromKey('form_filler.file_uploader_list_header_name', props.language)}</th>
+              <th>{getLanguageFromKey('form_filler.file_uploader_list_header_file_size', props.language)}</th>
+              <th>{getLanguageFromKey('form_filler.file_uploader_list_header_status', props.language)}</th>
               <th />
             </tr>
           </thead>
           <tbody>
-            {this.state.attachments.map((attachment: IAttachment, index: number) => {
+            {attachments.map((attachment: IAttachment, index: number) => {
               return (
                 <tr
                   key={index}
@@ -197,12 +185,12 @@ export class FileUploadComponentClass
                   <td tabIndex={0}>{attachment.name}</td>
                   <td tabIndex={0}>
                     {(attachment.size / bytesInOneMB).toFixed(2) + ' ' +
-                      getLanguageFromKey('form_filler.file_uploader_mb', this.props.language)}
+                      getLanguageFromKey('form_filler.file_uploader_mb', props.language)}
                   </td >
                   <td>
                     {attachment.uploaded &&
                       <div tabIndex={0}>
-                        {getLanguageFromKey('form_filler.file_uploader_list_status_done', this.props.language)}
+                        {getLanguageFromKey('form_filler.file_uploader_list_status_done', props.language)}
                         < i className='ai ai-check-circle' />
                       </div>
                     }
@@ -217,14 +205,14 @@ export class FileUploadComponentClass
                   </td>
                   <td>
                     <div
-                      onClick={this.handleDeleteFile.bind(this, index)}
+                      onClick={handleDeleteFile.bind(this, index)}
                       id={'attachment-delete-' + index}
-                      onKeyPress={this.handleDeleteKeypress.bind(this, index)}
+                      onKeyPress={handleDeleteKeypress.bind(this, index)}
                       tabIndex={0}
                     >
                       {!attachment.deleting &&
                         <>
-                          {getLanguageFromKey('form_filler.file_uploader_list_delete', this.props.language)}
+                          {getLanguageFromKey('form_filler.file_uploader_list_delete', props.language)}
                           <i className='ai ai-trash' />
                         </>
                       }
@@ -247,7 +235,7 @@ export class FileUploadComponentClass
     );
   }
 
-  public renderFileUploadContent = (): JSX.Element => {
+  const renderFileUploadContent = (): JSX.Element => {
     return (
       <div className={'container'}>
         <div className='col text-center icon' style={{ marginTop: '3.5rem' }} >
@@ -255,29 +243,42 @@ export class FileUploadComponentClass
         </div>
         <div className='col text-center'>
           <p className={'file-upload-text-bold'}>
-            {getLanguageFromKey('form_filler.file_uploader_drag', this.props.language)}
+            {getLanguageFromKey('form_filler.file_uploader_drag', props.language)}
             <span className={'file-upload-text-bold blue-underline'}>
-              {' ' + getLanguageFromKey('form_filler.file_uploader_find', this.props.language)}
+              {' ' + getLanguageFromKey('form_filler.file_uploader_find', props.language)}
             </span>
           </p>
         </div>
         <div className='col text-center'>
           <p className={'file-upload-text'}>
-            {getLanguageFromKey('form_filler.file_uploader_valid_file_format', this.props.language)}
-            {this.props.hasCustomFileEndings ? (' ' + this.props.validFileEndings) :
-              (' ' + getLanguageFromKey('form_filler.file_upload_valid_file_format_all', this.props.language))}
+            {getLanguageFromKey('form_filler.file_uploader_valid_file_format', props.language)}
+            {props.hasCustomFileEndings ? (' ' + props.validFileEndings) :
+              (' ' + getLanguageFromKey('form_filler.file_upload_valid_file_format_all', props.language))}
           </p>
         </div>
       </div>
     );
   }
 
-  public renderAddMoreAttachmentsButton = (): JSX.Element => {
-    if (this.props.displayMode === 'simple' && !this.state.showFileUpload &&
-      (this.state.attachments.length < this.props.maxNumberOfAttachments) && this.state.attachments.length > 0) {
+  const updateShowFileUpload = () => {
+    setShowFileUpload(true);
+  }
+
+  const shouldShowFileUpload = (): boolean => {
+    if (attachments.length >= props.maxNumberOfAttachments) {
+      return false;
+    } else {
+      return (props.displayMode !== 'simple') || (attachments.length === 0) ||
+        (showFileUpload === true);
+    }
+  }
+
+  const renderAddMoreAttachmentsButton = (): JSX.Element => {
+    if (props.displayMode === 'simple' && !showFileUpload &&
+      (attachments.length < props.maxNumberOfAttachments) && attachments.length > 0) {
       return (
-        <button className={'file-upload-button blue-underline'} onClick={this.showFileUpload}>
-          {getLanguageFromKey('form_filler.file_uploader_add_attachment', this.props.language)}
+        <button className={'file-upload-button blue-underline'} onClick={updateShowFileUpload}>
+          {getLanguageFromKey('form_filler.file_uploader_add_attachment', props.language)}
         </button>
       );
     } else {
@@ -285,58 +286,40 @@ export class FileUploadComponentClass
     }
   }
 
-  public renderAttachmentsCounter = (): JSX.Element => {
+  const renderAttachmentsCounter = (): JSX.Element => {
     return (
       <p className={'file-upload-text-bold-small'}>
         {
-          getLanguageFromKey('form_filler.file_uploader_number_of_files', this.props.language) + ' ' +
-          (this.props.minNumberOfAttachments ? this.state.attachments.length + '/' + this.props.maxNumberOfAttachments
-            : this.state.attachments.length)
+          getLanguageFromKey('form_filler.file_uploader_number_of_files', props.language) + ' ' +
+          (props.minNumberOfAttachments ? attachments.length + '/' + props.maxNumberOfAttachments
+            : attachments.length)
         }
       </p>
     );
   }
 
-  public showFileUpload = () => {
-    this.setState({
-      showFileUpload: true,
-    });
-  }
-
-  public shouldShowFileUpload = (): boolean => {
-    const { attachments, showFileUpload } = this.state;
-    if (attachments.length >= this.props.maxNumberOfAttachments) {
-      return false;
-    } else {
-      return (this.props.displayMode !== 'simple') || (attachments.length === 0) ||
-        (showFileUpload === true);
-    }
-  }
-
-  public render() {
-    const validationMessages = this.getComponentValidations();
-    const showFileUpload: boolean = this.shouldShowFileUpload();
+  const validationMessages = getComponentValidations();
     const hasValidationMessages: boolean = validationMessages.simpleBinding.errors.length > 0;
     return (
       <div
         className={'container'}
-        id={'altinn-fileuploader-' + this.props.id}
+        id={'altinn-fileuploader-' + props.id}
         tabIndex={0}
       >
-        {showFileUpload &&
+        {shouldShowFileUpload() &&
           <div>
             <p className={'file-upload-text-bold-small'}>
               {
-                getLanguageFromKey('form_filler.file_uploader_max_size', this.props.language)
-                + ' ' + this.props.maxFileSizeInMB + ' ' +
-                getLanguageFromKey('form_filler.file_uploader_mb', this.props.language)
+                getLanguageFromKey('form_filler.file_uploader_max_size', props.language)
+                + ' ' + props.maxFileSizeInMB + ' ' +
+                getLanguageFromKey('form_filler.file_uploader_mb', props.language)
               }
             </p>
             <DropZone
-              onDrop={this.onDrop}
-              maxSize={this.props.maxFileSizeInMB * bytesInOneMB} // mb to bytes
-              disabled={this.props.readOnly}
-              accept={(this.props.hasCustomFileEndings) ? this.props.validFileEndings : null}
+              onDrop={onDrop}
+              maxSize={props.maxFileSizeInMB * bytesInOneMB} // mb to bytes
+              disabled={props.readOnly}
+              accept={(props.hasCustomFileEndings) ? props.validFileEndings : null}
             >
               {({ getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject }) => {
                 let styles = { ...baseStyle };
@@ -348,11 +331,11 @@ export class FileUploadComponentClass
                   <div
                     {...getRootProps()}
                     style={styles}
-                    id={'altinn-drop-zone-' + this.props.id}
+                    id={'altinn-drop-zone-' + props.id}
                     className={'file-upload' + (hasValidationMessages ? ' file-upload-invalid' : '')}
                   >
                     <input {...getInputProps()} />
-                    {this.renderFileUploadContent()}
+                    {renderFileUploadContent()}
                   </div>
                 );
               }}
@@ -360,51 +343,22 @@ export class FileUploadComponentClass
           </div>
         }
 
-        {showFileUpload && this.renderAttachmentsCounter()}
+        {shouldShowFileUpload() && renderAttachmentsCounter()}
 
         {(validationMessages.simpleBinding.errors.length > 0 && showFileUpload) &&
-          renderValidationMessagesForComponent(validationMessages.simpleBinding, this.props.id)
+          renderValidationMessagesForComponent(validationMessages.simpleBinding, props.id)
         }
 
-        {this.renderFileList()}
+        {renderFileList()}
 
-        {!showFileUpload && this.renderAttachmentsCounter()}
+        {!shouldShowFileUpload() && renderAttachmentsCounter()}
 
         {(validationMessages.simpleBinding.errors.length > 0 && !showFileUpload) &&
-          renderValidationMessagesForComponent(validationMessages.simpleBinding, this.props.id)
+          renderValidationMessagesForComponent(validationMessages.simpleBinding, props.id)
         }
 
-        {this.renderAddMoreAttachmentsButton()}
+        {renderAddMoreAttachmentsButton()}
 
       </div>
     );
-  }
 }
-
-export function getFileUploadComponentValidations(validationError: string, language: any): IComponentValidations {
-  const componentValidations: any = {
-    ['simpleBinding']: {
-      errors: [],
-      warnings: [],
-    },
-  };
-  if (validationError === 'upload') {
-    componentValidations.simpleBinding.errors.push(
-      getLanguageFromKey('form_filler.file_uploader_validation_error_upload', language),
-    );
-  } else if (validationError === 'delete') {
-    componentValidations.simpleBinding.errors.push(
-      getLanguageFromKey('form_filler.file_uploader_validation_error_delete', language),
-    );
-  }
-  return componentValidations;
-}
-
-const mapStateToProps = (state: IRuntimeState, props: IFileUploadProvidedProps): IFileUploadProps => {
-  return {
-    ...props,
-    attachments: state.attachments.attachments[props.id] || [],
-  };
-};
-
-export const FileUploadComponent = connect(mapStateToProps)(FileUploadComponentClass);

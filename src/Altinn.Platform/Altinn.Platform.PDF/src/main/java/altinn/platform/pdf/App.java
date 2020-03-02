@@ -22,7 +22,7 @@ import java.util.logging.Level;
 @SpringBootApplication
 public class App {
 
-  private static String vaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey--Pdf";
+  private static String vaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey";
 
   public static void main(String[] args) {
     AltinnOrgUtils.initAltinnOrgsHarvesting();

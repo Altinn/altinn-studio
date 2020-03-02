@@ -11,6 +11,7 @@ using Altinn.App.AppLogic.Validation;
 using Altinn.App.AppLogic.Calculation;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Common.Models;
 
 namespace Altinn.App.AppLogic
 {
@@ -103,6 +104,11 @@ namespace Altinn.App.AppLogic
         public override async Task RunDataCreation(Instance instance, object data)
         {
            await _instantiationHandler.DataCreation(instance, data);
+        }
+
+        public override Task<AppOptions> GetOptions(string id, AppOptions options)
+        {
+            return Task.FromResult(options);
         }
     }
 }

@@ -7,14 +7,14 @@ import AltinnModal from '../../../../../shared/src/components/molecules/AltinnMo
 import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
 import AltinnReceipt from '../../../../../shared/src/components/organisms/AltinnReceipt';
 import theme from '../../../../../shared/src/theme/altinnStudioTheme';
-import { IApplication, IAttachment, IInstance, IParty, IProfile  } from '../../../../../shared/src/types';
+import { IApplication, IAttachment, IInstance, IParty, IProfile, IExtendedInstance  } from '../../../../../shared/src/types';
 import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationMetaDataUtils';
 import { getInstancePdf, mapInstanceAttachments } from '../../../../../shared/src/utils/attachmentsUtils';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
 import { nb } from '../../../resources/language';
 import { getInstanceMetaDataObject } from '../../../utils/receipt';
-import { altinnOrganisationsUrl, getApplicationMetadataUrl, getInstanceMetadataUrl, getPartyUrl, getUserUrl } from '../../../utils/urlHelper';
+import { altinnOrganisationsUrl, getApplicationMetadataUrl, getUserUrl, getExtendedInstanceUrl } from '../../../utils/urlHelper';
 
 const styles = () => createStyles({
   body: {
@@ -27,7 +27,6 @@ const styles = () => createStyles({
 });
 
 function Receipt(props: WithStyles<typeof styles>) {
-
   const [party, setParty] = React.useState<IParty>(null);
   const [instance, setInstance] = React.useState<IInstance>(null);
   const [organisations, setOrganisations] = React.useState(null);
@@ -38,10 +37,11 @@ function Receipt(props: WithStyles<typeof styles>) {
   const [pdf, setPdf] = React.useState<IAttachment>(null);
   const isPrint = useMediaQuery('print');
 
-  const fetchParty = async () => {
+  const fetchInstanceAndParty = async () => {
     try {
-      const response = await Axios.get<IParty>(getPartyUrl());
-      setParty(response.data);
+      const response = await Axios.get<IExtendedInstance>(getExtendedInstanceUrl());
+      setParty(response.data.party);
+      setInstance(response.data.instance);
     } catch (error) {
       console.error(error);
     }
@@ -53,15 +53,6 @@ function Receipt(props: WithStyles<typeof styles>) {
       const response = await Axios.get<IApplication>(getApplicationMetadataUrl(instance.org, app));
       setApplication(response.data);
     } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const fetchInstance = async () => {
-    try {
-      const response = await Axios.get<IInstance>(getInstanceMetadataUrl());
-      setInstance(response.data);
-    } catch (error)  {
       console.error(error);
     }
   };
@@ -117,8 +108,7 @@ function Receipt(props: WithStyles<typeof styles>) {
   }, [instance, application]);
 
   React.useEffect(() => {
-    fetchInstance();
-    fetchParty();
+    fetchInstanceAndParty();
     fetchOrganisations();
     fetchUser();
     fetchLanguage();

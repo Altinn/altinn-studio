@@ -8,8 +8,8 @@ import QueueActions from '../../../../shared/resources/queue/queueActions';
 
 function* fetchDynamicsSaga({ url }: IFetchServiceConfig): SagaIterator {
   try {
-    let data: any = yield call(get, url);
-    data = data ? data : {};
+    const result: any = yield call(get, url);
+    const data = result ? result.data : {};
 
     yield call(
       FormDynamicsActions.fetchFormDynamicsFulfilled,
