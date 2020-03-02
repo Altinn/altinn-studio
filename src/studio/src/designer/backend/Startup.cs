@@ -34,7 +34,8 @@ namespace Altinn.Studio.Designer
         /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
-        /// <param name="configuration">the configuration for designer</param>
+        /// <param name="configuration">The configuration for designer</param>
+        /// <param name="loggerFactory">The logger factory</param>
         public Startup(IConfiguration configuration, ILoggerFactory loggerFactory)
         {
             Configuration = configuration;

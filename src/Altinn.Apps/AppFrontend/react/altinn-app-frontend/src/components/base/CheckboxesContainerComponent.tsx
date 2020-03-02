@@ -68,7 +68,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   React.useEffect(() => {
     returnState();
-  }, [props]);
+  }, [props.formData]);
 
   const returnState = () => {
     if (
