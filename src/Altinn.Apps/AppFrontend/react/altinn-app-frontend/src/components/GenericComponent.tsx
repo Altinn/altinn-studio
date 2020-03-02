@@ -135,7 +135,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   return (
     <>
     <Label
-      labelText={getLanguageFromKey(props.textResourceBindings.title, textResources)}
+      labelText={getTextResource(props.textResourceBindings.title, textResources)}
       helpTextProps={helpTextProps}
       language={language}
       textResourceBindings={textResources}
