@@ -40,8 +40,6 @@ namespace Altinn.Platform.Receipt.Clients
                 }
 
                 _registerClient = GetNewHttpClient(_platformSettings.ApiRegisterEndpoint);
-                _registerClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
                 return _registerClient;
             }
         }
@@ -57,8 +55,6 @@ namespace Altinn.Platform.Receipt.Clients
                 }
 
                 _profileClient = GetNewHttpClient(_platformSettings.ApiProfileEndpoint);
-                _profileClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
                 return _profileClient;
             }
         }
@@ -74,12 +70,10 @@ namespace Altinn.Platform.Receipt.Clients
                 }
 
                 _storageClient = GetNewHttpClient(_platformSettings.ApiStorageEndpoint);
-                _storageClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
                 return _storageClient;
             }
         }
-        
+
         private HttpClient GetNewHttpClient(string apiEndpoint)
         {
             HttpClient httpClient = new HttpClient
@@ -88,7 +82,7 @@ namespace Altinn.Platform.Receipt.Clients
             };
 
             httpClient.DefaultRequestHeaders.Add(SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
-
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             return httpClient;
         }
     }

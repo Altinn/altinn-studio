@@ -1,9 +1,6 @@
 using Altinn.Platform.Profile.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Tests.Testdata
+namespace Altinn.Platform.Receipt.Test.Testdata
 {
     public static class UserProfiles
     {

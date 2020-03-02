@@ -91,9 +91,9 @@ namespace Altinn.Platform.Receipt
         }
 
         /// <summary>
-        /// Gets the party object for the requested partyId
+        /// Gets instance metadata with option to include instance owner party object
         /// </summary>
-        /// <returns>The party object</returns>
+        /// <returns>An extended instance including instance metadata and potentially party data.</returns>
         [HttpGet]
         [Route("receipt/api/v1/instances/{instanceOwnerId}/{instanceGuid}")]
         public async Task<ActionResult> GetInstanceIncludeParty(int instanceOwnerId, Guid instanceGuid, bool includeParty = false)

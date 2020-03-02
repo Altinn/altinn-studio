@@ -1,9 +1,8 @@
-using Altinn.Platform.Storage.Interface.Models;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Tests.Testdata
+using Altinn.Platform.Storage.Interface.Models;
+
+namespace Altinn.Platform.Receipt.Test.Testdata
 {
     public static class Instances
     {

@@ -31,10 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Util\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Receipt\Altinn.Platform.Receipt.csproj" />
   </ItemGroup>
 

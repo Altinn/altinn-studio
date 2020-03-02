@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 using Xunit;
 
-namespace Test
+namespace Altinn.Platform.Receipt.Test
 {
     public partial class UnitTests
     {
