@@ -143,7 +143,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     ...passThroughProps,
   }
 
-  const Tag = components.find((component: any) => component.name === props.type).Tag;
+  const RenderComponent = components.find((component: any) => component.name === props.type).Tag;
 
   return (
     <>
@@ -155,7 +155,10 @@ export function GenericComponent(props: IGenericComponentProps) {
       {...props}
       {...component}
     />
-    { React.createElement(Tag, componentProps) }
+    <RenderComponent
+      {...componentProps}
+    />
+    {/* { React.createElement(RenderComponent, componentProps) } */}
     {isSimple && hasValidationMessages &&
           renderValidationMessagesForComponent(componentValidations.simpleBinding, props.id)
     }
