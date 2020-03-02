@@ -17,7 +17,7 @@ namespace Altinn.Platform.Receipt.Services
     public class RegisterWrapper : IRegister
     {
         private readonly HttpClient _client;
-        private readonly HttpContext _context;
+        private readonly IHttpContextAccessor _contextaccessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterWrapper"/> class
@@ -25,13 +25,13 @@ namespace Altinn.Platform.Receipt.Services
         public RegisterWrapper(IHttpClientAccessor httpClientAccessor, IHttpContextAccessor httpContextAccessor)
         {
             _client = httpClientAccessor.RegisterClient;
-            _context = httpContextAccessor.HttpContext;
+            _contextaccessor = httpContextAccessor;
         }
 
         /// <inheritdoc/>
         public async Task<Party> GetParty(int partyId)
         {
-            string token = JwtTokenUtil.GetTokenFromContext(_context, "AltinnStudioRuntime");
+            string token = JwtTokenUtil.GetTokenFromContext(_contextaccessor.HttpContext, "AltinnStudioRuntime");
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             string url = $"parties/{partyId}";
 

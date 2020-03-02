@@ -15,7 +15,7 @@ namespace Altinn.Platform.Receipt.Services.Interfaces
     public class ProfileWrapper : IProfile
     {
         private readonly HttpClient _client;
-        private readonly HttpContext _context;
+        private readonly IHttpContextAccessor _contextaccessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileWrapper"/> class
@@ -23,13 +23,13 @@ namespace Altinn.Platform.Receipt.Services.Interfaces
         public ProfileWrapper(IHttpClientAccessor httpClientAccessor, IHttpContextAccessor httpContextAccessor)
         {
             _client = httpClientAccessor.ProfileClient;
-            _context = httpContextAccessor.HttpContext;
+            _contextaccessor = httpContextAccessor;
         }
 
         /// <inheritdoc/>
         public async Task<UserProfile> GetUser(int userId)
         {
-            string token = JwtTokenUtil.GetTokenFromContext(_context, "AltinnStudioRuntime");
+            string token = JwtTokenUtil.GetTokenFromContext(_contextaccessor.HttpContext, "AltinnStudioRuntime");
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             string url = $"users/{userId}";
 
