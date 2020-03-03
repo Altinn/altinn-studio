@@ -47,7 +47,7 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
   const formData: IFormData = useSelector((state: IRuntimeState) => getFormDataForComponent(state.formData.formData, props.dataModelBindings), shallowEqual);
-  const component: ILayoutComponent = useSelector((state: IRuntimeState) => state.formLayout.layout[props.id] as ILayoutComponent);
+  const component: ILayoutComponent = useSelector((state: IRuntimeState) => state.formLayout.layout.find(element => element.id === props.id) as ILayoutComponent);
   const isValid: boolean = useSelector((state: IRuntimeState) => isComponentValid(state.formValidations.validations[props.id]));
   const language: ILanguageState = useSelector((state: IRuntimeState) => state.language.language);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
@@ -56,9 +56,6 @@ export function GenericComponent(props: IGenericComponentProps) {
   const componentValidations: IComponentValidations = useSelector((state: IRuntimeState) => state.formValidations.validations[props.id], shallowEqual);
 
   React.useEffect(() => {
-    console.log("issSimpleEffect");
-    console.log('component', component);
-    console.log('id', id);
     if (component) {
       setIsSimple(isSimpleComponent(component));
     }

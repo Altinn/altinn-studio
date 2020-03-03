@@ -301,7 +301,7 @@ export const nb = () => (
       clear_label: 'Tøm',
       today_label: 'I dag',
       min_date_exeeded: 'Dato valgt er før tidligste dato tillat',
-      max_date_eceeded: 'Dato valgt er etter seneste dato tillat'
+      max_date_exeeded: 'Dato valgt er etter seneste dato tillat'
     }
   }
 );

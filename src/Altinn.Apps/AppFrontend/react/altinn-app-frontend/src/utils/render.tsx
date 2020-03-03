@@ -29,7 +29,6 @@ export function renderValidationMessagesForComponent(
   if (!validationMessages) {
     return null;
   }
-  console.log('renderValidatioNMessagesForComponent', id);
   const validationMessageElements: JSX.Element[] = [];
   if (validationMessages.errors && validationMessages.errors.length > 0) {
     validationMessageElements.push(renderValidationMessages(validationMessages.errors, `error_${id}`, 'error'));

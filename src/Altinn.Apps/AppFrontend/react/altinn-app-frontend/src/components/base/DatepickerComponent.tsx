@@ -19,6 +19,8 @@ export interface IDatePickerProps{
   handleDataChange: (value: any) => void;
   isValid?: boolean;
   format: string;
+  minDate: string;
+  maxDate: string;
   language: any;
   componentValidations: IComponentValidations;
 }
@@ -55,7 +57,8 @@ const useStyles = makeStyles({
   },
   datepicker: {
     width: 'auto',
-    marginBottom: '0px'
+    marginBottom: '0px',
+    marginTop: '0px',
   }
 });
 
@@ -80,8 +83,6 @@ function DatepickerComponent(props: IDatePickerProps) {
 
   const mergeValidations = () => {
     // merges the internal state with the validation messages supplied from redux
-    console.log('componentValidations', props.componentValidations);
-    console.log('validDate', validDate);
     if (!props.componentValidations?.simpleBinding && validDate) {
       return {};
     }
@@ -98,7 +99,13 @@ function DatepickerComponent(props: IDatePickerProps) {
     if (!validations.errors) {
       validations.errors = [];
     }
-    validations.errors.push('Test error');
+    if (date && date.isBefore(props.minDate)) {
+      validations.errors.push(getLanguageFromKey('date_picker.min_date_exeeded', props.language));
+    } else if (date && date.isAfter(props.maxDate)) {
+      validations.errors.push(getLanguageFromKey('date_picker.max_date_exeeded', props.language));
+    } else {
+      validations.errors.push(getLanguageFromKey('date_picker.invalid_date_message', props.language));
+    }
     return validations;
   }
 
@@ -109,62 +116,75 @@ function DatepickerComponent(props: IDatePickerProps) {
 
   const handleDataChangeWrapper = (date: moment.Moment) => {
     setDate(date);
-    if (date) {
-      setValidDate(date.isValid());
-    }
-    if (date && date.isValid()) {
+    if (date && isValidDate(date)) {
+      setValidDate(true);
       props.handleDataChange(date.toISOString());
     }
   }
 
+  const isValidDate = (date: moment.Moment): boolean => {
+    return date && date.isValid() && date.isAfter(props.minDate) && date.isBefore(props.maxDate);
+  }
+
   const handleOnBlur = () => {
-    props.handleDataChange(date ? date.toISOString() : '');
+    if (!isValidDate(date)) {
+      setValidDate(false);
+      if (props.formData) {
+        // if we have formdata, we need to update state. Otherwise not to avoid rerender.
+        props.handleDataChange('');
+      }
+    } else {
+      setValidDate(true);
+      props.handleDataChange(date.toISOString());
+    }
   }
 
   return (
-    <MuiPickersUtilsProvider utils={AltinnMomentUtils}>
-      <Grid
-        container
-        item
-        xs={12}
-      >
-          <KeyboardDatePicker
-            readOnly={props.readOnly}
-            required={props.required}
-            variant={inline ? 'inline' : 'dialog'}
-            format={props.format}
-            margin="normal"
-            id={"altinn-date-picker-" + props.id}
-            value={date}
-            placeholder={props.format}
-            key={"altinn-date-picker-" + props.id}
-            onChange={handleDataChangeWrapper}
-            onBlur={handleOnBlur}
-            invalidDateMessage={''} // all validation messages intentionally left empty
-            maxDateMessage={''}
-            minDateMessage={''}
-            cancelLabel={getLanguageFromKey('date_picker.cancel_label', props.language)}
-            clearLabel={getLanguageFromKey('date_picker.clear_label', props.language)}
-            todayLabel={getLanguageFromKey('date_picker.today_label', props.language)}
-            InputProps={{
-              disableUnderline: true,
-              error: !props.isValid,
-              classes: {
-                root: classes.root + ((!props.isValid || !validDate) ? ' ' + classes.invalid : ''),
-                input: classes.input,
-              },
-            }}
-            FormHelperTextProps={{
-              classes: {
-                root: classes.formHelperText
-              }
-            }}
-            keyboardIcon={<Icon className={classes.icon + ' ai ai-date'}/>}
-            className={classes.datepicker}
-          />
-        </Grid>
+    <>
+      <MuiPickersUtilsProvider utils={AltinnMomentUtils}>
+        <Grid
+          container
+          item
+          xs={12}
+        >
+            <KeyboardDatePicker
+              readOnly={props.readOnly}
+              required={props.required}
+              variant={inline ? 'inline' : 'dialog'}
+              format={props.format}
+              margin="normal"
+              id={"altinn-date-picker-" + props.id}
+              value={date}
+              placeholder={props.format}
+              key={"altinn-date-picker-" + props.id}
+              onChange={handleDataChangeWrapper}
+              onBlur={handleOnBlur}
+              invalidDateMessage={''} // all validation messages intentionally left empty
+              maxDateMessage={''}
+              minDateMessage={''}
+              cancelLabel={getLanguageFromKey('date_picker.cancel_label', props.language)}
+              clearLabel={getLanguageFromKey('date_picker.clear_label', props.language)}
+              todayLabel={getLanguageFromKey('date_picker.today_label', props.language)}
+              InputProps={{
+                disableUnderline: true,
+                error: !props.isValid,
+                classes: {
+                  root: classes.root + ((!props.isValid || !validDate) ? ' ' + classes.invalid : ''),
+                  input: classes.input,
+                },
+              }}
+              FormHelperTextProps={{
+                classes: {
+                  root: classes.formHelperText
+                }
+              }}
+              keyboardIcon={<Icon className={classes.icon + ' ai ai-date'}/>}
+              className={classes.datepicker}
+            />
+          </Grid>
+        </MuiPickersUtilsProvider>
         {renderValidationMessagesForComponent(mergeValidations(),`${props.id}_validations`)}
-      </MuiPickersUtilsProvider>
+      </>
 
   )
 }

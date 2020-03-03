@@ -63,7 +63,9 @@ export const schemaComponents: IComponent[] = [
     Type: ComponentTypes.Datepicker,
     customProperties: {
       readOnly: false,
-      format: "DD/MM/YYYY"
+      format: "DD/MM/YYYY",
+      minDate: '01-01-1900',
+      maxDate: '01-01-2100'
     },
   },
   {

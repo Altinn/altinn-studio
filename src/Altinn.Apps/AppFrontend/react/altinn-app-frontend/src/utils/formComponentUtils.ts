@@ -5,12 +5,9 @@ export const isSimpleComponent = (component: any): boolean => {
   if (!component || !component.dataModelBindings) {
     return false;
   }
-  console.log("type", component.type);
   const simpleBinding = component.dataModelBindings.simpleBinding;
   const type = component.type;
-  const isSimple = simpleBinding && type !== 'FileUpload' && type !== 'Datepicker';
-  console.log("isSimple", isSimple);
-  return isSimple;
+  return simpleBinding && type !== 'FileUpload' && type !== 'Datepicker';
 }
 
 export const componentHasValidationMessages = (componentValidations) => {
