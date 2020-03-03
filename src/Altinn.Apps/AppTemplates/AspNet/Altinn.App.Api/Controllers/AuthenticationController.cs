@@ -57,5 +57,17 @@ namespace Altinn.App.Api.Controllers
 
             return BadRequest();
         }
+
+        /// <summary>
+        /// Invalidates the AltinnStudioRuntime cookie.
+        /// </summary>
+        /// <returns>Ok result with invalidated cookie.</returns>
+        [Authorize]
+        [HttpPut("{org}/{app}/api/[controller]/invalidatecookie")]
+        public IActionResult InvalidateCookie()
+        {
+            HttpContext.Response.Cookies.Delete(General.RuntimeCookieName, new CookieOptions { Domain = _settings.HostName });
+            return Ok();
+        }
     }
 }
