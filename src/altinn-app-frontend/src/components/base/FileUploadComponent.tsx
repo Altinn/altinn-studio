@@ -104,7 +104,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
     const fileType = props.id; // component id used as filetype identifier for now, see issue #1364
     const validations: string[] = [];
     const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;
-    
+
     if (totalAttachments > props.maxNumberOfAttachments) {
       // if the user adds more attachments than max, all should be ignored
       validations.push(
@@ -163,7 +163,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
       return null;
     }
     return (
-      <div id={'altinn-file-list-' + props.id}>
+      <div id={props.id}>
         <table className={'file-upload-table'}>
           <thead>
             <tr className={'blue-underline'} id={'altinn-file-list-row-header'}>
