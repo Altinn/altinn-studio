@@ -74,7 +74,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string requestUri = $"{BasePath}";
 
                 HttpClient client = GetTestClient(_instanceEventRepository.Object);
-                string token = PrincipalUtil.GetToken(2);
+                string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 Instance instance = new Instance();
@@ -120,7 +120,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string requestUri = $"{BasePath}/{eventGuid}";
 
                 HttpClient client = GetTestClient(_instanceEventRepository.Object);
-                string token = PrincipalUtil.GetToken(2);
+                string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -162,7 +162,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string requestUri = $"{BasePath}";
 
                 HttpClient client = GetTestClient(_instanceEventRepository.Object);
-                string token = PrincipalUtil.GetToken(2);
+                string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -208,7 +208,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string requestUri = $"{BasePath}?instanceOwnerPartyId={instanceOwnerPartyId}&instanceGuid={instanceGuid}";
 
                 HttpClient client = GetTestClient(_instanceEventRepository.Object);
-                string token = PrincipalUtil.GetToken(2);
+                string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
