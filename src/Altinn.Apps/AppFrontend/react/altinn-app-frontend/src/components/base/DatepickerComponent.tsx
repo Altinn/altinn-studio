@@ -157,10 +157,10 @@ function DatepickerComponent(props: IDatePickerProps) {
               variant={inline ? 'inline' : 'dialog'}
               format={format}
               margin="normal"
-              id={"altinn-date-picker-" + props.id}
+              id={props.id}
               value={date}
               placeholder={props.format}
-              key={"altinn-date-picker-" + props.id}
+              key={props.id}
               onChange={handleDataChangeWrapper}
               onBlur={handleOnBlur}
               autoOk={true}
@@ -185,7 +185,12 @@ function DatepickerComponent(props: IDatePickerProps) {
                   root: classes.formHelperText
                 }
               }}
-              keyboardIcon={<Icon className={classes.icon + ' ai ai-date'}/>}
+              keyboardIcon={
+                <Icon
+                  aria-label={getLanguageFromKey('date_picker.aria_label_icon', props.language)}
+                  className={classes.icon + ' ai ai-date'}
+                />
+              }
               className={classes.datepicker}
             />
           </Grid>

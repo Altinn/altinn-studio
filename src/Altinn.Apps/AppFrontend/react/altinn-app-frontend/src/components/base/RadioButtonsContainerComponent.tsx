@@ -110,6 +110,7 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
         value={selected}
         onChange={onDataChange}
         row={radioGroupIsRow}
+        id={props.id}
       >
         {props.options.map((option: any, index: number) => (
           <React.Fragment key={index}>
