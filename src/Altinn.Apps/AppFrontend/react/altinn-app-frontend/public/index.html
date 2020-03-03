@@ -36,61 +36,6 @@
 </head>
 
 <body>
-  <script>
-    (function ($) {
-      $.fn.datepicker.dates['no'] = {
-        days: ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'],
-        daysShort: ['søn', 'man', 'tir', 'ons', 'tor', 'fre', 'lør'],
-        daysMin: ['sø', 'ma', 'ti', 'on', 'to', 'fr', 'lø'],
-        months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober',
-          'november', 'desember'
-        ],
-        monthsShort: ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'],
-        today: 'i dag',
-        monthsTitle: 'Måneder',
-        clear: 'Nullstill',
-        weekStart: 1,
-        format: 'dd.mm.yyyy'
-      };
-    }(jQuery));
-
-    (function ($) {
-      $.fn.datepicker.dates['nn'] = {
-        days: ['sundag', 'måndag', 'tysdag', 'onsdag', 'torsdag', 'fredag', 'laurdag'],
-        daysShort: ['sun', 'mån', 'tys', 'ons', 'tor', 'fre', 'lau'],
-        daysMin: ['su', 'må', 'ty', 'on', 'to', 'fr', 'la'],
-        months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober',
-          'november', 'desember'
-        ],
-        monthsShort: ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'],
-        today: 'i dag',
-        monthsTitle: 'Månadar',
-        clear: 'Nullstill',
-        weekStart: 1,
-        format: 'dd.mm.yyyy'
-      };
-    }(jQuery));
-
-    function initDatePicker() {
-      $('.form-control.date').datepicker({
-        format: 'dd.mm.yyyy',
-        language: 'no',
-        todayHighlight: true,
-        orientation: 'bottom left',
-        autoclose: true,
-        maxViewMode: 0,
-        templates: {
-          leftArrow: '<i class="fa fa-back"></i>',
-          rightArrow: '<i class="fa fa-arrowright"></i>'
-        }
-      }).on('show', function (e) {
-        $('.datepicker').find('table').attr('cellpadding', '0');
-        $('.datepicker').find('table').attr('cellspacing', '0');
-      });
-    }
-    window.initDatePicker = initDatePicker;
-
-  </script>
   <noscript>
     You need to enable JavaScript to run this app.
   </noscript>

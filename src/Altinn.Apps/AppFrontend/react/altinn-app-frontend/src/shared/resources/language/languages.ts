@@ -295,5 +295,13 @@ export const nb = () => (
       length: 'Antall tillatte tegn er {1}',
       pattern: 'Feil format eller verdi',
     },
+    date_picker: {
+      invalid_date_message: 'Ugyldig datoformat',
+      cancel_label: 'Avbryt',
+      clear_label: 'Tøm',
+      today_label: 'I dag',
+      min_date_exeeded: 'Dato valgt er før tidligste dato tillat',
+      max_date_exeeded: 'Dato valgt er etter seneste dato tillat'
+    }
   }
 );

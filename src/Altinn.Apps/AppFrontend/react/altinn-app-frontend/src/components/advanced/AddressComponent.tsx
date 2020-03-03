@@ -15,13 +15,12 @@ export interface IAddressComponentProps {
   getTextResource: (key: string) => string;
   isValid?: boolean;
   simplified: boolean;
-  validationMessages?: IComponentValidations;
   dataModelBindings: IDataModelBindings;
   readOnly: boolean;
   required: boolean;
   language: any;
   textResourceBindings: ITextResourceBindings;
-  addressComponentValidations?: any;
+  componentValidations?: IComponentValidations;
 }
 
 interface IAddressValidationErrors {
@@ -41,7 +40,7 @@ export enum AddressKeys {
 export function AddressComponent(props: IAddressComponentProps) {
   const cancelToken = axios.CancelToken;
   const source = cancelToken.source();
-  
+
   const [address, setAddress] = React.useState(props.formData.address || '');
   const [zipCode, setZipCode] = React.useState(props.formData.zipCode || '');
   const [postPlace, setPostPlace] = React.useState(props.formData.postPlace || '');
@@ -53,7 +52,7 @@ export function AddressComponent(props: IAddressComponentProps) {
     const zipCode = props.formData.zipCode;
     if (!zipCode || zipCode === ''){
       return;
-    } 
+    }
 
     if (!zipCode.match(new RegExp('^[0-9]{4}$'))) {
       const errorMessage = getLanguageFromKey('address_component.validation_error_zipcode', props.language);
@@ -99,7 +98,7 @@ export function AddressComponent(props: IAddressComponentProps) {
     }
   }, [props.formData.zipCode])
 
-  
+
 
   const onBlurField: (key: AddressKeys, value: any) => void = (key: AddressKeys, value: any) => {
     const validationErrors: IAddressValidationErrors = validate();
@@ -133,7 +132,7 @@ export function AddressComponent(props: IAddressComponentProps) {
   const updateField: (key: AddressKeys, event: any) => void = (key: AddressKeys, event: any): void => {
     const changedFieldValue: string = event.target.value;
     const changedKey: string = AddressKeys[key];
-    
+
     switch (changedKey) {
       case (AddressKeys.address): {
         setAddress(changedFieldValue);
@@ -161,7 +160,7 @@ export function AddressComponent(props: IAddressComponentProps) {
   }
 
   const joinValidationMessages = (): IComponentValidations => {
-    let validationMessages = props.addressComponentValidations;
+    let validationMessages = props.componentValidations;
     if (!validationMessages) {
       validationMessages = {};
     }
