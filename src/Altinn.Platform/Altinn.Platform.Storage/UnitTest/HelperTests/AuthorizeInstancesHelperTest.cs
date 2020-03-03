@@ -95,7 +95,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             string json = File.ReadAllText($"data/instances/{org}/{app}/{instanceOwnerId}/{instanceGuid}.json");
             Instance instance = JsonConvert.DeserializeObject<Instance>(json);
             _instanceRepository.Setup(ir => ir.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
-            
+
             bool res = await _authzHelper.AuthorizeInstanceAction(CreateUserClaims(3), instance, "delete");
             Assert.False(res);
         }
@@ -112,6 +112,20 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             bool res = await _authzHelper.AuthorizeInstanceAction(CreateUserClaims(3), instance, "delete");
             Assert.True(res);
         }
+
+        [Fact]
+        public async void AuthorizeMesseageBoxInstances_TC01_EmptyList()
+        {
+            // Arrange
+            List<MessageBoxInstance> expected = new List<MessageBoxInstance>();
+            List<Instance> instances = new List<Instance>();
+            // Act
+            List<MessageBoxInstance> actual = await _authzHelper.AuthorizeMesseageBoxInstances(CreateUserClaims(3), instances);
+
+            // Assert
+            Assert.Equal(expected, actual);
+        }
+
 
         private ClaimsPrincipal CreateUserClaims(int userId)
         {
