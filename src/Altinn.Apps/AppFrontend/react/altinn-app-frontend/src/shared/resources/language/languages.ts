@@ -296,7 +296,7 @@ export const nb = () => (
       pattern: 'Feil format eller verdi',
     },
     date_picker: {
-      invalid_date_message: 'Ugyldig datoformat',
+      invalid_date_message: 'Ugyldig datoformat. Bruk formatet {1}.',
       cancel_label: 'Avbryt',
       clear_label: 'Tøm',
       today_label: 'I dag',
