@@ -75,6 +75,8 @@ function DatepickerComponent(props: IDatePickerProps) {
   const classes = useStyles();
   const [date, setDate] = React.useState<moment.Moment>(null);
   const [validDate, setValidDate] = React.useState<boolean>(true);
+  const minDate = props.minDate ? props.minDate : "1900-01-01T12:00:00.000Z";
+  const maxDate = props.maxDate ? props.maxDate : "2100-01-01T12:00:00.000Z";
 
   let locale = window.navigator?.language || (window.navigator as any)?.userLanguage || "nb-NO";
   moment.locale(locale);
@@ -99,9 +101,9 @@ function DatepickerComponent(props: IDatePickerProps) {
     if (!validations.errors) {
       validations.errors = [];
     }
-    if (date && date.isBefore(props.minDate)) {
+    if (date && date.isBefore(minDate)) {
       validations.errors.push(getLanguageFromKey('date_picker.min_date_exeeded', props.language));
-    } else if (date && date.isAfter(props.maxDate)) {
+    } else if (date && date.isAfter(maxDate)) {
       validations.errors.push(getLanguageFromKey('date_picker.max_date_exeeded', props.language));
     } else {
       validations.errors.push(getLanguageFromKey('date_picker.invalid_date_message', props.language));
@@ -123,7 +125,7 @@ function DatepickerComponent(props: IDatePickerProps) {
   }
 
   const isValidDate = (date: moment.Moment): boolean => {
-    return date && date.isValid() && date.isAfter(props.minDate) && date.isBefore(props.maxDate);
+    return date && date.isValid() && date.isAfter(minDate) && date.isBefore(maxDate);
   }
 
   const handleOnBlur = () => {
@@ -162,6 +164,8 @@ function DatepickerComponent(props: IDatePickerProps) {
               invalidDateMessage={''} // all validation messages intentionally left empty
               maxDateMessage={''}
               minDateMessage={''}
+              minDate={minDate}
+              maxDate={maxDate}
               cancelLabel={getLanguageFromKey('date_picker.cancel_label', props.language)}
               clearLabel={getLanguageFromKey('date_picker.clear_label', props.language)}
               todayLabel={getLanguageFromKey('date_picker.today_label', props.language)}

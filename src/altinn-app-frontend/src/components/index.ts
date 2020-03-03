@@ -64,8 +64,8 @@ export const schemaComponents: IComponent[] = [
     customProperties: {
       readOnly: false,
       format: "DD/MM/YYYY",
-      minDate: '01-01-1900',
-      maxDate: '01-01-2100'
+      minDate: "1900-01-01T12:00:00.000Z",
+      maxDate: "2100-01-01T12:00:00.000Z"
     },
   },
   {
