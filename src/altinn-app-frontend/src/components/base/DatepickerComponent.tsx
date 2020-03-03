@@ -153,7 +153,7 @@ function DatepickerComponent(props: IDatePickerProps) {
               readOnly={props.readOnly}
               required={props.required}
               variant={inline ? 'inline' : 'dialog'}
-              format={props.format}
+              format={props.format ? props.format : 'DD/MM/YYYY'}
               margin="normal"
               id={"altinn-date-picker-" + props.id}
               value={date}
