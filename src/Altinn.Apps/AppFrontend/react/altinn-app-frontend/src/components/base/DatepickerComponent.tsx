@@ -5,7 +5,7 @@ import '../../styles/shared.css';
 import { Grid, useMediaQuery, useTheme, Icon, makeStyles } from '@material-ui/core';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
-import { getLanguageFromKey } from 'altinn-shared/utils';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Moment } from 'moment';
 import { renderValidationMessagesForComponent } from '../../utils/render';
@@ -77,6 +77,7 @@ function DatepickerComponent(props: IDatePickerProps) {
   const [validDate, setValidDate] = React.useState<boolean>(true);
   const minDate = props.minDate ? props.minDate : "1900-01-01T12:00:00.000Z";
   const maxDate = props.maxDate ? props.maxDate : "2100-01-01T12:00:00.000Z";
+  const format = props.format ? props.format : 'DD/MM/YYYY';
 
   let locale = window.navigator?.language || (window.navigator as any)?.userLanguage || "nb-NO";
   moment.locale(locale);
@@ -106,7 +107,7 @@ function DatepickerComponent(props: IDatePickerProps) {
     } else if (date && date.isAfter(maxDate)) {
       validations.errors.push(getLanguageFromKey('date_picker.max_date_exeeded', props.language));
     } else {
-      validations.errors.push(getLanguageFromKey('date_picker.invalid_date_message', props.language));
+      validations.errors.push(getParsedLanguageFromKey('date_picker.invalid_date_message', props.language, [format]));
     }
     return validations;
   }
@@ -125,7 +126,10 @@ function DatepickerComponent(props: IDatePickerProps) {
   }
 
   const isValidDate = (date: moment.Moment): boolean => {
-    return date && date.isValid() && date.isAfter(minDate) && date.isBefore(maxDate);
+    if (date == null) {
+      return true;
+    }
+    else return date && date.isValid() && date.isAfter(minDate) && date.isBefore(maxDate);
   }
 
   const handleOnBlur = () => {
@@ -137,7 +141,7 @@ function DatepickerComponent(props: IDatePickerProps) {
       }
     } else {
       setValidDate(true);
-      props.handleDataChange(date.toISOString());
+      props.handleDataChange(date ? date.toISOString() : '');
     }
   }
 
@@ -153,14 +157,15 @@ function DatepickerComponent(props: IDatePickerProps) {
               readOnly={props.readOnly}
               required={props.required}
               variant={inline ? 'inline' : 'dialog'}
-              format={props.format ? props.format : 'DD/MM/YYYY'}
+              format={format}
               margin="normal"
-              id={"altinn-date-picker-" + props.id}
+              id={props.id}
               value={date}
               placeholder={props.format}
-              key={"altinn-date-picker-" + props.id}
+              key={props.id}
               onChange={handleDataChangeWrapper}
               onBlur={handleOnBlur}
+              autoOk={true}
               invalidDateMessage={''} // all validation messages intentionally left empty
               maxDateMessage={''}
               minDateMessage={''}
@@ -182,7 +187,12 @@ function DatepickerComponent(props: IDatePickerProps) {
                   root: classes.formHelperText
                 }
               }}
-              keyboardIcon={<Icon className={classes.icon + ' ai ai-date'}/>}
+              keyboardIcon={
+                <Icon
+                  aria-label={getLanguageFromKey('date_picker.aria_label_icon', props.language)}
+                  className={classes.icon + ' ai ai-date'}
+                />
+              }
               className={classes.datepicker}
             />
           </Grid>

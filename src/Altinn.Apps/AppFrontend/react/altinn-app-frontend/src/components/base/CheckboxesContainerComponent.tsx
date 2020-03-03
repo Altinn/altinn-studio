@@ -124,7 +124,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   return(
     <FormControl>
-      <FormGroup row={checkBoxesIsRow}>
+      <FormGroup row={checkBoxesIsRow} id={props.id}>
         {props.options.map((option, index) => (
           <React.Fragment key={index}>
             <FormControlLabel
