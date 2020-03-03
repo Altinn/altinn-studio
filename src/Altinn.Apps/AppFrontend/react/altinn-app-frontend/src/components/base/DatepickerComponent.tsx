@@ -126,7 +126,9 @@ function DatepickerComponent(props: IDatePickerProps) {
   }
 
   const isValidDate = (date: moment.Moment): boolean => {
-    if (date == null) return true;
+    if (date == null) {
+      return true;
+    }
     else return date && date.isValid() && date.isAfter(minDate) && date.isBefore(maxDate);
   }
 
