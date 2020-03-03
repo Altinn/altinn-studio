@@ -17,6 +17,5 @@ export default function() {
       "Generate PDF Status is 200:": (r) => r.status === 200,
       "Generate PDF Content Type is application pdf:": (r) => r.headers["Content-Type"] === "application/pdf"
   });  
-  addErrorCount(success);
-  sleep(1);
+  addErrorCount(success);  
 };

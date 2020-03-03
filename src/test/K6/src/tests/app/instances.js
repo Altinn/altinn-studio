@@ -33,8 +33,7 @@ export default function(data) {
       "App POST Create Instance status is 201:": (r) => r.status === 201,
       "App POST Create Instance Instace Id is not null:": (r) => (JSON.parse(r.body)).id != null
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success); 
     var instanceJson = res.body;
     if((JSON.parse(instanceJson)).id != null){
         instanceId = platformInstances.findInstanceId(instanceJson);
@@ -46,7 +45,6 @@ export default function(data) {
         "App PUT Edit Instance status is 200:": (r) => r.status === 200        
         });  
     addErrorCount(success);
-    sleep(1);
 
     //Test to get an instance by id with App api and validate the response
     res = appInstances.getInstanceById(runtimeToken, partyId, instanceId);
@@ -54,7 +52,6 @@ export default function(data) {
         "App GET Instance by Id status is 200:": (r) => r.status === 200        
       });  
     addErrorCount(success);
-    sleep(1);
     
     deleteSblInstance(runtimeToken, partyId, instanceId, "true");    
 };

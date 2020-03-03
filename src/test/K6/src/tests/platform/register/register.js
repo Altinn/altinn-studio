@@ -31,8 +31,7 @@ export default function(data) {
       "GET Org status is 200:": (r) => r.status === 200,
       "GET Org org number is not empty:": (r) => (JSON.parse(r.body)).orgNumber != null
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test Platform: Register: Get parties by partyId and validate response
     res = register.getParty(runtimeToken, partyId);    
@@ -40,8 +39,7 @@ export default function(data) {
       "GET Party status is 200:": (r) => r.status === 200,
       "GET Party party id matches:": (r) => (JSON.parse(r.body)).partyId === partyId
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test Platform: Register: POST party lookup by SSN and validate response
     res = register.postPartieslookup(runtimeToken, ssn);    
@@ -49,6 +47,5 @@ export default function(data) {
         "GET Party info status is 200:": (r) => r.status === 200,
         "GET Party info party id matches:": (r) => (JSON.parse(r.body)).partyId === partyId
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 };

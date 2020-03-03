@@ -43,8 +43,7 @@ export default function(data) {
       "POST Add Event status is 201:": (r) => r.status === 201,
       "POST Add Event Event Id is not null:": (r) => (JSON.parse(r.body)).id != null
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     eventId = (JSON.parse(res.body)).id;   
     
@@ -53,32 +52,28 @@ export default function(data) {
     success = check(res, {
       "GET Instance Event status is 200:": (r) => r.status === 200      
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test to get all instance events from an instance with storage api and validate the response
     res = events.getAllEvents(runtimeToken, partyId, instanceId);    
     success = check(res, {
       "GET All Instance Events status is 200:": (r) => r.status === 200      
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
      //Test to get all instance events by type from an instance with storage api and validate the response
      res = events.getEventByType(runtimeToken, partyId, instanceId, "created");
      success = check(res, {
        "GET Instance Events by EventType status is 200:": (r) => r.status === 200      
      });  
-     addErrorCount(success);
-     sleep(1);
+     addErrorCount(success);     
 
      //Test to delete all instance events from an instance with storage api and validate the response
     res = events.deleteEvent(runtimeToken, partyId, instanceId);    
     success = check(res, {
       "DELETE All Instance Events status is 200:": (r) => r.status === 200      
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 };
 
 //Delete the instance created

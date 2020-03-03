@@ -49,8 +49,7 @@ export default function(data) {
       "POST Create Data status is 201:": (r) => r.status === 201,
       "POST Create Instance Data Id is not null:": (r) => (JSON.parse(r.body)).id != null
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     dataId = (JSON.parse(res.body)).id;
 
@@ -59,16 +58,14 @@ export default function(data) {
     success = check(res, {
         "GET Data by Id status is 200:": (r) => r.status === 200        
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test to edit a data in an instance and validate the response
     res = instanceData.putData(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
     success = check(res, {
         "PUT Edit Data by Id status is 200:": (r) => r.status === 200        
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test to add a pdf attachment to an instance with storage api and validate the response
     var res = instanceData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment);    
@@ -76,8 +73,7 @@ export default function(data) {
       "POST Add Attachment status is 201:": (r) => r.status === 201,
       "POST Add Attachment Data Id is not null:": (r) => (JSON.parse(r.body)).id != null
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     dataId = (JSON.parse(res.body)).id;
 
@@ -86,8 +82,7 @@ export default function(data) {
     success = check(res, {
         "DELETE Attachment Data status is 200:": (r) => r.status === 200        
     });    
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test to get all the dataelement of an instance and validate the response
     res = instanceData.getAllDataElements(runtimeToken, partyId, instanceId);
@@ -95,8 +90,7 @@ export default function(data) {
         "GET All DataElements status is 200:": (r) => r.status === 200,
         "GET All DataElements DataElements count is 1:": (r) => (JSON.parse(r.body)).dataElements.length === 1        
     });      
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 };
 
 //Delete the instance created

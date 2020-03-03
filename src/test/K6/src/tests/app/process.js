@@ -37,16 +37,14 @@ export default function(data) {
     var success = check(res, {
       "App POST Start process again Not Possible status is 409:": (r) => r.status === 409      
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test to get current process of an app instance and verify response code to be 200
     res = appProcess.getCurrentProcess(runtimeToken, partyId, instanceId);
     success = check(res, {
         "App GET current process status is 200:": (r) => r.status === 200      
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     var currentProcessElement = (JSON.parse(res.body)).currentTask.elementId;
 
@@ -55,16 +53,14 @@ export default function(data) {
     success = check(res, {
         "App PUT Move process to current process element Not Possible status is 409:": (r) => r.status === 409      
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test to get next process of an app instance again and verify response code  to be 200
     res = appProcess.getNextProcess(runtimeToken, partyId, instanceId);
     success = check(res, {
         "App GET Next process status is 200:": (r) => r.status === 200
     });
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test to get the process history of an app instance and verify the response code to be 200
     res = appProcess.getProcessHistory(runtimeToken, partyId, instanceId);

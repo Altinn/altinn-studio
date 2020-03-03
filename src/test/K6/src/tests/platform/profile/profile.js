@@ -27,6 +27,5 @@ export default function(data) {
       "GET Profile status is 200:": (r) => r.status === 200,
       "GET Profile response contains userId:": (r) => (JSON.parse(r.body)).userId === userId
   });  
-  addErrorCount(success);
-  sleep(1);
+  addErrorCount(success);  
 };

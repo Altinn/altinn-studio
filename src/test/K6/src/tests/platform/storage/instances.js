@@ -36,8 +36,7 @@ export default function(data) {
       "POST Create Instance status is 201:": (r) => r.status === 201,
       "POST Create Instance Instace Id is not null:": (r) => JSON.parse(r.body).id != null
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
     
     if((JSON.parse(res.body)).id != null){
         instanceId = instances.findInstanceId(res.body);
@@ -48,22 +47,19 @@ export default function(data) {
     success = check(res, {
         "GET Instance by Id status is 200:": (r) => r.status === 200        
       });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test to get all instances for a party from storage and validate the response to have 403 as code
     res = instances.getAllinstances(runtimeToken, partyId);
     success = check(res, {
         "GET Instaces by instanceOwner status is 403:": (r) => r.status === 403        
         });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test to edit an instance by id in storage and validate the response
     res = instances.putInstanceById(runtimeToken, partyId, instanceId);    
     success = check(res, {
         "PUT Edit Instance status is 200:": (r) => r.status === 200        
         });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 };

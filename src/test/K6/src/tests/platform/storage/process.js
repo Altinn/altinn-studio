@@ -42,16 +42,14 @@ export default function (data){
     var success = check(res, {
        "PUT Edit Process status is 200:": (r) => r.status === 200       
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test to get the process history of an instance and validate the response
     res = process.getProcessHistory(runtimeToken, partyId, instanceId);    
     success = check(res, {
         "GET Process history status is 200:": (r) => r.status === 200       
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
     
 };
 

@@ -32,8 +32,7 @@ export default function(data) {
       "GET All Apps under an Org status is 200:": (r) => r.status === 200,
       "GET All Apps under an Org List is not empty:": (r) => (JSON.parse(r.body)).applications.length != 0
     });  
-    addErrorCount(success);
-    sleep(1); 
+    addErrorCount(success);    
 
     //Test Platform: Storage: Get application by app name and validate response
     res = application.getAppByName(runtimeToken, appOwner, level2App);
@@ -42,8 +41,7 @@ export default function(data) {
       "GET App by Name status is 200:": (r) => r.status === 200,
       "GET App by Name Metadata is OK:": (r) => (JSON.parse(r.body)).id === appId
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test Platform: Storage: Post create an app with metadata
     //expected: 403 as it is not possible to create App with an user token
@@ -51,8 +49,7 @@ export default function(data) {
     success = check(res, {
       "POST Create App status is 403:": (r) => r.status === 403      
     });  
-    addErrorCount(success);
-    sleep(1); 
+    addErrorCount(success);    
 
     //Api call to Platform: Storage: PUT Edit an app metadata
     //expected: 200 as response code
@@ -60,6 +57,5 @@ export default function(data) {
     success = check(res, {
       "PUT Edit App status is 403:": (r) => r.status === 403      
     });  
-    addErrorCount(success);
-    sleep(1); 
+    addErrorCount(success);    
 };

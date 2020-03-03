@@ -34,8 +34,7 @@ export default function(data) {
       "GET Parties Status is 200:": (r) => r.status === 200,
       "GET Parties Parties list is not empty:": (r) => (JSON.parse(r.body)).length != null
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test Platform: Authorization: Get roles of the user self
     res = authz.getRoles(userId, partyId);    
@@ -43,16 +42,14 @@ export default function(data) {
       "GET Roles Status is 200:": (r) => r.status === 200,
       "GET Roles Roles list is not empty:": (r) => (JSON.parse(r.body)).length != null
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);    
 
     //Test Platform: Authorization: Upload app policy to storage    
     res = authz.postPolicy(policyFile, appOwner, testappName);    
     success = check(res, {
       "POST Policy Status is 200:": (r) => r.status === 200,      
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);   
 
     //Test Platform: Authorization: Get a decision from PDP with appOwner details 
     //and validate response to have Permit
@@ -65,8 +62,7 @@ export default function(data) {
       "Get PDP Decision for appOwner Status is 200:": (r) => r.status === 200,      
       "Get PDP Decision for appOwner Decision is Permit:": (r) => (JSON.parse(r.body)).response[0].decision === "Permit" 
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);   
 
     //Test Platform: Authorization: Get a decision from PDP with appOwner details
     //and validate response to have NotApplicable
@@ -80,8 +76,7 @@ export default function(data) {
       "Get PDP Decision for appOwner Status is 200:": (r) => r.status === 200,      
       "Get PDP Decision for appOwner Decision is NotApplicable:": (r) => (JSON.parse(r.body)).response[0].decision === "NotApplicable"
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success);   
 
     //Test Platform: Authorization: Get a decision from PDP with user details
     //and validate response to have Permit
@@ -95,6 +90,5 @@ export default function(data) {
       "Get PDP Decision for User Status is 200:": (r) => r.status === 200,      
       "Get PDP Decision for User Decision is Permit:": (r) => (JSON.parse(r.body)).response[0].decision === "Permit"
     });  
-    addErrorCount(success);
-    sleep(1);
+    addErrorCount(success); 
 };
