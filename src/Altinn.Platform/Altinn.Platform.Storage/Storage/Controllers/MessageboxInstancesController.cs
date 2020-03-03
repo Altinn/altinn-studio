@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Common.PEP.Helpers;
-using Altinn.Common.PEP.Interfaces;
 
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
