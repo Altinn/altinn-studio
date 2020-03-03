@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
-import { get } from './../../../../utils/networking';
-import { instancesControllerUrl, redirectToUpgrade } from './../../../../utils/urlHelper';
+import { get, putWithoutConfig } from './../../../../utils/networking';
+import { instancesControllerUrl, redirectToUpgrade, invalidateCookieUrl } from './../../../../utils/urlHelper';
 import AttachmentActions from './../../attachments/attachmentActions';
 import InstanceDataActions from './../instanceDataActions';
 import * as getInstanceDataActions from './getInstanceDataActions';
@@ -22,6 +22,7 @@ export function* getInstanceDataSaga({
     if (error.response && error.response.status === 403 && error.response.data) {
       const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
       if (reqAuthLevel) {
+        putWithoutConfig(invalidateCookieUrl);
         yield call(redirectToUpgrade, reqAuthLevel);
       }
     } else {
