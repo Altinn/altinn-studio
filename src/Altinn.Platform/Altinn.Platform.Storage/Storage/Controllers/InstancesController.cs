@@ -6,6 +6,7 @@ using System.Web;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 
@@ -34,6 +36,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
+        private static string _platformBasePath;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -43,18 +46,21 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="applicationRepository">the application repository handler</param>
         /// <param name="logger">the logger</param>
         /// <param name="pdp">the policy decision point.</param>
+        /// <param name="settings">the general settings.</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
             ILogger<InstancesController> logger,
-            IPDP pdp)
+            IPDP pdp,
+            IOptions<GeneralSettings> settings)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
             _pdp = pdp;
             _logger = logger;
+            _platformBasePath = $"platform.{settings.Value.Hostname}";
         }
 
         /// <summary>
@@ -424,7 +430,7 @@ namespace Altinn.Platform.Storage.Controllers
                     return StatusCode(500, $"Unexpected exception when updating instance after soft delete: {e.Message}");
                 }
             }
-        }              
+        }
 
         /// <summary>
         ///   Annotate instance with self links to platform for the instance and each of its data elements.
@@ -455,7 +461,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>A string that contains the self link url to the instance</returns>
         public static string ComputeInstanceSelfLink(HttpRequest request, Instance instance)
         {
-            string selfLink = $"https://{request.Host.ToUriComponent()}{request.Path}";
+            string selfLink = $"https://{_platformBasePath}{request.Path}";
 
             int start = selfLink.IndexOf("/instances", StringComparison.Ordinal);
             selfLink = selfLink.Substring(0, start) + "/instances";
