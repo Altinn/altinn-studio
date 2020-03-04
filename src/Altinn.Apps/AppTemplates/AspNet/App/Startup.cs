@@ -1,9 +1,7 @@
 using System;
-using System.IO;
-using System.Security.Cryptography.X509Certificates;
+
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
-using Altinn.App.AppLogic.Validation;
 using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
@@ -13,12 +11,12 @@ using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -173,7 +171,7 @@ namespace Altinn.App
             {
                 return Configuration["ApplicationInsights:InstrumentationKey"];
             }
-            
+
             return Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey");
         }
     }

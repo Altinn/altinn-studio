@@ -87,32 +87,10 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             Assert.Throws<ArgumentNullException>(() => AuthorizationHelper.CreateMultiDecisionRequest(null, instances, actionTypes));
         }
 
-        [Fact]
-        public async void AuthorizeInstanceAction_TC01_DeleteActiveInstance()
-        {
-            // Arrange
-            string instanceGuid = "1916cd18-3b8e-46f8-aeaf-4bc3397ddd08";
-            string json = File.ReadAllText($"data/instances/{org}/{app}/{instanceOwnerId}/{instanceGuid}.json");
-            Instance instance = JsonConvert.DeserializeObject<Instance>(json);
-            _instanceRepository.Setup(ir => ir.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
-
-            bool res = await _authzHelper.AuthorizeInstanceAction(CreateUserClaims(3), instance, "delete");
-            Assert.False(res);
-        }
-
-        [Fact]
-        public async void AuthorizeInstanceAction_TC02_DeleteArchivedInstance()
-        {
-            // Arrange
-            string instanceGuid = "1916cd18-3b8e-46f8-aeaf-4bc3397ddd12";
-            string json = File.ReadAllText($"data/instances/{org}/{app}/{instanceOwnerId}/{instanceGuid}.json");
-            Instance instance = JsonConvert.DeserializeObject<Instance>(json);
-            _instanceRepository.Setup(ir => ir.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
-
-            bool res = await _authzHelper.AuthorizeInstanceAction(CreateUserClaims(3), instance, "delete");
-            Assert.True(res);
-        }
-
+        /// <summary>
+        /// Test case: Authorize an convert emtpy list of instances to messageboxInstances
+        /// Expected: An empty list is returned.
+        /// </summary>
         [Fact]
         public async void AuthorizeMesseageBoxInstances_TC01_EmptyList()
         {

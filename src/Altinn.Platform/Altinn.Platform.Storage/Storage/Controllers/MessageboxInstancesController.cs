@@ -27,7 +27,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly AuthorizationHelper _authorizationHelper;
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageBoxInstancesController"/> class
         /// </summary>
@@ -172,7 +172,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">instance owner</param>
         /// <param name="instanceGuid">instance id</param>
         /// <returns>True if the instance was undeleted.</returns>
-        [Authorize]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_DELETE)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/undelete")]
         public async Task<ActionResult> Undelete(int instanceOwnerPartyId, Guid instanceGuid)
         {
@@ -194,20 +194,12 @@ namespace Altinn.Platform.Storage.Controllers
                 return StatusCode(500, $"Unknown database exception in restore: {dce}");
             }
 
-            string action = (instance.Process.Ended != null) ? "delete" : "write";
-            bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, instance, action);
-
-            if (!authorized)
-            {
-                return Forbid();
-            }
-
             if (instance.Status.HardDeleted.HasValue)
             {
                 return BadRequest("Instance was permanently deleted and cannot be restored.");
             }
             else if (instance.Status.SoftDeleted.HasValue)
-            {               
+            {
                 instance.LastChangedBy = User.GetUserOrOrgId();
                 instance.LastChanged = DateTime.UtcNow;
                 instance.Status.SoftDeleted = null;
@@ -249,7 +241,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="hard">if true is marked for hard delete.</param>
         /// <returns>true if instance was successfully deleted</returns>
         /// DELETE /instances/{instanceId}?instanceOwnerPartyId={instanceOwnerPartyId}?hard={bool}
-        [Authorize]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_DELETE)]
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerPartyId, bool hard)
         {
@@ -272,14 +264,6 @@ namespace Altinn.Platform.Storage.Controllers
             catch (Exception e)
             {
                 return StatusCode(500, $"Unknown exception in delete: {e}");
-            }
-
-            string action = (instance.Process.Ended != null) ? "delete" : "write";
-            bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, instance, action);
-
-            if (!authorized)
-            {
-                return Forbid();
             }
 
             DateTime now = DateTime.UtcNow;

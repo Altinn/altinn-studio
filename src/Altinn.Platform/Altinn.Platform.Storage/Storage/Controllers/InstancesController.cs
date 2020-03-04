@@ -354,7 +354,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             return Ok(result);
         }
-       
+
         /// <summary>
         /// Delete an instance.
         /// </summary>
@@ -362,7 +362,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">The id of the instance that should be deleted.</param>
         /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribut set to todays date and time.</param>
         /// <returns>Information from the deleted instance.</returns>
-        [Authorize]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_DELETE)]
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -392,14 +392,6 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 _logger.LogError($"Cannot delete instance {instanceId}. Due to {e}");
                 return StatusCode(500, $"Unknown exception in delete: {e}");
-            }
-
-            string action = (instance.Process.Ended != null) ? "delete" : "write";
-            bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, instance, action);
-
-            if (!authorized)
-            {
-                return Forbid();
             }
 
             if (hard.HasValue && hard == true)
