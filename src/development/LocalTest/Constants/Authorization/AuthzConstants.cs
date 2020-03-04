@@ -18,7 +18,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// Policy tag for deleting an instance.
         /// </summary>
-        public const string POLICY_INSTANCE_READ = "InstanceDelete";
+        public const string POLICY_INSTANCE_DELETE = "InstanceDelete";
 
         /// <summary>
         /// Policy tag for authorizing client scope.
