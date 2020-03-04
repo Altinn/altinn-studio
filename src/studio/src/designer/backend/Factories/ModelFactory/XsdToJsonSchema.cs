@@ -509,11 +509,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                         appendToSchema.Type(JsonSchemaType.Array);
                         appendToSchema.OtherData.Add("@xsdType", new JsonValue("XmlList"));
 
-                        JsonSchema[] itemsSchemas = new JsonSchema[1];
-                        itemsSchemas[0] = new JsonSchema();
-
-                        AppendTypeFromSchemaTypeInternal(simpleTypeListItem.ItemType, simpleTypeListItem.ItemTypeName, itemsSchemas[0]);
-                        appendToSchema.Items(itemsSchemas);
+                        var itemsSchema = new JsonSchema();
+                        AppendTypeFromSchemaTypeInternal(simpleTypeListItem.ItemType, simpleTypeListItem.ItemTypeName, itemsSchema);
+                        appendToSchema.Items(itemsSchema);
                     }
                     else
                     {
@@ -862,27 +860,27 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             else if ("http://www.w3.org/2001/XMLSchema:date".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
-                appendToSchema.Format(StringFormat.GetFormat("date"));
+                appendToSchema.Format(Format.GetFormat("date"));
             }
             else if ("http://www.w3.org/2001/XMLSchema:time".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
-                appendToSchema.Format(StringFormat.GetFormat("time"));
+                appendToSchema.Format(Format.GetFormat("time"));
             }
             else if ("http://www.w3.org/2001/XMLSchema:dateTime".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
-                appendToSchema.Format(StringFormat.DateTime);
+                appendToSchema.Format(Format.DateTime);
             }
             else if ("http://www.w3.org/2001/XMLSchema:gYear".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
-                appendToSchema.Format(StringFormat.GetFormat("year"));
+                appendToSchema.Format(Format.GetFormat("year"));
             }
             else if ("http://www.w3.org/2001/XMLSchema:gYearMonth".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
-                appendToSchema.Format(StringFormat.GetFormat("year-month"));
+                appendToSchema.Format(Format.GetFormat("year-month"));
             }
             else if ("http://www.w3.org/2001/XMLSchema:base64Binary".Equals(type))
             {
@@ -935,11 +933,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                         appendToSchema.MaxItems(Convert.ToUInt32(maxOccurs, CultureInfo.InvariantCulture));
                     }
 
-                    JsonSchema[] itemsSchemas = new JsonSchema[1];
-                    itemsSchemas[0] = new JsonSchema();
-
-                    AppendTypeFromSchemaTypeInternal(elementItem.SchemaType, elementItem.SchemaTypeName, itemsSchemas[0]);
-                    appendToSchema.Items(itemsSchemas);
+                    var itemsSchema = new JsonSchema();
+                    AppendTypeFromSchemaTypeInternal(elementItem.SchemaType, elementItem.SchemaTypeName, itemsSchema);
+                    appendToSchema.Items(itemsSchema);
                 }
                 else
                 {
@@ -995,11 +991,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                         appendToSchema.MaxItems(Convert.ToUInt32(maxOccurs, CultureInfo.InvariantCulture));
                     }
 
-                    JsonSchema[] itemsSchemas = new JsonSchema[1];
-                    itemsSchemas[0] = new JsonSchema();
-
-                    AppendTypeFromSchemaTypeInternal(null, XmlQualifiedName.Empty, itemsSchemas[0]);
-                    appendToSchema.Items(itemsSchemas);
+                    var itemsSchema = new JsonSchema();
+                    AppendTypeFromSchemaTypeInternal(null, XmlQualifiedName.Empty, itemsSchema);
+                    appendToSchema.Items(itemsSchema);
                 }
                 else
                 {
