@@ -14,7 +14,7 @@ import { IComponentValidations } from '../types/global';
 import Label from '../features/form/components/Label';
 import HelpTextPopover from '../features/form/components/HelpTextPopover';
 import { renderValidationMessagesForComponent } from '../utils/render';
-import { 
+import {
   getFormDataForComponent,
   isSimpleComponent,
   componentHasValidationMessages,
@@ -28,7 +28,7 @@ export interface IGenericComponentProps {
   type: string;
   textResourceBindings: ITextResourceBindings;
   dataModelBindings: IDataModelBindings;
-  addressComponentValidations?: any;
+  componentValidations?: IComponentValidations;
 }
 
 export function GenericComponent(props: IGenericComponentProps) {
@@ -47,7 +47,7 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
   const formData: IFormData = useSelector((state: IRuntimeState) => getFormDataForComponent(state.formData.formData, props.dataModelBindings), shallowEqual);
-  const component: ILayoutComponent = useSelector((state: IRuntimeState) => state.formLayout.layout[props.id] as ILayoutComponent);
+  const component: ILayoutComponent = useSelector((state: IRuntimeState) => state.formLayout.layout.find(element => element.id === props.id) as ILayoutComponent);
   const isValid: boolean = useSelector((state: IRuntimeState) => isComponentValid(state.formValidations.validations[props.id]));
   const language: ILanguageState = useSelector((state: IRuntimeState) => state.language.language);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
@@ -105,17 +105,18 @@ export function GenericComponent(props: IGenericComponentProps) {
     setOpenPopover(false);
   }
 
-  const getAdressComponentValidations = () => {
-    if (props.type === 'AddressComponent') {
+  const getValidationsForInternalHandling = () => {
+    if (props.type === 'AddressComponent' || props.type === 'Datepicker') {
       return componentValidations;
     } else {
       return null;
     }
   }
 
-  const addressComponentValidations = getAdressComponentValidations();
-  if (addressComponentValidations !== null) {
-    passThroughProps.addressComponentValidations = addressComponentValidations;
+  // some compoenets handle their validations internally (i.e merge with internal validaiton state)
+  const internalComponentValidations = getValidationsForInternalHandling();
+  if (internalComponentValidations !== null) {
+    passThroughProps.componentValidations = internalComponentValidations;
   }
 
   if (hidden) {

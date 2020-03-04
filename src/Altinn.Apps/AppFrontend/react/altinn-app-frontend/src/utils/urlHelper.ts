@@ -13,6 +13,7 @@ export const textResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const updateCookieUrl: (partyId: string) => string = (partyId: string) => `
   ${appPath}/api/v1/parties/${partyId}
 `;
+export const invalidateCookieUrl:string = `${appPath}/api/authentication/invalidatecookie`;
 export const validPartiesUrl: string =
   `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const allPartiesUrl: string =

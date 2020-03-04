@@ -95,6 +95,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
     }
 
     setSelected(newSelected);
+    props.handleFocusUpdate(props.id);
     props.handleDataChange(selectedHasValues(newSelected) ? newSelected.join() : '');
   };
 
@@ -115,6 +116,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
         checkedIcon={<span className={classNames(classes.icon, classes.checkedIcon)} />}
         icon={<span className={classes.icon} />}
         inputProps={{ 'aria-label': 'decorative checkbox' }}
+        autoFocus={props.shouldFocus}
         {...checkboxProps}
       />
     );
@@ -122,7 +124,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   return(
     <FormControl>
-      <FormGroup row={checkBoxesIsRow}>
+      <FormGroup row={checkBoxesIsRow} id={props.id}>
         {props.options.map((option, index) => (
           <React.Fragment key={index}>
             <FormControlLabel
