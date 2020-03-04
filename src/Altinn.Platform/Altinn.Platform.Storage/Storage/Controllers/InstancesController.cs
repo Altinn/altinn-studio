@@ -34,7 +34,6 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
-        private readonly AuthorizationHelper _authorizationHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -43,22 +42,19 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
         /// <param name="logger">the logger</param>
-        /// <param name="authzLogger">the logger for authorization helper</param>
         /// <param name="pdp">the policy decision point.</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
             ILogger<InstancesController> logger,
-            ILogger<AuthorizationHelper> authzLogger,
             IPDP pdp)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
             _pdp = pdp;
-            _logger = logger;
-            _authorizationHelper = new AuthorizationHelper(_pdp, authzLogger);
+            _logger = logger; 
         }
 
         /// <summary>
