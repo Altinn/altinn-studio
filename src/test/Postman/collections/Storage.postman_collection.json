@@ -2679,6 +2679,72 @@
 			"protocolProfileBehavior": {}
 		},
 		{
+			"name": "Receipt",
+			"item": [
+				{
+					"name": "GET Receipt",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8c97e023-bdf7-4556-a260-5968b8c884cb",
+								"exec": [
+									"pm.test(\"Platform - Receipt - GET Receipt - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Platform - Receipt - GET Receipt - Content - Includes party info\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var instanceOwnerId = pm.environment.get(\"instanceOwnerId\");\r",
+									"    pm.expect(jsonData.party.partyId).to.equal(instanceOwnerId);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/receipt/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?includeParty=true",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"receipt",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}"
+							],
+							"query": [
+								{
+									"key": "includeParty",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
 			"name": "CleanUp",
 			"item": [
 				{
