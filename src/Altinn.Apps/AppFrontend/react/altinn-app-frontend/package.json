@@ -13,7 +13,8 @@
     "clean": "rimraf dist compiled",
     "format": "prettier-tslint fix src/**/*.{ts,tsx}",
     "webpack-watch": "cross-env NODE_ENV=development webpack --mode=development --config webpack.config.development.js --watch --progress",
-    "lintfix": "tslint -c tslint.json 'src/**/*.{ts,tsx} --fix"
+    "lintfix": "tslint -c tslint.json 'src/**/*.{ts,tsx} --fix",
+    "test-component": "jest __tests__/components/base/DatepickerComponent.test.tsx"
   },
   "author": "Altinn",
   "license": "3-Clause BSD",
@@ -31,9 +32,9 @@
     "immutability-helper": "2.7.0",
     "lodash.isequal": "4.5.0",
     "moment": "2.24.0",
-    "react": "16.8.6",
+    "react": "16.13.0",
     "react-content-loader": "4.2.1",
-    "react-dom": "16.8.6",
+    "react-dom": "16.13.0",
     "react-dropzone": "9.0.0",
     "react-hot-loader": "4.3.1",
     "react-redux": "7.1.0",
@@ -51,14 +52,16 @@
     "@babel/core": "7.6.0",
     "@babel/preset-env": "7.6.0",
     "@babel/preset-react": "7.0.0",
+    "@testing-library/react": "9.4.1",
+    "@testing-library/jest-dom": "5.1.1",
     "@types/classnames": "2.2.6",
     "@types/deepmerge": "2.1.0",
     "@types/dot-object": "1.7.0",
     "@types/enzyme": "3.9.4",
     "@types/jest": "23.3.14",
     "@types/lodash.isequal": "4.5.3",
-    "@types/react": "16.9.2",
-    "@types/react-dom": "16.8.3",
+    "@types/react": "16.9.23",
+    "@types/react-dom": "16.9.5",
     "@types/react-redux": "7.1.2",
     "@types/react-router-dom": "4.3.1",
     "@types/react-test-renderer": "16.8.1",
@@ -119,6 +122,10 @@
       "tsx",
       "js"
     ],
-    "setupTestFrameworkScriptFile": "<rootDir>/setupTests.js"
+    "setupTestFrameworkScriptFile": "<rootDir>/setupTests.js",
+    "setupFilesAfterEnv": [
+      "@testing-library/react/cleanup-after-each",
+      "@testing-library/jest-dom/extend-expect"
+    ]
   }
 }
