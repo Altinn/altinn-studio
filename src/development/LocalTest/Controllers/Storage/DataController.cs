@@ -9,7 +9,7 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-
+using LocalTest.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
@@ -37,6 +38,7 @@ namespace Altinn.Platform.Storage.Controllers
 
         private readonly ILogger _logger;
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
+        private readonly string _storageBaseAndHost;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataController"/> class
@@ -45,12 +47,14 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceRepository">the indtance repository</param>
         /// <param name="applicationRepository">the application repository</param>
         /// <param name="instanceEventRepository">the instance event repository</param>
+        /// <param name="generalsettings">the general settings.</param>
         /// <param name="logger">The logger</param>
         public DataController(
             IDataRepository dataRepository,
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository,
             IInstanceEventRepository instanceEventRepository,
+            IOptions<GeneralSettings> generalsettings,
             ILogger<DataController> logger)
         {
             _dataRepository = dataRepository;
@@ -58,6 +62,7 @@ namespace Altinn.Platform.Storage.Controllers
             _applicationRepository = applicationRepository;
             _instanceEventRepository = instanceEventRepository;
             _logger = logger;
+            _storageBaseAndHost = $"{generalsettings.Value.GetHostName}/storage/api/v1/";
         }
 
         /// <summary>
@@ -280,7 +285,7 @@ namespace Altinn.Platform.Storage.Controllers
                 newData.Size = await _dataRepository.WriteDataToStorage(instance.Org, theStream, newData.BlobStoragePath);
 
                 DataElement dataElement = await _dataRepository.Create(newData);
-                AddSelfLinks(instance, dataElement);
+                dataElement.SetPlatformSelflink(_storageBaseAndHost, instanceOwnerPartyId);
 
                 await DispatchEvent(InstanceEventType.Created.ToString(), instance, dataElement);
 
@@ -364,7 +369,7 @@ namespace Altinn.Platform.Storage.Controllers
                 if (dataElement.Size > 0)
                 {
                     DataElement updatedElement = await _dataRepository.Update(dataElement);
-                    AddSelfLinks(instance, updatedElement);
+                    updatedElement.SetPlatformSelflink(_storageBaseAndHost, instanceOwnerPartyId);
 
                     await DispatchEvent(InstanceEventType.Saved.ToString(), instance, updatedElement);
 
@@ -629,13 +634,6 @@ namespace Altinn.Platform.Storage.Controllers
             };
 
             await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
-        }
-
-        private void AddSelfLinks(Instance instance, DataElement dataElement)
-        {
-            InstancesController.AddDataSelfLinks(
-                                InstancesController.ComputeInstanceSelfLink(Request, instance),
-                                dataElement);
         }
     }
 }
