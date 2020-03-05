@@ -44,7 +44,7 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
-        /// Authorize instances, and returns a list of MesseageBoxInstances with information about read and write rights of each instance. 
+        /// Authorize instances, and returns a list of MesseageBoxInstances with information about read and write rights of each instance.
         /// </summary>
         public async Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(ClaimsPrincipal user, List<Instance> instances)
         {
@@ -128,17 +128,19 @@ namespace Altinn.Platform.Storage.Helpers
         {
             string org = instance.Org;
             string app = instance.AppId.Split('/')[1];
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             XacmlJsonRequestRoot request;
 
             if (instance.Id == null)
             {
-                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instance.InstanceOwner.PartyId, null);
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, null);
             }
             else
             {
-                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instance.InstanceOwner.PartyId, instance.Id);
+                Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, instanceGuid);
             }
-           
+
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)
@@ -152,7 +154,7 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
-        /// Authorize instances, and returns a list of instances that the user has the right to read. 
+        /// Authorize instances, and returns a list of instances that the user has the right to read.
         /// </summary>
         public async Task<List<Instance>> AuthorizeInstances(ClaimsPrincipal user, List<Instance> instances)
         {
