@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -13,6 +14,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Controllers
 {
@@ -26,6 +29,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly ILogger _logger;
+        private readonly string _storageBaseAndHost;
         private readonly AuthorizationHelper _authorizationHelper;
 
         /// <summary>
@@ -33,18 +37,21 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="instanceEventRepository">the instance event repository service</param>
-        /// <param name="logger">the logger</param>
         /// <param name="pdp">the policy decision point.</param>
+        /// <param name="generalsettings">the general settings</param>
+        /// <param name="logger">the logger</param>
         /// <param name="authzLogger">logger for authorization helper</param>
         public ProcessController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IPDP pdp,
+            IOptions<GeneralSettings> generalsettings,
             ILogger<ProcessController> logger,
             ILogger<AuthorizationHelper> authzLogger)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
+            _storageBaseAndHost = $"{generalsettings.Value.Hostname}/storage/api/v1/";
             _logger = logger;
             _authorizationHelper = new AuthorizationHelper(pdp, authzLogger);
         }
@@ -111,8 +118,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 updatedInstance = await _instanceRepository.Update(existingInstance);
-
-                InstancesController.AddSelfLinks(Request, updatedInstance);
+                updatedInstance.SetPlatformSelflink(_storageBaseAndHost);
             }
             catch (Exception e)
             {
@@ -136,7 +142,7 @@ namespace Altinn.Platform.Storage.Controllers
         public async Task<ActionResult<ProcessHistoryList>> GetProcessHistory(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
-        {      
+        {
             string[] eventTypes = Enum.GetNames(typeof(InstanceEventType)).Where(x => x.StartsWith("process")).ToArray();
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             ProcessHistoryList processHistoryList = new ProcessHistoryList();
