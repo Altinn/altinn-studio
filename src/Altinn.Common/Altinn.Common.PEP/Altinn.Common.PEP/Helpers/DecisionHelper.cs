@@ -33,7 +33,7 @@ namespace Altinn.Common.PEP.Helpers
         /// <param name="actionType">Policy action type i.e. read, write, delete, instantiate.</param>
         /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance.</param>
         /// <param name="instanceGuid">Unique id to identify the instance.</param>
-        /// <returns></returns>
+        /// <returns>The decision request.</returns>
         public static XacmlJsonRequestRoot CreateDecisionRequest(string org, string app, ClaimsPrincipal user, string actionType, int instanceOwnerPartyId, Guid? instanceGuid)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
