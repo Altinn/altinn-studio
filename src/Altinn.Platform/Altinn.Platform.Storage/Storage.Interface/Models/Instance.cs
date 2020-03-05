@@ -96,6 +96,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// <param name="storageHostAndBase">The host and basepath for platform storage. E.g. 'at22.altinn.cloud/storage/api/v1/'. Must end with '/'.</param>
         public void SetPlatformSelflink(string storageHostAndBase)
         {
+            if (SelfLinks == null)
+            {
+                SelfLinks = new ResourceLinks();
+            }
+
             SelfLinks.Platform = $"https://platform.{storageHostAndBase}instances/{this.Id}";
 
             if (Data != null)

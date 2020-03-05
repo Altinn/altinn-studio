@@ -91,6 +91,11 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// <param name="instanceOwnerPartyId">The instance owner party id.</param>
         public void SetPlatformSelflink(string storageHostAndBase, int instanceOwnerPartyId)
         {
+            if (SelfLinks == null)
+            {
+                SelfLinks = new ResourceLinks();
+            }
+
             SelfLinks.Platform = $"https://platform.{storageHostAndBase}instances/{instanceOwnerPartyId}/{InstanceGuid}/data/{Id}";
         }
     }
