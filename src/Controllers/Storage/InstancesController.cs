@@ -10,6 +10,7 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using LocalTest.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 
@@ -34,6 +36,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
+        private readonly string _storageBaseAndHost;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -43,18 +46,21 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="applicationRepository">the application repository handler</param>
         /// <param name="logger">the logger</param>
         /// <param name="pdp">the policy decision point.</param>
+        /// <param name="settings">the general settings.</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
             ILogger<InstancesController> logger,
-            IPDP pdp)
+            IPDP pdp,
+            IOptions<GeneralSettings> settings)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
             _pdp = pdp;
-            _logger = logger; 
+            _logger = logger;
+            _storageBaseAndHost = $"{settings.Value.GetHostName}/storage/api/v1/";
         }
 
         /// <summary>
@@ -177,7 +183,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
 
                 // add self links to platform
-                result.Instances.ForEach(i => AddSelfLinks(Request, i));
+                result.Instances.ForEach(i => i.SetPlatformSelflink(_storageBaseAndHost));
 
                 return Ok(response);
             }
@@ -206,8 +212,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 Instance result = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-
-                AddSelfLinks(Request, result);
+                result.SetPlatformSelflink(_storageBaseAndHost);
 
                 return Ok(result);
             }
@@ -271,8 +276,7 @@ namespace Altinn.Platform.Storage.Controllers
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
                 await DispatchEvent(InstanceEventType.Created.ToString(), storedInstance);
                 _logger.LogInformation($"Created instance: {storedInstance.Id}");
-
-                AddSelfLinks(Request, storedInstance);
+                storedInstance.SetPlatformSelflink(_storageBaseAndHost);
 
                 return Created(storedInstance.SelfLinks.Platform, storedInstance);
             }
@@ -341,7 +345,7 @@ namespace Altinn.Platform.Storage.Controllers
                 existingInstance.Data = null;
                 result = await _instanceRepository.Update(existingInstance);
                 await DispatchEvent(InstanceEventType.Saved.ToString(), result);
-                AddSelfLinks(Request, result);
+                result.SetPlatformSelflink(_storageBaseAndHost);
             }
             catch (Exception e)
             {
@@ -425,56 +429,6 @@ namespace Altinn.Platform.Storage.Controllers
                     return StatusCode(500, $"Unexpected exception when updating instance after soft delete: {e.Message}");
                 }
             }
-        }              
-
-        /// <summary>
-        ///   Annotate instance with self links to platform for the instance and each of its data elements.
-        /// </summary>
-        /// <param name="request">the http request which has the path to the request</param>
-        /// <param name="instance">the instance to annotate</param>
-        public static void AddSelfLinks(HttpRequest request, Instance instance)
-        {
-            string selfLink = ComputeInstanceSelfLink(request, instance);
-
-            instance.SelfLinks ??= new ResourceLinks();
-            instance.SelfLinks.Platform = selfLink;
-
-            if (instance.Data != null)
-            {
-                foreach (DataElement dataElement in instance.Data)
-                {
-                    AddDataSelfLinks(selfLink, dataElement);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Computes the self link (url) to an instance.
-        /// </summary>
-        /// <param name="request">the http request that has scheme, host and path properties</param>
-        /// <param name="instance">the instance which has the instance id</param>
-        /// <returns>A string that contains the self link url to the instance</returns>
-        public static string ComputeInstanceSelfLink(HttpRequest request, Instance instance)
-        {
-            string selfLink = $"https://{request.Host.ToUriComponent()}{request.Path}";
-
-            int start = selfLink.IndexOf("/instances", StringComparison.Ordinal);
-            selfLink = selfLink.Substring(0, start) + "/instances";
-
-            selfLink += $"/{instance.Id}";
-            return selfLink;
-        }
-
-        /// <summary>
-        /// Adds a self link to the data element.
-        /// </summary>
-        /// <param name="instanceSelfLink">the url to the parent instance</param>
-        /// <param name="dataElement">the data element to add self link to</param>
-        public static void AddDataSelfLinks(string instanceSelfLink, DataElement dataElement)
-        {
-            dataElement.SelfLinks ??= new ResourceLinks();
-
-            dataElement.SelfLinks.Platform = $"{instanceSelfLink}/data/{dataElement.Id}";
         }
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
