@@ -128,17 +128,17 @@ namespace Altinn.Platform.Storage.Helpers
         {
             string org = instance.Org;
             string app = instance.AppId.Split('/')[1];
-
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             XacmlJsonRequestRoot request;
 
             if (instance.Id == null)
             {
-                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instance.InstanceOwner.PartyId, null);
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, null);
             }
             else
             {
-                string instanceGuid = instance.Id.Split('/')[1];
-                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instance.InstanceOwner.PartyId, instanceGuid);
+                Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, instanceGuid);
             }
 
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);

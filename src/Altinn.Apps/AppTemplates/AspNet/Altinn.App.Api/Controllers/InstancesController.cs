@@ -365,7 +365,7 @@ namespace Altinn.App.Api.Controllers
         private async Task<EnforcementResult> AuthorizeAction(string org, string app, int partyId, string action)
         {
             EnforcementResult enforcementResult = new EnforcementResult();
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, action, partyId.ToString(), null);
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, action, partyId, null);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)

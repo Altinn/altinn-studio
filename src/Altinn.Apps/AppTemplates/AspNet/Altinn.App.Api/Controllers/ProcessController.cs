@@ -529,7 +529,7 @@ namespace Altinn.App.Api.Controllers
         private async Task<bool> AuthorizeAction(string currenTaskType, string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
         {
             string actionType = currenTaskType.Equals("data") ? "write" : null;
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, instanceOwnerPartyId.ToString(), instanceGuid.ToString());
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, instanceOwnerPartyId, instanceGuid);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
             if (response?.Response == null)
             {

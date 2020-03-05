@@ -25,7 +25,7 @@ namespace Altinn.Common.PEP.Helpers
         private const string DefaultType = "string";
 
         /// <summary>
-        /// Create decision request based for policy decision point. 
+        /// Create decision request based for policy decision point.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -34,7 +34,7 @@ namespace Altinn.Common.PEP.Helpers
         /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance.</param>
         /// <param name="instanceGuid">Unique id to identify the instance.</param>
         /// <returns></returns>
-        public static XacmlJsonRequestRoot CreateDecisionRequest(string org, string app, ClaimsPrincipal user, string actionType, string instanceOwnerPartyId, string instanceGuid)
+        public static XacmlJsonRequestRoot CreateDecisionRequest(string org, string app, ClaimsPrincipal user, string actionType, int instanceOwnerPartyId, Guid? instanceGuid)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
             request.AccessSubject = new List<XacmlJsonCategory>();
@@ -43,7 +43,7 @@ namespace Altinn.Common.PEP.Helpers
 
             request.AccessSubject.Add(CreateSubjectCategory(user.Claims));
             request.Action.Add(CreateActionCategory(actionType));
-            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId, instanceGuid));
+            request.Resource.Add(CreateResourceCategory(org, app, instanceOwnerPartyId.ToString(), instanceGuid.ToString()));
 
             XacmlJsonRequestRoot jsonRequest = new XacmlJsonRequestRoot() { Request = request };
 
