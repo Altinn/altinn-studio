@@ -44,7 +44,7 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
-        /// Authorize instances, and returns a list of MesseageBoxInstances with information about read and write rights of each instance. 
+        /// Authorize instances, and returns a list of MesseageBoxInstances with information about read and write rights of each instance.
         /// </summary>
         public async Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(ClaimsPrincipal user, List<Instance> instances)
         {
@@ -128,6 +128,7 @@ namespace Altinn.Platform.Storage.Helpers
         {
             string org = instance.Org;
             string app = instance.AppId.Split('/')[1];
+
             XacmlJsonRequestRoot request;
 
             if (instance.Id == null)
@@ -136,9 +137,10 @@ namespace Altinn.Platform.Storage.Helpers
             }
             else
             {
-                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instance.InstanceOwner.PartyId, instance.Id);
+                string instanceGuid = instance.Id.Split('/')[1];
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instance.InstanceOwner.PartyId, instanceGuid);
             }
-           
+
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)
@@ -152,7 +154,7 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
-        /// Authorize instances, and returns a list of instances that the user has the right to read. 
+        /// Authorize instances, and returns a list of instances that the user has the right to read.
         /// </summary>
         public async Task<List<Instance>> AuthorizeInstances(ClaimsPrincipal user, List<Instance> instances)
         {
