@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -15,7 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -31,23 +32,27 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
+        private string _storageBaseAndHost;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessController"/> class
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="instanceEventRepository">the instance event repository service</param>
+        /// <param name="pdp">the policy decision point.</param>
+        /// <param name="generalsettings">the general settings</param>
         /// <param name="logger">the logger</param>
-        /// <param name="pdp">the policy decision point.</param>        
         public ProcessController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IPDP pdp,
+            IOptions<GeneralSettings> generalsettings,
             ILogger<ProcessController> logger)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _pdp = pdp;
+            _storageBaseAndHost = $"{generalsettings.Value.Hostname}/storage/api/v1/";
             _logger = logger;
         }
 
@@ -111,8 +116,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 updatedInstance = await _instanceRepository.Update(existingInstance);
-
-                InstancesController.AddSelfLinks(Request, updatedInstance);
+                updatedInstance.SetPlatformSelflink(_storageBaseAndHost);
             }
             catch (Exception e)
             {
