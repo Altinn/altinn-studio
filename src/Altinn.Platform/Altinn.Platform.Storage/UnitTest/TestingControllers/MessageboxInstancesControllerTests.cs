@@ -27,17 +27,20 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
+using System.IO;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
-    public partial class IntegrationTests {
+    public partial class IntegrationTests
+    {
 
         public class MessageboxInstancesControllerTests : IClassFixture<WebApplicationFactory<Startup>>
         {
             private const string BasePath = "/storage/api/v1";
-
+            private const string org = "tdd";
+            private const string app = "test-applikasjon-1";   
             private readonly WebApplicationFactory<Startup> _factory;
-            private readonly string _validToken;
+            private readonly string _validToken, _validTokenUsr3;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="MessageboxInstancesControllerTests"/> class with the given <see cref="WebApplicationFactory{TStartup}"/>.
@@ -47,6 +50,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 _factory = factory;
                 _validToken = PrincipalUtil.GetToken(1);
+                _validTokenUsr3 = PrincipalUtil.GetToken(3);
             }
 
             /// <summary>
@@ -63,12 +67,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Arrange
                 MessageBoxTestData testData = new MessageBoxTestData();
                 List<Instance> testInstances = testData.GetInstances_App3();
-            
+
                 Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
 
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
                 instanceRepository.Setup(s => s.GetInstancesInStateOfInstanceOwner(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(testInstances);
-            
+
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
                 applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App3);
 
@@ -104,7 +108,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Arrange
                 MessageBoxTestData testData = new MessageBoxTestData();
                 List<Instance> testInstances = testData.GetInstances_App2();
-            
+
                 Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
 
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
@@ -145,7 +149,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Arrange
                 MessageBoxTestData testData = new MessageBoxTestData();
                 List<Instance> testInstances = testData.GetInstances_App1();
-            
+
                 Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
 
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
@@ -325,7 +329,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     .ReturnsAsync((InstanceEvent r) => r);
 
                 HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
-                string token = PrincipalUtil.GetToken(2);
+                string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -428,7 +432,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Instance instance = testData.GetActiveInstance();
 
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-            
+
                 Instance storedInstance = null;
 
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
@@ -445,7 +449,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
                 // Act
-                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id.Split("/")[1]}?hard=false");  
+                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id.Split("/")[1]}?hard=false");
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -529,7 +533,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     .ReturnsAsync((InstanceEvent r) => r);
 
                 HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
-                string token = PrincipalUtil.GetToken(2);
+                string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -550,14 +554,14 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             ///   True is returned for the http request.
             /// </summary>
             [Fact]
-            public async void DeleteInstance_TC02()
+            public async void Delete_HardDeleteSoftDeleted()
             {
                 // Arrange
                 MessageBoxTestData testData = new MessageBoxTestData();
                 Instance instance = testData.GetSoftDeletedInstance();
 
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-            
+
                 Instance storedInstance = null;
 
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
@@ -586,6 +590,192 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.Equal(expectedResult, actualResult);
                 Assert.Equal(expectedStatusCode, actualStatusCode);
                 Assert.True(storedInstance.Status.HardDeleted.HasValue);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///  Delete an active instance, user has write priviliges
+            /// Expected result:
+            ///   Instance is marked for hard delete.
+            /// Success criteria:
+            ///   True is returned for the http request.
+            /// </summary>
+            [Fact]
+            public async void Delete_ActiveHasRole_ReturnsOk()
+            {
+                // Arrange
+                int instanceOwnerId = 1000;
+                string instanceGuid = "1916cd18-3b8e-46f8-aeaf-4bc3397ddd08";
+                string json = File.ReadAllText($"data/instances/{org}/{app}/{instanceOwnerId}/{instanceGuid}.json");
+                Instance instance = JsonConvert.DeserializeObject<Instance>(json);
+                HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+                bool expectedResult = true;
+
+
+                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+
+                Instance storedInstance = null;
+
+                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
+                instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
+                instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).Callback<Instance>(p => storedInstance = p).ReturnsAsync((Instance i) => i);
+
+                InstanceEvent instanceEvent = null;
+
+                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
+                instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
+                    .ReturnsAsync((InstanceEvent r) => r);
+
+                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validTokenUsr3);
+
+                // Act
+                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{instanceOwnerId}/{instanceGuid}?hard=false");
+                HttpStatusCode actualStatusCode = response.StatusCode;
+                string content = await response.Content.ReadAsStringAsync();
+                bool actualResult = JsonConvert.DeserializeObject<bool>(content);
+
+                // Assert
+                Assert.Equal(expectedResult, actualResult);
+                Assert.Equal(expectedStatusCode, actualStatusCode);
+                Assert.False(storedInstance.Status.HardDeleted.HasValue);
+                Assert.True(storedInstance.Status.SoftDeleted.HasValue);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///  Delete an active instance, user does not have priviliges
+            /// Expected result:
+            ///  No changes are made to the instance
+            /// Success criteria:
+            ///   Forbidden is returned for the http request.
+            /// </summary>
+            [Fact]
+            public async void Delete_ActiveMissingRole_ReturnsForbidden()
+            {
+                // Arrange
+                int instanceOwnerId = 1600;
+                string instanceGuid = "1916cd18-3b8e-46f8-aeaf-4bc3397ddd08";
+                string json = File.ReadAllText($"data/instances/{org}/{app}/{instanceOwnerId}/{instanceGuid}.json");
+                Instance instance = JsonConvert.DeserializeObject<Instance>(json);
+                HttpStatusCode expectedStatusCode = HttpStatusCode.Forbidden;
+
+                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+
+                Instance storedInstance = null;
+
+                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
+                instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
+                instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).Callback<Instance>(p => storedInstance = p).ReturnsAsync((Instance i) => i);
+
+                InstanceEvent instanceEvent = null;
+
+                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
+                instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
+                    .ReturnsAsync((InstanceEvent r) => r);
+
+                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validTokenUsr3);
+
+                // Act
+                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{instanceOwnerId}/{instanceGuid}?hard=false");
+                HttpStatusCode actualStatusCode = response.StatusCode;
+
+                // Assert
+                Assert.Equal(expectedStatusCode, actualStatusCode);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///  Delete an archived instance, user has delete priviliges
+            /// Expected result:
+            ///   Instance is marked for hard delete.
+            /// Success criteria:
+            ///   True is returned for the http request.
+            /// </summary>
+            [Fact]
+            public async void Delete_ArchivedHasRole_ReturnsOk()
+            {
+                // Arrange
+                int instanceOwnerId = 1000;
+                string instanceGuid = "1916cd18-3b8e-46f8-aeaf-4bc3397ddd12";
+                string json = File.ReadAllText($"data/instances/{org}/{app}/{instanceOwnerId}/{instanceGuid}.json");
+                Instance instance = JsonConvert.DeserializeObject<Instance>(json);
+                HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+                bool expectedResult = true;
+
+
+                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+
+                Instance storedInstance = null;
+
+                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
+                instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
+                instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).Callback<Instance>(p => storedInstance = p).ReturnsAsync((Instance i) => i);
+
+                InstanceEvent instanceEvent = null;
+
+                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
+                instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
+                    .ReturnsAsync((InstanceEvent r) => r);
+
+                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validTokenUsr3);
+
+                // Act
+                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{instanceOwnerId}/{instanceGuid}?hard=false");
+                HttpStatusCode actualStatusCode = response.StatusCode;
+                string content = await response.Content.ReadAsStringAsync();
+                bool actualResult = JsonConvert.DeserializeObject<bool>(content);
+
+                // Assert
+                Assert.Equal(expectedResult, actualResult);
+                Assert.Equal(expectedStatusCode, actualStatusCode);
+                Assert.False(storedInstance.Status.HardDeleted.HasValue);
+                Assert.True(storedInstance.Status.SoftDeleted.HasValue);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///  Delete an archived instance, user does not have priviliges
+            /// Expected result:
+            ///  No changes are made to the instance
+            /// Success criteria:
+            ///   Forbidden is returned for the http request.
+            /// </summary>
+            [Fact]
+            public async void Delete_ArchivedMissingRole_ReturnsForbidden()
+            {
+                // Arrange
+                int instanceOwnerId = 1600;
+                string instanceGuid = "1916cd18-3b8e-46f8-aeaf-4bc3397ddd12";
+                string json = File.ReadAllText($"data/instances/{org}/{app}/{instanceOwnerId}/{instanceGuid}.json");
+                Instance instance = JsonConvert.DeserializeObject<Instance>(json);
+                HttpStatusCode expectedStatusCode = HttpStatusCode.Forbidden;
+
+                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
+
+                Instance storedInstance = null;
+
+                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
+                instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
+                instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).Callback<Instance>(p => storedInstance = p).ReturnsAsync((Instance i) => i);
+
+                InstanceEvent instanceEvent = null;
+
+                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
+                instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
+                    .ReturnsAsync((InstanceEvent r) => r);
+
+                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validTokenUsr3);
+
+                // Act
+                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{instanceOwnerId}/{instanceGuid}?hard=false");
+                HttpStatusCode actualStatusCode = response.StatusCode;
+
+                // Assert
+                Assert.Equal(expectedStatusCode, actualStatusCode);
             }
 
             private HttpClient GetTestClient(

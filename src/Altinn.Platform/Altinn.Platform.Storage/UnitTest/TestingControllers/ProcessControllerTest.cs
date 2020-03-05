@@ -78,7 +78,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string requestUri = $"{BasePath}{InstanceId}/process/history";
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(2);
+                string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -149,7 +149,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(2);
+                string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -195,6 +195,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     new Instance
                     {
                         Id = InstanceId,
+                        InstanceOwner = new InstanceOwner
+                        {
+                            PartyId = "5000"
+                        },
                         Org = "ttd",
                         AppId = "ttd/testapp",
                         Process = new ProcessState

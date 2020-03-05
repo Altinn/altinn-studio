@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
@@ -31,8 +29,8 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly ILogger _logger;
-        private readonly IPDP _pdp;
-        private string _storageBaseAndHost;
+        private readonly string _storageBaseAndHost;
+        private readonly AuthorizationHelper _authorizationHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessController"/> class
@@ -42,18 +40,20 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="pdp">the policy decision point.</param>
         /// <param name="generalsettings">the general settings</param>
         /// <param name="logger">the logger</param>
+        /// <param name="authzLogger">logger for authorization helper</param>
         public ProcessController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IPDP pdp,
             IOptions<GeneralSettings> generalsettings,
-            ILogger<ProcessController> logger)
+            ILogger<ProcessController> logger,
+            ILogger<AuthorizationHelper> authzLogger)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
-            _pdp = pdp;
             _storageBaseAndHost = $"{generalsettings.Value.Hostname}/storage/api/v1/";
             _logger = logger;
+            _authorizationHelper = new AuthorizationHelper(pdp, authzLogger);
         }
 
         /// <summary>
@@ -95,7 +95,9 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             string altinnTaskType = existingInstance.Process?.CurrentTask?.AltinnTaskType;
-            bool authorized = await Authorize(altinnTaskType, existingInstance);
+            string action = (string.IsNullOrEmpty(altinnTaskType) || altinnTaskType.Equals("data")) ? "write" : altinnTaskType;
+            bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, existingInstance, action);
+
             if (!authorized)
             {
                 return Forbid();
@@ -140,7 +142,7 @@ namespace Altinn.Platform.Storage.Controllers
         public async Task<ActionResult<ProcessHistoryList>> GetProcessHistory(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
-        {      
+        {
             string[] eventTypes = Enum.GetNames(typeof(InstanceEventType)).Where(x => x.StartsWith("process")).ToArray();
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             ProcessHistoryList processHistoryList = new ProcessHistoryList();
@@ -157,33 +159,6 @@ namespace Altinn.Platform.Storage.Controllers
                 _logger.LogError($"Unable to retriece process history for instance object {instanceId}. Due to {e}");
                 return StatusCode(500, $"Unable to retriece process history for instance object {instanceId}: {e.Message}");
             }
-        }
-
-        private async Task<bool> Authorize(string currentTaskType, Instance instance)
-        {
-            string actionType;
-            if (string.IsNullOrEmpty(currentTaskType) || currentTaskType.Equals("data"))
-            {
-                actionType = "write";
-            }
-            else
-            {
-                actionType = currentTaskType;
-            }
-
-            string org = instance.Org;
-            string app = instance.AppId.Split("/")[1];
-
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, null, instance.Id);
-            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
-            if (response?.Response == null)
-            {
-                _logger.LogInformation($"// Instance Controller // Authorization to update Process failed: {JsonConvert.SerializeObject(request)}.");
-                return false;
-            }
-
-            bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, HttpContext.User);
-            return authorized;
         }
     }
 }
