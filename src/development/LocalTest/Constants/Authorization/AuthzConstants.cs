@@ -6,14 +6,19 @@ namespace Altinn.Platform.Storage.Helpers
     public static class AuthzConstants
     {
         /// <summary>
-        /// Policy tag for reading an instance.
+        /// Policy tag for writing on an instance.
         /// </summary>
         public const string POLICY_INSTANCE_WRITE = "InstanceWrite";
 
         /// <summary>
-        /// Policy tag for writing on instance.
+        /// Policy tag for reading an instance.
         /// </summary>
         public const string POLICY_INSTANCE_READ = "InstanceRead";
+
+        /// <summary>
+        /// Policy tag for deleting an instance.
+        /// </summary>
+        public const string POLICY_INSTANCE_DELETE = "InstanceDelete";
 
         /// <summary>
         /// Policy tag for authorizing client scope.
@@ -23,6 +28,6 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// Policy tag for authorizing client scope.
         /// </summary>
-        public const string POLICY_SCOPE_INSTANCE_READ = "ScopeInstanceRead"; 
+        public const string POLICY_SCOPE_INSTANCE_READ = "ScopeInstanceRead";
     }
 }

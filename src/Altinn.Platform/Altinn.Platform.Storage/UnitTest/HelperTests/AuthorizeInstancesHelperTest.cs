@@ -1,20 +1,49 @@
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.Interface.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
+
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Configuration;
+using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Mocks;
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.HelperTests
 {
     public class AuthorizeInstancesHelperTest
     {
-        private const string org = "Altinn";
-        private const string app = "App";
+        private const string org = "tdd";
+        private const string app = "test-applikasjon-1";
         private const string urnName = "urn:name";
         private const string urnAuthLv = "urn:altinn:authlevel";
+        private const string urnUserId = "urn:altinn:userid";
+
+        int instanceOwnerId = 1000;
+        private readonly AuthorizationHelper _authzHelper;
+        private readonly IPDP _pdp;
+        private readonly Mock<IInstanceRepository> _instanceRepository = new Mock<IInstanceRepository>();
+
+
+        public AuthorizeInstancesHelperTest()
+        {
+            _pdp = new PepWithPDPAuthorizationMockSI(_instanceRepository.Object, Options.Create(new PepSettings
+            {
+                DisablePEP = false
+
+            }));
+
+            _authzHelper = new AuthorizationHelper(_pdp, Mock.Of<ILogger<AuthorizationHelper>>());
+        }
 
         /// <summary>
         /// Test case: Send attributes and creates multiple request out of it 
@@ -28,7 +57,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             List<Instance> instances = CreateInstances();
 
             // Act
-            XacmlJsonRequestRoot requestRoot = AuthorizationHelper.CreateMultiDecisionRequest(CreateUserClaims(), instances, actionTypes);
+            XacmlJsonRequestRoot requestRoot = AuthorizationHelper.CreateMultiDecisionRequest(CreateUserClaims(1), instances, actionTypes);
 
             // Assert
             // Checks it has the right number of attributes in each category 
@@ -58,13 +87,25 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             Assert.Throws<ArgumentNullException>(() => AuthorizationHelper.CreateMultiDecisionRequest(null, instances, actionTypes));
         }
 
+        /// <summary>
+        /// Test case: Authorize an convert emtpy list of instances to messageboxInstances
+        /// Expected: An empty list is returned.
+        /// </summary>
         [Fact]
-        public void AuthorizeMesseageBoxInstances_TC01()
+        public async void AuthorizeMesseageBoxInstances_TC01_EmptyList()
         {
+            // Arrange
+            List<MessageBoxInstance> expected = new List<MessageBoxInstance>();
+            List<Instance> instances = new List<Instance>();
+            // Act
+            List<MessageBoxInstance> actual = await _authzHelper.AuthorizeMesseageBoxInstances(CreateUserClaims(3), instances);
 
+            // Assert
+            Assert.Equal(expected, actual);
         }
 
-        private ClaimsPrincipal CreateUserClaims()
+
+        private ClaimsPrincipal CreateUserClaims(int userId)
         {
             // Create the user
             List<Claim> claims = new List<Claim>();
@@ -72,6 +113,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             // type, value, valuetype, issuer
             claims.Add(new Claim(urnName, "Ola", "string", "org"));
             claims.Add(new Claim(urnAuthLv, "2", "string", "org"));
+            claims.Add(new Claim(urnUserId, $"{userId}", "string", "org"));
 
             ClaimsPrincipal user = new ClaimsPrincipal(
                 new ClaimsIdentity(

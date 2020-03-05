@@ -54,7 +54,7 @@ namespace Altinn.Platform.Storage.Controllers
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
             _pdp = pdp;
-            _logger = logger;
+            _logger = logger; 
         }
 
         /// <summary>
@@ -242,7 +242,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
             }
-
+        
             // Checking that user is authorized to instantiate.
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instance.InstanceOwner.PartyId.ToString(), null);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
@@ -350,7 +350,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             return Ok(result);
         }
-       
+
         /// <summary>
         /// Delete an instance.
         /// </summary>
@@ -358,7 +358,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">The id of the instance that should be deleted.</param>
         /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribut set to todays date and time.</param>
         /// <returns>Information from the deleted instance.</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_DELETE)]
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

@@ -22,10 +22,12 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
+using System.IO;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
-    public partial class IntegrationTests {
+    public partial class IntegrationTests
+    {
 
         public class InstancesControllerTests : IClassFixture<WebApplicationFactory<Startup>>
         {
@@ -80,7 +82,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}";
 
                 HttpClient client = GetTestClient(_instanceRepository.Object);
-                string token = PrincipalUtil.GetToken(2);
+                string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -102,7 +104,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string requestUri = $"{BasePath}?appId={appId}";
 
                 HttpClient client = GetTestClient(_instanceRepository.Object);
-                string token = PrincipalUtil.GetToken(2);
+                string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Laste opp test instance.. 
@@ -148,9 +150,16 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void Delete_UserHasTooLowAuthLv_ReturnsStatusForbidden()
             {
                 // Arrange
-                int instanceOwnerPartyId = 1;
-                string instanceGuid = "cbdb00b1-4134-490d-b02b-3e33f7d8da33";
-                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}";
+                string org = "tdd";
+                string app = "test-applikasjon-1";
+                int instanceOwnerId = 1000;
+                string instanceGuid = "1916cd18-3b8e-46f8-aeaf-4bc3397ddd08";
+                string json = File.ReadAllText($"data/instances/{org}/{app}/{instanceOwnerId}/{instanceGuid}.json");
+                Instance instance = JsonConvert.DeserializeObject<Instance>(json);
+                _instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>()))
+                .ReturnsAsync(instance);
+
+                string requestUri = $"{BasePath}/{instanceOwnerId}/{instanceGuid}";
 
                 HttpClient client = GetTestClient(_instanceRepository.Object);
                 string token = PrincipalUtil.GetToken(1, 0);
@@ -171,12 +180,19 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void Delete_ReponseIsDeny_ReturnsStatusForbidden()
             {
                 // Arrange
-                int instanceOwnerPartyId = 1;
-                string instanceGuid = "cbdb00b1-4134-490d-b02b-3e33f7d8da33";
-                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}";
+                string org = "tdd";
+                string app = "test-applikasjon-1";
+                int instanceOwnerId = 1000;
+                string instanceGuid = "1916cd18-3b8e-46f8-aeaf-4bc3397ddd08";
+                string json = File.ReadAllText($"data/instances/{org}/{app}/{instanceOwnerId}/{instanceGuid}.json");
+                Instance instance = JsonConvert.DeserializeObject<Instance>(json);
+                _instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>()))
+                    .ReturnsAsync(instance);
+
+                string requestUri = $"{BasePath}/{instanceOwnerId}/{instanceGuid}";
 
                 HttpClient client = GetTestClient(_instanceRepository.Object);
-                string token = PrincipalUtil.GetToken(2);
+                string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -248,7 +264,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Assert
                 Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             }
-        
+
             private HttpClient GetTestClient(IInstanceRepository instanceRepository)
             {
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
