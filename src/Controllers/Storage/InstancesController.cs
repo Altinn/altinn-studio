@@ -233,6 +233,7 @@ namespace Altinn.Platform.Storage.Controllers
         public async Task<ActionResult<Instance>> Post(string appId, [FromBody] Instance instance)
         {
             Application appInfo = GetApplicationOrError(appId, out ActionResult appInfoError);
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             if (appInfoError != null)
             {
                 return appInfoError;
@@ -244,7 +245,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
         
             // Checking that user is authorized to instantiate.
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instance.InstanceOwner.PartyId.ToString(), null);
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instanceOwnerPartyId, null);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if (response?.Response == null)
