@@ -105,8 +105,9 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
       newSelected[event.target.value] = event.target.name;
     }
 
-    props.handleDataChange(selectedHasValues(newSelected) ? newSelected.join() : '');
     props.handleFocusUpdate(props.id);
+    props.handleDataChange(selectedHasValues(newSelected) ? newSelected.join() : '');
+    
   };
 
   const selectedHasValues = (select: string[]): boolean => {
@@ -134,6 +135,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
     if (changed === -1) {
       return false;
     }
+
     return props.shouldFocus && changed === index;
   }
 
