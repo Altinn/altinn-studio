@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions id="Altinn_Data_Process_Definition" 
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+<bpmn:definitions id="Altinn_Data_Process_Definition"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xmlns:altinn="http://altinn.no"
-xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
-xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
-xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
-xmlns:di="http://www.omg.org/spec/DD/20100524/DI" 
+xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
 targetNamespace="http://bpmn.io/schema/bpmn" >
 	<bpmn:process id="Altinn_Data_Process" isExecutable="false">
 		<bpmn:startEvent id="StartEvent_1">
@@ -22,7 +22,7 @@ targetNamespace="http://bpmn.io/schema/bpmn" >
 		<bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="Task_1" targetRef="EndEvent_1" />
 	</bpmn:process>
 	<bpmndi:BPMNDiagram id="BPMNDiagram_1">
-		<bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="SingleDataTask">
+		<bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Altinn_Data_Process">
 			<bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
 				<dc:Bounds x="156" y="81" width="36" height="36" />
 			</bpmndi:BPMNShape>

@@ -28,7 +28,7 @@
     <bpmn2:sequenceFlow id="SequenceFlow_3" sourceRef="Task_2" targetRef="EndEvent_1" />
   </bpmn2:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-      <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="TaskAndConfirmTasks">
+      <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Altinn_Data_Confirmation_Process">
           <bpmndi:BPMNShape bpmnElement="StartEvent_1" id="_BPMNShape_StartEvent_2">
               <dc:Bounds x="546" y="55" width="36" height="36"/>
           </bpmndi:BPMNShape>
