@@ -11,6 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="data\Roles\user_1 - Copy\**" />
+    <Content Remove="data\Roles\user_1 - Copy\**" />
+    <EmbeddedResource Remove="data\Roles\user_1 - Copy\**" />
+    <None Remove="data\Roles\user_1 - Copy\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="data\apps\tests-sailor.json" />
     <Content Remove="data\m1000-instances.json" />
     <Content Remove="data\response_deny.json" />
@@ -20,6 +27,7 @@
     <Content Remove="data\Roles\user_1\party_1600\roles.json" />
     <Content Remove="data\Roles\user_1\party_50000000\roles.json" />
     <Content Remove="data\Roles\user_1\party_500\roles.json" />
+    <Content Remove="data\Roles\user_3\party_1600\roles.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,6 +54,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="data\Roles\user_1\party_500\roles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="data\Roles\user_3\party_1600\roles.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
