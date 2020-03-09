@@ -4,9 +4,9 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.59.0</AssemblyVersion>
-    <FileVersion>1.0.59.0</FileVersion>
-    <Version>1.0.59-alpha</Version>
+    <AssemblyVersion>1.0.60.0</AssemblyVersion>
+    <FileVersion>1.0.60.0</FileVersion>
+    <Version>1.0.60-alpha</Version>
     <Description>Package that contains API controllers for the standard API for a Altinn App.</Description>
     <Company>Altinn</Company>
     <Authors>Altinn</Authors>
