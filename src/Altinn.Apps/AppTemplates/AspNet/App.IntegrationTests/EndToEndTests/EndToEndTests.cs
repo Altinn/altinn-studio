@@ -36,7 +36,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
         {
 
             // Arrange
-            string instanceGuid = string.Empty;
+            string instanceGuid = new Guid().ToString();
             string dataGuid;
             try
             {
