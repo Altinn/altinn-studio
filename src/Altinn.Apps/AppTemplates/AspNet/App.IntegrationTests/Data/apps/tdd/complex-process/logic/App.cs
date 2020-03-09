@@ -36,7 +36,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
             ) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
         {
             _logger = logger;
-            _validationHandler = new ValidationHandler(instanceService, accessor);
+            _validationHandler = new ValidationHandler(instanceService);
             _calculationHandler = new CalculationHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
         }
