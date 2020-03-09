@@ -29,6 +29,7 @@ export interface IGenericComponentProps {
   textResourceBindings: ITextResourceBindings;
   dataModelBindings: IDataModelBindings;
   componentValidations?: IComponentValidations;
+  readOnly?: boolean;
 }
 
 export function GenericComponent(props: IGenericComponentProps) {
@@ -67,6 +68,10 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   const handleDataUpdate = (value: any, key: string = 'simpleBinding') => {
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
+      return;
+    }
+
+    if (props.readOnly) {
       return;
     }
 
