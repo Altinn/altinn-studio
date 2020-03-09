@@ -163,7 +163,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
       return null;
     }
     return (
-      <div id={'altinn-file-list-' + props.id}>
+      <div id={'altinn-file-list-' + props.id} data-testid={props.id}>
         <table className={'file-upload-table'}>
           <thead>
             <tr className={'blue-underline'} id={'altinn-file-list-row-header'}>
@@ -195,7 +195,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
                       </div>
                     }
                     {!attachment.uploaded &&
-                      <div className='a-loader' id={'loader-upload'}>
+                      <div className='a-loader' id={'loader-upload'} data-testid={'loader-upload'}>
                         <div
                           className='loader loader-ellipsis'
                           style={{ marginLeft: '1.3rem', marginBottom: '1.6rem' }}
@@ -217,7 +217,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
                         </>
                       }
                       {attachment.deleting &&
-                        <div className='a-loader' id={'loader-delete'}>
+                        <div className='a-loader' id={'loader-delete'} data-testid={'loader-delete'}>
                           <div
                             className='loader loader-ellipsis'
                             style={{ marginBottom: '1.6rem', marginRight: '1.0rem' }}

@@ -1,4 +1,3 @@
-import * as moment from 'moment';
 import { useState } from 'react';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
@@ -17,6 +16,8 @@ import {
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IRuntimeState } from '../../../types';
+
+const moment = require('moment');
 
 export interface IReceiptContainerProps extends RouteChildrenProps {
 }

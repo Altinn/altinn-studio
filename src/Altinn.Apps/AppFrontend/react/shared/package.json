@@ -22,7 +22,7 @@
     "core-js": "3.2.1",
     "diff": "4.0.1",
     "dompurify": "2.0.7",
-    "marked": "0.7.0",
+    "marked": "0.8.0",
     "moment": "2.24.0",
     "react-content-loader": "4.2.1",
     "react-html-parser": "2.0.2",
