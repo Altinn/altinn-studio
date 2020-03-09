@@ -143,8 +143,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Data\Instances\tdd\complex-process\1000\" />
-  </ItemGroup>
-
 </Project>
