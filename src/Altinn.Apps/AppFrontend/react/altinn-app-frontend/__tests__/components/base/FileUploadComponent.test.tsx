@@ -1,99 +1,88 @@
 // /* tslint:disable:jsx-wrap-multiline */
-// import { mount } from 'enzyme';
-// import 'jest';
-// import * as React from 'react';
-// import { Provider } from 'react-redux';
-// import * as renderer from 'react-test-renderer';
-// import configureStore from 'redux-mock-store';
-// import { bytesInOneMB, FileUploadComponent, FileUploadComponentClass, getFileUploadComponentValidations } from '../../../src/components/base/FileUploadComponent';
+import { mount } from 'enzyme';
+import 'jest';
+import * as React from 'react';
+import { Provider } from 'react-redux';
+import configureStore from 'redux-mock-store';
+import { bytesInOneMB, FileUploadComponent, IFileUploadProvidedProps } from '../../../src/components/base/FileUploadComponent';
+import { render } from '@testing-library/react';
 // import { mapAttachmentListToAttachments } from '../../../src/utils/attachment';
+import { getFileUploadComponentValidations } from '../../../src/utils/formComponentUtils';
 
-// describe('>>> components/base/FileUploadComponent.tsx', () => {
-//   let mockDisplayMode: string;
-//   let mockId: string;
-//   let mockIsValid: boolean;
-//   let mockMaxFileSizeInMB: number;
-//   let mockMaxNumberOfAttachments: number;
-//   let mockMinNumberOfAttachments: number;
-//   let mockReadOnly: boolean;
-//   let mockAttachments: any[];
-//   let mockFileList: File[];
-//   let mockInitialState: any;
-//   let mockStore: any;
+describe('>>> components/base/FileUploadComponent.tsx', () => {
+  let mockDisplayMode: string;
+  let mockId: string;
+  let mockIsValid: boolean;
+  let mockMaxFileSizeInMB: number;
+  let mockMaxNumberOfAttachments: number;
+  let mockMinNumberOfAttachments: number;
+  let mockReadOnly: boolean;
+  let mockAttachments: any[];
+  let mockFileList: File[];
+  let mockInitialState: any;
+  let mockStore: any;
 
-//   beforeEach(() => {
-//     const createStore = configureStore();
-//     mockId = 'mockId';
-//     mockAttachments = [
-//       { name: 'attachment-name-1', id: 'attachment-id-1', size: '1200', uploaded: true, deleting: false },
-//       { name: 'attachment-name-2', id: 'attachment-id-2', size: '800', uploaded: false, deleting: false },
-//       { name: 'attachment-name-3', id: 'attachment-id-3', size: '400', uploaded: true, deleting: true },
-//     ];
-//     mockInitialState = {
-//       attachments: {
-//         attachments: {
-//           mockId: mockAttachments,
-//         },
-//         validationResults: {
-//           mockId: {
-//             simpleBinding: {
-//               errors: ['mock error message'],
-//             },
-//           },
-//         },
-//       },
-//     };
-//     mockMaxNumberOfAttachments = 4;
-//     mockMinNumberOfAttachments = 1;
-//     mockMaxFileSizeInMB = 2;
-//     mockDisplayMode = 'simple';
-//     mockIsValid = true;
-//     mockReadOnly = false;
-//     mockFileList = [
-//       { name: 'mock-name-1.txt', lastModified: null, size: 100, slice: null, type: null },
-//       { name: 'mock-name-2.txt', lastModified: null, size: 100, slice: null, type: null },
-//       { name: 'mock-name-3.txt', lastModified: null, size: 100, slice: null, type: null },
-//       { name: 'mock-name-4.txt', lastModified: null, size: 200 * bytesInOneMB, slice: null, type: null },
-//       { name: 'mock-name-5.txt', lastModified: null, size: 200 * bytesInOneMB, slice: null, type: null },
-//     ];
-//     mockStore = createStore(mockInitialState);
-//   });
+  beforeEach(() => {
+    const createStore = configureStore();
+    mockId = 'mockId';
+    mockAttachments = [
+      { name: 'attachment-name-1', id: 'attachment-id-1', size: '1200', uploaded: true, deleting: false },
+      { name: 'attachment-name-2', id: 'attachment-id-2', size: '800', uploaded: false, deleting: false },
+      { name: 'attachment-name-3', id: 'attachment-id-3', size: '400', uploaded: true, deleting: true },
+    ];
+    mockInitialState = {
+      attachments: {
+        attachments: {
+          mockId: mockAttachments,
+        },
+        validationResults: {
+          mockId: {
+            simpleBinding: {
+              errors: ['mock error message'],
+            },
+          },
+        },
+      },
+    };
+    mockMaxNumberOfAttachments = 4;
+    mockMinNumberOfAttachments = 1;
+    mockMaxFileSizeInMB = 2;
+    mockDisplayMode = 'simple';
+    mockIsValid = true;
+    mockReadOnly = false;
+    mockFileList = [
+      { name: 'mock-name-1.txt', lastModified: null, size: 100, slice: null, type: null },
+      { name: 'mock-name-2.txt', lastModified: null, size: 100, slice: null, type: null },
+      { name: 'mock-name-3.txt', lastModified: null, size: 100, slice: null, type: null },
+      { name: 'mock-name-4.txt', lastModified: null, size: 200 * bytesInOneMB, slice: null, type: null },
+      { name: 'mock-name-5.txt', lastModified: null, size: 200 * bytesInOneMB, slice: null, type: null },
+    ];
+    mockStore = createStore(mockInitialState);
+  });
 
-//   it('+++ should match snapshot', () => {
-//     const rendered = renderer.create(
-//       <Provider store={mockStore}>
-//         <FileUploadComponent
-//           displayMode={mockDisplayMode}
-//           id={mockId}
-//           isValid={mockIsValid}
-//           language={{}}
-//           maxFileSizeInMB={mockMaxFileSizeInMB}
-//           maxNumberOfAttachments={mockMaxNumberOfAttachments}
-//           minNumberOfAttachments={mockMinNumberOfAttachments}
-//           readOnly={mockReadOnly}
-//         />
-//       </Provider>,
-//     );
-//     expect(rendered).toMatchSnapshot();
-//   });
+  it('+++ should match snapshot', () => {
+    const {asFragment} = renderFileUploadComponent();
+    expect(asFragment()).toMatchSnapshot();
+  });
 
-//   it('+++ should show spinner when file is uploading or deleting', () => {
-//     const wrapper = mount(
-//       <FileUploadComponentClass
-//         displayMode={mockDisplayMode}
-//         id={mockId}
-//         isValid={mockIsValid}
-//         language={{}}
-//         maxFileSizeInMB={mockMaxFileSizeInMB}
-//         maxNumberOfAttachments={mockMaxNumberOfAttachments}
-//         minNumberOfAttachments={mockMinNumberOfAttachments}
-//         readOnly={mockReadOnly}
-//         attachments={mockAttachments}
-//       />,
-//     );
-//     expect(wrapper.find('#loader-upload')).toHaveLength(1);
-//     expect(wrapper.find('#loader-delete')).toHaveLength(1);
-//   });
+  it('+++ should show spinner when file is uploading or deleting', () => {
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <FileUploadComponent
+          displayMode={mockDisplayMode}
+          id={mockId}
+          isValid={mockIsValid}
+          language={{}}
+          maxFileSizeInMB={mockMaxFileSizeInMB}
+          maxNumberOfAttachments={mockMaxNumberOfAttachments}
+          minNumberOfAttachments={mockMinNumberOfAttachments}
+          readOnly={mockReadOnly}
+        />
+      </Provider>
+    );
+    expect(wrapper.find('#loader-upload')).toHaveLength(1);
+    expect(wrapper.find('#loader-delete')).toHaveLength(1);
+  });
 
 //   it('+++ should add validation error on onDrop rejection', () => {
 //     const wrapper = mount(
@@ -205,41 +194,42 @@
 //     expect(spy).toHaveBeenCalled();
 //   });
 
-//   it('+++ should not display drop area when in simple mode and attachments exists', () => {
-//     const wrapper = mount(
-//       <FileUploadComponentClass
-//         displayMode={mockDisplayMode}
-//         id={mockId}
-//         isValid={mockIsValid}
-//         language={{}}
-//         maxFileSizeInMB={mockMaxFileSizeInMB}
-//         maxNumberOfAttachments={mockMaxNumberOfAttachments}
-//         minNumberOfAttachments={mockMinNumberOfAttachments}
-//         readOnly={mockReadOnly}
-//         attachments={mockAttachments}
-//       />,
-//     );
-//     expect(wrapper.find('#altinn-drop-zone-' + mockId)).toHaveLength(0);
-//   });
+  it('+++ should not display drop area when in simple mode and attachments exists', () => {
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <FileUploadComponent
+          displayMode={mockDisplayMode}
+          id={mockId}
+          isValid={mockIsValid}
+          language={{}}
+          maxFileSizeInMB={mockMaxFileSizeInMB}
+          maxNumberOfAttachments={mockMaxNumberOfAttachments}
+          minNumberOfAttachments={mockMinNumberOfAttachments}
+          readOnly={mockReadOnly}
+        />
+      </Provider>
+    );
+    expect(wrapper.find('#altinn-drop-zone-' + mockId)).toHaveLength(0);
+  });
 
-//   it('+++ getFileUploadComponentValidations should return correct validation', () => {
-//     const mockLanguage = {
-//       language: {
-//         form_filler: {
-//           file_uploader_validation_error_delete: 'Noe gikk galt under slettingen av filen, prøv igjen senere.',
-//           file_uploader_validation_error_upload: 'Noe gikk galt under opplastingen av filen, prøv igjen senere',
+  it('+++ getFileUploadComponentValidations should return correct validation', () => {
+    const mockLanguage = {
+      language: {
+        form_filler: {
+          file_uploader_validation_error_delete: 'Noe gikk galt under slettingen av filen, prøv igjen senere.',
+          file_uploader_validation_error_upload: 'Noe gikk galt under opplastingen av filen, prøv igjen senere',
 
-//         },
-//       },
-//     };
-//     let validation = getFileUploadComponentValidations('upload', mockLanguage.language);
-//     expect(validation).toEqual
-//       ({ simpleBinding: { errors: ['Noe gikk galt under opplastingen av filen, prøv igjen senere'], warnings: [] } });
+        },
+      },
+    };
+    let validation = getFileUploadComponentValidations('upload', mockLanguage.language);
+    expect(validation).toEqual
+      ({ simpleBinding: { errors: ['Noe gikk galt under opplastingen av filen, prøv igjen senere'], warnings: [] } });
 
-//     validation = getFileUploadComponentValidations('delete', mockLanguage.language);
-//     expect(validation).toEqual
-//       ({ simpleBinding: { errors: ['Noe gikk galt under slettingen av filen, prøv igjen senere.'], warnings: [] } });
-//   });
+    validation = getFileUploadComponentValidations('delete', mockLanguage.language);
+    expect(validation).toEqual
+      ({ simpleBinding: { errors: ['Noe gikk galt under slettingen av filen, prøv igjen senere.'], warnings: [] } });
+  });
 
 //   it('+++ should not show file upload when max files is reached', () => {
 //     const wrapper = mount(
@@ -259,4 +249,24 @@
 //     const result = instance.shouldShowFileUpload();
 //     expect(result).toBe(false);
 //   });
-// });
+  function renderFileUploadComponent(props: Partial<IFileUploadProvidedProps> = {}) {
+    const defaultProps: IFileUploadProvidedProps = {
+      id: mockId,
+      displayMode: mockDisplayMode,
+      language: {},
+      maxFileSizeInMB: mockMaxFileSizeInMB,
+      maxNumberOfAttachments: mockMaxNumberOfAttachments,
+      minNumberOfAttachments: mockMinNumberOfAttachments,
+      isValid: mockIsValid,
+      readOnly: mockReadOnly,
+    };
+
+    return render(
+      <Provider store={mockStore}>
+        <FileUploadComponent {...defaultProps} {...props}/>
+      </Provider>
+    );
+  }
+});
+
+

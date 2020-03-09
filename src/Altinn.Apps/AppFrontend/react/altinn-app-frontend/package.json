@@ -13,8 +13,7 @@
     "clean": "rimraf dist compiled",
     "format": "prettier-tslint fix src/**/*.{ts,tsx}",
     "webpack-watch": "cross-env NODE_ENV=development webpack --mode=development --config webpack.config.development.js --watch --progress",
-    "lintfix": "tslint -c tslint.json 'src/**/*.{ts,tsx} --fix",
-    "test-component": "jest __tests__/components/base/DatepickerComponent.test.tsx"
+    "lintfix": "tslint -c tslint.json 'src/**/*.{ts,tsx} --fix"
   },
   "author": "Altinn",
   "license": "3-Clause BSD",
@@ -122,10 +121,6 @@
       "tsx",
       "js"
     ],
-    "setupTestFrameworkScriptFile": "<rootDir>/setupTests.js",
-    "setupFilesAfterEnv": [
-      "@testing-library/react/cleanup-after-each",
-      "@testing-library/jest-dom/extend-expect"
-    ]
+    "setupTestFrameworkScriptFile": "<rootDir>/setupTests.js"
   }
 }
