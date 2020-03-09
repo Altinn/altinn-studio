@@ -273,6 +273,7 @@ namespace Altinn.Platform.Storage.Controllers
             if (hard)
             {
                 instance.Status.HardDeleted = now;
+                instance.Status.SoftDeleted ??= now;
             }
             else
             {
