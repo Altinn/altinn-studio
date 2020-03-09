@@ -4,8 +4,8 @@ import { IParty } from 'altinn-shared/types';
 import InstanceDataActions from '../../../../../shared/resources/instanceData/instanceDataActions';
 import AttachmentActions from '../../../../../shared/resources/attachments/attachmentActions';
 import { IRuntimeState } from '../../../../../types';
-import { post } from '../../../../../utils/networking';
-import { getCreateInstancesUrl, redirectToUpgrade } from '../../../../../utils/urlHelper';
+import { post, putWithoutConfig } from '../../../../../utils/networking';
+import { getCreateInstancesUrl, redirectToUpgrade, invalidateCookieUrl } from '../../../../../utils/urlHelper';
 import InstantiationActions from '../../actions';
 import * as InstantiationActionTypes from '../../actions/types';
 import { IInstantiationState } from '../../reducer';
@@ -30,6 +30,7 @@ function* instantiationSaga(): SagaIterator {
         if (error.response && error.response.status === 403 && error.response.data) {
           const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
           if (reqAuthLevel) {
+            putWithoutConfig(invalidateCookieUrl);
             yield call(redirectToUpgrade, reqAuthLevel);
           }
         } else {

@@ -44,8 +44,15 @@ function* checkIfRuleShouldRunSaga({
     );
 
     if (rules.length > 0) {
-      yield all(rules.map((rule) => call(FormDataActions.updateFormData, rule.dataBindingName, rule.result,
-        rule.componentId)));
+      yield all(rules.map((rule) => {
+        const currentFormDataForField = formDataState.formData[rule.dataBindingName];
+        if (currentFormDataForField === rule.result) {
+          return;
+        }
+
+        return call(FormDataActions.updateFormData, rule.dataBindingName, rule.result, rule.componentId);
+      }
+      ));
     }
 
   } catch (err) {

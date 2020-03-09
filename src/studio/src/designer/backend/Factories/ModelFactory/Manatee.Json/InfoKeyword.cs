@@ -31,6 +31,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json
         public int ValidationSequence => 1;
 
         /// <summary>
+        /// Gets schema vocabulary. Not implemented.
+        /// </summary>
+        /// <returns>SchemaVocabulary</returns>
+        public SchemaVocabulary Vocabulary => throw new NotImplementedException();
+
+        /// <summary>
         /// Provides the validation logic for this keyword.
         /// </summary>
         /// <param name="context">The context object.</param>
@@ -44,7 +50,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json
         /// Used register any subschemas during validation.  Enables look-forward compatibility with <code>$ref</code> keywords.
         /// </summary>
         /// <param name="baseUri">The current base URI</param>
-        public void RegisterSubschemas(Uri baseUri)
+        /// <param name="localRegistry">The local registry</param>
+        public void RegisterSubschemas(Uri baseUri, JsonSchemaRegistry localRegistry)
         {
             // Not yet implemented
         }

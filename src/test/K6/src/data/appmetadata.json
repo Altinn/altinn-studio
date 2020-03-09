@@ -1,0 +1,54 @@
+{
+    "id": "ttd-postmanapp",
+    "versionId": "1",
+    "org": "ttd",
+    "title": {
+        "nb": "postmanapp"
+    },
+    "validFrom": "2020-02-17T10:22:01.633Z",
+    "dataTypes": [
+        {
+            "id": "default",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "appLogic": {
+                "autoCreate": true,
+                "classRef": "Altinn.App.Models.flyttemelding",
+                "schemaRef": null
+            },
+            "taskId": "Task_1",
+            "maxCount": 0,
+            "minCount": 0
+        },
+        {
+            "id": "ref-data-as-pdf",
+            "allowedContentTypes": [
+                "application/pdf"
+            ],
+            "taskId": "Task_1",
+            "maxCount": 1,
+            "minCount": 1
+        },
+        {
+            "id": "attachment",
+            "allowedContentTypes": [
+                "application/octet-stream"
+            ],
+            "appLogic": {
+                "autoCreate": false
+            },
+            "taskId": "Task_1",
+            "maxCount": 1,
+            "minCount": 0
+        }
+    ],
+    "partyTypesAllowed": {
+        "bankruptcyEstate": false,
+        "organisation": false,
+        "person": false,
+        "subUnit": false
+    },
+    "created": "2020-02-17T10:22:01.633Z",
+    "lastChanged": "2020-02-17T10:22:01.633Z"
+}
