@@ -94,7 +94,22 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             string altinnTaskType = existingInstance.Process?.CurrentTask?.AltinnTaskType;
-            string action = (string.IsNullOrEmpty(altinnTaskType) || altinnTaskType.Equals("data")) ? "write" : altinnTaskType;
+
+            string action;
+
+            switch (altinnTaskType)
+            {
+                case "data":
+                    action = "write";
+                    break;
+                case "confirmation":
+                    action = "confirm";
+                    break;
+                default:
+                    action = altinnTaskType;
+                    break;
+            }
+
             bool authorized = await _authorizationHelper.AuthorizeInstanceAction(HttpContext.User, existingInstance, action);
 
             if (!authorized)
