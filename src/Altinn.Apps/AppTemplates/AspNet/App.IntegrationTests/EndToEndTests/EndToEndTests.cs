@@ -36,7 +36,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
         {
 
             // Arrange
-            string instanceGuid = new Guid().ToString();
+            string instanceGuid = string.Empty;
             string dataGuid;
             try
             {
@@ -66,7 +66,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
                 Assert.Equal(expectedCurrentTaskName, createdInstance.Process.CurrentTask.ElementId);
                 #endregion
 
-                #region Upload invalid attachment type  
+                #region Upload invalid attachment type
                 // Act
                 url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/data?dataType=invalidDataType";
                 response = await client.PostAsync(url, null);
@@ -94,7 +94,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
                 // Assert
                 response.EnsureSuccessStatusCode();
-                #endregion  
+                #endregion
 
                 #region Upload form data during Task_2
                 // Arrange
@@ -111,7 +111,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
                 //Arrange
                 url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/process/completeProcess";
 
-                // Act
+               // Act
                 response = await client.PutAsync(url, null);
                 ProcessState endProcess = JsonConvert.DeserializeObject<ProcessState>(await response.Content.ReadAsStringAsync());
 
