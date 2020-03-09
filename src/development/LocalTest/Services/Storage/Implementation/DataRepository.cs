@@ -35,12 +35,18 @@ namespace LocalTest.Services.Storage.Implementation
 
         public Task<bool> Delete(DataElement dataElement)
         {
-            throw new NotImplementedException();
+            string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
+            File.Delete(path);
+            return Task.FromResult(true);
+  
         }
 
         public Task<bool> DeleteDataInStorage(string org, string blobStoragePath)
         {
-            throw new NotImplementedException();
+
+            string path = GetFilePath(blobStoragePath);
+            File.Delete(path);
+            return Task.FromResult(true);
         }
 
         public Task<DataElement> Read(Guid instanceGuid, Guid dataElementId)
