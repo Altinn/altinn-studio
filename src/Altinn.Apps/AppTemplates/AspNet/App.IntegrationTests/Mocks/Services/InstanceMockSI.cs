@@ -2,6 +2,7 @@ using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,13 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class InstanceMockSI : IInstance
     {
+        private readonly ILogger _logger;
+
+        public InstanceMockSI(ILogger<IInstance> logger)
+        {
+            _logger = logger;
+        }
+
         public Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
         {
             string partyId = instanceTemplate.InstanceOwner.PartyId;
@@ -29,6 +37,7 @@ namespace App.IntegrationTests.Mocks.Services
             };
 
             string instancePath = GetInstancePath(app, org, int.Parse(partyId), instanceGuid);
+            _logger.LogInformation($"//// Created instance for app {org}/{app}. writing to path: {instancePath}");
             File.WriteAllText(instancePath, instance.ToString());
 
             return Task.FromResult(instance);

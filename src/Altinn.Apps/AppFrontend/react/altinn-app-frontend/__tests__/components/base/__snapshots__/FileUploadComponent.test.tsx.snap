@@ -1,181 +1,169 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1`] = `
-<div
-  className="container"
-  id="altinn-fileuploader-mockId"
-  tabIndex={0}
->
+<DocumentFragment>
   <div
-    id="altinn-file-list-mockId"
+    class="container"
+    id="altinn-fileuploader-mockId"
+    tabindex="0"
   >
-    <table
-      className="file-upload-table"
+    <div
+      data-testid="mockId"
+      id="mockId"
     >
-      <thead>
-        <tr
-          className="blue-underline"
-          id="altinn-file-list-row-header"
-        >
-          <th>
-            form_filler.file_uploader_list_header_name
-          </th>
-          <th>
-            form_filler.file_uploader_list_header_file_size
-          </th>
-          <th>
-            form_filler.file_uploader_list_header_status
-          </th>
-          <th />
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          className="blue-underline-dotted"
-          id="altinn-file-list-row-attachment-id-1"
-          tabIndex={0}
-        >
-          <td
-            tabIndex={0}
+      <table
+        class="file-upload-table"
+      >
+        <thead>
+          <tr
+            class="blue-underline"
+            id="altinn-file-list-row-header"
           >
-            attachment-name-1
-          </td>
-          <td
-            tabIndex={0}
+            <th>
+              form_filler.file_uploader_list_header_name
+            </th>
+            <th>
+              form_filler.file_uploader_list_header_file_size
+            </th>
+            <th>
+              form_filler.file_uploader_list_header_status
+            </th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            class="blue-underline-dotted"
+            id="altinn-file-list-row-attachment-id-1"
+            tabindex="0"
           >
-            0.00 form_filler.file_uploader_mb
-          </td>
-          <td>
-            <div
-              tabIndex={0}
+            <td
+              tabindex="0"
             >
-              form_filler.file_uploader_list_status_done
-              <i
-                className="ai ai-check-circle"
-              />
-            </div>
-          </td>
-          <td>
-            <div
-              id="attachment-delete-0"
-              onClick={[Function]}
-              onKeyPress={[Function]}
-              tabIndex={0}
+              attachment-name-1
+            </td>
+            <td
+              tabindex="0"
             >
-              form_filler.file_uploader_list_delete
-              <i
-                className="ai ai-trash"
-              />
-            </div>
-          </td>
-        </tr>
-        <tr
-          className="blue-underline-dotted"
-          id="altinn-file-list-row-attachment-id-2"
-          tabIndex={0}
-        >
-          <td
-            tabIndex={0}
-          >
-            attachment-name-2
-          </td>
-          <td
-            tabIndex={0}
-          >
-            0.00 form_filler.file_uploader_mb
-          </td>
-          <td>
-            <div
-              className="a-loader"
-              id="loader-upload"
-            >
+              0.00 form_filler.file_uploader_mb
+            </td>
+            <td>
               <div
-                className="loader loader-ellipsis"
-                style={
-                  Object {
-                    "marginBottom": "1.6rem",
-                    "marginLeft": "1.3rem",
-                  }
-                }
-              />
-            </div>
-          </td>
-          <td>
-            <div
-              id="attachment-delete-1"
-              onClick={[Function]}
-              onKeyPress={[Function]}
-              tabIndex={0}
-            >
-              form_filler.file_uploader_list_delete
-              <i
-                className="ai ai-trash"
-              />
-            </div>
-          </td>
-        </tr>
-        <tr
-          className="blue-underline-dotted"
-          id="altinn-file-list-row-attachment-id-3"
-          tabIndex={0}
-        >
-          <td
-            tabIndex={0}
-          >
-            attachment-name-3
-          </td>
-          <td
-            tabIndex={0}
-          >
-            0.00 form_filler.file_uploader_mb
-          </td>
-          <td>
-            <div
-              tabIndex={0}
-            >
-              form_filler.file_uploader_list_status_done
-              <i
-                className="ai ai-check-circle"
-              />
-            </div>
-          </td>
-          <td>
-            <div
-              id="attachment-delete-2"
-              onClick={[Function]}
-              onKeyPress={[Function]}
-              tabIndex={0}
-            >
-              <div
-                className="a-loader"
-                id="loader-delete"
+                tabindex="0"
               >
-                <div
-                  className="loader loader-ellipsis"
-                  style={
-                    Object {
-                      "marginBottom": "1.6rem",
-                      "marginRight": "1.0rem",
-                    }
-                  }
+                form_filler.file_uploader_list_status_done
+                <i
+                  class="ai ai-check-circle"
                 />
               </div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </td>
+            <td>
+              <div
+                id="attachment-delete-0"
+                tabindex="0"
+              >
+                form_filler.file_uploader_list_delete
+                <i
+                  class="ai ai-trash"
+                />
+              </div>
+            </td>
+          </tr>
+          <tr
+            class="blue-underline-dotted"
+            id="altinn-file-list-row-attachment-id-2"
+            tabindex="0"
+          >
+            <td
+              tabindex="0"
+            >
+              attachment-name-2
+            </td>
+            <td
+              tabindex="0"
+            >
+              0.00 form_filler.file_uploader_mb
+            </td>
+            <td>
+              <div
+                class="a-loader"
+                data-testid="loader-upload"
+                id="loader-upload"
+              >
+                <div
+                  class="loader loader-ellipsis"
+                  style="margin-left: 1.3rem; margin-bottom: 1.6rem;"
+                />
+              </div>
+            </td>
+            <td>
+              <div
+                id="attachment-delete-1"
+                tabindex="0"
+              >
+                form_filler.file_uploader_list_delete
+                <i
+                  class="ai ai-trash"
+                />
+              </div>
+            </td>
+          </tr>
+          <tr
+            class="blue-underline-dotted"
+            id="altinn-file-list-row-attachment-id-3"
+            tabindex="0"
+          >
+            <td
+              tabindex="0"
+            >
+              attachment-name-3
+            </td>
+            <td
+              tabindex="0"
+            >
+              0.00 form_filler.file_uploader_mb
+            </td>
+            <td>
+              <div
+                tabindex="0"
+              >
+                form_filler.file_uploader_list_status_done
+                <i
+                  class="ai ai-check-circle"
+                />
+              </div>
+            </td>
+            <td>
+              <div
+                id="attachment-delete-2"
+                tabindex="0"
+              >
+                <div
+                  class="a-loader"
+                  data-testid="loader-delete"
+                  id="loader-delete"
+                >
+                  <div
+                    class="loader loader-ellipsis"
+                    style="margin-bottom: 1.6rem; margin-right: 1.0rem;"
+                  />
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p
+      class="file-upload-text-bold-small"
+    >
+      form_filler.file_uploader_number_of_files 3/4
+    </p>
+    <button
+      class="file-upload-button blue-underline"
+    >
+      form_filler.file_uploader_add_attachment
+    </button>
   </div>
-  <p
-    className="file-upload-text-bold-small"
-  >
-    form_filler.file_uploader_number_of_files 3/4
-  </p>
-  <button
-    className="file-upload-button blue-underline"
-    onClick={[Function]}
-  >
-    form_filler.file_uploader_add_attachment
-  </button>
-</div>
+</DocumentFragment>
 `;

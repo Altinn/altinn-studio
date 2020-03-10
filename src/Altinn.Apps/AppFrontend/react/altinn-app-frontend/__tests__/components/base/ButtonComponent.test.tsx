@@ -3,9 +3,9 @@ import 'jest';
 import * as React from 'react';
 
 import { shallow } from 'enzyme';
-import { ButtonComponentClass } from '../../../src/components/base/ButtonComponent';
+import { ButtonComponent } from '../../../src/components/base/ButtonComponent';
 
-describe('>>> components/base/ButtonComponent.tsx', () => {
+describe('components/base/ButtonComponent.tsx', () => {
   let mockId: string;
   let mockText: string;
   let formDataCount: number;
@@ -22,13 +22,11 @@ describe('>>> components/base/ButtonComponent.tsx', () => {
 
   it('+++ should submit button should have text \'Submit form\'', () => {
     const wrapper = shallow(
-      <ButtonComponentClass
+      <ButtonComponent
         id={mockId}
         text={mockText}
         handleDataChange={mockHandleDataChange}
         disabled={mockDisabled}
-        unsavedChanges={true}
-        validations={{}}
         formDataCount={formDataCount}
       />,
     );

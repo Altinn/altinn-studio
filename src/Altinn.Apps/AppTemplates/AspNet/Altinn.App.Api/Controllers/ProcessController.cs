@@ -366,7 +366,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceGuid)
         {
             Instance instance = null;
-   
+
             try
             {
                 instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
@@ -526,9 +526,23 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private async Task<bool> AuthorizeAction(string currenTaskType, string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
+        private async Task<bool> AuthorizeAction(string currentTaskType, string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string actionType = currenTaskType.Equals("data") ? "write" : null;
+            string actionType;
+
+            switch (currentTaskType)
+            {
+                case "data":
+                    actionType = "write";
+                    break;
+                case "confirmation":
+                    actionType = "confirm";
+                    break;
+                default:
+                    actionType = currentTaskType;
+                    break;
+            }
+
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, instanceOwnerPartyId, instanceGuid);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
             if (response?.Response == null)

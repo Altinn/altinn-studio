@@ -1,12 +1,12 @@
 /* tslint:disable:jsx-wrap-multiline */
-import { mount, shallow } from 'enzyme';
+import '@testing-library/jest-dom/extend-expect';
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
+import { render, fireEvent } from '@testing-library/react';
+import { InputComponent, IInputProps } from '../../../src/components/base/InputComponent';
 
-import { InputComponent } from '../../../src/components/base/InputComponent';
 
-describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
+describe('components/base/InputComponent.tsx', () => {
   let mockId: string;
   let mockFormData: any;
   let mockHandleDataChange: () => void;
@@ -18,78 +18,63 @@ describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
   beforeEach(() => {
     mockId = 'mock-id';
     mockFormData = null;
-    mockHandleDataChange = () => null;
+    mockHandleDataChange = jest.fn();
     mockIsValid = true;
     mockReadOnly = false;
     mockRequired = false;
     mockType = 'Input';
   });
 
-  it('+++ should match snapshot', () => {
-    const rendered = renderer.create(
-      <InputComponent
-        id={mockId}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        isValid={mockIsValid}
-        readOnly={mockReadOnly}
-        required={mockRequired}
-        type={mockType}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
-  it('+++ should match snapshot with formData', () => {
-    const wrapper = shallow(
-      <InputComponent
-        id={mockId}
-        formData={'value'}
-        handleDataChange={mockHandleDataChange}
-        isValid={mockIsValid}
-        readOnly={mockReadOnly}
-        required={mockRequired}
-        type={mockType}
-      />,
-    );
-    const instance = wrapper.instance() as InputComponent;
-    expect(instance.state.value).toEqual('value');
-  });
-  it('+++ should have correct state with no formData', () => {
-    const wrapper = shallow(
-      <InputComponent
-        id={mockId}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        isValid={mockIsValid}
-        readOnly={mockReadOnly}
-        required={mockRequired}
-        type={mockType}
-      />,
-    );
-    const instance = wrapper.instance() as InputComponent;
-    expect(instance.state.value).toEqual('');
+  test('components/base/InputComponent.tsx -- should match snapshot', () => {
+    const {asFragment} = renderInputComponent();
+    expect(asFragment()).toMatchSnapshot();
   });
 
-  it('+++ should call supplied update data function when value changes', () => {
-    const wrapper = mount(
-      <InputComponent
-        id={mockId}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        isValid={mockIsValid}
-        readOnly={mockReadOnly}
-        required={mockRequired}
-        type={mockType}
-      />,
-    );
-    const input = wrapper.find('input');
-    const instance = wrapper.instance() as InputComponent;
-    input.simulate('change', { target: { value: 'Some input' } });
-    expect(instance.state.value).toEqual('Some input');
+  test('components/base/InputComponent.tsx -- should correct value with no formdata provided', async () => {
+    const {findByTestId} = renderInputComponent();
+    let inputComponent: any = await findByTestId(mockId);
 
-    const spy = jest.spyOn(instance, 'onDataChangeSubmit');
-    instance.forceUpdate();
-    input.simulate('blur', { target: { value: '' } });
-    expect(spy).toHaveBeenCalled();
+    expect(inputComponent.value).toEqual('');
+  }); 
+
+  test('components/base/InputComponent.tsx -- should have correct value with specified formdata', async () => {
+    const customProps = {formData: 'Test123'};
+    const {findByTestId} = renderInputComponent(customProps);
+    let inputComponent: any = await findByTestId(mockId);
+
+    expect(inputComponent.value).toEqual('Test123');
+  }); 
+  
+  test('components/base/InputComponent.tsx -- should have correct form data after change', async () => {
+    const {findByTestId} = renderInputComponent();
+    let inputComponent: any = await findByTestId(mockId);  
+
+    fireEvent.change(inputComponent, {target: {value: 'test'}});
+
+    expect(inputComponent.value).toEqual('test');
   });
+
+  test('components/base/InputComponent.tsx -- should call supplied dataChanged function after data change', async () => {
+    const handleDataChange = jest.fn();
+    const {findByTestId} = renderInputComponent({handleDataChange});
+    const inputComponent: any = await findByTestId(mockId);
+
+    fireEvent.blur(inputComponent, {target: {value: 'Test123'}});
+    expect(inputComponent.value).toEqual('Test123');
+    expect(handleDataChange).toHaveBeenCalled();
+  })
+
+  function renderInputComponent(props: Partial<IInputProps> = {}) {
+    const defaultProps: IInputProps = {
+      id: mockId,
+      formData: mockFormData,
+      handleDataChange: mockHandleDataChange,
+      isValid: mockIsValid,
+      readOnly: mockReadOnly,
+      required: mockRequired,
+      type: mockType,
+    };
+  
+    return render(<InputComponent {...defaultProps} {...props}/>);
+  }
 });
