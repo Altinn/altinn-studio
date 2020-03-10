@@ -1,10 +1,10 @@
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import { IFormData } from '../features/form/data/formDataReducer';
-import { ILayout, ILayoutComponent, IFileuploadProps } from '../features/form/layout/';
+import { ILayout, ILayoutComponent } from '../features/form/layout/';
 import { IValidationIssue, Severity } from '../types';
 import { IComponentValidations, IDataModelFieldElement, IValidations, IFormFileUploaderComponent, IComponentBindingValidation } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
-import * as moment from 'moment';
+import moment from 'moment';
 import { DatePickerMinDateDefault, DatePickerMaxDateDefault, DatePickerFormatDefault } from '../components/base/DatepickerComponent';
 import { getFormDataForComponent } from './formComponentUtils';
 

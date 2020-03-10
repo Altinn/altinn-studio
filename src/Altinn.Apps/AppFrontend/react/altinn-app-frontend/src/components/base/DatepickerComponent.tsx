@@ -5,7 +5,7 @@ import '../../styles/shared.css';
 import { Grid, useMediaQuery, useTheme, Icon, makeStyles } from '@material-ui/core';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Moment } from 'moment';
 import { renderValidationMessagesForComponent } from '../../utils/render';
