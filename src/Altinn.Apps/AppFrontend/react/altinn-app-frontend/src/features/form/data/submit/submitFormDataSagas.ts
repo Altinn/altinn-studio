@@ -30,7 +30,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
     let validations = validateFormData(state.formData, state.formDataModel.dataModel, state.formLayout.layout,
       state.language.language);
     const componentSpecificValidations =
-      validateFormComponents(state.attachments.attachments, state.formLayout.layout,
+      validateFormComponents(state.attachments.attachments, state.formLayout.layout, state.formData.formData,
         state.language.language, state.formLayout.uiConfig.hiddenFields);
     const emptyFieldsValidations =
       validateEmptyFields(state.formData.formData, state.formLayout.layout, state.language.language, state.formLayout.uiConfig.hiddenFields);
@@ -55,7 +55,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
           throw err;
         }
       }
-      
+
       if (apiMode === 'Complete') {
         // run validations against the datamodel
         const instanceId = state.instanceData.instance.id;
