@@ -35,6 +35,7 @@ export function TextAreaComponent(props: ITextAreaComponentProps) {
         className={(props.isValid ? 'form-control a-textarea ' : 'form-control a-textarea validation-error')
           + (props.readOnly ? ' disabled' : '')}
         value={value}
+        data-testid={props.id}
       />
     </div>
   );

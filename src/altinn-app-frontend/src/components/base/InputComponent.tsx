@@ -17,7 +17,7 @@ export function InputComponent(props: IInputProps) {
   const [value, setValue] = React.useState(props.formData? props.formData : '');
 
   React.useEffect(() => {
-    setValue(props.formData);
+    setValue(props.formData? props.formData : '');
   }, [props.formData])
 
   const onDataChanged = (e: any) => {
@@ -42,6 +42,8 @@ export function InputComponent(props: IInputProps) {
         { 'validation-error': !props.isValid, 'disabled': props.readOnly },
       )}
       value={value}
+      data-testid={props.id}
+      role={'input'}
     />
     </>
   );

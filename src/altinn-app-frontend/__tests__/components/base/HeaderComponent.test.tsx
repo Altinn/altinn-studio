@@ -3,8 +3,9 @@ import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 
 import { mount } from 'enzyme';
+import { render, fireEvent } from '@testing-library/react';
 
-import { HeaderComponent } from '../../../src/components/base/HeaderComponent';
+import { HeaderComponent, IHeaderProps } from '../../../src/components/base/HeaderComponent';
 
 describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
   let mockId: string;
@@ -81,4 +82,14 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
     );
     expect(wrapper.find(`h4[id='${mockId}']`)).toHaveLength(1);
   });
+
+  function renderHeaderComponent(props?: Partial<IHeaderProps>){
+    const defaultProps: IHeaderProps = {
+      id: mockId,
+      text: mockText,
+      size: mockSize
+    };
+
+    return render(<HeaderComponent {...defaultProps} {...props}/>);
+  }
 });
