@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import { IApplication, IInstance, IParty } from '../../../shared/src/types';
 import { getCurrentTaskData } from '../../../shared/src/utils/applicationMetaDataUtils';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';

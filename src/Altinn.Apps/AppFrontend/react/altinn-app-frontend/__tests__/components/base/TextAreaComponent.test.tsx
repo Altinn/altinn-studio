@@ -4,7 +4,8 @@ import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 
 import { mount } from 'enzyme';
-import { TextAreaComponent } from '../../../src/components/base/TextAreaComponent';
+import { TextAreaComponent, ITextAreaComponentProps } from '../../../src/components/base/TextAreaComponent';
+import { render, fireEvent } from '@testing-library/react';
 
 describe('>>> components/base/TextAreaComponent.tsx', () => {
   let mockId: string;
@@ -34,22 +35,13 @@ describe('>>> components/base/TextAreaComponent.tsx', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('+++ should set formdata on change', () => {
-    const wrapper = mount(
-      <TextAreaComponent
-        id={mockId}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        isValid={mockIsValid}
-        readOnly={mockReadOnly}
-      />,
-    );
-    const textArea = wrapper.find('textarea');
-    const instance = wrapper.instance() as TextAreaComponent;
-    const spy = jest.spyOn(instance, 'onDataChanged');
-    instance.forceUpdate();
-    textArea.simulate('change', { target: { value: '' } });
-    expect(spy).toHaveBeenCalled();
+  it('+++ should set formdata on change', async () => {
+    const onDataChanged = jest.fn();
+    const {findByTestId} = renderTextAreaComponent({handleDataChange: onDataChanged});
+    const textAreaComponent: any = await findByTestId(mockId);
+    expect(textAreaComponent.value).toEqual('');
+    fireEvent.change(textAreaComponent, {target: {value: 'Test123'}});
+    expect(textAreaComponent.value).toEqual('Test123');
   });
 
   it('+++ should render editable component when readOnly is false', () => {
@@ -79,5 +71,17 @@ describe('>>> components/base/TextAreaComponent.tsx', () => {
     expect(wrapper.find('textarea').hasClass('disabled')).toBe(true);
     expect(wrapper.find('textarea').prop('readOnly')).toBe(true);
   });
+
+  function renderTextAreaComponent(props: Partial<ITextAreaComponentProps> = {}) {
+    const defaultProps: ITextAreaComponentProps = {
+      id: mockId,
+      formData: mockFormData,
+      handleDataChange: mockHandleDataChange,
+      isValid: mockIsValid,
+      readOnly: mockReadOnly,
+    };
+  
+    return render(<TextAreaComponent {...defaultProps} {...props}/>);
+  }
 
 });

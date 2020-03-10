@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Constants;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -34,6 +36,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// Initializes a new instance of the <see cref="AuthorizationHelper"/> class.
         /// </summary>
         /// <param name="pdp">The policy decision point</param>
+        /// <param name="logger">The logger to use by the class.</param>
         public AuthorizationHelper(IPDP pdp, ILogger<AuthorizationHelper> logger)
         {
             _pdp = pdp;
@@ -41,7 +44,7 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
-        /// Authorize instances, and returns a list of MesseageBoxInstances with information about read and write rights of each instance. 
+        /// Authorize instances, and returns a list of MesseageBoxInstances with information about read and write rights of each instance.
         /// </summary>
         public async Task<List<MessageBoxInstance>> AuthorizeMesseageBoxInstances(ClaimsPrincipal user, List<Instance> instances)
         {
@@ -118,7 +121,40 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
-        /// Authorize instances, and returns a list of instances that the user has the right to read. 
+        /// Authorizes a given action on an instance.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> AuthorizeInstanceAction(ClaimsPrincipal user, Instance instance, string action)
+        {
+            string org = instance.Org;
+            string app = instance.AppId.Split('/')[1];
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+            XacmlJsonRequestRoot request;
+
+            if (instance.Id == null)
+            {
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, null);
+            }
+            else
+            {
+                Guid instanceGuid = Guid.Parse(instance.Id.Split('/')[1]);
+                request = DecisionHelper.CreateDecisionRequest(org, app, user, action, instanceOwnerPartyId, instanceGuid);
+            }
+
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
+
+            if (response?.Response == null)
+            {
+                _logger.LogInformation($"// Authorization Helper // Authorize instance action failed for request: {JsonConvert.SerializeObject(request)}.");
+                return false;
+            }
+
+            bool authorized = DecisionHelper.ValidatePdpDecision(response.Response, user);
+            return authorized;
+        }
+
+        /// <summary>
+        /// Authorize instances, and returns a list of instances that the user has the right to read.
         /// </summary>
         public async Task<List<Instance>> AuthorizeInstances(ClaimsPrincipal user, List<Instance> instances)
         {

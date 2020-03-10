@@ -83,6 +83,21 @@ namespace Altinn.Platform.Storage.Interface.Models
         {
             return JsonConvert.SerializeObject(this);
         }
+
+        /// <summary>
+        /// Sets platform self links for the data element.
+        /// </summary>
+        /// <param name="storageHostAndBase">The host and basepath for platform storage. E.g. 'at22.altinn.cloud/storage/api/v1/'. Must end with '/'.</param>
+        /// <param name="instanceOwnerPartyId">The instance owner party id.</param>
+        public void SetPlatformSelflink(string storageHostAndBase, int instanceOwnerPartyId)
+        {
+            if (SelfLinks == null)
+            {
+                SelfLinks = new ResourceLinks();
+            }
+
+            SelfLinks.Platform = $"https://platform.{storageHostAndBase}instances/{instanceOwnerPartyId}/{InstanceGuid}/data/{Id}";
+        }
     }
 
     /// <summary>

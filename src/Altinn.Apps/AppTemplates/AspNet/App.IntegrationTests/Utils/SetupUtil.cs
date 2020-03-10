@@ -61,8 +61,8 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddTransient<IProfile, ProfileMockSI>();
                     services.AddSingleton<IValidation, ValidationAppSI>();
                     services.AddSingleton<IPDF, PDFMockSI>();
-                    // Set up mock authentication so that not well known endpoint is used
-                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
+                // Set up mock authentication so that not well known endpoint is used
+                services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
 
                     switch (app)
@@ -77,6 +77,9 @@ namespace App.IntegrationTestsRef.Utils
                             services.AddSingleton<IInstance, InstancePlatformFailsMock>();
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.platform_fails.AltinnApp>();
                             break;
+                        case "complex-process":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.complex_process.App>();
+                            break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
                             break;
@@ -89,9 +92,9 @@ namespace App.IntegrationTestsRef.Utils
         }
 
 
-        public static void AddAuthCookie(HttpRequestMessage requestMessage, string token, string xsrfToken=null)
+        public static void AddAuthCookie(HttpRequestMessage requestMessage, string token, string xsrfToken = null)
         {
-            requestMessage.Headers.Add("Cookie", Altinn.App.Services.Constants.General.RuntimeCookieName +"=" + token);
+            requestMessage.Headers.Add("Cookie", Altinn.App.Services.Constants.General.RuntimeCookieName + "=" + token);
             if (xsrfToken != null)
             {
                 requestMessage.Headers.Add("X-XSRF-TOKEN", xsrfToken);
@@ -102,13 +105,13 @@ namespace App.IntegrationTestsRef.Utils
         {
             System.Collections.Generic.IEnumerable<string> setCookieHeaders = response.Headers.GetValues("Set-Cookie");
 
-           for (int i = 0; i < setCookieHeaders.Count(); i++)
-           {
-                if(setCookieHeaders.ElementAt(i).StartsWith("XSRF-TOKEN"))
+            for (int i = 0; i < setCookieHeaders.Count(); i++)
+            {
+                if (setCookieHeaders.ElementAt(i).StartsWith("XSRF-TOKEN"))
                 {
                     return setCookieHeaders.ElementAt(i).Substring(11).Split(";")[0];
                 }
-           }
+            }
 
             return null;
         }
