@@ -170,7 +170,7 @@ export function validateComponentFormData(
     }
   }
 
-  if (!componentValidations[fieldKey]) {
+  if (!componentValidations[fieldKey] || (!existingValidationErrors && validationErrors.length === 0)) {
     return null;
   }
 
