@@ -1,6 +1,6 @@
 import * as React from 'react';
 import DropZone from 'react-dropzone';
-import { useSelector } from 'react-redux';
+import { useSelector, shallowEqual } from 'react-redux';
 import uuid = require('uuid');
 import {AltinnAppTheme} from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
@@ -46,6 +46,7 @@ const validationErrorStyle = {
 };
 
 export const bytesInOneMB = 1048576;
+export const emptyArray = [];
 
 export function FileUploadComponent(props: IFileUploadProvidedProps) {
 
@@ -71,9 +72,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
     return [];
   }
 
-
-
-  const currentAttachments: IAttachment[] = useSelector((state: IRuntimeState) => state.attachments.attachments[props.id] || []);
+  const currentAttachments: IAttachment[] = useSelector((state: IRuntimeState) => state.attachments.attachments[props.id] || emptyArray);
 
   React.useEffect(() => {
     dispatch({type: "replace", value: currentAttachments})
@@ -163,7 +162,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
       return null;
     }
     return (
-      <div id={props.id}>
+      <div id={'altinn-file-list' + props.id} data-testid={props.id}>
         <table className={'file-upload-table'}>
           <thead>
             <tr className={'blue-underline'} id={'altinn-file-list-row-header'}>
@@ -195,7 +194,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
                       </div>
                     }
                     {!attachment.uploaded &&
-                      <div className='a-loader' id={'loader-upload'}>
+                      <div className='a-loader' id={'loader-upload'} data-testid={'loader-upload'}>
                         <div
                           className='loader loader-ellipsis'
                           style={{ marginLeft: '1.3rem', marginBottom: '1.6rem' }}
@@ -217,7 +216,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
                         </>
                       }
                       {attachment.deleting &&
-                        <div className='a-loader' id={'loader-delete'}>
+                        <div className='a-loader' id={'loader-delete'} data-testid={'loader-delete'}>
                           <div
                             className='loader loader-ellipsis'
                             style={{ marginBottom: '1.6rem', marginRight: '1.0rem' }}

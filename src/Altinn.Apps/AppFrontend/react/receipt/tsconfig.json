@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
+    "skipLibCheck": true,
+    "types": [
+      "node",
+      "jest"
+    ],
     "outDir": "compiled",
     "module": "commonjs",
     "target": "es5",
@@ -16,7 +21,8 @@
     "noImplicitThis": true,
     "noImplicitAny": true,
     "strictNullChecks": false,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "esModuleInterop": true
   },
   "include": [
     "./src/**/*",
