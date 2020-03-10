@@ -103,8 +103,7 @@ namespace Altinn.Platform.Authentication
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
-                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);   
-                services.AddApplicationInsightsKubernetesEnricher();
+                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
