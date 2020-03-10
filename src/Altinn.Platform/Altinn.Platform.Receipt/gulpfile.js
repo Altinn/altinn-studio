@@ -6,8 +6,8 @@ const chokidar = require('chokidar');
 let jsWatcher = null;
 let cssWatcher = null;
 
-const receiptFile = '../../react-apps/applications/receipt/dist/receipt.js';
-const cssReceiptFile = '../../react-apps/applications/receipt/dist/receipt.css';
+const receiptFile = '../../Altinn.Apps/AppFrontend/react/receipt/dist/receipt.js';
+const cssReceiptFile = '../../Altinn.Apps/AppFrontend/react/receipt/dist/receipt.css';
 
 function copyReactJs(cb) {
   copyReceiptJS();
@@ -25,6 +25,7 @@ function copyReceiptJS() {
   setTimeout(function () {
     gulp.src(receiptFile).pipe(gulp.dest('./Receipt/wwwroot/receipt/js/react'));
   }, 1000);
+  console.log('copied');
   return;
 }
 
@@ -69,19 +70,19 @@ gulp.task('develop', gulp.parallel(
     cwd: './Receipt/',
   }),
   run('npm run webpack-watch', {
-    cwd: '../../react-apps/applications/receipt',
+    cwd: '../../Altinn.Apps/AppFrontend/react/receipt',
   })
 ));
 
 gulp.task('install-react-app-dependencies', gulp.series(
   run('lerna bootstrap --hoist --ci', {
-    cwd: '../../react-apps',
+    cwd: '../../Altinn.Apps/AppFrontend/react',
   })
 ));
 
 gulp.task('default', gulp.series([
   run('npm run build', {
-    cwd: '../../react-apps/applications/receipt',
+    cwd: '../../Altinn.Apps/AppFrontend/react/receipt',
   }),
   'copy-files'
 ]));
