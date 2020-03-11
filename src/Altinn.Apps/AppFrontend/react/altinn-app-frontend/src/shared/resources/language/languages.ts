@@ -250,6 +250,9 @@ export const nb = () => (
       placeholder_receipt_header: 'Skjemaet er nå fullført og sendt inn.',
       placeholder_user: 'OLA PRIVATPERSON',
     },
+    confirm: {
+      button_text: 'Bekreft innsending',
+    },
     access_control: {
       about_header: 'Om tilgang',
       bankruptcyEstate: 'Konkursbo',

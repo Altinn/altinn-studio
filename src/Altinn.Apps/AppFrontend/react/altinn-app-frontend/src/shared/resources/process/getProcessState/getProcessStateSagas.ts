@@ -5,17 +5,21 @@ import { ProcessSteps } from '../../../../types';
 import { getProcessStateUrl } from '../../../../utils/urlHelper';
 import * as ProcessStateActionTypes from '../processActionTypes';
 import ProcessStateDispatchers from '../processDispatcher';
+import { IProcess } from 'altinn-shared/types';
 
 export function* getProcessStateSaga(): SagaIterator {
   try {
-    const processState: any = yield call(get, getProcessStateUrl());
+    const processState: IProcess = yield call(get, getProcessStateUrl());
     if (!processState) {
       yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Unknown);
     } else {
+      
       if (processState.ended) {
         yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Archived);
-      } else {
+      } else if (processState.currentTask.altinnTaskType === 'data') {
         yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.FormFilling);
+      } else if (processState.currentTask.altinnTaskType === 'confirmation') {
+        yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Confirm);
       }
     }
   } catch (err) {

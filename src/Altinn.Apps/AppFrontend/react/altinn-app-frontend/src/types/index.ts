@@ -50,6 +50,7 @@ export enum ProcessSteps {
   Unknown = 0,
   FormFilling = 1,
   Archived = 2,
+  Confirm = 3,
 }
 
 export enum Severity {

@@ -12,10 +12,6 @@ export function Form() {
   const hiddenComponents: string[] = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields);
 
   React.useEffect(() => {
-    QueueActions.startInitialDataTaskQueue();
-  }, []);
-
-  React.useEffect(() => {
     let componentsToRender: any[] = layout;
     
     if (layout && hiddenComponents) {
