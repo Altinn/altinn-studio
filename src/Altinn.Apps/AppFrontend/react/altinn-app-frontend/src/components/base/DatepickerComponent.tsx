@@ -5,11 +5,12 @@ import '../../styles/shared.css';
 import { Grid, useMediaQuery, useTheme, Icon, makeStyles } from '@material-ui/core';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import MomentUtils from '@date-io/moment';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Moment } from 'moment';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { IComponentValidations, IComponentBindingValidation } from 'src/types/global';
+import { validateDatepickerFormData } from '../../utils/validation';
 
 export interface IDatePickerProps{
   id: string;
@@ -71,78 +72,75 @@ class AltinnMomentUtils extends MomentUtils {
   }
 }
 
+export const DatePickerMinDateDefault = "1900-01-01T12:00:00.000Z";
+export const DatePickerMaxDateDefault = "2100-01-01T12:00:00.000Z";
+export const DatePickerFormatDefault = 'DD/MM/YYYY';
+
 function DatepickerComponent(props: IDatePickerProps) {
   const classes = useStyles();
   const [date, setDate] = React.useState<moment.Moment>(null);
   const [validDate, setValidDate] = React.useState<boolean>(true);
-  const minDate = props.minDate ? props.minDate : "1900-01-01T12:00:00.000Z";
-  const maxDate = props.maxDate ? props.maxDate : "2100-01-01T12:00:00.000Z";
-  const format = props.format ? props.format : 'DD/MM/YYYY';
+  const [validationMessages, setValidationMessages] = React.useState<IComponentBindingValidation>(null);
+  const minDate = props.minDate || DatePickerMinDateDefault;
+  const maxDate = props.maxDate || DatePickerMaxDateDefault;
+  const format = props.format || DatePickerFormatDefault;
 
   let locale = window.navigator?.language || (window.navigator as any)?.userLanguage || "nb-NO";
   moment.locale(locale);
   const theme = useTheme();
   const inline = useMediaQuery(theme.breakpoints.up('sm'));
 
-  const mergeValidations = () => {
-    // merges the internal state with the validation messages supplied from redux
-    if (!props.componentValidations?.simpleBinding && validDate) {
-      return {};
+  const getValidationMessages = () => {
+    const validations: IComponentBindingValidation = validateDatepickerFormData(date?.toISOString(), minDate, maxDate, format, props.language);
+    const suppliedValidations = props.componentValidations?.simpleBinding;
+    if (suppliedValidations?.errors) {
+      suppliedValidations.errors.forEach((validation: string) => {
+        if (validations.errors.indexOf(validation) == -1){
+          validations.errors.push(validation);
+        }
+      });
     }
-    if (validDate) {
-      return props.componentValidations.simpleBinding;
-    }
-    let validations: IComponentBindingValidation = props.componentValidations?.simpleBinding;
-    if (!validations) {
-      validations = {};
-    } else {
-      // deep copy
-      validations = JSON.parse(JSON.stringify(props.componentValidations?.simpleBinding));
-    }
-    if (!validations.errors) {
-      validations.errors = [];
-    }
-    if (date && date.isBefore(minDate)) {
-      validations.errors.push(getLanguageFromKey('date_picker.min_date_exeeded', props.language));
-    } else if (date && date.isAfter(maxDate)) {
-      validations.errors.push(getLanguageFromKey('date_picker.max_date_exeeded', props.language));
-    } else {
-      validations.errors.push(getParsedLanguageFromKey('date_picker.invalid_date_message', props.language, [format]));
+    if (suppliedValidations?.warnings){
+      suppliedValidations.warnings.forEach((validation: string) => {
+        if (validations.warnings.indexOf(validation) == -1){
+          validations.warnings.push(validation);
+        }
+      });
     }
     return validations;
   }
 
   React.useEffect(() => {
-    let date = props.formData ? moment(props.formData) : null;
+    let date = moment(props.formData || '');
     setDate(date);
   }, [props.formData]);
 
+  React.useEffect(() => {
+    setValidationMessages(getValidationMessages());
+  },[props.formData]);
+
   const handleDataChangeWrapper = (date: moment.Moment) => {
     setDate(date);
-    if (date && isValidDate(date)) {
-      setValidDate(true);
-      props.handleDataChange(date.toISOString());
+    setValidDate(true); // we reset valid date => show error onBlur or when user is done typing
+    setValidationMessages({});
+    if (date && date.isValid()) {
+      props.handleDataChange(date?.toISOString());
+      setValidDate(isValidDate(date)); // the date can have a valid format but not pass min/max validation
     }
   }
 
   const isValidDate = (date: moment.Moment): boolean => {
-    if (date == null) {
+    if (!date) {
       return true;
+    } else {
+      return date.isValid() && date.isAfter(minDate) && date.isBefore(maxDate);
     }
-    else return date && date.isValid() && date.isAfter(minDate) && date.isBefore(maxDate);
   }
 
   const handleOnBlur = () => {
-    if (!isValidDate(date)) {
-      setValidDate(false);
-      if (props.formData) {
-        // if we have formdata, we need to update state. Otherwise not to avoid rerender.
-        props.handleDataChange('');
-      }
-    } else {
-      setValidDate(true);
-      props.handleDataChange(date ? date.toISOString() : '');
-    }
+    setValidDate(isValidDate(date));
+    setValidationMessages(getValidationMessages());
+    props.handleDataChange(date?.toISOString());
   }
 
   return (
@@ -161,7 +159,7 @@ function DatepickerComponent(props: IDatePickerProps) {
               margin="normal"
               id={props.id}
               value={date}
-              placeholder={props.format}
+              placeholder={format}
               key={props.id}
               onChange={handleDataChangeWrapper}
               onBlur={handleOnBlur}
@@ -176,7 +174,7 @@ function DatepickerComponent(props: IDatePickerProps) {
               todayLabel={getLanguageFromKey('date_picker.today_label', props.language)}
               InputProps={{
                 disableUnderline: true,
-                error: !props.isValid,
+                error: (!props.isValid || !validDate),
                 classes: {
                   root: classes.root + ((!props.isValid || !validDate) ? ' ' + classes.invalid : ''),
                   input: classes.input,
@@ -187,9 +185,11 @@ function DatepickerComponent(props: IDatePickerProps) {
                   root: classes.formHelperText
                 }
               }}
+              KeyboardButtonProps={{
+                "aria-label": getLanguageFromKey('date_picker.aria_label_icon', props.language),
+              }}
               keyboardIcon={
                 <Icon
-                  aria-label={getLanguageFromKey('date_picker.aria_label_icon', props.language)}
                   className={classes.icon + ' ai ai-date'}
                 />
               }
@@ -197,7 +197,8 @@ function DatepickerComponent(props: IDatePickerProps) {
             />
           </Grid>
         </MuiPickersUtilsProvider>
-        {renderValidationMessagesForComponent(mergeValidations(),`${props.id}_validations`)}
+        {renderValidationMessagesForComponent(validationMessages, `${props.id}_validations`)}
+
       </>
 
   )
