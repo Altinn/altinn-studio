@@ -84,4 +84,5 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
 
 export function* watchSubmitFormSaga(): SagaIterator {
   yield takeLatest(FormDataActionTypes.SUBMIT_FORM_DATA, submitFormSaga);
+  yield takeLatest(FormDataActionTypes.UPDATE_FORM_DATA_FULFILLED, submitFormSaga);
 }
