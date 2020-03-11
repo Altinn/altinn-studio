@@ -132,9 +132,9 @@ function DatepickerComponent(props: IDatePickerProps) {
   const isValidDate = (date: moment.Moment): boolean => {
     if (!date) {
       return true;
+    } else {
+      return date.isValid() && date.isAfter(minDate) && date.isBefore(maxDate);
     }
-    let valid = date && date.isValid() && date.isAfter(minDate) && date.isBefore(maxDate);
-    return valid;
   }
 
   const handleOnBlur = () => {
