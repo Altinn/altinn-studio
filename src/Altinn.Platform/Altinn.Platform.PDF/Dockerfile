@@ -3,7 +3,7 @@ WORKDIR build
 COPY . .
 RUN mvn -Pprod package
 
-FROM openjdk:13-jdk-alpine AS final
+FROM openjdk:13-jdk-alpine3.10 AS final
 WORKDIR app
 COPY --from=build /build/target .
 # setup the user and group

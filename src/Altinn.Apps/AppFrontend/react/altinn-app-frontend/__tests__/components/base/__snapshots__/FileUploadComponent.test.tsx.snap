@@ -9,7 +9,7 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
   >
     <div
       data-testid="mockId"
-      id="mockId"
+      id="altinn-file-listmockId"
     >
       <table
         class="file-upload-table"
