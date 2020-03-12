@@ -51,9 +51,6 @@ namespace Altinn.App.Services.Implementation
 
         public async Task<List<ValidationIssue>> ValidateAndUpdateInstance(Instance instance, string taskId)
         {
-            string org = instance.Org;
-            string app = instance.AppId.Split("/")[1];
-
             // Todo. Figure out where to get this from
             Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
 
@@ -64,9 +61,9 @@ namespace Altinn.App.Services.Implementation
             ModelStateDictionary validationResults = new ModelStateDictionary();
             await _altinnApp.RunTaskValidation(instance, taskId, validationResults);
             messages.AddRange(MapModelStateToIssueList(validationResults, instance, serviceText));
-                       
+
             Application application = _appResourcesService.GetApplication();
-      
+
 
             foreach (DataType dataType in application.DataTypes.Where(et => et.TaskId == taskId))
             {
@@ -252,7 +249,7 @@ namespace Altinn.App.Services.Implementation
                     {
                         validationIssues.Add(new ValidationIssue()
                         {
-                            InstanceId = instance.Id,  
+                            InstanceId = instance.Id,
                             Code = error.ErrorMessage,
                             Severity = ValidationIssueSeverity.Error,
                             Description = AppTextHelper.GetAppText(error.ErrorMessage, serviceText, null, "nb")

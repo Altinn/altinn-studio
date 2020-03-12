@@ -41,27 +41,28 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic.Validatio
         /// }
         /// </example>
         public async Task ValidateData(object instance, ModelStateDictionary validationResults)
-        {
-            /*   HttpContext context = _httpContextAccessor.HttpContext;
-
-               string instanceOwnerId = context.Request.RouteValues["instanceOwnerPartyId"].ToString();
-               string instanceGuid = context.Request.RouteValues["instanceGuid"].ToString();
-
-               Instance i = await _instanceService.GetInstance("complex-process", "tdd", int.Parse(instanceOwnerId), new Guid(instanceGuid));
-
-               DateTime valid = i.Process.CurrentTask.Started.Value.AddSeconds(40);
-
-
-               if (i.Process.CurrentTask.ElementId.Equals("Task_2") && DateTime.UtcNow < valid)
-               {
-                   validationResults.AddModelError("Time", "Validation time has not yet occured.");
-               }
-               */
+        {   
             await Task.CompletedTask;
         }
 
         public async Task ValidateTask(Instance instance, string task, ModelStateDictionary validationResults)
         {
+            DateTime valid = instance.Process.CurrentTask.Started.Value.AddSeconds(10);
+
+            switch (task)
+            {
+                case "Task_1":
+                    break;
+                case "Task_2":
+                    if (DateTime.UtcNow < valid)
+                    {
+                        validationResults.AddModelError("Time", "Validation time has not yet occured.");
+                    }
+                    break;
+                default:
+                    break;
+            }
+           
             await Task.CompletedTask;
         }
     }
