@@ -73,6 +73,9 @@ namespace App.IntegrationTestsRef.Utils
                         case "custom-validation":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.custom_validation.AltinnApp>();
                             break;
+                        case "task-validation":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.task_validation.AltinnApp>();
+                            break;
                         case "platform-fails":
                             services.AddSingleton<IInstance, InstancePlatformFailsMock>();
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.platform_fails.AltinnApp>();

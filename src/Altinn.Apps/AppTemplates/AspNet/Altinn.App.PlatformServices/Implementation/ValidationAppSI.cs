@@ -50,7 +50,7 @@ namespace Altinn.App.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<System.Collections.Generic.List<ValidationIssue>> ValidateAndUpdateInstance(Instance instance, string taskId)
+        public async Task<List<ValidationIssue>> ValidateAndUpdateInstance(Instance instance, string taskId)
         {
             string org = instance.Org;
             string app = instance.AppId.Split("/")[1];
