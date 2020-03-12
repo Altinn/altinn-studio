@@ -27,28 +27,6 @@ export function ButtonComponent(props: IButtonProvidedProps) {
     );
   }
 
-  // TODO: Remove saveButton and functions (and sagas) when we have implemented automatic save.
-  const renderSaveButton = () => {
-    return (
-      <button
-        type='submit'
-        className={'a-btn a-btn-success'}
-        onClick={saveFormData}
-        id='saveBtn'
-        style={{ marginBottom: '0' }}
-      >
-        Lagre
-      </button>
-    );
-  }
-
-  const saveFormData = () => {
-    const { org, app, instanceId } = window as Window as IAltinnWindow;
-    FormDataActions.submitFormData(
-      `${window.location.origin}/${org}/${app}/api/${instanceId}`,
-    );
-  }
-
   const submitForm = () => {
     const {org, app, instanceId } = window as Window as IAltinnWindow;
     FormDataActions.submitFormData(
@@ -59,7 +37,6 @@ export function ButtonComponent(props: IButtonProvidedProps) {
 
   return (
     <div className='a-btn-group' style={{ marginTop: '3.6rem', marginBottom: '0' }}>
-      {renderSaveButton()}
       {renderSubmitButton()}
     </div>
   );

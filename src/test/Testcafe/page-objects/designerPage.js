@@ -161,6 +161,11 @@ async pushAndCommitChanges (t) {
   async getlatestBuildVersion (t) {
     var lastBuildVersion = await this.deployVersionOptions.child(0).innerText; //first element of the dropdown list
     lastBuildVersion = lastBuildVersion.split(" ");    
-    return lastBuildVersion[1];
+    lastBuildVersion = lastBuildVersion[1].trim();    
+    lastBuildVersion = parseInt(lastBuildVersion);       
+    if (isNaN(lastBuildVersion)){
+        lastBuildVersion = Math.floor((Math.random() * 8000) + 1000);
+    };
+    return lastBuildVersion;
   };
 };

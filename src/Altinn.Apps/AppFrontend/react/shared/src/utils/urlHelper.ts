@@ -28,9 +28,13 @@ export const returnUrlToMessagebox = (url: string): string => {
   const studioRegex = new RegExp(baseHostnameAltinnStudio);
   let result: string;
   if (url.search(prodRegex) >= 0) {
-
-    result = `https://${baseHostnameAltinnProd}/${pathToMessageBox}`;
-
+    const split = url.split('.');
+    const env = split[split.length - 3];
+    if (env === 'tt02') {
+      result = `https://${env}.${baseHostnameAltinnProd}/${pathToMessageBox}`;
+    } else {
+      result = `https://${baseHostnameAltinnProd}/${pathToMessageBox}`;
+    }
   } else if (url.search(testRegex) >= 0) {
 
     const split = url.split('.');

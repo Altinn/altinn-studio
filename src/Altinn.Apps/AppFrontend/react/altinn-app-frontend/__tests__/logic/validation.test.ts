@@ -288,7 +288,7 @@ describe('>>> utils/validations.ts', () => {
   });
   it('+++ validateFormComponents should return error on fileUpload if its not enough files', () => {
     const componentSpesificValidations =
-      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockLanguage.language, []);
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockFormData, mockLanguage.language, []);
 
     const mockResult = {
       componentId_4: {
@@ -306,7 +306,7 @@ describe('>>> utils/validations.ts', () => {
       attachments: null,
     };
     const componentSpesificValidations =
-      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockLanguage.language, []);
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockFormData, mockLanguage.language, []);
 
     const mockResult = {
       componentId_4: {
@@ -330,7 +330,7 @@ describe('>>> utils/validations.ts', () => {
       },
     ];
     const componentSpesificValidations =
-      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockLanguage.language, []);
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockFormData, mockLanguage.language, []);
 
     const mockResult = {};
 
@@ -347,7 +347,7 @@ describe('>>> utils/validations.ts', () => {
       },
     ];
     const componentSpesificValidations =
-      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockLanguage.language, ['componentId_4']);
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockFormData, mockLanguage.language, ['componentId_4']);
 
     const mockResult = {};
 

@@ -21,4 +21,9 @@ describe('Shared urlHelper.ts', () => {
     const origin = 'http://www.vg.no';
     expect(returnUrlToMessagebox(origin)).toBe(null);
   });
+
+  test('returnUrlToMessagebox() returning tt02 messagebox', () => {
+    const origin = 'http://altinn3.no/tdd/tjeneste-20190826-1130';
+    expect(returnUrlToMessagebox(origin)).toContain('tt02.altinn.no');
+  });
 });
