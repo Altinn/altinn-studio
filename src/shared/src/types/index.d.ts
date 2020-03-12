@@ -180,9 +180,14 @@ export interface ITask {
   name: string;
   altinnTaskType: string;
   ended: string;
-  validated: string;
+  validated: IValidated;
 }
 
 export interface ITitle {
   nb: string;
+}
+
+export interface IValidated {
+  timestamp: string;
+  canCompleteTask: boolean;
 }
