@@ -19,17 +19,6 @@ export interface IProcessStepProvidedProps {
   step: ProcessSteps;
 }
 
-export interface IProcessStepProps extends IProcessStepProvidedProps {
-  party: IParty;
-  language: any;
-  formHasErrors: boolean;
-  userParty: IParty;
-}
-
-export interface IProcessStepState {
-  processStep: ProcessSteps;
-}
-
 const ProcessStepComponent = (props) => {
   const party: IParty = useSelector((state: IRuntimeState) => state.party ? state.party.selectedParty : {} as IParty);
   const language: any = useSelector((state: IRuntimeState) => state.language ? state.language.language : {});
@@ -42,10 +31,6 @@ const ProcessStepComponent = (props) => {
       window.location.href = returnUrlToMessagebox(origin);
     }
     return true;
-  }
-
-  const renderFormFiller = () => {
-    return props.children;
   }
 
   const isProcessStepsArchived = Boolean(props.step === ProcessSteps.Archived);
@@ -73,14 +58,7 @@ const ProcessStepComponent = (props) => {
                     <div className='modal-content'>
                       <Header {...props}/>
                       <div className='modal-body a-modal-body'>
-                        {props.step === ProcessSteps.FormFilling &&
-                          renderFormFiller()
-                        }
-                        {props.step === ProcessSteps.Archived &&
-                          <div id='ReceiptContainer'>
-                            <ReceiptContainer/>
-                          </div>
-                        }
+                        {props.children}
                       </div>
                     </div>
                   </div>
