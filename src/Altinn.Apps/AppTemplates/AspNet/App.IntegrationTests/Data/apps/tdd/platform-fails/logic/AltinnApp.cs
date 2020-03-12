@@ -34,7 +34,12 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
             return Task.FromResult(true);
         }
 
-        public override async Task RunValidation(object data, ModelStateDictionary validationResults)
+        public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
+        {
+
+        }
+
+        public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
 
         }

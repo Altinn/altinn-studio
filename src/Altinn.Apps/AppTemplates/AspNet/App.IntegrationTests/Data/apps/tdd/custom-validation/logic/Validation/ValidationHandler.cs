@@ -1,10 +1,8 @@
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
+using Altinn.Platform.Storage.Interface.Models;
 
-using Altinn.App.Services.Interface;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+
 
 namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
 {
@@ -30,7 +28,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         ///      validationResults.Add(new ValidationResult([error message], new List<string>() { [affected field id] } ));
         ///  }
         /// </example>
-        public void Validate(object instance, ModelStateDictionary validationResults)
+        public void ValidateData(object instance, ModelStateDictionary validationResults)
         {
             if (instance.GetType() == typeof(Skjema))
             {
@@ -43,6 +41,11 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
                     );
                 }
             }
+        }
+
+        public void ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
+        {
+           
         }
     }
 }

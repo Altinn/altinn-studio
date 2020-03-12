@@ -40,7 +40,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic.Validatio
         ///     }
         /// }
         /// </example>
-        public async Task Validate(object instance, ModelStateDictionary validationResults)
+        public async Task ValidateData(object instance, ModelStateDictionary validationResults)
         {
             /*   HttpContext context = _httpContextAccessor.HttpContext;
 
@@ -57,6 +57,11 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic.Validatio
                    validationResults.AddModelError("Time", "Validation time has not yet occured.");
                }
                */
+            await Task.CompletedTask;
+        }
+
+        public async Task ValidateTask(Instance instance, string task, ModelStateDictionary validationResults)
+        {
             await Task.CompletedTask;
         }
     }

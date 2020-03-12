@@ -71,12 +71,21 @@ namespace Altinn.App.Services.Interface
         Task OnEndProcess(string endEvent, Instance instance);
 
         /// <summary>
-        /// Is called to run custom validation events defined by app developer.
+        /// Is called to run custom data validation events defined by app developer.
         /// </summary>
         /// <param name="data">The data to validate</param>
         /// <param name="validationResults">Object containing any validation errors/warnings</param>
         /// <returns>Task to indicate when validation is completed</returns>
-        Task RunValidation(object data, ModelStateDictionary validationResults);
+        Task RunDataValidation(object data, ModelStateDictionary validationResults);
+
+        /// <summary>
+        /// Is called to run custom task validation events defined by app developer.
+        /// </summary>
+        ///<param name="instance">Instance to be validated.</param>
+        ///<param name="taskId">Task id for the current process task.</param>
+        /// <param name="validationResults">Object containing any validation errors/warnings</param>
+        /// <returns>Task to indicate when validation is completed</returns>
+        Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults);
 
         /// <summary>
         /// Is called to run custom calculation events defined by app developer.

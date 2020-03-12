@@ -46,7 +46,9 @@ namespace Altinn.App.Services.Implementation
 
         public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
 
-        public abstract Task RunValidation(object instance, ModelStateDictionary validationResults);
+        public abstract Task RunDataValidation(object data, ModelStateDictionary validationResults);
+
+        public abstract Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults);
 
         public abstract Task<bool> RunCalculation(object instance);
 

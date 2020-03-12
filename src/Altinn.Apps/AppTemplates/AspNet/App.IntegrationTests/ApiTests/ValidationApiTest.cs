@@ -1,17 +1,15 @@
-using Altinn.App.IntegrationTests;
-using Altinn.App.Services.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
+
+using Altinn.App.IntegrationTests;
+using Altinn.App.Services.Models.Validation;
+using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Utils;
+using Newtonsoft.Json;
+
 using Xunit;
 
 namespace App.IntegrationTestsRef.ApiTests
@@ -30,7 +28,7 @@ namespace App.IntegrationTestsRef.ApiTests
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task ValidateForm_CustomValidation_InvalidData()
+         public async Task ValidateForm_CustomValidation_InvalidData()
         {
             string token = PrincipalUtil.GetToken(1337);
 

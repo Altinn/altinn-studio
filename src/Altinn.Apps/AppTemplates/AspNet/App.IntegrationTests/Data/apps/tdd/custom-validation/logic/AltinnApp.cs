@@ -49,9 +49,14 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
             return Task.FromResult(true);
         }
 
-        public override async Task RunValidation(object data, ModelStateDictionary validationResults)
+        public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
-            _validationHandler.Validate(data, validationResults);
+            _validationHandler.ValidateData(data, validationResults);
+        }
+
+        public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
+        {
+            _validationHandler.ValidateTask(instance, taskId, validationResults);
         }
 
         /// <summary>

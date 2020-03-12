@@ -35,11 +35,13 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
             return Task.FromResult(true);
         }
 
-        public override async Task RunValidation(object data, ModelStateDictionary validationResults)
+        public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
-
         }
 
+        public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
+        {
+        }
         /// <summary>
         /// Run validation event to perform custom validations
         /// </summary>
@@ -114,7 +116,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
                 options.Options.Add(new AppOption() { Value = "12", Label = "Desember" });
             }
 
-            if(id.Equals("carbrands"))
+            if (id.Equals("carbrands"))
             {
                 options.Options.Insert(0, new AppOption() { Value = "", Label = "Velg bilmerke" });
             }
