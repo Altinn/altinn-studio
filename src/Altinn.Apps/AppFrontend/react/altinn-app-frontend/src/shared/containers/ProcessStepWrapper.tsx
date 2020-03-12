@@ -73,7 +73,7 @@ export default (props) => {
       step={processStep}
     >
       <div>
-        {isLoading === false && !!processStep ? (
+        {isLoading === false ? (
           <>
           {processStep === ProcessSteps.FormFilling &&
             <Form />
