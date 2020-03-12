@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
+
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
-using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -35,7 +34,7 @@ namespace Altinn.App.Services.Interface
         /// Get the service Type
         /// </summary>
         /// <returns>The Type of the service model for the current service</returns>
-        Type GetAppModelType(string classRef);
+        Type GetAppModelType(string dataType);
 
         /// <summary>
         /// AppLogic must set the start event of the process model.
@@ -109,8 +108,8 @@ namespace Altinn.App.Services.Interface
         /// Gets the App Options
         /// </summary>
         /// <param name="id">The option id</param>
-        /// <param name="appOptions">Possible option found by the platform itself</param>
+        /// <param name="options">Possible option found by the platform itself</param>
         /// <returns></returns>
-        Task<AppOptions> GetOptions(string id, AppOptions appOptions);
+        Task<AppOptions> GetOptions(string id, AppOptions options);
     }
 }

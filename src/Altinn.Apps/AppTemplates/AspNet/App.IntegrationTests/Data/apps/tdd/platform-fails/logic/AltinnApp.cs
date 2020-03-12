@@ -36,12 +36,12 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
 
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
-
+            await Task.CompletedTask;
         }
 
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
-
+            await Task.CompletedTask;
         }
 
         /// <summary>
@@ -61,6 +61,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
+            await Task.CompletedTask;
             return null;
         }
 
@@ -75,7 +76,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
         /// <returns>Task to indicate when calculation is completed</returns>
         public override async Task RunDataCreation(Instance instance, object data)
         {
-
+            await Task.CompletedTask;
         }
 
         public override Task<AppOptions> GetOptions(string id, AppOptions options)
