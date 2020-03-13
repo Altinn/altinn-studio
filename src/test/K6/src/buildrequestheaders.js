@@ -37,7 +37,7 @@ export function buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, api){
 };
 
 //Function to build headers with .aspxauth cookie
-export function buildAspxAuth(aspxauthCookie, api){
+export function buildHeaderWithAspxAuth(aspxauthCookie, api){
     var params = {
         cookies: {".ASPXAUTH": aspxauthCookie}
     };    
@@ -46,7 +46,7 @@ export function buildAspxAuth(aspxauthCookie, api){
 };
 
 //Function to build headers with .aspxauth cookie
-export function buildjson(api){
+export function buildHeaderWithJson(api){
     var params = {
         headers: {            
             "Content-Type": "application/json"            

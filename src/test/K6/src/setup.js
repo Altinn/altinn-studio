@@ -23,7 +23,7 @@ export function authenticateUser(){
 //Request to Authenticate an user and returns AltinnStudioRuntime Token
 export function getAltinnStudioRuntimeToken(aspxauthCookie){
     var endpoint =   config.platformAuthentication["authentication"] + "?goto=" + config.platformAuthentication["refresh"];    
-    var params = headers.buildAspxAuth(aspxauthCookie, "platform");       
+    var params = headers.buildHeaderWithAspxAuth(aspxauthCookie, "platform");       
     var res = http.get(endpoint,params);      
     return (res.body);    
 };
