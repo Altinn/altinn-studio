@@ -23,6 +23,11 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// Policy tag for authorizing client scope.
         /// </summary>
+        public const string POLICY_INSTANCE_COMPLETE = "InstanceComplete";
+
+        /// <summary>
+        /// Policy tag for authorizing client scope.
+        /// </summary>
         public const string POLICY_SCOPE_APPDEPLOY = "ScopeAppDeploy";
 
         /// <summary>

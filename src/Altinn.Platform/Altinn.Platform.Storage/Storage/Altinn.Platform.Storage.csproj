@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.21-alpha" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.7" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.8" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.3.0-alpha" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.Kubernetes" Version="1.1.1" />
