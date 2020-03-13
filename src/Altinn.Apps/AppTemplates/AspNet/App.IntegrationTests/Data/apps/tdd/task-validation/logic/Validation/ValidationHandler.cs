@@ -2,9 +2,9 @@ using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System;
 
-
-namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
+namespace App.IntegrationTests.Mocks.Apps.tdd.task_validation
 {
     public class ValidationHandler
     {
@@ -28,24 +28,26 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         ///      validationResults.Add(new ValidationResult([error message], new List<string>() { [affected field id] } ));
         ///  }
         /// </example>
-        public void ValidateData(object instance, ModelStateDictionary validationResults)
+        public void ValidateData(object data, ModelStateDictionary validationResults)
         {
-            if (instance.GetType() == typeof(Skjema))
-            {
-                Skjema model = (Skjema)instance;
-                if (model.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value == 1234)
-                {
-                    validationResults.AddModelError(
-                        "opplysningerOmArbeidstakerengrp8819.skjemainstansgrp8854.journalnummerdatadef33316.value",
-                        "Value cannot be 1234"
-                    );
-                }
-            }
+
         }
 
         public void ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
-           
+            int maxTimeTask = 48;
+
+            switch (taskId)
+            {
+                case "Task_1":
+                    if (DateTime.UtcNow.Subtract((DateTime)instance.Process.CurrentTask.Started).TotalMinutes > maxTimeTask)
+                    {
+                        validationResults.AddModelError("skjema", "Task 1 should have been completed within 48 hours. Send in is no longer available.");
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

@@ -76,9 +76,14 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task RunValidation(object data, ModelStateDictionary validationResults)
+        public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
-            await _validationHandler.Validate(data, validationResults);
+            await _validationHandler.ValidateData(data, validationResults);
+        }
+
+        public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
+        {
+            await _validationHandler.ValidateTask(instance, taskId, validationResults);
         }
 
         /// <summary>

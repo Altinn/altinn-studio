@@ -1,15 +1,16 @@
-using Altinn.App.Common.Enums;
-using Altinn.App.Common.Models;
-using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
-using Altinn.App.Services.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Altinn.App.Common.Enums;
+using Altinn.App.Common.Models;
+using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models.Validation;
+using Altinn.Platform.Storage.Interface.Models;
+
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Services.Implementation
 {
@@ -46,9 +47,11 @@ namespace Altinn.App.Services.Implementation
 
         public abstract Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
 
-        public abstract Task RunValidation(object instance, ModelStateDictionary validationResults);
+        public abstract Task RunDataValidation(object data, ModelStateDictionary validationResults);
 
-        public abstract Task<bool> RunCalculation(object instance);
+        public abstract Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults);
+
+        public abstract Task<bool> RunCalculation(object data);
 
         public abstract Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance);
 
@@ -68,7 +71,9 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public async Task OnStartProcess(string startEvent, Instance instance)
         {
+            await Task.CompletedTask;
             _logger.LogInformation($"OnStartProcess for {instance.Id}");
+
         }
 
         /// <inheritdoc />
@@ -134,7 +139,7 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
-            return false;
+            return await Task.FromResult(false);
         }
 
         /// <inheritdoc />
