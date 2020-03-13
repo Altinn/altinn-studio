@@ -1,16 +1,17 @@
-using Altinn.Platform.Storage.Interface.Models;
-
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
+using Altinn.App.Services.Interface;
 
-namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
+namespace App.IntegrationTests.Mocks.Apps.tdd.task_validation
 {
-    public class ValidationHandler
+    public class CalculationHandler
     {
         private IHttpContextAccessor _httpContextAccessor;
 
-        public ValidationHandler(IHttpContextAccessor httpContextAccessor = null)
+        public CalculationHandler(IHttpContextAccessor httpContextAccessor = null)
         {
             _httpContextAccessor = httpContextAccessor;
         }
@@ -28,24 +29,21 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         ///      validationResults.Add(new ValidationResult([error message], new List<string>() { [affected field id] } ));
         ///  }
         /// </example>
-        public void ValidateData(object instance, ModelStateDictionary validationResults)
+        public bool Calculate(object instance)
         {
+            bool changed = false;
             if (instance.GetType() == typeof(Skjema))
             {
                 Skjema model = (Skjema)instance;
-                if (model.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value == 1234)
+                decimal? journalnummer = model.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value;
+                if (journalnummer != null && journalnummer == 1000)
                 {
-                    validationResults.AddModelError(
-                        "opplysningerOmArbeidstakerengrp8819.skjemainstansgrp8854.journalnummerdatadef33316.value",
-                        "Value cannot be 1234"
-                    );
+                    model.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316.value = (decimal)journalnummer + 1;
+                    changed = true;
                 }
             }
-        }
 
-        public void ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
-        {
-           
+            return changed;
         }
     }
 }

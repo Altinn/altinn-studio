@@ -1,22 +1,20 @@
-using Altinn.App.IntegrationTests;
-using Altinn.App.Services.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
+
+using Altinn.App.IntegrationTests;
+using Altinn.App.Services.Models.Validation;
+using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Utils;
+using Newtonsoft.Json;
+
 using Xunit;
 
 namespace App.IntegrationTestsRef.ApiTests
 {
-    public class ValidationApiTest: IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
+    public class ValidationApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
 
@@ -32,6 +30,8 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task ValidateForm_CustomValidation_InvalidData()
         {
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd"));
+            TestDataUtil.PrepareInstance("tdd", "custom-validation", 1337, new System.Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd"));
             string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
@@ -42,6 +42,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd"));
             System.Console.WriteLine("**** RESPONSE CONTENT: " + responseContent);
             System.Console.WriteLine("**** RESPONSE STATUD CODE: " + response.StatusCode);
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
@@ -59,6 +60,9 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task ValidateForm_ValidData()
         {
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+            TestDataUtil.PrepareInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+
             string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
@@ -69,6 +73,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
 
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
 
@@ -83,6 +88,9 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task ValidateForm_ModelValidation_InvalidData()
         {
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("46133fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.PrepareInstance("tdd", "custom-validation", 1337, new System.Guid("46133fb5-a9f2-45d4-90b1-f6d93ad40713"));
+
             string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
@@ -93,6 +101,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("46133fb5-a9f2-45d4-90b1-f6d93ad40713"));
 
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
 
@@ -109,6 +118,9 @@ namespace App.IntegrationTestsRef.ApiTests
         [Fact]
         public async Task ValidateAttachment_ValidData()
         {
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+            TestDataUtil.PrepareInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+
             string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
@@ -120,11 +132,42 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
+            TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
 
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Empty(messages);
+        }
+
+        /// <summary>
+        /// Test that verifies that task validation stops moving forward if send in is not open
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task ValidateTask_InvalidTime()
+        {
+            // Arrange
+            TestDataUtil.DeletInstanceAndData("tdd", "task-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+            TestDataUtil.PrepareInstance("tdd", "task-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+            string token = PrincipalUtil.GetToken(1337);
+            string expectedMsg = "Task 1 should have been completed within 48 hours. Send in is no longer available.";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "task-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            string url = "/tdd/task-validation/instances/1337/16314483-65f3-495a-aaec-79445b4edb0b/validate";
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(url);
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+            TestDataUtil.DeletInstanceAndData("tdd", "task-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
+
+            List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Single(messages);
+            Assert.Equal(ValidationIssueSeverity.Error, messages[0].Severity);
+            Assert.Equal(expectedMsg, messages[0].Code);
         }
     }
 }
