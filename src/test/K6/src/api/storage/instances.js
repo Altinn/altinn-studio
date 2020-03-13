@@ -6,7 +6,7 @@ import * as header from "../../buildrequestheaders.js"
 export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, level2App, instanceJson){
     var appId = appOwner + "/" + level2App;
     var endpoint = config.platformStorage["instances"] + "?appId=" + appId;
-    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie);
+    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, "platform");
     var requestbody = JSON.stringify(buildInstanceInputJson(instanceJson, appId, partyId));
     return http.post(endpoint, requestbody, params);
 };
@@ -22,21 +22,21 @@ function buildInstanceInputJson(instanceJson, appId, partyId){
 //Api call to Storage:Instances to get an instance by id and return response
 export function getInstanceById(altinnStudioRuntimeCookie, partyId, instanceId){
     var endpoint = config.buildStorageUrls(partyId, instanceId, "", "instanceid");
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie);    
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");    
     return http.get(endpoint, params);
 };
 
 //Api call to Storage:Instances to get all instances under a party id and return response
 export function getAllinstances(altinnStudioRuntimeCookie, partyId){
     var endpoint = config.platformStorage["instances"] + "?instanceOwner.partyId=" + partyId;
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie);    
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");    
     return http.get(endpoint, params);
 };
 
 //Api call to Storage:Instances to edit an instance by id and return response
 export function putInstanceById(altinnStudioRuntimeCookie, partyId, instanceId){
     var endpoint = config.buildStorageUrls(partyId, instanceId, "", "instanceid");
-    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie);
+    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, "platform");
     var timeStamp = new Date();
     var requestbody = { "dueBefore":  timeStamp.toISOString()};
     requestbody = JSON.stringify(requestbody);    
