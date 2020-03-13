@@ -115,7 +115,7 @@
       </xacml:AnyOf>
     </xacml:Target>
   </xacml:Rule>
-  <xacml:Rule RuleId="urn:altinn:example:ruleid:3" Effect="Permit">
+    <xacml:Rule RuleId="urn:altinn:example:ruleid:3" Effect="Permit">
     <xacml:Description>Rule that defines that user with role REGNA or DAGL can delete instances of [ORG]/[APP]</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
