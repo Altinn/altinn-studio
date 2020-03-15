@@ -1,6 +1,8 @@
 import * as React from 'react';
 import FormDataActions from '../../features/form/data/formDataActions';
-import { IAltinnWindow, } from './../../types';
+import { IAltinnWindow, IRuntimeState, } from './../../types';
+import { useSelector } from 'react-redux';
+import { makeGetAutoSave } from '../../selectors/getLayoutData';
 
 export interface IButtonProvidedProps {
   id: string;
@@ -11,7 +13,8 @@ export interface IButtonProvidedProps {
 }
 
 export function ButtonComponent(props: IButtonProvidedProps) {
-
+  const GetAutoSave = makeGetAutoSave();
+  const autoSave: boolean = useSelector((state: IRuntimeState) => GetAutoSave(state));
 
   const renderSubmitButton = () => {
     return (
@@ -27,6 +30,27 @@ export function ButtonComponent(props: IButtonProvidedProps) {
     );
   }
 
+  const renderSaveButton = () => {
+    return (
+      <button
+        type='submit'
+        className={'a-btn a-btn-success'}
+        onClick={saveFormData}
+        id='saveBtn'
+        style={{ marginBottom: '0' }}
+      >
+        Lagre
+      </button>
+    );
+  }
+
+  const saveFormData = () => {
+    const { org, app, instanceId } = window as Window as IAltinnWindow;
+    FormDataActions.submitFormData(
+      `${window.location.origin}/${org}/${app}/api/${instanceId}`,
+    );
+  }
+
   const submitForm = () => {
     const {org, app, instanceId } = window as Window as IAltinnWindow;
     FormDataActions.submitFormData(
@@ -37,6 +61,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
 
   return (
     <div className='a-btn-group' style={{ marginTop: '3.6rem', marginBottom: '0' }}>
+      {autoSave === false && renderSaveButton()}
       {renderSubmitButton()}
     </div>
   );

@@ -8,11 +8,12 @@ import QueueActions from '../../../../shared/resources/queue/queueActions';
 
 function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
   try {
-    const { data }: any = yield call(get, url);
+    const { data, autoSave }: any = yield call(get, url);
     yield call(
       Actions.fetchFormLayoutFulfilled,
       data.layout,
     );
+    yield call(Actions.updateAutoSave, autoSave);
   } catch (err) {
     yield call(Actions.fetchFormLayoutRejected, err);
     yield call(QueueActions.dataTaskQueueError, err);

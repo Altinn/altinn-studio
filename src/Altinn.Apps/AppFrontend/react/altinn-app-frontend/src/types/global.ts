@@ -185,6 +185,7 @@ export interface IAttachments {
 export interface IUiConfig {
   focus: string;
   hiddenFields: string[];
+  autoSave: boolean;
 }
 
 export interface IQueueTask {
