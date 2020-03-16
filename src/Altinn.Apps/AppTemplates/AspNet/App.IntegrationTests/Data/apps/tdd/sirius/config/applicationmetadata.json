@@ -24,9 +24,9 @@
       "id": "skattemelding",
       "allowedContentTypes": [ "application/xml" ],
       "taskId": "Task_1",
-      "maxSize": 1,
+      "maxSize": 0,
       "maxCount": 1,
-      "minCount": 0
+      "minCount": 1
     },
     {
       "id": "næringsoppgave",
@@ -34,7 +34,7 @@
       "taskId": "Task_1",
       "maxSize": 1,
       "maxCount": 1,
-      "minCount": 0
+      "minCount": 1
     }
   ]
 }
