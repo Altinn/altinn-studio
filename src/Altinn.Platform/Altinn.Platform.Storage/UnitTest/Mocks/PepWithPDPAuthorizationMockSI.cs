@@ -19,6 +19,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Altinn.Authorization.ABAC;
 
 #pragma warning disable 1998
 #pragma warning disable 1591
@@ -50,7 +51,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
         public PepWithPDPAuthorizationMockSI(IInstanceRepository instanceRepository, IOptions<PepSettings> pepSettings)
         {
-            this._instanceRepository = instanceRepository;
+            _instanceRepository = instanceRepository;
             _pepSettings = pepSettings.Value;
         }
 
@@ -62,7 +63,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
             {
                 try
                 {
-                    Altinn.Authorization.ABAC.PolicyDecisionPoint pdp = new Altinn.Authorization.ABAC.PolicyDecisionPoint();
+                    Authorization.ABAC.PolicyDecisionPoint pdp = new Authorization.ABAC.PolicyDecisionPoint();
                     XacmlJsonResponse multiResponse = new XacmlJsonResponse();
                     foreach (XacmlJsonRequestReference xacmlJsonRequestReference in xacmlJsonRequest.Request.MultiRequests.RequestReference)
                     {
@@ -124,10 +125,29 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
                 {
                 }
             }
-            else if (xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => (a.AttributeId == "urn:altinn:userid" && a.Value == "1")) ||
+            else if (xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => (a.AttributeId == "urn:altinn:userid" && int.Parse(a.Value) >= 3)) ||
                 xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => a.AttributeId == "urn:altinn:org"))
             {
+                XacmlContextRequest decisionRequest = XacmlJsonXmlConverter.ConvertRequest(xacmlJsonRequest.Request);
+                decisionRequest = await Enrich(decisionRequest);
+
+                PolicyDecisionPoint pdp = new PolicyDecisionPoint();
+
+                XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
+                XacmlContextResponse contextResponse = pdp.Authorize(decisionRequest, policy);
+
+                return XacmlJsonXmlConverter.ConvertResponse(contextResponse);
+
+            }
+            else if (xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => (a.AttributeId == "urn:altinn:userid" && a.Value == "1")) ||
+               xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => a.AttributeId == "urn:altinn:org"))
+            {
                 jsonResponse = File.ReadAllText("data/response_permit.json");
+
+            }
+            else if (xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => (a.AttributeId == "urn:altinn:userid" && a.Value == "-1")))
+            {
+                jsonResponse = File.ReadAllText("data/response_deny.json");
             }
             else
             {

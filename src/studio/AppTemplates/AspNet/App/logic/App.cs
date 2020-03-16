@@ -11,6 +11,7 @@ using Altinn.App.AppLogic.Validation;
 using Altinn.App.AppLogic.Calculation;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.App.Common.Models;
 
 namespace Altinn.App.AppLogic
 {
@@ -69,13 +70,23 @@ namespace Altinn.App.AppLogic
         }
 
         /// <summary>
-        /// Run validation event to perform custom validations
+        /// Run data validation event to perform custom validations on data
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override async Task RunValidation(object data, ModelStateDictionary validationResults)
+        public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
-           await _validationHandler.Validate(data, validationResults);
+           await _validationHandler.ValidateData(data, validationResults);
+        }
+
+        /// <summary>
+        /// Run task validation event to perform custom validations on instance
+        /// </summary>
+        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
+        /// <returns>Value indicating if the form is valid or not</returns>
+        public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
+        {
+            await _validationHandler.ValidateTask(instance, taskId, validationResults);
         }
 
         /// <summary>
@@ -103,6 +114,11 @@ namespace Altinn.App.AppLogic
         public override async Task RunDataCreation(Instance instance, object data)
         {
            await _instantiationHandler.DataCreation(instance, data);
+        }
+
+        public override Task<AppOptions> GetOptions(string id, AppOptions options)
+        {
+            return Task.FromResult(options);
         }
     }
 }

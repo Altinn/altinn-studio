@@ -7,6 +7,7 @@ import { IAltinnWindow } from './../../../../types/global';
 import { FETCH_APPLICATION_METADATA_FULFILLED } from './../../applicationMetadata/actions/types';
 import { GET_INSTANCEDATA_FULFILLED } from './../../instanceData/get/getInstanceDataActionTypes';
 import QueueActions from './../queueActions';
+import {START_INITIAL_DATA_TASK_QUEUE} from './dataTaskQueueActionTypes';
 
 export function* startInitialDataTaskQueue(): SagaIterator {
   const { org, app } = window as Window as IAltinnWindow;
@@ -30,7 +31,7 @@ export function* startInitialDataTaskQueue(): SagaIterator {
 
 export function* watchStartInitialDataTaskQueueSaga(): SagaIterator {
   yield all([
-    take(QueueActions.startInitialDataTaskQueue),
+    take(START_INITIAL_DATA_TASK_QUEUE),
     take(FETCH_APPLICATION_METADATA_FULFILLED),
     take(GET_INSTANCEDATA_FULFILLED),
   ]);

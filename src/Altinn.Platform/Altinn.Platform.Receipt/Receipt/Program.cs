@@ -70,8 +70,7 @@ namespace Altinn.Platform.Receipt
                 Serilog.ILogger logger = loggerConfig.CreateLogger();
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
-            })
-             ;
+            });
 
         /// <summary>
         /// Load the configuration settings for the program.
@@ -85,7 +84,7 @@ namespace Altinn.Platform.Receipt
 
             config.SetBasePath(basePath);
             string configJsonFile1 = $"{basePath}/altinn-appsettings/altinn-dbsettings-secret.json";
-            string configJsonFile2 = $"{basePath}/Receipt/appsettings.json";
+            string configJsonFile2 = $"{Directory.GetCurrentDirectory()}/appsettings.json";
 
             if (basePath == "/")
             {

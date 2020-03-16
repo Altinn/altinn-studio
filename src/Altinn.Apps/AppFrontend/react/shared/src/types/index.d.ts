@@ -138,6 +138,11 @@ export interface IPerson {
   addressCity: string;
 }
 
+export interface IExtendedInstance {
+  instance: IInstance;
+  party: IParty;
+}
+
 export interface IProcess {
   started: string;
   startEvent: string;
@@ -175,9 +180,14 @@ export interface ITask {
   name: string;
   altinnTaskType: string;
   ended: string;
-  validated: string;
+  validated: IValidated;
 }
 
 export interface ITitle {
   nb: string;
+}
+
+export interface IValidated {
+  timestamp: string;
+  canCompleteTask: boolean;
 }

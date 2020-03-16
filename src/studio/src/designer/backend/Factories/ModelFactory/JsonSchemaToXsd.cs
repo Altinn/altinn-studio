@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
@@ -195,7 +196,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 {
                     case JsonSchemaType.String:
                         {
-                            StringFormat format = GetterExtensions.Format(jSchema);
+                            Format format = GetterExtensions.Format(jSchema);
                             if (format != null)
                             {
                                 return ExtractBaseTypeNameFromFormat(format.Key);

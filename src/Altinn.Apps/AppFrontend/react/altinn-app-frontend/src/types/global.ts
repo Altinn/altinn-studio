@@ -183,7 +183,7 @@ export interface IAttachments {
 }
 
 export interface IUiConfig {
-  focus: boolean;
+  focus: string;
   hiddenFields: string[];
 }
 

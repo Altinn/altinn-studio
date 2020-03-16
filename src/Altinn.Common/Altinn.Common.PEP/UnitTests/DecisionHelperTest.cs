@@ -15,7 +15,7 @@ namespace UnitTests
         private const string org = "Altinn";
         private const string app = "App";
         private const string actionType = "read";
-        private const string partyId = "1000";
+        private const int partyId = 1000;
 
         /// <summary>
         /// Test case: Send attributes and creates request out of it 

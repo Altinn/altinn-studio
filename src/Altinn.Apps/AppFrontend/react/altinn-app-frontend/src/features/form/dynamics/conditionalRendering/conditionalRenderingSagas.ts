@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { all, call, select, take, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from '../../../../types';
-import { IValidations } from '../../../../types/global';
+import { IValidations, IUiConfig } from '../../../../types/global';
 import { runConditionalRenderingRules } from '../../../../utils/conditionalRendering';
 import * as FormConfigActionTypes from '../../config/fetch/fetchFormConfigActionTypes';
 import * as FormDataActionTypes from '../../data/formDataActionTypes';
@@ -17,6 +17,7 @@ export const ConditionalRenderingSelector:
   (store: IRuntimeState) => any = (store: IRuntimeState) => store.formDynamics.conditionalRendering;
 export const FormDataSelector: (store: IRuntimeState) => IFormData = (store) => store.formData.formData;
 export const FormLayoutSelector: (store: IRuntimeState) => ILayout = (store) => store.formLayout.layout;
+export const UiConfigSelector: (store: IRuntimeState) => IUiConfig = (store) => store.formLayout.uiConfig;
 export const FormValidationSelector: (store: IRuntimeState) =>
   IValidations = (store) => store.formValidations.validations;
 
@@ -25,12 +26,13 @@ function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
     const conditionalRenderingState: IConditionalRenderingRules = yield select(ConditionalRenderingSelector);
     const formData: IFormData = yield select(FormDataSelector);
     const formValidations: IValidations = yield select(FormValidationSelector);
+    const uiConfig: IUiConfig = yield select(UiConfigSelector);
     const componentsToHide: string[] = runConditionalRenderingRules(
         conditionalRenderingState,
         formData,
     );
 
-    if (componentsToHide.length > 0) {
+    if (shouldHidddenFieldsUpdate(uiConfig.hiddenFields, componentsToHide)) {
       FormLayoutActions.updateHiddenComponents(componentsToHide);
       componentsToHide.forEach((componentId) => {
         if (formValidations[componentId]) {
@@ -58,4 +60,21 @@ export function* waitForAppSetupBeforeRunningConditionalRulesSaga(): SagaIterato
     take(FormDynamicsActionTypes.FETCH_SERVICE_CONFIG_FULFILLED),
   ]);
   yield call(checkIfConditionalRulesShouldRunSaga, {});
+}
+
+function shouldHidddenFieldsUpdate(currentList: string[], newList: string[]): boolean {
+  
+  if (!currentList || currentList.length !== newList.length) {
+    return true;
+  }
+
+  if (!currentList && newList && newList.length > 0) {
+    return true;
+  }
+
+  if (currentList.find(element => !newList.includes(element))) {
+    return true;
+  }
+
+  return false;
 }

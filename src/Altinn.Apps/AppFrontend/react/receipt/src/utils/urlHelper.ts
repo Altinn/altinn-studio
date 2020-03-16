@@ -6,12 +6,8 @@ export const altinnUrl = 'http://altinn.no/';
 export const altinnOrganisationsUrl = 'https://altinncdn.no/orgs/altinn-orgs.json';
 export const languageUrl = `${window.location.origin}/receipt/api/v1/language/GetLanguageAsJSON?languageCode=nb`;
 
-export function getInstanceMetadataUrl(): string {
-  return `${getAltinnCloudUrl()}storage/api/v1/instances/${getInstanceOwnerId()}/${getInstanceId()}`;
-}
-
-export function getPartyUrl(): string {
-  return `${getAltinnCloudUrl()}register/api/v1/parties/${getInstanceOwnerId()}`;
+export function getExtendedInstanceUrl(): string{
+  return `${getAltinnCloudUrl()}receipt/api/v1/instances/${getInstanceOwnerId()}/${getInstanceId()}?includeParty=true`;
 }
 
 export function getAltinnCloudUrl(): string {

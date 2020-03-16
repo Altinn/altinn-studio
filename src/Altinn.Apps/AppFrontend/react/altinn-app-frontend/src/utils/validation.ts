@@ -2,8 +2,11 @@ import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/util
 import { IFormData } from '../features/form/data/formDataReducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
 import { IValidationIssue, Severity } from '../types';
-import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
+import { IComponentValidations, IDataModelFieldElement, IValidations, IComponentBindingValidation } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
+import moment from 'moment';
+import { DatePickerMinDateDefault, DatePickerMaxDateDefault, DatePickerFormatDefault } from '../components/base/DatepickerComponent';
+import { getFormDataForComponent } from './formComponentUtils';
 
 export function min(value: number, test: number): boolean {
   test = Number(test);
@@ -84,6 +87,7 @@ export function validateEmptyFields(
 export function validateFormComponents(
   attachments: any,
   formLayout: any,
+  formData: any,
   language: any,
   hiddenFields: string[],
 ) {
@@ -108,6 +112,15 @@ export function validateFormComponents(
           validations[component.id] = componentValidations;
         }
       }
+      if (component.type === 'Datepicker') {
+        let componentValidations: IComponentValidations = {};
+        const date = getFormDataForComponent(formData, component.dataModelBindings);
+        const datepickerValidations = validateDatepickerFormData(date, component.minDate, component.maxDate, component.format, language);
+        componentValidations = {
+          [fieldKey]: datepickerValidations
+        }
+        validations[component.id] = componentValidations;
+      }
     }
   });
   return validations;
@@ -120,6 +133,36 @@ function attachmentsValid(attachments: any, component: any): boolean {
       attachments[component.id] &&
       attachments[component.id].length >= component.minNumberOfAttachments)
   );
+}
+
+/*
+  Validates the datepicker form data, returns an array of error messages or empty array if no errors found
+*/
+export function validateDatepickerFormData(
+  formData: string,
+  minDate: string = DatePickerMinDateDefault,
+  maxDate: string = DatePickerMaxDateDefault,
+  format: string = DatePickerFormatDefault,
+  language: any): IComponentBindingValidation
+{
+  const validations: IComponentBindingValidation = {errors: [], warnings: []};
+  const messages: string[] = [];
+  const date = formData ? moment(formData) : null;
+
+  if (formData === null) {
+    // is only set to NULL if the format is malformed. Is otherwise undefined or empty string
+    validations.errors.push(getParsedLanguageFromKey('date_picker.invalid_date_message', language, [format]));
+  }
+
+  if (date && date.isBefore(minDate)) {
+    messages.push(getLanguageFromKey('date_picker.min_date_exeeded', language));
+  } else if (date && date.isAfter(maxDate)) {
+    messages.push(getLanguageFromKey('date_picker.max_date_exeeded', language));
+  }
+  messages.forEach((message: string) => {
+    validations.errors.push(message);
+  })
+  return validations;
 }
 
 /*

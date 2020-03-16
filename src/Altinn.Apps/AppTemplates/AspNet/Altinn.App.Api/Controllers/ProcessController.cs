@@ -280,7 +280,7 @@ namespace Altinn.App.Api.Controllers
                     return Conflict($"Instance does not have current altinn task type information!");
                 }
 
-                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instance.Id);
+                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid);
                 if (!authorized)
                 {
                     return Forbid();
@@ -401,7 +401,7 @@ namespace Altinn.App.Api.Controllers
             {
                 string altinnTaskType = instance.Process.CurrentTask?.AltinnTaskType;
 
-                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instance.Id);
+                bool authorized = await AuthorizeAction(altinnTaskType, org, app, instanceOwnerPartyId, instanceGuid);
                 if (!authorized)
                 {
                     return Forbid();
@@ -526,10 +526,24 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private async Task<bool> AuthorizeAction(string currenTaskType, string org, string app, string instanceId)
+        private async Task<bool> AuthorizeAction(string currentTaskType, string org, string app, int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string actionType = currenTaskType.Equals("data") ? "write" : null;
-            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, null, instanceId);
+            string actionType;
+
+            switch (currentTaskType)
+            {
+                case "data":
+                    actionType = "write";
+                    break;
+                case "confirmation":
+                    actionType = "confirm";
+                    break;
+                default:
+                    actionType = currentTaskType;
+                    break;
+            }
+
+            XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(org, app, HttpContext.User, actionType, instanceOwnerPartyId, instanceGuid);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
             if (response?.Response == null)
             {

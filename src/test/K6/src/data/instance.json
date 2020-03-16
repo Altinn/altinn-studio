@@ -1,0 +1,24 @@
+{
+    "instanceOwner": {    	
+    },
+    "appOwner":{
+    	"labels" : [ "gr", "x2" ]
+    },        
+    "visibleAfter": "2019-05-20T00:00:00Z",
+    "title": { "nb": "Arbeidsmelding" },
+    "process": {
+        "started": "2020-02-18T09:32:12.316Z",
+        "startEvent": "StartEvent_1",
+        "currentTask": {
+            "flow": 2,
+            "started": "2020-02-18T09:32:12.316Z",
+            "elementId": "Task_1",
+            "name": "Utfylling",
+            "altinnTaskType": "data",
+            "ended": null,
+            "validated": null
+        },
+        "ended": null,
+        "endEvent": null
+    }
+}

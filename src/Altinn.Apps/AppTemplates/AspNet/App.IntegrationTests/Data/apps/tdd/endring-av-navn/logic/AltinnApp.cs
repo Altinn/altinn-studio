@@ -35,11 +35,15 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
             return Task.FromResult(true);
         }
 
-        public override async Task RunValidation(object data, ModelStateDictionary validationResults)
+        public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
-
+            await Task.CompletedTask;
         }
 
+        public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
+        {
+            await Task.CompletedTask;
+        }
         /// <summary>
         /// Run validation event to perform custom validations
         /// </summary>
@@ -57,6 +61,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
+            await Task.CompletedTask;
             return null;
         }
 
@@ -71,7 +76,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
         /// <returns>Task to indicate when calculation is completed</returns>
         public override async Task RunDataCreation(Instance instance, object data)
         {
-
+            await Task.CompletedTask;
         }
 
         public override Task<AppOptions> GetOptions(string id, AppOptions options)
@@ -114,7 +119,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
                 options.Options.Add(new AppOption() { Value = "12", Label = "Desember" });
             }
 
-            if(id.Equals("carbrands"))
+            if (id.Equals("carbrands"))
             {
                 options.Options.Insert(0, new AppOption() { Value = "", Label = "Velg bilmerke" });
             }

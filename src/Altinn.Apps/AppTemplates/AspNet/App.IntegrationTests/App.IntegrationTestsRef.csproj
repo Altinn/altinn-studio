@@ -7,8 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\Instances\tdd\complex-process-1\**" />
     <Compile Remove="Data\Instances\tdd\endring-av-navn\1337\26133fb5-a9f2-45d4-90b1-f6d93ad40713\**" />
+    <EmbeddedResource Remove="Data\Instances\tdd\complex-process-1\**" />
     <EmbeddedResource Remove="Data\Instances\tdd\endring-av-navn\1337\26133fb5-a9f2-45d4-90b1-f6d93ad40713\**" />
+    <None Remove="Data\Instances\tdd\complex-process-1\**" />
     <None Remove="Data\Instances\tdd\endring-av-navn\1337\26133fb5-a9f2-45d4-90b1-f6d93ad40713\**" />
   </ItemGroup>
 
@@ -17,6 +20,8 @@
     <None Remove="Data\apps\tdd\auth-level-2\appsettings.json" />
     <None Remove="Data\apps\tdd\auth-level-3\appsettings.Development.json" />
     <None Remove="Data\apps\tdd\auth-level-3\appsettings.json" />
+    <None Remove="Data\apps\tdd\task-validation\appsettings.Development.json" />
+    <None Remove="Data\apps\tdd\task-validation\appsettings.json" />
     <None Remove="Data\apps\tdd\custom-validation\appsettings.Development.json" />
     <None Remove="Data\apps\tdd\custom-validation\appsettings.json" />
     <None Remove="Data\apps\tdd\platform-fails\appsettings.Development.json" />
@@ -43,6 +48,16 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="Data\apps\tdd\auth-level-3\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\task-validation\appsettings.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\task-validation\appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
@@ -99,6 +114,39 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Data\apps\tdd\complex-process\logic\App.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Data\apps\tdd\complex-process\logic\Calculation\CalculationHandler.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Data\apps\tdd\complex-process\logic\InstantiationHandler.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Data\apps\tdd\complex-process\logic\Validation\ValidationHandler.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Data\apps\tdd\complex-process\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\apps\tdd\complex-process\config\applicationmetadata.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\apps\tdd\complex-process\config\authorization\policy.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\apps\tdd\complex-process\config\process\process.bpmn">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\apps\tdd\complex-process\config\texts\resource.nb.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\authorization\roles\user_1\party_1000\roles.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Data\Files\data-element.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

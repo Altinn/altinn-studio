@@ -60,15 +60,26 @@ const useStyles = makeStyles({
   },
 });
 
+function usePrevious(value) {
+  const ref = React.useRef();
+  React.useEffect(() => {
+    ref.current = value.slice();
+  });
+
+  return ref.current;
+}
+
 export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   const classes = useStyles(props);
 
   const [selected, setSelected] = React.useState([]);
+  const prevSelected: any = usePrevious(selected);
+
   const checkBoxesIsRow: boolean = (props.options.length <= 2);
 
   React.useEffect(() => {
     returnState();
-  }, [props]);
+  }, [props.formData]);
 
   const returnState = () => {
     if (
@@ -86,7 +97,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   };
 
   const onDataChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newSelected: any = selected;
+    const newSelected: any = selected.slice();
 
     if (newSelected[event.target.value] === event.target.name) {
       newSelected[event.target.value] = '';
@@ -94,8 +105,9 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
       newSelected[event.target.value] = event.target.name;
     }
 
-    setSelected(newSelected);
+    props.handleFocusUpdate(props.id);
     props.handleDataChange(selectedHasValues(newSelected) ? newSelected.join() : '');
+    
   };
 
   const selectedHasValues = (select: string[]): boolean => {
@@ -105,6 +117,27 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   const isOptionSelected = (option: string) => {
     return selected.indexOf(option) > -1;
   };
+
+  const inFocus = (index: number) => {
+    let changed: any;
+    if (!prevSelected) {
+      return false;
+    }
+    if (prevSelected.length === 0) {
+      changed = selected.findIndex(x => !!x && x !== '');
+    } else {
+      changed = selected.findIndex(x => !prevSelected.includes(x));
+    }
+    if (changed === -1) {
+      changed = prevSelected.findIndex(x => !selected.includes(x));
+    }
+    
+    if (changed === -1) {
+      return false;
+    }
+
+    return props.shouldFocus && changed === index;
+  }
 
   const StyledCheckbox = (checkboxProps: CheckboxProps) => {
     return (
@@ -121,8 +154,8 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   };
 
   return(
-    <FormControl>
-      <FormGroup row={checkBoxesIsRow}>
+    <FormControl key={'checkboxes_control_' + props.id}>
+      <FormGroup row={checkBoxesIsRow} id={props.id}>
         {props.options.map((option, index) => (
           <React.Fragment key={index}>
             <FormControlLabel
@@ -133,6 +166,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
                   onChange={onDataChanged}
                   value={index}
                   name={option.value}
+                  autoFocus={inFocus(index)}
                 />
               )}
               label={option.label}

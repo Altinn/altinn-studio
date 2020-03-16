@@ -18,5 +18,10 @@ namespace Altinn.App.Common.Constants
         /// Policy tag for writing on instance.
         /// </summary>
         public const string POLICY_INSTANCE_READ = "InstanceRead";
+
+              /// <summary>
+        /// Policy tag for writing on instance.
+        /// </summary>
+        public const string POLICY_INSTANCE_DELETE = "InstanceDelete";
     }
 }

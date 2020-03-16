@@ -1,0 +1,31 @@
+{
+  "id": "tdd/complex-process",
+  "org": "tdd",
+  "created": "2019-09-24T10:02:41.0839253Z",
+  "createdBy": "Steph",
+  "lastChanged": "2019-09-24T10:02:41.0839254Z",
+  "lastChangedBy": "Steph",
+  "title": {
+    "nb": "Complex process app",
+    "nb-NO": "Complex process app"
+  },
+  "dataTypes": [
+    {
+      "id": "default",
+      "allowedContentTypes": [ "application/xml" ],
+      "maxCount": 1,
+      "appLogic": {
+        "autoCreate": true,
+        "ClassRef": "App.IntegrationTests.Mocks.Apps.tdd.custom_validation.Skjema"
+      },
+      "taskId": "Task_1"
+    },
+    {
+      "id": "9edd53de-f46f-40a1-bb4d-3efb93dc113d",
+      "taskId": "Task_1",
+      "maxSize": 1,
+      "maxCount": 1,
+      "minCount": 0
+    }
+  ]
+}

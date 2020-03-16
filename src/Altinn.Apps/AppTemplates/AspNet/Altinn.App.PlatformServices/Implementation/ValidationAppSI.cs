@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.App.Services.Clients;
+
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -50,19 +49,22 @@ namespace Altinn.App.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<System.Collections.Generic.List<ValidationIssue>> ValidateAndUpdateInstance(Instance instance, string taskId)
+        public async Task<List<ValidationIssue>> ValidateAndUpdateInstance(Instance instance, string taskId)
         {
-            string org = instance.Org;
-            string app = instance.AppId.Split("/")[1];
-
-            _logger.LogInformation($"Validation of {instance.Id}");
-
-            Application application = _appResourcesService.GetApplication();
-
             // Todo. Figure out where to get this from
             Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
 
+            _logger.LogInformation($"Validation of {instance.Id}");
+
             List<ValidationIssue> messages = new List<ValidationIssue>();
+
+            ModelStateDictionary validationResults = new ModelStateDictionary();
+            await _altinnApp.RunTaskValidation(instance, taskId, validationResults);
+            messages.AddRange(MapModelStateToIssueList(validationResults, instance, serviceText));
+
+            Application application = _appResourcesService.GetApplication();
+
+
             foreach (DataType dataType in application.DataTypes.Where(et => et.TaskId == taskId))
             {
                 List<DataElement> elements = instance.Data.Where(d => d.DataType == dataType.Id).ToList();
@@ -72,7 +74,7 @@ namespace Altinn.App.Services.Implementation
                     ValidationIssue message = new ValidationIssue
                     {
                         InstanceId = instance.Id,
-                        Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,                        
+                        Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
                         Severity = ValidationIssueSeverity.Error,
                         Description = AppTextHelper.GetAppText(
                             ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceText, null, "nb"),
@@ -93,7 +95,7 @@ namespace Altinn.App.Services.Implementation
                         Field = dataType.Id
                     };
                     messages.Add(message);
-                }                
+                }
 
                 foreach (DataElement dataElement in elements)
                 {
@@ -171,7 +173,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             if (dataType.AppLogic != null)
-            {                
+            {
                 Type modelType = _altinnApp.GetAppModelType(dataType.AppLogic.ClassRef);
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
                 string app = instance.AppId.Split("/")[1];
@@ -187,7 +189,7 @@ namespace Altinn.App.Services.Implementation
 
                 ValidationStateDictionary validationState = new ValidationStateDictionary();
                 _objectModelValidator.Validate(actionContext, validationState, null, data);
-                await _altinnApp.RunValidation(data, validationResults);
+                await _altinnApp.RunDataValidation(data, validationResults);
 
                 if (!validationResults.IsValid)
                 {
@@ -220,6 +222,35 @@ namespace Altinn.App.Services.Implementation
                             DataElementId = dataElementId,
                             Code = error.ErrorMessage,
                             Field = modelKey,
+                            Severity = ValidationIssueSeverity.Error,
+                            Description = AppTextHelper.GetAppText(error.ErrorMessage, serviceText, null, "nb")
+                        });
+                    }
+                }
+            }
+
+            return validationIssues;
+        }
+
+        private List<ValidationIssue> MapModelStateToIssueList(
+        ModelStateDictionary modelState,
+        Instance instance,
+        Dictionary<string, Dictionary<string, string>> serviceText)
+        {
+            List<ValidationIssue> validationIssues = new List<ValidationIssue>();
+
+            foreach (string modelKey in modelState.Keys)
+            {
+                modelState.TryGetValue(modelKey, out ModelStateEntry entry);
+
+                if (entry != null && entry.ValidationState == ModelValidationState.Invalid)
+                {
+                    foreach (ModelError error in entry.Errors)
+                    {
+                        validationIssues.Add(new ValidationIssue()
+                        {
+                            InstanceId = instance.Id,
+                            Code = error.ErrorMessage,
                             Severity = ValidationIssueSeverity.Error,
                             Description = AppTextHelper.GetAppText(error.ErrorMessage, serviceText, null, "nb")
                         });

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 // using Altinn.App.Models; // Uncomment this line to refer to app model(s)
@@ -37,7 +38,29 @@ namespace Altinn.App.AppLogic.Validation
         ///     }
         /// }
         /// </example>
-        public async Task Validate(object instance, ModelStateDictionary validationResults)
+        public async Task ValidateData(object data, ModelStateDictionary validationResults)
+        {
+            await Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Handles all custom validation regarding the state of the instance in a given task
+        /// </summary>
+        /// Validations that fail should be handled by updating the validation result object,
+        /// see example.
+        /// </remarks>
+        /// <example>
+        ///  if (taskId.Equals("Task_2"))
+        ///  {
+        ///     DateTime deadline = ((DateTime)instance.Created).AddDays(3);
+        ///     if (DateTime.UtcNow<deadline)
+        ///         {
+        ///             validationResults.AddModelError("flyttemelding", $"Avslutting av task 2 er kun gyldig mellom 08-15 på hverdager.");
+        ///          }
+        ///   }
+
+        /// </example>
+        public async Task ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
             await Task.CompletedTask;
         }

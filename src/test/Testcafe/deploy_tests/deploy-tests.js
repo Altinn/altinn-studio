@@ -1,13 +1,12 @@
 import { Selector, t } from 'testcafe';
-import axeCheck from 'axe-testcafe';
+import config from '../config.json';
 import App from '../app';
-import DashBoard from '../page-objects/DashboardPage';
 import { AutoTestUser, NoDeployUser } from '../TestData';
 import DesignerPage from '../page-objects/designerPage';
 
 let app = new App();
-let dash = new DashBoard();
 let designer = new DesignerPage();
+let environment = process.env.ENV;
 
 fixture('Deploy of app to a test environment tests')
   .page(app.baseUrl)
@@ -26,10 +25,12 @@ fixture('Deploy of app to a test environment tests')
       .maximizeWindow()
   });
 
+  //Test to make changes in an app, push, build and deploy an app to a test environment.
   test('Happy case; build and deploy an app after a change', async () => {
+    var appName = config[environment].deployApp;    
     await t
       .useRole(AutoTestUser)
-      .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/ui-editor')
+      .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
       .click(designer.hentEndringer)      
       .click(designer.omNavigationTab); //remove pop up
     await designer.deleteUIComponentsMethod(t);
@@ -43,7 +44,7 @@ fixture('Deploy of app to a test environment tests')
       .click(designer.deployVersionDropDown)
       .expect(designer.deployVersionOptions.visible).ok();
 
-    var newBuildVersion = Number(await designer.getlatestBuildVersion(t)) + 1; //assumes integer as last built version    
+    var newBuildVersion = Number(await designer.getlatestBuildVersion(t)) + 1; //assumes integer as last built version and adds 1
     var today = new Date();
     var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
     var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
@@ -68,11 +69,13 @@ fixture('Deploy of app to a test environment tests')
       .expect(designer.at23DeployTable.innerText).contains(newBuildVersion.toString(),"Fail",{timeout: 300000}); //deploy succeeded
 });
 
+//Tests that an app build shall fail when there is a fail in an app file
 test('App cannot build due to compilation error', async () => {
   var buildVersion = '0.0.3';
+  var appName = config[environment].compilerErrorApp;
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/ttd/compileerror1219#/ui-editor')
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
     .click(designer.hentEndringer);    
   await t.eval(() => location.reload(true)); 
   await designer.deleteUIComponentsMethod(t);
@@ -92,10 +95,12 @@ test('App cannot build due to compilation error', async () => {
     .expect(lastbuildVersion).notEql(buildVersion);  
 });
 
+//Tests to verify that one cannot build an app before committing the changes
 test('App cannot be built due to uncommited local changes', async () => {
+  var appName = config[environment].deployApp; 
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/about')
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)    
     .click(designer.omNavigationTab); //remove pop up
@@ -109,10 +114,12 @@ test('App cannot be built due to uncommited local changes', async () => {
     .expect(designer.buildButton.exists).notOk();
 });
 
+//Tests that Users without an write access to an app , cannot build or deploy app to a test environment
 test('User does not have write access to app, and cannot deploy', async () => {
+  var appName = config[environment].deployApp; 
   await t
     .useRole(NoDeployUser)
-    .navigateTo(app.baseUrl + 'designer/ttd/autodeploy#/about')
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
     .click(designer.deployNavigationTab)
     .expect(designer.deployVersionDropDown.visible).ok()
     .click(designer.deployVersionDropDown)

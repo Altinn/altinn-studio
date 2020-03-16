@@ -4,14 +4,21 @@ import { useSelector } from 'react-redux';
 import GenericComponent from '../../../components/GenericComponent';
 import { IRuntimeState } from '../../../types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
-import QueueActions from '../../../shared/resources/queue/queueActions';
 
 export function Form() {
+  const [renderLayout, setRenderLayout] = React.useState<any[]>([]);
+
   const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layout);
+  const hiddenComponents: string[] = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields);
 
   React.useEffect(() => {
-    QueueActions.startInitialDataTaskQueue();
-  }, [])
+    let componentsToRender: any[] = layout;
+    
+    if (layout && hiddenComponents) {
+      componentsToRender = layout.filter((component) => !hiddenComponents.includes(component.id));
+    }
+    setRenderLayout(componentsToRender);
+  }, [layout, hiddenComponents])
 
   function renderLayoutComponent(component: ILayoutComponent | ILayoutGroup) {
     if (component.type.toLowerCase() === 'group') {
@@ -22,8 +29,8 @@ export function Form() {
     }
 
     return (
-      <Grid item={true} xs={12} key={component.id}>
-        <div className='form-group a-form-group'>
+      <Grid item={true} xs={12} key={'grid-' + component.id}>
+        <div key={'form-' + component.id} className='form-group a-form-group'>
           <GenericComponent
             key={component.id}
             {...component as ILayoutComponent}
@@ -35,7 +42,7 @@ export function Form() {
 
   return (
     <Grid container={true}>
-      {layout && layout.map(renderLayoutComponent)}
+      {renderLayout && renderLayout.map(renderLayoutComponent)}
     </Grid>
   );
 }

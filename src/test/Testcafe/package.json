@@ -4,8 +4,8 @@
   "description": "UI tests for Altinn tjenester 3.0",
   "main": "app.js",
   "scripts": {
-    "test": "node .\\testRunner --env=dev",
-    "wcag": "node .\\WCAGRunner --env=dev"
+    "test": "node .\\testRunner",
+    "wcag": "node .\\WCAGRunner"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +15,7 @@
     "cross-env": "^5.2.1",
     "minimist": "^1.2.0",
     "process": "^0.11.10",
-    "testcafe": "^1.7.0",
+    "testcafe": "^1.8.2",
     "testcafe-browser-provider-puppeteer": "^1.4.0",
     "tslint": "^5.20.1"
   },

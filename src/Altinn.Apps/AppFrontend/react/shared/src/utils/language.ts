@@ -1,6 +1,7 @@
 import * as DOMPurify from 'dompurify';
-import * as marked from 'marked';
+// import * as marked from 'marked';
 import ReactHtmlParser from 'react-html-parser';
+const marked = require('marked');
 
 export function getLanguageFromKey(key: string, language: any) {
   if (!key) {
