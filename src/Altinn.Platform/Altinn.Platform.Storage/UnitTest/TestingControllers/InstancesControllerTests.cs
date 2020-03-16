@@ -318,7 +318,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Don't compare original and updated instance in asserts. The two instances are identical.
                 Assert.NotNull(updatedInstance);
                 Assert.Equal(org, updatedInstance.CompleteConfirmations[0].StakeholderId);
-                Assert.Equal(org, updatedInstance.LastChangedBy);
+                Assert.Equal("111111111", updatedInstance.LastChangedBy);
                 
                 // GetOne is called more than once because of Authorization.
                 instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(3));
