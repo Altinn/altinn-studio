@@ -458,8 +458,13 @@ namespace Altinn.App.Api.Controllers
                 {
                     try
                     {
-                        XmlSerializer serializer = new XmlSerializer(modelType);
-                        serviceModel = serializer.Deserialize(contentStream);
+                        using StreamReader reader = new StreamReader(contentStream, Encoding.UTF8);
+                        string content = reader.ReadToEndAsync().Result;
+                        using (TextReader sr = new StringReader(content))
+                        {
+                            XmlSerializer serializer = new XmlSerializer(modelType);
+                            serviceModel = serializer.Deserialize(sr);
+                        }
                     }
                     catch (Exception ex)
                     {

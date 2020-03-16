@@ -2,10 +2,14 @@ using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
@@ -51,9 +55,38 @@ namespace App.IntegrationTests.Mocks.Services
             }
         }
 
-        public Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string dataType, HttpRequest request)
+        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string dataType, HttpRequest request)
         {
-            throw new NotImplementedException();
+            Guid dataGuid = Guid.NewGuid();
+            string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
+            Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
+            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = "application/xml", };
+
+       
+            if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(dataPath));
+            }
+
+            Directory.CreateDirectory(dataPath + @"blob");
+
+            long filesize;
+
+            using (Stream streamToWriteTo = File.Open(dataPath + @"blob\" + dataGuid.ToString(), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                await request.Body.CopyToAsync(streamToWriteTo);
+                streamToWriteTo.Flush();
+                filesize = streamToWriteTo.Length;
+            }
+
+            dataElement.Size = filesize;
+            string jsonData = JsonConvert.SerializeObject(dataElement);
+            using StreamWriter sw = new StreamWriter(dataPath + dataGuid.ToString() + @".json");
+
+            sw.Write(jsonData.ToString());
+            sw.Close();
+
+            return dataElement;
         }
 
         public async Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type)
@@ -180,6 +213,19 @@ namespace App.IntegrationTests.Mocks.Services
             sw.Close();
 
             return Task.FromResult(dataElement);                        
+        }
+
+        private static StreamContent CreateContentStream(HttpRequest request)
+        {
+            StreamContent content = new StreamContent(request.Body);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
+
+            if (request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
+            {
+                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(headerValues.ToString());
+            }
+
+            return content;
         }
     }
 }

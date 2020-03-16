@@ -114,6 +114,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Data\apps\tdd\sirius\logic\App.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Data\apps\tdd\sirius\logic\Calculation\CalculationHandler.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Data\apps\tdd\sirius\logic\InstantiationHandler.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Data\apps\tdd\sirius\logic\Validation\ValidationHandler.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
     <Compile Update="Data\apps\tdd\complex-process\logic\App.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
@@ -129,6 +141,21 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Data\apps\tdd\sirius\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\apps\tdd\sirius\config\applicationmetadata.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\apps\tdd\sirius\config\authorization\policy.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\apps\tdd\sirius\config\process\process.bpmn">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\apps\tdd\sirius\config\texts\resource.nb.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Data\apps\tdd\complex-process\appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -153,6 +180,10 @@
     <None Update="Data\Instances\tdd\endring-av-navn\1000\36133fb5-a9f2-45d4-90b1-f6d93ad40713\36133fb5-a9f2-45d4-90b1-f6d93ad40713.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\Instances\tdd\sirius\1337\" />
   </ItemGroup>
 
 </Project>
