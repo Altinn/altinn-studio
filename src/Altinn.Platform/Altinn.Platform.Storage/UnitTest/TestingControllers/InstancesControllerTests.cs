@@ -327,6 +327,53 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             /// <summary>
             /// Scenario:
+            ///   A stakeholder calls the complete operation to indicate that they consider the instance as completed.
+            ///   Something goes wrong when trying to save the updated instancee.
+            /// Result:
+            ///   The operation returns status InternalServerError
+            /// </summary>
+            [Fact]
+            public async void AddCompleteConfirmation_ExceptionDuringInstanceUpdate_ReturnsInternalServerError()
+            {
+                // Arrange
+                string org = "ttd";
+                int instanceOwnerPartyId = 1;
+                string instanceGuid = "cbdb00b1-4134-490d-b02b-3e33f7d8da33";
+                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/complete";
+
+                Instance originalInstance = new Instance
+                {
+                    Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+                    AppId = $"{org}/complete-test",
+                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
+                    Org = org,
+                    Process = new ProcessState { EndEvent = "Success" }
+                };
+                
+                DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
+                
+                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
+                instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(originalInstance);
+                instanceRepository.Setup(r => r.Update(It.IsAny<Instance>())).ThrowsAsync(dex);
+
+                HttpClient client = GetTestClient(instanceRepository.Object);
+
+                string token = PrincipalUtil.GetOrgToken(org);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                // Act
+                HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(string.Empty));
+
+                // Assert
+                Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+                
+                // GetOne is called more than once because of Authorization.
+                instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(3));
+                instanceRepository.Verify(s => s.Update(It.IsAny<Instance>()), Times.Once);
+            }
+
+            /// <summary>
+            /// Scenario:
             ///   A stakeholder calls the complete operation to indicate that they consider the instance as completed, but
             ///   they have already done so from before. The API makes no changes and return the original instancee.
             /// Result:

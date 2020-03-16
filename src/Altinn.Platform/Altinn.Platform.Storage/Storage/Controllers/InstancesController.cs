@@ -451,21 +451,11 @@ namespace Altinn.Platform.Storage.Controllers
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
-            Instance instance;
-            try
-            {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Unable to retrieve instance {instanceId}");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
             string org = User.GetOrg();
 
             instance.CompleteConfirmations ??= new List<CompleteConfirmation>();
-
             if (instance.CompleteConfirmations.Any(cc => cc.StakeholderId == org))
             {
                 instance.SetPlatformSelflink(_storageBaseAndHost);
