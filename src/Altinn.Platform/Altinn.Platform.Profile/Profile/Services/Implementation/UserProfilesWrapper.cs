@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Profile.Configuration;
 using Altinn.Platform.Profile.Helpers;
@@ -48,6 +50,32 @@ namespace Altinn.Platform.Profile.Services.Implementation
                 else
                 {
                     _logger.LogError($"Getting user with user id {userId} failed with statuscode {response.StatusCode}");
+                }
+            }
+
+            return user;
+        }
+
+        /// <inheritdoc />
+        public async Task<UserProfile> GetUser(string ssn)
+        {
+            UserProfile user = null;
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
+
+            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}users");
+            StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
+
+            using (HttpClient client = HttpApiHelper.GetApiClient())
+            {
+                HttpResponseMessage response = await client.PostAsync(endpointUrl, requestBody);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Stream stream = await response.Content.ReadAsStreamAsync();
+                    user = serializer.ReadObject(stream) as UserProfile;
+                }
+                else
+                {
+                    _logger.LogError($"Getting user by SSN failed with statuscode {response.StatusCode}");
                 }
             }
 

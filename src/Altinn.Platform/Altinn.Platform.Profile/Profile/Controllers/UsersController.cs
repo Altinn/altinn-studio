@@ -29,12 +29,29 @@ namespace Altinn.Platform.Profile.Controllers
         /// <summary>
         /// Gets the user profile for a given user id
         /// </summary>
-        /// <param name="userID">The party id</param>
+        /// <param name="userID">The user id</param>
         /// <returns>The information about a given user</returns>
         [HttpGet("{userID}")]
         public async Task<ActionResult> Get(int userID)
         {
             UserProfile result = await _userProfilesWrapper.GetUser(userID);
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Gets the user profile for a given SSN
+        /// </summary>
+        /// <param name="ssn">The user's social security number</param>
+        /// <returns>User profile connected to given SSN </returns>
+        [HttpPost]
+        public async Task<ActionResult> Get([FromBody]string ssn)
+        {
+            UserProfile result = await _userProfilesWrapper.GetUser(ssn);
             if (result == null)
             {
                 return NotFound();
