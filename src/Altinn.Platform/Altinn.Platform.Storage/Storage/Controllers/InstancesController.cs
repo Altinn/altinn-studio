@@ -277,7 +277,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instance, creationTime, userId);
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
-                await DispatchEvent(InstanceEventType.Created.ToString(), storedInstance);
+                await DispatchEvent(InstanceEventType.Created, storedInstance);
                 _logger.LogInformation($"Created instance: {storedInstance.Id}");
                 storedInstance.SetPlatformSelflink(_storageBaseAndHost);
 
@@ -347,7 +347,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 existingInstance.Data = null;
                 result = await _instanceRepository.Update(existingInstance);
-                await DispatchEvent(InstanceEventType.Saved.ToString(), result);
+                await DispatchEvent(InstanceEventType.Saved, result);
                 result.SetPlatformSelflink(_storageBaseAndHost);
             }
             catch (Exception e)
@@ -478,6 +478,8 @@ namespace Altinn.Platform.Storage.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
+            await DispatchEvent(InstanceEventType.ConfirmedComplete, updatedInstance);
+
             return Ok(updatedInstance);
         }
 
@@ -552,11 +554,11 @@ namespace Altinn.Platform.Storage.Controllers
             return appInfo;
         }
 
-        private async Task DispatchEvent(string eventType, Instance instance)
+        private async Task DispatchEvent(InstanceEventType eventType, Instance instance)
         {
             InstanceEvent instanceEvent = new InstanceEvent
             {
-                EventType = eventType,
+                EventType = eventType.ToString(),
                 InstanceId = instance.Id,
                 InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
                 User = new PlatformUser

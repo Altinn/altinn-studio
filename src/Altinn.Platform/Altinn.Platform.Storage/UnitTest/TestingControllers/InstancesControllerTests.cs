@@ -301,7 +301,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(originalInstance);
                 instanceRepository.Setup(r => r.Update(It.IsAny<Instance>())).ReturnsAsync((Instance i) => i);
 
-                HttpClient client = GetTestClient(instanceRepository.Object);
+                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
+                instanceEventRepository.Setup(r => r.InsertInstanceEvent(It.IsAny<InstanceEvent>())).ReturnsAsync((InstanceEvent i) => i);
+
+                HttpClient client = GetTestClient(instanceRepository.Object, instanceEventRepository.Object);
 
                 string token = PrincipalUtil.GetOrgToken(org);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -323,6 +326,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // GetOne is called more than once because of Authorization.
                 instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(3));
                 instanceRepository.Verify(s => s.Update(It.IsAny<Instance>()), Times.Once);
+                instanceEventRepository.Verify(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>()), Times.Once);
             }
 
             /// <summary>
@@ -508,18 +512,19 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 instanceRepository.Verify(s => s.Update(It.IsAny<Instance>()), Times.Never);
             }
 
-            private HttpClient GetTestClient(IInstanceRepository instanceRepository)
+            private HttpClient GetTestClient(IInstanceRepository instanceRepository, IInstanceEventRepository instanceEventRepository = null)
             {
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
                 Application testApp1 = new Application() { Id = "test/testApp1", Org = "test" };
 
                 applicationRepository.Setup(s => s.FindOne(It.Is<string>(p => p.Equals("test/testApp1")), It.IsAny<string>())).ReturnsAsync(testApp1);
-
+                
                 // No setup required for these services. They are not in use by the InstanceController
                 Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
-                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
                 Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
                 Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
+
+                instanceEventRepository ??= new Mock<IInstanceEventRepository>().Object;
 
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
@@ -527,7 +532,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     {
                         services.AddSingleton(applicationRepository.Object);
                         services.AddSingleton(dataRepository.Object);
-                        services.AddSingleton(instanceEventRepository.Object);
+                        services.AddSingleton(instanceEventRepository);
                         services.AddSingleton(instanceRepository);
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
