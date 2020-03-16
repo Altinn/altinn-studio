@@ -65,6 +65,28 @@ namespace UnitTests
             Assert.Equal(1337, user.UserId);
         }
 
+                [Fact]
+        public async Task Profile_GetById_NotFound()
+        {
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
+
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpStatusCode expected = HttpStatusCode.NotFound;
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/profile/api/v1/users/1994")
+            {
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            Assert.Equal(expected, response.StatusCode);
+        }
+
+
+
         [Fact]
         public async Task Profile_GetBySSN_OK()
         {
