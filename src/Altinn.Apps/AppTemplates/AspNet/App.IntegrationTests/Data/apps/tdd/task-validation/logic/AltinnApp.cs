@@ -10,13 +10,27 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
-namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
+namespace App.IntegrationTests.Mocks.Apps.tdd.task_validation
 {
     public class AltinnApp : AppBase, IAltinnApp
     {
+        private readonly ValidationHandler _validationHandler;
+        private readonly CalculationHandler _calculationHandler;
+        private readonly InstantiationHandler _instantiationHandler;
 
-        public AltinnApp(IAppResources appResourcesService, ILogger<AltinnApp> logger, IData dataService, IProcess processService, IPDF pdfService, IPrefill prefillService) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
+        public AltinnApp(
+            IAppResources appResourcesService,
+            ILogger<AltinnApp> logger,
+            IData dataService,
+            IProcess processService,
+            IPDF pdfService,
+            IProfile profileService,
+            IRegister registerService,
+            IPrefill prefillService) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
         {
+            _validationHandler = new ValidationHandler();
+            _calculationHandler = new CalculationHandler();
+            _instantiationHandler = new InstantiationHandler(profileService, registerService);
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -38,20 +52,24 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
             await Task.CompletedTask;
+            _validationHandler.ValidateData(data, validationResults);
         }
 
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
             await Task.CompletedTask;
+            _validationHandler.ValidateTask(instance, taskId, validationResults);
         }
+
         /// <summary>
         /// Run validation event to perform custom validations
         /// </summary>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
-        public override Task<bool> RunCalculation(object data)
+        public override async Task<bool> RunCalculation(object data)
         {
-            return Task.FromResult(false);
+            await Task.CompletedTask;
+            return _calculationHandler.Calculate(data);
         }
 
         /// <summary>
@@ -62,7 +80,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
         public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
             await Task.CompletedTask;
-            return null;
+            return _instantiationHandler.RunInstantiationValidation(instance);
         }
 
         /// <summary>
@@ -77,53 +95,11 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
         public override async Task RunDataCreation(Instance instance, object data)
         {
             await Task.CompletedTask;
+            _instantiationHandler.DataCreation(instance, data);
         }
 
         public override Task<AppOptions> GetOptions(string id, AppOptions options)
         {
-            if (string.IsNullOrEmpty(id))
-            {
-                return Task.FromResult(options);
-            }
-
-            if (id.Equals("weekdays"))
-            {
-                options.Options = new List<AppOption>();
-
-                options.Options.Add(new AppOption() { Value = "1", Label = "Mandag" });
-                options.Options.Add(new AppOption() { Value = "2", Label = "Tirsdag" });
-                options.Options.Add(new AppOption() { Value = "3", Label = "Onsdag" });
-                options.Options.Add(new AppOption() { Value = "4", Label = "Torsdag" });
-                options.Options.Add(new AppOption() { Value = "5", Label = "Fredag" });
-                options.Options.Add(new AppOption() { Value = "6", Label = "Lørdag" });
-                options.Options.Add(new AppOption() { Value = "7", Label = "Søndag" });
-
-                options.IsCacheable = true;
-            }
-
-            if (id.Equals("months"))
-            {
-                options.Options = new List<AppOption>();
-
-                options.Options.Add(new AppOption() { Value = "1", Label = "Januar" });
-                options.Options.Add(new AppOption() { Value = "2", Label = "Februar" });
-                options.Options.Add(new AppOption() { Value = "3", Label = "Mars" });
-                options.Options.Add(new AppOption() { Value = "4", Label = "April" });
-                options.Options.Add(new AppOption() { Value = "5", Label = "Mai" });
-                options.Options.Add(new AppOption() { Value = "6", Label = "Juni" });
-                options.Options.Add(new AppOption() { Value = "7", Label = "Juli" });
-                options.Options.Add(new AppOption() { Value = "8", Label = "August" });
-                options.Options.Add(new AppOption() { Value = "9", Label = "September" });
-                options.Options.Add(new AppOption() { Value = "10", Label = "Oktober" });
-                options.Options.Add(new AppOption() { Value = "11", Label = "November" });
-                options.Options.Add(new AppOption() { Value = "12", Label = "Desember" });
-            }
-
-            if (id.Equals("carbrands"))
-            {
-                options.Options.Insert(0, new AppOption() { Value = "", Label = "Velg bilmerke" });
-            }
-
             return Task.FromResult(options);
         }
     }

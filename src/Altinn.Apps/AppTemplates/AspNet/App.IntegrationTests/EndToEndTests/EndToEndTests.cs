@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 
 using Altinn.App;
 using Altinn.App.IntegrationTests;
@@ -107,11 +108,40 @@ namespace App.IntegrationTestsRef.EndToEndTests
                 Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
                 #endregion
 
+                #region Validate Task_2 before valid time
+                // Arrange
+                url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/validate";
+
+                // Act
+                response = await client.GetAsync(url);
+                string responseContent = response.Content.ReadAsStringAsync().Result;
+                List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
+
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Single(messages);
+                Assert.Equal(ValidationIssueSeverity.Error, messages[0].Severity);
+                #endregion
+
+                #region Validate Task_2 after valid time
+                // Arrange
+                url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/validate";
+
+                // Act
+                Thread.Sleep(new TimeSpan(0, 0, 12));
+                response = await client.GetAsync(url);
+                responseContent = response.Content.ReadAsStringAsync().Result;
+                messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
+
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Empty(messages);
+                #endregion
+
+
                 #region Complete process
                 //Arrange
                 url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/process/completeProcess";
 
-               // Act
+                // Act
                 response = await client.PutAsync(url, null);
                 ProcessState endProcess = JsonConvert.DeserializeObject<ProcessState>(await response.Content.ReadAsStringAsync());
 

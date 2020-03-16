@@ -79,6 +79,12 @@ namespace Altinn.Platform.Storage.Interface.Models
         public ApplicationOwnerState AppOwner { get; set; }
 
         /// <summary>
+        /// Gets or sets a list of <see cref="CompleteConfirmation"/> elements.
+        /// </summary>
+        [JsonProperty(PropertyName = "completeConfirmations")]
+        public List<CompleteConfirmation> CompleteConfirmations { get; set; }
+
+        /// <summary>
         /// Gets or sets a list of data elements associated with the instance
         /// </summary>
         [JsonProperty(PropertyName = "data")]
