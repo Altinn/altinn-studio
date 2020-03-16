@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
@@ -11,12 +12,14 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Documents;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -429,6 +432,53 @@ namespace Altinn.Platform.Storage.Controllers
                     return StatusCode(500, $"Unexpected exception when updating instance after soft delete: {e.Message}");
                 }
             }
+        }        
+
+        /// <summary>
+        /// Add to an instance that a given stakeholder considers the instance as no longer needed by them. The stakeholder has
+        /// collected all the data and information they needed from the instance and expect no additional data to be added to it.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance whos process history to retrieve.</param>
+        /// <returns>Returns a list of the process events.</returns>        
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_COMPLETE)]
+        [HttpPost("{instanceOwnerPartyId:int}/{instanceGuid:guid}/complete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> AddCompleteConfirmation(
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid)
+        {
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+
+            string org = User.GetOrg();
+
+            instance.CompleteConfirmations ??= new List<CompleteConfirmation>();
+            if (instance.CompleteConfirmations.Any(cc => cc.StakeholderId == org))
+            {
+                instance.SetPlatformSelflink(_storageBaseAndHost);
+                return Ok(instance);
+            }
+
+            instance.CompleteConfirmations.Add(new CompleteConfirmation { StakeholderId = org, ConfirmedOn = DateTime.UtcNow });
+            instance.LastChanged = DateTime.UtcNow;
+            instance.LastChangedBy = User.GetUserOrOrgId();
+
+            Instance updatedInstance;
+            try
+            {
+                updatedInstance = await _instanceRepository.Update(instance);
+                updatedInstance.SetPlatformSelflink(_storageBaseAndHost);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Unable to update instance {instanceId}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            return Ok(updatedInstance);
         }
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
