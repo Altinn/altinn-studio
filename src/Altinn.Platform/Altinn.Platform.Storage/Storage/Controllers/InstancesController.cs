@@ -464,7 +464,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             instance.CompleteConfirmations.Add(new CompleteConfirmation { StakeholderId = org, ConfirmedOn = DateTime.UtcNow });
             instance.LastChanged = DateTime.UtcNow;
-            instance.LastChangedBy = org;
+            instance.LastChangedBy = User.GetUserOrOrgId();
 
             Instance updatedInstance;
             try
