@@ -21,9 +21,37 @@ namespace UnitTests.Mocks
             {
                 string content = File.ReadAllText(path);
                 user = (UserProfile)JsonConvert.DeserializeObject(content, typeof(UserProfile));
+                user.Party = await GetParty(user.PartyId);
+            }
+           
+            return user;
+        }
+
+        public async Task<UserProfile> GetUser(string ssn)
+        {
+            UserProfile user = null;
+            Person person;
+            Party party;
+            switch (ssn)
+            {
+                case "01017512345":
+                    person = await GetPerson(ssn);
+                    party = await GetParty(12345);
+                    party.Person = person;
+                    user = await GetUser(12345);
+                    user.Party = party;
+                    break;
+                case "01039012345":
+                    person = await GetPerson(ssn);
+                    party = await GetParty(1337);
+                    party.Person = person;
+                    user = await GetUser(1337);
+                    user.Party = party;
+                    break;
+                default:
+                    break;
             }
 
-            user.Party = await GetParty(user.PartyId);
             return user;
         }
 
@@ -35,10 +63,9 @@ namespace UnitTests.Mocks
             {
                 string content = File.ReadAllText(path);
                 party = (Party)JsonConvert.DeserializeObject(content, typeof(Party));
-            }
+                party.Person = await GetPerson(party.SSN);
+            }            
 
-             party.Person = await GetPerson(party.SSN);
-         
             return party;
         }
 
