@@ -21,13 +21,13 @@ namespace UnitTests.Mocks
             {
                 string content = File.ReadAllText(path);
                 user = (UserProfile)JsonConvert.DeserializeObject(content, typeof(UserProfile));
-                user.Party = await GetParty(user.PartyId);
             }
-          
+
+            user.Party = await GetParty(user.PartyId);
             return user;
         }
 
-        public async Task<UserProfile> GetUserWithSSN(string ssn)
+        public async Task<UserProfile> GetUser(string ssn)
         {
             UserProfile user = null;
             Person person;
@@ -63,8 +63,9 @@ namespace UnitTests.Mocks
             {
                 string content = File.ReadAllText(path);
                 party = (Party)JsonConvert.DeserializeObject(content, typeof(Party));
-                party.Person = await GetPerson(party.SSN);
-            }          
+            }
+
+            party.Person = await GetPerson(party.SSN);
 
             return party;
         }

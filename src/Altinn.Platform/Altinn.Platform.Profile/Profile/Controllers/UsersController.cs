@@ -49,9 +49,9 @@ namespace Altinn.Platform.Profile.Controllers
         /// <param name="ssn">The user's social security number</param>
         /// <returns>User profile connected to given SSN </returns>
         [HttpPost]
-        public async Task<ActionResult> Get([FromBody]string ssn)
+        public async Task<ActionResult> GetUserFromSSN([FromBody]string ssn)
         {
-            UserProfile result = await _userProfilesWrapper.GetUserWithSSN(ssn);
+            UserProfile result = await _userProfilesWrapper.GetUser(ssn);
             if (result == null)
             {
                 return NotFound();
