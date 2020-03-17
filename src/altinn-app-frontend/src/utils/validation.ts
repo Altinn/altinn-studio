@@ -2,11 +2,12 @@ import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/util
 import { IFormData } from '../features/form/data/formDataReducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
 import { IValidationIssue, Severity } from '../types';
-import { IComponentValidations, IDataModelFieldElement, IValidations, IComponentBindingValidation } from '../types/global';
+import { IComponentValidations, IDataModelFieldElement, IValidations, IComponentBindingValidation, ITextResource } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 import moment from 'moment';
 import { DatePickerMinDateDefault, DatePickerMaxDateDefault, DatePickerFormatDefault } from '../components/base/DatepickerComponent';
 import { getFormDataForComponent } from './formComponentUtils';
+import { getTextResourceByKey } from './textResource';
 
 export function min(value: number, test: number): boolean {
   test = Number(test);
@@ -384,7 +385,7 @@ export function mapApiValidationsToRedux(
 }
 
 /* Function to map the new data element validations to our internal redux structure*/
-export function mapDataElementValidationToRedux(validations: IValidationIssue[], layout: ILayout) {
+export function mapDataElementValidationToRedux(validations: IValidationIssue[], layout: ILayout, textResources: ITextResource[]) {
   const validationResult: IValidations = {};
   if (!validations) {
     return validationResult;
@@ -398,13 +399,13 @@ export function mapDataElementValidationToRedux(validations: IValidationIssue[],
 
       if (validation.field === componentCandidate.id) {
         found = true;
-        addValidation(componentValidations, validation, 'simpleBinding');
+        addValidation(componentValidations, validation, 'simpleBinding', textResources);
       } else {
         Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
           // tslint:disable-next-line: max-line-length
           if (validation.field && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === validation.field.toLowerCase()) {
             found = true;
-            addValidation(componentValidations, validation, dataModelBindingKey);
+            addValidation(componentValidations, validation, dataModelBindingKey, textResources);
           }
         });
       }
@@ -447,14 +448,14 @@ export function mapDataElementValidationToRedux(validations: IValidationIssue[],
   return validationResult;
 }
 
-function addValidation(componentValidations: IComponentValidations, validation: IValidationIssue, dataModelBindingKey: string) {
+function addValidation(componentValidations: IComponentValidations, validation: IValidationIssue, dataModelBindingKey: string, textResources: ITextResource[]) {
   if (!componentValidations[dataModelBindingKey]) {
     componentValidations[dataModelBindingKey] = {errors: [], warnings: []};
   }
   if (validation.severity === Severity.Error) {
-    componentValidations[dataModelBindingKey].errors.push(validation.description);
+    componentValidations[dataModelBindingKey].errors.push(getTextResourceByKey(validation.description, textResources));
   } else {
-    componentValidations[dataModelBindingKey].warnings.push(validation.description);
+    componentValidations[dataModelBindingKey].warnings.push(getTextResourceByKey(validation.description, textResources));
   }
 }
 
