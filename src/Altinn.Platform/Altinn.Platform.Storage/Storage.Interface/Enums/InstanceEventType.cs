@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Altinn.Platform.Storage.Interface.Enums
 {
     /// <summary>
-    /// This enum defines the Instance event types supported by the AltinnCore platform.
+    /// Represents a set of different events that can occur for an instance
     /// </summary>
     public enum InstanceEventType 
     {
@@ -57,6 +53,11 @@ namespace Altinn.Platform.Storage.Interface.Enums
         /// <summary>
         /// Instance process task ended event.
         /// </summary>
-        process_EndTask
+        process_EndTask,
+
+        /// <summary>
+        /// A stakeholder has confirmed that they consider the instance as complete
+        /// </summary>
+        ConfirmedComplete
     }
 }
