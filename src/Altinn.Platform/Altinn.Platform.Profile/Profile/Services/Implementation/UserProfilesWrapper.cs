@@ -57,7 +57,7 @@ namespace Altinn.Platform.Profile.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<UserProfile> GetUser(string ssn)
+        public async Task<UserProfile> GetUserWithSSN(string ssn)
         {
             UserProfile user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));

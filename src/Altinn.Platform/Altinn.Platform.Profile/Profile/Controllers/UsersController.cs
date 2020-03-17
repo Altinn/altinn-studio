@@ -51,7 +51,7 @@ namespace Altinn.Platform.Profile.Controllers
         [HttpPost]
         public async Task<ActionResult> Get([FromBody]string ssn)
         {
-            UserProfile result = await _userProfilesWrapper.GetUser(ssn);
+            UserProfile result = await _userProfilesWrapper.GetUserWithSSN(ssn);
             if (result == null)
             {
                 return NotFound();

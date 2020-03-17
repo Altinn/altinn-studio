@@ -20,6 +20,6 @@ namespace Altinn.Platform.Profile.Services.Interfaces
         /// </summary>
         /// <param name="ssn">The user's ssn.</param>
         /// <returns>User profile connected to given ssn.</returns>
-        Task<UserProfile> GetUser(string ssn);
+        Task<UserProfile> GetUserWithSSN(string ssn);
     }
 }
