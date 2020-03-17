@@ -3,7 +3,6 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import { IValidations, ITextResource } from 'src/types/global';
 import { getTextResourceByKey } from '../../utils/textResource';
 import { useRef, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 
 export interface IErrorProps {
   language: any;
