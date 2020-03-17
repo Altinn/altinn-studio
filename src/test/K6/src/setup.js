@@ -3,12 +3,10 @@ import * as config from "./config.js";
 import * as headers from "./buildrequestheaders.js";
 import {getParties} from "./api/platform/authorization.js";
 
-let userName = __ENV.username;
-let userPassword = __ENV.userpwd;
 let environment = __ENV.env;
 
 //Request to Authenticate an user with Altinn userName and password and returns ASPXAUTH Cookie
-export function authenticateUser(){
+export function authenticateUser(userName, userPassword){
     var endpoint =   (environment != "yt01") ? config.authentication["authenticationWithPassword"] : "https://yt01.ai.basefarm.net/api/authentication/authenticatewithpassword";    
     var requestBody = {
         "UserName": userName,

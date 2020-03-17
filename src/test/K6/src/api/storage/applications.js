@@ -37,9 +37,9 @@ export function findAttachmentDataType(appMetadata){
     appMetadata = JSON.parse(appMetadata);
     var value = "";
     var dataTypes = appMetadata.dataTypes;
-    var dataTypesCount = dataTypes.length;
-    for(var i=0; i<dataTypesCount; i++){
-        if (dataTypes[i].id !== "default" && dataTypes[i].id !== "ref-data-as-pdf"){
+    var dataTypesCount = dataTypes.length;    
+    for(var i=0; i<dataTypesCount; i++){        
+        if (header.isGuid(dataTypes[i].id)){
             value = dataTypes[i].id
             break;
         }

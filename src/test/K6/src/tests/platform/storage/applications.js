@@ -3,6 +3,8 @@ import {addErrorCount} from "../../../errorcounter.js";
 import * as application from "../../../api/storage/applications.js"
 import * as setUpData from "../../../setup.js";
 
+let userName = __ENV.username;
+let userPassword = __ENV.userpwd;
 let appOwner = __ENV.org;
 let level2App = __ENV.level2app;
 let testApp = __ENV.testapp;
@@ -16,7 +18,7 @@ export const options = {
 
 //Function to setup data and return AltinnstudioRuntime Token
 export function setup(){
-    var aspxauthCookie = setUpData.authenticateUser();    
+    var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
     return altinnStudioRuntimeCookie;
 };

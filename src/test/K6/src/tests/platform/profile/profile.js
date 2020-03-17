@@ -3,6 +3,9 @@ import {addErrorCount} from "../../../errorcounter.js";
 import * as profile from "../../../api/platform/profile.js"
 import * as setUpData from "../../../setup.js";
 
+let userName = __ENV.username;
+let userPassword = __ENV.userpwd;
+
 export const options = {    
     thresholds:{
         "errors": ["rate<0.000001"]
@@ -11,7 +14,7 @@ export const options = {
 
 //Function to setup data and return userData
 export function setup(){
-    var aspxauthCookie = setUpData.authenticateUser();    
+    var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
     var data = setUpData.getUserData(altinnStudioRuntimeCookie);   

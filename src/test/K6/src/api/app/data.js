@@ -41,7 +41,7 @@ export function getValidateInstanceData(altinnStudioRuntimeCookie, partyId, inst
 
 //Api call to App Api:Data to add a data to an app instance and returns response
 export function postData(altinnStudioRuntimeCookie, partyId, instaceId, dataType, data){    
-    var endpoint = config.buildAppApiUrls(partyId, instaceId, "", "instanceid") + "/data?dataType=" + dataType;
-    var params = header.buildHeadersForData(dataType, altinnStudioRuntimeCookie, "app"); 
+    var endpoint = config.buildAppApiUrls(partyId, instaceId, "", "instanceid") + "/data?dataType=" + dataType;    
+    var params = header.buildHeadersForData(dataType, altinnStudioRuntimeCookie, "app");     
     return http.post(endpoint, data, params);
 };
