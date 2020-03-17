@@ -1,4 +1,4 @@
-import { check, sleep } from "k6";
+import { check } from "k6";
 import {addErrorCount} from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as platformInstances from "../../api/storage/instances.js"
@@ -10,7 +10,7 @@ let userPassword = __ENV.userpwd;
 
 export const options = {
     thresholds:{
-        "errors": ["rate<0.000001"]
+        "errors": ["count<1"]
     }
 };
 

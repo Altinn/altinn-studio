@@ -13,16 +13,18 @@ let instanceFormDataXml = open("../../data/rf-0002.xml");
 let appOwner = __ENV.org;
 let level2App = __ENV.level2app;
 let bigAttachment = open("../../data/20mb.txt");
+let users = JSON.parse(open("../../data/users.json"));
 
 export const options = {
     thresholds:{
-        "errors": ["rate<0.000001"]
-    }
+        "errors": ["count<1"]
+    },
+    vus: users.length
 };
 
 //Tests for App API: RF-0002
 export default function() {
-    var aspxauthCookie = setUpData.authenticateUser();    
+    var aspxauthCookie = setUpData.authenticateUser(users[__VU - 1].username, users[__VU - 1].password);  
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
     var data = setUpData.getUserData(runtimeToken);
     setUpData.clearCookies();

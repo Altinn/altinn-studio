@@ -1,4 +1,4 @@
-import { check, sleep } from "k6";
+import { check } from "k6";
 import {addErrorCount} from "../../../errorcounter.js";
 import * as application from "../../../api/storage/applications.js"
 import * as setUpData from "../../../setup.js";
@@ -12,7 +12,7 @@ let metadata = open("../../../data/appmetadata.json");
 
 export const options = {
     thresholds:{
-        "errors": ["rate<0.000001"]
+      "errors": ["count<1"]
     }
 };
 

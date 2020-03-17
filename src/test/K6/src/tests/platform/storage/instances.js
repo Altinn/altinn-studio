@@ -1,7 +1,8 @@
-import { check, sleep } from "k6";
+import { check } from "k6";
 import {addErrorCount} from "../../../errorcounter.js";
 import * as instances from "../../../api/storage/instances.js"
 import * as setUpData from "../../../setup.js";
+import * as sbl from "../../../api/storage/messageboxinstances.js"
 
 let userName = __ENV.username;
 let userPassword = __ENV.userpwd;
@@ -11,7 +12,7 @@ let instanceJson = open("../../../data/instance.json");
 
 export const options = {
     thresholds:{
-        "errors": ["rate<0.000001"]
+        "errors": ["count<1"]
     }
 };
 
@@ -36,7 +37,7 @@ export default function(data) {
     var res = instances.postInstance(runtimeToken, partyId, appOwner, level2App, instanceJson);    
     var success = check(res, {
       "POST Create Instance status is 201:": (r) => r.status === 201,
-      "POST Create Instance Instace Id is not null:": (r) => JSON.parse(r.body).id != null
+      "POST Create Instance Instance Id is not null:": (r) => JSON.parse(r.body).id != null
     });  
     addErrorCount(success);    
     
@@ -64,4 +65,6 @@ export default function(data) {
         "PUT Edit Instance status is 200:": (r) => r.status === 200        
         });  
     addErrorCount(success);    
+
+    sbl.deleteSblInstance(runtimeToken, partyId, instanceId, "true"); 
 };

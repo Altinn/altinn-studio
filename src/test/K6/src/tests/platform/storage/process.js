@@ -1,4 +1,4 @@
-import { check, sleep } from "k6";
+import { check } from "k6";
 import * as instances from "../../../api/storage/instances.js"
 import * as process from "../../../api/storage/process.js"
 import * as sbl from "../../../api/storage/messageboxinstances.js"
@@ -13,7 +13,7 @@ let instanceJson = open("../../../data/instance.json");
 
 export const options = {
     thresholds:{
-        "errors": ["rate<0.000001"]
+        "errors": ["count<1"]
     }
 };
 

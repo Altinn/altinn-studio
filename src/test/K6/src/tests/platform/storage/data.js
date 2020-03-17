@@ -1,4 +1,4 @@
-import { check, sleep } from "k6";
+import { check } from "k6";
 import * as apps from "../../../api/storage/applications.js"
 import * as instances from "../../../api/storage/instances.js"
 import * as instanceData from "../../../api/storage/data.js"
@@ -16,7 +16,7 @@ let pdfAttachment = open("../../../data/test_file_pdf.pdf", "b");
 
 export const options = {
     thresholds:{
-        "errors": ["rate<0.000001"]
+        "errors": ["count<1"]
     }
 };
 
