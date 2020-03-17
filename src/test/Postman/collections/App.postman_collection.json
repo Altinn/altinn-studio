@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "f5ccfcdf-441a-4513-bea0-8dd2816ed48e",
+		"_postman_id": "c89b1bed-599e-47be-97a0-6604a38fad23",
 		"name": "App",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -2742,5 +2742,6 @@
 				]
 			}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

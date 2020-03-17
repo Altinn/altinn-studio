@@ -849,6 +849,64 @@
 						"description": "Get information about a user"
 					},
 					"response": []
+				},
+				{
+					"name": "Profile by SSN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bc718f86-1415-44c2-8911-124c1461456b",
+								"exec": [
+									"pm.test(\"Platform - Profile - GET Profile by SSN - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\"{{SSN}}\"",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/profile/api/v1/users/",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"profile",
+								"api",
+								"v1",
+								"users",
+								""
+							]
+						},
+						"description": "Get information about a user"
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
