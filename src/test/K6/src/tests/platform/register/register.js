@@ -1,18 +1,22 @@
-import { check, sleep } from "k6";
+import { check } from "k6";
 import {addErrorCount} from "../../../errorcounter.js";
 import * as register from "../../../api/platform/register.js";
 import * as setUpData from "../../../setup.js";
 
+let userName = __ENV.username;
+let userPassword = __ENV.userpwd;
+
 export const options = {
     thresholds:{
-        "errors": ["rate<0.000001"]
+        "errors": ["count<1"]
     }
 };
 
 //Function to setup data and return userData
 export function setup(){
-    var aspxauthCookie = setUpData.authenticateUser();    
+    var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
+    setUpData.clearCookies();
     var data = setUpData.getUserData(altinnStudioRuntimeCookie);
     data.RuntimeToken = altinnStudioRuntimeCookie;
     return data;
@@ -42,7 +46,7 @@ export default function(data) {
     addErrorCount(success);    
 
     //Test Platform: Register: POST party lookup by SSN and validate response
-    res = register.postPartieslookup(runtimeToken, ssn);    
+    res = register.postPartieslookup(runtimeToken, "ssn", ssn);    
     success = check(res, {
         "GET Party info status is 200:": (r) => r.status === 200,
         "GET Party info party id matches:": (r) => (JSON.parse(r.body)).partyId === partyId
