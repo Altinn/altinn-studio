@@ -25,11 +25,22 @@ export function setup(){
 //Test for platform profile and validate response
 export default function(data) {
     const userId = data["userId"];
+    const ssn = data["ssn"];
     const runtimeToken = data["RuntimeToken"];
+
+    //Test to fetch userprofile by userid
     var res = profile.getProfile(userId, runtimeToken);    
     var success = check(res, {
       "GET Profile status is 200:": (r) => r.status === 200,
       "GET Profile response contains userId:": (r) => (JSON.parse(r.body)).userId === userId
-  });  
-  addErrorCount(success);  
+    });  
+    addErrorCount(success);  
+
+    //Test to fetch userprofile by SSN
+    res = profile.postFetchProfileBySSN(ssn, runtimeToken);
+    success = check(res, {
+        "POST Fetch profile by SSN:": (r) => r.status = 200,
+        "POST Fetch profile by SSN contains userId:": (r) => (JSON.parse(r.body)).userId === userId
+    });
+    addErrorCount(success);
 };
