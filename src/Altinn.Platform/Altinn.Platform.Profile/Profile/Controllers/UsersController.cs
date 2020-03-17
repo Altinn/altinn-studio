@@ -44,23 +44,6 @@ namespace Altinn.Platform.Profile.Controllers
         }
 
         /// <summary>
-        /// Gets the user profile for a given SSN
-        /// </summary>
-        /// <param name="ssn">The user's social security number</param>
-        /// <returns>User profile connected to given SSN </returns>
-        [HttpPost]
-        public async Task<ActionResult> GetUserFromSSN([FromBody]string ssn)
-        {
-            UserProfile result = await _userProfilesWrapper.GetUser(ssn);
-            if (result == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(result);
-        }
-
-        /// <summary>
         /// Gets the current user based on the request context
         /// </summary>
         /// <returns>User profile of current user</returns>
@@ -78,6 +61,23 @@ namespace Altinn.Platform.Profile.Controllers
             int userId = int.Parse(userIdString);
 
             return await Get(userId);
+        }
+
+        /// <summary>
+        /// Gets the user profile for a given SSN
+        /// </summary>
+        /// <param name="ssn">The user's social security number</param>
+        /// <returns>User profile connected to given SSN </returns>
+        [HttpPost]
+        public async Task<ActionResult> GetUserFromSSN([FromBody]string ssn)
+        {
+            UserProfile result = await _userProfilesWrapper.GetUser(ssn);
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
         }
     }
 }
