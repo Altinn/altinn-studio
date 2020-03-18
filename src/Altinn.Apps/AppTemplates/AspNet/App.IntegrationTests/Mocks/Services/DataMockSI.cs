@@ -200,11 +200,11 @@ namespace App.IntegrationTests.Mocks.Services
         public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream)
         {
             Application app = _applicationService.GetApplication();
-           
-           
+
+
             Guid dataGuid = Guid.NewGuid();
-            string dataPath = GetDataPath(app.Org, app.Id, Convert.ToInt32(instanceId.Split("/")[0]), new Guid(instanceId.Split("/")[1]));
-            Instance instance = GetTestInstance(app.Id, app.Org, Convert.ToInt32(instanceId.Split("/")[0]), new Guid(instanceId.Split("/")[1]));
+            string dataPath = GetDataPath(app.Org, app.Id.Split("/")[1], Convert.ToInt32(instanceId.Split("/")[0]), new Guid(instanceId.Split("/")[1]));
+
             DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = contentType, };
 
             if (!Directory.Exists(Path.GetDirectoryName(dataPath)))

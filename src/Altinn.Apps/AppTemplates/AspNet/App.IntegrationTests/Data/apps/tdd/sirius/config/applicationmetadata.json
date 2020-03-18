@@ -35,6 +35,14 @@
       "maxSize": 1,
       "maxCount": 1,
       "minCount": 1
+    },
+    {
+      "id": "næringsoppgavepdf",
+      "allowedContentTypes": [ "application/pdf" ],
+      "taskId": "Task_2",
+      "maxSize": 1,
+      "maxCount": 1,
+      "minCount": 1
     }
   ]
 }

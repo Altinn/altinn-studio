@@ -214,6 +214,13 @@ namespace App.IntegrationTests
         }
 
 
+
+        /// <summary>
+        /// This test to the following.
+        /// It instansiates a new instance of app/sirus for party with id 1337
+        /// It then upload both næringsmelding.xml an d
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task Instance_Post_WithNæringOgSkattemelding_ValidateOkThenNext()
         {
@@ -305,6 +312,11 @@ namespace App.IntegrationTests
             ProcessState stateAfterFirstNext = (ProcessState)JsonConvert.DeserializeObject(responseContentFirstNext, typeof(ProcessState));
             Assert.Equal("Task_2",stateAfterFirstNext.CurrentTask.ElementId);
 
+            // Validate instance in Task_2
+            HttpResponseMessage responseValidationTask2 = await client.GetAsync(url);
+            string responseContentValidationTask2 = responseValidationTask2.Content.ReadAsStringAsync().Result;
+            List<ValidationIssue> messagesTask2 = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContentValidationTask2, typeof(List<ValidationIssue>));
+            Assert.Empty(messagesTask2);
 
             // Handle first next go from data to confirmation
             HttpRequestMessage httpRequestMessageSecondNext = new HttpRequestMessage(HttpMethod.Put, "/tdd/sirius/instances/" + instance.Id + "/process/next")
