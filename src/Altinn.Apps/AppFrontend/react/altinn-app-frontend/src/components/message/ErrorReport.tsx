@@ -3,6 +3,8 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import { IValidations, ITextResource } from 'src/types/global';
 import { getTextResourceByKey } from '../../utils/textResource';
 import { useRef, useEffect } from 'react';
+import validationSagas from 'src/features/form/validation/validationSagas';
+import FormValidationActions from 'src/features/form/validation/validationActions';
 
 export interface IErrorProps {
   language: any;
@@ -16,7 +18,12 @@ const getUnmappedErrors = (validations: IValidations) => {
   if (!validations || !validations.unmapped) {
     return messages;
   }
-  return validations.unmapped[''].errors;
+  Object.keys(validations.unmapped).forEach((key: string) => {
+    validations.unmapped[key]?.errors?.forEach((message: string) => {
+      messages.push(message);
+    })
+  });
+  return messages;
 }
 
 const ErrorReport = (props: IErrorProps) => {
