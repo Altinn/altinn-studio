@@ -3,8 +3,6 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import { IValidations, ITextResource } from 'src/types/global';
 import { getTextResourceByKey } from '../../utils/textResource';
 import { useRef, useEffect } from 'react';
-import validationSagas from 'src/features/form/validation/validationSagas';
-import FormValidationActions from 'src/features/form/validation/validationActions';
 
 export interface IErrorProps {
   language: any;
