@@ -19,7 +19,7 @@ const getUnmappedErrors = (validations: IValidations) => {
   Object.keys(validations.unmapped).forEach((key: string) => {
     validations.unmapped[key]?.errors?.forEach((message: string) => {
       messages.push(message);
-    })
+    });
   });
   return messages;
 }
