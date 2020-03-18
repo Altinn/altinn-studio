@@ -12,6 +12,9 @@ using App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic;
 using App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic.Validation;
 using App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic.Calculation;
 using Microsoft.AspNetCore.Http;
+using App.IntegrationTestsRef.Data.apps.tdd.sirius.services;
+using System.Linq;
+using System.IO;
 
 namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
 {
@@ -21,6 +24,8 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
         private readonly ValidationHandler _validationHandler;
         private readonly CalculationHandler _calculationHandler;
         private readonly InstantiationHandler _instantiationHandler;
+        private readonly ISiriusApi _siriusApi;
+        private readonly IData _dataService;
 
         public App(
             IAppResources appResourcesService,
@@ -32,6 +37,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
             IRegister registerService,
             IPrefill prefillService,
             IInstance instanceService,
+            ISiriusApi siriusService,
             IHttpContextAccessor accessor
             ) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
         {
@@ -39,6 +45,8 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
             _validationHandler = new ValidationHandler(instanceService);
             _calculationHandler = new CalculationHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
+            _dataService = dataService;
+            _siriusApi = siriusService;
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -83,6 +91,19 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
 
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
+            if (taskId.Equals("Task_1"))
+            {
+                DataElement dataElement = instance.Data.FirstOrDefault(d => d.DataType.Equals("næringsoppgave"));
+                if (dataElement != null)
+                {
+                    Stream næringsStream = await _dataService.GetBinaryData(instance.Org, instance.AppId, Convert.ToInt32(instance.InstanceOwner.PartyId), new Guid(instance.Id.Split("/")[1]), new Guid(dataElement.Id));
+                    bool isValidNæring = await _siriusApi.IsValidNæring(næringsStream);
+                    if(!isValidNæring)
+                    {
+                        validationResults.AddModelError("", "invalid.næring");
+                    }
+                }
+            }
             await _validationHandler.ValidateTask(instance, taskId, validationResults);
         }
 
@@ -116,6 +137,23 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
         public override Task<AppOptions> GetOptions(string id, AppOptions options)
         {
             return Task.FromResult(options);
+        }
+
+        public override async Task RunProcessTaskEnd(string taskId, Instance instance)
+        {
+            // Transfer from Task_1 to Task_2, need to download the PDF from tax.
+            if (taskId.Equals("Task_1"))
+            {
+                DataElement dataElement = instance.Data.FirstOrDefault(d => d.DataType.Equals("næringsoppgave"));
+                if (dataElement != null)
+                {
+                    Stream næringsStream = await _dataService.GetBinaryData(instance.Org, instance.AppId, Convert.ToInt32(instance.InstanceOwner.PartyId), new Guid(instance.Id.Split("/")[1]), new Guid(dataElement.Id));
+                    Stream næringsPDF =  await _siriusApi.GetNæringPDF(næringsStream);
+                    await _dataService.InsertBinaryData(instance.Id, "næringspdf", "application/pdf", "NæringPDF", næringsPDF);
+                }
+            }
+
+            return;
         }
     }
 }

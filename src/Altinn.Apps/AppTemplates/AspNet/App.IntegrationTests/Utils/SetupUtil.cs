@@ -18,6 +18,7 @@ using System.IO;
 using System.Net.Http;
 using System.Collections;
 using System.Linq;
+using App.IntegrationTestsRef.Data.apps.tdd.sirius.services;
 
 namespace App.IntegrationTestsRef.Utils
 {
@@ -82,6 +83,10 @@ namespace App.IntegrationTestsRef.Utils
                             break;
                         case "complex-process":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.complex_process.App>();
+                            break;
+                        case "sirius":
+                            services.AddSingleton<ISiriusApi, SiriusAPImock>();
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.sirius.App>();
                             break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();

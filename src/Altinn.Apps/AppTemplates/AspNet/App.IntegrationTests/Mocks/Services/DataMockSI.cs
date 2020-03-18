@@ -17,10 +17,11 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class DataMockSI : IData
     {
+        private readonly IAppResources _applicationService;
 
-        public DataMockSI()
+        public DataMockSI(IAppResources application)
         {
-     
+            _applicationService = application;
         }
 
         public Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
@@ -30,7 +31,11 @@ namespace App.IntegrationTests.Mocks.Services
 
         public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
-            throw new NotImplementedException();
+            string dataPath = GetDataBlobPath(org, app.Split("/")[1], instanceOwnerId, instanceGuid, dataId);
+
+            Stream fs = File.OpenRead(dataPath);
+
+            return Task.FromResult(fs);
         }
 
         public Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid)
@@ -192,9 +197,40 @@ namespace App.IntegrationTests.Mocks.Services
             return dataElements;
         }
 
-        public Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream)
+        public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream)
         {
-            throw new NotImplementedException();
+            Application app = _applicationService.GetApplication();
+           
+           
+            Guid dataGuid = Guid.NewGuid();
+            string dataPath = GetDataPath(app.Org, app.Id, Convert.ToInt32(instanceId.Split("/")[0]), new Guid(instanceId.Split("/")[1]));
+            Instance instance = GetTestInstance(app.Id, app.Org, Convert.ToInt32(instanceId.Split("/")[0]), new Guid(instanceId.Split("/")[1]));
+            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = contentType, };
+
+            if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(dataPath));
+            }
+
+            Directory.CreateDirectory(dataPath + @"blob");
+
+            long filesize;
+
+            using (Stream streamToWriteTo = File.Open(dataPath + @"blob\" + dataGuid.ToString(), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                await stream.CopyToAsync(streamToWriteTo);
+                streamToWriteTo.Flush();
+                filesize = streamToWriteTo.Length;
+            }
+
+            dataElement.Size = filesize;
+            string jsonData = JsonConvert.SerializeObject(dataElement);
+            using StreamWriter sw = new StreamWriter(dataPath + dataGuid.ToString() + @".json");
+
+            sw.Write(jsonData.ToString());
+            sw.Close();
+
+            return dataElement;
         }
 
         public Task<DataElement> Update(Instance instance, DataElement dataElement)
@@ -226,6 +262,12 @@ namespace App.IntegrationTests.Mocks.Services
             }
 
             return content;
+        }
+
+        private string GetInstancePath(string app, string org)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\");
         }
     }
 }

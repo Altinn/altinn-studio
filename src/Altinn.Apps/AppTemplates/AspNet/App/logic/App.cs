@@ -120,5 +120,10 @@ namespace Altinn.App.AppLogic
         {
             return Task.FromResult(options);
         }
+
+        public override Task RunProcessTaskEnd(string taskId, Instance instance)
+        {
+            return Task.CompletedTask;
+        }
     }
 }
