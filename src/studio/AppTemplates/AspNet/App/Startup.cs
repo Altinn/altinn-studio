@@ -142,7 +142,6 @@ namespace Altinn.App
             if (!string.IsNullOrEmpty(applicationInsightsKey))
             {
                 services.AddApplicationInsightsTelemetry(applicationInsightsKey);   // Enables Application Insights
-                services.AddApplicationInsightsKubernetesEnricher();                // Enables Application Insights for Kubernetes.
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
             }
         }
