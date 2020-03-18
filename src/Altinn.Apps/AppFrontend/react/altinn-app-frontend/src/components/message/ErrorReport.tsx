@@ -16,7 +16,12 @@ const getUnmappedErrors = (validations: IValidations) => {
   if (!validations || !validations.unmapped) {
     return messages;
   }
-  return validations.unmapped[''].errors;
+  Object.keys(validations.unmapped).forEach((key: string) => {
+    validations.unmapped[key]?.errors?.forEach((message: string) => {
+      messages.push(message);
+    });
+  });
+  return messages;
 }
 
 const ErrorReport = (props: IErrorProps) => {
