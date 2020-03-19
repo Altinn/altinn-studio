@@ -12,7 +12,9 @@ import * as setUpData from "../../setup.js";
 let instanceFormDataXml = open("../../data/rf-0002.xml");
 let appOwner = __ENV.org;
 let level2App = __ENV.level2app;
-let bigAttachment = open("../../data/20mb.txt");
+let smallAttachment = open("../../data/50kb.txt");
+let mediumAttachment = open("../../data/1mb.txt");
+let bigAttachment = open("../../data/100mb.txt");
 let users = JSON.parse(open("../../data/users.json"));
 
 export const options = {
@@ -45,6 +47,7 @@ export default function() {
 
     dataId = appData.findDataId(instanceId.body);
     instanceId = platformInstances.findInstanceId(instanceId.body);  
+    console.log(instanceId);
     
     //Test to edit a form data in an instance with App APi and validate the response
     var res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
@@ -53,8 +56,18 @@ export default function() {
     });  
     addErrorCount(success);    
 
-    //upload a big attachment to an instance with App API
-   // res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, bigAttachment);    
+    /*if (__VU < (users.length)*0.60)
+        {var attachment = smallAttachment;}
+    else{
+        var attachment = (__VU < (users.length)*0.90) ? mediumAttachment : bigAttachment;
+    }*/
+
+    var attachment =  bigAttachment;
+    
+    //upload a upload attachment to an instance with App API
+    res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, attachment);    
+    console.log(res.status);
+    console.log(JSON.stringify(res.body));
 
     //Test to get validate instance and verify that validation of instance is ok
     res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId);
