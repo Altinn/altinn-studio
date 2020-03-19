@@ -43,7 +43,7 @@ namespace App.IntegrationTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Instance instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
 
@@ -84,7 +84,7 @@ namespace App.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotNull(instance);
@@ -279,7 +279,7 @@ namespace App.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotNull(instance);
@@ -314,7 +314,7 @@ namespace App.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -333,7 +333,7 @@ namespace App.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Dictionary<string, string> failedObligations = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseContent);
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             Assert.NotNull(failedObligations);

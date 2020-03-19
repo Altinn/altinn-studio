@@ -45,7 +45,7 @@ namespace Altinn.App.Services.Implementation
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                string refreshedToken = response.Content.ReadAsStringAsync().Result;
+                string refreshedToken = await response.Content.ReadAsStringAsync();
                 refreshedToken = refreshedToken.Replace('"', ' ').Trim();
                 return refreshedToken;
             }

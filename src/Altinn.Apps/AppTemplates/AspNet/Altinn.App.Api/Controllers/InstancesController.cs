@@ -179,7 +179,7 @@ namespace Altinn.App.Api.Controllers
         /// Creates a new instance of an application in platform storage. Clients can send an instance as json or send a
         /// multipart form-data with the instance in the first part named "instance" and the prefill data in the next parts, with
         /// names that correspond to the element types defined in the application metadata.
-        /// The data elements are stored. Currently calculate and validate is not implemented. 
+        /// The data elements are stored. Currently calculate and validate is not implemented.
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
@@ -221,7 +221,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Error when reading content: {JsonConvert.SerializeObject(parsedRequest.Errors)}");
             }
 
-            Instance instanceTemplate = ExtractInstanceTemplate(parsedRequest);
+            Instance instanceTemplate = await ExtractInstanceTemplate(parsedRequest);
 
             if (!instanceOwnerPartyId.HasValue && instanceTemplate == null)
             {
@@ -500,7 +500,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="reader">multipart reader object</param>
         /// <returns>the instance template or null if none is found</returns>
-        private Instance ExtractInstanceTemplate(MultipartRequestReader reader)
+        private async Task<Instance> ExtractInstanceTemplate(MultipartRequestReader reader)
         {
             Instance instanceTemplate = null;
 
@@ -517,7 +517,7 @@ namespace Altinn.App.Api.Controllers
                 reader.Parts.Remove(instancePart);
 
                 using StreamReader streamReader = new StreamReader(instancePart.Stream, Encoding.UTF8);
-                string content = streamReader.ReadToEndAsync().Result;
+                string content = await streamReader.ReadToEndAsync();
 
                 instanceTemplate = JsonConvert.DeserializeObject<Instance>(content);
             }
