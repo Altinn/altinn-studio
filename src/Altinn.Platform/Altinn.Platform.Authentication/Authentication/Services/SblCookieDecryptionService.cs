@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
+using Altinn.Platform.Authentication.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -40,7 +41,7 @@ namespace Altinn.Platform.Authentication.Services
         public async Task<UserAuthenticationModel> DecryptTicket(string encryptedTicket)
         {
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserAuthenticationModel));
-            Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}tickets");
+            Uri endpointUrl = new Uri($"{_generalSettings.BridgeAuthnApiEndpoint}tickets");
 
             _logger.LogInformation($"Authentication - Before getting userdata");
 

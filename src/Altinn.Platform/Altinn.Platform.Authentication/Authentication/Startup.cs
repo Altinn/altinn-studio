@@ -5,6 +5,7 @@ using System.Reflection;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Repositories;
 using Altinn.Platform.Authentication.Services;
+using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Telemetry;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
@@ -96,6 +97,7 @@ namespace Altinn.Platform.Authentication
             });
 
             services.AddSingleton<ISblCookieDecryptionService, SblCookieDecryptionService>();
+            services.AddSingleton<IUserProfileService, UserProfileService>();
             services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddTransient<IOrganisationRepository, OrganisationRepository>();
