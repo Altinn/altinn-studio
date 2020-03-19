@@ -1,4 +1,2 @@
-**/data/1mb.txt
-**/data/100mb.txt
-**/data/50kb.txt
+**/data/*.txt
 **/data/users.json

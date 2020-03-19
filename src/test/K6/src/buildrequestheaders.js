@@ -7,7 +7,9 @@ export function buildHeadersForData(dataType, altinnStudioRuntimeCookie, api){
     if (isGuid(dataType)){
         params = {  headers: {"Authorization": "Bearer " + altinnStudioRuntimeCookie,
                                   "Content-Type": "application/octet-stream",
-                                  "Content-Disposition": "attachment; filename=test.pdf"}};        
+                                  "Content-Disposition": "attachment; filename=test.pdf"},
+                    timeout: 300000
+                };        
     }
     else{
         params = {  headers: {"Authorization": "Bearer " + altinnStudioRuntimeCookie,

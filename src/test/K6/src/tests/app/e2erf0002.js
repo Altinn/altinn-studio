@@ -14,7 +14,7 @@ let appOwner = __ENV.org;
 let level2App = __ENV.level2app;
 let smallAttachment = open("../../data/50kb.txt");
 let mediumAttachment = open("../../data/1mb.txt");
-let bigAttachment = open("../../data/100mb.txt");
+let bigAttachment = open("../../data/30mb.txt");
 let users = JSON.parse(open("../../data/users.json"));
 
 export const options = {
