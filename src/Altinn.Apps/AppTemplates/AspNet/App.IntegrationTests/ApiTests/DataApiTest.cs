@@ -38,7 +38,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1337, guid);
@@ -60,7 +60,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -81,7 +81,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -102,7 +102,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -120,7 +120,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Contains("\"journalnummerdatadef33316\":{\"orid\":33316,\"value\":1001}", responseContent);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -142,7 +142,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
@@ -151,7 +151,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             response = await client.SendAsync(httpRequestMessage);
-            responseContent = response.Content.ReadAsStringAsync().Result;
+            responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Contains("\"enhetNavnEndringdatadef31\":{\"orid\":31,\"value\":\"Test Test 123\"}", responseContent);
@@ -177,14 +177,14 @@ namespace App.IntegrationTests.ApiTests
             // Fetch data element
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"/tdd/endring-av-navn/instances/1337/{guid}/data?dataType=default"){};
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
 
             // Fetch data and compare with expected prefill
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/1337/{guid}/data/{dataElement.Id}"){};
             response = await client.SendAsync(httpRequestMessage);
-            responseContent = response.Content.ReadAsStringAsync().Result;
+            responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var skjema = JsonConvert.DeserializeObject<App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn.Skjema>(responseContent);
@@ -213,14 +213,14 @@ namespace App.IntegrationTests.ApiTests
             // Fetch data element
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"/tdd/endring-av-navn/instances/500600/{guid}/data?dataType=default"){};
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
 
             // Fetch data and compare with expected prefill
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/500600/{guid}/data/{dataElement.Id}"){};
             response = await client.SendAsync(httpRequestMessage);
-            responseContent = response.Content.ReadAsStringAsync().Result;
+            responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var skjema = JsonConvert.DeserializeObject<App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn.Skjema>(responseContent);

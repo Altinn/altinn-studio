@@ -130,7 +130,7 @@ namespace App.IntegrationTestsRef.AppBase
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/completeProcess");
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             ProcessState processState = (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
 
