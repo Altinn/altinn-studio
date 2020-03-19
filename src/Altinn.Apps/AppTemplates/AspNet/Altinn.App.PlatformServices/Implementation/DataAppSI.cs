@@ -123,18 +123,18 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        public async Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            HttpResponseMessage response = _client.GetAsync(apiUrl).Result;
+            HttpResponseMessage response = await _client.GetAsync(apiUrl);
 
             if (response.IsSuccessStatusCode)
             {
-                return response.Content.ReadAsStreamAsync();
+                return await response.Content.ReadAsStreamAsync();
             }
             else if (response.StatusCode == HttpStatusCode.NotFound)
             {
@@ -152,13 +152,13 @@ namespace Altinn.App.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            HttpResponseMessage response = _client.GetAsync(apiUrl).Result;
+            HttpResponseMessage response = await _client.GetAsync(apiUrl);
             if (response.IsSuccessStatusCode)
             {
                 XmlSerializer serializer = new XmlSerializer(type);
                 try
                 {
-                    using Stream stream = response.Content.ReadAsStreamAsync().Result;
+                    using Stream stream = await response.Content.ReadAsStreamAsync();
 
                     return serializer.Deserialize(stream);
                 }

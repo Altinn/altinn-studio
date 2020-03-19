@@ -176,7 +176,7 @@ namespace Altinn.App.Services.Implementation
                 return createdInstance;
             }
 
-            _logger.LogError($"Unable to create instance {response.StatusCode} - {response.Content?.ReadAsStringAsync().Result}");
+            _logger.LogError($"Unable to create instance {response.StatusCode} - {await response.Content?.ReadAsStringAsync()}");
             throw new PlatformHttpException(response);
         }
     }

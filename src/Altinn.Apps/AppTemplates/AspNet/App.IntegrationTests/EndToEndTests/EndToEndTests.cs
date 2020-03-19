@@ -114,7 +114,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
                 // Act
                 response = await client.GetAsync(url);
-                string responseContent = response.Content.ReadAsStringAsync().Result;
+                string responseContent = await response.Content.ReadAsStringAsync();
                 List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -129,7 +129,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
                 // Act
                 Thread.Sleep(new TimeSpan(0, 0, 12));
                 response = await client.GetAsync(url);
-                responseContent = response.Content.ReadAsStringAsync().Result;
+                responseContent = await response.Content.ReadAsStringAsync();
                 messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
