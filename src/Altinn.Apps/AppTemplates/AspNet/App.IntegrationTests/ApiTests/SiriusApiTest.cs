@@ -224,8 +224,11 @@ namespace App.IntegrationTests
         [Fact]
         public async Task Instance_Post_WithNæringOgSkattemelding_ValidateOkThenNext()
         {
+            // Gets JWT token. In production this would be given from authentication component when exchanging a ID porten token.
             string token = PrincipalUtil.GetToken(1337);
 
+
+            // Setup client and calls Instance controller on the App that instansiates a new instances of the app
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "sirius");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/sirius/instances?instanceOwnerPartyId=1337")
@@ -241,15 +244,13 @@ namespace App.IntegrationTests
             Assert.Equal("1337", instance.InstanceOwner.PartyId);
 
 
-            // Get Data from Instance
+            // Get Data from the main form
             HttpRequestMessage httpRequestMessageGetData = new HttpRequestMessage(HttpMethod.Get, "/tdd/sirius/instances/" + instance.Id + "/data/" + instance.Data[0].Id);
             {
             };
 
             HttpResponseMessage responseData = await client.SendAsync(httpRequestMessageGetData);
             string responseContentData = responseData.Content.ReadAsStringAsync().Result;
-
-
             Skjema siriusMainForm = (Skjema)JsonConvert.DeserializeObject(responseContentData, typeof(Skjema));
 
             // Modify the prefilled form. This would need to be replaced with the real sirius form
@@ -293,7 +294,7 @@ namespace App.IntegrationTests
             HttpResponseMessage postresponseskattemelding = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=skattemelding", streamContentNæring);
             DataElement dataElementSkattemelding = (DataElement)JsonConvert.DeserializeObject(postresponseskattemelding.Content.ReadAsStringAsync().Result, typeof(DataElement));
 
-            // Validate instance
+            // Validate instance. This validates that main form has valid data and required data 
             string url = "/tdd/sirius/instances/" + instance.Id + "/validate";
             HttpResponseMessage responseValidation = await client.GetAsync(url);
             string responseContentValidation = responseValidation.Content.ReadAsStringAsync().Result;
@@ -312,13 +313,13 @@ namespace App.IntegrationTests
             ProcessState stateAfterFirstNext = (ProcessState)JsonConvert.DeserializeObject(responseContentFirstNext, typeof(ProcessState));
             Assert.Equal("Task_2",stateAfterFirstNext.CurrentTask.ElementId);
 
-            // Validate instance in Task_2
+            // Validate instance in Task_2. This validates that PDF for nærings is in place
             HttpResponseMessage responseValidationTask2 = await client.GetAsync(url);
             string responseContentValidationTask2 = responseValidationTask2.Content.ReadAsStringAsync().Result;
             List<ValidationIssue> messagesTask2 = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContentValidationTask2, typeof(List<ValidationIssue>));
             Assert.Empty(messagesTask2);
 
-            // Handle first next go from data to confirmation
+            // Move process from Task_2 (Confirmation) to Task_3  (Feedback). 
             HttpRequestMessage httpRequestMessageSecondNext = new HttpRequestMessage(HttpMethod.Put, "/tdd/sirius/instances/" + instance.Id + "/process/next")
             {
             };
@@ -329,6 +330,7 @@ namespace App.IntegrationTests
             ProcessState stateAfterSecondNext = (ProcessState)JsonConvert.DeserializeObject(responseContentSecondNext, typeof(ProcessState));
             Assert.Equal("Task_3", stateAfterSecondNext.CurrentTask.ElementId);
 
+            // Delete all data created
             TestDataUtil.DeletInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
         }
     }
