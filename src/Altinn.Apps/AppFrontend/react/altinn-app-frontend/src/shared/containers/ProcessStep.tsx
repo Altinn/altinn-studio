@@ -62,7 +62,7 @@ const ProcessStepComponent = (props) => {
                 <div className='a-page a-current-page'>
                   <div className='modalPage'>
                     <div className='modal-content'>
-                      <Header {...props}/>
+                      <Header {...props} language={language}/>
                       <div className='modal-body a-modal-body'>
                         {props.children}
                       </div>
