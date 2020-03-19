@@ -46,6 +46,9 @@ export default (props) => {
       case (ProcessSteps.Confirm): {
         IsLoadingActions.finishDataTaskIsloading();
       }
+      case (ProcessSteps.Archived): {
+        IsLoadingActions.finishDataTaskIsloading();
+      }
     }
   }, [processStep])
 
