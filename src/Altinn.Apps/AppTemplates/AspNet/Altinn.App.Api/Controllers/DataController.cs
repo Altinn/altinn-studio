@@ -2,20 +2,19 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
+
 using Altinn.App.Api.Filters;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
+using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -85,6 +84,8 @@ namespace Altinn.App.Api.Controllers
             {
                 return BadRequest("Element type must be provided.");
             }
+
+            /* The Body of the request is read much later when it has been made sure it is worth it. */
 
             try
             {
@@ -358,10 +359,12 @@ namespace Altinn.App.Api.Controllers
             }
             else
             {
-                appModel = ParseContentAndDeserializeServiceModel(_altinnApp.GetAppModelType(classRef), out ActionResult contentError);
-                if (contentError != null)
+                ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
+                appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+
+                if (!string.IsNullOrEmpty(deserializer.Error))
                 {
-                    return contentError;
+                    return BadRequest(deserializer.Error);
                 }
             }
 
@@ -416,66 +419,6 @@ namespace Altinn.App.Api.Controllers
             {
                 return StatusCode(500, $"Something went wrong when deleting data element {dataGuid} for instance {instanceGuid}");
             }
-        }
-
-        private object ParseContentAndDeserializeServiceModel(Type modelType, out ActionResult error)
-        {
-            error = null;
-            object obj = ParseFormDataAndDeserialize(modelType, Request.ContentType, Request.Body, out string errorText);
-
-            if (!string.IsNullOrEmpty(errorText))
-            {
-                error = BadRequest(errorText);
-
-                return null;
-            }
-
-            return obj;
-        }
-
-        public static object ParseFormDataAndDeserialize(Type modelType, string contentType, Stream contentStream, out string error)
-        {
-            error = null;
-            object serviceModel = null;
-
-            if (contentStream != null)
-            {
-                if (contentType.Contains("application/json"))
-                {
-                    try
-                    {
-                        using StreamReader reader = new StreamReader(contentStream, Encoding.UTF8);
-                        string content = reader.ReadToEndAsync().Result;
-                        serviceModel = JsonConvert.DeserializeObject(content, modelType);
-                    }
-                    catch (Exception ex)
-                    {
-                        error = $"An error occured while deserialising json content into '{modelType}'. \n Please verify that the content is based on the correct data model. \n See exception for more information: {ex}";
-                        return null;
-                    }
-                }
-                else if (contentType.Contains("application/xml"))
-                {
-                    try
-                    {
-                        XmlSerializer serializer = new XmlSerializer(modelType);
-                        serviceModel = serializer.Deserialize(contentStream);
-                    }
-                    catch (Exception ex)
-                    {
-                        error = $"An error occured while deserializing xml content into '{modelType}'. \n Please verify that the content is based on the correct data model. \n See exception for more information: \n {ex}";
-
-                        return null;
-                    }
-                }
-                else
-                {
-                    error = $"Unknown content type {contentType}. Cannot read form data.";
-                    return null;
-                }
-            }
-
-            return serviceModel;
         }
 
         private bool? RequiresAppLogic(string org, string app, string dataType)
@@ -546,11 +489,13 @@ namespace Altinn.App.Api.Controllers
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            object serviceModel = ParseContentAndDeserializeServiceModel(_altinnApp.GetAppModelType(classRef), out ActionResult contentError);
+            
+            ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
+            object serviceModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
-            if (contentError != null)
+            if (!string.IsNullOrEmpty(deserializer.Error))
             {
-                return contentError;
+                return BadRequest(deserializer.Error);
             }
 
             if (serviceModel == null)
