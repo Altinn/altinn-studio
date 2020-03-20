@@ -41,7 +41,7 @@ namespace App.IntegrationTestsRef.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd"));
             System.Console.WriteLine("**** RESPONSE CONTENT: " + responseContent);
             System.Console.WriteLine("**** RESPONSE STATUD CODE: " + response.StatusCode);
@@ -72,7 +72,7 @@ namespace App.IntegrationTestsRef.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
 
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
@@ -100,7 +100,7 @@ namespace App.IntegrationTestsRef.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("46133fb5-a9f2-45d4-90b1-f6d93ad40713"));
 
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
@@ -131,7 +131,7 @@ namespace App.IntegrationTestsRef.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstance("tdd", "custom-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
 
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
@@ -159,7 +159,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             // Act
             HttpResponseMessage response = await client.GetAsync(url);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             TestDataUtil.DeletInstanceAndData("tdd", "task-validation", 1337, new System.Guid("16314483-65f3-495a-aaec-79445b4edb0b"));
 
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
