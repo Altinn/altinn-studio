@@ -1,46 +1,43 @@
+using System;
+using System.IO;
+using System.Net.Http;
+using System.Linq;
+
+using Altinn.App;
 using Altinn.App.IntegrationTests;
 using Altinn.App.IntegrationTests.Mocks.Authentication;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Authentication.Maskinporten;
+
 using AltinnCore.Authentication.JwtCookie;
-using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
-using App.IntegrationTests.Mocks.Apps.tdd.custom_validation;
 using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTestsRef.Mocks.Services;
+
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Collections;
-using System.Linq;
+using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace App.IntegrationTestsRef.Utils
 {
     public static class SetupUtil
     {
-        public static HttpClient GetTestClient(
-            CustomWebApplicationFactory<Altinn.App.Startup> factory,
-            string org,
-            string app)
+        public static HttpClient GetTestClient(CustomWebApplicationFactory<Startup> customFactory, string org, string app)
         {
-            HttpClient client = factory.WithWebHostBuilder(builder =>
+            WebApplicationFactory<Startup> factory = customFactory.WithWebHostBuilder(builder =>
             {
-
                 string path = GetAppPath(org, app);
-
                 builder.ConfigureAppConfiguration((context, conf) =>
-                {
-                    conf.AddJsonFile(path + "appsettings.json");
-                });
+                    {
+                        conf.AddJsonFile(path + "appsettings.json");
+                    });
 
                 var configuration = new ConfigurationBuilder()
-                .AddJsonFile(path + "appsettings.json")
-                .Build();
+                    .AddJsonFile(path + "appsettings.json")
+                    .Build();
 
                 configuration.GetSection("AppSettings:AppBasePath").Value = path;
 
@@ -57,12 +54,11 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddSingleton<IRegister, RegisterMockSI>();
                     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
                     services.AddSingleton<IApplication, ApplicationMockSI>();
-
                     services.AddTransient<IProfile, ProfileMockSI>();
                     services.AddSingleton<IValidation, ValidationAppSI>();
                     services.AddSingleton<IPDF, PDFMockSI>();
-                // Set up mock authentication so that not well known endpoint is used
-                services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
+
+                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
 
                     switch (app)
@@ -88,10 +84,9 @@ namespace App.IntegrationTestsRef.Utils
                             break;
                     }
                 });
-            })
-            .CreateClient();
-
-            return client;
+            });
+            factory.Server.AllowSynchronousIO = true;
+            return factory.CreateClient();
         }
 
 
