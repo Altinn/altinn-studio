@@ -1,8 +1,10 @@
-import { check, sleep } from "k6";
+import { check } from "k6";
 import {addErrorCount} from "../../../errorcounter.js";
 import * as authz from "../../../api/platform/authorization.js";
 import * as setUpData from "../../../setup.js";
 
+let userName = __ENV.username;
+let userPassword = __ENV.userpwd;
 let appOwner = __ENV.org;
 let testappName = __ENV.testapp;
 let policyFile = open("../../../data/policy.xml","b");
@@ -10,13 +12,13 @@ let pdpInputJson = open("../../../data/pdpinput.json");
 
 export const options = {
     thresholds:{
-        "errors": ["rate<0.000001"]
+      "errors": ["count<1"]
     }
 };
 
 //Function to setup data and return userData
 export function setup(){
-    var aspxauthCookie = setUpData.authenticateUser();    
+    var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     var data = setUpData.getUserData(altinnStudioRuntimeCookie);    
     return data;

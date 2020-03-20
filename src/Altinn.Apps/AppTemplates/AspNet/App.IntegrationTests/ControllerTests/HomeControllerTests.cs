@@ -36,7 +36,7 @@ namespace App.IntegrationTests.ControllerTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             IEnumerable<string> cookieHeaders = response.Headers.GetValues("Set-Cookie");
 
             // Verify that 
@@ -60,7 +60,7 @@ namespace App.IntegrationTests.ControllerTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -78,7 +78,7 @@ namespace App.IntegrationTests.ControllerTests
             SetupUtil.AddAuthCookie(httpRequestMessage, token);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             IEnumerable<string> cookieHeaders = response.Headers.GetValues("Set-Cookie");
 
             // Verify that 

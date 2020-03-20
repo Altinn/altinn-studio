@@ -69,8 +69,8 @@ namespace Altinn.App.Api.Controllers
         [HttpGet("{org}/{app}/api/v1/parties")]
         public async Task<IActionResult> Get(string org, string app, bool allowedToInstantiateFilter = false)
         {
-            UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
-            List<Party> partyList = _authorization.GetPartyList(userContext.UserId);
+            UserContext userContext = await _userHelper.GetUserContext(HttpContext);
+            List<Party> partyList = await _authorization.GetPartyList(userContext.UserId);
 
             if (allowedToInstantiateFilter)
             {
@@ -91,11 +91,11 @@ namespace Altinn.App.Api.Controllers
         /// <returns>A validation status</returns>
         [Authorize]
         [HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]
-        public IActionResult ValidateInstantiation(string org, string app, [FromQuery] int partyId)
+        public async Task<IActionResult> ValidateInstantiation(string org, string app, [FromQuery] int partyId)
         {
-            UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
-            UserProfile user = _profile.GetUserProfile(userContext.UserId).Result;
-            List<Party> partyList = _authorization.GetPartyList(userContext.UserId);
+            UserContext userContext = await _userHelper.GetUserContext(HttpContext);
+            UserProfile user = await  _profile.GetUserProfile(userContext.UserId);
+            List<Party> partyList = await _authorization.GetPartyList(userContext.UserId);
             Application application = _appResourcesService.GetApplication();
 
             if (application == null)
@@ -157,7 +157,7 @@ namespace Altinn.App.Api.Controllers
         [HttpPut("{org}/{app}/api/v1/parties/{partyId}")]
         public async Task<IActionResult> UpdateSelectedParty(int partyId)
         {
-            UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
+            UserContext userContext = await _userHelper.GetUserContext(HttpContext);
             int userId = userContext.UserId;
 
             bool? isValid = await _authorization.ValidateSelectedParty(userId, partyId);

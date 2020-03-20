@@ -5,14 +5,14 @@ import * as header from "../../buildrequestheaders.js"
 //Api call to App Api:Instances to create an app instance and returns response
 export function postInstance(altinnStudioRuntimeCookie, partyId){    
     var endpoint = config.appApiBaseUrl + "/instances?instanceOwnerPartyId=" + partyId;
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie);    
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");    
     return http.post(endpoint, null, params);
 };
 
 //Api call to App Api:Instances to create an app instance and returns response
 export function getInstanceById(altinnStudioRuntimeCookie, partyId, instanceId){    
     var endpoint = config.buildAppApiUrls(partyId, instanceId, "", "instanceid");
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie);    
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");    
     return http.get(endpoint, params);
 };
 
@@ -27,13 +27,13 @@ export function putInstanceById(altinnStudioRuntimeCookie, partyId, instanceId, 
     requestbody.appId = instanceJson.appId;
     requestbody.org = instanceJson.org;
     requestbody = JSON.stringify(requestbody); 
-    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie);    
+    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, "app");    
     return http.put(endpoint, requestbody, params);
 };
 
 //Api call to App Api:Instances to validate an app instance and returns response
 export function getValidateInstance(altinnStudioRuntimeCookie, partyId, instanceId){    
     var endpoint = config.buildAppApiUrls(partyId, instanceId, "", "instanceid") + "/validate";
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie);    
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");    
     return http.get(endpoint, params);
 };
