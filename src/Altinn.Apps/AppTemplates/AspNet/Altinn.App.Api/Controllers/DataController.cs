@@ -5,9 +5,9 @@ using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.App.Api.Filters;
-using Altinn.App.Api.Serialization;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
+using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;

@@ -1,8 +1,7 @@
-using System;
 using System.IO;
 using System.Threading.Tasks;
 
-using Altinn.App.Api.Serialization;
+using Altinn.App.Common.Serialization;
 
 using Microsoft.Extensions.Logging;
 
