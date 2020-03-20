@@ -22,10 +22,9 @@ export function Confirm(props: IConfirmProps) {
 
   const onClickConfirm = () => {
     get(getValidationUrl(instanceId)).then((data: any) => {
-      if (data.length > 0) {
-        const mappedValidations = mapDataElementValidationToRedux(data, layout, textResources);
-        FormValidationActions.updateValidations(mappedValidations);
-      } else {
+      const mappedValidations = mapDataElementValidationToRedux(data, layout, textResources);
+      FormValidationActions.updateValidations(mappedValidations);
+      if (data.length === 0) {
         ProcessDispatcher.completeProcess();
       }
     });
