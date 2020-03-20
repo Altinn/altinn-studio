@@ -17,28 +17,24 @@ export interface IConfirmProps {
 
 export function Confirm(props: IConfirmProps) {
   const { instanceId } = window as Window as IAltinnWindow;
-  const [canConfirm, setCanConfirm] = React.useState<boolean>()
   const layout = useSelector((state: IRuntimeState) => state.formLayout.layout);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
-  const onClickConfirm = () => {
-    ProcessDispatcher.completeProcess();
-  }
 
-  React.useEffect(() => {
+  const onClickConfirm = () => {
     get(getValidationUrl(instanceId)).then((data: any) => {
-      setCanConfirm(data.length === 0);
       if (data.length > 0) {
         const mappedValidations = mapDataElementValidationToRedux(data, layout, textResources);
         FormValidationActions.updateValidations(mappedValidations);
+      } else {
+        ProcessDispatcher.completeProcess();
       }
     });
-  }, []);
+  }
 
   return (
   <AltinnButton
     btnText={getLanguageFromKey('confirm.button_text', props.language)}
     onClickFunction={onClickConfirm}
-    disabled={!canConfirm}
   />
   );
 }
