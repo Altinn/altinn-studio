@@ -245,7 +245,7 @@ namespace Altinn.Platform.Authentication.Controllers
                     claims.Add(claim);
                 }
 
-                string org = _organisationRepository.LookupOrg(orgNumber);
+                string org = await _organisationRepository.LookupOrg(orgNumber);
                 if (org == "brg" && test)
                 {
                     org = "ttd";
