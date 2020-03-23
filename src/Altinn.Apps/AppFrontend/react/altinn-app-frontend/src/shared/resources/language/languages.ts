@@ -21,7 +21,13 @@ export const nb = () => (
       validation_error_house_number: 'Bolignummer er ugyldig',
     },
     confirm: {
-      button_text: 'Bekreft innsending',
+      answers: 'Dine svar',
+      attachments: 'Vedlegg',
+      body: 'Du er nå  klar for å sende inn {1}. Før du sender inn vil vi abefale å se over svarene dine. Du kan ikke nedre svarene etter at du har sendt inn.',
+      button_text: 'Send inn',
+      deadline: 'Frist innsending',
+      sender: 'Person',
+      title: 'Se over svarene dine før du sender inn',
     },
     date_picker: {
       invalid_date_message: 'Ugyldig datoformat. Bruk formatet {1}.',
