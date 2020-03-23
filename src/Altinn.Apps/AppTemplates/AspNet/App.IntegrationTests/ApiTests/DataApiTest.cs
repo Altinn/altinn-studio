@@ -1,26 +1,76 @@
-
-using Altinn.App.IntegrationTests;
-using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
-using Newtonsoft.Json;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+
+using Altinn.App.IntegrationTests;
+
+using Altinn.Platform.Storage.Interface.Models;
+
+using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Utils;
+
+using Newtonsoft.Json;
+
 using Xunit;
 
 namespace App.IntegrationTests.ApiTests
 {
     public class DataApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
-
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
 
         public DataApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
             _factory = factory;
+        }
+
+        [Fact]
+        public async Task Create_RequestWithXmlHasInvalidModelInBody_ReturnsValidationErrors_NoDataIsStored()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "model-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = "/ttd/model-validation/instances/1337/8fab6615-3c57-484b-bd32-3065be958a1e/data?dataType=default";
+            string requestBody = "<?xml version=\"1.0\"?><Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"hei\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\"><Foretak-grp-8820 gruppeid=\"8820\"><EnhetNavnEndring-datadef-31 orid=\"31\">Test Test 123</EnhetNavnEndring-datadef-31></Foretak-grp-8820></Skjema>";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/xml")
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains("There is an error in XML document", responseContent);
+        }
+
+        [Fact]
+        public async Task Create_RequestWithJsonHasInvalidModelInBody_ReturnsValidationErrors_NoDataIsStored()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "model-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = "/ttd/model-validation/instances/1337/8fab6615-3c57-484b-bd32-3065be958a1e/data?dataType=default";
+            string requestBody = "{\"skjemanummer\": \"hei\",\"spesifikasjonsnummer\": \"hade\",\"blankettnummer\": \"AFP-01\",\"tittel\": \"Arbeidsgiverskjema AFP\",\"gruppeid\": \"8818\",\"foretakgrp8820\": {\"gruppeid\": \"8820\",\"enhetNavnEndringdatadef31\": {\"orid\": \"31\",\"value\": \"Test Test 123\"}}}";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains("Could not convert string to decimal: hei. Path 'skjemanummer'", responseContent);
         }
 
         [Fact]
@@ -38,7 +88,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1337, guid);
@@ -60,7 +110,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -81,7 +131,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -102,7 +152,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
+            await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -188,9 +238,9 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var skjema = JsonConvert.DeserializeObject<App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn.Skjema>(responseContent);
-            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value, "01039012345");
-            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value, "Oslo");
-            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value, "Grev Wedels Plass");
+            Assert.Equal("01039012345", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value);
+            Assert.Equal("Oslo", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value);
+            Assert.Equal("Grev Wedels Plass", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value);
 
             TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1337, guid);
         }
@@ -224,9 +274,9 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var skjema = JsonConvert.DeserializeObject<App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn.Skjema>(responseContent);
-            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value, "Sofies Gate 2");
-            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value, "EAS Health Consulting");
-            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value, "http://setrabrl.no");
+            Assert.Equal("Sofies Gate 2", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value);
+            Assert.Equal("EAS Health Consulting", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value);
+            Assert.Equal("http://setrabrl.no", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value);
 
             TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 500600, guid);
         }

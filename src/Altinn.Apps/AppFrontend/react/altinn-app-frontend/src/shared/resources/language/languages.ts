@@ -187,11 +187,13 @@ export const nb = () => (
       unknown_error_status: 'Ukjent feil',
       unknown_error_customer_support: 'Om problemet vedvarer, ta kontakt med oss på brukerservice {1}.',
       authorization_error_main_title: 'Du mangler rettigheter for å se denne tjenesten.',
+      authorization_error_instantiate_validation_title: 'Du kan ikke starte denne tjenesten',
       authorization_error_rights: 'Det ser ut til at du ikke har rettigheter til å starte denne tjenesten for {1}',
       authorization_error_ask: 'Du kan be om de nødvendige rettighetene fra personer med tilgangsstyring i organisasjonen din.',
       authorization_error_check_rights: '<a href="https://{1}/ui/Profile/" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
       authorization_error_info_rights: '<a href="https://{1}/hjelp/profil/roller-og-rettigheter/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
       authorization_error_info_customer_service: 'Du kan også kontakte oss på brukerservice {1}.',
+      authorization_error_instantiate_validation_info_customer_service: 'Om du står fast kontakt oss på brukerservice {1}.'
     },
     party_selection: {
       error_caption_prefix: 'Feil',
