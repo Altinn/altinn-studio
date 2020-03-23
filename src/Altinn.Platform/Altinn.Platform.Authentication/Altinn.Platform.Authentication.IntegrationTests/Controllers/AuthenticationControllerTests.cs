@@ -323,11 +323,10 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
-
-            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/convert/id-porten");
+            string url = "/authentication/api/v1/convert/id-porten";
 
             // Act
-            HttpResponseMessage response = await client.SendAsync(requestMessage);
+            HttpResponseMessage response = await client.GetAsync(url);
 
             // Assert
             string token = await response.Content.ReadAsStringAsync();
@@ -338,6 +337,73 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
 
             Assert.True(principal.HasClaim(c => c.Type == "urn:altinn:userid"));
             Assert.Equal(expectedAuthLevel, principal.FindFirstValue("urn:altinn:authlevel"));
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.AuthenticateExternalSystemToken"/>.
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateEndUser_RequestTokenMissingClaim_ReturnsNewToken()
+        {
+            // Arrange
+            List<Claim> claims = new List<Claim>();
+
+            string pid = "19108000239";
+            string amr = "MinId-PIN";
+
+            claims.Add(new Claim("pid", pid));
+            claims.Add(new Claim("amr", amr));
+
+            ClaimsIdentity identity = new ClaimsIdentity();
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
+
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
+            string url = "/authentication/api/v1/convert/id-porten";
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(url);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.AuthenticateExternalSystemToken"/>.
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateEndUser_ServiceThrowsException_ReturnsNewToken()
+        {
+            // Arrange
+            List<Claim> claims = new List<Claim>();
+
+            string pid = "19108000239";
+            string amr = "MinId-PIN";
+
+            claims.Add(new Claim("pid", pid));
+            claims.Add(new Claim("amr", amr));
+
+            ClaimsIdentity identity = new ClaimsIdentity();
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
+            _userProfileService.Setup(u => u.GetUser(It.IsAny<string>())).Throws(new Exception());
+
+            string url = "/authentication/api/v1/convert/id-porten";
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync(url);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
         private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService)
