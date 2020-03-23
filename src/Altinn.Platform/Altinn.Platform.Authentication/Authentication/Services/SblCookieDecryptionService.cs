@@ -27,7 +27,7 @@ namespace Altinn.Platform.Authentication.Services
         private static readonly HttpClient HttpClient = new HttpClient();
 
         /// <summary>
-        /// Initialize a new instance of <see cref="SigningCredentialsProvider"/> with settings for accessing a key vault and file system.
+        /// Initialize a new instance of <see cref="SblCookieDecryptionService"/>  with settings for SBL Bridge endpoints.
         /// </summary>
         /// <param name="generalSettings">General settings for the authentication application</param>
         /// <param name="logger">A generic logger</param>

@@ -72,8 +72,6 @@ namespace Altinn.Platform.Authentication
             });
             services.AddMvc().AddControllersAsServices();
        
-            GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
