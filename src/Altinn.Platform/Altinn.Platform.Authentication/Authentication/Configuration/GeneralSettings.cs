@@ -137,7 +137,7 @@ namespace Altinn.Platform.Authentication.Configuration
         /// <summary>
         /// Gets url of the well known configuration endpoint for ID-porten from environment variable.
         /// </summary>
-        public string IdPortenWellKnownConfigEndpoint { get; }
+        public string IdPortenWellKnownConfigEndpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the url to the json file which holds the valid organisation entries (which inclides name, organisation number and org identifier)

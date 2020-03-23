@@ -71,6 +71,9 @@ namespace Altinn.Platform.Authentication
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
             services.AddMvc().AddControllersAsServices();
+       
+            GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
@@ -96,6 +99,7 @@ namespace Altinn.Platform.Authentication
                 }
             });
 
+            services.AddSingleton(Configuration);
             services.AddSingleton<ISblCookieDecryptionService, SblCookieDecryptionService>();
             services.AddSingleton<IUserProfileService, UserProfileService>();
             services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
