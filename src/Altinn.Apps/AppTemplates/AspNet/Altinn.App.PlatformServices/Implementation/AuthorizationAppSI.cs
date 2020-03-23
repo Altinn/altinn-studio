@@ -46,7 +46,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public List<Party> GetPartyList(int userId)
+        public async Task<List<Party>> GetPartyList(int userId)
         {
             List<Party> partyList = null;
             string apiUrl = $"parties?userid={userId}";
@@ -54,11 +54,11 @@ namespace Altinn.App.Services.Implementation
             JwtTokenUtil.AddTokenToRequestHeader(_authClient, token);
             try
             {
-                HttpResponseMessage response = _authClient.GetAsync(apiUrl).Result;
+                HttpResponseMessage response = await _authClient.GetAsync(apiUrl);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    string partyListData = response.Content.ReadAsStringAsync().Result;
+                    string partyListData = await response.Content.ReadAsStringAsync();
                     partyList = JsonConvert.DeserializeObject<List<Party>>(partyListData);
                 }
             }
@@ -82,7 +82,7 @@ namespace Altinn.App.Services.Implementation
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                string responseData = response.Content.ReadAsStringAsync().Result;
+                string responseData = await response.Content.ReadAsStringAsync();
                 result = JsonConvert.DeserializeObject<bool>(responseData);
             }
             else
