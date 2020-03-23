@@ -39,7 +39,7 @@ namespace Altinn.Platform.Authentication.Services
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
             Uri endpointUrl = new Uri($"{_settings.BridgeProfileApiEndpoint}users");
-            StringContent requestBody = new StringContent(JsonSerializer.Serialize("01044091042"), Encoding.UTF8, "application/json");
+            StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
