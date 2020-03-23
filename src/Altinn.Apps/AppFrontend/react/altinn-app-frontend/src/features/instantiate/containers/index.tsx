@@ -16,6 +16,7 @@ import InstantiationActions from '../instantiation/actions';
 import MissingRolesError from './MissingRolesError';
 import NoValidPartiesError from './NoValidPartiesError';
 import UnknownError from './UnknownError';
+import InstantiateValidationError from './InstantiateValidationError';
 
 const styles = () => createStyles({
   modal: {
@@ -128,10 +129,15 @@ function InstantiateContainer(props: IServiceInfoProps) {
 
   if (instantiation.error !== null && checkIfAxiosError(instantiation.error)) {
     const axiosError = instantiation.error as AxiosError;
+    const message = axiosError.response.data?.message;
     if (axiosError.response.status === HttpStatusCodes.Forbidden) {
-      return (
-        <MissingRolesError />
-      );
+      if (message) {
+        return <InstantiateValidationError message={message} />
+      } else {
+        return (
+          <MissingRolesError />
+        );
+      }
     }
 
     return (
