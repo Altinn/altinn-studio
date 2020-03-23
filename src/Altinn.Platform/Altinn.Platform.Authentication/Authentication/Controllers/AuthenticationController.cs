@@ -40,6 +40,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private const string HeaderValueNoCache = "no-cache";
         private const string HeaderValueEpocDate = "Thu, 01 Jan 1970 00:00:00 GMT";
         private const string OrganisationIdentity = "OrganisationLogin";
+        private const string EndUserSystemIdentity = "EndUserSystemLogin";
         private const string PidClaimName = "pid";
         private const string AuthLevelClaimName = "acr";
         private const string AuthMethodClaimName = "amr";
@@ -327,7 +328,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, authMethod, ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, authLevel.Substring(authLevel.Length - 1, 1), ClaimValueTypes.Integer32, issuer));
 
-                ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
+                ClaimsIdentity identity = new ClaimsIdentity(EndUserSystemIdentity);
                 identity.AddClaims(claims);
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
