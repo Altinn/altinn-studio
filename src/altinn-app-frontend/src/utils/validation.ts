@@ -393,25 +393,29 @@ export function mapDataElementValidationToRedux(validations: IValidationIssue[],
   validations.forEach((validation) => {
     // for each validation, map to correct component and field key
     const componentValidations: IComponentValidations = {};
-    const component = layout.find((layoutElement) => {
-      const componentCandidate = layoutElement as ILayoutComponent;
-      let found = false;
-
-      if (validation.field === componentCandidate.id) {
-        found = true;
-        addValidation(componentValidations, validation, 'simpleBinding', textResources);
-      } else {
-        Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
-          // tslint:disable-next-line: max-line-length
-          if (validation.field && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === validation.field.toLowerCase()) {
-            found = true;
-            addValidation(componentValidations, validation, dataModelBindingKey, textResources);
-          }
-        });
-      }
-
-      return found;
-    });
+    let component;
+    if (layout) {
+      component = layout.find((layoutElement) => {
+        const componentCandidate = layoutElement as ILayoutComponent;
+        let found = false;
+  
+        if (validation.field === componentCandidate.id) {
+          found = true;
+          addValidation(componentValidations, validation, 'simpleBinding', textResources);
+        } else {
+          Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
+            // tslint:disable-next-line: max-line-length
+            if (validation.field && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === validation.field.toLowerCase()) {
+              found = true;
+              addValidation(componentValidations, validation, dataModelBindingKey, textResources);
+            }
+          });
+        }
+  
+        return found;
+      });
+    }
+    
     if (component) {
       // we have found a matching component
       if (!validationResult[component.id]) {

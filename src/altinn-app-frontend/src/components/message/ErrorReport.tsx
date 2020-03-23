@@ -66,7 +66,7 @@ const ErrorReport = (props: IErrorProps) => {
                   {hasUnmappedErrors && unmappedErrors.map((key: string) => {
                     // List unmapped errors
                     return (
-                      <h4 className='a-fontReg' style={{marginBottom: '12px'}}>
+                      <h4 className='a-fontReg' style={{marginBottom: '12px'}} key={key}>
                       <span>
                         {getTextResourceByKey(key, props.textResources)}
                       </span>
