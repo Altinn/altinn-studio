@@ -52,7 +52,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         }
 
         /// <summary>
-        /// Test of method <see cref="AuthenticationController.AuthenticateExternalSystemToken"/>.
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
         public async Task AuthenticateOrganisation_RequestTokenWithValidExternalToken_ReturnsNewToken()
@@ -98,7 +98,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         }
 
         /// <summary>
-        /// Test of method <see cref="AuthenticationController.AuthenticateExternalSystemToken"/>.
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
         public async Task AuthenticateOrganisation_RequestTestTokenWithValidExternalToken_ReturnsNewToken()
@@ -336,6 +336,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             Assert.NotNull(principal);
 
             Assert.True(principal.HasClaim(c => c.Type == "urn:altinn:userid"));
+            Assert.True(principal.HasClaim(c => c.Type == "pid"));
             Assert.Equal(expectedAuthLevel, principal.FindFirstValue("urn:altinn:authlevel"));
         }
 

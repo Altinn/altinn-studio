@@ -327,6 +327,14 @@ namespace Altinn.Platform.Authentication.Controllers
                 claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userProfile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, authMethod, ClaimValueTypes.String, issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, authLevel.Substring(authLevel.Length - 1, 1), ClaimValueTypes.Integer32, issuer));
+                claims.AddRange(token.Claims);
+
+                string[] claimTypesToRemove = { "aud", "iss", "at_hash", "jti" };
+                foreach (string claimType in claimTypesToRemove)
+                {
+                    Claim claim = claims.Find(c => c.Type == claimType);
+                    claims.Remove(claim);
+                }
 
                 ClaimsIdentity identity = new ClaimsIdentity(EndUserSystemIdentity);
                 identity.AddClaims(claims);
