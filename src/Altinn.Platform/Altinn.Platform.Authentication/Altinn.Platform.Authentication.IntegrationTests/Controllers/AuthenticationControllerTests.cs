@@ -82,7 +82,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/convert/maskinporten");
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/exchange/maskinporten");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(requestMessage);
@@ -135,7 +135,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/convert/maskinporten?test=true");
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/exchange/maskinporten?test=true");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(requestMessage);
@@ -227,14 +227,14 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         }
 
         /// <summary>
-        /// Test of method <see cref="AuthenticationController.AuthenticateExternalSystemToken"/>.
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
         public async Task AuthenticateExternalSystemToken_MissingBearerToken_NotAuthorized()
         {
             // Arrange
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
-            string url = "/authentication/api/v1/convert/maskinporten";
+            string url = "/authentication/api/v1/exchange/maskinporten";
 
             // Act
             HttpResponseMessage response = await client.GetAsync(url);
@@ -244,7 +244,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         }
 
         /// <summary>
-        /// Test of method <see cref="AuthenticationController.AuthenticateExternalSystemToken"/>.
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
         public async Task AuthenticateExternalSystemToken_UnreadableBearerToken_NotAuthorized()
@@ -253,7 +253,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "ThisTokenShouldNotBeReadable");
 
-            string url = "/authentication/api/v1/convert/maskinporten";
+            string url = "/authentication/api/v1/exchange/maskinporten";
 
             // Act
             HttpResponseMessage response = await client.GetAsync(url);
@@ -263,7 +263,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         }
 
         /// <summary>
-        /// Test of method <see cref="AuthenticationController.AuthenticateExternalSystemToken"/>.
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
         public async Task AuthenticateExternalSystemToken_InvalidTokenProvider_NotAuthorized()
@@ -281,7 +281,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             string tokenProvider = "google";
-            string url = $"/authentication/api/v1/convert/{tokenProvider}";
+            string url = $"/authentication/api/v1/exchange/{tokenProvider}";
 
             string expectedMessage = $"Invalid token provider: {tokenProvider}. Trusted token providers are 'Maskinporten' and 'Id-porten'.";
 
@@ -295,7 +295,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         }
 
         /// <summary>
-        /// Test of method <see cref="AuthenticationController.AuthenticateExternalSystemToken"/>.
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
         public async Task AuthenticateEndUser_RequestTokenWithValidExternalToken_ReturnsNewToken()
@@ -323,7 +323,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
-            string url = "/authentication/api/v1/convert/id-porten";
+            string url = "/authentication/api/v1/exchange/id-porten";
 
             // Act
             HttpResponseMessage response = await client.GetAsync(url);
@@ -340,7 +340,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         }
 
         /// <summary>
-        /// Test of method <see cref="AuthenticationController.AuthenticateExternalSystemToken"/>.
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
         public async Task AuthenticateEndUser_RequestTokenMissingClaim_ReturnsNewToken()
@@ -363,7 +363,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
-            string url = "/authentication/api/v1/convert/id-porten";
+            string url = "/authentication/api/v1/exchange/id-porten";
 
             // Act
             HttpResponseMessage response = await client.GetAsync(url);
@@ -373,7 +373,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         }
 
         /// <summary>
-        /// Test of method <see cref="AuthenticationController.AuthenticateExternalSystemToken"/>.
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
         public async Task AuthenticateEndUser_ServiceThrowsException_ReturnsNewToken()
@@ -394,7 +394,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
             _userProfileService.Setup(u => u.GetUser(It.IsAny<string>())).Throws(new Exception());
 
-            string url = "/authentication/api/v1/convert/id-porten";
+            string url = "/authentication/api/v1/exchange/id-porten";
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
