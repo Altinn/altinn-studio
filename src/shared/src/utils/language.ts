@@ -32,7 +32,7 @@ export const getParsedLanguageFromKey = (key: string, language: any, params?: an
   if (stringOutput) {
     return paramParsed;
   } else {
-    getParsedLanguageFromText(paramParsed);
+    return getParsedLanguageFromText(paramParsed);
   }
 };
 
