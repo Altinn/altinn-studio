@@ -1,6 +1,5 @@
 import { IRuntimeState } from "src/types";
 import { createSelector } from "reselect";
-import { AxiosError } from "axios";
 
 /**
  * Selector for determinig if we have an error in one of our api calls.
