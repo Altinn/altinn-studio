@@ -23,7 +23,7 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
     state.formDataModel.error);
 
   if (error !== null) {
-    // we have an error on something we consider critical, return ture
+    // we have an error on something we consider critical, return true
     return true;
   }
 
