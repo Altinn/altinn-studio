@@ -1,10 +1,12 @@
-import { check, sleep } from "k6";
+import { check } from "k6";
 import * as instances from "../../../api/storage/instances.js"
 import * as events from "../../../api/storage/events.js"
 import * as sbl from "../../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../../setup.js";
 import {addErrorCount} from "../../../errorcounter.js";
 
+let userName = __ENV.username;
+let userPassword = __ENV.userpwd;
 let appOwner = __ENV.org;
 let level2App = __ENV.level2app;
 let eventsJson = open("../../../data/events.json");
@@ -12,13 +14,13 @@ let instanceJson = open("../../../data/instance.json");
 
 export const options = {
     thresholds:{
-        "errors": ["rate<0.000001"]
+        "errors": ["count<1"]
     }
 };
 
 //Function to setup data and return AltinnstudioRuntime Token, instance and user details
 export function setup(){
-    var aspxauthCookie = setUpData.authenticateUser();    
+    var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
     var data = setUpData.getUserData(altinnStudioRuntimeCookie);
     data.RuntimeToken = altinnStudioRuntimeCookie;

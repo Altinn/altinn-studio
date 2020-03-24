@@ -42,13 +42,13 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        /// Gets current party by reading cookie value and validating. 
+        /// Gets current party by reading cookie value and validating.
         /// </summary>
         /// <returns>Party id for selected party. If invalid, partyId for logged in user is returned.</returns>
         [HttpGet("{org}/{app}/api/authorization/parties/current")]
         public async Task<ActionResult> GetCurrentParty(bool returnPartyObject = false)
         {
-            UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
+            UserContext userContext = await _userHelper.GetUserContext(HttpContext);
             int userId = userContext.UserId;
             string cookieValue = Request.Cookies[_settings.GetAltinnPartyCookieName];
             int.TryParse(cookieValue, out int partyId);
@@ -85,7 +85,7 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        /// Checks if the user can represent the selected party. 
+        /// Checks if the user can represent the selected party.
         /// </summary>
         /// <param name="userId">The userId</param>
         /// <param name="partyId">The partyId</param>

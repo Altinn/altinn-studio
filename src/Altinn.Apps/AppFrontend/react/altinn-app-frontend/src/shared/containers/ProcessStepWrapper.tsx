@@ -8,7 +8,7 @@ import { IRuntimeState, ProcessSteps, IAltinnWindow } from '../../types';
 import ProcessStep from './ProcessStep';
 import Form from '../../features/form/containers/Form';
 import ReceiptContainer from '../../features/receipt/containers/receiptContainer';
-import { Confirm } from '../../features/confirm/containers/Confirm';
+import Confirm from '../../features/confirm/containers/Confirm';
 import UnknownError from '../../features/instantiate/containers/UnknownError';
 import QueueActions from '../resources/queue/queueActions';
 import IsLoadingActions from '../resources/isLoading/isLoadingActions';
@@ -44,6 +44,9 @@ export default (props) => {
         QueueActions.startInitialDataTaskQueue();
       }
       case (ProcessSteps.Confirm): {
+        IsLoadingActions.finishDataTaskIsloading();
+      }
+      case (ProcessSteps.Archived): {
         IsLoadingActions.finishDataTaskIsloading();
       }
     }
@@ -85,11 +88,7 @@ export default (props) => {
           }
           {processStep === ProcessSteps.Confirm &&
             <div id='ConfirmContainer'>
-              <Confirm
-                language={textResources}
-                partyId={partyId}
-                instanceGuid={instanceGuid}
-              />
+              <Confirm />
             </div>
           }
           </>

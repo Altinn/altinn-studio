@@ -1,4 +1,4 @@
-import { ITitle, IDataType } from "../../../../../shared/src/types";
+import { ITitle, IDataType, IPresentationFields, IPresentationField } from "../../../../../shared/src/types";
 
 export interface IApplicationMetadata {
   createdBy: string;
@@ -15,6 +15,7 @@ export interface IApplicationMetadata {
   validTo: string;
   versionId: string;
   WorkflowId: string;
+  presentationFields?: IPresentationField[];
 }
 
 interface IPartyTypesAllowed {

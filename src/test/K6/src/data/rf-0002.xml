@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<SkattemeldingMva xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" dataFormatProvider="Skatteetaten" dataFormatId="212" dataFormatVersion="20160523">
+  <skattepliktig>
+    <organisasjonsnummer>98765432</organisasjonsnummer>
+    <organisasjonsnavn>Test Org</organisasjonsnavn>
+  </skattepliktig>
+  <meldingsopplysning>
+    <termintype>test</termintype>
+    <aar>0001-01-01T00:00:00</aar>
+  </meldingsopplysning>
+  <mvaAvgift>
+    <innlandOmsetningUttakHoeySats>25</innlandOmsetningUttakHoeySats>
+    <innlandOmsetningUttakMiddelsSats xsi:nil="true" />
+    <innlandOmsetningUttakLavSats xsi:nil="true" />
+    <innfoerselVareHoeySats xsi:nil="true" />
+    <innfoerselVareMiddelsSats xsi:nil="true" />
+    <kjoepUtlandTjenesteHoeySats xsi:nil="true" />
+    <kjoepInnlandVareTjenesteHoeySats xsi:nil="true" />
+    <fradragInnlandInngaaendeHoeySats xsi:nil="true" />
+    <fradragInnlandInngaaendeMiddelsSats>100</fradragInnlandInngaaendeMiddelsSats>
+    <fradragInnlandInngaaendeLavSats xsi:nil="true" />
+    <fradragInnfoerselMvaHoeySats xsi:nil="true" />
+    <fradragInnfoerselMvaMiddelsSats xsi:nil="true" />
+  </mvaAvgift>
+  <mvaGrunnlag>
+    <sumOmsetningUtenforMva>100</sumOmsetningUtenforMva>
+    <sumOmsetningInnenforMvaUttakOgInnfoersel>100</sumOmsetningInnenforMvaUttakOgInnfoersel>
+    <innlandOmsetningUttakHoeySats>100</innlandOmsetningUttakHoeySats>
+    <innlandOmsetningUttakMiddelsSats xsi:nil="true" />
+    <innlandOmsetningUttakLavSats xsi:nil="true" />
+    <innlandOmsetningUttakFritattMva xsi:nil="true" />
+    <innlandOmsetningOmvendtAvgiftsplikt xsi:nil="true" />
+    <utfoerselVareTjenesteFritattMva xsi:nil="true" />
+    <innfoerselVareHoeySats xsi:nil="true" />
+    <innfoerselVareMiddelsSats xsi:nil="true" />
+    <innfoerselVareFritattMva xsi:nil="true" />
+    <kjoepUtlandTjenesteHoeySats xsi:nil="true" />
+    <kjoepInnlandVareTjenesteHoeySats xsi:nil="true" />
+  </mvaGrunnlag>
+</SkattemeldingMva>

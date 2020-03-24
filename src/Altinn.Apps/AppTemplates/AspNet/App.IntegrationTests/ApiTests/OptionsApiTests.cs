@@ -31,7 +31,7 @@ namespace App.IntegrationTestsRef.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             List<AppOption> options = JsonConvert.DeserializeObject<List<AppOption>>(responseContent);
@@ -50,7 +50,7 @@ namespace App.IntegrationTestsRef.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
             List<AppOption> options = JsonConvert.DeserializeObject<List<AppOption>>(responseContent);
