@@ -329,7 +329,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, authLevel.Substring(authLevel.Length - 1, 1), ClaimValueTypes.Integer32, issuer));
                 claims.AddRange(token.Claims);
 
-                string[] claimTypesToRemove = { "aud", "iss", "at_hash", "jti" };
+                string[] claimTypesToRemove = { "aud", "iss", "at_hash", "jti", "sub" };
                 foreach (string claimType in claimTypesToRemove)
                 {
                     Claim claim = claims.Find(c => c.Type == claimType);
