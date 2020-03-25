@@ -591,7 +591,7 @@ namespace Altinn.App.Api.Controllers
                             return true;
                         }
                         break;
-                    case "orgNo":
+                    case "orgno":
                         if (value.Equals(user.GetOrgNumber().ToString()))
                         {
                             return true;
