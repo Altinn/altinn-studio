@@ -40,7 +40,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Examples are: org:ttd, orgno:123456789, role:DAGL
         /// </summary>
         [JsonProperty(PropertyName = "allowedContributers")]
-        public List<string> AllowedContributerd { get; set; }
+        public List<string> AllowedContributers { get; set; }
 
         /// <summary>
         /// Gets or sets an object with information about how the application logic will handle the data element.
