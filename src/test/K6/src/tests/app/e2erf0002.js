@@ -15,22 +15,25 @@ export const options = {
     thresholds:{
         "errors": ["count<1"]
     },
-    vus: 100,
-   /*  stages: [        
-        { duration: '10m', target: 100 }
-      ] */
-    iterations: 100
+    vus: 20,
+     stages: [                
+        { duration: '1m', target: 10 },
+        { duration: '10m', target: 20 }
+      ]  
 };
 
 //Tests for App API: RF-0002
 export default function() {
-    var aspxauthCookie = setUpData.authenticateUser(users[__VU - 1].username, users[__VU - 1].password);  
+    var userNumber = (__VU - 1) % users.length;
+    
+    //console.log("VU:" + userNumber + "/U:" + users[userNumber].username + "/P:" + users[userNumber].password );
+    var aspxauthCookie = setUpData.authenticateUser(users[userNumber].username, users[userNumber].password);  
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
     //var data = setUpData.getUserData(runtimeToken);
     setUpData.clearCookies();
     //var orgPartyId = postPartieslookup(runtimeToken, "OrgNo", data["orgNumber"])
     //data.orgPartyId = JSON.parse(orgPartyId.body).partyId;    
-    const partyId = users[__VU - 1].partyid;  
+    const partyId = users[userNumber].partyid;  
     var instanceId = "";    
     var dataId = "";  
     sleep(1);
