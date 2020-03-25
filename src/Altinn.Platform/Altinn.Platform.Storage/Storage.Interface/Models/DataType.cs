@@ -37,7 +37,6 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Gets or sets a list of allowed contributers.
         /// Value should be preceded by an approved key.
         /// If null or empty no contributer restrictions are set.
-        /// Examples are: org:ttd, orgno:123456789, role:DAGL
         /// </summary>
         [JsonProperty(PropertyName = "allowedContributers")]
         public List<string> AllowedContributers { get; set; }
