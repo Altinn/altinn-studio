@@ -103,9 +103,9 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
             return Task.FromResult(options);
         }
 
-        public override Task RunProcessTaskEnd(string taskId, Instance instance)
+        public override async Task RunProcessTaskEnd(string taskId, Instance instance)
         {
-            return Task.CompletedTask;
+            return;
         }
     }
 }
