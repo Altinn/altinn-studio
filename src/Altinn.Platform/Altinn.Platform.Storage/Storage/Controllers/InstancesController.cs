@@ -445,7 +445,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
         /// <returns>Returns a list of the process events.</returns>        
-        [Authorize]
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_COMPLETE)]
         [HttpPost("{instanceOwnerPartyId:int}/{instanceGuid:guid}/complete")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Produces("application/json")]
