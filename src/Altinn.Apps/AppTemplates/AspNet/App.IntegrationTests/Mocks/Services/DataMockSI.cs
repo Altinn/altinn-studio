@@ -53,7 +53,9 @@ namespace App.IntegrationTests.Mocks.Services
 
         public Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string dataType, HttpRequest request)
         {
-            throw new NotImplementedException();
+            return Task.FromResult( new DataElement {
+                Id = Guid.NewGuid().ToString(),
+                InstanceGuid = instanceGuid.ToString() });
         }
 
         public async Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type)
