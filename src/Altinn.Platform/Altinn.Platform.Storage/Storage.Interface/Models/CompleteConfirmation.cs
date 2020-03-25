@@ -8,6 +8,7 @@ namespace Altinn.Platform.Storage.Interface.Models
     /// Represents information about when a given stakeholder informed Altinn that they consider their own process as complete
     /// in regards to the instance. A typical stakeholder is the application owner. 
     /// </summary>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class CompleteConfirmation
     {
         /// <summary>
