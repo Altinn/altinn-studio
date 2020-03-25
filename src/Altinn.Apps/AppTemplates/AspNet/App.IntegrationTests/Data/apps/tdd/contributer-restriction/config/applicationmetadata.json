@@ -23,7 +23,7 @@
     {
       "id": "customElement",
       "maxCount": 1,
-      "allowedContributers": [ "org:tdd", "orgno:160694123" ],
+      "allowedContributers": [ "org:tdd", "orgno:160694123", "invalidKey:value" ],
       "taskId": "Task_1"
     },
     {

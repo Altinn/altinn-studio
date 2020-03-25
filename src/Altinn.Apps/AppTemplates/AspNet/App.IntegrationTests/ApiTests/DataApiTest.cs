@@ -281,6 +281,10 @@ namespace App.IntegrationTests.ApiTests
             TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 500600, guid);
         }
 
+        /// <summary>
+        /// Test case: post data as a user not included in allowed contributers
+        /// Expected: no match in allowed contributers. Forbidden is returned.
+        /// </summary>
         [Fact]
         public async Task Data_Post_WithContributerRestriction_Forbidden()
         {
@@ -302,6 +306,10 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
+        /// <summary>
+        /// Test case: post data as a org with org name included in allowed contributers
+        /// Expected: match in allowed contributers. Data element is uploaded.
+        /// </summary>
         [Fact]
         public async Task Data_Post_WithContributerOrgRestriction_Ok()
         {
@@ -323,6 +331,10 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
+        /// <summary>
+        /// Test case: post data as a org with org number included in allowed contributers
+        /// Expected: match in allowed contributers. Data element is uploaded.
+        /// </summary>
         [Fact]
         public async Task Data_Post_WithContributerOrgNoRestriction_Ok()
         {

@@ -109,8 +109,6 @@ namespace Altinn.App.Api.Controllers
                     return Forbid();
                 }
 
-
-
                 bool appLogic = dataTypeFromMetadata.AppLogic != null;
 
                 Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
@@ -569,7 +567,7 @@ namespace Altinn.App.Api.Controllers
             return true;
         }
 
-        private bool IsValidContributer(DataType dataType, ClaimsPrincipal user)
+        private static bool IsValidContributer(DataType dataType, ClaimsPrincipal user)
         {
             if (dataType.AllowedContributers == null || dataType.AllowedContributers.Count == 0)
             {
@@ -580,8 +578,6 @@ namespace Altinn.App.Api.Controllers
             {
                 string key = item.Split(':')[0];
                 string value = item.Split(':')[1];
-
-                _logger.LogInformation($"/////////////////////////// Key: {key}  value: {value}");
 
                 switch (key.ToLower())
                 {
