@@ -47,22 +47,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic.Validation
 
         public async Task ValidateTask(Instance instance, string task, ModelStateDictionary validationResults)
         {
-            DateTime valid = instance.Process.CurrentTask.Started.Value.AddSeconds(10);
-
-            switch (task)
-            {
-                case "Task_1":
-                    break;
-                case "Task_2":
-                    if (DateTime.UtcNow < valid)
-                    {
-                        validationResults.AddModelError("Time", "Validation time has not yet occured.");
-                    }
-                    break;
-                default:
-                    break;
-            }
-           
             await Task.CompletedTask;
         }
     }

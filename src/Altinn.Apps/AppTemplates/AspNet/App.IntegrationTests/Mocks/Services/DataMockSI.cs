@@ -33,9 +33,10 @@ namespace App.IntegrationTests.Mocks.Services
         {
             string dataPath = GetDataBlobPath(org, app.Split("/")[1], instanceOwnerId, instanceGuid, dataId);
 
-            Stream fs = File.OpenRead(dataPath);
-
-            return Task.FromResult(fs);
+            using (Stream fs = File.OpenRead(dataPath))
+            {
+                return Task.FromResult(fs);
+            }
         }
 
         public Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid)
@@ -82,6 +83,7 @@ namespace App.IntegrationTests.Mocks.Services
                 await request.Body.CopyToAsync(streamToWriteTo);
                 streamToWriteTo.Flush();
                 filesize = streamToWriteTo.Length;
+                streamToWriteTo.Close();
             }
 
             dataElement.Size = filesize;
