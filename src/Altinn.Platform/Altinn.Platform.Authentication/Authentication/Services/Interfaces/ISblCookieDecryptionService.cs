@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Altinn.Platform.Authentication.Model;
 
-namespace Altinn.Platform.Authentication.Services
+namespace Altinn.Platform.Authentication.Services.Interfaces
 {
     /// <summary>
     /// Defines the methods needed to decrypt an SBL .ASPXAUTH cookie.

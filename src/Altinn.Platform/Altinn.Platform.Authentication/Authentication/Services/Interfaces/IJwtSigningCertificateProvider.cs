@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
-namespace Altinn.Platform.Authentication.Services
+namespace Altinn.Platform.Authentication.Services.Interfaces
 {
     /// <summary>
     /// Defines the methods to obtain a <see cref="X509Certificate2"/> instance that can be used when generating JSON Web Tokens.

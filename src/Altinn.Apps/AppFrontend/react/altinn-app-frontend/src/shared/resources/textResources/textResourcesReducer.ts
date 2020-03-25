@@ -7,11 +7,13 @@ import * as ActionTypes from './fetch/fetchTextResourcesActionTypes';
 export interface ITextResourcesState {
   language: string;
   resources: ITextResource[];
+  error: Error;
 }
 
 const initialState: ITextResourcesState = {
   language: null,
   resources: [],
+  error: null,
 };
 
 const TextResourcesReducer: Reducer<ITextResourcesState> = (

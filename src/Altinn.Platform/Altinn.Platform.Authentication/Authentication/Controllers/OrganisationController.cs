@@ -1,5 +1,8 @@
+using System.Threading.Tasks;
+
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Repositories;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -31,17 +34,17 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <param name="org">Organisation identifier. Usually a 2-4 character abbreviation of organisation name</param>
         /// <returns>an organisation</returns>
         [HttpGet("organisations")]
-        public ActionResult<Organisation> GetOrganisation([FromQuery] int? orgNumber, [FromQuery] string org)
+        public async Task<ActionResult> GetOrganisation([FromQuery] int? orgNumber, [FromQuery] string org)
         {
             Organisation organisation;
 
             if (orgNumber.HasValue)
             {
-                organisation = organisationRepository.GetOrganisationByOrgNumber(orgNumber.ToString());
+                organisation = await organisationRepository.GetOrganisationByOrgNumber(orgNumber.ToString());
             }
             else if (!string.IsNullOrEmpty(org))
             {
-                organisation = organisationRepository.GetOrganisationByOrg(org);
+                organisation = await organisationRepository.GetOrganisationByOrg(org);
             }
             else
             {

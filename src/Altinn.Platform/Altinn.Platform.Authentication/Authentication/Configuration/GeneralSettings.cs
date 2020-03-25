@@ -34,20 +34,14 @@ namespace Altinn.Platform.Authentication.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the bridge api endpoint
+        /// Gets or sets the bridge authentication api endpoint
         /// </summary>
-        public string BridgeApiEndpoint { get; set; }
+        public string BridgeAuthnApiEndpoint { get; set; }
 
         /// <summary>
-        /// Gets the bridge api endpoint from kubernetes environment variables and appsettings if environment variable is not set
+        /// Gets or sets the bridge authentication api endpoint
         /// </summary>
-        public string GetBridgeApiEndpoint
-        {
-            get
-            {
-                return Environment.GetEnvironmentVariable("GeneralSettings__BridgeApiEndpoint") ?? BridgeApiEndpoint;
-            }
-        }
+        public string BridgeProfileApiEndpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the sbl redirect endpoint
@@ -139,6 +133,11 @@ namespace Altinn.Platform.Authentication.Configuration
                        MaskinportenWellKnownConfigEndpoint;
             }
         }
+
+        /// <summary>
+        /// Gets url of the well known configuration endpoint for ID-porten from environment variable.
+        /// </summary>
+        public string IdPortenWellKnownConfigEndpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the url to the json file which holds the valid organisation entries (which inclides name, organisation number and org identifier)
