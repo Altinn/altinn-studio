@@ -6,6 +6,7 @@ namespace Altinn.Platform.Storage.Interface.Models
     /// Information about the platform user, that is the identity of the client doing the action and his/hers authentication level.
     /// It can be a person (UserId) or an organisation (OrgId). And the user can have logged in via an end user system or not.
     /// </summary>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class PlatformUser
     {
         /// <summary>

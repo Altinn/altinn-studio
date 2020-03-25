@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.21-alpha" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.9" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.11" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.3.0-alpha" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
@@ -34,8 +34,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.2.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="5.2.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.2.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

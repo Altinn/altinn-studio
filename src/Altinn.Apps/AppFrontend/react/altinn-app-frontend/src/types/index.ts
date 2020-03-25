@@ -16,6 +16,7 @@ import { IProcessState } from '../shared/resources/process/processReducer';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
 import {IQueueState} from '../shared/resources/queue/queueReducer';
 import { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
+import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
 
 export interface IRuntimeState {
   applicationMetadata: IApplicationMetadataState;
@@ -25,6 +26,7 @@ export interface IRuntimeState {
   formDataModel: IDataModelState;
   formDynamics: IFormDynamicState;
   formLayout: ILayoutState;
+  formRules: IFormRuleState;
   formValidations: IValidationState;
   instanceData: IInstanceDataState;
   instantiation: IInstantiationState;

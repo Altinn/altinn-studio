@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Microsoft.IdentityModel.Tokens;
 
-namespace Altinn.Platform.Authentication.Services
+namespace Altinn.Platform.Authentication.Services.Interfaces
 {
     /// <summary>
     /// Defines methods to retrieve signing keys from a remote well-known OpenID configuration endpoint

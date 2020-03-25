@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Altinn.Platform.Authentication.Services.Interfaces;
 using AltinnCore.Authentication.Constants;
 
 using Microsoft.Azure.KeyVault;

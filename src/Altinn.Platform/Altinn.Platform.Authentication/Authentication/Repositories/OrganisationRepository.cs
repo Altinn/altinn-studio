@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
 using Microsoft.Extensions.Logging;
@@ -37,25 +38,25 @@ namespace Altinn.Platform.Authentication.Repositories
         }
 
         /// <inheritdoc/>
-        public Organisation GetOrganisationByOrgNumber(string orgNumber)
+        public async Task<Organisation> GetOrganisationByOrgNumber(string orgNumber)
         {
-            HarvestOrgsIfCacheIsMoreThanOneHourOld();
+            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
 
             return orgNumberToOrganisation.GetValueOrDefault(orgNumber, null);
         }
 
         /// <inheritdoc/>
-        public Organisation GetOrganisationByOrg(string org)
+        public async Task<Organisation> GetOrganisationByOrg(string org)
         {
-            HarvestOrgsIfCacheIsMoreThanOneHourOld();
+            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
 
             return orgToOrganisation.GetValueOrDefault(org, null);
         }
 
         /// <inheritdoc/>
-        public string LookupOrg(string orgNumber)
+        public async Task<string> LookupOrg(string orgNumber)
         {
-            HarvestOrgsIfCacheIsMoreThanOneHourOld();
+            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
 
             Organisation organisation = orgNumberToOrganisation.GetValueOrDefault(orgNumber, null);
 
@@ -63,39 +64,39 @@ namespace Altinn.Platform.Authentication.Repositories
         }
 
         /// <inheritdoc/>
-        public string LookupOrgNumber(string org)
+        public async Task<string> LookupOrgNumber(string org)
         {
-            HarvestOrgsIfCacheIsMoreThanOneHourOld();
+            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
 
             Organisation organisation = orgToOrganisation.GetValueOrDefault(org, null);
 
             return organisation?.OrgNumber;
         }
 
-        private void HarvestOrgsIfCacheIsMoreThanOneHourOld()
+        private async Task HarvestOrgsIfCacheIsMoreThanOneHourOld()
         {
             DateTime timestamp = DateTime.Now;
             timestamp = timestamp.AddHours(-1);
 
             if (dictionaryLastUpdated < timestamp || orgNumberToOrganisation.Count == 0)
             {
-                HarvestOrgs();
+               await HarvestOrgs();
             }
         }
 
         /// <inheritdoc/>
-        public void HarvestOrgs()
+        public async Task HarvestOrgs()
         {
             logger.LogInformation($"Authentication harvest of organisation from '{organisationListLocation}' starts.");
 
             Dictionary<string, Organisation> organisationHarvest = null;
             try
             {
-                HttpResponseMessage response = _httpClient.GetAsync(organisationListLocation).Result;
+                HttpResponseMessage response = await _httpClient.GetAsync(organisationListLocation);
 
                 response.EnsureSuccessStatusCode();
 
-                JObject orgs = JObject.Parse(response.Content.ReadAsStringAsync().Result);
+                JObject orgs = JObject.Parse(await response.Content.ReadAsStringAsync());
 
                 orgs = (JObject)orgs.GetValue("orgs");
 
