@@ -5,6 +5,7 @@ namespace Altinn.Platform.Storage.Interface.Models
     /// <summary>
     /// Represents an object with information about how the data type is handled by the application logic.
     /// </summary>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ApplicationLogic
     {
         /// <summary>

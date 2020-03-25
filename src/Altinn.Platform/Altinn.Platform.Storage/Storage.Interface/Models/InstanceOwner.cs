@@ -1,4 +1,3 @@
-using System;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Interface.Models
@@ -6,7 +5,6 @@ namespace Altinn.Platform.Storage.Interface.Models
     /// <summary>
     /// Represents information to identify the owner of an instance.
     /// </summary>
-    [Serializable]
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class InstanceOwner
     {
