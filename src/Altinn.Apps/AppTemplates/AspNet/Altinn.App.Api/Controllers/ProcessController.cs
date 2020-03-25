@@ -533,6 +533,7 @@ namespace Altinn.App.Api.Controllers
             switch (currentTaskType)
             {
                 case "data":
+                case "feedback":
                     actionType = "write";
                     break;
                 case "confirmation":

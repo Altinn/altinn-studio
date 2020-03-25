@@ -11,3 +11,5 @@ export const START_PROCESS_REJECTED: string = `${moduleName}.START_PROCESS_REJEC
 export const COMPLETE_PROCESS: string = `${moduleName}.COMPLETE_PROCESS`;
 export const COMPLETE_PROCESS_FULFILLED: string = `${moduleName}.COMPLETE_PROCESS_FULFILLED`;
 export const COMPLETE_PROCESS_REJECTED: string = `${moduleName}.COMPLETE_PROCESS_REJECTED`;
+
+export const CHECK_PROCESS_UPDATED: string = `${moduleName}.CHECK_PROCESS_UPDATED`;
