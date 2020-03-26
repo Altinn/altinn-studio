@@ -289,7 +289,7 @@ namespace Altinn.App.Services.Implementation
             if (!string.IsNullOrEmpty(fileName))
             {
                 string contentHeaderString = $"attachment; filename={fileName}";
-                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(GetComplientContentHeader(contentHeaderString));
+                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(RequestHelper.GetComplientContentHeader(contentHeaderString));
             }
 
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
@@ -341,7 +341,7 @@ namespace Altinn.App.Services.Implementation
 
             if (request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
             {
-                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(GetComplientContentHeader(headerValues.ToString()));
+                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(RequestHelper.GetComplientContentHeader(headerValues.ToString()));
             }
 
             return content;
@@ -367,33 +367,5 @@ namespace Altinn.App.Services.Implementation
             throw new PlatformHttpException(response);
         }
 
-        private static string GetComplientContentHeader(string headerValues)
-        {
-            // Remove all spaces from filename
-            StringBuilder bld = new StringBuilder();
-            string keyWord = "filename=";
-            int splitIndex = headerValues.IndexOf(keyWord) + keyWord.Length;
-
-            // Add everything up to 'filename='
-            bld.Append(headerValues.Substring(0, splitIndex));
-
-            //find position of the filename
-            string remainder = headerValues.Substring(splitIndex);
-            int endIndex = remainder.IndexOf(';');
-
-            // if filename isn't the last parameter the string must be split and then rest appended later
-            if (endIndex > 0)
-            {
-                string fileName = remainder.Substring(0, endIndex);
-                bld.Append(Regex.Replace(fileName, @"\s+", "_"));
-                bld.Append(remainder.Substring(endIndex));
-            }
-            else
-            {
-                bld.Append(Regex.Replace(remainder, @"\s+", "_"));
-            }
-
-            return bld.ToString();
-        }
     }
 }
