@@ -56,42 +56,47 @@ export default function() {
             "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201        
         });  
         addErrorCount(success);
-        sleep(1);    
+        //sleep(1);    
+        if (res.status === 201){
+            //Test to get validate instance and verify that validation of instance is ok
+            res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId);
+            success = check(res, {
+                "E2E App GET Validate Instance validation OK:": (r) => (JSON.parse(r.body)).length === 0     
+            });  
+            addErrorCount(success);
+            //sleep(1);
 
-        //Test to get validate instance and verify that validation of instance is ok
-        res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId);
-        success = check(res, {
-            "E2E App GET Validate Instance validation OK:": (r) => (JSON.parse(r.body)).length === 0     
-        });  
-        addErrorCount(success);
-        sleep(1);
+            if ((JSON.parse(res.body)).length === 0){
+                    //Test to get next process of an app instance again and verify response code  to be 200
+                    res = appProcess.getNextProcess(runtimeToken, partyId, instanceId);
+                   // sleep(1);
+                    if (res.status === 200){   
+                        var nextElement = (JSON.parse(res.body))[0];
 
-        //Test to get next process of an app instance again and verify response code  to be 200
-        res = appProcess.getNextProcess(runtimeToken, partyId, instanceId);
-        sleep(1);
+                        //Test to move the process of an app instance to the next process element and verify response code to be 200
+                        res = appProcess.putNextProcess(runtimeToken, partyId, instanceId, nextElement);
+                        success = check(res, {
+                            "E2E App PUT Move process to Next element status is 200:": (r) => r.status === 200      
+                        });  
+                        addErrorCount(success);
+                        //sleep(1);
 
-        var nextElement = (JSON.parse(res.body))[0];
-
-        //Test to move the process of an app instance to the next process element and verify response code to be 200
-        res = appProcess.putNextProcess(runtimeToken, partyId, instanceId, nextElement);
-        success = check(res, {
-            "E2E App PUT Move process to Next element status is 200:": (r) => r.status === 200      
-        });  
-        addErrorCount(success);
-        sleep(1);
-
-        //Test to call get instance details and verify the presence of archived date
-        res = appInstances.getInstanceById(runtimeToken, partyId, instanceId);    
-        success = check(res, {
-            "E2E App Instance is archived:": (r) => (JSON.parse(r.body)).status.archived != null
-        }); 
-        sleep(1);
-
-        deleteSblInstance(runtimeToken, partyId, instanceId, "true");    
-        sleep(1); 
+                        if (res.status === 200){   
+                            //Test to call get instance details and verify the presence of archived date
+                            res = appInstances.getInstanceById(runtimeToken, partyId, instanceId);    
+                            success = check(res, {
+                                "E2E App Instance is archived:": (r) => (JSON.parse(r.body)).status.archived != null
+                            }); 
+                           // sleep(1);
+                           if ((JSON.parse(res.body)).status.archived != null){
+                                deleteSblInstance(runtimeToken, partyId, instanceId, "true");    
+                                // sleep(1); 
+                           } else {console.log("Instance Archived:" + users[__VU - 1].partyId + "code:" + JSON.stringify(res.status) + "body:" + JSON.stringify(res.body));}
+                    } else {console.log("PUT Next Process:" + users[__VU - 1].partyId + "code:" + JSON.stringify(res.status) + "body:" + JSON.stringify(res.body));}
+                } else {console.log("GET Next Process:" + users[__VU - 1].partyId + "code:" + JSON.stringify(res.status) + "body:" + JSON.stringify(res.body));}
+            } else {console.log("GET Validate instance:" + users[__VU - 1].partyId + "code:" + JSON.stringify(res.status) + "body:" + JSON.stringify(res.body));}
+        } else {console.log("PUT Edit instance Data:" + users[__VU - 1].partyId + "code:" + JSON.stringify(res.status) + "body:" + JSON.stringify(res.body));}
     }else{
-        console.log(__VU + "VU:" + users[__VU - 1].username);
-        console.log(__VU + "/" + JSON.stringify(instanceId.status));
-        console.log(__VU + "/" + JSON.stringify(instanceId.body));
-    };   
+        console.log("Post create instance:" + users[__VU - 1].partyId + + "code:" + JSON.stringify(instanceId.status) + "body:" + JSON.stringify(instanceId.body));
+        };   
 };
