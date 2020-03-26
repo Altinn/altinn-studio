@@ -372,7 +372,7 @@ namespace Altinn.App.Services.Implementation
             // Remove all spaces from filename
             StringBuilder bld = new StringBuilder();
             string keyWord = "filename=";
-            int splitIndex = headerValues.IndexOf("filename=") + keyWord.Length;
+            int splitIndex = headerValues.IndexOf(keyWord) + keyWord.Length;
 
             // Add everything up to 'filename='
             bld.Append(headerValues.Substring(0, splitIndex));
@@ -385,12 +385,8 @@ namespace Altinn.App.Services.Implementation
             if (endIndex > 0)
             {
                 string fileName = remainder.Substring(0, endIndex);
-                bld.Append(Regex.Replace(fileName, @"\s+", ""));
-
-                if (endIndex < remainder.Length)
-                {
-                    bld.Append(remainder.Substring(endIndex));
-                }
+                bld.Append(Regex.Replace(fileName, @"\s+", "_"));
+                bld.Append(remainder.Substring(endIndex));
             }
             else
             {
