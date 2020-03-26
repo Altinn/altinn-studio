@@ -38,6 +38,10 @@ export const nb = () => (
       max_date_exeeded: 'Dato valgt er etter seneste dato tillat',
       aria_label_icon: 'Åpne datovelger'
     },
+    feedback: {
+      title: 'Du blir snart videresendt',
+      body: 'Vi venter på verifikasjon, når den er på plass blir du videresendt.'
+    },
     form_filler: {
       error_report_header: 'Det er feil i skjema',
       error_report_description: 'Skjemaet inneholder feil eller mangler som hindrer oss fra å sende det inn. Når du har rettet feilene, kan du sende inn skjemaet på nytt.',
