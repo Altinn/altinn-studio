@@ -68,7 +68,7 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 _logger.LogError($"Unable to fetch instance with instance id {instanceGuid}");
-                throw new PlatformHttpException(response);
+                throw await PlatformHttpException.CreateAsync(response);
             }
         }
 
@@ -106,7 +106,7 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 _logger.LogError("Unable to fetch instances");
-                throw new PlatformHttpException(response);
+                throw await PlatformHttpException.CreateAsync(response);
             }
         }
 
@@ -128,7 +128,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Unable to update instance with instance id {instance.Id}");
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
@@ -155,7 +155,7 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 _logger.LogError($"Unable to update instance process with instance id {instance.Id}");
-                throw new PlatformHttpException(response);
+                throw await PlatformHttpException.CreateAsync(response);
             }
         }
 
@@ -177,7 +177,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Unable to create instance {response.StatusCode} - {await response.Content?.ReadAsStringAsync()}");
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
     }
 }
