@@ -12,7 +12,8 @@ export function postStartProcess(altinnStudioRuntimeCookie, partyId, instaceId){
 //Api call to App Api:Process to move process of an app instance to a specific process element and returns response
 export function putNextProcess(altinnStudioRuntimeCookie, partyId, instaceId, processElement){    
     var endpoint = config.buildAppApiUrls(partyId, instaceId, "", "process") + "/next?elementId=" + processElement;
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");    
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");  
+    params.timeout = 120000;
     return http.put(endpoint, null, params);
 };
 
