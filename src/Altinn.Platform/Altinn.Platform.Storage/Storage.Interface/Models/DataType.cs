@@ -34,6 +34,14 @@ namespace Altinn.Platform.Storage.Interface.Models
         public List<string> AllowedContentTypes { get; set; }
 
         /// <summary>
+        /// Gets or sets a list of allowed contributers.
+        /// Value should be preceded by an approved key.
+        /// If null or empty no contributer restrictions are set.
+        /// </summary>
+        [JsonProperty(PropertyName = "allowedContributers")]
+        public List<string> AllowedContributers { get; set; }
+
+        /// <summary>
         /// Gets or sets an object with information about how the application logic will handle the data element.
         /// </summary>
         [JsonProperty(PropertyName = "appLogic")]
