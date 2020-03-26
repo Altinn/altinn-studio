@@ -184,6 +184,7 @@ namespace Altinn.Platform.Storage
                     // catch swashbuckle exception if it doesn't find the generated xml documentation file
                 }
             });
+            services.AddSwaggerGenNewtonsoftSupport();
         }
 
         private string GetXmlCommentsPathForControllers()
