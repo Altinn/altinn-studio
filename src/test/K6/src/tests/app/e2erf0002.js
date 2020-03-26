@@ -15,9 +15,9 @@ export const options = {
     thresholds:{
         "errors": ["count<1"]
     },
-    vus: 50,
+    vus: 20,
      stages: [
-        { duration: '10m', target: 50 }
+        { duration: '5m', target: 20 }
       ]
 };
 

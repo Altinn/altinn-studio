@@ -28,6 +28,7 @@ export function getCurrentProcess(altinnStudioRuntimeCookie, partyId, instaceId)
 export function getNextProcess(altinnStudioRuntimeCookie, partyId, instaceId){    
     var endpoint = config.buildAppApiUrls(partyId, instaceId, "", "process") + "/next";
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");    
+    params.timeout = 120000;
     return http.get(endpoint, params);
 };
 
