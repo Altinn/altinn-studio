@@ -364,7 +364,7 @@ namespace Altinn.Platform.Storage.Controllers
                 dataElement.LastChanged = changedTime;
                 dataElement.Refs = updatedData.Refs;
 
-                dataElement.Size = _dataRepository.WriteDataToStorage(instance.Org, theStream, blobStoragePathName).Result;
+                dataElement.Size = await _dataRepository.WriteDataToStorage(instance.Org, theStream, blobStoragePathName);
 
                 if (dataElement.Size > 0)
                 {
