@@ -2,10 +2,14 @@ using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
@@ -13,10 +17,11 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class DataMockSI : IData
     {
+        private readonly IAppResources _applicationService;
 
-        public DataMockSI()
+        public DataMockSI(IAppResources application)
         {
-
+            _applicationService = application;
         }
 
         public Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
@@ -26,7 +31,12 @@ namespace App.IntegrationTests.Mocks.Services
 
         public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
-            throw new NotImplementedException();
+            string dataPath = GetDataBlobPath(org, app.Split("/")[1], instanceOwnerId, instanceGuid, dataId);
+
+            using (Stream fs = File.OpenRead(dataPath))
+            {
+                return Task.FromResult(fs);
+            }
         }
 
         public Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid)
@@ -53,11 +63,37 @@ namespace App.IntegrationTests.Mocks.Services
 
         public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string dataType, HttpRequest request)
         {
-            return new DataElement
+            Guid dataGuid = Guid.NewGuid();
+            string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
+            Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
+            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = "application/xml", };
+
+       
+            if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
             {
-                Id = Guid.NewGuid().ToString(),
-                InstanceGuid = instanceGuid.ToString()
-            };
+                Directory.CreateDirectory(Path.GetDirectoryName(dataPath));
+            }
+
+            Directory.CreateDirectory(dataPath + @"blob");
+
+            long filesize;
+
+            using (Stream streamToWriteTo = File.Open(dataPath + @"blob\" + dataGuid.ToString(), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                await request.Body.CopyToAsync(streamToWriteTo);
+                streamToWriteTo.Flush();
+                filesize = streamToWriteTo.Length;
+                streamToWriteTo.Close();
+            }
+
+            dataElement.Size = filesize;
+            string jsonData = JsonConvert.SerializeObject(dataElement);
+            using StreamWriter sw = new StreamWriter(dataPath + dataGuid.ToString() + @".json");
+
+            sw.Write(jsonData.ToString());
+            sw.Close();
+
+            return dataElement;
         }
 
         public async Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type)
@@ -163,9 +199,40 @@ namespace App.IntegrationTests.Mocks.Services
             return dataElements;
         }
 
-        public Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream)
+        public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream)
         {
-            throw new NotImplementedException();
+            Application app = _applicationService.GetApplication();
+
+
+            Guid dataGuid = Guid.NewGuid();
+            string dataPath = GetDataPath(app.Org, app.Id.Split("/")[1], Convert.ToInt32(instanceId.Split("/")[0]), new Guid(instanceId.Split("/")[1]));
+
+            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = contentType, };
+
+            if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(dataPath));
+            }
+
+            Directory.CreateDirectory(dataPath + @"blob");
+
+            long filesize;
+
+            using (Stream streamToWriteTo = File.Open(dataPath + @"blob\" + dataGuid.ToString(), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                await stream.CopyToAsync(streamToWriteTo);
+                streamToWriteTo.Flush();
+                filesize = streamToWriteTo.Length;
+            }
+
+            dataElement.Size = filesize;
+            string jsonData = JsonConvert.SerializeObject(dataElement);
+            using StreamWriter sw = new StreamWriter(dataPath + dataGuid.ToString() + @".json");
+
+            sw.Write(jsonData.ToString());
+            sw.Close();
+
+            return dataElement;
         }
 
         public Task<DataElement> Update(Instance instance, DataElement dataElement)
@@ -184,6 +251,25 @@ namespace App.IntegrationTests.Mocks.Services
             sw.Close();
 
             return Task.FromResult(dataElement);
+        }
+
+        private static StreamContent CreateContentStream(HttpRequest request)
+        {
+            StreamContent content = new StreamContent(request.Body);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
+
+            if (request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
+            {
+                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(headerValues.ToString());
+            }
+
+            return content;
+        }
+
+        private string GetInstancePath(string app, string org)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\");
         }
     }
 }

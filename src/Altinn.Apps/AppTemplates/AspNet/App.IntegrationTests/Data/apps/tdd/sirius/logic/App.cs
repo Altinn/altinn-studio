@@ -8,12 +8,15 @@ using Altinn.App.Common.Enums;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.App.Common.Models;
-using App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic;
-using App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic.Validation;
-using App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic.Calculation;
+using App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic;
+using App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic.Validation;
+using App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic.Calculation;
 using Microsoft.AspNetCore.Http;
+using App.IntegrationTestsRef.Data.apps.tdd.sirius.services;
+using System.Linq;
+using System.IO;
 
-namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
+namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
 {
     public class App : AppBase, IAltinnApp
     {
@@ -21,6 +24,8 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
         private readonly ValidationHandler _validationHandler;
         private readonly CalculationHandler _calculationHandler;
         private readonly InstantiationHandler _instantiationHandler;
+        private readonly ISiriusApi _siriusApi;
+        private readonly IData _dataService;
 
         public App(
             IAppResources appResourcesService,
@@ -32,6 +37,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
             IRegister registerService,
             IPrefill prefillService,
             IInstance instanceService,
+            ISiriusApi siriusService,
             IHttpContextAccessor accessor
             ) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
         {
@@ -39,6 +45,8 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
             _validationHandler = new ValidationHandler(instanceService);
             _calculationHandler = new CalculationHandler();
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
+            _dataService = dataService;
+            _siriusApi = siriusService;
         }
 
         public override object CreateNewAppModel(string classRef)
@@ -83,6 +91,19 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
 
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
+            if (taskId.Equals("Task_1"))
+            {
+                DataElement dataElement = instance.Data.FirstOrDefault(d => d.DataType.Equals("næringsoppgave"));
+                if (dataElement != null)
+                {
+                    Stream næringsStream = await _dataService.GetBinaryData(instance.Org, instance.AppId, Convert.ToInt32(instance.InstanceOwner.PartyId), new Guid(instance.Id.Split("/")[1]), new Guid(dataElement.Id));
+                    bool isValidNæring = await _siriusApi.IsValidNæring(næringsStream);
+                    if(!isValidNæring)
+                    {
+                        validationResults.AddModelError("", "invalid.næring");
+                    }
+                }
+            }
             await _validationHandler.ValidateTask(instance, taskId, validationResults);
         }
 
@@ -120,6 +141,18 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
 
         public override async Task RunProcessTaskEnd(string taskId, Instance instance)
         {
+            // Transfer from Task_1 to Task_2, need to download the PDF from tax.
+            if (taskId.Equals("Task_1"))
+            {
+                DataElement dataElement = instance.Data.FirstOrDefault(d => d.DataType.Equals("næringsoppgave"));
+                if (dataElement != null)
+                {
+                    Stream næringsStream = await _dataService.GetBinaryData(instance.Org, instance.AppId, Convert.ToInt32(instance.InstanceOwner.PartyId), new Guid(instance.Id.Split("/")[1]), new Guid(dataElement.Id));
+                    Stream næringsPDF =  await _siriusApi.GetNæringPDF(næringsStream);
+                    await _dataService.InsertBinaryData(instance.Id, "næringsoppgavepdf", "application/pdf", "NæringPDF", næringsPDF);
+                }
+            }
+
             return;
         }
     }

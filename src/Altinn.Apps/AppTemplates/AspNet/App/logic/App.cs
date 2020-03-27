@@ -120,5 +120,16 @@ namespace Altinn.App.AppLogic
         {
             return Task.FromResult(options);
         }
+
+        /// <summary>
+        /// Hook to run code when process tasks is ended. 
+        /// </summary>
+        /// <param name="taskId">The current TaskId</param>
+        /// <param name="instance">The instance where task is ended</param>
+        /// <returns></returns>
+        public override async Task RunProcessTaskEnd(string taskId, Instance instance)
+        {
+            return;
+        }
     }
 }

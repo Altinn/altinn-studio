@@ -102,5 +102,10 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.contributer_restriction
         {
             return Task.FromResult(options);
         }
+
+        public override async Task RunProcessTaskEnd(string taskId, Instance instance)
+        {
+            return;
+        }
     }
 }
