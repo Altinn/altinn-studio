@@ -85,6 +85,9 @@ namespace App.IntegrationTestsRef.Utils
                         case "complex-process":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.complex_process.App>();
                             break;
+                        case "contributor-restriction":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.contributer_restriction.AltinnApp>();
+                            break;
                         case "sirius":
                             services.AddSingleton<ISiriusApi, SiriusAPImock>();
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.sirius.App>();

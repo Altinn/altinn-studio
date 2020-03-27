@@ -240,7 +240,7 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> Post(string appId, [FromBody] Instance instance)
         {
-            Application appInfo = GetApplicationOrError(appId, out ActionResult appInfoError);
+            (Application appInfo, ActionResult appInfoError) = await GetApplicationOrErrorAsync(appId);
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             if (appInfoError != null)
             {
@@ -528,16 +528,16 @@ namespace Altinn.Platform.Storage.Controllers
             return createdInstance;
         }
 
-        private Application GetApplicationOrError(string appId, out ActionResult errorResult)
+        private async Task<(Application, ActionResult)> GetApplicationOrErrorAsync(string appId)
         {
-            errorResult = null;
+            ActionResult errorResult = null;
             Application appInfo = null;
 
             try
             {
                 string org = appId.Split("/")[0];
 
-                appInfo = _applicationRepository.FindOne(appId, org).Result;
+                appInfo = await _applicationRepository.FindOne(appId, org);
             }
             catch (DocumentClientException dce)
             {
@@ -555,7 +555,7 @@ namespace Altinn.Platform.Storage.Controllers
                 errorResult = StatusCode(500, $"Unable to perform request: {e}");
             }
 
-            return appInfo;
+            return (appInfo, errorResult);
         }
 
         private async Task DispatchEvent(InstanceEventType eventType, Instance instance)

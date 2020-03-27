@@ -400,8 +400,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
                     CompleteConfirmations = new List<CompleteConfirmation> { new CompleteConfirmation { ConfirmedOn = confirmedOn, StakeholderId = org } },
                     Org = org,
-                    Process = new ProcessState { EndEvent = "Success" }
+                    Process = new ProcessState { EndEvent = "Success" },
+                    Title = new LanguageString()
                 };
+                originalInstance.Title.Add("nb", "norwegian");
 
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
                 instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(originalInstance);

@@ -237,7 +237,7 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> Post(string appId, [FromBody] Instance instance)
         {
-            Application appInfo = GetApplicationOrError(appId, out ActionResult appInfoError);
+            (Application appInfo, ActionResult appInfoError) = await GetApplicationOrErrorAsync(appId);
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             if (appInfoError != null)
             {
@@ -248,7 +248,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
             }
-        
+
             // Checking that user is authorized to instantiate.
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instanceOwnerPartyId, null);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
@@ -274,7 +274,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instance, creationTime, userId);
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
-                await DispatchEvent(InstanceEventType.Created.ToString(), storedInstance);
+                await DispatchEvent(InstanceEventType.Created, storedInstance);
                 _logger.LogInformation($"Created instance: {storedInstance.Id}");
                 storedInstance.SetPlatformSelflink(_storageBaseAndHost);
 
@@ -344,7 +344,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 existingInstance.Data = null;
                 result = await _instanceRepository.Update(existingInstance);
-                await DispatchEvent(InstanceEventType.Saved.ToString(), result);
+                await DispatchEvent(InstanceEventType.Saved, result);
                 result.SetPlatformSelflink(_storageBaseAndHost);
             }
             catch (Exception e)
@@ -431,6 +431,59 @@ namespace Altinn.Platform.Storage.Controllers
             }
         }
 
+        /// <summary>
+        /// Add complete confirmation.
+        /// </summary>
+        /// <remarks>
+        /// Add to an instance that a given stakeholder considers the instance as no longer needed by them. The stakeholder has
+        /// collected all the data and information they needed from the instance and expect no additional data to be added to it.
+        /// The body of the request isn't used for anything despite this being a POST operation.
+        /// </remarks>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <returns>Returns a list of the process events.</returns>        
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_COMPLETE)]
+        [HttpPost("{instanceOwnerPartyId:int}/{instanceGuid:guid}/complete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> AddCompleteConfirmation(
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid)
+        {
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+
+            string org = User.GetOrg();
+
+            instance.CompleteConfirmations ??= new List<CompleteConfirmation>();
+            if (instance.CompleteConfirmations.Any(cc => cc.StakeholderId == org))
+            {
+                instance.SetPlatformSelflink(_storageBaseAndHost);
+                return Ok(instance);
+            }
+
+            instance.CompleteConfirmations.Add(new CompleteConfirmation { StakeholderId = org, ConfirmedOn = DateTime.UtcNow });
+            instance.LastChanged = DateTime.UtcNow;
+            instance.LastChangedBy = User.GetUserOrOrgId();
+
+            Instance updatedInstance;
+            try
+            {
+                updatedInstance = await _instanceRepository.Update(instance);
+                updatedInstance.SetPlatformSelflink(_storageBaseAndHost);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Unable to update instance {instanceId}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            await DispatchEvent(InstanceEventType.ConfirmedComplete, updatedInstance);
+
+            return Ok(updatedInstance);
+        }
+
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
         {
             Instance createdInstance = new Instance()
@@ -472,16 +525,16 @@ namespace Altinn.Platform.Storage.Controllers
             return createdInstance;
         }
 
-        private Application GetApplicationOrError(string appId, out ActionResult errorResult)
+        private async Task<(Application, ActionResult)> GetApplicationOrErrorAsync(string appId)
         {
-            errorResult = null;
+            ActionResult errorResult = null;
             Application appInfo = null;
 
             try
             {
                 string org = appId.Split("/")[0];
 
-                appInfo = _applicationRepository.FindOne(appId, org).Result;
+                appInfo = await _applicationRepository.FindOne(appId, org);
             }
             catch (DocumentClientException dce)
             {
@@ -499,14 +552,14 @@ namespace Altinn.Platform.Storage.Controllers
                 errorResult = StatusCode(500, $"Unable to perform request: {e}");
             }
 
-            return appInfo;
+            return (appInfo, errorResult);
         }
 
-        private async Task DispatchEvent(string eventType, Instance instance)
+        private async Task DispatchEvent(InstanceEventType eventType, Instance instance)
         {
             InstanceEvent instanceEvent = new InstanceEvent
             {
-                EventType = eventType,
+                EventType = eventType.ToString(),
                 InstanceId = instance.Id,
                 InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
                 User = new PlatformUser

@@ -119,7 +119,7 @@ namespace Altinn.App.Services.Implementation
                 string reason = await response.Content.ReadAsStringAsync();
                 _logger.LogError($"// Getting party with personOrOrganisationNumber {personOrOrganisationNumber} failed with statuscode {response.StatusCode} - {reason}");
 
-                throw new PlatformHttpException(response);
+                throw await PlatformHttpException.CreateAsync(response);
             }
 
             return party;            

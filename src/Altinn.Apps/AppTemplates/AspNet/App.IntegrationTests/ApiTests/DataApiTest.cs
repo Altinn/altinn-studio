@@ -281,6 +281,79 @@ namespace App.IntegrationTests.ApiTests
             TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 500600, guid);
         }
 
+        /// <summary>
+        /// Test case: post data as a user not included in allowed contributers
+        /// Expected: no match in allowed contributers. Forbidden is returned.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_WithContributerRestriction_Forbidden()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetToken(1337);
 
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=customElement";
+
+            HttpResponseMessage response = await client.PostAsync(url, new StringContent(string.Empty));
+            await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: post data as a org with org name included in allowed contributers
+        /// Expected: match in allowed contributers. Data element is uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_WithContributerOrgRestriction_Ok()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("tdd");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=customElement";
+
+            HttpResponseMessage response = await client.PostAsync(url, new StringContent(string.Empty));
+            await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: post data as a org with org number included in allowed contributers
+        /// Expected: match in allowed contributers. Data element is uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_WithContributerOrgNoRestriction_Ok()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=customElement";
+
+            HttpResponseMessage response = await client.PostAsync(url, new StringContent(string.Empty));
+            await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
     }
 }

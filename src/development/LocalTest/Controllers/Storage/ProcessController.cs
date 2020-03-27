@@ -100,6 +100,7 @@ namespace Altinn.Platform.Storage.Controllers
             switch (altinnTaskType)
             {
                 case "data":
+                case "feedback":
                     action = "write";
                     break;
                 case "confirmation":

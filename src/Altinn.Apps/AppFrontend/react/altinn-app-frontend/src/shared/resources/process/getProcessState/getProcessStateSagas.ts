@@ -16,11 +16,9 @@ export function* getProcessStateSaga(): SagaIterator {
       
       if (processState.ended) {
         yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Archived);
-      } else if (processState.currentTask.altinnTaskType === 'data') {
-        yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.FormFilling);
-      } else if (processState.currentTask.altinnTaskType === 'confirmation') {
-        yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Confirm);
-      }
+      } else {
+        yield call(ProcessStateDispatchers.getProcessStateFulfilled, processState.currentTask.altinnTaskType as ProcessSteps);
+      } 
     }
   } catch (err) {
     yield call(ProcessStateDispatchers.getProcessStateRejected, err);

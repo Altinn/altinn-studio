@@ -39,6 +39,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             {
                 _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
             }
+            else if (uri.Host.Contains("yt01", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyYT01);
+            }
 
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)

@@ -186,7 +186,7 @@ namespace Altinn.App.Services.Implementation
                 return processHistoryList;
             }
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
 
