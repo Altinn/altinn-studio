@@ -19,6 +19,7 @@ import InstanceDataActions from '../../../shared/resources/instanceData/instance
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { ITextResource } from '../../../types/global';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
+import { getTextFromAppOrDefault } from '../../../utils/textResource';
 
 export interface IConfirmProps extends RouteChildrenProps {}
 
@@ -158,15 +159,6 @@ const Confirm = (props: IConfirmProps) => {
     });
   }
 
-  const getTextFromKey = (key: string, params?: string[]) => {
-    let text: ITextResource;
-    if (text = textResources.find((resource: ITextResource) => resource.id === key)) {
-      return getParsedLanguageFromText(text.value);
-    }
-
-    return getParsedLanguageFromKey(key, language, params);
-  }
-
   return (
     <>
     {isLoading() &&
@@ -178,16 +170,16 @@ const Confirm = (props: IConfirmProps) => {
     <>
       <AltinnReceipt 
         attachments={attachments}
-        body={getTextFromKey('confirm.body', [appName])}
-        collapsibleTitle={getTextFromKey('confirm.attachments')}
+        body={getTextFromAppOrDefault('confirm.body', textResources, language, [appName])}
+        collapsibleTitle={getTextFromAppOrDefault('confirm.attachments', textResources, language)}
         hideCollapsibleCount={true}
         instanceMetaDataObject={instanceMetaObject}
-        title={`${getTextFromKey('confirm.title')}`}
-        titleSubmitted={pdf ? getLanguageFromKey('confirm.answers', language) : null}
+        title={`${getTextFromAppOrDefault('confirm.title', textResources, language)}`}
+        titleSubmitted={pdf ? getTextFromAppOrDefault('confirm.answers', textResources, language) : null}
         pdf={pdf ? [pdf] : null}
       />
       <AltinnButton
-        btnText={getTextFromKey('confirm.button_text')}
+        btnText={getTextFromAppOrDefault('confirm.button_text', textResources, language)}
         onClickFunction={onClickConfirm}
         className={classes.button}
       />

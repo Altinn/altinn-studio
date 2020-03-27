@@ -13,6 +13,7 @@ import UnknownError from '../../features/instantiate/containers/UnknownError';
 import QueueActions from '../resources/queue/queueActions';
 import IsLoadingActions from '../resources/isLoading/isLoadingActions';
 import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
+import Feedback from '../../features/feedback/Feedback';
 
 export default (props) => {
   const {
@@ -44,12 +45,13 @@ export default (props) => {
     switch (processStep) {
       case (ProcessSteps.FormFilling): {
         QueueActions.startInitialDataTaskQueue();
+        break;
       }
-      case (ProcessSteps.Confirm): {
-        IsLoadingActions.finishDataTaskIsloading();
-      }
+      case (ProcessSteps.Confirm):
+      case (ProcessSteps.Feedback):
       case (ProcessSteps.Archived): {
         IsLoadingActions.finishDataTaskIsloading();
+        break;
       }
     }
   }, [processStep])
@@ -91,6 +93,11 @@ export default (props) => {
           {processStep === ProcessSteps.Confirm &&
             <div id='ConfirmContainer'>
               <Confirm />
+            </div>
+          }
+          {processStep === ProcessSteps.Feedback &&
+            <div id="FeedbackContainer">
+              <Feedback />
             </div>
           }
           </>
