@@ -71,13 +71,13 @@ namespace Altinn.Common.PEP.Implementation
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    string responseData = response.Content.ReadAsStringAsync().Result;
+                    string responseData = await response.Content.ReadAsStringAsync();
                     xacmlJsonResponse = JsonConvert.DeserializeObject<XacmlJsonResponse>(responseData);
                 }
                 else
                 {
                     _logger.LogInformation($"// PDPAppSI // GetDecisionForRequest // Non-zero status code: {response.StatusCode}");
-                    _logger.LogInformation($"// PDPAppSI // GetDecisionForRequest // Response: {response.Content.ReadAsStringAsync().Result}");
+                    _logger.LogInformation($"// PDPAppSI // GetDecisionForRequest // Response: {await response.Content.ReadAsStringAsync()}");
                 }
             }
             catch (Exception e)
