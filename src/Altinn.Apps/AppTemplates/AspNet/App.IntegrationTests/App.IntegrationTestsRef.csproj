@@ -20,6 +20,8 @@
     <None Remove="Data\apps\tdd\auth-level-2\appsettings.json" />
     <None Remove="Data\apps\tdd\auth-level-3\appsettings.Development.json" />
     <None Remove="Data\apps\tdd\auth-level-3\appsettings.json" />
+    <None Remove="Data\apps\tdd\contributer-restriction\appsettings.Development.json" />
+    <None Remove="Data\apps\tdd\contributer-restriction\appsettings.json" />
     <None Remove="Data\apps\tdd\task-validation\appsettings.Development.json" />
     <None Remove="Data\apps\tdd\task-validation\appsettings.json" />
     <None Remove="Data\apps\tdd\custom-validation\appsettings.Development.json" />
@@ -48,6 +50,11 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="Data\apps\tdd\auth-level-3\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\contributer-restriction\appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
