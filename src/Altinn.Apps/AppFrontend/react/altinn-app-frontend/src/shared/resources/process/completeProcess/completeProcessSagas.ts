@@ -15,14 +15,9 @@ export function* completeProcessSaga(): SagaIterator {
     }
     if (result.ended) {
       yield call(ProcessDispatcher.completeProcessFulfilled, ProcessSteps.Archived);
-    } else if (result.currentTask.altinnTaskType === 'data') {
-      yield call(ProcessDispatcher.completeProcessFulfilled, ProcessSteps.FormFilling);
-    } else if (result.currentTask.altinnTaskType === 'confirmation') {
-      yield call(ProcessDispatcher.completeProcessFulfilled, ProcessSteps.Confirm);
     } else {
-      yield call(ProcessDispatcher.completeProcessRejected, new Error('Process not implemented: ' + result.currentTask.altinnTaskType));
+      yield call(ProcessDispatcher.completeProcessFulfilled, result.currentTask.altinnTaskType as ProcessSteps);
     }
-
   } catch (err) {
     yield call(ProcessDispatcher.completeProcessRejected, err);
   }

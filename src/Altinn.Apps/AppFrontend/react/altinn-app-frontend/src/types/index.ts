@@ -49,10 +49,11 @@ export interface IAltinnWindow extends Window {
 }
 
 export enum ProcessSteps {
-  Unknown = 0,
-  FormFilling = 1,
-  Archived = 2,
-  Confirm = 3,
+  Unknown = 'unknown',
+  FormFilling = 'data',
+  Archived = 'ended',
+  Confirm = 'confirmation',
+  Feedback = 'feedback',
 }
 
 export enum Severity {
