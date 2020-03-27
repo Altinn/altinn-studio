@@ -53,9 +53,11 @@ namespace App.IntegrationTests.Mocks.Services
 
         public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string dataType, HttpRequest request)
         {
-            return Task.FromResult( new DataElement {
+            return new DataElement
+            {
                 Id = Guid.NewGuid().ToString(),
-                InstanceGuid = instanceGuid.ToString() });
+                InstanceGuid = instanceGuid.ToString()
+            };
         }
 
         public async Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type)
@@ -117,7 +119,7 @@ namespace App.IntegrationTests.Mocks.Services
         private string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\",org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
         }
 
         private string GetDataBlobPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
@@ -153,7 +155,7 @@ namespace App.IntegrationTests.Mocks.Services
 
             foreach (string file in files)
             {
-                string content = System.IO.File.ReadAllText(Path.Combine(path,file));
+                string content = System.IO.File.ReadAllText(Path.Combine(path, file));
                 DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
                 dataElements.Add(dataElement);
             }
