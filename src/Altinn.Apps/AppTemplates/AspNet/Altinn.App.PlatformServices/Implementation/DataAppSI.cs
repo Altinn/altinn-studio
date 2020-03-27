@@ -92,7 +92,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instance.Id, response.StatusCode);
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
@@ -119,7 +119,7 @@ namespace Altinn.App.Services.Implementation
                 return dataElement;
             }
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
@@ -141,7 +141,7 @@ namespace Altinn.App.Services.Implementation
                 return null;
             }
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
@@ -169,7 +169,7 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
@@ -196,7 +196,7 @@ namespace Altinn.App.Services.Implementation
 
             _logger.Log(LogLevel.Error, "Unable to fetch attachment list {0}", response.StatusCode);
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         private static void ExtractAttachments(List<DataElement> dataList, List<AttachmentList> attachmentList)
@@ -248,7 +248,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Deleting form attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
@@ -274,7 +274,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Storing attachment for instance {instanceGuid} failed with status code {response.StatusCode}");
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string fileName, Stream stream)
@@ -304,7 +304,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Storing attachment for instance {instanceId} failed with status code {response.StatusCode} - content {await response.Content.ReadAsStringAsync()}");
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
 
@@ -330,7 +330,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         private static StreamContent CreateContentStream(HttpRequest request)
@@ -363,7 +363,7 @@ namespace Altinn.App.Services.Implementation
                 return result;
             }
 
-            throw new PlatformHttpException(response);
+           throw await PlatformHttpException.CreateAsync(response);
         }
 
     }

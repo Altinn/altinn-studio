@@ -23,7 +23,8 @@ namespace App.IntegrationTests.Mocks.Services
                 StatusCode = System.Net.HttpStatusCode.BadRequest,
                 Content = new StringContent("ERROR"),
             };
-            throw new PlatformHttpException(response);
+
+            throw PlatformHttpException.CreateAsync(response).Result;
             
         }
 
@@ -36,10 +37,10 @@ namespace App.IntegrationTests.Mocks.Services
                 Content = new StringContent("ERROR"),
             };
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
-        public Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {
             HttpResponseMessage response = new HttpResponseMessage
             {
@@ -47,7 +48,7 @@ namespace App.IntegrationTests.Mocks.Services
                 Content = new StringContent("ERROR"),
             };
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         public Task<Instance> UpdateInstance(Instance instance)

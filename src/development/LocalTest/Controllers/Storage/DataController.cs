@@ -141,7 +141,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             // check if instance id exist and user is allowed to change the instance data
-            Instance instance = GetInstance(instanceId, instanceOwnerPartyId, out ActionResult errorResult);
+            (Instance instance, ActionResult errorResult) = await GetInstanceAsync(instanceId, instanceOwnerPartyId);
             if (instance == null)
             {
                 return errorResult;
@@ -211,7 +211,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             // check if instance id exist and user is allowed to change the instance data
-            Instance instance = GetInstance(instanceId, instanceOwnerPartyId, out ActionResult errorResult);
+            (Instance instance, ActionResult errorResult) = await GetInstanceAsync(instanceId, instanceOwnerPartyId);
             if (instance == null)
             {
                 return errorResult;
@@ -255,14 +255,14 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             // check if instance exist and user is allowed to change the instance data
-            Instance instance = GetInstance(instanceId, instanceOwnerPartyId, out ActionResult errorMessage);
+            (Instance instance, ActionResult errorMessage) = await GetInstanceAsync(instanceId, instanceOwnerPartyId);
             if (instance == null)
             {
                 return errorMessage;
             }
 
             // check metadata
-            Application appInfo = GetApplication(instance.AppId, instance.Org, out ActionResult appErrorMessage);
+            (Application appInfo, ActionResult appErrorMessage) = await GetApplicationAsync(instance.AppId, instance.Org);
             if (appInfo == null)
             {
                 return appErrorMessage;
@@ -273,7 +273,9 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Requested element type is not declared in application metadata");
             }
 
-            DataElement newData = ReadRequestAndCreateDataElement(Request, dataType, refs, instance, out Stream theStream);
+            var streamAndDataElement = await ReadRequestAndCreateDataElementAsync(Request, dataType, refs, instance);
+            Stream theStream = streamAndDataElement.Item1;
+            DataElement newData = streamAndDataElement.Item2;
 
             if (theStream == null)
             {
@@ -324,7 +326,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             // check if instance id exist and user is allowed to change the instance data
-            Instance instance = GetInstance(instanceId, instanceOwnerPartyId, out ActionResult errorMessage);
+            (Instance instance, ActionResult errorMessage) = await GetInstanceAsync(instanceId, instanceOwnerPartyId);
             if (instance == null)
             {
                 return errorMessage;
@@ -349,7 +351,9 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (string.Equals(dataElement.BlobStoragePath, blobStoragePathName))
             {
-                DataElement updatedData = ReadRequestAndCreateDataElement(Request, dataElement.DataType, refs, instance, out Stream theStream);
+                var streamAndDataElement = await ReadRequestAndCreateDataElementAsync(Request, dataElement.DataType, refs, instance);
+                Stream theStream = streamAndDataElement.Item1;
+                DataElement updatedData = streamAndDataElement.Item2;
 
                 if (theStream == null)
                 {
@@ -495,11 +499,11 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Creates a data element by reading the first multipart element or body of the request.
         /// </summary>
-        private DataElement ReadRequestAndCreateDataElement(HttpRequest request, string elementType, List<Guid> refs, Instance instance, out Stream theStream)
+        private async Task<(Stream, DataElement)> ReadRequestAndCreateDataElementAsync(HttpRequest request, string elementType, List<Guid> refs, Instance instance)
         {
             DateTime creationTime = DateTime.UtcNow;
+            Stream theStream = null;
 
-            theStream = null;
             string contentType = null;
             string contentFileName = null;
             long fileSize = 0;
@@ -513,7 +517,7 @@ namespace Altinn.Platform.Storage.Controllers
                 MultipartSection section = null;
 
                 MultipartReader reader = new MultipartReader(boundary, request.Body);
-                section = reader.ReadNextSectionAsync().Result;
+                section = await reader.ReadNextSectionAsync();
 
                 theStream = section.Body;
                 contentType = section.ContentType;
@@ -554,18 +558,18 @@ namespace Altinn.Platform.Storage.Controllers
 
             DataElement newData = DataElementHelper.CreateDataElement(elementType, refs, instance, creationTime, contentType, contentFileName, fileSize, user);
 
-            return newData;
+            return (theStream, newData);
         }
 
-        private Application GetApplication(string appId, string org, out ActionResult errorMessage)
+        private async Task<(Application, ActionResult)> GetApplicationAsync(string appId, string org)
         {
-            errorMessage = null;
+            ActionResult errorMessage = null;
 
             try
             {
-                Application application = _applicationRepository.FindOne(appId, org).Result;
+                Application application = await _applicationRepository.FindOne(appId, org);
 
-                return application;
+                return (application, errorMessage);
             }
             catch (DocumentClientException dce)
             {
@@ -583,20 +587,20 @@ namespace Altinn.Platform.Storage.Controllers
                 errorMessage = StatusCode(500, $"Unable find application metadata: {e}");
             }
 
-            return null;
+            return (null, errorMessage);
         }
 
-        private Instance GetInstance(string instanceId, int instanceOwnerPartyId, out ActionResult errorMessage)
+        private async Task<(Instance, ActionResult)> GetInstanceAsync(string instanceId, int instanceOwnerPartyId)
         {
             // check if instance id exist and user is allowed to change the instance data
             Instance instance;
-            errorMessage = null;
+            ActionResult errorMessage = null;
 
             try
             {
-                instance = _instanceRepository.GetOne(instanceId, instanceOwnerPartyId).Result;
+                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
-                return instance;
+                return (instance, errorMessage);
             }
             catch (DocumentClientException dce)
             {
@@ -604,15 +608,17 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     errorMessage = NotFound($"Provided instanceId {instanceId} is unknown to platform storage service");
                 }
-
-                errorMessage = StatusCode(500, $"Unable to access document database {dce}");
+                else
+                {
+                    errorMessage = StatusCode(500, $"Unable to access document database {dce}");
+                }
             }
             catch (Exception e)
             {
                 errorMessage = StatusCode(500, $"Unable to get instance {instanceId}: {e}");
             }
 
-            return null;
+            return (null, errorMessage);
         }
 
         private async Task DispatchEvent(string eventType, Instance instance, DataElement dataElement)

@@ -61,7 +61,7 @@ namespace Altinn.App.Services.Implementation
                 return true;
             }
 
-            throw new PlatformHttpException(response);            
+            throw await PlatformHttpException.CreateAsync(response);            
         }
 
         /// <inheritdoc/>
@@ -97,7 +97,7 @@ namespace Altinn.App.Services.Implementation
                 return instanceEvents;
             }
 
-            throw new PlatformHttpException(response);                              
+            throw await PlatformHttpException.CreateAsync(response);                              
         }
 
         /// <inheritdoc/>
@@ -119,7 +119,7 @@ namespace Altinn.App.Services.Implementation
                 return result.Id.ToString();
             }
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
     }
 }
