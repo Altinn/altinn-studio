@@ -20,6 +20,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Mvc.Testing;
+using System;
+using System.IO;
+using System.Net.Http;
+using System.Collections;
+using System.Linq;
+using App.IntegrationTestsRef.Data.apps.tdd.sirius.services;
 
 namespace App.IntegrationTestsRef.Utils
 {
@@ -81,6 +87,10 @@ namespace App.IntegrationTestsRef.Utils
                             break;
                         case "contributor-restriction":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.contributer_restriction.AltinnApp>();
+                            break;
+                        case "sirius":
+                            services.AddSingleton<ISiriusApi, SiriusAPImock>();
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.sirius.App>();
                             break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();

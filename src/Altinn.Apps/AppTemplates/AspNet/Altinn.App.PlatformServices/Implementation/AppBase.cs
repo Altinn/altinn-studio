@@ -59,6 +59,8 @@ namespace Altinn.App.Services.Implementation
 
         public abstract Task<AppOptions> GetOptions(string id, AppOptions options);
 
+        public abstract Task RunProcessTaskEnd(string taskId, Instance instance);
+
         /// <inheritdoc />
         public Task<string> OnInstantiateGetStartEvent()
         {
@@ -145,6 +147,8 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public async Task OnEndProcessTask(string taskId, Instance instance)
         {
+            await RunProcessTaskEnd(taskId, instance);
+
             _logger.LogInformation($"OnEndProcessTask for {instance.Id}. Locking data elements connected to {taskId}");
 
             List<DataType> dataTypesToLock = _appMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
