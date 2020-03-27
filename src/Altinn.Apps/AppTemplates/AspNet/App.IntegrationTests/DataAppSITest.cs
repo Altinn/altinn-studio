@@ -23,7 +23,7 @@ namespace App.IntegrationTestsRef.Platformservices
         {
             string expected = "attachment; filename=mellom_rom.xml";
             string header = "attachment; filename=mellom rom.xml";
-            string actual = RequestHelper.GetComplientContentHeader(header);
+            string actual = RequestHelper.GetCompliantContentHeader(header);
 
             Assert.Equal(expected, actual);
         }
@@ -33,7 +33,7 @@ namespace App.IntegrationTestsRef.Platformservices
         {
             string expected = "form-data; filename=file_name.jpg; name=fieldName";
             string header = "form-data; filename=file name.jpg; name=fieldName";
-            string actual = RequestHelper.GetComplientContentHeader(header);
+            string actual = RequestHelper.GetCompliantContentHeader(header);
 
             Assert.Equal(expected, actual);
         }
@@ -43,7 +43,7 @@ namespace App.IntegrationTestsRef.Platformservices
         {
             string expected = "form-data; name=fieldName";
             string header = "form-data; name=fieldName";
-            string actual = RequestHelper.GetComplientContentHeader(header);
+            string actual = RequestHelper.GetCompliantContentHeader(header);
 
             Assert.Equal(expected, actual);
         }

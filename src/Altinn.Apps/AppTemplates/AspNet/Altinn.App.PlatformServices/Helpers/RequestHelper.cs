@@ -5,7 +5,7 @@ namespace Altinn.App.PlatformServices.Helpers
 {
     public static class RequestHelper
     {
-        public static string GetComplientContentHeader(string headerValues)
+        public static string GetCompliantContentHeader(string headerValues)
         {
             // Remove all spaces from filename
             StringBuilder bld = new StringBuilder();
