@@ -609,8 +609,10 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     errorMessage = NotFound($"Provided instanceId {instanceId} is unknown to platform storage service");
                 }
-
-                errorMessage = StatusCode(500, $"Unable to access document database {dce}");
+                else
+                {
+                    errorMessage = StatusCode(500, $"Unable to access document database {dce}");
+                }
             }
             catch (Exception e)
             {
