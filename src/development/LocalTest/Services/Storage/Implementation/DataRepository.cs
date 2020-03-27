@@ -101,7 +101,7 @@ namespace LocalTest.Services.Storage.Implementation
 
             long filesize;
 
-            using (Stream streamToWriteTo = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+            using (Stream streamToWriteTo = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
                 await stream.CopyToAsync(streamToWriteTo);
                 streamToWriteTo.Flush();
