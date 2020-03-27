@@ -16,7 +16,7 @@ namespace App.IntegrationTests.Mocks.Services
 
         public DataMockSI()
         {
-     
+
         }
 
         public Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
@@ -42,8 +42,8 @@ namespace App.IntegrationTests.Mocks.Services
             try
             {
                 using FileStream SourceStream = File.Open(dataPath, FileMode.OpenOrCreate);
-                
-                return serializer.Deserialize(SourceStream);                
+
+                return serializer.Deserialize(SourceStream);
             }
             catch
             {
@@ -51,7 +51,7 @@ namespace App.IntegrationTests.Mocks.Services
             }
         }
 
-        public Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string dataType, HttpRequest request)
+        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string dataType, HttpRequest request)
         {
             return Task.FromResult( new DataElement {
                 Id = Guid.NewGuid().ToString(),
@@ -76,7 +76,7 @@ namespace App.IntegrationTests.Mocks.Services
             Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
 
             DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = "application/xml", };
-           
+
             try
             {
 
@@ -90,20 +90,20 @@ namespace App.IntegrationTests.Mocks.Services
 
                 string jsonData = JsonConvert.SerializeObject(dataElement);
                 using StreamWriter sw = new StreamWriter(dataPath + dataGuid.ToString() + @".json");
-                
+
                 sw.Write(jsonData.ToString());
                 sw.Close();
-                
+
             }
             catch
             {
             }
-            
+
             instance.Data = GetDataElements(org, app, instanceOwnerId, instanceGuid);
 
             return dataElement;
         }
-        
+
         public Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
         {
             throw new NotImplementedException();
@@ -181,7 +181,7 @@ namespace App.IntegrationTests.Mocks.Services
             sw.Write(jsonData.ToString());
             sw.Close();
 
-            return Task.FromResult(dataElement);                        
+            return Task.FromResult(dataElement);
         }
     }
 }
