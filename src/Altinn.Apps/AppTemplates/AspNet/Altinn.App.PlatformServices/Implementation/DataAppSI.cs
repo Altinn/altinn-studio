@@ -287,7 +287,8 @@ namespace Altinn.App.Services.Implementation
             content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
             if (!string.IsNullOrEmpty(fileName))
             {
-                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse($"attachment; filename={fileName}");
+                string contentHeaderString = $"attachment; filename={fileName}";
+                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(RequestHelper.GetCompliantContentHeader(contentHeaderString));
             }
 
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
@@ -339,7 +340,7 @@ namespace Altinn.App.Services.Implementation
 
             if (request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
             {
-                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(headerValues.ToString());
+                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(RequestHelper.GetCompliantContentHeader(headerValues.ToString()));
             }
 
             return content;
@@ -364,5 +365,6 @@ namespace Altinn.App.Services.Implementation
 
             throw new PlatformHttpException(response);
         }
+
     }
 }
