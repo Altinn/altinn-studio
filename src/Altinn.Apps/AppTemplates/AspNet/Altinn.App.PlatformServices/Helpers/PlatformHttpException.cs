@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace Altinn.App.PlatformServices.Helpers
 {
@@ -15,22 +16,23 @@ namespace Altinn.App.PlatformServices.Helpers
         /// </summary>
         public HttpResponseMessage Response { get; }
 
+        public static async Task<PlatformHttpException> CreateAsync(HttpResponseMessage response)
+        {
+            string content = await response.Content?.ReadAsStringAsync();
+            string message = $"{(int)response.StatusCode} - {response.ReasonPhrase} - {content}";
+
+            return new PlatformHttpException(response, message);
+        }
+
         /// <summary>
         /// Copy the response for further investigations
         /// </summary>
         /// <param name="response">the response</param>
-        public PlatformHttpException(HttpResponseMessage response) : base(ModifyMessage(response))
+        public PlatformHttpException(HttpResponseMessage response, string message) : base(message)
         {
             this.Response = response;
         }
 
-        private static string ModifyMessage(HttpResponseMessage response)
-        {
-            string content = response.Content?.ReadAsStringAsync().Result;
-            string message = $"{(int)response.StatusCode} - {response.ReasonPhrase} - {content}";
-
-            return message;
-        }
 
         /// <summary>
         /// Add serialization info.
