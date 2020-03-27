@@ -2,12 +2,14 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 using Altinn.App.Api.Filters;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.Serialization;
+using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
@@ -100,6 +102,11 @@ namespace Altinn.App.Api.Controllers
                 if (dataTypeFromMetadata == null)
                 {
                     return BadRequest($"Element type {dataType} not allowed for instance {instanceOwnerPartyId}/{instanceGuid}.");
+                }
+
+                if (!IsValidContributer(dataTypeFromMetadata, User))
+                {
+                    return Forbid();
                 }
 
                 bool appLogic = dataTypeFromMetadata.AppLogic != null;
@@ -489,7 +496,7 @@ namespace Altinn.App.Api.Controllers
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            
+
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
             object serviceModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
@@ -558,6 +565,40 @@ namespace Altinn.App.Api.Controllers
             }
 
             return true;
+        }
+
+        private static bool IsValidContributer(DataType dataType, ClaimsPrincipal user)
+        {
+            if (dataType.AllowedContributers == null || dataType.AllowedContributers.Count == 0)
+            {
+                return true;
+            }
+
+            foreach (string item in dataType.AllowedContributers)
+            {
+                string key = item.Split(':')[0];
+                string value = item.Split(':')[1];
+
+                switch (key.ToLower())
+                {
+                    case "org":
+                        if (value.Equals(user.GetOrg(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                        break;
+                    case "orgno":
+                        if (value.Equals(user.GetOrgNumber().ToString()))
+                        {
+                            return true;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return false;
         }
     }
 }
