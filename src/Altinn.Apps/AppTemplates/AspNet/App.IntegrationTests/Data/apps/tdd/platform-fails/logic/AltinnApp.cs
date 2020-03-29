@@ -83,5 +83,10 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
         {
             return Task.FromResult(options);
         }
+
+        public override async Task RunProcessTaskEnd(string taskId, Instance instance)
+        {
+            return;
+        }
     }
 }
