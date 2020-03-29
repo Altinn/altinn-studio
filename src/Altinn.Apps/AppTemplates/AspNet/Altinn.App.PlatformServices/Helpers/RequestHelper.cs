@@ -1,5 +1,7 @@
+using System;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web;
 
 namespace Altinn.App.PlatformServices.Helpers
 {
@@ -7,7 +9,7 @@ namespace Altinn.App.PlatformServices.Helpers
     {
         public static string GetCompliantContentHeader(string headerValues)
         {
-            // Remove all spaces from filename
+            // Encode filname if not previously encoded.
             StringBuilder bld = new StringBuilder();
             string keyWord = "filename=";
             int splitIndex = headerValues.IndexOf(keyWord) + keyWord.Length;
@@ -23,12 +25,23 @@ namespace Altinn.App.PlatformServices.Helpers
             if (endIndex > 0)
             {
                 string fileName = remainder.Substring(0, endIndex);
-                bld.Append(Regex.Replace(fileName, @"\s+", "_"));
+
+                if (fileName.Equals(HttpUtility.UrlDecode(fileName)))
+                {
+                    fileName =Uri.EscapeUriString(fileName);
+                }
+
+                bld.Append(fileName);
                 bld.Append(remainder.Substring(endIndex));
             }
             else
             {
-                bld.Append(Regex.Replace(remainder, @"\s+", "_"));
+                if (remainder.Equals(HttpUtility.UrlDecode(remainder, Encoding.UTF8)))
+                {
+                    remainder = Uri.EscapeUriString(remainder);
+                }
+
+                bld.Append(remainder);
             }
 
             return bld.ToString();
