@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-
+using System.Web;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -527,7 +527,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 if (hasContentDisposition)
                 {
-                    contentFileName = contentDisposition.FileName.ToString();
+                    contentFileName = HttpUtility.UrlDecode(contentDisposition.FileName.ToString());
                     fileSize = contentDisposition.Size ?? 0;
                 }
             }
@@ -547,7 +547,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                         if (valueParts.Count() == 2)
                         {
-                            contentFileName = valueParts[1];
+                            contentFileName = HttpUtility.UrlDecode(valueParts[1]);
                         }
                     }
                 }
