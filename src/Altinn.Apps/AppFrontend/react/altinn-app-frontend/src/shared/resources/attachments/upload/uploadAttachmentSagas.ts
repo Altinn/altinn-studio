@@ -25,7 +25,7 @@ export function* uploadAttachmentSaga(
     const config: AxiosRequestConfig = {
       headers: {
         'Content-Type': 'application/octet-stream',
-        'Content-Disposition': `attachment; filename=${file.name}`
+        'Content-Disposition': `attachment; filename=${encodeURI(file.name)}`
       }
     }
     const response: any = yield call(post, fileUploadLink, config, file);
