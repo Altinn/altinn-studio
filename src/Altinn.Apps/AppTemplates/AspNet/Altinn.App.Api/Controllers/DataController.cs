@@ -250,6 +250,12 @@ namespace Altinn.App.Api.Controllers
                     return await PutFormData(org, app, instance, dataGuid, dataType);
                 }
 
+                DataType dataTypeFromMetadata = _appResourcesService.GetApplication().DataTypes.FirstOrDefault(e => e.Id.Equals(dataType, StringComparison.InvariantCultureIgnoreCase));
+                if (!CompliesWithDataRestrictions(dataTypeFromMetadata, out string errorMessage))
+                {
+                    return BadRequest($"Invalid data provided. Error: {errorMessage}");
+                }
+
                 return await PutBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
             }
             catch (PlatformHttpException e)
@@ -640,20 +646,20 @@ namespace Altinn.App.Api.Controllers
                 return false;
             }
 
-            string filetype = splitFilename[1];
-
             // no restrictions on data type
             if (dataType.AllowedContentTypes == null || dataType.AllowedContentTypes.Count == 0)
             {
-                return true;             
+                return true;
             }
+
+            string filetype = splitFilename[1];
 
             foreach (string allowedType in dataType.AllowedContentTypes)
             {
                 if (allowedType.EndsWith(filetype, StringComparison.InvariantCultureIgnoreCase))
                 {
                     return true;
-                }             
+                }
             }
 
             errorMessage = $"Invalid filetype: .{filetype}. Permitted filetypes include: {String.Join(", ", dataType.AllowedContentTypes)}";
@@ -669,11 +675,11 @@ namespace Altinn.App.Api.Controllers
             {
                 return filename;
             }
-                       
+
             int splitIndex = header.IndexOf(keyWord) + keyWord.Length;
             string remainder = header.Substring(splitIndex);
             int endIndex = remainder.IndexOf(';');
-             filename = endIndex > 0 ? remainder.Substring(0, endIndex) : remainder;
+            filename = endIndex > 0 ? remainder.Substring(0, endIndex) : remainder;
 
             return filename;
         }
