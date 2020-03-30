@@ -240,8 +240,6 @@ namespace Altinn.Platform.Storage.Repository
                 string containerName = string.Format(_storageConfiguration.OrgStorageContainer, org);
 
                 StorageSharedKeyCredential storageCredentialsPrivate = new StorageSharedKeyCredential(accountName, sasToken);
-
-
                 Uri blobEndPoint = new Uri(blobEndpoint);
                 BlobContainerClient cloudBlobClient = new BlobContainerClient(blobEndPoint, storageCredentialsPrivate);
 
@@ -249,10 +247,9 @@ namespace Altinn.Platform.Storage.Repository
             }
 
             StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-            
-            CloudBlobClient commonBlobClient = CreateBlobClient(storageCredentials, storageAccount);
-            return commonBlobClient.GetContainerReference(_storageConfiguration.StorageContainer);
+
+            BlobServiceClient commonBlobClient = CreateBlobClient(storageCredentials, null);
+            return commonBlobClient.GetBlobContainerClient(_storageConfiguration.StorageContainer);
         }
 
         private BlobServiceClient CreateBlobClient(StorageSharedKeyCredential storageCredentials, Uri blobStorageAccountUri)
