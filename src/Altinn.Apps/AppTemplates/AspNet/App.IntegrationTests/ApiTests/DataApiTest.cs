@@ -323,8 +323,10 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=customElement";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=test.pdf");
 
-            HttpResponseMessage response = await client.PostAsync(url, new StringContent(string.Empty));
+            HttpResponseMessage response = await client.PostAsync(url, content);
             await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
 
@@ -348,8 +350,10 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=customElement";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=test.pdf");
 
-            HttpResponseMessage response = await client.PostAsync(url, new StringContent(string.Empty));
+            HttpResponseMessage response = await client.PostAsync(url, content);
             await response.Content.ReadAsStringAsync();
             TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
 

@@ -17,6 +17,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -128,6 +129,11 @@ namespace Altinn.App.Api.Controllers
                 }
                 else
                 {
+                    if (!CompliesWithDataRestrictions(dataTypeFromMetadata, out string errorMessage))
+                    {
+                        return BadRequest($"Invalid data provided. Error: {errorMessage}");
+                    }
+
                     return await CreateBinaryData(org, app, instance, dataType);
                 }
             }
@@ -599,6 +605,74 @@ namespace Altinn.App.Api.Controllers
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Validated that the request 
+        /// </summary>
+        /// <param name="dataType"></param>
+        /// <param name="errorMessage"></param>
+        /// <returns></returns>
+        private bool CompliesWithDataRestrictions(DataType dataType, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+
+            if (!Request.Headers.ContainsKey("Content-Disposition"))
+            {
+                errorMessage = "Conent-Disposition header containing 'filename' must be included in request.";
+                return false;
+            }
+
+            Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
+            string filename = GetFilenameFromHeader(headerValues.ToString());
+
+            if (string.IsNullOrEmpty(filename))
+            {
+                errorMessage = "Conent-Disposition header must contain 'filename'.";
+                return false;
+            }
+
+            string[] splitFilename = filename.Split('.');
+
+            if (splitFilename.Count() != 2)
+            {
+                errorMessage = "Invalid format for filename. Expected format is {filename}.{filetype}. ";
+                return false;
+            }
+
+            string filetype = splitFilename[1];
+
+            // no restrictions on data type
+            if (dataType.AllowedContentTypes == null || dataType.AllowedContentTypes.Count == 0)
+            {
+                return true;             
+            }
+
+            if (!dataType.AllowedContentTypes.Contains($".{filetype}", StringComparer.InvariantCultureIgnoreCase)) 
+            {
+                errorMessage = $"Invalid filetype. Permitted filetypes include: {String.Join(',', dataType.AllowedContentTypes)}";
+                return false;
+            }
+
+            return true;
+        }
+
+        private string GetFilenameFromHeader(string header)
+        {
+            string filename = string.Empty;
+            string keyWord = "filename=";
+
+            if (!header.Contains(keyWord, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return filename;
+            }
+                       
+            int splitIndex = header.IndexOf(keyWord) + keyWord.Length;
+            string remainder = header.Substring(splitIndex);
+            int endIndex = remainder.IndexOf(';');
+             filename = endIndex > 0 ? remainder.Substring(0, endIndex) : remainder;
+
+            return filename;
         }
     }
 }
