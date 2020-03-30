@@ -6,15 +6,14 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Interface.Models;
-
+using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 using Newtonsoft.Json;
 
@@ -77,7 +76,7 @@ namespace Altinn.Platform.Storage.Repository
             {
                 return await UploadFromStreamAsync(org, stream, blobStoragePath);
             }
-            catch (StorageException storageException)
+            catch (Exception storageException)
             {
                 _logger.LogWarning($"StorageException when accessing blob storage for {org}: {Environment.NewLine}{storageException}");
                 _logger.LogWarning("Invalidating SAS token and retrying upload operation.");
@@ -95,7 +94,7 @@ namespace Altinn.Platform.Storage.Repository
             {
                 return await DownloadToStreamAsync(org, blobStoragePath);
             }
-            catch (StorageException storageException)
+            catch (Exception storageException)
             {
                 _logger.LogWarning($"StorageException when accessing blob storage for {org}: {Environment.NewLine}{storageException}");
                 _logger.LogWarning("Invalidating SAS token and retrying download operation.");
@@ -113,7 +112,7 @@ namespace Altinn.Platform.Storage.Repository
             {
                 return await DeleteIfExistsAsync(org, blobStoragePath);
             }
-            catch (StorageException storageException)
+            catch (Exception storageException)
             {
                 _logger.LogWarning($"StorageException when accessing blob storage for {org}: {Environment.NewLine}{storageException}");
                 _logger.LogWarning("Invalidating SAS token and retrying delete operation.");
@@ -199,22 +198,22 @@ namespace Altinn.Platform.Storage.Repository
 
         private async Task<long> UploadFromStreamAsync(string org, Stream stream, string fileName)
         {
-            CloudBlobContainer cloudBlobContainer = await GetBlobContainer(org);
-            CloudBlockBlob blockBlob = cloudBlobContainer.GetBlockBlobReference(fileName);
+            BlobContainerClient cloudBlobContainer = await GetBlobContainer(org);
+            BlobClient blockBlob = cloudBlobContainer.GetBlobClient(fileName);
 
-            await blockBlob.UploadFromStreamAsync(stream);
-            blockBlob.FetchAttributes();
+            await blockBlob.UploadAsync(stream);
+            BlobProperties properties = await blockBlob.GetPropertiesAsync();
 
-            return blockBlob.Properties.Length;
+            return properties.ContentLength;
         }
 
         private async Task<Stream> DownloadToStreamAsync(string org, string fileName)
         {
-            CloudBlobContainer cloudBlobContainer = await GetBlobContainer(org);
-            CloudBlockBlob blockBlob = cloudBlobContainer.GetBlockBlobReference(fileName);
+            BlobContainerClient cloudBlobContainer = await GetBlobContainer(org);
+            BlobClient blockBlob = cloudBlobContainer.GetBlobClient(fileName);
 
             var memoryStream = new MemoryStream();
-            await blockBlob.DownloadToStreamAsync(memoryStream);
+            await blockBlob.DownloadToAsync(memoryStream);
             memoryStream.Position = 0;
 
             return memoryStream;
@@ -222,50 +221,51 @@ namespace Altinn.Platform.Storage.Repository
 
         private async Task<bool> DeleteIfExistsAsync(string org, string fileName)
         {
-            CloudBlobContainer cloudBlobContainer = await GetBlobContainer(org);
-            CloudBlockBlob blockBlob = cloudBlobContainer.GetBlockBlobReference(fileName);
+            BlobContainerClient cloudBlobContainer = await GetBlobContainer(org);
+            BlobClient blockBlob = cloudBlobContainer.GetBlobClient(fileName);
 
             bool result = await blockBlob.DeleteIfExistsAsync();
 
             return result;
         }
 
-        private async Task<CloudBlobContainer> GetBlobContainer(string org)
+        private async Task<BlobContainerClient> GetBlobContainer(string org)
         {
             if (_storageConfiguration.OrgPrivateBlobStorageEnabled)
             {
                 string sasToken = await _sasTokenProvider.GetSasToken(org);
-                StorageCredentials accountSasCredential = new StorageCredentials(sasToken);
 
                 string accountName = string.Format(_storageConfiguration.OrgStorageAccount, org);
                 string blobEndpoint = string.Format(_storageConfiguration.BlobEndPoint, accountName);
                 string containerName = string.Format(_storageConfiguration.OrgStorageContainer, org);
 
-                CloudStorageAccount accountWithSas = new CloudStorageAccount(accountSasCredential, new Uri(blobEndpoint), null, null, null);
-                CloudBlobClient cloudBlobClient = accountWithSas.CreateCloudBlobClient();
-                CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(containerName);
+                StorageSharedKeyCredential storageCredentialsPrivate = new StorageSharedKeyCredential(accountName, sasToken);
 
-                return cloudBlobContainer;
+
+                Uri blobEndPoint = new Uri(blobEndpoint);
+                BlobContainerClient cloudBlobClient = new BlobContainerClient(blobEndPoint, storageCredentialsPrivate);
+
+                return cloudBlobClient;
             }
-            
-            StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
 
+            StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+            
             CloudBlobClient commonBlobClient = CreateBlobClient(storageCredentials, storageAccount);
             return commonBlobClient.GetContainerReference(_storageConfiguration.StorageContainer);
         }
 
-        private CloudBlobClient CreateBlobClient(StorageCredentials storageCredentials, CloudStorageAccount storageAccount)
+        private BlobServiceClient CreateBlobClient(StorageSharedKeyCredential storageCredentials, Uri blobStorageAccountUri)
         {
-            CloudBlobClient blobClient;
+            BlobServiceClient blobClient;
             if (_storageConfiguration.AccountName.StartsWith("devstoreaccount1"))
             {
-                StorageUri storageUrl = new StorageUri(new Uri(_storageConfiguration.BlobEndPoint));
-                blobClient = new CloudBlobClient(storageUrl, storageCredentials);
+                Uri storageUrl = new Uri(_storageConfiguration.BlobEndPoint);
+                blobClient = new BlobServiceClient(storageUrl, storageCredentials);
             }
             else
             {
-                blobClient = storageAccount.CreateCloudBlobClient();
+                blobClient = new BlobServiceClient(blobStorageAccountUri, storageCredentials);
             }
 
             return blobClient;

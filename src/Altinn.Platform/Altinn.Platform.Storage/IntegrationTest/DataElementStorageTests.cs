@@ -10,10 +10,6 @@ using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
