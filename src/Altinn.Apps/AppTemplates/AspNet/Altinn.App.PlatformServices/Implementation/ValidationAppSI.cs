@@ -64,7 +64,6 @@ namespace Altinn.App.Services.Implementation
 
             Application application = _appResourcesService.GetApplication();
 
-
             foreach (DataType dataType in application.DataTypes.Where(et => et.TaskId == taskId))
             {
                 List<DataElement> elements = instance.Data.Where(d => d.DataType == dataType.Id).ToList();
