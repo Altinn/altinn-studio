@@ -458,7 +458,7 @@ namespace App.IntegrationTests.ApiTests
             TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
             TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
             string token = PrincipalUtil.GetOrgToken("nav", "160694123");
-            string expectedMsg = "Invalid data provided. Error: Invalid filetype: .docx.Gje Permitted filetypes include: application/pdf, image/png";
+            string expectedMsg = "Invalid data provided. Error: Invalid filetype: .docx. Permitted filetypes include: application/pdf, image/png";
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
