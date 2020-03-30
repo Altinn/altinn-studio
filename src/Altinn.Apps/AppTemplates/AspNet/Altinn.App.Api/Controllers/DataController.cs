@@ -628,7 +628,7 @@ namespace Altinn.App.Api.Controllers
 
             if (string.IsNullOrEmpty(filename))
             {
-                errorMessage = "Conent-Disposition header must contain 'filename'.";
+                errorMessage = "Content-Disposition header must contain 'filename'.";
                 return false;
             }
 
@@ -636,7 +636,7 @@ namespace Altinn.App.Api.Controllers
 
             if (splitFilename.Count() != 2)
             {
-                errorMessage = "Invalid format for filename. Expected format is {filename}.{filetype}. ";
+                errorMessage = "Invalid format for filename. Expected format is {filename}.{filetype}.";
                 return false;
             }
 
@@ -650,7 +650,7 @@ namespace Altinn.App.Api.Controllers
 
             if (!dataType.AllowedContentTypes.Contains($".{filetype}", StringComparer.InvariantCultureIgnoreCase)) 
             {
-                errorMessage = $"Invalid filetype. Permitted filetypes include: {String.Join(',', dataType.AllowedContentTypes)}";
+                errorMessage = $"Invalid filetype: .{filetype}. Permitted filetypes include: {String.Join(", ", dataType.AllowedContentTypes)}";
                 return false;
             }
 
