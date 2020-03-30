@@ -648,13 +648,16 @@ namespace Altinn.App.Api.Controllers
                 return true;             
             }
 
-            if (!dataType.AllowedContentTypes.Contains($".{filetype}", StringComparer.InvariantCultureIgnoreCase)) 
+            foreach (string allowedType in dataType.AllowedContentTypes)
             {
-                errorMessage = $"Invalid filetype: .{filetype}. Permitted filetypes include: {String.Join(", ", dataType.AllowedContentTypes)}";
-                return false;
+                if (allowedType.EndsWith(filetype, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }             
             }
 
-            return true;
+            errorMessage = $"Invalid filetype: .{filetype}. Permitted filetypes include: {String.Join(", ", dataType.AllowedContentTypes)}";
+            return false;
         }
 
         private string GetFilenameFromHeader(string header)

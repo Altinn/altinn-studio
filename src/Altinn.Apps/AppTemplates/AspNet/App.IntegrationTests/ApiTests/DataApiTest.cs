@@ -475,5 +475,31 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(expectedMsg, message);
         }
 
+        /// <summary>
+        /// Test case: post data with  validfiletype
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_ValidFiletype_Ok()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.pdf");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
     }
 }

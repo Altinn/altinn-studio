@@ -39,7 +39,7 @@
       "maxSize": 1,
       "maxCount": 1,
       "minCount": 0,
-      "allowedContentTypes": [ ".pdf", ".png" ]
+      "allowedContentTypes": [ "application/pdf", "image/png" ]
     }
   ]
 }
