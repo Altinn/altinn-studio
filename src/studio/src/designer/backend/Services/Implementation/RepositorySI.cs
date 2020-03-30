@@ -225,7 +225,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 foreach (string type in fileType)
                 {
-                    applicationForm.AllowedContentTypes.Add(MimeTypeMap.GetMimeType(type));
+                    applicationForm.AllowedContentTypes.Add(MimeTypeMap.GetMimeType(type.Trim()));
                 }
 
                 applicationForm.Id = attachmentMetadata.GetValue("id").Value;
