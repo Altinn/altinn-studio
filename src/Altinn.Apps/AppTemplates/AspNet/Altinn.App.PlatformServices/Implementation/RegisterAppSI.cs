@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -5,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Register.Models;
@@ -22,6 +24,7 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class RegisterAppSI : IRegister
     {
+        private readonly PlatformSettings _platformSettings;
         private readonly IDSF _dsf;
         private readonly IER _er;
         private readonly ILogger _logger;
@@ -39,19 +42,24 @@ namespace Altinn.App.Services.Implementation
         /// <param name="settings">The application settings.</param>
         /// <param name="httpClientAccessor">The http client accessor </param>
         public RegisterAppSI(
+            IOptions<PlatformSettings> platformSettings,
             IDSF dsf,
             IER er,
             ILogger<RegisterAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
-            IHttpClientAccessor httpClientAccessor)
+            HttpClient httpClient)
         {
+            _platformSettings = platformSettings.Value;
             _dsf = dsf;
             _er = er;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
-            _client = httpClientAccessor.RegisterClient;
+            httpClient.BaseAddress = new Uri(_platformSettings.ApiRegisterEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _client = httpClient;
         }
 
         /// <summary>

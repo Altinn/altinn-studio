@@ -1,7 +1,10 @@
+using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +18,7 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class AuthenticationAppSI : IAuthentication
     {
+        private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly HttpClient _client;
@@ -26,13 +30,18 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="httpClientAccessor">The http client accessor </param>
         public AuthenticationAppSI(
+            IOptions<PlatformSettings> platformSettings,
             ILogger<AuthenticationAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            IHttpClientAccessor httpClientAccessor)
+            HttpClient httpClient)
         {
+            _platformSettings = platformSettings.Value;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
-            _client = httpClientAccessor.AuthenticationClient;
+            httpClient.BaseAddress = new Uri(_platformSettings.ApiAuthenticationEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _client = httpClient;
         }
 
         /// <inheritdoc />

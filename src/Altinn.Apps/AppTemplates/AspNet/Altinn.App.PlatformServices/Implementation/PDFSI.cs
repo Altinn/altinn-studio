@@ -1,5 +1,6 @@
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -19,6 +20,7 @@ namespace Altinn.App.Services.Implementation
 {
     public class PDFSI : IPDF
     {
+        private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
         private readonly HttpClient _pdfClient;
         private readonly AppSettings _appSettings;
@@ -38,15 +40,16 @@ namespace Altinn.App.Services.Implementation
         /// <param name="dataService">The data service</param>
         /// <param name="repositoryService">The repository service</param>
         /// <param name="registerService">The register service</param>
-        public PDFSI(IOptions<AppSettings> appSettings,
+        public PDFSI(IOptions<PlatformSettings> platformSettings,
+            IOptions<AppSettings> appSettings,
             ILogger<PDFSI> logger,
-            IHttpClientAccessor httpClientAccessor,
+            HttpClient httpClient,
             IData dataService,
             IRegister registerService,
             IAppResources appResourcesService)
         {
+            _platformSettings = platformSettings.Value;
             _logger = logger;
-            _pdfClient = httpClientAccessor.PdfClient;
             _dataService = dataService;
             _registerService = registerService;
             _appResourcesService = appResourcesService;
@@ -56,6 +59,10 @@ namespace Altinn.App.Services.Implementation
                 {
                     ContractResolver = new CamelCasePropertyNamesContractResolver()
                 });
+
+            httpClient.BaseAddress = new Uri(_platformSettings.ApiPdfEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            _pdfClient = httpClient;
         }
 
         /// <inheritdoc/>

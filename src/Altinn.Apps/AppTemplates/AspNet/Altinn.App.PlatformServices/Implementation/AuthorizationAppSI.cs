@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Register.Models;
@@ -20,6 +22,7 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class AuthorizationAppSI : IAuthorization
     {
+        private readonly PlatformSettings _platformSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly HttpClient _authClient;
@@ -32,17 +35,20 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpClientAccessor">The Http client accessor</param>
         /// <param name="settings">The application settings.</param>
         /// <param name="logger">the handler for logger service</param>
-        public AuthorizationAppSI(
+        public AuthorizationAppSI(IOptions<PlatformSettings> platformSettings,
                 IHttpContextAccessor httpContextAccessor,
-                IHttpClientAccessor httpClientAccessor,
+                HttpClient httpClient,
                IOptionsMonitor<AppSettings> settings,
                 ILogger<AuthorizationAppSI> logger)
         {
+            _platformSettings = platformSettings.Value;
             _httpContextAccessor = httpContextAccessor;
-            _authClient = httpClientAccessor.AuthorizationClient;
             _settings = settings.CurrentValue;
-
             _logger = logger;
+            httpClient.BaseAddress = new Uri(_platformSettings.ApiAuthorizationEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _authClient = httpClient;
         }
 
         /// <inheritdoc />
