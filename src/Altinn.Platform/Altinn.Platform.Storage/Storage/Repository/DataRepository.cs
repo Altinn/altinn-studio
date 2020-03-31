@@ -231,13 +231,12 @@ namespace Altinn.Platform.Storage.Repository
 
         private async Task<BlobContainerClient> GetBlobContainer(string org)
         {
-            if (_storageConfiguration.OrgPrivateBlobStorageEnabled)
+            if (!_storageConfiguration.AccountName.StartsWith("devstoreaccount1"))
             {
                 string sasToken = await _sasTokenProvider.GetSasToken(org);
 
                 string accountName = string.Format(_storageConfiguration.OrgStorageAccount, org);
                 string blobEndpoint = string.Format(_storageConfiguration.BlobEndPoint, accountName);
-                string containerName = string.Format(_storageConfiguration.OrgStorageContainer, org);
 
                 StorageSharedKeyCredential storageCredentialsPrivate = new StorageSharedKeyCredential(accountName, sasToken);
                 Uri blobEndPoint = new Uri(blobEndpoint);
@@ -247,25 +246,9 @@ namespace Altinn.Platform.Storage.Repository
             }
 
             StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
-
-            BlobServiceClient commonBlobClient = CreateBlobClient(storageCredentials, null);
+            Uri storageUrl = new Uri(_storageConfiguration.BlobEndPoint);
+            BlobServiceClient commonBlobClient = new BlobServiceClient(storageUrl, storageCredentials);
             return commonBlobClient.GetBlobContainerClient(_storageConfiguration.StorageContainer);
-        }
-
-        private BlobServiceClient CreateBlobClient(StorageSharedKeyCredential storageCredentials, Uri blobStorageAccountUri)
-        {
-            BlobServiceClient blobClient;
-            if (_storageConfiguration.AccountName.StartsWith("devstoreaccount1"))
-            {
-                Uri storageUrl = new Uri(_storageConfiguration.BlobEndPoint);
-                blobClient = new BlobServiceClient(storageUrl, storageCredentials);
-            }
-            else
-            {
-                blobClient = new BlobServiceClient(blobStorageAccountUri, storageCredentials);
-            }
-
-            return blobClient;
         }
     }
 }
