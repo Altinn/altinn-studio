@@ -11,6 +11,7 @@ using Altinn.App.Common.Helpers;
 using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.PlatformServices.Helpers;
+using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -653,10 +654,11 @@ namespace Altinn.App.Api.Controllers
             }
 
             string filetype = splitFilename[1];
-
+            string mimeType = MimeTypeMap.GetMimeType(filetype);
+            
             foreach (string allowedType in dataType.AllowedContentTypes)
             {
-                if (allowedType.EndsWith(filetype, StringComparison.InvariantCultureIgnoreCase))
+                if (allowedType.Equals(mimeType, StringComparison.InvariantCultureIgnoreCase))
                 {
                     return true;
                 }
