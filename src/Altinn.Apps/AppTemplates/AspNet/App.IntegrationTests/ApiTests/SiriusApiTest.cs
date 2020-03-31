@@ -199,7 +199,7 @@ namespace App.IntegrationTests
             MemoryStream næringsoppgavestream = new MemoryStream(byteArray);
 
             StreamContent streamContentNæring = new StreamContent(næringsoppgavestream);
-            streamContentNæring.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+            streamContentNæring.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
             streamContentNæring.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=data-element.xml");
 
             HttpResponseMessage postresponseNæring = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=næringsoppgave", streamContentNæring);
@@ -265,7 +265,7 @@ namespace App.IntegrationTests
             serializer.Serialize(stream, siriusMainForm);
             stream.Position = 0;
             StreamContent streamContent = new StreamContent(stream);
-            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
             streamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=data-element.xml");
             
             HttpResponseMessage putresponse = await client.PutAsync("/tdd/sirius/instances/" + instance.Id + "/data/" + instance.Data[0].Id, streamContent);
@@ -279,7 +279,7 @@ namespace App.IntegrationTests
 
             StreamContent streamContentNæring = new StreamContent(næringsoppgavestream);
             streamContentNæring.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment;  filename=data-element.xml");
-            streamContentNæring.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+            streamContentNæring.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
 
             HttpResponseMessage postresponseNæring = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=næringsoppgave", streamContentNæring);
             DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(postresponseNæring.Content.ReadAsStringAsync().Result, typeof(DataElement));
@@ -293,7 +293,7 @@ namespace App.IntegrationTests
             MemoryStream skattemeldingstream = new MemoryStream(byteArraySkattemelding);
 
             HttpContent streamContentSkattemelding = new StreamContent(skattemeldingstream);
-            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
             streamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=data-element.xml");
 
             HttpResponseMessage postresponseskattemelding = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=skattemelding", streamContentNæring);

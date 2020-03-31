@@ -664,7 +664,7 @@ namespace Altinn.App.Api.Controllers
                 }
             }
 
-            errorMessage = $"Invalid filetype: .{filetype}. Permitted filetypes include: {String.Join(", ", dataType.AllowedContentTypes)}";
+            errorMessage = $"Invalid content type: {mimeType}. Please try another file. Permitted content types include: {String.Join(", ", dataType.AllowedContentTypes)}";
             return false;
         }
 

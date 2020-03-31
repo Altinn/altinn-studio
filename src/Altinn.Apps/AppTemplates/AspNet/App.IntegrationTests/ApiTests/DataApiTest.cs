@@ -458,14 +458,14 @@ namespace App.IntegrationTests.ApiTests
             TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
             TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
             string token = PrincipalUtil.GetOrgToken("nav", "160694123");
-            string expectedMsg = "Invalid data provided. Error: Invalid filetype: .docx. Permitted filetypes include: application/pdf, image/png";
+            string expectedMsg = "Invalid data provided. Error: Invalid content type: text/xml. Please try another file. Permitted content types include: application/pdf, image/png";
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
             HttpContent content = new StringContent(string.Empty);
-            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.docx");
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.xml");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
             string message = await response.Content.ReadAsStringAsync();
