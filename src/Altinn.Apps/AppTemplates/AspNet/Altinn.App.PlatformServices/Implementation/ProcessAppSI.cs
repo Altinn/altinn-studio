@@ -13,6 +13,7 @@ using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -50,12 +51,14 @@ namespace Altinn.App.Services.Implementation
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient)
         {
+            _platformSettings = platformSettings.Value;
             _appSettings = appSettings.Value;
             _eventService = eventService;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             ProcessHelper = new ProcessHelper(GetProcessDefinition());
             httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             _client = httpClient;

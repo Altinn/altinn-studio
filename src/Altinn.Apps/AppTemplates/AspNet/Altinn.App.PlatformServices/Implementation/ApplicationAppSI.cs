@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -22,6 +23,8 @@ namespace Altinn.App.Services.Implementation
         private readonly ILogger _logger;
         private readonly HttpClient _client;
 
+        private const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationAppSI"/> class.
         /// </summary>
@@ -35,6 +38,7 @@ namespace Altinn.App.Services.Implementation
             _platformSettings = platformSettings.Value;
             _logger = logger;
             httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             _client = httpClient;
