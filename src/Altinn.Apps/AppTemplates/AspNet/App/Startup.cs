@@ -8,6 +8,7 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Common.PEP.Authorization;
+using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
 using AltinnCore.Authentication.JwtCookie;
@@ -49,32 +50,37 @@ namespace Altinn.App
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             });
 
+            services.AddHttpClient<AuthorizationApiClient>();
 
             // Dot net services
             services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             // Internal Application services
-            services.AddTransient<IApplication, ApplicationAppSI>();
             services.AddSingleton<IAppResources, AppResourcesSI>();
-            services.AddTransient<IPDF, PDFSI>();
-            services.AddTransient<IProcess, ProcessAppSI>();
-            services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
-            services.AddTransient<Altinn.Common.PEP.Clients.IHttpClientAccessor, Altinn.Common.PEP.Clients.HttpClientAccessor>();
-
+            
             // Services for Altinn Platform components
-            services.AddTransient<IAuthentication, AuthenticationAppSI>();
-            services.AddTransient<IAuthorization, AuthorizationAppSI>();
-            services.AddTransient<IData, DataAppSI>();
-            services.AddTransient<IDSF, RegisterDSFAppSI>();
-            services.AddTransient<IER, RegisterERAppSI>();
-            services.AddTransient<IInstance, InstanceAppSI>();
-            services.AddTransient<IInstanceEvent, InstanceEventAppSI>();
-            services.AddTransient<IProfile, ProfileAppSI>();
-            services.AddTransient<IRegister, RegisterAppSI>();
             services.AddTransient<IPDP, PDPAppSI>();
             services.AddSingleton<IValidation, ValidationAppSI>();
             services.AddSingleton<IPrefill, PrefillSI>();
+
+            services.AddHttpClient<IAuthentication, AuthenticationAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
+            services.AddHttpClient<IAuthorization, AuthorizationAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
+            services.AddHttpClient<IProcess, ProcessAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
+
+            if (!_env.ContentRootPath.Contains("AppTemplate"))
+            {
+                // HttpClients for platform functionality
+                services.AddHttpClient<IApplication, ApplicationAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
+                services.AddHttpClient<IData, DataAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
+                services.AddHttpClient<IDSF, RegisterDSFAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
+                services.AddHttpClient<IER, RegisterERAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
+                services.AddHttpClient<IInstance, InstanceAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
+                services.AddHttpClient<IInstanceEvent, InstanceEventAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
+                services.AddHttpClient<IPDF, PDFSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
+                services.AddHttpClient<IProfile, ProfileAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
+                services.AddHttpClient<IRegister, RegisterAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
+            }
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
             services.AddTransient<IAltinnApp, AppLogic.App>();

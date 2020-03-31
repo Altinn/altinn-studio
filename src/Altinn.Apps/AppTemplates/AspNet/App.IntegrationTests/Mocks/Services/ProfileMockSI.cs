@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,7 +16,7 @@ namespace App.IntegrationTestsRef.Mocks.Services
     {
         private readonly IRegister _registerService;
 
-        public ProfileMockSI(IRegister registerService)
+        public ProfileMockSI(HttpClient httpClient, IRegister registerService)
         {
             _registerService = registerService;
         }

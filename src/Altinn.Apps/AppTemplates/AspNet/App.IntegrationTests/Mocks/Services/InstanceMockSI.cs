@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,7 +17,7 @@ namespace App.IntegrationTests.Mocks.Services
     {
         private readonly ILogger _logger;
 
-        public InstanceMockSI(ILogger<IInstance> logger)
+        public InstanceMockSI(HttpClient httpClient, ILogger<IInstance> logger)
         {
             _logger = logger;
         }

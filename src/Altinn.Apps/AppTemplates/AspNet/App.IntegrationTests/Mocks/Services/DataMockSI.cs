@@ -19,7 +19,7 @@ namespace App.IntegrationTests.Mocks.Services
     {
         private readonly IAppResources _applicationService;
 
-        public DataMockSI(IAppResources application)
+        public DataMockSI(HttpClient httpClient, IAppResources application)
         {
             _applicationService = application;
         }

@@ -1,12 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.71.0</AssemblyVersion>
-    <FileVersion>1.0.71.0</FileVersion>
-    <Version>1.0.71-alpha</Version>
+    <AssemblyVersion>1.0.72.0</AssemblyVersion>
+    <FileVersion>1.0.72.0</FileVersion>
+    <Version>1.0.72-alpha</Version>
     <Description>Package that contains API controllers for the standard API for a Altinn App.</Description>
     <Company>Altinn</Company>
     <Authors>Altinn</Authors>
@@ -16,11 +16,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.PEP" Version="1.0.25-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.12" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Altinn.Common\Altinn.Common.PEP\Altinn.Common.PEP\Altinn.Common.PEP.csproj" />
     <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
     <ProjectReference Include="..\Altinn.App.PlatformServices\Altinn.App.PlatformServices.csproj" />
   </ItemGroup>

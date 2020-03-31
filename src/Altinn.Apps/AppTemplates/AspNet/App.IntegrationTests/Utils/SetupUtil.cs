@@ -52,17 +52,20 @@ namespace App.IntegrationTestsRef.Utils
                 builder.ConfigureTestServices(services =>
                 {
                     services.Configure<AppSettings>(appSettingSection);
-                    services.AddSingleton<IInstance, InstanceMockSI>();
-                    services.AddSingleton<IData, DataMockSI>();
-                    services.AddSingleton<IInstanceEvent, InstanceEventAppSIMock>();
-                    services.AddSingleton<IDSF, DSFMockSI>();
-                    services.AddSingleton<IER, ERMockSI>();
-                    services.AddSingleton<IRegister, RegisterMockSI>();
+
                     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepWithPDPAuthorizationMockSI>();
-                    services.AddSingleton<IApplication, ApplicationMockSI>();
-                    services.AddTransient<IProfile, ProfileMockSI>();
+
                     services.AddSingleton<IValidation, ValidationAppSI>();
-                    services.AddSingleton<IPDF, PDFMockSI>();
+
+                    services.AddHttpClient<IApplication, ApplicationMockSI>();
+                    services.AddHttpClient<IInstance, InstanceMockSI>();
+                    services.AddHttpClient<IData, DataMockSI>();
+                    services.AddHttpClient<IInstanceEvent, InstanceEventAppSIMock>();
+                    services.AddHttpClient<IDSF, DSFMockSI>();
+                    services.AddHttpClient<IER, ERMockSI>();
+                    services.AddHttpClient<IRegister, RegisterMockSI>();
+                    services.AddHttpClient<IPDF, PDFMockSI>();
+                    services.AddHttpClient<IProfile, ProfileMockSI>();
 
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();

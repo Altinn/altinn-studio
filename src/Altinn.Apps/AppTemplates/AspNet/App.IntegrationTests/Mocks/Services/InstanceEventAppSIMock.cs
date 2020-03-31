@@ -36,14 +36,14 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpClientAccessor">The Http client accessor </param>
         /// <param name="settings">The application settings.</param>
         public InstanceEventAppSIMock(
+            HttpClient httpClient,
             ILogger<InstanceEventAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            IHttpClientAccessor httpClientAccessor,
-            IOptionsMonitor<AppSettings> settings)
+                      IOptionsMonitor<AppSettings> settings)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
-            _client = httpClientAccessor.StorageClient;
+            _client = httpClient;
             _settings = settings.CurrentValue;
         }
 

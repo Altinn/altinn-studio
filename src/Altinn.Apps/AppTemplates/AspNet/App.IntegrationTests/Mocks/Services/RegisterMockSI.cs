@@ -4,6 +4,7 @@ using Altinn.Platform.Register.Models;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace App.IntegrationTests.Mocks.Services
@@ -12,7 +13,7 @@ namespace App.IntegrationTests.Mocks.Services
     {
         private readonly IDSF _dsfService;
         private readonly IER _erService;
-        public RegisterMockSI(IDSF dsfService, IER erService)
+        public RegisterMockSI(HttpClient httpClient, IDSF dsfService, IER erService)
         {
             _dsfService = dsfService;
             _erService = erService;
