@@ -111,7 +111,7 @@ namespace App.IntegrationTests
             MemoryStream næringsoppgavestream = new MemoryStream(byteArray);
 
             StreamContent streamContentNæring = new StreamContent(næringsoppgavestream);
-            streamContentNæring.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+            streamContentNæring.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
             streamContentNæring.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment;  filename=data-element.xml");
 
             HttpResponseMessage postresponseNæring = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=næringsoppgave", streamContentNæring);
@@ -126,7 +126,7 @@ namespace App.IntegrationTests
             MemoryStream skattemeldingstream = new MemoryStream(byteArraySkattemelding);
 
             StreamContent streamContentSkattemelding = new StreamContent(skattemeldingstream);
-            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
 
             HttpResponseMessage postresponseskattemelding = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=skattemelding", streamContentNæring);
             DataElement dataElementSkattemelding = (DataElement)JsonConvert.DeserializeObject(postresponseskattemelding.Content.ReadAsStringAsync().Result, typeof(DataElement));

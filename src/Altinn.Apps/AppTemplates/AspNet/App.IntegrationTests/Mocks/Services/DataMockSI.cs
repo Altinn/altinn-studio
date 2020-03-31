@@ -66,7 +66,7 @@ namespace App.IntegrationTests.Mocks.Services
             Guid dataGuid = Guid.NewGuid();
             string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
             Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
-            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = "application/xml", };
+            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = request.ContentType };
 
        
             if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
