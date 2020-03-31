@@ -301,7 +301,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.PostAsync(url, new StringContent(string.Empty));
             await response.Content.ReadAsStringAsync();
-            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -328,7 +328,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.PostAsync(url, content);
             await response.Content.ReadAsStringAsync();
-            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
@@ -355,7 +355,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.PostAsync(url, content);
             await response.Content.ReadAsStringAsync();
-            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
@@ -382,7 +382,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.PostAsync(url, content);
             string message = await response.Content.ReadAsStringAsync();
-            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Equal(expectedMsg, message);
@@ -411,7 +411,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.PostAsync(url, content);
             string message = await response.Content.ReadAsStringAsync();
-            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Equal(expectedMsg, message);
@@ -440,7 +440,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.PostAsync(url, content);
             string message = await response.Content.ReadAsStringAsync();
-            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Equal(expectedMsg, message);
@@ -470,7 +470,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.PostAsync(url, content);
             string message = await response.Content.ReadAsStringAsync();
-            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Equal(expectedMsg, message);
@@ -499,9 +499,39 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.PostAsync(url, content);
             string message = await response.Content.ReadAsStringAsync();
-            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: post data with  validfiletype
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_MisMatchContentTypeFileType_BadRequest()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            string expectedMsg = "Invalid data provided. Error: Content type header text/xml does not match mime type application/pdf for uploaded file. Please fix header or upload another file.";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.pdf");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData ("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(expectedMsg, message);
         }
     }
 }

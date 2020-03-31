@@ -51,7 +51,7 @@ namespace App.IntegrationTests
             Assert.NotNull(instance);
             Assert.Equal("1337", instance.InstanceOwner.PartyId);
 
-            TestDataUtil.DeletInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace App.IntegrationTests
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContentValidation, typeof(List<ValidationIssue>));
 
             Assert.Empty(messages);
-            TestDataUtil.DeletInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
 
@@ -212,7 +212,7 @@ namespace App.IntegrationTests
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContentValidation, typeof(List<ValidationIssue>));
 
             Assert.Single(messages);
-            TestDataUtil.DeletInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
 
@@ -336,7 +336,7 @@ namespace App.IntegrationTests
             Assert.Equal("Task_3", stateAfterSecondNext.CurrentTask.ElementId);
 
             // Delete all data created
-            TestDataUtil.DeletInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
         }
     }
 }
