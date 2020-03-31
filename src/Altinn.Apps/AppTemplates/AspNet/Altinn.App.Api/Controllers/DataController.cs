@@ -655,17 +655,29 @@ namespace Altinn.App.Api.Controllers
 
             string filetype = splitFilename[1];
             string mimeType = MimeTypeMap.GetMimeType(filetype);
-            
-            foreach (string allowedType in dataType.AllowedContentTypes)
+
+            if (!Request.Headers.ContainsKey("Content-Type"))
             {
-                if (allowedType.Equals(mimeType, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return true;
-                }
+                errorMessage = "Content-Type header must be included in request.";
+                return false;
             }
 
-            errorMessage = $"Invalid content type: {mimeType}. Please try another file. Permitted content types include: {String.Join(", ", dataType.AllowedContentTypes)}";
-            return false;
+            // Verify that file mime type matches content type in reuqest
+            Request.Headers.TryGetValue("Content-Type", out StringValues contentType);
+            if (!contentType.Equals("application/octet-stream") && !mimeType.Equals(contentType, StringComparison.InvariantCultureIgnoreCase))
+            {
+                errorMessage = $"Content type header {contentType} does not match mime type {mimeType} for uploaded file. Please fix header or upload another file.";
+                return false;
+            }
+
+            // Verify that file mime type is an allowed content-type
+            if (!dataType.AllowedContentTypes.Contains(mimeType, StringComparer.InvariantCultureIgnoreCase) && !dataType.AllowedContentTypes.Contains("application/octet-stream"))
+            {
+                errorMessage = $"Invalid content type: {mimeType}. Please try another file. Permitted content types include: {String.Join(", ", dataType.AllowedContentTypes)}";
+                return false;
+            }
+
+            return true;
         }
 
         private string GetFilenameFromHeader(string header)

@@ -451,7 +451,7 @@ namespace App.IntegrationTests.ApiTests
         /// Expected: Bad request. Data element is not uploaded.
         /// </summary>
         [Fact]
-        public async Task Data_Post_InvalidFiletype_BadRequest()
+        public async Task Data_Post_InvalidFiletypeCorrectContentType_BadRequest()
         {
             string app = "contributer-restriction";
             Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
@@ -465,6 +465,7 @@ namespace App.IntegrationTests.ApiTests
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
             HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.xml");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
@@ -493,6 +494,7 @@ namespace App.IntegrationTests.ApiTests
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
             HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.pdf");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
