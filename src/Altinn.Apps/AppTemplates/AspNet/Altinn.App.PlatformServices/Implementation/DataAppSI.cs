@@ -47,13 +47,17 @@ namespace Altinn.App.Services.Implementation
             ILogger<DataAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
-            IHttpClientAccessor httpClientAccessor)
+            HttpClient httpClient)
         {
             _platformSettings = platformSettings.Value;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
-            _client = httpClientAccessor.StorageClient;
+
+            httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+            _client = httpClient;
         }
 
         /// <inheritdoc />

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.App.PlatformServices.Helpers;
@@ -21,6 +22,7 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class InstanceEventAppSI : IInstanceEvent
     {
+        private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
@@ -36,15 +38,20 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpClientAccessor">The Http client accessor </param>
         /// <param name="settings">The application settings.</param>
         public InstanceEventAppSI(
+            IOptions<PlatformSettings> platformSettings,
             ILogger<InstanceEventAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            IHttpClientAccessor httpClientAccessor,
+            HttpClient httpClient,
             IOptionsMonitor<AppSettings> settings)
         {
+            _platformSettings = platformSettings.Value;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
-            _client = httpClientAccessor.StorageClient;
             _settings = settings.CurrentValue;
+            httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+            _client = httpClient;
         }
 
         /// <inheritdoc/>

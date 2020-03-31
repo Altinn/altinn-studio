@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,6 +30,7 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class ProcessAppSI : IProcess
     {
+        private readonly PlatformSettings _platformSettings;
         private readonly AppSettings _appSettings;
         private readonly ILogger<ProcessAppSI> _logger;
         private readonly IInstanceEvent _eventService;
@@ -41,19 +43,22 @@ namespace Altinn.App.Services.Implementation
         /// Initializes a new instance of the <see cref="ProcessAppSI"/> class.
         /// </summary>
         public ProcessAppSI(
+            IOptions<PlatformSettings> platformSettings,
             IOptions<AppSettings> appSettings,
             IInstanceEvent eventService,
             ILogger<ProcessAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            IHttpClientAccessor httpClientAccessor)
+            HttpClient httpClient)
         {
             _appSettings = appSettings.Value;
             _eventService = eventService;
             _httpContextAccessor = httpContextAccessor;
-            _client = httpClientAccessor.StorageClient;
             _logger = logger;
-
             ProcessHelper = new ProcessHelper(GetProcessDefinition());
+            httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+            _client = httpClient;
         }
 
         /// <inheritdoc/>
