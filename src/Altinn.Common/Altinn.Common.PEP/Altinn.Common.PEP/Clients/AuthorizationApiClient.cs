@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -35,7 +36,13 @@ namespace Altinn.Common.PEP.Clients
             string apiUrl = $"decision";
             string requestJson = JsonConvert.SerializeObject(xacmlJsonRequest);
             StringContent httpContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
+
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
             HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, httpContent);
+            stopWatch.Stop();
+            TimeSpan ts = stopWatch.Elapsed;
+            _logger.LogInformation("Authorization PDP time elapsed: " + ts.TotalMilliseconds);
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
