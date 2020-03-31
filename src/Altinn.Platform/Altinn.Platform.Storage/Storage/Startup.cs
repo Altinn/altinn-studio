@@ -129,6 +129,7 @@ namespace Altinn.Platform.Storage
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
+            services.AddSingleton<ITextRepository, TextRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
             services.AddSingleton<ISasTokenProvider, SasTokenProvider>();
