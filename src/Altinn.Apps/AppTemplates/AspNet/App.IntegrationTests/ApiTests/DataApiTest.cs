@@ -465,7 +465,7 @@ namespace App.IntegrationTests.ApiTests
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
             HttpContent content = new StringContent(string.Empty);
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
             content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.xml");
 
             HttpResponseMessage response = await client.PostAsync(url, content);
