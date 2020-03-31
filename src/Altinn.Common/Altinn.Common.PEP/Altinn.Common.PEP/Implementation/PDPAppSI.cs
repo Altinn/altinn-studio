@@ -23,9 +23,9 @@ namespace Altinn.Common.PEP.Implementation
     /// </summary>
     public class PDPAppSI : IPDP
     {
-        private readonly HttpClient _authClient;
         private readonly ILogger _logger;
         private readonly PepSettings _pepSettings;
+        AuthorizationApiClient _authorizationApiClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthorizationAppSI"/> class
@@ -36,18 +36,18 @@ namespace Altinn.Common.PEP.Implementation
         public PDPAppSI(
                 IHttpClientAccessor httpClientAccessor,
                 ILogger<PDPAppSI> logger,
-                IOptions<PepSettings> pepSettings)
+                IOptions<PepSettings> pepSettings,
+                AuthorizationApiClient authorizationApiClient)
         {
-            _authClient = httpClientAccessor.AuthorizationClient;
             _logger = logger;
             _pepSettings = pepSettings.Value;
+            _authorizationApiClient = authorizationApiClient;
         }
 
         /// <inheritdoc/>
         public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
             XacmlJsonResponse xacmlJsonResponse = null;
-            string apiUrl = $"decision";
 
             if (_pepSettings.DisablePEP)
             {
@@ -65,20 +65,7 @@ namespace Altinn.Common.PEP.Implementation
 
             try
             {
-                string requestJson = JsonConvert.SerializeObject(xacmlJsonRequest);
-                StringContent httpContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await _authClient.PostAsync(apiUrl, httpContent);
-
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    string responseData = await response.Content.ReadAsStringAsync();
-                    xacmlJsonResponse = JsonConvert.DeserializeObject<XacmlJsonResponse>(responseData);
-                }
-                else
-                {
-                    _logger.LogInformation($"// PDPAppSI // GetDecisionForRequest // Non-zero status code: {response.StatusCode}");
-                    _logger.LogInformation($"// PDPAppSI // GetDecisionForRequest // Response: {await response.Content.ReadAsStringAsync()}");
-                }
+                xacmlJsonResponse = await _authorizationApiClient.AuthorizeRequest(xacmlJsonRequest);
             }
             catch (Exception e)
             {
