@@ -23,11 +23,11 @@ namespace Altinn.Common.PEP.Clients
 
         public AuthorizationApiClient(HttpClient client, IOptions<PlatformSettings> platformSettings, IOptions<PepSettings> pepSettings, ILogger<AuthorizationApiClient> logger)
         {
-            client.BaseAddress = new Uri($"{_platformSettings.GetApiAuthorizationEndpoint}");
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _httpClient = client;
             _platformSettings = platformSettings.Value;
             _logger = logger;
+            client.BaseAddress = new Uri($"{_platformSettings.GetApiAuthorizationEndpoint}");
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         public async Task<XacmlJsonResponse> AuthorizeRequest(XacmlJsonRequestRoot xacmlJsonRequest)
