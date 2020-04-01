@@ -233,7 +233,7 @@ namespace Altinn.Platform.Storage.Repository
                 string sasToken = await _sasTokenProvider.GetSasToken(org);
 
                 string accountName = string.Format(_storageConfiguration.OrgStorageAccount, org);
-                string containerName = string.Format(_storageConfiguration.StorageContainer, org);
+                string containerName = string.Format(_storageConfiguration.OrgStorageContainer, org);
 
                 UriBuilder fullUri = new UriBuilder
                 {
