@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
@@ -77,7 +78,7 @@ namespace Altinn.App.Services.Implementation
         {
             string apiUrl = $"instances/{instance.Id}/data?dataType={dataType}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+            // JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             DataElement dataElement;
 
             XmlSerializer serializer = new XmlSerializer(type);
@@ -87,7 +88,7 @@ namespace Altinn.App.Services.Implementation
             stream.Position = 0;
             StreamContent streamContent = new StreamContent(stream);
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
-            HttpResponseMessage response = await _client.PostAsync(apiUrl, streamContent);
+            HttpResponseMessage response = await _client.PostAsync(token, apiUrl, streamContent);
 
             if (response.IsSuccessStatusCode)
             {
@@ -107,7 +108,7 @@ namespace Altinn.App.Services.Implementation
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+            //JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             XmlSerializer serializer = new XmlSerializer(type);
             using MemoryStream stream = new MemoryStream();
@@ -116,7 +117,7 @@ namespace Altinn.App.Services.Implementation
             StreamContent streamContent = new StreamContent(stream);
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
 
-            HttpResponseMessage response = await _client.PutAsync(apiUrl, streamContent);
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, streamContent);
 
             if (response.IsSuccessStatusCode)
             {
