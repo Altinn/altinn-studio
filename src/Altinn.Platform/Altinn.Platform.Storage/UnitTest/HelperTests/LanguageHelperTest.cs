@@ -7,26 +7,19 @@ namespace Altinn.Platform.Storage.UnitTest
     public class LanguageHelperTest
     {
 
-        [Fact]
-        public void IsTwoLetterISONameTest()
+        [Theory]
+        [InlineData("nb", true)]
+        [InlineData("en", true)]
+        [InlineData("de", true)]
+        [InlineData("12", false)]
+        [InlineData("", false)]
+        [InlineData(null, false)]
+        [InlineData("xx", false)]
+        [InlineData("tv", false)]
+        public void IsTwoLetterISONameTest(string language, bool expected)
         {
-            bool expectedTrue_1 = LanguageHelper.IsTwoLetterISOName("nb");
-            bool expectedTrue_2 = LanguageHelper.IsTwoLetterISOName("en");
-            bool expectedTrue_3 = LanguageHelper.IsTwoLetterISOName("de");
-
-            bool expectedFalse_1 = LanguageHelper.IsTwoLetterISOName("xx");
-            bool expectedFalse_2 = LanguageHelper.IsTwoLetterISOName("12");
-            bool expectedFalse_3 = LanguageHelper.IsTwoLetterISOName("norsk");
-            bool expectedFalse_4 = LanguageHelper.IsTwoLetterISOName("tv");
-
-            Assert.Equal(expectedTrue_1, true);
-            Assert.Equal(expectedTrue_2, true);
-            Assert.Equal(expectedTrue_3, true);
-
-            Assert.Equal(expectedFalse_1, false);
-            Assert.Equal(expectedFalse_2, false);
-            Assert.Equal(expectedFalse_3, false);
-            Assert.Equal(expectedFalse_4, false);
+            bool result = LanguageHelper.IsTwoLetterISOName(language);
+            Assert.Equal(result, expected);
         }
     }
 }

@@ -97,6 +97,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Success criteria:
             ///   The response has correct status and returns a text
             /// </summary>
+            [Fact]
             public async void Get_ReturnsOK()
             {
                 string org = "testOrg";
