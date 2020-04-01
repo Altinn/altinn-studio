@@ -94,7 +94,6 @@ namespace Altinn.Platform.Receipt
             services.AddHttpClient<IRegister, RegisterWrapper>();
             services.AddHttpClient<IStorage, StorageWrapper>();
             services.AddHttpClient<IProfile, ProfileWrapper>();
-            services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
