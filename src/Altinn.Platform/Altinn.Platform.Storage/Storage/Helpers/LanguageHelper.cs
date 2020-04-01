@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Linq;
 
 namespace Altinn.Platform.Storage.Helpers
 {
@@ -19,15 +20,8 @@ namespace Altinn.Platform.Storage.Helpers
                 return false;
             }
 
-            foreach(var culture in CultureInfo.GetCultures(CultureTypes.AllCultures))
-            {
-                if (language.Equals(culture.TwoLetterISOLanguageName))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            CultureInfo match = CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(culture => culture.TwoLetterISOLanguageName.Equals(language));
+            return match != null;
         }
     }
 }

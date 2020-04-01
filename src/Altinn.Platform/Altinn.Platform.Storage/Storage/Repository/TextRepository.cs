@@ -1,15 +1,12 @@
 namespace Altinn.Platform.Storage.Repository
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
     using Altinn.Platform.Storage.Configuration;
     using Altinn.Platform.Storage.Interface.Models;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
-    using Microsoft.Azure.Documents.Linq;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
@@ -19,45 +16,42 @@ namespace Altinn.Platform.Storage.Repository
     /// </summary>
     public class TextRepository : ITextRepository
     {
-        private readonly Uri databaseUri;
+        private readonly Uri _databaseUri;
         private readonly Uri _collectionUri;
-        private readonly string databaseId;
-        private readonly string collectionId = "texts";
-        private readonly string partitionKey = "/org";
-        private static DocumentClient _client;
-        private readonly ILogger _logger;
+        private readonly string _databaseId;
+        private readonly string _collectionId = "texts";
+        private readonly string _partitionKey = "/org";
+        private readonly DocumentClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
-        /// <param name="logger">dependency injection of logger</param>
-        public TextRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<ApplicationRepository> logger)
+        public TextRepository(IOptions<AzureCosmosSettings> cosmosettings)
         {
-            _logger = logger;
-
             var database = new CosmosDatabaseHandler(cosmosettings.Value);
 
-            _client = database.CreateDatabaseAndCollection(collectionId);
+            _client = database.CreateDatabaseAndCollection(_collectionId);
             _collectionUri = database.CollectionUri;
-            databaseUri = database.DatabaseUri;
-            databaseId = database.DatabaseName;
+            _databaseUri = database.DatabaseUri;
+            _databaseId = database.DatabaseName;
 
-            DocumentCollection documentCollection = database.CreateDocumentCollection(collectionId, partitionKey);
+            DocumentCollection documentCollection = database.CreateDocumentCollection(_collectionId, _partitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
-                databaseUri,
+                _databaseUri,
                 documentCollection).GetAwaiter().GetResult();
 
             _client.OpenAsync();
         }
 
+        /// <inheritdoc/>
         public async Task<TextResource> Get(string org, string app, string language)
         {
             try
             {
                 string id = GetTextId(org, app, language);
-                Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, id);
+                Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, id);
                 TextResource result = await _client
                     .ReadDocumentAsync<TextResource>(
                         uri,
@@ -71,10 +65,11 @@ namespace Altinn.Platform.Storage.Repository
                     return null;
                 }
 
-                throw dce;
+                throw;
             }
         }
 
+        /// <inheritdoc/>
         public async Task<TextResource> Create(string org, string app, TextResource textResource)
         {
             PreProcess(org, app, textResource);
@@ -83,10 +78,11 @@ namespace Altinn.Platform.Storage.Repository
             return result;
         }
 
+        /// <inheritdoc/>
         public async Task<TextResource> Update(string org, string app, string language, TextResource textResource)
         {
             PreProcess(org, app, textResource);
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, textResource.Id);
+            Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, textResource.Id);
 
             ResourceResponse<Document> document = await _client
                 .ReplaceDocumentAsync(
@@ -98,12 +94,13 @@ namespace Altinn.Platform.Storage.Repository
             return updatedResource;
         }
 
+        /// <inheritdoc/>
         public async Task<bool> Delete(string org, string app, string language)
         {
             string id = GetTextId(org, app, language);
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, id);
+            Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, id);
 
-            ResourceResponse<Document> instance = await _client
+            await _client
                 .DeleteDocumentAsync(
                     uri.ToString(),
                     new RequestOptions { PartitionKey = new PartitionKey(org) });

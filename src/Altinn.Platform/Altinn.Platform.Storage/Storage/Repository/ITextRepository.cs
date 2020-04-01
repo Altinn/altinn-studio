@@ -43,6 +43,6 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="app">the app</param>
         /// <param name="language">the language. Must be a two letter ISO name.</param>
         /// <returns>if the item is deleted or not</returns>
-        Task<bool> Delete (string org, string app, string language);
+        Task<bool> Delete(string org, string app, string language);
     }
 }

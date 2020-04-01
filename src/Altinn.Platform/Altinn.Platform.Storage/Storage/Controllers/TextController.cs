@@ -10,6 +10,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Storage.Controllers
 {
+    /// <summary>
+    /// Provides operations for handling texts
+    /// </summary>
     [ApiController]
     [Route("storage/api/v1/applications/{org}/{app}/texts")]
     public class TextController : ControllerBase
@@ -28,6 +31,13 @@ namespace Altinn.Platform.Storage.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Creates a new text resource
+        /// </summary>
+        /// <param name="org">the org</param>
+        /// <param name="app">the application</param>
+        /// <param name="textResource">the text resource to be stored</param>
+        /// <returns>the created resource</returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -52,13 +62,20 @@ namespace Altinn.Platform.Storage.Controllers
                 var createdObjected = await _textRepository.Create(org, app, textResource);
                 return Ok(createdObjected);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 _logger.LogError($"Unable to create text resource for {org}/{app}: {e.Message}");
                 return StatusCode(500, $"Unable to create text resource for {org}/{app}");
             }
         }
 
+        /// <summary>
+        /// Gets a text resource
+        /// </summary>
+        /// <param name="org">the org</param>
+        /// <param name="app">the app</param>
+        /// <param name="language">the language, must be a two letter ISO name</param>
+        /// <returns>the requested text resource if found</returns>
         [HttpGet("{language}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -89,6 +106,14 @@ namespace Altinn.Platform.Storage.Controllers
             }
         }
 
+        /// <summary>
+        /// Updates an existing text
+        /// </summary>
+        /// <param name="org">the org</param>
+        /// <param name="app">the app</param>
+        /// <param name="language">the language, must be a two letter ISO name</param>
+        /// <param name="textResource">the text resource</param>
+        /// <returns>the updated text</returns>
         [HttpPut("{language}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -119,6 +144,12 @@ namespace Altinn.Platform.Storage.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes an existing text
+        /// </summary>
+        /// <param name="org">the org</param>
+        /// <param name="app">the app</param>
+        /// <param name="language">the language, must be a two letter ISO name</param>
         [HttpDelete("{language}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
