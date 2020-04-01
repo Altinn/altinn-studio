@@ -51,6 +51,7 @@ export interface IDataType {
   id: string;
   description: string;
   allowedContentTypes: string[];
+  allowedContributers: string[];
   appLogic: any;
   taskId: string;
   maxSize: number;
