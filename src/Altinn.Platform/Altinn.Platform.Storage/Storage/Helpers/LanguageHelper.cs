@@ -20,7 +20,10 @@ namespace Altinn.Platform.Storage.Helpers
                 return false;
             }
 
-            CultureInfo match = CultureInfo.GetCultures(CultureTypes.AllCultures).FirstOrDefault(culture => culture.TwoLetterISOLanguageName.Equals(language));
+            CultureInfo match = CultureInfo
+                .GetCultures(CultureTypes.AllCultures)
+                .FirstOrDefault(culture => culture.TwoLetterISOLanguageName.Equals(language));
+
             return match != null;
         }
     }
