@@ -182,9 +182,8 @@ namespace Altinn.App.Services.Implementation
         {
             string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/process/history";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _appSettings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
             if (response.IsSuccessStatusCode)
             {

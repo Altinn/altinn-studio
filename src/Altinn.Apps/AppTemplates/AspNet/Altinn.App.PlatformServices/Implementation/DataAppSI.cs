@@ -240,9 +240,8 @@ namespace Altinn.App.Services.Implementation
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-
-            HttpResponseMessage response = await _client.DeleteAsync(apiUrl);
+ 
+            HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl);
 
             if (response.IsSuccessStatusCode)
             {
@@ -263,9 +262,7 @@ namespace Altinn.App.Services.Implementation
 
             StreamContent content = CreateContentStream(request);
 
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-
-            HttpResponseMessage response = await _client.PostAsync(apiUrl, content);
+            HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -293,9 +290,7 @@ namespace Altinn.App.Services.Implementation
                 content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(contentHeaderString);
             }
 
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-
-            HttpResponseMessage response = await _client.PostAsync(apiUrl, content);
+            HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -319,9 +314,7 @@ namespace Altinn.App.Services.Implementation
 
             StreamContent content = CreateContentStream(request);
 
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-
-            HttpResponseMessage response = await _client.PutAsync(apiUrl, content);
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -354,9 +347,8 @@ namespace Altinn.App.Services.Implementation
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instance.Id}/dataelements/{dataElement.Id}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             StringContent jsonString = new StringContent(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _client.PutAsync(apiUrl, jsonString);
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, jsonString);
 
             if (response.IsSuccessStatusCode)
             {

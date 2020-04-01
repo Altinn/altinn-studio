@@ -39,5 +39,12 @@ namespace Altinn.App.PlatformServices.Extentions
             request.Headers.Add("Authorization", "Bearer " + authorizationToken);
             return httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, CancellationToken.None);
         }
+
+        public static Task<HttpResponseMessage> DeleteAsync(this HttpClient httpClient, string authorizationToken, string requestUri)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
+            request.Headers.Add("Authorization", "Bearer " + authorizationToken);
+            return httpClient.SendAsync(request, CancellationToken.None);
+        }
     }
 }

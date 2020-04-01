@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
@@ -65,9 +66,8 @@ namespace Altinn.App.Services.Implementation
 
             string apiUrl = $"instances/{instanceIdentifier}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
@@ -98,9 +98,8 @@ namespace Altinn.App.Services.Implementation
         {
             string apiUrl = $"instances/{instanceOwnerPartyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
@@ -124,10 +123,9 @@ namespace Altinn.App.Services.Implementation
         {
             string apiUrl = $"instances/{instance.Id}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             StringContent httpContent = new StringContent(instance.ToString(), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _client.PutAsync(apiUrl, httpContent);
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, httpContent);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
@@ -147,13 +145,12 @@ namespace Altinn.App.Services.Implementation
 
             string apiUrl = $"instances/{instance.Id}/process";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             string processStateString = JsonConvert.SerializeObject(processState);
             _logger.LogInformation($"update process state: {processStateString}");
 
             StringContent httpContent = new StringContent(processStateString, Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _client.PutAsync(apiUrl, httpContent);
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, httpContent);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
@@ -173,10 +170,9 @@ namespace Altinn.App.Services.Implementation
         {
             string apiUrl = $"instances?appId={org}/{app}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             StringContent content = new StringContent(JsonConvert.SerializeObject(instanceTemplate), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _client.PostAsync(apiUrl, content);
+            HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content);
 
             if (response.IsSuccessStatusCode)
             {

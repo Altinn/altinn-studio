@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
@@ -56,9 +57,8 @@ namespace Altinn.App.Services.Implementation
             string endpointUrl = $"persons/{SSN}";
 
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            HttpResponseMessage response = await _client.GetAsync(endpointUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 person = await response.Content.ReadAsAsync<Person>();

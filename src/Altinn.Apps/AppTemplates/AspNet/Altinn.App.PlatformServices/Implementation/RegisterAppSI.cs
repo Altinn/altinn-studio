@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
@@ -85,8 +86,7 @@ namespace Altinn.App.Services.Implementation
 
             string endpointUrl = $"parties/{partyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-            HttpResponseMessage response = await _client.GetAsync(endpointUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 party = await response.Content.ReadAsAsync<Party>();
@@ -106,7 +106,6 @@ namespace Altinn.App.Services.Implementation
 
             string endpointUrl = "parties/lookupObject";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             StringContent content = new StringContent(JsonConvert.SerializeObject(personOrOrganisationNumber));
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
@@ -115,7 +114,10 @@ namespace Altinn.App.Services.Implementation
                 RequestUri = new System.Uri(endpointUrl, System.UriKind.Relative),
                 Method = HttpMethod.Get,
                 Content = content,
-            };            
+               
+            };
+
+            request.Headers.Add("Authorization", "Bearer " + token);
 
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.OK)
