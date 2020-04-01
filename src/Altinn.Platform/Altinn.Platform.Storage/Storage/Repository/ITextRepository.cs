@@ -31,10 +31,9 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="org">the org </param>
         /// <param name="app">the app </param>
-        /// <param name="language">the language. Must be a two letter ISO name.</param>
         /// <param name="textResource">the text resource object to be updated</param>
         /// <returns>the updated text resource</returns>
-        Task<TextResource> Update(string org, string app, string language, TextResource textResource);
+        Task<TextResource> Update(string org, string app, TextResource textResource);
 
         /// <summary>
         /// Deletes a text resource

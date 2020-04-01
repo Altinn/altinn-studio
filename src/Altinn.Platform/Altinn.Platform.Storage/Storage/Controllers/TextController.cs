@@ -134,7 +134,7 @@ namespace Altinn.Platform.Storage.Controllers
                     return BadRequest($"The language specified in the textResource {textResource.Language} does not match the api path: {language}");
                 }
 
-                TextResource updatedResource = await _textRepository.Update(org, app, language, textResource);
+                TextResource updatedResource = await _textRepository.Update(org, app, textResource);
                 return Ok(updatedResource);
             }
             catch (Exception e)

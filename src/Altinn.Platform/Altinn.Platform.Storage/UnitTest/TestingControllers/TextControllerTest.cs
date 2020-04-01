@@ -263,7 +263,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     return null;
                 });
                 mockTextRepo.Setup(s => s.Create(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextResource>())).ReturnsAsync(new TextResource {});
-                mockTextRepo.Setup(s => s.Update(It.IsAny<string>(), It.IsAny<string>(),It.IsAny<string>(), It.IsAny<TextResource>())).ReturnsAsync(new TextResource {});
+                mockTextRepo.Setup(s => s.Update(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<TextResource>())).ReturnsAsync(new TextResource {});
                 mockTextRepo.Setup(s => s.Delete(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);
                 return mockTextRepo;
             }

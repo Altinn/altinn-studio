@@ -4,6 +4,7 @@ namespace Altinn.Platform.Storage.Repository
     using System.Net;
     using System.Threading.Tasks;
     using Altinn.Platform.Storage.Configuration;
+    using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Interface.Models;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
@@ -45,6 +46,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<TextResource> Get(string org, string app, string language)
         {
+            ValidateArguments(org, app, language);
             try
             {
                 string id = GetTextId(org, app, language);
@@ -69,16 +71,20 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<TextResource> Create(string org, string app, TextResource textResource)
         {
-            PreProcess(org, app, textResource);
+            string language = textResource.Language;
+            ValidateArguments(org, app, language);
+            PreProcess(org, app, language, textResource);
             ResourceResponse<Document> document = await _client.CreateDocumentAsync(_collectionUri, textResource);
             TextResource result = JsonConvert.DeserializeObject<TextResource>(document.Resource.ToString());
             return result;
         }
 
         /// <inheritdoc/>
-        public async Task<TextResource> Update(string org, string app, string language, TextResource textResource)
+        public async Task<TextResource> Update(string org, string app, TextResource textResource)
         {
-            PreProcess(org, app, textResource);
+            string language = textResource.Language;
+            ValidateArguments(org, app, language);
+            PreProcess(org, app, language, textResource);
             Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, textResource.Id);
 
             ResourceResponse<Document> document = await _client
@@ -94,6 +100,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<bool> Delete(string org, string app, string language)
         {
+            ValidateArguments(org, app, language);
             string id = GetTextId(org, app, language);
             Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, id);
 
@@ -113,10 +120,31 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Pre processes the text resource. Creates id and adds partition key org
         /// </summary>
-        private void PreProcess(string org, string app, TextResource textResource)
+        private void PreProcess(string org, string app, string language, TextResource textResource)
         {
-            textResource.Id = GetTextId(org, app, textResource.Language);
+            textResource.Id = GetTextId(org, app, language);
             textResource.Org = org;
+        }
+
+        /// <summary>
+        /// Validates that org and app are not null, checks that language is two letter ISO string
+        /// </summary>
+        private void ValidateArguments(string org, string app, string language)
+        {
+            if (string.IsNullOrEmpty(org))
+            {
+                throw new ArgumentException("Org can not be null or empty");
+            }
+
+            if (string.IsNullOrEmpty(app))
+            {
+                throw new ArgumentException("App can not be null or empty");
+            }
+
+            if (!LanguageHelper.IsTwoLetterISOName(language))
+            {
+                throw new ArgumentException("Language must be a two letter ISO name");
+            }
         }
     }
 }
