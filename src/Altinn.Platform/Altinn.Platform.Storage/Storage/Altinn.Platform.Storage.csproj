@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.23-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.13" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.3.0-alpha" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
@@ -51,10 +52,6 @@
     <None Update="JWTValidationCert.cer">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-      <ProjectReference Include="..\Storage.Interface\Altinn.Platform.Storage.Interface.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
