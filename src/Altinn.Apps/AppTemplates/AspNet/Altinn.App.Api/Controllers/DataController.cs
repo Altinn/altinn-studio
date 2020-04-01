@@ -631,7 +631,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
-            string filename = GetFilenameFromHeader(headerValues.ToString());
+            string filename = GetFilenameFromContentDisposition(headerValues.ToString());
 
             if (string.IsNullOrEmpty(filename))
             {
@@ -641,9 +641,9 @@ namespace Altinn.App.Api.Controllers
 
             string[] splitFilename = filename.Split('.');
 
-            if (splitFilename.Count() != 2)
+            if (splitFilename.Count() < 2)
             {
-                errorMessage = "Invalid format for filename. Expected format is {filename}.{filetype}.";
+                errorMessage = $"Invalid format for filename: {filename}. Filename is expected to end with '.{{filetype}}'.";
                 return false;
             }
 
@@ -653,7 +653,7 @@ namespace Altinn.App.Api.Controllers
                 return true;
             }
 
-            string filetype = splitFilename[1];
+            string filetype = splitFilename[splitFilename.Length - 1];
             string mimeType = MimeTypeMap.GetMimeType(filetype);
 
             if (!Request.Headers.ContainsKey("Content-Type"))
@@ -662,7 +662,7 @@ namespace Altinn.App.Api.Controllers
                 return false;
             }
 
-            // Verify that file mime type matches content type in reuqest
+            // Verify that file mime type matches content type in request
             Request.Headers.TryGetValue("Content-Type", out StringValues contentType);
             if (!contentType.Equals("application/octet-stream") && !mimeType.Equals(contentType, StringComparison.InvariantCultureIgnoreCase))
             {
@@ -680,18 +680,18 @@ namespace Altinn.App.Api.Controllers
             return true;
         }
 
-        private string GetFilenameFromHeader(string header)
+        private string GetFilenameFromContentDisposition(string contentdisposition)
         {
             string filename = string.Empty;
             string keyWord = "filename=";
 
-            if (!header.Contains(keyWord, StringComparison.InvariantCultureIgnoreCase))
+            if (!contentdisposition.Contains(keyWord, StringComparison.InvariantCultureIgnoreCase))
             {
                 return filename;
             }
 
-            int splitIndex = header.IndexOf(keyWord) + keyWord.Length;
-            string remainder = header.Substring(splitIndex);
+            int splitIndex = contentdisposition.IndexOf(keyWord) + keyWord.Length;
+            string remainder = contentdisposition.Substring(splitIndex);
             int endIndex = remainder.IndexOf(';');
             filename = endIndex > 0 ? remainder.Substring(0, endIndex) : remainder;
 
