@@ -671,7 +671,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // Verify that file mime type is an allowed content-type
-            if (dataType.AllowedContentTypes != null && (!dataType.AllowedContentTypes.Contains(mimeType, StringComparer.InvariantCultureIgnoreCase) && !dataType.AllowedContentTypes.Contains("application/octet-stream")))
+            if (!dataType.AllowedContentTypes.Contains(mimeType, StringComparer.InvariantCultureIgnoreCase) && !dataType.AllowedContentTypes.Contains("application/octet-stream"))
             {
                 errorMessage = $"Invalid content type: {mimeType}. Please try another file. Permitted content types include: {String.Join(", ", dataType.AllowedContentTypes)}";
                 return false;
