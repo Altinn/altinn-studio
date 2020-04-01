@@ -91,9 +91,9 @@ namespace Altinn.Platform.Receipt
                 });
 
             services.AddSingleton(Configuration);
-            services.AddSingleton<IRegister, RegisterWrapper>();
-            services.AddSingleton<IStorage, StorageWrapper>();
-            services.AddSingleton<IProfile, ProfileWrapper>();
+            services.AddHttpClient<IRegister, RegisterWrapper>();
+            services.AddHttpClient<IStorage, StorageWrapper>();
+            services.AddHttpClient<IProfile, ProfileWrapper>();
             services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
