@@ -64,13 +64,15 @@ namespace Altinn.App
             services.AddSingleton<IValidation, ValidationAppSI>();
             services.AddSingleton<IPrefill, PrefillSI>();
 
+            // HttpClients for platform functionality
             services.AddHttpClient<IAuthentication, AuthenticationAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
             services.AddHttpClient<IAuthorization, AuthorizationAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
             services.AddHttpClient<IProcess, ProcessAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
 
+            // Temporary workaround since overriding httpclient does not work for integration tests with test server
+            // https://github.com/dotnet/aspnetcore/issues/17937
             if (!_env.ContentRootPath.Contains("AppTemplate"))
             {
-                // HttpClients for platform functionality
                 services.AddHttpClient<IApplication, ApplicationAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
                 services.AddHttpClient<IData, DataAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
                 services.AddHttpClient<IDSF, RegisterDSFAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
