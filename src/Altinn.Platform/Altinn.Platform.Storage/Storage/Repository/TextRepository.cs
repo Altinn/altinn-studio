@@ -7,7 +7,6 @@ namespace Altinn.Platform.Storage.Repository
     using Altinn.Platform.Storage.Interface.Models;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
-    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
 
@@ -16,7 +15,6 @@ namespace Altinn.Platform.Storage.Repository
     /// </summary>
     public class TextRepository : ITextRepository
     {
-        private readonly Uri _databaseUri;
         private readonly Uri _collectionUri;
         private readonly string _databaseId;
         private readonly string _collectionId = "texts";
@@ -33,13 +31,12 @@ namespace Altinn.Platform.Storage.Repository
 
             _client = database.CreateDatabaseAndCollection(_collectionId);
             _collectionUri = database.CollectionUri;
-            _databaseUri = database.DatabaseUri;
             _databaseId = database.DatabaseName;
 
             DocumentCollection documentCollection = database.CreateDocumentCollection(_collectionId, _partitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
-                _databaseUri,
+                database.DatabaseUri,
                 documentCollection).GetAwaiter().GetResult();
 
             _client.OpenAsync();
