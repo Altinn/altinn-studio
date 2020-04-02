@@ -81,6 +81,7 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Produces("application/json")]
+        [Authorize]
         public async Task<ActionResult<TextResource>> Get(string org, string app, string language)
         {
             try
