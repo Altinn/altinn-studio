@@ -141,7 +141,7 @@ namespace Altinn.Platform.Storage.Repository
                 throw new ArgumentException("App can not be null or empty");
             }
 
-            if (!LanguageHelper.IsTwoLetterISOName(language))
+            if (!LanguageHelper.IsTwoLetters(language))
             {
                 throw new ArgumentException("Language must be a two letter ISO name");
             }
