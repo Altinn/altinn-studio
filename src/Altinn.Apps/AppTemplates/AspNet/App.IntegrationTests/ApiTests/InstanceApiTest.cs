@@ -90,7 +90,7 @@ namespace App.IntegrationTests
             Assert.NotNull(instance);
             Assert.Equal("1337", instance.InstanceOwner.PartyId);
 
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
         [Fact]
@@ -127,7 +127,7 @@ namespace App.IntegrationTests
             Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
 
             Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn",1337, new Guid(createdInstance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn",1337, new Guid(createdInstance.Id.Split('/')[1]));
 
         }
 
@@ -165,7 +165,7 @@ namespace App.IntegrationTests
             Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
 
             Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
 
         }
 
@@ -216,7 +216,7 @@ namespace App.IntegrationTests
             Assert.Single(createdInstance.Data);
             Assert.Equal("default", createdInstance.Data[0].DataType);
 
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
         [Fact]
@@ -250,7 +250,7 @@ namespace App.IntegrationTests
                 Assert.Single(createdInstance.Data);
                 Assert.Equal("default", createdInstance.Data[0].DataType);
 
-                TestDataUtil.DeletInstanceAndData("tdd", "custom-validering", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+                TestDataUtil.DeleteInstanceAndData("tdd", "custom-validering", 1337, new Guid(createdInstance.Id.Split('/')[1]));
             }
 
         }
@@ -285,7 +285,7 @@ namespace App.IntegrationTests
             Assert.NotNull(instance);
             Assert.Equal("1337", instance.InstanceOwner.PartyId);
 
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
         

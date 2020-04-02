@@ -32,6 +32,14 @@
       "maxSize": 1,
       "maxCount": 1,
       "minCount": 0
+    },
+    {
+      "id": "specificFileType",
+      "taskId": "Task_1",
+      "maxSize": 1,
+      "maxCount": 1,
+      "minCount": 0,
+      "allowedContentTypes": [ "application/pdf", "image/png", "application/json" ]
     }
   ]
 }
