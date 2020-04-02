@@ -86,6 +86,8 @@ namespace Altinn.Platform.Storage
                 config.Filters.Add(new AuthorizeFilter(policy));
             }).AddNewtonsoftJson();
 
+            services.AddHttpClient<AuthorizationApiClient>();
+
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
@@ -129,8 +131,8 @@ namespace Altinn.Platform.Storage
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
+            services.AddSingleton<ITextRepository, TextRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
             services.AddSingleton<ISasTokenProvider, SasTokenProvider>();
             services.AddSingleton<IKeyVaultClientWrapper, KeyVaultClientWrapper>();
             services.AddSingleton<IPDP, PDPAppSI>();
