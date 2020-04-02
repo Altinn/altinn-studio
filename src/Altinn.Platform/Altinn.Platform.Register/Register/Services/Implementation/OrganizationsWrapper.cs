@@ -20,16 +20,19 @@ namespace Altinn.Platform.Register.Services.Implementation
     {
         private readonly GeneralSettings _generalSettings;
         private readonly ILogger _logger;
+        private readonly HttpClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OrganizationsWrapper"/> class
         /// </summary>
+        /// <param name="httpClient">HttpClient from default httpclientfactory</param>
         /// <param name="generalSettings">the general settings</param>
         /// <param name="logger">the logger</param>
-        public OrganizationsWrapper(IOptions<GeneralSettings> generalSettings, ILogger<OrganizationsWrapper> logger)
+        public OrganizationsWrapper(HttpClient httpClient, IOptions<GeneralSettings> generalSettings, ILogger<OrganizationsWrapper> logger)
         {
             _generalSettings = generalSettings.Value;
             _logger = logger;
+            _client = httpClient;
         }
 
         /// <inheritdoc />
@@ -37,18 +40,15 @@ namespace Altinn.Platform.Register.Services.Implementation
         {
             Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}organizations/{orgNr}");
 
-            using (HttpClient client = HttpApiHelper.GetApiClient())
-            {
-                HttpResponseMessage response = await client.GetAsync(endpointUrl);
+            HttpResponseMessage response = await _client.GetAsync(endpointUrl);
 
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    return await JsonSerializer.DeserializeAsync<Organization>(await response.Content.ReadAsStreamAsync());
-                }
-                else
-                {
-                    _logger.LogError($"Getting org with org nr {orgNr} failed with statuscode {response.StatusCode}");
-                }
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                return await JsonSerializer.DeserializeAsync<Organization>(await response.Content.ReadAsStreamAsync());
+            }
+            else
+            {
+                _logger.LogError($"Getting org with org nr {orgNr} failed with statuscode {response.StatusCode}");
             }
 
             return null;
