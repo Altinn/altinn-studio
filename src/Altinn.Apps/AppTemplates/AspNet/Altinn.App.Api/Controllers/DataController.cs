@@ -641,7 +641,7 @@ namespace Altinn.App.Api.Controllers
 
             string[] splitFilename = filename.Split('.');
 
-            if (splitFilename.Count() < 2)
+            if (splitFilename.Length < 2)
             {
                 errorMessage = $"Invalid format for filename: {filename}. Filename is expected to end with '.{{filetype}}'.";
                 return false;
@@ -682,18 +682,17 @@ namespace Altinn.App.Api.Controllers
 
         private string GetFilenameFromContentDisposition(string contentdisposition)
         {
-            string filename = string.Empty;
             string keyWord = "filename=";
 
             if (!contentdisposition.Contains(keyWord, StringComparison.InvariantCultureIgnoreCase))
             {
-                return filename;
+                return string.Empty;
             }
 
             int splitIndex = contentdisposition.IndexOf(keyWord) + keyWord.Length;
             string remainder = contentdisposition.Substring(splitIndex);
             int endIndex = remainder.IndexOf(';');
-            filename = endIndex > 0 ? remainder.Substring(0, endIndex) : remainder;
+            string filename = endIndex > 0 ? remainder.Substring(0, endIndex) : remainder;
 
             return filename;
         }
