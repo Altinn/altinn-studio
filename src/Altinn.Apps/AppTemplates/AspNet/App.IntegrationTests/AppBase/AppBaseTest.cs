@@ -184,7 +184,7 @@ namespace App.IntegrationTestsRef.AppBase
 
         private void DeleteInstance(Instance instance)
         {
-            TestDataUtil.DeletInstanceAndData(instance.Org, instance.AppId.Split("/")[1], int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData(instance.Org, instance.AppId.Split("/")[1], int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split('/')[1]));
         }
 
     }
