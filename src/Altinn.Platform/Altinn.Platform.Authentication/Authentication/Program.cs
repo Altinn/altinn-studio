@@ -68,7 +68,7 @@ namespace Altinn.Platform.Authentication
             .ConfigureLogging((hostingContext, logging) =>
             {
                 logging.ClearProviders();
-                LoggerConfiguration loggerConfig = new LoggerConfiguration().WriteTo.Console();
+                LoggerConfiguration loggerConfig = new LoggerConfiguration().WriteTo.Console().MinimumLevel.Warning();
 
                 if (!string.IsNullOrEmpty(Startup.ApplicationInsightsKey))
                 {
