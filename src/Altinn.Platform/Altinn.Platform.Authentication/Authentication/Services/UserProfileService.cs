@@ -18,16 +18,18 @@ namespace Altinn.Platform.Authentication.Services
     public class UserProfileService : IUserProfileService
     {
         private readonly GeneralSettings _settings;
-        private static readonly HttpClient _client = new HttpClient();
+        private readonly HttpClient _client;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initialize a new instance of <see cref="UserProfileService"/> with settings for SBL Bridge endpoints.
         /// </summary>
+        /// <param name="httpClient">Httpclient from httpclientfactory</param>
         /// <param name="settings">General settings for the authentication application</param>
         /// <param name="logger">A generic logger</param>
-        public UserProfileService(IOptions<GeneralSettings> settings, ILogger<IUserProfileService> logger)
+        public UserProfileService(HttpClient httpClient, IOptions<GeneralSettings> settings, ILogger<IUserProfileService> logger)
         {
+            _client = httpClient;
             _settings = settings.Value;
             _logger = logger;
         }
