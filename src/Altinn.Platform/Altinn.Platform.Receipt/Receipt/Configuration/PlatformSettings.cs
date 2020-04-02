@@ -31,5 +31,10 @@ namespace Altinn.Platform.Receipt.Configuration
         /// added to the environment for the app code during deploy. This will override the value stored in app settings.
         /// </summary>
         public string SubscriptionKey { get; set; }
+
+        /// <summary>
+        /// The name of the subscription header for Api management. 
+        /// </summary>
+        public string SubscriptionKeyHeaderName { get; set; } = "Ocp-Apim-Subscription-Key";
     }
 }

@@ -99,9 +99,9 @@ namespace Altinn.Platform.Register
                       }
                   });
 
-            services.AddSingleton<IOrganizations, OrganizationsWrapper>();
-            services.AddSingleton<IPersons, PersonsWrapper>();
-            services.AddSingleton<IParties, PartiesWrapper>();
+            services.AddHttpClient<IOrganizations, OrganizationsWrapper>();
+            services.AddHttpClient<IPersons, PersonsWrapper>();
+            services.AddHttpClient<IParties, PartiesWrapper>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {

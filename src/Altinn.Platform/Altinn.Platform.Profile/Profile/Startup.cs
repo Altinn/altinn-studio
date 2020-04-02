@@ -88,7 +88,7 @@ namespace Altinn.Platform.Profile
                       }
                   });
 
-            services.AddSingleton<IUserProfiles, UserProfilesWrapper>();
+            services.AddHttpClient<IUserProfiles, UserProfilesWrapper>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {

@@ -67,7 +67,7 @@ namespace App.IntegrationTests.ApiTests
         [Fact]
         public async Task Proceess_Start_OK()
         {
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
             TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
             string token = PrincipalUtil.GetToken(1337);
 
@@ -81,13 +81,13 @@ namespace App.IntegrationTests.ApiTests
             string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
         }
 
                 [Fact]
         public async Task Proceess_Start_With_Prefill_OK()
         {
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
             TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
             string token = PrincipalUtil.GetToken(1337);
 
@@ -114,13 +114,13 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value, "01039012345");
             Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value, "Oslo");
             Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value, "Grev Wedels Plass");
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
         }
 
         [Fact]
         public async Task Proceess_Put_Next_OK()
         {
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
             TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
             string token = PrincipalUtil.GetToken(1337);
 
@@ -140,13 +140,13 @@ namespace App.IntegrationTests.ApiTests
             responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
         }
 
         [Fact]
         public async Task Proceess_End_AfterNext_OK()
         {
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
             TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
             string token = PrincipalUtil.GetToken(1337);
 
@@ -184,7 +184,7 @@ namespace App.IntegrationTests.ApiTests
 
             Assert.Equal(1, resultInstance.Data.Count);
 
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
         }
     }
 }
