@@ -19,7 +19,7 @@ namespace Altinn.Platform.Storage.UnitTest
         public void IsTwoLetterTest(string language, bool expected)
         {
             bool result = LanguageHelper.IsTwoLetters(language);
-            Assert.Equal(result, expected);
+            Assert.Equal(expected, result);
         }
     }
 }
