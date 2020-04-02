@@ -23,8 +23,6 @@ namespace Altinn.Platform.Receipt.Services.Interfaces
         private readonly IHttpContextAccessor _contextaccessor;
         private readonly PlatformSettings _platformSettings;
 
-        private const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileWrapper"/> class
         /// </summary>
@@ -32,7 +30,7 @@ namespace Altinn.Platform.Receipt.Services.Interfaces
         {
             _platformSettings = platformSettings.Value;
             httpClient.BaseAddress = new Uri(_platformSettings.ApiProfileEndpoint);
-            httpClient.DefaultRequestHeaders.Add(SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
             _contextaccessor = httpContextAccessor;
