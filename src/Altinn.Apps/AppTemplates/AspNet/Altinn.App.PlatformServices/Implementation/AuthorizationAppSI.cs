@@ -21,7 +21,6 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class AuthorizationAppSI : IAuthorization
     {
-        private readonly PlatformSettings _platformSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly HttpClient _authClient;
@@ -40,12 +39,11 @@ namespace Altinn.App.Services.Implementation
                IOptionsMonitor<AppSettings> settings,
                 ILogger<AuthorizationAppSI> logger)
         {
-            _platformSettings = platformSettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
             _logger = logger;
-            httpClient.BaseAddress = new Uri(_platformSettings.ApiAuthorizationEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiAuthorizationEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _authClient = httpClient;
         }

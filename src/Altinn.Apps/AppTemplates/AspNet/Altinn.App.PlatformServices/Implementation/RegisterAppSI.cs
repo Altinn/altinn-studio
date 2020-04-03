@@ -23,7 +23,6 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class RegisterAppSI : IRegister
     {
-        private readonly PlatformSettings _platformSettings;
         private readonly IDSF _dsf;
         private readonly IER _er;
         private readonly ILogger _logger;
@@ -49,14 +48,13 @@ namespace Altinn.App.Services.Implementation
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient)
         {
-            _platformSettings = platformSettings.Value;
             _dsf = dsf;
             _er = er;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
-            httpClient.BaseAddress = new Uri(_platformSettings.ApiRegisterEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiRegisterEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
         }

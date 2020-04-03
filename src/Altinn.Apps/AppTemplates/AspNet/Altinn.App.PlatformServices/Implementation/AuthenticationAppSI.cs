@@ -18,7 +18,6 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class AuthenticationAppSI : IAuthentication
     {
-        private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly HttpClient _client;
@@ -35,11 +34,10 @@ namespace Altinn.App.Services.Implementation
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient)
         {
-            _platformSettings = platformSettings.Value;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
-            httpClient.BaseAddress = new Uri(_platformSettings.ApiAuthenticationEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiAuthenticationEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
         }

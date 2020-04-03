@@ -19,7 +19,6 @@ namespace Altinn.App.Services.Implementation
 {
     public class PDFSI : IPDF
     {
-        private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
         private readonly HttpClient _pdfClient;
         private readonly AppSettings _appSettings;
@@ -47,7 +46,6 @@ namespace Altinn.App.Services.Implementation
             IRegister registerService,
             IAppResources appResourcesService)
         {
-            _platformSettings = platformSettings.Value;
             _logger = logger;
             _dataService = dataService;
             _registerService = registerService;
@@ -59,8 +57,8 @@ namespace Altinn.App.Services.Implementation
                     ContractResolver = new CamelCasePropertyNamesContractResolver()
                 });
 
-            httpClient.BaseAddress = new Uri(_platformSettings.ApiPdfEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiPdfEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             _pdfClient = httpClient;
         }
 

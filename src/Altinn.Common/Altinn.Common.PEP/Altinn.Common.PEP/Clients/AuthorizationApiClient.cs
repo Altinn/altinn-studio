@@ -16,15 +16,13 @@ namespace Altinn.Common.PEP.Clients
     public class AuthorizationApiClient
     {
         private readonly HttpClient _httpClient;
-        private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
 
         public AuthorizationApiClient(HttpClient client, IOptions<PlatformSettings> platformSettings, IOptions<PepSettings> pepSettings, ILogger<AuthorizationApiClient> logger)
         {
             _httpClient = client;
-            _platformSettings = platformSettings.Value;
             _logger = logger;
-            client.BaseAddress = new Uri($"{_platformSettings.GetApiAuthorizationEndpoint}");
+            client.BaseAddress = new Uri($"{platformSettings.Value.GetApiAuthorizationEndpoint}");
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 

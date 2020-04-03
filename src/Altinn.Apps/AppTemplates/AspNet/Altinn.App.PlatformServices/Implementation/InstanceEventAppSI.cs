@@ -23,7 +23,6 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class InstanceEventAppSI : IInstanceEvent
     {
-        private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
@@ -45,12 +44,11 @@ namespace Altinn.App.Services.Implementation
             HttpClient httpClient,
             IOptionsMonitor<AppSettings> settings)
         {
-            _platformSettings = platformSettings.Value;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
-            httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             _client = httpClient;

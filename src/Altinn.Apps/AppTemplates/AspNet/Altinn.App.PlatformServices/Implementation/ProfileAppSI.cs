@@ -19,7 +19,6 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class ProfileAppSI : IProfile
     {
-        private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
@@ -40,12 +39,11 @@ namespace Altinn.App.Services.Implementation
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient)
         {
-            _platformSettings = platformSettings.Value;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
-            httpClient.BaseAddress = new Uri(_platformSettings.ApiProfileEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiProfileEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
         }

@@ -29,7 +29,6 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class ProcessAppSI : IProcess
     {
-        private readonly PlatformSettings _platformSettings;
         private readonly AppSettings _appSettings;
         private readonly ILogger<ProcessAppSI> _logger;
         private readonly IInstanceEvent _eventService;
@@ -49,14 +48,13 @@ namespace Altinn.App.Services.Implementation
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient)
         {
-            _platformSettings = platformSettings.Value;
             _appSettings = appSettings.Value;
             _eventService = eventService;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             ProcessHelper = new ProcessHelper(GetProcessDefinition());
-            httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
-            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
             _client = httpClient;
