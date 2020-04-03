@@ -77,14 +77,7 @@ namespace Altinn.Platform.Storage
         {
             _logger.Information("Startup // ConfigureServices");
 
-            services.AddControllers(config =>
-            {
-                AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
-                    .AddAuthenticationSchemes(JwtCookieDefaults.AuthenticationScheme)
-                    .RequireAuthenticatedUser()
-                    .Build();
-                config.Filters.Add(new AuthorizeFilter(policy));
-            }).AddNewtonsoftJson();
+            services.AddControllers().AddNewtonsoftJson();
 
             services.AddHttpClient<AuthorizationApiClient>();
 
