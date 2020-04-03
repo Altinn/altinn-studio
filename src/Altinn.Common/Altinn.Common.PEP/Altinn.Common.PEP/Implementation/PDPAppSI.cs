@@ -21,7 +21,7 @@ namespace Altinn.Common.PEP.Implementation
     {
         private readonly ILogger _logger;
         private readonly PepSettings _pepSettings;
-        AuthorizationApiClient _authorizationApiClient;
+        private readonly AuthorizationApiClient _authorizationApiClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthorizationAppSI"/> class
