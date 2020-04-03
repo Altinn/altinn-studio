@@ -3,11 +3,11 @@ using System;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
 using Altinn.App.PlatformServices.Extentions;
-using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Common.PEP.Authorization;
+using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
 using AltinnCore.Authentication.JwtCookie;
@@ -49,32 +49,32 @@ namespace Altinn.App
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             });
 
-
             // Dot net services
             services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             // Internal Application services
-            services.AddTransient<IApplication, ApplicationAppSI>();
             services.AddSingleton<IAppResources, AppResourcesSI>();
-            services.AddTransient<IPDF, PDFSI>();
-            services.AddTransient<IProcess, ProcessAppSI>();
-            services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
-            services.AddTransient<Altinn.Common.PEP.Clients.IHttpClientAccessor, Altinn.Common.PEP.Clients.HttpClientAccessor>();
-
+            
             // Services for Altinn Platform components
-            services.AddTransient<IAuthentication, AuthenticationAppSI>();
-            services.AddTransient<IAuthorization, AuthorizationAppSI>();
-            services.AddTransient<IData, DataAppSI>();
-            services.AddTransient<IDSF, RegisterDSFAppSI>();
-            services.AddTransient<IER, RegisterERAppSI>();
-            services.AddTransient<IInstance, InstanceAppSI>();
-            services.AddTransient<IInstanceEvent, InstanceEventAppSI>();
-            services.AddTransient<IProfile, ProfileAppSI>();
-            services.AddTransient<IRegister, RegisterAppSI>();
             services.AddTransient<IPDP, PDPAppSI>();
-            services.AddSingleton<IValidation, ValidationAppSI>();
-            services.AddSingleton<IPrefill, PrefillSI>();
+            services.AddTransient<IValidation, ValidationAppSI>();
+            services.AddTransient<IPrefill, PrefillSI>();
+
+            // HttpClients for platform functionality. Registred as httpclients so default httpclientfactory is used
+            services.AddHttpClient<AuthorizationApiClient>();
+            services.AddHttpClient<IApplication, ApplicationAppSI>();
+            services.AddHttpClient<IAuthentication, AuthenticationAppSI>();
+            services.AddHttpClient<IAuthorization, AuthorizationAppSI>();
+            services.AddHttpClient<IData, DataAppSI>();
+            services.AddHttpClient<IDSF, RegisterDSFAppSI>();
+            services.AddHttpClient<IER, RegisterERAppSI>();
+            services.AddHttpClient<IInstance, InstanceAppSI>();
+            services.AddHttpClient<IInstanceEvent, InstanceEventAppSI>();
+            services.AddHttpClient<IPDF, PDFSI>();
+            services.AddHttpClient<IProcess, ProcessAppSI>();
+            services.AddHttpClient<IProfile, ProfileAppSI>();
+            services.AddHttpClient<IRegister, RegisterAppSI>();
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
             services.AddTransient<IAltinnApp, AppLogic.App>();

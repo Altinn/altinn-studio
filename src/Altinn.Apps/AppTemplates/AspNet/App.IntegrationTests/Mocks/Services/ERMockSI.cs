@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Register.Models;
@@ -9,6 +10,11 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class ERMockSI : IER
     {
+        public ERMockSI()
+        {
+
+        }
+
         public Task<Organization> GetOrganization(string OrgNr)
         {
             string orgPath = GetOrganizationPath(OrgNr);

@@ -4,9 +4,9 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.74.0</AssemblyVersion>
-    <FileVersion>1.0.74.0</FileVersion>
-    <Version>1.0.74-alpha</Version>
+    <AssemblyVersion>1.0.76.0</AssemblyVersion>
+    <FileVersion>1.0.76.0</FileVersion>
+    <Version>1.0.76-alpha</Version>
     <Description>Package that contains API controllers for the standard API for a Altinn App.</Description>
     <Company>Altinn</Company>
     <Authors>Altinn</Authors>
@@ -16,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.PEP" Version="1.0.23-alpha" />
+    <PackageReference Include="Altinn.Common.PEP" Version="1.0.28-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.13" />
   </ItemGroup>
 

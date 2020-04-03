@@ -3,12 +3,18 @@ using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace App.IntegrationTests.Mocks.Services
 {
     public class ApplicationMockSI : IApplication
     {
+        public ApplicationMockSI()
+        {
+
+        }
+
         public Task<Application> GetApplication(string org, string app)
         {
            return Task.FromResult(GetTestApplication(org, app));

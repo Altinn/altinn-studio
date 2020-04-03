@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
@@ -36,15 +38,20 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpClientAccessor">The Http client accessor </param>
         /// <param name="settings">The application settings.</param>
         public InstanceEventAppSI(
+            IOptions<PlatformSettings> platformSettings,
             ILogger<InstanceEventAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            IHttpClientAccessor httpClientAccessor,
+            HttpClient httpClient,
             IOptionsMonitor<AppSettings> settings)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
-            _client = httpClientAccessor.StorageClient;
             _settings = settings.CurrentValue;
+            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+            _client = httpClient;
         }
 
         /// <inheritdoc/>
@@ -53,9 +60,8 @@ namespace Altinn.App.Services.Implementation
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             string apiUrl = $"instances/{instanceIdentifier}/events";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            HttpResponseMessage response = await _client.DeleteAsync(apiUrl);
+            HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl);
             if (response.IsSuccessStatusCode)
             {
                 return true;
@@ -69,7 +75,6 @@ namespace Altinn.App.Services.Implementation
         {
             string apiUrl = $"{instanceOwnerId}/{instanceId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             if (eventTypes != null)
             {
@@ -87,7 +92,7 @@ namespace Altinn.App.Services.Implementation
                 apiUrl += $"&from={from}&to={to}";
             }
 
-            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
             if (response.IsSuccessStatusCode)
             {
@@ -107,10 +112,9 @@ namespace Altinn.App.Services.Implementation
             instanceEvent.Created = DateTime.UtcNow;
             string apiUrl = $"instances/{instanceEvent.InstanceId}/events";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             
-            HttpResponseMessage response = await _client.PostAsync(apiUrl, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await _client.PostAsync(token, apiUrl, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
 
             if (response.IsSuccessStatusCode)
             {
