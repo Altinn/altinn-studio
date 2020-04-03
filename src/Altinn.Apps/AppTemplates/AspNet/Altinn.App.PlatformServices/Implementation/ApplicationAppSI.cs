@@ -22,8 +22,6 @@ namespace Altinn.App.Services.Implementation
         private readonly ILogger _logger;
         private readonly HttpClient _client;
 
-        private const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationAppSI"/> class.
         /// </summary>
