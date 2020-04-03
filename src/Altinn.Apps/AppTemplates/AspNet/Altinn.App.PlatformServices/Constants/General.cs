@@ -29,5 +29,10 @@ namespace Altinn.App.Services.Constants
         /// The name of the cookie used for asp authentication in designer application
         /// </summary>
         public const string DesignerCookieName = "AltinnStudioDesigner";
+
+        /// <summary>
+        /// Header key for API management subscription key
+        /// </summary>
+        public const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
     }
 }

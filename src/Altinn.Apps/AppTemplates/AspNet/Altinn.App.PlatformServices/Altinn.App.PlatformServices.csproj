@@ -3,21 +3,24 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>1.0.74-alpha</Version>
+    <Version>1.0.76-alpha</Version>
     <Authors>Altinn</Authors>
     <Company>Altinn</Company>
     <Description>Common services with Altinn Platform functionality and Altinn Apps functionality</Description>
     <PackageProjectUrl>https://github.com/Altinn/altinn-studio</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.74.0</AssemblyVersion>
+    <AssemblyVersion>1.0.76.0</AssemblyVersion>
     <IsPackable>true</IsPackable>
     <OutputType>Library</OutputType>
-    <FileVersion>1.0.74.0</FileVersion>
+    <FileVersion>1.0.76.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Enums\**" />
     <Compile Remove="Interfaces\**" />
+    <EmbeddedResource Remove="Enums\**" />
     <EmbeddedResource Remove="Interfaces\**" />
+    <None Remove="Enums\**" />
     <None Remove="Interfaces\**" />
   </ItemGroup>
 
@@ -39,10 +42,6 @@
 
  <ItemGroup>
    <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
- </ItemGroup>
-
- <ItemGroup>
-   <Folder Include="Enums\" />
  </ItemGroup>
 
 </Project>

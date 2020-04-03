@@ -1,9 +1,11 @@
+using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Altinn.App.Services.Clients;
+using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
@@ -28,15 +30,19 @@ namespace Altinn.App.Services.Implementation
         /// <param name="settings">The application settings.</param>
         /// <param name="httpClientAccessor">The http client accessor </param>
         public RegisterDSFAppSI(
+            IOptions<PlatformSettings> platformSettings,
             ILogger<RegisterDSFAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
-            IHttpClientAccessor httpClientAccessor)
+            HttpClient httpClient)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
-            _client = httpClientAccessor.RegisterClient;
+            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiRegisterEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            _client = httpClient;
         }
 
         /// <inheritdoc/>
@@ -47,9 +53,8 @@ namespace Altinn.App.Services.Implementation
             string endpointUrl = $"persons/{SSN}";
 
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            HttpResponseMessage response = await _client.GetAsync(endpointUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 person = await response.Content.ReadAsAsync<Person>();
