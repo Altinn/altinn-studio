@@ -152,7 +152,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
             finally
             {
                 // Cleanup
-                TestDataUtil.DeletInstanceAndData("tdd", "complex-process", 1000, new Guid(instanceGuid));
+                TestDataUtil.DeleteInstanceAndData("tdd", "complex-process", 1000, new Guid(instanceGuid));
             }
         }
     }

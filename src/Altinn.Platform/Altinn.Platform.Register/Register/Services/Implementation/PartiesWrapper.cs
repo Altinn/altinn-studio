@@ -5,7 +5,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Register.Configuration;
-using Altinn.Platform.Register.Helpers;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Services.Interfaces;
 
@@ -21,16 +20,19 @@ namespace Altinn.Platform.Register.Services.Implementation
     {
         private readonly GeneralSettings _generalSettings;
         private readonly ILogger _logger;
+        private readonly HttpClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PartiesWrapper"/> class
         /// </summary>
+        /// <param name="httpClient">HttpClient from default httpclientfactory</param>
         /// <param name="generalSettings">the general settings</param>
         /// <param name="logger">the logger</param>
-        public PartiesWrapper(IOptions<GeneralSettings> generalSettings, ILogger<PartiesWrapper> logger)
+        public PartiesWrapper(HttpClient httpClient, IOptions<GeneralSettings> generalSettings, ILogger<PartiesWrapper> logger)
         {
             _generalSettings = generalSettings.Value;
             _logger = logger;
+            _client = httpClient;
         }
 
         /// <inheritdoc />
@@ -38,18 +40,15 @@ namespace Altinn.Platform.Register.Services.Implementation
         {
             Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}parties/{partyId}");
 
-            using (HttpClient client = HttpApiHelper.GetApiClient())
-            {
-                HttpResponseMessage response = await client.GetAsync(endpointUrl);
+            HttpResponseMessage response = await _client.GetAsync(endpointUrl);
 
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    return await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
-                }
-                else
-                {
-                    _logger.LogError($"Getting party with party Id {partyId} failed with statuscode {response.StatusCode}");
-                }
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                return await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
+            }
+            else
+            {
+                _logger.LogError($"Getting party with party Id {partyId} failed with statuscode {response.StatusCode}");
             }
 
             return null;
@@ -59,23 +58,20 @@ namespace Altinn.Platform.Register.Services.Implementation
         public async Task<Party> LookupPartyBySSNOrOrgNo(string lookupValue)
         {
             Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}parties/lookupObject");
+       
+            StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookupValue), Encoding.UTF8, "application/json");
 
-            using (HttpClient client = HttpApiHelper.GetApiClient())
+            HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookupValue), Encoding.UTF8, "application/json");
-
-                HttpResponseMessage response = await client.PostAsync(endpointUrl, requestBody);
-
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    return await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
-                }
-                else
-                {
-                    _logger.LogError($"Getting party by lookup value failed with statuscode {response.StatusCode}");
-                }
+                return await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
             }
-
+            else
+            {
+                _logger.LogError($"Getting party by lookup value failed with statuscode {response.StatusCode}");
+            }
+       
             return null;
         }
 
@@ -84,20 +80,17 @@ namespace Altinn.Platform.Register.Services.Implementation
         {
             Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}parties/lookup");
 
-            using (HttpClient client = HttpApiHelper.GetApiClient())
+            StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookupValue), Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookupValue), Encoding.UTF8, "application/json");
-
-                HttpResponseMessage response = await client.PostAsync(endpointUrl, requestBody);
-
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    return await JsonSerializer.DeserializeAsync<int>(await response.Content.ReadAsStreamAsync());
-                }
-                else
-                {
-                    _logger.LogError($"Getting party id by lookup value failed with statuscode {response.StatusCode}");
-                }
+                return await JsonSerializer.DeserializeAsync<int>(await response.Content.ReadAsStreamAsync());
+            }
+            else
+            {
+                _logger.LogError($"Getting party id by lookup value failed with statuscode {response.StatusCode}");
             }
 
             return -1;

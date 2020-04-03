@@ -48,7 +48,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             try
             {
-                if (!LanguageHelper.IsTwoLetterISOName(textResource.Language))
+                if (!LanguageHelper.IsTwoLetters(textResource.Language))
                 {
                     return BadRequest("The language must be a two letter ISO language name.");
                 }
@@ -86,7 +86,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             try
             {
-                if (!LanguageHelper.IsTwoLetterISOName(language))
+                if (!LanguageHelper.IsTwoLetters(language))
                 {
                     return BadRequest("The language must be a two letter ISO language name.");
                 }
@@ -124,7 +124,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             try
             {
-                if (!LanguageHelper.IsTwoLetterISOName(textResource.Language))
+                if (!LanguageHelper.IsTwoLetters(textResource.Language))
                 {
                     return BadRequest("The language must be a two letter ISO language name.");
                 }

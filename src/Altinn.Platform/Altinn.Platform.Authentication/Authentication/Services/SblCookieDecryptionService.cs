@@ -24,15 +24,17 @@ namespace Altinn.Platform.Authentication.Services
         private readonly ILogger<SblCookieDecryptionService> _logger;
         private readonly GeneralSettings _generalSettings;
 
-        private static readonly HttpClient HttpClient = new HttpClient();
+        private readonly HttpClient _client;
 
         /// <summary>
         /// Initialize a new instance of <see cref="SblCookieDecryptionService"/>  with settings for SBL Bridge endpoints.
         /// </summary>
+        /// <param name="httpClient">Http client from clientfactory</param>
         /// <param name="generalSettings">General settings for the authentication application</param>
         /// <param name="logger">A generic logger</param>
-        public SblCookieDecryptionService(IOptions<GeneralSettings> generalSettings, ILogger<SblCookieDecryptionService> logger)
+        public SblCookieDecryptionService(HttpClient httpClient, IOptions<GeneralSettings> generalSettings, ILogger<SblCookieDecryptionService> logger)
         {
+            _client = httpClient;
             _logger = logger;
             _generalSettings = generalSettings.Value;
         }
@@ -50,7 +52,7 @@ namespace Altinn.Platform.Authentication.Services
             _logger.LogInformation($"Authentication - endpoint {endpointUrl}");
 
             HttpResponseMessage response =
-                await HttpClient.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
+                await _client.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
 
             _logger.LogInformation($"Authentication - response {response.StatusCode}");
 

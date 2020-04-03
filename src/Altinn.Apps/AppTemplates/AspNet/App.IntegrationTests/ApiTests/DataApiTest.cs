@@ -301,7 +301,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.PostAsync(url, new StringContent(string.Empty));
             await response.Content.ReadAsStringAsync();
-            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -323,10 +323,12 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=customElement";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=test.pdf");
 
-            HttpResponseMessage response = await client.PostAsync(url, new StringContent(string.Empty));
+            HttpResponseMessage response = await client.PostAsync(url, content);
             await response.Content.ReadAsStringAsync();
-            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
@@ -348,12 +350,216 @@ namespace App.IntegrationTests.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=customElement";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=test.pdf");
 
-            HttpResponseMessage response = await client.PostAsync(url, new StringContent(string.Empty));
+            HttpResponseMessage response = await client.PostAsync(url, content);
             await response.Content.ReadAsStringAsync();
-            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: post data without content disposition header in request
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_MissingContentDispHeader_BadRequest()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            string expectedMsg = "Invalid data provided. Error: Conent-Disposition header containing 'filename' must be included in request.";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(expectedMsg, message);
+        }
+
+        /// <summary>
+        /// Test case: post data without filename in content disposition header in request
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_MissingFilenameInHeader_BadRequest()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            string expectedMsg = "Invalid data provided. Error: Content-Disposition header must contain 'filename'.";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(expectedMsg, message);
+        }
+
+        /// <summary>
+        /// Test case: post data with invalid filename format in content disposition header in request
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_InvalidFilenameFormatInHeader_BadRequest()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            string expectedMsg = "Invalid data provided. Error: Invalid format for filename: testfile. Filename is expected to end with '.{filetype}'.";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(expectedMsg, message);
+        }
+
+        /// <summary>
+        /// Test case: post data with invalid filetype
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_InvalidFiletypeCorrectContentType_BadRequest()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            string expectedMsg = "Invalid data provided. Error: Invalid content type: text/xml. Please try another file. Permitted content types include: application/pdf, image/png, application/json";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.xml");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(expectedMsg, message);
+        }
+
+        /// <summary>
+        /// Test case: post data with  validfiletype
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_ValidFiletype_Ok()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.pdf");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: post data with validfiletype and complex filename
+        /// Expected: Ok. Attachment uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_ValidComplexFileName_Ok()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=appsettings.development.json");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: post data with  validfiletype
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_MisMatchContentTypeFileType_BadRequest()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            string expectedMsg = "Invalid data provided. Error: Content type header text/xml does not match mime type application/pdf for uploaded file. Please fix header or upload another file.";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.pdf");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData ("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(expectedMsg, message);
         }
     }
 }

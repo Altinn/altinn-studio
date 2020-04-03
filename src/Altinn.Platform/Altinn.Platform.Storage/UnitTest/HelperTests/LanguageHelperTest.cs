@@ -14,12 +14,12 @@ namespace Altinn.Platform.Storage.UnitTest
         [InlineData("12", false)]
         [InlineData("", false)]
         [InlineData(null, false)]
-        [InlineData("xx", false)]
-        [InlineData("tv", false)]
-        public void IsTwoLetterISONameTest(string language, bool expected)
+        [InlineData("norsk", false)]
+        [InlineData("t1", false)]
+        public void IsTwoLetterTest(string language, bool expected)
         {
-            bool result = LanguageHelper.IsTwoLetterISOName(language);
-            Assert.Equal(result, expected);
+            bool result = LanguageHelper.IsTwoLetters(language);
+            Assert.Equal(expected, result);
         }
     }
 }

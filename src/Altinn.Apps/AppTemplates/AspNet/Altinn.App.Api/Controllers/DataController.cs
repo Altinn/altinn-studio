@@ -11,12 +11,14 @@ using Altinn.App.Common.Helpers;
 using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.PlatformServices.Helpers;
+using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -128,6 +130,11 @@ namespace Altinn.App.Api.Controllers
                 }
                 else
                 {
+                    if (!CompliesWithDataRestrictions(dataTypeFromMetadata, out string errorMessage))
+                    {
+                        return BadRequest($"Invalid data provided. Error: {errorMessage}");
+                    }
+
                     return await CreateBinaryData(org, app, instance, dataType);
                 }
             }
@@ -242,6 +249,12 @@ namespace Altinn.App.Api.Controllers
                 else if ((bool)appLogic)
                 {
                     return await PutFormData(org, app, instance, dataGuid, dataType);
+                }
+
+                DataType dataTypeFromMetadata = _appResourcesService.GetApplication().DataTypes.FirstOrDefault(e => e.Id.Equals(dataType, StringComparison.InvariantCultureIgnoreCase));
+                if (!CompliesWithDataRestrictions(dataTypeFromMetadata, out string errorMessage))
+                {
+                    return BadRequest($"Invalid data provided. Error: {errorMessage}");
                 }
 
                 return await PutBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
@@ -599,6 +612,89 @@ namespace Altinn.App.Api.Controllers
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Validated that the request 
+        /// </summary>
+        /// <param name="dataType"></param>
+        /// <param name="errorMessage"></param>
+        /// <returns></returns>
+        private bool CompliesWithDataRestrictions(DataType dataType, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+
+            if (!Request.Headers.ContainsKey("Content-Disposition"))
+            {
+                errorMessage = "Conent-Disposition header containing 'filename' must be included in request.";
+                return false;
+            }
+
+            Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
+            string filename = GetFilenameFromContentDisposition(headerValues.ToString());
+
+            if (string.IsNullOrEmpty(filename))
+            {
+                errorMessage = "Content-Disposition header must contain 'filename'.";
+                return false;
+            }
+
+            string[] splitFilename = filename.Split('.');
+
+            if (splitFilename.Length < 2)
+            {
+                errorMessage = $"Invalid format for filename: {filename}. Filename is expected to end with '.{{filetype}}'.";
+                return false;
+            }
+
+            // no restrictions on data type
+            if (dataType.AllowedContentTypes == null || dataType.AllowedContentTypes.Count == 0)
+            {
+                return true;
+            }
+
+            string filetype = splitFilename[splitFilename.Length - 1];
+            string mimeType = MimeTypeMap.GetMimeType(filetype);
+
+            if (!Request.Headers.ContainsKey("Content-Type"))
+            {
+                errorMessage = "Content-Type header must be included in request.";
+                return false;
+            }
+
+            // Verify that file mime type matches content type in request
+            Request.Headers.TryGetValue("Content-Type", out StringValues contentType);
+            if (!contentType.Equals("application/octet-stream") && !mimeType.Equals(contentType, StringComparison.InvariantCultureIgnoreCase))
+            {
+                errorMessage = $"Content type header {contentType} does not match mime type {mimeType} for uploaded file. Please fix header or upload another file.";
+                return false;
+            }
+
+            // Verify that file mime type is an allowed content-type
+            if (!dataType.AllowedContentTypes.Contains(mimeType, StringComparer.InvariantCultureIgnoreCase) && !dataType.AllowedContentTypes.Contains("application/octet-stream"))
+            {
+                errorMessage = $"Invalid content type: {mimeType}. Please try another file. Permitted content types include: {String.Join(", ", dataType.AllowedContentTypes)}";
+                return false;
+            }
+
+            return true;
+        }
+
+        private string GetFilenameFromContentDisposition(string contentdisposition)
+        {
+            string keyWord = "filename=";
+
+            if (!contentdisposition.Contains(keyWord, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return string.Empty;
+            }
+
+            int splitIndex = contentdisposition.IndexOf(keyWord) + keyWord.Length;
+            string remainder = contentdisposition.Substring(splitIndex);
+            int endIndex = remainder.IndexOf(';');
+            string filename = endIndex > 0 ? remainder.Substring(0, endIndex) : remainder;
+
+            return filename;
         }
     }
 }

@@ -51,7 +51,7 @@ namespace App.IntegrationTests
             Assert.NotNull(instance);
             Assert.Equal("1337", instance.InstanceOwner.PartyId);
 
-            TestDataUtil.DeletInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
         /// <summary>
@@ -111,7 +111,8 @@ namespace App.IntegrationTests
             MemoryStream næringsoppgavestream = new MemoryStream(byteArray);
 
             StreamContent streamContentNæring = new StreamContent(næringsoppgavestream);
-            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+            streamContentNæring.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
+            streamContentNæring.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment;  filename=data-element.xml");
 
             HttpResponseMessage postresponseNæring = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=næringsoppgave", streamContentNæring);
             DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(postresponseNæring.Content.ReadAsStringAsync().Result, typeof(DataElement));
@@ -125,7 +126,7 @@ namespace App.IntegrationTests
             MemoryStream skattemeldingstream = new MemoryStream(byteArraySkattemelding);
 
             StreamContent streamContentSkattemelding = new StreamContent(skattemeldingstream);
-            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
 
             HttpResponseMessage postresponseskattemelding = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=skattemelding", streamContentNæring);
             DataElement dataElementSkattemelding = (DataElement)JsonConvert.DeserializeObject(postresponseskattemelding.Content.ReadAsStringAsync().Result, typeof(DataElement));
@@ -137,7 +138,7 @@ namespace App.IntegrationTests
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContentValidation, typeof(List<ValidationIssue>));
 
             Assert.Empty(messages);
-            TestDataUtil.DeletInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
 
@@ -198,7 +199,8 @@ namespace App.IntegrationTests
             MemoryStream næringsoppgavestream = new MemoryStream(byteArray);
 
             StreamContent streamContentNæring = new StreamContent(næringsoppgavestream);
-            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+            streamContentNæring.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
+            streamContentNæring.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=data-element.xml");
 
             HttpResponseMessage postresponseNæring = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=næringsoppgave", streamContentNæring);
             DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(postresponseNæring.Content.ReadAsStringAsync().Result, typeof(DataElement));
@@ -210,7 +212,7 @@ namespace App.IntegrationTests
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContentValidation, typeof(List<ValidationIssue>));
 
             Assert.Single(messages);
-            TestDataUtil.DeletInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
 
@@ -263,8 +265,9 @@ namespace App.IntegrationTests
             serializer.Serialize(stream, siriusMainForm);
             stream.Position = 0;
             StreamContent streamContent = new StreamContent(stream);
-            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
-
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
+            streamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=data-element.xml");
+            
             HttpResponseMessage putresponse = await client.PutAsync("/tdd/sirius/instances/" + instance.Id + "/data/" + instance.Data[0].Id, streamContent);
 
             // Add Næringsoppgave.xml
@@ -275,7 +278,8 @@ namespace App.IntegrationTests
             MemoryStream næringsoppgavestream = new MemoryStream(byteArray);
 
             StreamContent streamContentNæring = new StreamContent(næringsoppgavestream);
-            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+            streamContentNæring.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment;  filename=data-element.xml");
+            streamContentNæring.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
 
             HttpResponseMessage postresponseNæring = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=næringsoppgave", streamContentNæring);
             DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(postresponseNæring.Content.ReadAsStringAsync().Result, typeof(DataElement));
@@ -288,8 +292,9 @@ namespace App.IntegrationTests
             //byte[] byteArray = Encoding.ASCII.GetBytes(contents);
             MemoryStream skattemeldingstream = new MemoryStream(byteArraySkattemelding);
 
-            StreamContent streamContentSkattemelding = new StreamContent(skattemeldingstream);
-            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+            HttpContent streamContentSkattemelding = new StreamContent(skattemeldingstream);
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
+            streamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=data-element.xml");
 
             HttpResponseMessage postresponseskattemelding = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=skattemelding", streamContentNæring);
             DataElement dataElementSkattemelding = (DataElement)JsonConvert.DeserializeObject(postresponseskattemelding.Content.ReadAsStringAsync().Result, typeof(DataElement));
@@ -331,7 +336,7 @@ namespace App.IntegrationTests
             Assert.Equal("Task_3", stateAfterSecondNext.CurrentTask.ElementId);
 
             // Delete all data created
-            TestDataUtil.DeletInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
         }
     }
 }
