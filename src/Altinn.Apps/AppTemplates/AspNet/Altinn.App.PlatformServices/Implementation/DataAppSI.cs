@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;

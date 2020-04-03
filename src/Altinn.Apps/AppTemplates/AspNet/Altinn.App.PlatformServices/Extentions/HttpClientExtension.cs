@@ -7,8 +7,20 @@ using System.Threading.Tasks;
 
 namespace Altinn.App.PlatformServices.Extentions
 {
+    /// <summary>
+    /// This extentsion is created to make it easy to add a bearer token to a httprequests. 
+    /// </summary>
     public static class HttpClientExtension
     {
+
+        /// <summary>
+        /// Extension that add authorization header to request
+        /// </summary>
+        /// <param name="httpClient">The httpclient</param>
+        /// <param name="authorizationToken">the authorization token (jwt)</param>
+        /// <param name="requestUri">The request Uri</param>
+        /// <param name="content">The http content</param>
+        /// <returns>A HttpResponseMessage</returns>
         public static Task<HttpResponseMessage> PostAsync(this HttpClient httpClient, string authorizationToken, string requestUri, HttpContent content)
         {
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUri);
@@ -20,11 +32,11 @@ namespace Altinn.App.PlatformServices.Extentions
         /// <summary>
         /// Extension that add authorization header to request
         /// </summary>
-        /// <param name="httpClient"></param>
-        /// <param name="authorizationToken"></param>
-        /// <param name="requestUri"></param>
-        /// <param name="content"></param>
-        /// <returns></returns>
+        /// <param name="httpClient">The httpclient</param>
+        /// <param name="authorizationToken">the authorization token (jwt)</param>
+        /// <param name="requestUri">The request Uri</param>
+        /// <param name="content">The http content</param>
+        /// <returns>A HttpResponseMessage</returns>
         public static Task<HttpResponseMessage> PutAsync(this HttpClient httpClient, string authorizationToken, string requestUri, HttpContent content)
         {
                 HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUri);
@@ -33,6 +45,14 @@ namespace Altinn.App.PlatformServices.Extentions
                 return httpClient.SendAsync(request, CancellationToken.None);
         }
 
+
+        /// <summary>
+        /// Extension that add authorization header to request
+        /// </summary>
+        /// <param name="httpClient">The httpclient</param>
+        /// <param name="authorizationToken">the authorization token (jwt)</param>
+        /// <param name="requestUri">The request Uri</param>
+        /// <returns>A HttpResponseMessage</returns>
         public static Task<HttpResponseMessage> GetAsync(this HttpClient httpClient, string authorizationToken, string requestUri)
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -40,6 +60,14 @@ namespace Altinn.App.PlatformServices.Extentions
             return httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead, CancellationToken.None);
         }
 
+
+        /// <summary>
+        /// Extension that add authorization header to request
+        /// </summary>
+        /// <param name="httpClient">The httpclient</param>
+        /// <param name="authorizationToken">the authorization token (jwt)</param>
+        /// <param name="requestUri">The request Uri</param>
+        /// <returns>A HttpResponseMessage</returns>
         public static Task<HttpResponseMessage> DeleteAsync(this HttpClient httpClient, string authorizationToken, string requestUri)
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Delete, requestUri);
