@@ -10,7 +10,7 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class ERMockSI : IER
     {
-        public ERMockSI(HttpClient httpClient)
+        public ERMockSI()
         {
 
         }

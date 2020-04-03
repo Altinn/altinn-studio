@@ -17,7 +17,7 @@ namespace App.IntegrationTests.Mocks.Services
     {
         private readonly ILogger _logger;
 
-        public InstanceMockSI(HttpClient httpClient, ILogger<IInstance> logger)
+        public InstanceMockSI(ILogger<IInstance> logger)
         {
             _logger = logger;
         }

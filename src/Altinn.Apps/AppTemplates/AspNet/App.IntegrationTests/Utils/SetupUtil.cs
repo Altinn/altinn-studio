@@ -57,15 +57,15 @@ namespace App.IntegrationTestsRef.Utils
 
                     services.AddSingleton<IValidation, ValidationAppSI>();
 
-                    services.AddHttpClient<IApplication, ApplicationMockSI>();
-                    services.AddHttpClient<IInstance, InstanceMockSI>();
-                    services.AddHttpClient<IData, DataMockSI>();
-                    services.AddHttpClient<IInstanceEvent, InstanceEventAppSIMock>();
-                    services.AddHttpClient<IDSF, DSFMockSI>();
-                    services.AddHttpClient<IER, ERMockSI>();
-                    services.AddHttpClient<IRegister, RegisterMockSI>();
-                    services.AddHttpClient<IPDF, PDFMockSI>();
-                    services.AddHttpClient<IProfile, ProfileMockSI>();
+                    services.AddTransient<IApplication, ApplicationMockSI>();
+                    services.AddTransient<IInstance, InstanceMockSI>();
+                    services.AddTransient<IData, DataMockSI>();
+                    services.AddTransient<IInstanceEvent, InstanceEventAppSIMock>();
+                    services.AddTransient<IDSF, DSFMockSI>();
+                    services.AddTransient<IER, ERMockSI>();
+                    services.AddTransient<IRegister, RegisterMockSI>();
+                    services.AddTransient<IPDF, PDFMockSI>();
+                    services.AddTransient<IProfile, ProfileMockSI>();
 
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();

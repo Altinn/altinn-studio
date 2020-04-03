@@ -18,7 +18,6 @@ namespace Altinn.App.Services.Implementation
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
-        private readonly HttpClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventAppSI"/> class.
@@ -30,14 +29,12 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpClientAccessor">The Http client accessor </param>
         /// <param name="settings">The application settings.</param>
         public InstanceEventAppSIMock(
-            HttpClient httpClient,
             ILogger<InstanceEventAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
                       IOptionsMonitor<AppSettings> settings)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
-            _client = httpClient;
             _settings = settings.CurrentValue;
         }
 

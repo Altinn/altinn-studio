@@ -49,8 +49,6 @@ namespace Altinn.App
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             });
 
-            services.AddHttpClient<AuthorizationApiClient>();
-
             // Dot net services
             services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -60,28 +58,23 @@ namespace Altinn.App
             
             // Services for Altinn Platform components
             services.AddTransient<IPDP, PDPAppSI>();
-            services.AddSingleton<IValidation, ValidationAppSI>();
-            services.AddSingleton<IPrefill, PrefillSI>();
+            services.AddTransient<IValidation, ValidationAppSI>();
+            services.AddTransient<IPrefill, PrefillSI>();
 
-            // HttpClients for platform functionality
-            services.AddHttpClient<IAuthentication, AuthenticationAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
-            services.AddHttpClient<IAuthorization, AuthorizationAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
-            services.AddHttpClient<IProcess, ProcessAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
-
-            // Temporary workaround since overriding httpclient does not work for integration tests with test server
-            // https://github.com/dotnet/aspnetcore/issues/17937
-            if (!_env.ContentRootPath.Contains("AppTemplate"))
-            {
-                services.AddHttpClient<IApplication, ApplicationAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
-                services.AddHttpClient<IData, DataAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
-                services.AddHttpClient<IDSF, RegisterDSFAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
-                services.AddHttpClient<IER, RegisterERAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
-                services.AddHttpClient<IInstance, InstanceAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
-                services.AddHttpClient<IInstanceEvent, InstanceEventAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
-                services.AddHttpClient<IPDF, PDFSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
-                services.AddHttpClient<IProfile, ProfileAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
-                services.AddHttpClient<IRegister, RegisterAppSI>().SetHandlerLifetime(TimeSpan.FromMinutes(5));
-            }
+            // HttpClients for platform functionality. Registred as httpclients so default httpclientfactory is used
+            services.AddHttpClient<AuthorizationApiClient>();
+            services.AddHttpClient<IApplication, ApplicationAppSI>();
+            services.AddHttpClient<IAuthentication, AuthenticationAppSI>();
+            services.AddHttpClient<IAuthorization, AuthorizationAppSI>();
+            services.AddHttpClient<IData, DataAppSI>();
+            services.AddHttpClient<IDSF, RegisterDSFAppSI>();
+            services.AddHttpClient<IER, RegisterERAppSI>();
+            services.AddHttpClient<IInstance, InstanceAppSI>();
+            services.AddHttpClient<IInstanceEvent, InstanceEventAppSI>();
+            services.AddHttpClient<IPDF, PDFSI>();
+            services.AddHttpClient<IProcess, ProcessAppSI>();
+            services.AddHttpClient<IProfile, ProfileAppSI>();
+            services.AddHttpClient<IRegister, RegisterAppSI>();
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
             services.AddTransient<IAltinnApp, AppLogic.App>();

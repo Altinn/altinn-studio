@@ -10,7 +10,7 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class ApplicationMockSI : IApplication
     {
-        public ApplicationMockSI(HttpClient httpClient)
+        public ApplicationMockSI()
         {
 
         }

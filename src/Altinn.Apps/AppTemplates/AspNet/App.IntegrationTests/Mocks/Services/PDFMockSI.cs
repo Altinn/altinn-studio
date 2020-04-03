@@ -7,7 +7,7 @@ namespace App.IntegrationTestsRef.Mocks.Services
 {
     public class PDFMockSI : IPDF
     {
-        public PDFMockSI(HttpClient httpClient)
+        public PDFMockSI()
         {
 
         }

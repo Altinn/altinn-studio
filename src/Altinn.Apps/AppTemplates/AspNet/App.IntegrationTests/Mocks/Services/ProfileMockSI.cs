@@ -16,7 +16,7 @@ namespace App.IntegrationTestsRef.Mocks.Services
     {
         private readonly IRegister _registerService;
 
-        public ProfileMockSI(HttpClient httpClient, IRegister registerService)
+        public ProfileMockSI(IRegister registerService)
         {
             _registerService = registerService;
         }
