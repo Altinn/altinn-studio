@@ -22,7 +22,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -77,14 +76,7 @@ namespace Altinn.Platform.Storage
         {
             _logger.Information("Startup // ConfigureServices");
 
-            services.AddControllers(config =>
-            {
-                AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
-                    .AddAuthenticationSchemes(JwtCookieDefaults.AuthenticationScheme)
-                    .RequireAuthenticatedUser()
-                    .Build();
-                config.Filters.Add(new AuthorizeFilter(policy));
-            }).AddNewtonsoftJson();
+            services.AddControllers().AddNewtonsoftJson();
 
             services.AddHttpClient<AuthorizationApiClient>();
 
