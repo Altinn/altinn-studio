@@ -193,6 +193,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
               "marginTop": "55px",
             }
           }
+          tabIndex={0}
         >
           <div
             className="a-page a-current-page"
@@ -262,6 +263,11 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
                 >
                   <h4
                     className="a-fontReg"
+                    style={
+                      Object {
+                        "marginBottom": "12px",
+                      }
+                    }
                   >
                     <span>
                       form_filler.error_report_description
