@@ -1,11 +1,10 @@
-import { check, sleep } from "k6";
+import { check, fail } from "k6";
 import {addErrorCount} from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
 import * as platformInstances from "../../api/storage/instances.js"
 import * as apps from "../../api/storage/applications.js"
-import {postPartieslookup} from "../../api/platform/register.js"
 import {deleteSblInstance} from "../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
@@ -29,18 +28,15 @@ export const options = {
 
 //Tests for App API: RF-0002
 export default function() {
-    var aspxauthCookie = setUpData.authenticateUser(users[__VU - 1].username, users[__VU - 1].password);  
-    const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
-    //var data = setUpData.getUserData(runtimeToken);
+    var userNumber = (__VU - 1) % users.length;
+    var aspxauthCookie = setUpData.authenticateUser(users[userNumber].username, users[userNumber].password);  
+    const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
-    //var attachmentDataType = apps.getAppByName(runtimeToken, appOwner, level2App);
-    //attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body); 
-    //var orgPartyId = postPartieslookup(runtimeToken, "OrgNo", data["orgNumber"])
-    //data.orgPartyId = JSON.parse(orgPartyId.body).partyId;    
-    const partyId = users[__VU - 1].partyid;  
+    var attachmentDataType = apps.getAppByName(runtimeToken, appOwner, level2App);
+    attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body);   
+    const partyId = users[userNumber].partyid;  
     var instanceId = "";    
     var dataId = "";  
-    sleep(1);
 
     //Test to create an instance with App api and validate the response
     instanceId = appInstances.postInstance(runtimeToken, partyId);
@@ -48,12 +44,13 @@ export default function() {
         "E2E App POST Create Instance status is 201:": (r) => r.status === 201        
       });  
     addErrorCount(success);
-    sleep(1);
-    
-    if (instanceId.status === 201){
-        dataId = appData.findDataId(instanceId.body);
-        instanceId = platformInstances.findInstanceId(instanceId.body);  
+
+    if (!success) {
+        fail("E2E App POST Create Instance status is 201: " + JSON.stringify(instanceId));
     };
+    
+    dataId = appData.findDataId(instanceId.body);
+    instanceId = platformInstances.findInstanceId(instanceId.body);  
     
     //Test to edit a form data in an instance with App APi and validate the response
     var res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
@@ -61,31 +58,46 @@ export default function() {
         "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201        
     });  
     addErrorCount(success);
-    sleep(1);    
 
-    /*if (__VU < (users.length)*0.60)
-        {var attachment = smallAttachment;}
-    else{
-        var attachment = (__VU < (users.length)*0.90) ? mediumAttachment : bigAttachment;
+    if (!success) {
+        fail("E2E PUT Edit Data by Id status is 201:" + JSON.stringify(res));
     };
 
-    //var attachment =  bigAttachment;
+    //dynamically assign attachments - 60% VU gets small , 30% VU gets medium and 10% VU gets big attachment.
+    if (userNumber < (users.length)*0.60)
+        {var attachment = smallAttachment;}
+    else{
+        var attachment = (userNumber < (users.length)*0.90) ? mediumAttachment : bigAttachment;
+    };
     
     //upload a upload attachment to an instance with App API
-    res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, attachment);        
-    console.log(JSON.stringify(res.timings)); */
+    res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, attachment);
+    success = check(res, {
+        "E2E POST upload attachment Data status is 201:": (r) => r.status === 201        
+    });  
+    addErrorCount(success);
+
+    if (!success) {
+        fail("E2E POST upload attachment Data status is 201:" + JSON.stringify(res));
+    };
 
     //Test to get validate instance and verify that validation of instance is ok
     res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId);
     success = check(res, {
-        "E2E App GET Validate Instance validation OK:": (r) => (JSON.parse(r.body)).length === 0     
+        "E2E App GET Validate Instance validation OK:": (r) => r.body && (JSON.parse(r.body)).length === 0     
     });  
     addErrorCount(success);
-    sleep(1);
+
+    if (!success) {
+        fail("E2E App GET Validate Instance is not OK: " + JSON.stringify(res));
+    };
 
     //Test to get next process of an app instance again and verify response code  to be 200
     res = appProcess.getNextProcess(runtimeToken, partyId, instanceId);
-    sleep(1);
+
+    if (res.status !== 200) {
+        fail("Unable to get next element id: " + JSON.stringify(res));
+    };
 
     var nextElement = (JSON.parse(res.body))[0];
 
@@ -95,15 +107,20 @@ export default function() {
         "E2E App PUT Move process to Next element status is 200:": (r) => r.status === 200      
     });  
     addErrorCount(success);
-    sleep(1);
+
+    if (!success) {
+        fail("E2E App PUT Move process to Next element status is 200: " + JSON.stringify(res));
+    };
 
     //Test to call get instance details and verify the presence of archived date
     res = appInstances.getInstanceById(runtimeToken, partyId, instanceId);    
     success = check(res, {
         "E2E App Instance is archived:": (r) => (JSON.parse(r.body)).status.archived != null
     }); 
-    sleep(1);
+
+    if (!success) {
+        fail("E2E App Instance is not archived. " + JSON.stringify(res));
+    };
 
     deleteSblInstance(runtimeToken, partyId, instanceId, "true");    
-    sleep(1);
 };
