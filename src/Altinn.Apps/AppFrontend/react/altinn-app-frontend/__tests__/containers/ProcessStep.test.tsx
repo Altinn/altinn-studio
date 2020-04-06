@@ -37,6 +37,9 @@ describe('>>> containers/ProcessStep.tsx', () => {
           },
         },
       },
+      textResources: {
+        resources: null
+      },
       formValidations: {
         validations: {
           'mock-component-id': {
@@ -134,20 +137,6 @@ describe('>>> containers/ProcessStep.tsx', () => {
 
   });
 
-  it('+++ should render receipt when step is "archived"', () => {
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <ProcessStep
-            header={mockHeader}
-            step={ProcessSteps.Archived}
-          />
-        </Provider>
-      </MemoryRouter>,
-    );
-    expect(wrapper.exists('#ReceiptContainer')).toEqual(true);
-  });
-
   it('+++ the background color should be lightGreen if step is "Archive"', () => {
     const wrapper = mount(
       <MemoryRouter>
@@ -177,6 +166,9 @@ describe('>>> containers/ProcessStep.tsx', () => {
             placeholder_user: 'OLA PRIVATPERSON',
           },
         },
+      },
+      textResources: {
+        resources: null
       },
       formValidations: {
         validations: {
@@ -224,6 +216,9 @@ describe('>>> containers/ProcessStep.tsx', () => {
             placeholder_user: 'OLA PRIVATPERSON',
           },
         },
+      },
+      textResources: {
+        resources: null
       },
       formValidations: {
         validations: {},

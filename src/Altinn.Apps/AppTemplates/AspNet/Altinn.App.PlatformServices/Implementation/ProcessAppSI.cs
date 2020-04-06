@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Models;
-using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -41,19 +41,23 @@ namespace Altinn.App.Services.Implementation
         /// Initializes a new instance of the <see cref="ProcessAppSI"/> class.
         /// </summary>
         public ProcessAppSI(
+            IOptions<PlatformSettings> platformSettings,
             IOptions<AppSettings> appSettings,
             IInstanceEvent eventService,
             ILogger<ProcessAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            IHttpClientAccessor httpClientAccessor)
+            HttpClient httpClient)
         {
             _appSettings = appSettings.Value;
             _eventService = eventService;
             _httpContextAccessor = httpContextAccessor;
-            _client = httpClientAccessor.StorageClient;
             _logger = logger;
-
             ProcessHelper = new ProcessHelper(GetProcessDefinition());
+            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+            _client = httpClient;
         }
 
         /// <inheritdoc/>
@@ -174,9 +178,8 @@ namespace Altinn.App.Services.Implementation
         {
             string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/process/history";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _appSettings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
             if (response.IsSuccessStatusCode)
             {
