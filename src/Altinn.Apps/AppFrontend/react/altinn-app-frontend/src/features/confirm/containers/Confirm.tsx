@@ -183,7 +183,6 @@ const Confirm = (props: IConfirmProps) => {
     </>
     }
     </>
-
   );
 }
 

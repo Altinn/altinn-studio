@@ -9,7 +9,7 @@ import AltinnReceipt from '../../../../../shared/src/components/organisms/Altinn
 import theme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { IApplication, IAttachment, IInstance, IParty, IProfile, IExtendedInstance, ITextResource  } from '../../../../../shared/src/types';
 import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationMetaDataUtils';
-import { getInstancePdf, mapInstanceAttachments, getAttachmentGroupings } from '../../../../../shared/src/utils/attachmentsUtils';
+import { mapInstanceAttachments, getAttachmentGroupings } from '../../../../../shared/src/utils/attachmentsUtils';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
 import { nb } from '../../../resources/language';
