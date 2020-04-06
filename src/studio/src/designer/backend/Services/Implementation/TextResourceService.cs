@@ -44,11 +44,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<GiteaFileContent> folder = await _giteaApiWrapper.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
             if (folder != null)
             {
-                folder.ForEach(async textResource =>
+                folder.ForEach(async textResourceFromRepo =>
                 {
-                    byte[] data = Convert.FromBase64String(textResource.Content);
+                    byte[] data = Convert.FromBase64String(textResourceFromRepo.Content);
                     TextResource content = data.Deserialize<TextResource>();
-                    await _storageTextResourceClient.Create(org, app, content, environmentModel);
+                    TextResource textResourceStorage = await _storageTextResourceClient.Get(org, app, content.Language, environmentModel);
+                    if (textResourceFromRepo == null)
+                    {
+                        await _storageTextResourceClient.Create(org, app, content, environmentModel);
+                    }
+                    else
+                    {
+                        await _storageTextResourceClient.Update(org, app, content, environmentModel);
+                    }
                 });
             }
         }
