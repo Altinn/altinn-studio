@@ -6,15 +6,14 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Interface.Models;
-
+using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 using Newtonsoft.Json;
 
@@ -41,12 +40,12 @@ namespace Altinn.Platform.Storage.Repository
         /// Initializes a new instance of the <see cref="DataRepository"/> class
         /// </summary>
         /// <param name="sasTokenProvider">A provider that can be asked for SAS tokens.</param>
-        /// <param name="cosmosettings">the configuration settings for azure cosmos database</param>
+        /// <param name="cosmosSettings">the configuration settings for azure cosmos database</param>
         /// <param name="storageConfiguration">the storage configuration for azure blob storage</param>
         /// <param name="logger">The logger to use when writing to logs.</param>
         public DataRepository(
             ISasTokenProvider sasTokenProvider,
-            IOptions<AzureCosmosSettings> cosmosettings,
+            IOptions<AzureCosmosSettings> cosmosSettings,
             IOptions<AzureStorageConfiguration> storageConfiguration,
             ILogger<DataRepository> logger)
         {
@@ -54,7 +53,7 @@ namespace Altinn.Platform.Storage.Repository
             _sasTokenProvider = sasTokenProvider;
             _logger = logger;
 
-            CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosettings.Value);
+            CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosSettings.Value);
 
             _documentClient = database.CreateDatabaseAndCollection(_collectionId);
             _collectionUri = database.CollectionUri;
@@ -77,7 +76,7 @@ namespace Altinn.Platform.Storage.Repository
             {
                 return await UploadFromStreamAsync(org, stream, blobStoragePath);
             }
-            catch (StorageException storageException)
+            catch (Exception storageException)
             {
                 _logger.LogWarning($"StorageException when accessing blob storage for {org}: {Environment.NewLine}{storageException}");
                 _logger.LogWarning("Invalidating SAS token and retrying upload operation.");
@@ -95,7 +94,7 @@ namespace Altinn.Platform.Storage.Repository
             {
                 return await DownloadToStreamAsync(org, blobStoragePath);
             }
-            catch (StorageException storageException)
+            catch (Exception storageException)
             {
                 _logger.LogWarning($"StorageException when accessing blob storage for {org}: {Environment.NewLine}{storageException}");
                 _logger.LogWarning("Invalidating SAS token and retrying download operation.");
@@ -113,7 +112,7 @@ namespace Altinn.Platform.Storage.Repository
             {
                 return await DeleteIfExistsAsync(org, blobStoragePath);
             }
-            catch (StorageException storageException)
+            catch (Exception storageException)
             {
                 _logger.LogWarning($"StorageException when accessing blob storage for {org}: {Environment.NewLine}{storageException}");
                 _logger.LogWarning("Invalidating SAS token and retrying delete operation.");
@@ -199,22 +198,20 @@ namespace Altinn.Platform.Storage.Repository
 
         private async Task<long> UploadFromStreamAsync(string org, Stream stream, string fileName)
         {
-            CloudBlobContainer cloudBlobContainer = await GetBlobContainer(org);
-            CloudBlockBlob blockBlob = cloudBlobContainer.GetBlockBlobReference(fileName);
+            BlobClient blockBlob = await CreateBlobClient(org, fileName);
 
-            await blockBlob.UploadFromStreamAsync(stream);
-            blockBlob.FetchAttributes();
+            await blockBlob.UploadAsync(stream, true);
+            BlobProperties properties = await blockBlob.GetPropertiesAsync();
 
-            return blockBlob.Properties.Length;
+            return properties.ContentLength;
         }
 
         private async Task<Stream> DownloadToStreamAsync(string org, string fileName)
         {
-            CloudBlobContainer cloudBlobContainer = await GetBlobContainer(org);
-            CloudBlockBlob blockBlob = cloudBlobContainer.GetBlockBlobReference(fileName);
+            BlobClient blockBlob = await CreateBlobClient(org, fileName);
 
             var memoryStream = new MemoryStream();
-            await blockBlob.DownloadToStreamAsync(memoryStream);
+            await blockBlob.DownloadToAsync(memoryStream);
             memoryStream.Position = 0;
 
             return memoryStream;
@@ -222,53 +219,39 @@ namespace Altinn.Platform.Storage.Repository
 
         private async Task<bool> DeleteIfExistsAsync(string org, string fileName)
         {
-            CloudBlobContainer cloudBlobContainer = await GetBlobContainer(org);
-            CloudBlockBlob blockBlob = cloudBlobContainer.GetBlockBlobReference(fileName);
+            BlobClient blockBlob = await CreateBlobClient(org, fileName);
 
             bool result = await blockBlob.DeleteIfExistsAsync();
 
             return result;
         }
 
-        private async Task<CloudBlobContainer> GetBlobContainer(string org)
+        private async Task<BlobClient> CreateBlobClient(string org, string blobName)
         {
-            if (_storageConfiguration.OrgPrivateBlobStorageEnabled)
+            if (!_storageConfiguration.AccountName.StartsWith("devstoreaccount1"))
             {
                 string sasToken = await _sasTokenProvider.GetSasToken(org);
-                StorageCredentials accountSasCredential = new StorageCredentials(sasToken);
 
                 string accountName = string.Format(_storageConfiguration.OrgStorageAccount, org);
-                string blobEndpoint = string.Format(_storageConfiguration.BlobEndPoint, accountName);
                 string containerName = string.Format(_storageConfiguration.OrgStorageContainer, org);
 
-                CloudStorageAccount accountWithSas = new CloudStorageAccount(accountSasCredential, new Uri(blobEndpoint), null, null, null);
-                CloudBlobClient cloudBlobClient = accountWithSas.CreateCloudBlobClient();
-                CloudBlobContainer cloudBlobContainer = cloudBlobClient.GetContainerReference(containerName);
+                UriBuilder fullUri = new UriBuilder
+                {
+                    Scheme = "https",
+                    Host = $"{accountName}.blob.core.windows.net",
+                    Path = $"{containerName}/{blobName}",
+                    Query = sasToken
+                };
 
-                return cloudBlobContainer;
-            }
-            
-            StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-
-            CloudBlobClient commonBlobClient = CreateBlobClient(storageCredentials, storageAccount);
-            return commonBlobClient.GetContainerReference(_storageConfiguration.StorageContainer);
-        }
-
-        private CloudBlobClient CreateBlobClient(StorageCredentials storageCredentials, CloudStorageAccount storageAccount)
-        {
-            CloudBlobClient blobClient;
-            if (_storageConfiguration.AccountName.StartsWith("devstoreaccount1"))
-            {
-                StorageUri storageUrl = new StorageUri(new Uri(_storageConfiguration.BlobEndPoint));
-                blobClient = new CloudBlobClient(storageUrl, storageCredentials);
-            }
-            else
-            {
-                blobClient = storageAccount.CreateCloudBlobClient();
+                return new BlobClient(fullUri.Uri, null);
             }
 
-            return blobClient;
+            StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
+            Uri storageUrl = new Uri(_storageConfiguration.BlobEndPoint);
+            BlobServiceClient commonBlobClient = new BlobServiceClient(storageUrl, storageCredentials);
+            BlobContainerClient blobContainerClient = commonBlobClient.GetBlobContainerClient(_storageConfiguration.StorageContainer);
+
+            return blobContainerClient.GetBlobClient(blobName);
         }
     }
 }

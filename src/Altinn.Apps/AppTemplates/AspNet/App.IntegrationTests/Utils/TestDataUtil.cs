@@ -28,7 +28,7 @@ namespace App.IntegrationTests.Utils
             }
         }
 
-        public static void DeletInstanceAndData(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public static void DeleteInstanceAndData(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
            DeleteDataForInstance(org, app, instanceOwnerId, instanceGuid);
 

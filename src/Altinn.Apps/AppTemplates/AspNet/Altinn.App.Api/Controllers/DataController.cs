@@ -2,20 +2,23 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
+
 using Altinn.App.Api.Filters;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
+using Altinn.App.Common.Serialization;
+using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.PlatformServices.Helpers;
+using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Primitives;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -86,6 +89,8 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("Element type must be provided.");
             }
 
+            /* The Body of the request is read much later when it has been made sure it is worth it. */
+
             try
             {
                 Application application = _appResourcesService.GetApplication();
@@ -99,6 +104,11 @@ namespace Altinn.App.Api.Controllers
                 if (dataTypeFromMetadata == null)
                 {
                     return BadRequest($"Element type {dataType} not allowed for instance {instanceOwnerPartyId}/{instanceGuid}.");
+                }
+
+                if (!IsValidContributer(dataTypeFromMetadata, User))
+                {
+                    return Forbid();
                 }
 
                 bool appLogic = dataTypeFromMetadata.AppLogic != null;
@@ -120,6 +130,11 @@ namespace Altinn.App.Api.Controllers
                 }
                 else
                 {
+                    if (!CompliesWithDataRestrictions(dataTypeFromMetadata, out string errorMessage))
+                    {
+                        return BadRequest($"Invalid data provided. Error: {errorMessage}");
+                    }
+
                     return await CreateBinaryData(org, app, instance, dataType);
                 }
             }
@@ -234,6 +249,12 @@ namespace Altinn.App.Api.Controllers
                 else if ((bool)appLogic)
                 {
                     return await PutFormData(org, app, instance, dataGuid, dataType);
+                }
+
+                DataType dataTypeFromMetadata = _appResourcesService.GetApplication().DataTypes.FirstOrDefault(e => e.Id.Equals(dataType, StringComparison.InvariantCultureIgnoreCase));
+                if (!CompliesWithDataRestrictions(dataTypeFromMetadata, out string errorMessage))
+                {
+                    return BadRequest($"Invalid data provided. Error: {errorMessage}");
                 }
 
                 return await PutBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
@@ -358,10 +379,12 @@ namespace Altinn.App.Api.Controllers
             }
             else
             {
-                appModel = ParseContentAndDeserializeServiceModel(_altinnApp.GetAppModelType(classRef), out ActionResult contentError);
-                if (contentError != null)
+                ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
+                appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+
+                if (!string.IsNullOrEmpty(deserializer.Error))
                 {
-                    return contentError;
+                    return BadRequest(deserializer.Error);
                 }
             }
 
@@ -416,66 +439,6 @@ namespace Altinn.App.Api.Controllers
             {
                 return StatusCode(500, $"Something went wrong when deleting data element {dataGuid} for instance {instanceGuid}");
             }
-        }
-
-        private object ParseContentAndDeserializeServiceModel(Type modelType, out ActionResult error)
-        {
-            error = null;
-            object obj = ParseFormDataAndDeserialize(modelType, Request.ContentType, Request.Body, out string errorText);
-
-            if (!string.IsNullOrEmpty(errorText))
-            {
-                error = BadRequest(errorText);
-
-                return null;
-            }
-
-            return obj;
-        }
-
-        public static object ParseFormDataAndDeserialize(Type modelType, string contentType, Stream contentStream, out string error)
-        {
-            error = null;
-            object serviceModel = null;
-
-            if (contentStream != null)
-            {
-                if (contentType.Contains("application/json"))
-                {
-                    try
-                    {
-                        using StreamReader reader = new StreamReader(contentStream, Encoding.UTF8);
-                        string content = reader.ReadToEndAsync().Result;
-                        serviceModel = JsonConvert.DeserializeObject(content, modelType);
-                    }
-                    catch (Exception ex)
-                    {
-                        error = $"An error occured while deserialising json content into '{modelType}'. \n Please verify that the content is based on the correct data model. \n See exception for more information: {ex}";
-                        return null;
-                    }
-                }
-                else if (contentType.Contains("application/xml"))
-                {
-                    try
-                    {
-                        XmlSerializer serializer = new XmlSerializer(modelType);
-                        serviceModel = serializer.Deserialize(contentStream);
-                    }
-                    catch (Exception ex)
-                    {
-                        error = $"An error occured while deserializing xml content into '{modelType}'. \n Please verify that the content is based on the correct data model. \n See exception for more information: \n {ex}";
-
-                        return null;
-                    }
-                }
-                else
-                {
-                    error = $"Unknown content type {contentType}. Cannot read form data.";
-                    return null;
-                }
-            }
-
-            return serviceModel;
         }
 
         private bool? RequiresAppLogic(string org, string app, string dataType)
@@ -546,11 +509,13 @@ namespace Altinn.App.Api.Controllers
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            object serviceModel = ParseContentAndDeserializeServiceModel(_altinnApp.GetAppModelType(classRef), out ActionResult contentError);
 
-            if (contentError != null)
+            ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
+            object serviceModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
+
+            if (!string.IsNullOrEmpty(deserializer.Error))
             {
-                return contentError;
+                return BadRequest(deserializer.Error);
             }
 
             if (serviceModel == null)
@@ -613,6 +578,123 @@ namespace Altinn.App.Api.Controllers
             }
 
             return true;
+        }
+
+        private static bool IsValidContributer(DataType dataType, ClaimsPrincipal user)
+        {
+            if (dataType.AllowedContributers == null || dataType.AllowedContributers.Count == 0)
+            {
+                return true;
+            }
+
+            foreach (string item in dataType.AllowedContributers)
+            {
+                string key = item.Split(':')[0];
+                string value = item.Split(':')[1];
+
+                switch (key.ToLower())
+                {
+                    case "org":
+                        if (value.Equals(user.GetOrg(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                        break;
+                    case "orgno":
+                        if (value.Equals(user.GetOrgNumber().ToString()))
+                        {
+                            return true;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Validated that the request 
+        /// </summary>
+        /// <param name="dataType"></param>
+        /// <param name="errorMessage"></param>
+        /// <returns></returns>
+        private bool CompliesWithDataRestrictions(DataType dataType, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+
+            if (!Request.Headers.ContainsKey("Content-Disposition"))
+            {
+                errorMessage = "Conent-Disposition header containing 'filename' must be included in request.";
+                return false;
+            }
+
+            Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
+            string filename = GetFilenameFromContentDisposition(headerValues.ToString());
+
+            if (string.IsNullOrEmpty(filename))
+            {
+                errorMessage = "Content-Disposition header must contain 'filename'.";
+                return false;
+            }
+
+            string[] splitFilename = filename.Split('.');
+
+            if (splitFilename.Length < 2)
+            {
+                errorMessage = $"Invalid format for filename: {filename}. Filename is expected to end with '.{{filetype}}'.";
+                return false;
+            }
+
+            // no restrictions on data type
+            if (dataType.AllowedContentTypes == null || dataType.AllowedContentTypes.Count == 0)
+            {
+                return true;
+            }
+
+            string filetype = splitFilename[splitFilename.Length - 1];
+            string mimeType = MimeTypeMap.GetMimeType(filetype);
+
+            if (!Request.Headers.ContainsKey("Content-Type"))
+            {
+                errorMessage = "Content-Type header must be included in request.";
+                return false;
+            }
+
+            // Verify that file mime type matches content type in request
+            Request.Headers.TryGetValue("Content-Type", out StringValues contentType);
+            if (!contentType.Equals("application/octet-stream") && !mimeType.Equals(contentType, StringComparison.InvariantCultureIgnoreCase))
+            {
+                errorMessage = $"Content type header {contentType} does not match mime type {mimeType} for uploaded file. Please fix header or upload another file.";
+                return false;
+            }
+
+            // Verify that file mime type is an allowed content-type
+            if (!dataType.AllowedContentTypes.Contains(mimeType, StringComparer.InvariantCultureIgnoreCase) && !dataType.AllowedContentTypes.Contains("application/octet-stream"))
+            {
+                errorMessage = $"Invalid content type: {mimeType}. Please try another file. Permitted content types include: {String.Join(", ", dataType.AllowedContentTypes)}";
+                return false;
+            }
+
+            return true;
+        }
+
+        private string GetFilenameFromContentDisposition(string contentdisposition)
+        {
+            string keyWord = "filename=";
+
+            if (!contentdisposition.Contains(keyWord, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return string.Empty;
+            }
+
+            int splitIndex = contentdisposition.IndexOf(keyWord) + keyWord.Length;
+            string remainder = contentdisposition.Substring(splitIndex);
+            int endIndex = remainder.IndexOf(';');
+            string filename = endIndex > 0 ? remainder.Substring(0, endIndex) : remainder;
+
+            return filename;
         }
     }
 }

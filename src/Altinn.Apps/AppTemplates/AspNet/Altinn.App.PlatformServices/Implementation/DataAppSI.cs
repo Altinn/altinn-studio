@@ -8,9 +8,10 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
@@ -47,13 +48,18 @@ namespace Altinn.App.Services.Implementation
             ILogger<DataAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
-            IHttpClientAccessor httpClientAccessor)
+            HttpClient httpClient)
         {
             _platformSettings = platformSettings.Value;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
-            _client = httpClientAccessor.StorageClient;
+
+            httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+            _client = httpClient;
         }
 
         /// <inheritdoc />
@@ -71,7 +77,6 @@ namespace Altinn.App.Services.Implementation
         {
             string apiUrl = $"instances/{instance.Id}/data?dataType={dataType}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             DataElement dataElement;
 
             XmlSerializer serializer = new XmlSerializer(type);
@@ -81,7 +86,7 @@ namespace Altinn.App.Services.Implementation
             stream.Position = 0;
             StreamContent streamContent = new StreamContent(stream);
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
-            HttpResponseMessage response = await _client.PostAsync(apiUrl, streamContent);
+            HttpResponseMessage response = await _client.PostAsync(token, apiUrl, streamContent);
 
             if (response.IsSuccessStatusCode)
             {
@@ -92,7 +97,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instance.Id, response.StatusCode);
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
@@ -101,7 +106,6 @@ namespace Altinn.App.Services.Implementation
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             XmlSerializer serializer = new XmlSerializer(type);
             using MemoryStream stream = new MemoryStream();
@@ -110,7 +114,7 @@ namespace Altinn.App.Services.Implementation
             StreamContent streamContent = new StreamContent(stream);
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
 
-            HttpResponseMessage response = await _client.PutAsync(apiUrl, streamContent);
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, streamContent);
 
             if (response.IsSuccessStatusCode)
             {
@@ -119,29 +123,28 @@ namespace Altinn.App.Services.Implementation
                 return dataElement;
             }
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
-        public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        public async Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-
-            HttpResponseMessage response = _client.GetAsync(apiUrl).Result;
+           
+            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
 
             if (response.IsSuccessStatusCode)
             {
-                return response.Content.ReadAsStreamAsync();
+                return await response.Content.ReadAsStreamAsync();
             }
             else if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 return null;
             }
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
@@ -150,15 +153,14 @@ namespace Altinn.App.Services.Implementation
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            HttpResponseMessage response = _client.GetAsync(apiUrl).Result;
+            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
             if (response.IsSuccessStatusCode)
             {
                 XmlSerializer serializer = new XmlSerializer(type);
                 try
                 {
-                    using Stream stream = response.Content.ReadAsStreamAsync().Result;
+                    using Stream stream = await response.Content.ReadAsStreamAsync();
 
                     return serializer.Deserialize(stream);
                 }
@@ -169,7 +171,7 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
@@ -178,12 +180,11 @@ namespace Altinn.App.Services.Implementation
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/dataelements";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             DataElementList dataList;
             List<AttachmentList> attachmentList = new List<AttachmentList>();
 
-            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
@@ -196,7 +197,7 @@ namespace Altinn.App.Services.Implementation
 
             _logger.Log(LogLevel.Error, "Unable to fetch attachment list {0}", response.StatusCode);
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         private static void ExtractAttachments(List<DataElement> dataList, List<AttachmentList> attachmentList)
@@ -238,9 +239,8 @@ namespace Altinn.App.Services.Implementation
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-
-            HttpResponseMessage response = await _client.DeleteAsync(apiUrl);
+ 
+            HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl);
 
             if (response.IsSuccessStatusCode)
             {
@@ -248,7 +248,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Deleting form attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         /// <inheritdoc />
@@ -261,9 +261,7 @@ namespace Altinn.App.Services.Implementation
 
             StreamContent content = CreateContentStream(request);
 
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-
-            HttpResponseMessage response = await _client.PostAsync(apiUrl, content);
+            HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -274,7 +272,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Storing attachment for instance {instanceGuid} failed with status code {response.StatusCode}");
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string fileName, Stream stream)
@@ -287,12 +285,11 @@ namespace Altinn.App.Services.Implementation
             content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
             if (!string.IsNullOrEmpty(fileName))
             {
-                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse($"attachment; filename={fileName}");
+                string contentHeaderString = $"attachment; filename={fileName}";
+                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse(contentHeaderString);
             }
 
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-
-            HttpResponseMessage response = await _client.PostAsync(apiUrl, content);
+            HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -303,7 +300,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Storing attachment for instance {instanceId} failed with status code {response.StatusCode} - content {await response.Content.ReadAsStringAsync()}");
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
 
@@ -316,9 +313,7 @@ namespace Altinn.App.Services.Implementation
 
             StreamContent content = CreateContentStream(request);
 
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-
-            HttpResponseMessage response = await _client.PutAsync(apiUrl, content);
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -329,7 +324,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         private static StreamContent CreateContentStream(HttpRequest request)
@@ -351,9 +346,8 @@ namespace Altinn.App.Services.Implementation
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instance.Id}/dataelements/{dataElement.Id}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             StringContent jsonString = new StringContent(JsonConvert.SerializeObject(dataElement), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _client.PutAsync(apiUrl, jsonString);
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, jsonString);
 
             if (response.IsSuccessStatusCode)
             {
@@ -362,7 +356,8 @@ namespace Altinn.App.Services.Implementation
                 return result;
             }
 
-            throw new PlatformHttpException(response);
+           throw await PlatformHttpException.CreateAsync(response);
         }
+
     }
 }

@@ -59,7 +59,7 @@ export function* waitForAppSetupBeforeRunningConditionalRulesSaga(): SagaIterato
     take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
     take(FormDynamicsActionTypes.FETCH_SERVICE_CONFIG_FULFILLED),
   ]);
-  yield call(checkIfConditionalRulesShouldRunSaga, {});
+  yield call(checkIfConditionalRulesShouldRunSaga);
 }
 
 function shouldHidddenFieldsUpdate(currentList: string[], newList: string[]): boolean {

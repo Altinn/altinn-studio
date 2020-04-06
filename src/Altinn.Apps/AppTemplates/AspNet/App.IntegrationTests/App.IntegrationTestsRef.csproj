@@ -20,6 +20,8 @@
     <None Remove="Data\apps\tdd\auth-level-2\appsettings.json" />
     <None Remove="Data\apps\tdd\auth-level-3\appsettings.Development.json" />
     <None Remove="Data\apps\tdd\auth-level-3\appsettings.json" />
+    <None Remove="Data\apps\tdd\contributer-restriction\appsettings.Development.json" />
+    <None Remove="Data\apps\tdd\contributer-restriction\appsettings.json" />
     <None Remove="Data\apps\tdd\task-validation\appsettings.Development.json" />
     <None Remove="Data\apps\tdd\task-validation\appsettings.json" />
     <None Remove="Data\apps\tdd\custom-validation\appsettings.Development.json" />
@@ -48,6 +50,11 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="Data\apps\tdd\auth-level-3\appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="Data\apps\tdd\contributer-restriction\appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
@@ -102,6 +109,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.1.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+    <PackageReference Include="Moq" Version="4.13.1" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
   </ItemGroup>
@@ -153,6 +161,10 @@
     <None Update="Data\Instances\tdd\endring-av-navn\1000\36133fb5-a9f2-45d4-90b1-f6d93ad40713\36133fb5-a9f2-45d4-90b1-f6d93ad40713.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\Instances\ttd\model-validation\1337\8fab6615-3c57-484b-bd32-3065be958a1e\blob\" />
   </ItemGroup>
 
 </Project>

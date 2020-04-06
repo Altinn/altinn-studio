@@ -5,7 +5,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Register.Configuration;
-using Altinn.Platform.Register.Helpers;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Services.Interfaces;
 
@@ -21,16 +20,19 @@ namespace Altinn.Platform.Register.Services.Implementation
     {
         private readonly GeneralSettings _generalSettings;
         private readonly ILogger _logger;
+        private readonly HttpClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PersonsWrapper"/> class.
         /// </summary>
+        /// <param name="httpClient">HttpClient from default httpclientfactory</param>
         /// <param name="generalSettings">The GeneralSettings section of appsettings.</param>
         /// <param name="logger">The logger.</param>
-        public PersonsWrapper(IOptions<GeneralSettings> generalSettings, ILogger<PersonsWrapper> logger)
+        public PersonsWrapper(HttpClient httpClient, IOptions<GeneralSettings> generalSettings, ILogger<PersonsWrapper> logger)
         {
             _generalSettings = generalSettings.Value;
             _logger = logger;
+            _client = httpClient;
         }
 
         /// <inheritdoc />
@@ -38,20 +40,17 @@ namespace Altinn.Platform.Register.Services.Implementation
         {
             Uri endpointUrl = new Uri($"{_generalSettings.BridgeApiEndpoint}persons");
 
-            using (HttpClient client = HttpApiHelper.GetApiClient())
+            StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
-
-                HttpResponseMessage response = await client.PostAsync(endpointUrl, requestBody);
-
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    return await JsonSerializer.DeserializeAsync<Person>(await response.Content.ReadAsStreamAsync());
-                }
-                else
-                {
-                    _logger.LogError($"Getting person with ssn {ssn} failed with statuscode {response.StatusCode}");
-                }
+                return await JsonSerializer.DeserializeAsync<Person>(await response.Content.ReadAsStreamAsync());
+            }
+            else
+            {
+                _logger.LogError($"Getting person with ssn {ssn} failed with statuscode {response.StatusCode}");
             }
 
             return null;

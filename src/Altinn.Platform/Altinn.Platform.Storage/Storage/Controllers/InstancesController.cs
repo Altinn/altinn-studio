@@ -240,7 +240,7 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> Post(string appId, [FromBody] Instance instance)
         {
-            Application appInfo = GetApplicationOrError(appId, out ActionResult appInfoError);
+            (Application appInfo, ActionResult appInfoError) = await GetApplicationOrErrorAsync(appId);
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
             if (appInfoError != null)
             {
@@ -435,11 +435,15 @@ namespace Altinn.Platform.Storage.Controllers
         }        
 
         /// <summary>
+        /// Add complete confirmation.
+        /// </summary>
+        /// <remarks>
         /// Add to an instance that a given stakeholder considers the instance as no longer needed by them. The stakeholder has
         /// collected all the data and information they needed from the instance and expect no additional data to be added to it.
-        /// </summary>
+        /// The body of the request isn't used for anything despite this being a POST operation.
+        /// </remarks>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
-        /// <param name="instanceGuid">The id of the instance whos process history to retrieve.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
         /// <returns>Returns a list of the process events.</returns>        
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_COMPLETE)]
         [HttpPost("{instanceOwnerPartyId:int}/{instanceGuid:guid}/complete")]
@@ -524,16 +528,16 @@ namespace Altinn.Platform.Storage.Controllers
             return createdInstance;
         }
 
-        private Application GetApplicationOrError(string appId, out ActionResult errorResult)
+        private async Task<(Application, ActionResult)> GetApplicationOrErrorAsync(string appId)
         {
-            errorResult = null;
+            ActionResult errorResult = null;
             Application appInfo = null;
 
             try
             {
                 string org = appId.Split("/")[0];
 
-                appInfo = _applicationRepository.FindOne(appId, org).Result;
+                appInfo = await _applicationRepository.FindOne(appId, org);
             }
             catch (DocumentClientException dce)
             {
@@ -551,7 +555,7 @@ namespace Altinn.Platform.Storage.Controllers
                 errorResult = StatusCode(500, $"Unable to perform request: {e}");
             }
 
-            return appInfo;
+            return (appInfo, errorResult);
         }
 
         private async Task DispatchEvent(InstanceEventType eventType, Instance instance)

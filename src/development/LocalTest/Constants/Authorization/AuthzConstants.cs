@@ -6,7 +6,7 @@ namespace Altinn.Platform.Storage.Helpers
     public static class AuthzConstants
     {
         /// <summary>
-        /// Policy tag for writing on an instance.
+        /// Policy tag for writing an instance.
         /// </summary>
         public const string POLICY_INSTANCE_WRITE = "InstanceWrite";
 
@@ -19,6 +19,11 @@ namespace Altinn.Platform.Storage.Helpers
         /// Policy tag for deleting an instance.
         /// </summary>
         public const string POLICY_INSTANCE_DELETE = "InstanceDelete";
+
+        /// <summary>
+        /// Policy tag for authorizing client scope.
+        /// </summary>
+        public const string POLICY_INSTANCE_COMPLETE = "InstanceComplete";
 
         /// <summary>
         /// Policy tag for authorizing client scope.

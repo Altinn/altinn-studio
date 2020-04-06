@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Register.Models;
@@ -9,6 +10,12 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class DSFMockSI : IDSF
     {
+
+        public DSFMockSI()
+        {
+
+        }
+
         public Task<Person> GetPerson(string ssn)
         {
             string personPath = GetPersonPath(ssn);

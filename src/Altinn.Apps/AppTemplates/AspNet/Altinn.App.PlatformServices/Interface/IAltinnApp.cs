@@ -111,5 +111,13 @@ namespace Altinn.App.Services.Interface
         /// <param name="options">Possible option found by the platform itself</param>
         /// <returns></returns>
         Task<AppOptions> GetOptions(string id, AppOptions options);
+
+        /// <summary>
+        /// Event where app developers can add logic. 
+        /// </summary>
+        /// <param name="taskId">The taskId</param>
+        /// <param name="instance">The instance</param>
+        /// <returns></returns>
+        Task RunProcessTaskEnd(string taskId, Instance instance);
     }
 }

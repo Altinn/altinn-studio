@@ -40,6 +40,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             {
                 _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
             }
+            else if (uri.Host.Contains("yt01", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyYT01);
+            }
 
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
@@ -63,6 +67,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
             {
                 _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
+            }
+            else if (uri.Host.Contains("yt01", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyYT01);
             }
 
             string stringContent = JsonSerializer.Serialize(applicationMetadata);
@@ -90,6 +98,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
             {
                 _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
+            }
+            else if (uri.Host.Contains("yt01", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyYT01);
             }
 
             string stringContent = JsonSerializer.Serialize(applicationMetadata);

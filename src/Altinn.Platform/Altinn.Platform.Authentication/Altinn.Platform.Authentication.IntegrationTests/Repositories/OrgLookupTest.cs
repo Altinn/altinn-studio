@@ -1,6 +1,9 @@
+using System.Threading.Tasks;
+
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Repositories;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -17,7 +20,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests
         /// Tests harvest orgs.
         /// </summary>
         [Fact]
-        public void TestHarvestOrgs_OK()
+        public async Task TestHarvestOrgs_OK()
         {
             Mock<IOptions<GeneralSettings>> optionsMock = new Mock<IOptions<GeneralSettings>>();
             Mock<ILogger<OrganisationRepository>> loggerMock = new Mock<ILogger<OrganisationRepository>>();
@@ -31,15 +34,15 @@ namespace Altinn.Platform.Authentication.IntegrationTests
 
             OrganisationRepository orgRepo = new OrganisationRepository(loggerMock.Object, optionsMock.Object);
             
-            string org = orgRepo.LookupOrg("974760223");
+            string org = await orgRepo.LookupOrg("974760223");
 
             Assert.Equal("dibk", org);
 
-            string orgNumber = orgRepo.LookupOrgNumber("brg");
+            string orgNumber = await orgRepo.LookupOrgNumber("brg");
 
             Assert.Equal("974760673", orgNumber);
 
-            Organisation organisation = orgRepo.GetOrganisationByOrg("nb");
+            Organisation organisation = await orgRepo.GetOrganisationByOrg("nb");
 
             Assert.Equal("National Library of Norway", organisation.Name["en"]);
         }

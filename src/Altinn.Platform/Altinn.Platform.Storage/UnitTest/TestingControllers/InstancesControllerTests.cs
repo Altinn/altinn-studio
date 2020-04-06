@@ -324,7 +324,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.Equal("111111111", updatedInstance.LastChangedBy);
                 
                 // GetOne is called more than once because of Authorization.
-                instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(3));
+                instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(2));
                 instanceRepository.Verify(s => s.Update(It.IsAny<Instance>()), Times.Once);
                 instanceEventRepository.Verify(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>()), Times.Once);
             }
@@ -372,7 +372,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
                 
                 // GetOne is called more than once because of Authorization.
-                instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(3));
+                instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(2));
                 instanceRepository.Verify(s => s.Update(It.IsAny<Instance>()), Times.Once);
             }
 
@@ -400,8 +400,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
                     CompleteConfirmations = new List<CompleteConfirmation> { new CompleteConfirmation { ConfirmedOn = confirmedOn, StakeholderId = org } },
                     Org = org,
-                    Process = new ProcessState { EndEvent = "Success" }
+                    Process = new ProcessState { EndEvent = "Success" },
+                    Title = new LanguageString()
                 };
+                originalInstance.Title.Add("nb", "norwegian");
 
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
                 instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(originalInstance);
@@ -426,7 +428,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.Equal(confirmedOn, updatedInstance.CompleteConfirmations[0].ConfirmedOn);
 
                 // GetOne is called more than once because of Authorization.
-                instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(3));
+                instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(2));
                 instanceRepository.Verify(s => s.Update(It.IsAny<Instance>()), Times.Never);
             }
 

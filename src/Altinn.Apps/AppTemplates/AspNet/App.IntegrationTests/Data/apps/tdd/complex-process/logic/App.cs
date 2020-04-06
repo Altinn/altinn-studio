@@ -117,5 +117,10 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
         {
             return Task.FromResult(options);
         }
+
+        public override async Task RunProcessTaskEnd(string taskId, Instance instance)
+        {
+            return;
+        }
     }
 }

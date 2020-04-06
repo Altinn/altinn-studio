@@ -1,14 +1,9 @@
 {
   "recommendations": [
-    "ms-vscode.csharp",
-    "k--kato.docomment",
+    "ms-dotnettools.csharp",
     "ms-azuretools.vscode-docker",
-    "eamodio.gitlens",
-    "DavidAnson.vscode-markdownlint",
     "msjsdiag.debugger-for-chrome",
-    "EditorConfig.EditorConfig",
     "github.vscode-pull-request-github",
-    "dbaeumer.vscode-eslint",
-    "ms-vscode.vscode-typescript-next"
+    "dbaeumer.vscode-eslint"
   ]
 }

@@ -22,7 +22,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -77,14 +76,9 @@ namespace Altinn.Platform.Storage
         {
             _logger.Information("Startup // ConfigureServices");
 
-            services.AddControllers(config =>
-            {
-                AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
-                    .AddAuthenticationSchemes(JwtCookieDefaults.AuthenticationScheme)
-                    .RequireAuthenticatedUser()
-                    .Build();
-                config.Filters.Add(new AuthorizeFilter(policy));
-            }).AddNewtonsoftJson();
+            services.AddControllers().AddNewtonsoftJson();
+
+            services.AddHttpClient<AuthorizationApiClient>();
 
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
@@ -129,8 +123,8 @@ namespace Altinn.Platform.Storage
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
+            services.AddSingleton<ITextRepository, TextRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
             services.AddSingleton<ISasTokenProvider, SasTokenProvider>();
             services.AddSingleton<IKeyVaultClientWrapper, KeyVaultClientWrapper>();
             services.AddSingleton<IPDP, PDPAppSI>();
@@ -184,6 +178,7 @@ namespace Altinn.Platform.Storage
                     // catch swashbuckle exception if it doesn't find the generated xml documentation file
                 }
             });
+            services.AddSwaggerGenNewtonsoftSupport();
         }
 
         private string GetXmlCommentsPathForControllers()
