@@ -5,10 +5,9 @@ import moment from 'moment';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
 import {AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent} from 'altinn-shared/components';
-import { IAttachment, IInstance, IParty, ITextResource } from 'altinn-shared/types';
+import { IInstance, IParty, ITextResource } from 'altinn-shared/types';
 import {
   getCurrentTaskData,
-  getInstancePdf,
   mapInstanceAttachments,
   getLanguageFromKey,
   getUserLanguage,
