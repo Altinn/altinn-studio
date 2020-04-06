@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.13" />
+    <ProjectReference Include="..\..\..\..\Altinn.Platform\Altinn.Platform.Storage\Storage.Interface\Altinn.Platform.Storage.Interface.csproj" />
   </ItemGroup>
-
 </Project>

@@ -1,6 +1,7 @@
 import * as DOMPurify from 'dompurify';
 // import * as marked from 'marked';
 import ReactHtmlParser from 'react-html-parser';
+import { ITextResource } from '../types';
 const marked = require('marked');
 
 export function getLanguageFromKey(key: string, language: any) {
@@ -51,3 +52,11 @@ const replaceParameters = (nameString: any, params: any[]) => {
   }
   return nameString;
 };
+
+export function getTextResourceByKey(key: string, textResources: ITextResource[]) {
+  if (!textResources) {
+    return key;
+  }
+  const textResource = textResources.find((resource: ITextResource) => resource.id === key);
+  return textResource ? textResource.value : key;
+}

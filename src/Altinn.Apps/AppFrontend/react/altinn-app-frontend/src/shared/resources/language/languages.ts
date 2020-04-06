@@ -23,7 +23,7 @@ export const nb = () => (
     confirm: {
       answers: 'Dine svar',
       attachments: 'Vedlegg',
-      body: 'Du er nå  klar for å sende inn {1}. Før du sender inn vil vi abefale å se over svarene dine. Du kan ikke nedre svarene etter at du har sendt inn.',
+      body: 'Du er nå  klar for å sende inn {1}. Før du sender inn vil vi abefale å se over svarene dine. Du kan ikke endre svarene etter at du har sendt inn.',
       button_text: 'Send inn',
       deadline: 'Frist innsending',
       sender: 'Person',

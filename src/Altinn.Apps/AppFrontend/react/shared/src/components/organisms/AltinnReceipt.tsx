@@ -3,13 +3,13 @@ import { createMuiTheme, createStyles, MuiThemeProvider, WithStyles, withStyles 
 import * as React from 'react';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import altinnTheme from '../../theme/altinnAppTheme';
-import { IAttachment } from '../../types/index.d';
+import { IAttachment, IAttachmentGrouping } from '../../types/index.d';
 import AltinnAttachment from '../atoms/AltinnAttachment';
 import AltinnCollapsibleAttachments from '../molecules/AltinnCollapsibleAttachments';
 import AltinnSummaryTable from '../molecules/AltinnSummaryTable';
 
 export interface IReceiptComponentProps extends WithStyles<typeof styles> {
-  attachments?: IAttachment[];
+  attachmentGroupings?: IAttachmentGrouping;
   body: string;
   collapsibleTitle: string;
   hideCollapsibleCount?: boolean;
@@ -34,12 +34,47 @@ const styles = createStyles({
   tableRow: {
     height: 'auto',
   },
-  paddingTop24: {
+    paddingTop24: {
     paddingTop: '2.4rem',
   },
 });
 
 export function ReceiptComponent(props: IReceiptComponentProps) {
+
+  // renders attachment groups. Always shows default group first.
+  const renderAttachmentGroupings = () => {
+    const groupings = props.attachmentGroupings;
+    const groups: JSX.Element[] = [];
+
+    if (!groupings) {
+      return null;
+    }
+
+    if (groupings['null']) {
+      // we have attachments that does not have a grouping. Render them first with default title
+      groups.push(getAltinnCollapsibleAttachments(groupings['null'], props.collapsibleTitle))
+    }
+
+    Object.keys(groupings || {}).forEach((title: string) => {
+      if (title && title !== 'null') {
+        groups.push(getAltinnCollapsibleAttachments(groupings[title], title));
+      }
+    });
+
+    return groups;
+  }
+
+  const getAltinnCollapsibleAttachments = (attachments: IAttachment[], title: string) => {
+    return (
+        <AltinnCollapsibleAttachments
+        attachments={attachments}
+        collapsible={useMediaQuery('print') ? false : Boolean(attachments.length > 4)}
+        title={title}
+        hideCount={props.hideCollapsibleCount}
+      />
+    );
+  }
+
   return (
     <React.Fragment>
       <MuiThemeProvider theme={theme}>
@@ -56,7 +91,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         <Typography variant='body1' className={props.classes.paddingTop24}>
           {props.body}
         </Typography>
-        {props.titleSubmitted && 
+        {props.titleSubmitted &&
           <Typography
             variant='h3'
             style={{
@@ -71,14 +106,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         <AltinnAttachment
           attachments={props.pdf}
         />
-        {props.attachments && (
-          <AltinnCollapsibleAttachments
-            attachments={props.attachments}
-            collapsible={useMediaQuery('print') ? false : Boolean(props.attachments.length > 4)}
-            title={props.collapsibleTitle}
-            hideCount={props.hideCollapsibleCount}
-          />
-        )}
+        {props.attachmentGroupings && renderAttachmentGroupings()}
 
       </MuiThemeProvider>
     </React.Fragment>
