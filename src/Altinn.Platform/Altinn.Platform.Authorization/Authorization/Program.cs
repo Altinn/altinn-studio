@@ -40,8 +40,7 @@ namespace Altinn.Platform.Authorization
                     .AddFilter("Microsoft", LogLevel.Warning)
                     .AddFilter("System", LogLevel.Warning)
                     .AddFilter("Altinn.Platform.Authorization.Program", LogLevel.Debug)
-                    .AddConsole()
-                    .AddEventLog();
+                    .AddConsole();
             });
 
             _logger = logFactory.CreateLogger<Program>();
