@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.Studio.Designer.Services.Implementation
 {
     /// <summary>
-    /// Relevant text resourcemfunctions
+    /// Relevant text resource functions
     /// </summary>
     public class TextResourceService : ITextResourceService
     {

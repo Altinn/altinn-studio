@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Models;
 using Microsoft.Extensions.Options;
 
@@ -17,7 +18,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
     {
         private readonly HttpClient _httpClient;
         private readonly PlatformSettings _platformSettings;
-        
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -35,16 +36,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
         public async Task<Application> GetApplicationMetadata(string org, string app, EnvironmentModel environmentModel)
         {
             Uri uri = new Uri($"{CreateUri(environmentModel)}{org}/{app}");
-
-            if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
-            {
-                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
-            }
-            else if (uri.Host.Contains("yt01", StringComparison.InvariantCultureIgnoreCase))
-            {
-                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyYT01);
-            }
-
+            HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
              * because the base address can change on each request and after HttpClient gets initial base address,
@@ -63,16 +55,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             EnvironmentModel environmentModel)
         {
             Uri uri = new Uri($"{CreateUri(environmentModel)}?appId={org}/{app}");
-
-            if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
-            {
-                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
-            }
-            else if (uri.Host.Contains("yt01", StringComparison.InvariantCultureIgnoreCase))
-            {
-                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyYT01);
-            }
-
+            HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             string stringContent = JsonSerializer.Serialize(applicationMetadata);
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
@@ -94,16 +77,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnStorage
             EnvironmentModel environmentModel)
         {
             Uri uri = new Uri($"{CreateUri(environmentModel)}{org}/{app}");
-
-            if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
-            {
-                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
-            }
-            else if (uri.Host.Contains("yt01", StringComparison.InvariantCultureIgnoreCase))
-            {
-                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyYT01);
-            }
-
+            HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             string stringContent = JsonSerializer.Serialize(applicationMetadata);
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
