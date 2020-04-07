@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using AltinnCore.Authentication.Constants;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -20,6 +19,13 @@ namespace Altinn.Platform.Authorization
     public class Program
     {
         private static ILogger _logger; 
+
+        /// <summary>
+        /// Default protected constructor
+        /// </summary>
+        protected Program()
+        {
+        }
 
         /// <summary>
         /// The main method
