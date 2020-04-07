@@ -33,6 +33,15 @@ namespace Altinn.Platform.Authorization
         /// <param name="args">The Arguments</param>
         public static void Main(string[] args)
         {
+            ConfigureSetupLogging();
+            CreateWebHostBuilder(args).Build().Run();
+        }
+
+        /// <summary>
+        /// Configure logging for setting up application. Temporary
+        /// </summary>
+        public static void ConfigureSetupLogging()
+        {
             // Setup logging for the web host creation
             var logFactory = LoggerFactory.Create(builder =>
             {
@@ -44,8 +53,6 @@ namespace Altinn.Platform.Authorization
             });
 
             _logger = logFactory.CreateLogger<Program>();
-
-            CreateWebHostBuilder(args).Build().Run();
         }
 
         /// <summary>
