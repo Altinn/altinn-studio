@@ -98,7 +98,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<GiteaFileContent> GetFileAsync(string org, string app, string filePath, string shortCommitId);
 
         /// <summary>
-        /// Gets a list of files in a folder from a folder path
+        /// Gets a list of files in a folder from a folder path. Note that the file content is not returned, only metadata.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">The name of repository</param>

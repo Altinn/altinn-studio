@@ -46,7 +46,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 folder.ForEach(async textResourceFromRepo =>
                 {
-                    byte[] data = Convert.FromBase64String(textResourceFromRepo.Content);
+                    GiteaFileContent populatedFile = await _giteaApiWrapper.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
+                    byte[] data = Convert.FromBase64String(populatedFile.Content);
                     TextResource content = data.Deserialize<TextResource>();
                     TextResource textResourceStorage = await _storageTextResourceClient.Get(org, app, content.Language, environmentModel);
                     if (textResourceFromRepo == null)
