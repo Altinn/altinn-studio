@@ -13,7 +13,7 @@ export function authenticateUser(userName, userPassword){
         "UserPassword": userPassword
     };        
     var res = http.post(endpoint, requestBody); 
-    const cookieName = ".ASPXAUTH"    
+    const cookieName = ".ASPXAUTH"   
     var cookieValue = (res.cookies[cookieName])[0].value;    
     return cookieValue;
 };
