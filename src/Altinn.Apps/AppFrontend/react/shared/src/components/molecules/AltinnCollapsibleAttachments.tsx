@@ -22,6 +22,8 @@ const styles = createStyles({
   },
   transition: {
     transitionDuration: '0.1s',
+    minWidth: '0px',
+    marginRight: '10px'
   },
   collapsedTitle: {
     fontSize: '20px',

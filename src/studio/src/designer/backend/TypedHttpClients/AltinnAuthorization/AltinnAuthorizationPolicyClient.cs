@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Models;
 using Microsoft.Extensions.Options;
 
@@ -34,16 +35,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         {
             string uriString = $"https://{environmentModel.PlatformPrefix}.{environmentModel.Hostname}/{_platformSettings.ApiAuthorizationPolicyUri}";
             Uri uri = new Uri($"{uriString}?org={org}&app={app}");
-
-            if (uri.Host.Contains("tt02", StringComparison.InvariantCultureIgnoreCase))
-            {
-                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyTT02);
-            }
-            else if (uri.Host.Contains("yt01", StringComparison.InvariantCultureIgnoreCase))
-            {
-                _httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKeyYT01);
-            }
-
+            HttpClientHelper.AddSubscriptionKeys(_httpClient, uri, _platformSettings);
             /*
              * Have to create a HttpRequestMessage instead of using helper extension methods like _httpClient.PostAsync(...)
              * because the base address can change on each request and after HttpClient gets initial base address,

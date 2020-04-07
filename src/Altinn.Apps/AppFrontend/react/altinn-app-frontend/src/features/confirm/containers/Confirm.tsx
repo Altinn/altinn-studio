@@ -5,9 +5,9 @@ import moment = require('moment');
 import { createMuiTheme } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import { AltinnReceipt, AltinnContentLoader, AltinnContentIconReceipt, AltinnButton } from 'altinn-shared/components';
-import { IAttachment, IInstance, IParty, IPresentationField } from 'altinn-shared/types';
-import {getLanguageFromKey, getUserLanguage, getParsedLanguageFromKey, getParsedLanguageFromText} from 'altinn-shared/utils/language';
-import { getCurrentTaskData, mapInstanceAttachments, getInstancePdf } from 'altinn-shared/utils';
+import { IInstance, IParty, IPresentationField } from 'altinn-shared/types';
+import {getLanguageFromKey, getUserLanguage } from 'altinn-shared/utils/language';
+import { getCurrentTaskData, mapInstanceAttachments } from 'altinn-shared/utils';
 import {AltinnAppTheme} from 'altinn-shared/theme'
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
@@ -17,9 +17,9 @@ import FormValidationActions from '../../form/validation/validationActions';
 import { mapDataElementValidationToRedux } from '../../../utils/validation';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
-import { ITextResource } from '../../../types/global';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
+import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 
 export interface IConfirmProps extends RouteChildrenProps {}
 
@@ -76,7 +76,6 @@ const Confirm = (props: IConfirmProps) => {
 
   const [appName, setAppName] = React.useState('');
   const [attachments, setAttachments] = React.useState([]);
-  const [pdf, setPdf] = React.useState<IAttachment>(null);
   const [lastChangedDateTime, setLastChangedDateTime] = React.useState('');
   const [instanceMetaObject, setInstanceMetaObject] = React.useState({});
   const [userLanguage, setUserLanguage] = React.useState('nb');
@@ -114,7 +113,7 @@ const Confirm = (props: IConfirmProps) => {
         return party.partyId.toString() === instance.instanceOwner.partyId;
       });
 
-      const presentationFields = applicationMetadata.presentationFields ? 
+      const presentationFields = applicationMetadata.presentationFields ?
         applicationMetadata.presentationFields.filter((field) => field.taskIds.includes(instance.process.currentTask.elementId))
         : [];
 
@@ -139,8 +138,6 @@ const Confirm = (props: IConfirmProps) => {
 
       const attachmentsResult = mapInstanceAttachments(instance.data, defaultElement.id);
       setAttachments(attachmentsResult);
-      const pdfElement = getInstancePdf(instance.data);
-      setPdf(pdfElement);
 
       const defaultDataElementLastChangedDateTime = defaultElement ? defaultElement.lastChanged : null;
       if (defaultDataElementLastChangedDateTime) {
@@ -168,15 +165,14 @@ const Confirm = (props: IConfirmProps) => {
     }
     {!isLoading() &&
     <>
-      <AltinnReceipt 
-        attachments={attachments}
+      <AltinnReceipt
+        attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
         body={getTextFromAppOrDefault('confirm.body', textResources, language, [appName])}
         collapsibleTitle={getTextFromAppOrDefault('confirm.attachments', textResources, language)}
         hideCollapsibleCount={true}
         instanceMetaDataObject={instanceMetaObject}
         title={`${getTextFromAppOrDefault('confirm.title', textResources, language)}`}
-        titleSubmitted={pdf ? getTextFromAppOrDefault('confirm.answers', textResources, language) : null}
-        pdf={pdf ? [pdf] : null}
+        titleSubmitted={getTextFromAppOrDefault('confirm.answers', textResources, language)}
       />
       <AltinnButton
         btnText={getTextFromAppOrDefault('confirm.button_text', textResources, language)}
@@ -186,7 +182,6 @@ const Confirm = (props: IConfirmProps) => {
     </>
     }
     </>
-  
   );
 }
 
