@@ -20,6 +20,7 @@ namespace Altinn.Platform.Profile.UnitTests.Utils
         public static HttpClient GetTestClient(
             CustomWebApplicationFactory<Altinn.Platform.Profile.Startup> factory)
         {
+            Program.ConfigureSetupLogging();
             HttpClient client = factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
