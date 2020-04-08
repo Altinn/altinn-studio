@@ -26,7 +26,7 @@ namespace Altinn.Platform.Receipt
     /// </summary>
     public class Startup
     {
-        private static ILogger _logger;
+        private ILogger _logger;
 
         /// <summary>
         /// The key valt key for application insights.
