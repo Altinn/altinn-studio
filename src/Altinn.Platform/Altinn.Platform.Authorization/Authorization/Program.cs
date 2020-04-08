@@ -145,7 +145,7 @@ namespace Altinn.Platform.Authorization
             ConnectToKeyVaultAndSetApplicationInsights(config);
         }
 
-        private static async void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
+        private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
         {
             IConfiguration stageOneConfig = config.Build();
             KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
@@ -168,14 +168,14 @@ namespace Altinn.Platform.Authorization
                     keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
                 try
                 {
-                    SecretBundle secretBundle = await keyVaultClient
-                        .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultApplicationInsightsKey);
+                    SecretBundle secretBundle = keyVaultClient
+                        .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultApplicationInsightsKey).Result;
 
                     Startup.ApplicationInsightsKey = secretBundle.Value;
                 }
                 catch (Exception vaultException)
                 {
-                   _logger.LogError($"Unable to read application insights key {vaultException}");
+                    _logger.LogError($"Unable to read application insights key {vaultException}");
                 }
             }
         }

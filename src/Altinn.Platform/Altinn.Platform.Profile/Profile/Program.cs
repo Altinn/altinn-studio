@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Authentication.Constants;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -77,7 +75,7 @@ namespace Altinn.Platform.Profile
         /// <param name="config">the config</param>
         /// <param name="basePath">the base path to look for application settings files</param>
         /// <param name="args">programs arguments</param>
-        public static void LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
+        public static async Task LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
         {
             _logger.Information($"Program // Loading Configuration from basePath={basePath}");
 
@@ -102,7 +100,7 @@ namespace Altinn.Platform.Profile
             ConnectToKeyVaultAndSetApplicationInsights(config);
         }
 
-        private static async void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
+        private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
         {
             IConfiguration stageOneConfig = config.Build();
             KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
@@ -125,8 +123,8 @@ namespace Altinn.Platform.Profile
                     keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
                 try
                 {
-                    SecretBundle secretBundle = await keyVaultClient
-                        .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultApplicationInsightsKey);
+                    SecretBundle secretBundle = keyVaultClient
+                        .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultApplicationInsightsKey).Result;
 
                     Startup.ApplicationInsightsKey = secretBundle.Value;
                 }

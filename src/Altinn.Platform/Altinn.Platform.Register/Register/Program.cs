@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-
+using System.Threading.Tasks;
 using AltinnCore.Authentication.Constants;
 
 using Microsoft.ApplicationInsights.Extensibility;
@@ -83,7 +83,7 @@ namespace Altinn.Platform.Register
             .UseUrls("http://*:5020")
             .UseStartup<Startup>();
 
-        private static async void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
+        private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
         {
             IConfiguration stageOneConfig = config.Build();
             KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
@@ -106,8 +106,8 @@ namespace Altinn.Platform.Register
                     keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
                 try
                 {
-                    SecretBundle secretBundle = await keyVaultClient
-                        .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultApplicationInsightsKey);
+                    SecretBundle secretBundle = keyVaultClient
+                        .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultApplicationInsightsKey).Result;
 
                     Startup.ApplicationInsightsKey = secretBundle.Value;
                 }

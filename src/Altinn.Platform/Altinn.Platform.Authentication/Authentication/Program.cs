@@ -42,7 +42,7 @@ namespace Altinn.Platform.Authentication
         /// </summary>
         /// <param name="args">arguments for creating build configuration</param>
         /// <returns>The web host builder</returns>
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>            
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
@@ -81,7 +81,7 @@ namespace Altinn.Platform.Authentication
             })
             .UseStartup<Startup>();
 
-        private static async void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
+        private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
         {
             IConfiguration stageOneConfig = config.Build();
             KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
@@ -106,8 +106,8 @@ namespace Altinn.Platform.Authentication
                 {
                     string appInsightsKey = Startup.VaultApplicationInsightsKey;
 
-                    SecretBundle secretBundle = await keyVaultClient
-                        .GetSecretAsync(keyVaultSettings.SecretUri, appInsightsKey);
+                    SecretBundle secretBundle = keyVaultClient
+                        .GetSecretAsync(keyVaultSettings.SecretUri, appInsightsKey).Result;
 
                     Startup.ApplicationInsightsKey = secretBundle.Value;
                 }
