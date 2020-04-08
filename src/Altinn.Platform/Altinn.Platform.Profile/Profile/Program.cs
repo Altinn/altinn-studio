@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using AltinnCore.Authentication.Constants;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -13,20 +9,22 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Logging;
-using Serilog;
-using Serilog.Core;
-using Serilog.Extensions.Logging;
 
 namespace Altinn.Platform.Profile
 {
     /// <summary>
     /// This is the main method for running this asp.net core application.
     /// </summary>
-    public static class Program
+    public class Program
     {
-        private static readonly Logger _logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
+        private static ILogger _logger;
+
+        /// <summary>
+        /// Default protected constructor
+        /// </summary>
+        protected Program()
+        {
+        }
 
         /// <summary>
         /// The main method
@@ -34,7 +32,24 @@ namespace Altinn.Platform.Profile
         /// <param name="args">The Arguments</param>
         public static void Main(string[] args)
         {
+            ConfigureSetupLogging();
             CreateWebHostBuilder(args).Build().Run();
+        }
+
+        /// <summary>
+        /// Configure logging for setting up application. Temporary
+        /// </summary>
+        public static void ConfigureSetupLogging()
+        {
+            // Setup logging for the web host creation
+            var logFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .AddFilter("Altinn.Platform.Profile.Program", LogLevel.Debug)
+                    .AddConsole();
+            });
+
+            _logger = logFactory.CreateLogger<Program>();
         }
 
         /// <summary>
@@ -46,28 +61,55 @@ namespace Altinn.Platform.Profile
             WebHost.CreateDefaultBuilder(args)
               .ConfigureAppConfiguration((hostingContext, config) =>
               {
-                  _logger.Information("Program // (ConfigureAppConfiguration");
+                  _logger.LogInformation("Program // (ConfigureAppConfiguration");
 
                   string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
 
                   string basePathCurrentDirectory = Directory.GetCurrentDirectory();
-                  _logger.Information($"Current directory is: {basePathCurrentDirectory}");
+                  _logger.LogInformation($"Current directory is: {basePathCurrentDirectory}");
 
                   LoadConfigurationSettings(config, basePath, args);
               })
-            .ConfigureLogging((hostingContext, logging) =>
+            .ConfigureLogging(builder =>
             {
-                logging.ClearProviders();
-                LoggerConfiguration loggerConfig = new LoggerConfiguration().WriteTo.Console().MinimumLevel.Warning();
+                // The default ASP.NET Core project templates call CreateDefaultBuilder, which adds the following logging providers:
+                // Console, Debug, EventSource
+                // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-3.1
 
+                // Clear log providers
+                builder.ClearProviders();
+
+                // Setup up application insight if ApplicationInsightsKey is available
                 if (!string.IsNullOrEmpty(Startup.ApplicationInsightsKey))
                 {
-                    loggerConfig.WriteTo.ApplicationInsights(new TelemetryConfiguration(Startup.ApplicationInsightsKey), TelemetryConverter.Traces);
+                    // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
+                    // Providing an instrumentation key here is required if you're using
+                    // standalone package Microsoft.Extensions.Logging.ApplicationInsights
+                    // or if you want to capture logs from early in the application startup 
+                    // pipeline from Startup.cs or Program.cs itself.
+                    builder.AddApplicationInsights(Startup.ApplicationInsightsKey);
+
+                    // Optional: Apply filters to control what logs are sent to Application Insights.
+                    // The following configures LogLevel Information or above to be sent to
+                    // Application Insights for all categories.
+                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(string.Empty, LogLevel.Warning);
+
+                    // Adding the filter below to ensure logs of all severity from Program.cs
+                    // is sent to ApplicationInsights.
+                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
+
+                    // Adding the filter below to ensure logs of all severity from Startup.cs
+                    // is sent to ApplicationInsights.
+                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Startup).FullName, LogLevel.Trace);
                 }
-
-                Serilog.ILogger logger = loggerConfig.CreateLogger();
-
-                logging.AddProvider(new SerilogLoggerProvider(logger));
+                else
+                {
+                    // If not application insight is available log to console
+                    builder.AddFilter("Microsoft", LogLevel.Warning);
+                    builder.AddFilter("System", LogLevel.Warning);
+                    builder.AddConsole();
+                    builder.AddEventLog();
+                }
             })
                 .UseStartup<Startup>();
 
@@ -79,7 +121,7 @@ namespace Altinn.Platform.Profile
         /// <param name="args">programs arguments</param>
         public static void LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
         {
-            _logger.Information($"Program // Loading Configuration from basePath={basePath}");
+            _logger.LogInformation($"Program // Loading Configuration from basePath={basePath}");
 
             config.SetBasePath(basePath);
             string configJsonFile1 = $"{basePath}/altinn-appsettings/altinn-dbsettings-secret.json";
@@ -90,10 +132,10 @@ namespace Altinn.Platform.Profile
                 configJsonFile2 = "/app/appsettings.json";
             }
 
-            _logger.Information($"Loading configuration file: '{configJsonFile1}'");
+            _logger.LogInformation($"Loading configuration file: '{configJsonFile1}'");
             config.AddJsonFile(configJsonFile1, optional: true, reloadOnChange: true);
 
-            _logger.Information($"Loading configuration file2: '{configJsonFile2}'");
+            _logger.LogInformation($"Loading configuration file2: '{configJsonFile2}'");
             config.AddJsonFile(configJsonFile2, optional: false, reloadOnChange: true);
 
             config.AddEnvironmentVariables();
@@ -112,7 +154,7 @@ namespace Altinn.Platform.Profile
                 !string.IsNullOrEmpty(keyVaultSettings.ClientSecret) &&
                 !string.IsNullOrEmpty(keyVaultSettings.SecretUri))
             {
-                _logger.Information("Program // Configure key vault client // App");
+                _logger.LogInformation("Program // Configure key vault client // App");
 
                 string connectionString = $"RunAs=App;AppId={keyVaultSettings.ClientId};" +
                                           $"TenantId={keyVaultSettings.TenantId};" +
@@ -132,7 +174,7 @@ namespace Altinn.Platform.Profile
                 }
                 catch (Exception vaultException)
                 {
-                    _logger.Error($"Unable to read application insights key {vaultException}");
+                    _logger.LogError($"Unable to read application insights key {vaultException}");
                 }
             }
         }
