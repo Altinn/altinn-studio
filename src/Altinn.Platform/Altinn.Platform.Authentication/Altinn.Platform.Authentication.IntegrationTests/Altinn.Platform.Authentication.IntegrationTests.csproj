@@ -54,6 +54,10 @@
     <ProjectReference Include="..\Authentication\Altinn.Platform.Authentication.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Fixtures\" />
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>

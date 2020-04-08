@@ -56,7 +56,6 @@ namespace Altinn.Platform.Authentication
             _logger = logFactory.CreateLogger<Program>();
         }
 
-
         /// <summary>
         /// Configure the configuration builder
         /// </summary>
