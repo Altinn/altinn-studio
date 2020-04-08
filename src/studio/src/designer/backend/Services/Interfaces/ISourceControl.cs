@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -41,7 +42,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Returns the deploy token for the repository
         /// </summary>
         /// <returns>The token</returns>
-        string GetDeployToken();
+        Task<string> GetDeployToken();
 
         /// <summary>
         /// Add all changes in app repo and push to remote
@@ -125,7 +126,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository.</param>
-        void Push(string org, string repository);
+        Task Push(string org, string repository);
 
         /// <summary>
         /// Commit changes for repository

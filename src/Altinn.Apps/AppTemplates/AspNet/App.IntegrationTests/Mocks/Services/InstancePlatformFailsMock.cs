@@ -16,7 +16,7 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class InstancePlatformFailsMock : IInstance
     {
-        public Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
+        public async Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
         {
             HttpResponseMessage response = new HttpResponseMessage
             {
@@ -24,8 +24,8 @@ namespace App.IntegrationTests.Mocks.Services
                 Content = new StringContent("ERROR"),
             };
 
-            throw PlatformHttpException.CreateAsync(response).Result;
-            
+            throw await PlatformHttpException.CreateAsync(response);
+
         }
 
         /// <inheritdoc />

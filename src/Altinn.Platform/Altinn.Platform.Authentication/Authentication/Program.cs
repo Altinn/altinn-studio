@@ -81,7 +81,7 @@ namespace Altinn.Platform.Authentication
             })
             .UseStartup<Startup>();
 
-        private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
+        private static async void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
         {
             IConfiguration stageOneConfig = config.Build();
             KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
@@ -106,8 +106,8 @@ namespace Altinn.Platform.Authentication
                 {
                     string appInsightsKey = Startup.VaultApplicationInsightsKey;
 
-                    SecretBundle secretBundle = keyVaultClient
-                        .GetSecretAsync(keyVaultSettings.SecretUri, appInsightsKey).Result;
+                    SecretBundle secretBundle = await keyVaultClient
+                        .GetSecretAsync(keyVaultSettings.SecretUri, appInsightsKey);
 
                     Startup.ApplicationInsightsKey = secretBundle.Value;
                 }

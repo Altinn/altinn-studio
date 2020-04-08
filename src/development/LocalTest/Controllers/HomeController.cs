@@ -51,7 +51,7 @@ namespace LocalTest.Controllers
         public async Task<IActionResult> Index()
         {
             StartAppModel model = new StartAppModel();
-            Application app = this._applicationRepository.FindOne("", "").Result;
+            Application app = await _applicationRepository.FindOne("", "");
             model.TestUsers = await GetTestUsersForList();
             model.AppPath = _localPlatformSettings.AppRepsitoryBasePath;
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
@@ -123,7 +123,7 @@ namespace LocalTest.Controllers
                     AllowRefresh = false,
                 });
 
-            Application app = this._applicationRepository.FindOne("", "").Result;
+            Application app = await _applicationRepository.FindOne("", "");
 
             return Redirect($"{_generalSettings.GetBaseUrl}/{app.Org}/{app.Id.Split("/")[1]}");
         }
@@ -155,7 +155,7 @@ namespace LocalTest.Controllers
 
             DateTime later = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime));
             // Create a test token with long duration
-            string token = jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(1337), 0)).Result;
+            string token = await jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(1337), 0));
             return Ok(token);
         }
 

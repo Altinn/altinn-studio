@@ -102,7 +102,7 @@ namespace Altinn.Platform.Storage
             }
         }
 
-        private static void ConnectToKeyVaultAndSetApplicationInsigths(IConfigurationBuilder config)
+        private static async void ConnectToKeyVaultAndSetApplicationInsigths(IConfigurationBuilder config)
         {
             IConfiguration stageOneConfig = config.Build();
             KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
@@ -125,8 +125,8 @@ namespace Altinn.Platform.Storage
 
                 try
                 {
-                    SecretBundle secretBundle = keyVaultClient
-                        .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultApplicationInsightsKey).Result;
+                    SecretBundle secretBundle = await keyVaultClient
+                        .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultApplicationInsightsKey);
 
                     Startup.ApplicationInsightsKey = secretBundle.Value;
 

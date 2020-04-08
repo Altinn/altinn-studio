@@ -83,7 +83,7 @@ namespace Altinn.Platform.Register
             .UseUrls("http://*:5020")
             .UseStartup<Startup>();
 
-        private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
+        private static async void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
         {
             IConfiguration stageOneConfig = config.Build();
             KeyVaultSettings keyVaultSettings = new KeyVaultSettings();
@@ -106,8 +106,8 @@ namespace Altinn.Platform.Register
                     keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
                 try
                 {
-                    SecretBundle secretBundle = keyVaultClient
-                        .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultApplicationInsightsKey).Result;
+                    SecretBundle secretBundle = await keyVaultClient
+                        .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultApplicationInsightsKey);
 
                     Startup.ApplicationInsightsKey = secretBundle.Value;
                 }
