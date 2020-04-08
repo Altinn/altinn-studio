@@ -125,7 +125,7 @@ namespace Altinn.Platform.Profile
                     keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
                 try
                 {
-                    SecretBundle secretBundle = keyVaultClient
+                    SecretBundle secretBundle = await keyVaultClient
                         .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultApplicationInsightsKey);
 
                     Startup.ApplicationInsightsKey = secretBundle.Value;
