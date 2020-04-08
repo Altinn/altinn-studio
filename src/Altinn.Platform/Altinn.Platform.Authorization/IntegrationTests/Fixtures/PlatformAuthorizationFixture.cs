@@ -24,6 +24,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
         {
             string[] args = { };
 
+            Program.ConfigureSetupLogging();
             ConfigurationBuilder config = new ConfigurationBuilder();
             Program.LoadConfigurationSettings(config, GetContentRootPath(), args);
 
