@@ -259,7 +259,7 @@ namespace Altinn.Platform.Receipt.Test
 
                 string projectDir = Directory.GetCurrentDirectory();
                 string configPath = Path.Combine($"{projectDir}", "appsettings.json");
-
+                Program.ConfigureSetupLogging();
 
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                     {
