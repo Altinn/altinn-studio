@@ -45,7 +45,7 @@ namespace Altinn.Platform.Profile
             var logFactory = LoggerFactory.Create(builder =>
             {
                 builder
-                    .AddFilter("Altinn.Platform.Authorization.Program", LogLevel.Debug)
+                    .AddFilter("Altinn.Platform.Profile.Program", LogLevel.Debug)
                     .AddConsole();
             });
 
