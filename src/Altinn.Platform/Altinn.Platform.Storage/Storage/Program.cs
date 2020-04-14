@@ -52,7 +52,7 @@ namespace Altinn.Platform.Storage
             {
                 LoadAppSettingsFiles(config);
 
-                ConnectToKeyVaultAndSetApplicationInsigths(config);
+                ConnectToKeyVaultAndSetApplicationInsights(config);
 
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
