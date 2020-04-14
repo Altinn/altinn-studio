@@ -64,9 +64,9 @@ fixture('Deploy of app to a test environment tests')
       .click(designer.deployButtonAt23)
       .expect(designer.deployConfirm.visible).ok()
       .click(designer.deployConfirm)
-      .expect(designer.deployStatus.visible).ok({timeout: 60000})
-      .expect(designer.at23DeployTable.visible).ok({timeout: 300000})
-      .expect(designer.at23DeployTable.innerText).contains(newBuildVersion.toString(),"Fail",{timeout: 300000}); //deploy succeeded
+      .expect(designer.deployStatus.visible).ok({timeout: 300000})
+      .expect(designer.at22DeployTable.visible).ok({timeout: 300000})
+      .expect(designer.at22DeployTable.innerText).contains(newBuildVersion.toString(),"Fail",{timeout: 400000}); //deploy succeeded
 });
 
 //Tests that an app build shall fail when there is a fail in an app file
