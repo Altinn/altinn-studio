@@ -49,9 +49,6 @@
     <None Update="Altinn.Platform.Storage.Interface.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="JWTValidationCert.cer">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
