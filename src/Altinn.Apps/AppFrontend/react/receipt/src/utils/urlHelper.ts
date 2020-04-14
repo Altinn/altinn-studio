@@ -37,7 +37,7 @@ export function getUserUrl(): string {
 }
 
 export function getTextResourceUrl(org: string, app: string, language: string): string {
-  return `${window.location.origin}/storage/api/v1/{${org}/${app}/texts/${language}`;
+  return `${window.location.origin}/storage/api/v1/${org}/${app}/texts/${language}`;
 }
 
 export function getAltinnUrl(): string {
