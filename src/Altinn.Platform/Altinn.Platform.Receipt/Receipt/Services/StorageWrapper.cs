@@ -52,7 +52,7 @@ namespace Altinn.Platform.Receipt.Services.Interfaces
                 return instance;
             }
 
-            throw new PlatformHttpException(response);
+            throw new PlatformHttpException(response, string.Empty);
         }
     }
 }

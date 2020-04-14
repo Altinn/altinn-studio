@@ -18,7 +18,7 @@ namespace Altinn.Platform.Authorization
     /// </summary>
     public class Program
     {
-        private static ILogger _logger; 
+        private static ILogger _logger;
 
         /// <summary>
         /// Default protected constructor
@@ -86,7 +86,7 @@ namespace Altinn.Platform.Authorization
                     // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
                     // Providing an instrumentation key here is required if you're using
                     // standalone package Microsoft.Extensions.Logging.ApplicationInsights
-                    // or if you want to capture logs from early in the application startup 
+                    // or if you want to capture logs from early in the application startup
                     // pipeline from Startup.cs or Program.cs itself.
                     builder.AddApplicationInsights(Startup.ApplicationInsightsKey);
 
@@ -142,7 +142,7 @@ namespace Altinn.Platform.Authorization
             config.AddEnvironmentVariables();
             config.AddCommandLine(args);
 
-            ConnectToKeyVaultAndSetApplicationInsights(config);           
+            ConnectToKeyVaultAndSetApplicationInsights(config);
         }
 
         private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
@@ -167,15 +167,15 @@ namespace Altinn.Platform.Authorization
                 config.AddAzureKeyVault(
                     keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
                 try
-                {                    
+                {
                     SecretBundle secretBundle = keyVaultClient
                         .GetSecretAsync(keyVaultSettings.SecretUri, Startup.VaultApplicationInsightsKey).Result;
 
-                    Startup.ApplicationInsightsKey = secretBundle.Value;                    
+                    Startup.ApplicationInsightsKey = secretBundle.Value;
                 }
                 catch (Exception vaultException)
                 {
-                   _logger.LogError($"Unable to read application insights key {vaultException}");
+                    _logger.LogError($"Unable to read application insights key {vaultException}");
                 }
             }
         }

@@ -48,10 +48,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// the default page for altinn studio when the user is not logged inn
         /// </summary>
         /// <returns>The start page</returns>
-        public ActionResult StartPage()
+        public async Task<ActionResult> StartPage()
         {
             string sessionId = Request.Cookies[_settings.GiteaCookieName];
-            string userName = _giteaApi.GetUserNameFromUI().Result;
+            string userName = await _giteaApi.GetUserNameFromUI();
 
             if (string.IsNullOrEmpty(userName))
             {
@@ -129,7 +129,7 @@ namespace Altinn.Studio.Designer.Controllers
             // Temporary catch errors until we figure out how to force this.
             try
             {
-                userName = _giteaApi.GetUserNameFromUI().Result;
+                userName = await _giteaApi.GetUserNameFromUI();
                 if (string.IsNullOrEmpty(userName))
                 {
                     return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaLoginUrl") != null)
@@ -212,13 +212,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// Debug info
         /// </summary>
         /// <returns>The debug info you want</returns>
-        public IActionResult Debug()
+        public async Task<IActionResult> Debug()
         {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("Debug info");
             stringBuilder.AppendLine("App token is: " + _sourceControl.GetAppToken());
             stringBuilder.AppendLine("App token id is " + _sourceControl.GetAppTokenId());
-            stringBuilder.AppendLine("UserName from service: " + _giteaApi.GetUserNameFromUI().Result);
+            stringBuilder.AppendLine("UserName from service: " + await _giteaApi.GetUserNameFromUI());
             return Content(stringBuilder.ToString());
         }
     }

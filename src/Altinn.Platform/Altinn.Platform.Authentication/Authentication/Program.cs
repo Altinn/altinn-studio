@@ -61,7 +61,7 @@ namespace Altinn.Platform.Authentication
         /// </summary>
         /// <param name="args">arguments for creating build configuration</param>
         /// <returns>The web host builder</returns>
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>            
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {

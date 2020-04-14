@@ -44,7 +44,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Contains("There is an error in XML document", responseContent);
@@ -67,7 +67,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             Assert.Contains("Could not convert string to decimal: hei. Path 'skjemanummer'", responseContent);

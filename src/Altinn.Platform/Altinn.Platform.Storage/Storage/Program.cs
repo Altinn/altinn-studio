@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-
+using System.Threading.Tasks;
 using AltinnCore.Authentication.Constants;
 
 using Microsoft.ApplicationInsights.Extensibility;
@@ -52,7 +52,7 @@ namespace Altinn.Platform.Storage
             {
                 LoadAppSettingsFiles(config);
 
-                ConnectToKeyVaultAndSetApplicationInsigths(config);
+                ConnectToKeyVaultAndSetApplicationInsights(config);
 
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
@@ -86,7 +86,7 @@ namespace Altinn.Platform.Storage
             string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
             config.SetBasePath(basePath);
             config.AddJsonFile(basePath + @"altinn-appsettings/altinn-dbsettings-secret.json", true, true);
-            if (basePath == "/") 
+            if (basePath == "/")
             {
                 // On a pod/container where the app is located in an app folder on the root of the filesystem.
                 string filePath = basePath + @"app/appsettings.json";
@@ -102,7 +102,7 @@ namespace Altinn.Platform.Storage
             }
         }
 
-        private static void ConnectToKeyVaultAndSetApplicationInsigths(IConfigurationBuilder config)
+        private static void ConnectToKeyVaultAndSetApplicationInsights(IConfigurationBuilder config)
         {
             IConfiguration stageOneConfig = config.Build();
             KeyVaultSettings keyVaultSettings = new KeyVaultSettings();

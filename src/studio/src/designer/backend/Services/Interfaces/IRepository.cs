@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
@@ -185,7 +186,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
         /// <returns>The repository created in gitea</returns>
-        RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration serviceConfig);
+        Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig);
 
         /// <summary>
         ///  Deletes an app folder from disk

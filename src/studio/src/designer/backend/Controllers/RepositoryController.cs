@@ -61,9 +61,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repositorySearch">The search params</param>
         /// <returns>List of repositories that user has access to.</returns>
         [HttpGet]
-        public List<RepositoryModel> Search(RepositorySearch repositorySearch)
+        public async Task<List<RepositoryModel>> Search(RepositorySearch repositorySearch)
         {
-            SearchResults repositories = _giteaApi.SearchRepository(repositorySearch.OnlyAdmin, repositorySearch.KeyWord, repositorySearch.Page).Result;
+            SearchResults repositories = await _giteaApi.SearchRepository(repositorySearch.OnlyAdmin, repositorySearch.KeyWord, repositorySearch.Page);
             return repositories.Data;
         }
 
@@ -74,9 +74,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The app repository</param>
         /// <returns>The given app repository</returns>
         [HttpGet]
-        public RepositoryModel GetRepository(string org, string repository)
+        public async Task<RepositoryModel> GetRepository(string org, string repository)
         {
-            RepositoryModel returnRepository = _giteaApi.GetRepository(org, repository).Result;
+            RepositoryModel returnRepository = await _giteaApi.GetRepository(org, repository);
             return returnRepository;
         }
 
@@ -85,9 +85,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>A list over all organizations user has access to</returns>
         [HttpGet]
-        public List<Organization> Organizations()
+        public async Task<List<Organization>> Organizations()
         {
-            List<Organization> orglist = _giteaApi.GetUserOrganizations().Result;
+            List<Organization> orglist = await _giteaApi.GetUserOrganizations();
             return orglist == null ? new List<Organization>() : orglist;
         }
 
@@ -315,7 +315,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </returns>
         [Authorize]
         [HttpPost]
-        public RepositoryModel CreateApp(string org, string repository)
+        public async Task<RepositoryModel> CreateApp(string org, string repository)
         {
             var config = new ServiceConfiguration
             {
@@ -323,7 +323,7 @@ namespace Altinn.Studio.Designer.Controllers
                 ServiceName = repository,
             };
 
-            return _repository.CreateService(org, config);
+            return await _repository.CreateService(org, config);
         }
 
         /// <summary>
