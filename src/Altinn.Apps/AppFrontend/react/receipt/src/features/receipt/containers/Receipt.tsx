@@ -89,12 +89,8 @@ function Receipt(props: WithStyles<typeof styles>) {
       const response = await Axios.get(getTextResourceUrl(instance.org, app, "nb"));
       setTextResources(response.data.resources);
     } catch (error) {
-      if (error.response?.status === 404) {
-        setTextResources([]);
-      }
-      else {
-        console.error(error);
-      }
+      console.error(error);
+      setTextResources([]);
     }
   }
 
