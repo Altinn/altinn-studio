@@ -5,10 +5,9 @@ import moment from 'moment';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
 import {AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent} from 'altinn-shared/components';
-import { IAttachment, IInstance, IParty } from 'altinn-shared/types';
+import { IInstance, IParty, ITextResource } from 'altinn-shared/types';
 import {
   getCurrentTaskData,
-  getInstancePdf,
   mapInstanceAttachments,
   getLanguageFromKey,
   getUserLanguage,
@@ -17,6 +16,7 @@ import {
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IRuntimeState } from '../../../types';
+import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 
 export interface IReceiptContainerProps extends RouteChildrenProps {
 }
@@ -58,7 +58,6 @@ export const returnInstanceMetaDataObject = (
 const ReceiptContainer = (props: IReceiptContainerProps) => {
   const [appName, setAppName] = React.useState('');
   const [attachments, setAttachments] = useState([]);
-  const [pdf, setPdf] = React.useState<IAttachment>(null);
   const [lastChangedDateTime, setLastChangedDateTime] = useState('');
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
   const [userLanguage, setUserLanguage] = React.useState('nb');
@@ -68,6 +67,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
+  const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
 
   const origin = window.location.origin;
   const routeParams: any = props.match.params;
@@ -121,8 +121,6 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
 
       const attachmentsResult = mapInstanceAttachments(instance.data, defaultElement.id);
       setAttachments(attachmentsResult);
-      const pdfElement = getInstancePdf(instance.data);
-      setPdf(pdfElement);
 
       const defaultDataElementLastChangedDateTime = defaultElement ? defaultElement.lastChanged : null;
       if (defaultDataElementLastChangedDateTime) {
@@ -140,7 +138,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
       }
       {!isLoading() &&
         <ReceiptComponent
-          attachments={attachments}
+          attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
           body={getLanguageFromKey('receipt.body', language)}
           collapsibleTitle={getLanguageFromKey('receipt.attachments', language)}
           instanceMetaDataObject={instanceMetaObject}
@@ -148,7 +146,6 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
           subtitleurl={returnUrlToMessagebox(origin)}
           title={`${appName} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
           titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
-          pdf={pdf ? [pdf] : null}
         />
       }
     </>

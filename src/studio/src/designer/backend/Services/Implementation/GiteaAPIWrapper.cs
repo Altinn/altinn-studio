@@ -359,6 +359,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return await response.Content.ReadAsAsync<GiteaFileContent>();
         }
 
+        /// <inheritdoc/>
+        public async Task<List<GiteaFileContent>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId)
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{directoryPath}?ref={shortCommitId}");
+            return await response.Content.ReadAsAsync<List<GiteaFileContent>>();
+        }
+
         private async Task<Organization> GetOrganization(string name)
         {
             HttpResponseMessage response = await _httpClient.GetAsync($"orgs/{name}");

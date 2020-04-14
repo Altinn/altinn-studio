@@ -32,5 +32,11 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         [JsonProperty("content")]
         public string Content { get; set; }
+
+        /// <summary>
+        /// The file path
+        /// </summary>
+        [JsonProperty("path")]
+        public string Path { get; set; }
     }
 }

@@ -29,6 +29,7 @@ export interface IAttachment {
   name: string;
   iconClass: string;
   url: string;
+  dataType: string;
 }
 
 export interface IData {
@@ -57,6 +58,7 @@ export interface IDataType {
   maxSize: number;
   maxCount: number;
   mincount: number;
+  grouping: string;
 }
 
 export interface IExtendedInstance {
@@ -198,4 +200,13 @@ export interface ITitle {
 export interface IValidated {
   timestamp: string;
   canCompleteTask: boolean;
+}
+
+export interface ITextResource {
+  id: string;
+  value: string;
+}
+
+export interface IAttachmentGrouping {
+  [title: string]: IAttachemnt[];
 }

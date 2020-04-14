@@ -186,6 +186,7 @@ describe('>>> utils/validations.ts', () => {
     ];
   });
 
+
   it('+++ should map api response to redux format', () => {
     const result = validation.mapApiValidationsToRedux(mockApiResponse.messages, mockLayoutState.layout);
     expect(result).toEqual(mockReduxFormat);
@@ -363,7 +364,7 @@ describe('>>> utils/validations.ts', () => {
     expect(componentSpesificValidations).toEqual(mockResult);
   });
   it('+++ data element validations should be mapped correctly to our redux format', () => {
-    const mappedDataElementValidaitons = validation.mapDataElementValidationToRedux(mockDataElementValidations, mockLayoutState.layout);
+    const mappedDataElementValidaitons = validation.mapDataElementValidationToRedux(mockDataElementValidations, mockLayoutState.layout, []);
     expect(mappedDataElementValidaitons).toEqual(mockReduxFormat);
   });
 });

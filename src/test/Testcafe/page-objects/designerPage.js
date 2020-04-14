@@ -71,11 +71,11 @@ export default class DesignerPage {
     this.versionDescription = Selector('div > textarea');
     this.buildButton = Selector('button').withExactText('Bygg versjon');
     this.latestBuilds = Selector('.MuiGrid-root').withText('Tidligere bygg av applikasjonen').parent(0).sibling(3);
-    this.deployButtonAt23 = Selector('#deploy-button-at23');
-    this.deployVersionDropDown = Selector('#deploy-select-at23');
+    this.deployButtonAt23 = Selector('#deploy-button-at22');
+    this.deployVersionDropDown = Selector('#deploy-select-at22');
     this.noDeployVersionAvailable = Selector('div').withText('Du har ingen versjoner å deploye');
     this.deployVersionOptions = Selector('.select__menu-list');
-    this.at23DeployTable = Selector('#deploy-history-table-at23');
+    this.at23DeployTable = Selector('#deploy-history-table-at22');
     this.deployConfirm = Selector("#deployPopover");
     this.deployStatus = Selector('p').withText('deployer versjon');
 

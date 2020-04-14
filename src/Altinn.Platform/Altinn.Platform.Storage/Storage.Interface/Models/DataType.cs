@@ -78,5 +78,14 @@ namespace Altinn.Platform.Storage.Interface.Models
         [JsonProperty(PropertyName = "minCount")]
         [DefaultValue(1)]
         public int MinCount { get; set; }
+
+        /// <summary>
+        /// Gets or sets the grouping for this data type. Can be a a string ("Photos") or a text resource key ("scheme.grouping") if the grouping name should support multiple languages.
+        /// </summary>
+        /// <remarks>
+        /// Leaving field empty means that this data element should not have it's own grouping and will be grouped with other binary attachments that do not have defined a grouping.
+        /// </remarks>
+        [JsonProperty(PropertyName = "grouping")]
+        public string Grouping { get; set;}
     }
 }

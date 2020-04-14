@@ -7,14 +7,14 @@ import AltinnModal from '../../../../../shared/src/components/molecules/AltinnMo
 import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
 import AltinnReceipt from '../../../../../shared/src/components/organisms/AltinnReceipt';
 import theme from '../../../../../shared/src/theme/altinnStudioTheme';
-import { IApplication, IAttachment, IInstance, IParty, IProfile, IExtendedInstance  } from '../../../../../shared/src/types';
+import { IApplication, IAttachment, IInstance, IParty, IProfile, IExtendedInstance, ITextResource  } from '../../../../../shared/src/types';
 import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationMetaDataUtils';
-import { getInstancePdf, mapInstanceAttachments } from '../../../../../shared/src/utils/attachmentsUtils';
+import { mapInstanceAttachments, getAttachmentGroupings } from '../../../../../shared/src/utils/attachmentsUtils';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
 import { nb } from '../../../resources/language';
 import { getInstanceMetaDataObject } from '../../../utils/receipt';
-import { altinnOrganisationsUrl, getApplicationMetadataUrl, getUserUrl, getExtendedInstanceUrl } from '../../../utils/urlHelper';
+import { altinnOrganisationsUrl, getApplicationMetadataUrl, getUserUrl, getExtendedInstanceUrl, getTextResourceUrl } from '../../../utils/urlHelper';
 
 const styles = () => createStyles({
   body: {
@@ -34,7 +34,7 @@ function Receipt(props: WithStyles<typeof styles>) {
   const [user, setUser] = React.useState<IProfile>(null);
   const [language, setLanguage] = React.useState(null);
   const [attachments, setAttachments] = React.useState<IAttachment[]>(null);
-  const [pdf, setPdf] = React.useState<IAttachment>(null);
+  const [textResources, setTextResources] = React.useState<ITextResource[]>(null);
   const isPrint = useMediaQuery('print');
 
   const fetchInstanceAndParty = async () => {
@@ -83,6 +83,16 @@ function Receipt(props: WithStyles<typeof styles>) {
     }
   };
 
+  const fetchTextResources = async () => {
+    try {
+      const app = instance.appId.split('/')[1];
+      const response = await Axios.get(getTextResourceUrl(instance.org, app, "nb"));
+      setTextResources(response.data.resources);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   const getTitle = (): string => {
     const applicationTitle = application ? application.title.nb : '';
     return `${applicationTitle} ${getLanguageFromKey('receipt_platform.is_sent', language)}`;
@@ -93,17 +103,19 @@ function Receipt(props: WithStyles<typeof styles>) {
   };
 
   const isLoading = (): boolean => {
-    return (!party || !instance || !organisations || !application || !language || !user);
+    return (!party || !instance || !organisations || !application || !language || !user || !textResources);
   };
 
   React.useEffect(() => {
     if (instance && application) {
       const defaultElement = getCurrentTaskData(application, instance);
       setAttachments(mapInstanceAttachments(instance.data, defaultElement.id, true));
-      setPdf(getInstancePdf(instance.data, true));
     }
     if (!application && instance) {
       fetchApplication();
+    }
+    if (!textResources && instance) {
+      fetchTextResources();
     }
   }, [instance, application]);
 
@@ -112,6 +124,7 @@ function Receipt(props: WithStyles<typeof styles>) {
     fetchOrganisations();
     fetchUser();
     fetchLanguage();
+    fetchTextResources();
   }, []);
 
   return (
@@ -140,8 +153,7 @@ function Receipt(props: WithStyles<typeof styles>) {
             title={getTitle()}
             body={getLanguageFromKey('receipt_platform.helper_text', language)}
             collapsibleTitle={getLanguageFromKey('receipt_platform.attachments', language)}
-            attachments={attachments}
-            pdf={pdf ? [pdf] : null}
+            attachmentGroupings={getAttachmentGroupings(attachments, application, textResources)}
             instanceMetaDataObject={getInstanceMetaDataObject(instance, party, language, organisations, application)}
             titleSubmitted={getLanguageFromKey('receipt_platform.sent_content', language)}
           />

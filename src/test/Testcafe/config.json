@@ -6,7 +6,7 @@
     "baseUrl": "https://dev.altinn.studio/",
     "autoTestUser": "AutoTest",
     "noDeployUser": "automatedtest@email.com",
-    "deployApp": "ttd/autodeploy",
+    "deployApp": "ttd/autodeploy-v2",
     "compilerErrorApp": "ttd/compileerror1219",
     "designerApp": "AutoTest/auto_test",
     "withoutDataModelApp": "AutoTest/appwithout-dm",

@@ -42,6 +42,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 <IAltinnStorageAppMetadataClient, AltinnStorageAppMetadataClient>();
             services.AddAuthenticatedAltinnPlatformTypedHttpClient
                 <IAltinnAuthorizationPolicyClient, AltinnAuthorizationPolicyClient>();
+            services.AddAuthenticatedAltinnPlatformTypedHttpClient
+                <IAltinnStorageTextResourceClient, AltinnStorageTextResourceClient>();
             services.AddMaskinportenTypedHttpClient(config);
 
             return services;

@@ -20,6 +20,7 @@ export function findDataId(instanceJson){
 export function putDataById(altinnStudioRuntimeCookie, partyId, instaceId, dataId, dataType, data){    
     var endpoint = config.buildAppApiUrls(partyId, instaceId, dataId, "dataid");
     var params = header.buildHeadersForData(dataType, altinnStudioRuntimeCookie, "app");
+    params.timeout = 120000;
     var requestBody = data;  
     return http.put(endpoint,requestBody, params);
 };

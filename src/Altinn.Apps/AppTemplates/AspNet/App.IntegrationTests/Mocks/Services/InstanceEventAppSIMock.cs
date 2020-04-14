@@ -1,18 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
 {
@@ -24,7 +18,6 @@ namespace Altinn.App.Services.Implementation
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
-        private readonly HttpClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventAppSI"/> class.
@@ -38,12 +31,10 @@ namespace Altinn.App.Services.Implementation
         public InstanceEventAppSIMock(
             ILogger<InstanceEventAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            IHttpClientAccessor httpClientAccessor,
-            IOptionsMonitor<AppSettings> settings)
+                      IOptionsMonitor<AppSettings> settings)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
-            _client = httpClientAccessor.StorageClient;
             _settings = settings.CurrentValue;
         }
 

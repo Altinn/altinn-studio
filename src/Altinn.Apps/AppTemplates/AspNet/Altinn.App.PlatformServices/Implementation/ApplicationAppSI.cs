@@ -1,10 +1,14 @@
+using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Altinn.App.Services.Clients;
+using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
@@ -23,11 +27,16 @@ namespace Altinn.App.Services.Implementation
         /// <param name="logger">the logger</param>
         /// <param name="httpClientAccessor">The Http client accessor </param>
         public ApplicationAppSI(
+           IOptions<PlatformSettings> platformSettings,
             ILogger<ApplicationAppSI> logger,
-            IHttpClientAccessor httpClientAccessor)
+           HttpClient httpClient)
         {
             _logger = logger;
-            _client = httpClientAccessor.StorageClient;
+            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+            _client = httpClient;
         }
 
         /// <inheritdoc />
