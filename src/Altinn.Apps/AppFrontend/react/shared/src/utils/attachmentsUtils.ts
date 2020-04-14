@@ -80,13 +80,13 @@ export const getGroupingForAttachment = (
   applicationMetadata: IApplication): string => {
 
   if (!applicationMetadata || !applicationMetadata.dataTypes || !attachment) {
-    return '';
+    return null;
   }
 
   const attachmentType = applicationMetadata.dataTypes.find((dataType: IDataType) => dataType.id === attachment.dataType);
 
-  if (!attachmentType) {
-    return '';
+  if (!attachmentType || !attachmentType.grouping) {
+    return null;
   }
 
   return attachmentType.grouping;
