@@ -39,19 +39,19 @@ namespace LocalTest.Controllers.Authentication
         /// <returns>Ok response with the refreshed token appended.</returns>
         [Authorize]
         [HttpGet("refresh")]
-        public ActionResult RefreshJWTCookie()
+        public async Task<ActionResult> RefreshJWTCookie()
         {
             logger.LogInformation($"Starting to refresh token...");
             ClaimsPrincipal principal = HttpContext.User;
             logger.LogInformation("Refreshing token....");
 
-            string token = jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0)).Result;
+            string token = await jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0));
             logger.LogInformation($"End of refreshing token");
             return Ok(token);
         }
 
         [HttpGet("orgToken")]
-        public ActionResult GenerateOrgToken(
+        public async Task<ActionResult> GenerateOrgToken(
             [FromQuery] string org = "ttd",
             [FromQuery] int orgNumber = 111111111,
             [FromQuery] string scope = "altinn:instances.read altinn:instances.write")
@@ -70,13 +70,13 @@ namespace LocalTest.Controllers.Authentication
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            string token = jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0)).Result;
+            string token = await jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0));
 
             return Ok(token);
         }
 
         [HttpGet("appToken")]
-        public ActionResult GenerateAppToken(
+        public async Task<ActionResult> GenerateAppToken(
             [FromQuery] int authenticationLevel = 3,
             [FromQuery] int userId = 500000)
         {
@@ -92,7 +92,7 @@ namespace LocalTest.Controllers.Authentication
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            string token = jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0)).Result;
+            string token = await jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0));
 
             return Ok(token);
         }
