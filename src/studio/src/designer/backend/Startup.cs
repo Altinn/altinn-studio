@@ -32,6 +32,11 @@ namespace Altinn.Studio.Designer
         private readonly ILogger<Startup> _logger;
 
         /// <summary>
+        /// The application insights key.
+        /// </summary>
+        internal static string ApplicationInsightsKey { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
         /// <param name="configuration">The configuration for designer</param>
