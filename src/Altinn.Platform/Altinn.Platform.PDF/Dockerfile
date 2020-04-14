@@ -1,9 +1,9 @@
-FROM maven:3-jdk-13 AS build
+FROM maven:3.6.3-jdk-14 AS build
 WORKDIR build
 COPY . .
 RUN mvn -Pprod package
 
-FROM openjdk:13-jdk-alpine3.10 AS final
+FROM openjdk:15-jdk-alpine3.11 AS final
 WORKDIR app
 COPY --from=build /build/target .
 # setup the user and group
