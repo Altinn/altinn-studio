@@ -73,7 +73,13 @@ namespace Altinn.Studio.Designer
             services.ConfigureSettings(Configuration);
             services.RegisterTypedHttpClients(Configuration);
             services.ConfigureAuthentication();
-            services.ConfigureApplicationInsight();
+
+            // Add application insight telemetry
+            if (!string.IsNullOrEmpty(ApplicationInsightsKey))
+            {
+                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+            }
+
             services.ConfigureLocalization();
             services.AddPolicyBasedAuthorization();
             
