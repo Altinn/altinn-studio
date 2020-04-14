@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AltinnCore.Authentication.Constants;
 
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
@@ -34,7 +35,7 @@ namespace Altinn.Platform.Storage
         /// <param name="args">program arguments</param>
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            CreateWebHostBuilder(args).Build().Run();
         }
 
         /// <summary>
@@ -42,12 +43,8 @@ namespace Altinn.Platform.Storage
         /// </summary>
         /// <param name="args">the arguments</param>
         /// <returns></returns>
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Startup>().UseUrls("http://*:5010");
-            })
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+           WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
                 LoadAppSettingsFiles(config);
@@ -70,7 +67,7 @@ namespace Altinn.Platform.Storage
                 Serilog.ILogger logger = loggerConfig.CreateLogger();
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
-            });
+            }).UseStartup<Startup>();
 
         /// <summary>
         /// Load the configuration settings for the program.
