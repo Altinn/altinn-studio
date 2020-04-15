@@ -153,7 +153,9 @@
 									"{",
 									"    var jsonData = pm.response.json();",
 									"    var partyId = jsonData.partyId;",
+									"    var ssn = jsonData.party.ssn;",
 									"    pm.environment.set(\"instanceOwnerId\",partyId);",
+									"    pm.environment.set(\"SSN\",ssn);",
 									"}"
 								],
 								"type": "text/javascript"
@@ -223,11 +225,16 @@
 									"    var dataTypes = jsonData.dataTypes;\r",
 									"    var dataTypesCount = dataTypes.length;\r",
 									"    for(var i=0; i<dataTypesCount; i++){\r",
-									"        if (dataTypes[i].id !== \"default\" && dataTypes[i].id !== \"ref-data-as-pdf\"){\r",
+									"        if (isGuid(dataTypes[i].id)){\r",
 									"            pm.environment.set(\"attachmentElementType\", dataTypes[i].id);\r",
 									"            break;\r",
 									"        }\r",
 									"    }\r",
+									"}\r",
+									"\r",
+									"function isGuid(stringToTest) {\r",
+									"    var regexGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\r",
+									"    return regexGuid.test(stringToTest);\r",
 									"}"
 								],
 								"type": "text/javascript"
@@ -280,7 +287,7 @@
 							"script": {
 								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Add app instance - Status - 201\", function () {\r",
+									"pm.test(\"App Api - Instances - Add app instance - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
 									"    var jsonData = pm.response.json();\r",
 									"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
@@ -370,11 +377,11 @@
 							"script": {
 								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Get app instance by ID - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Instances - Get app instance by ID - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Runtime - Instances - Get app instance by ID - Content - matches\", function () {\r",
+									"pm.test(\"App Api - Instances - Get app instance by ID - Content - matches\", function () {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    var envInstanceId = pm.environment.get(\"instanceId\");\r",
 									"    var responseInstanceId = jsonData.id;\r",
@@ -437,7 +444,7 @@
 							"script": {
 								"id": "49c4d8df-75ca-450e-be67-db55129f6ecc",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Get app instance by ID - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Instances - Get app instance by ID - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									""
@@ -508,7 +515,7 @@
 							"script": {
 								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
 								"exec": [
-									"pm.test(\"Runtime - Data - Get Form Data by id - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Data - Get Form Data by id - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									""
@@ -566,7 +573,7 @@
 							"script": {
 								"id": "68318696-e879-4d73-ac94-439390675fac",
 								"exec": [
-									"pm.test(\"Runtime - Data - Edit Form Data - Status - 201\", function () {\r",
+									"pm.test(\"App Api - Data - Edit Form Data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
 									"    var jsonData = pm.response.json();\r",
 									"    var envDataId = pm.environment.get(\"dataGuid\");\r",
@@ -629,7 +636,7 @@
 							"script": {
 								"id": "e2d79115-5c93-41c9-b60f-8fc17eaa1f2d",
 								"exec": [
-									"pm.test(\"Runtime - Data - Delete Form Data - Status - 400\", function () {\r",
+									"pm.test(\"App Api - Data - Delete Form Data - Status - 400\", function () {\r",
 									"    pm.response.to.have.status(400);\r",
 									"});"
 								],
@@ -689,7 +696,7 @@
 							"script": {
 								"id": "8c637fd5-88b9-4aec-9bdc-d6a566a131e1",
 								"exec": [
-									"pm.test(\"Runtime - Data - Add attachment - Status - 201\", function () {\r",
+									"pm.test(\"App Api - Data - Add attachment - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
 									"    var jsonData = pm.response.json();\r",
 									"    if(pm.expect(jsonData.id).not.eql(null))\r",
@@ -783,7 +790,7 @@
 							"script": {
 								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
 								"exec": [
-									"pm.test(\"Runtime - Data - Get Attachment Data - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Data - Get Attachment Data - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"    var responseHeader = pm.response.headers.get(\"Content-Disposition\");\r",
 									"    responseHeader = responseHeader.toString();\r",
@@ -844,7 +851,7 @@
 							"script": {
 								"id": "68318696-e879-4d73-ac94-439390675fac",
 								"exec": [
-									"pm.test(\"Runtime - Data - Edit Attachment Data - Status - 201\", function () {\r",
+									"pm.test(\"App Api - Data - Edit Attachment Data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
 									"    var jsonData = pm.response.json();\r",
 									"    var envDataId = pm.environment.get(\"dataGuid\");\r",
@@ -920,7 +927,7 @@
 							"script": {
 								"id": "709bf4db-92f0-4803-b802-cd5605187d00",
 								"exec": [
-									"pm.test(\"Runtime - Process - Start Process again - negative test - Status - 409\", function () {\r",
+									"pm.test(\"App Api - Process - Start Process again - negative test - Status - 409\", function () {\r",
 									"    pm.response.to.have.status(409);\r",
 									"    pm.expect(pm.response.text()).contains('Process is already started');\r",
 									"});\r",
@@ -988,7 +995,7 @@
 							"script": {
 								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
 								"exec": [
-									"pm.test(\"Runtime - Process - Get Current Process - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Process - Get Current Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"    var elementId = pm.response.json().currentTask.elementId;\r",
 									"    pm.environment.set(\"processElementId\",elementId);\r",
@@ -1040,7 +1047,7 @@
 							"script": {
 								"id": "a4bf7083-3188-447c-aafe-64b383b1693a",
 								"exec": [
-									"pm.test(\"Runtime - Process - Start Process again - negative test - Status - 409\", function () {\r",
+									"pm.test(\"App Api - Process - Start Process again - negative test - Status - 409\", function () {\r",
 									"    pm.response.to.have.status(409);\r",
 									"    pm.expect(pm.response.text()).contains('Cannot change process');\r",
 									"});\r",
@@ -1114,7 +1121,7 @@
 							"script": {
 								"id": "ebe6fdbe-764b-4809-93f3-7869055f3f52",
 								"exec": [
-									"pm.test(\"Runtime - Process - Get Next Process - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Process - Get Next Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"    var jsonData = pm.response.json();\r",
 									"    var nextProcessElementId = jsonData[0];\r",
@@ -1187,7 +1194,7 @@
 							"script": {
 								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Complete process - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Instances - Complete process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});"
 								],
@@ -1253,7 +1260,7 @@
 							"script": {
 								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Complete process again - negative test - Status - 409\", function () {\r",
+									"pm.test(\"App Api - Instances - Complete process again - negative test - Status - 409\", function () {\r",
 									"    pm.response.to.have.status(409);\r",
 									"    pm.expect(pm.response.text()).contains(\"cannot be restarted\");\r",
 									"});"
@@ -1320,7 +1327,7 @@
 							"script": {
 								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
 								"exec": [
-									"pm.test(\"App - Process - Get Process History - Status - 200\", function () {",
+									"pm.test(\"App Api - Process - Get Process History - Status - 200\", function () {",
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
@@ -1376,7 +1383,7 @@
 							"script": {
 								"id": "a3815326-b103-4737-9025-ee4f947dd1c0",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Create app instance with multipart data - Status - 201\", function () {\r",
+									"pm.test(\"App Api - Instances - Create app instance with multipart data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
 									"    if (pm.response.code == 201)\r",
 									"    {\r",
@@ -1468,11 +1475,11 @@
 							"script": {
 								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Get multipart app instance by ID - Status - 200\", function() {",
+									"pm.test(\"App Api - Instances - Get multipart app instance by ID - Status - 200\", function() {",
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Runtime - Instances - Get multipart app instance by ID - Content - matches\", function() {",
+									"pm.test(\"App Api - Instances - Get multipart app instance by ID - Content - matches\", function() {",
 									"    var jsonData = pm.response.json();",
 									"    var envInstanceId = pm.environment.get(\"instanceId\");",
 									"    var responseInstanceId = jsonData.id;",
@@ -1533,7 +1540,7 @@
 							"script": {
 								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
 								"exec": [
-									"pm.test(\"Runtime - Data - GET Form Data created by mulipart - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Data - GET Form Data created by mulipart - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									""
@@ -1689,7 +1696,7 @@
 							"script": {
 								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
 								"exec": [
-									"pm.test(\"Runtime - Process - Get Current Process - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Process - Get Current Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"    var jsonData = pm.response.json();\r",
 									"    var elementId = jsonData.currentTask.elementId;\r",
@@ -1742,10 +1749,10 @@
 							"script": {
 								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Get Validate Instance - Not OK - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Instances - Get Validate Instance - Not OK - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
-									"pm.test(\"Runtime - Instances - Get Validate Instance - Not OK - Content - Matches\", function () {\r",
+									"pm.test(\"App Api - Instances - Get Validate Instance - Not OK - Content - Matches\", function () {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    pm.expect(jsonData[0].code).to.equal(\"TooFewDataElementsOfType\");\r",
 									"});"
@@ -1965,10 +1972,10 @@
 							"script": {
 								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Get Validate Instance Data - Not OK - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Instances - Get Validate Instance Data - Not OK - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
-									"pm.test(\"Runtime - Instances - Get Validate Instance Data - Not OK - Content - Matches\", function () {\r",
+									"pm.test(\"App Api - Instances - Get Validate Instance Data - Not OK - Content - Matches\", function () {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    pm.expect(jsonData[0].code).to.equal(\"DataElementTooLarge\");\r",
 									"});"
@@ -2167,10 +2174,10 @@
 							"script": {
 								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Get Validate Instance Data - OK - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Instances - Get Validate Instance Data - OK - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
-									"pm.test(\"Runtime - Instances - Get Validate Instance Data - OK - Content - Matches\", function () {\r",
+									"pm.test(\"App Api - Instances - Get Validate Instance Data - OK - Content - Matches\", function () {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    pm.expect(jsonData).to.be.empty;\r",
 									"});"
@@ -2229,10 +2236,10 @@
 							"script": {
 								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Get Validate Instance - OK - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Instances - Get Validate Instance - OK - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
-									"pm.test(\"Runtime - Instances - Get Validate Instance - OK - Content - Matches\", function () {\r",
+									"pm.test(\"App Api - Instances - Get Validate Instance - OK - Content - Matches\", function () {\r",
 									"    var jsonData = pm.response.json();\r",
 									"    pm.expect(jsonData).to.be.empty;\r",
 									"});"
@@ -2289,7 +2296,7 @@
 							"script": {
 								"id": "ebe6fdbe-764b-4809-93f3-7869055f3f52",
 								"exec": [
-									"pm.test(\"Runtime - E2E Test - Get Next Process - Status - 200\", function () {\r",
+									"pm.test(\"App Api - E2E Test - Get Next Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"    var jsonData = pm.response.json();\r",
 									"    var nextProcessElementId = jsonData[0];\r",
@@ -2372,7 +2379,7 @@
 							"script": {
 								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
 								"exec": [
-									"pm.test(\"Runtime - Instances - Complete process - Status - 200\", function () {\r",
+									"pm.test(\"App Api - Process - next process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});"
 								],

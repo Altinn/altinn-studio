@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="KubernetesClient" Version="1.6.12" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.113" />
+    <PackageReference Include="KubernetesClient" Version="2.0.1" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.164" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

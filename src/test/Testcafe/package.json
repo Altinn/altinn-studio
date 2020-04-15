@@ -15,7 +15,7 @@
     "cross-env": "^5.2.1",
     "minimist": "^1.2.5",
     "process": "^0.11.10",
-    "testcafe": "^1.8.3",
+    "testcafe": "^1.8.4",
     "testcafe-browser-provider-puppeteer": "^1.5.2",
     "tslint": "^5.20.1"
   },

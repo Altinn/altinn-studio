@@ -153,6 +153,8 @@
 									"{",
 									"    var jsonData = pm.response.json();",
 									"    var partyId = jsonData.partyId;",
+									"    var ssn = jsonData.party.ssn;",
+									"    pm.environment.set(\"SSN\",ssn);",
 									"    pm.environment.set(\"instanceOwnerId\",partyId);",
 									"}"
 								],
@@ -358,15 +360,17 @@
 									"    var dataTypes = jsonData.dataTypes;\r",
 									"    var dataTypesCount = dataTypes.length;\r",
 									"    for(var i=0; i<dataTypesCount; i++){\r",
-									"        if (dataTypes[i].id !== \"default\" && dataTypes[i].id !== \"ref-data-as-pdf\"){\r",
+									"        if (isGuid(dataTypes[i].id)){\r",
 									"            pm.environment.set(\"attachmentElementType\", dataTypes[i].id);\r",
 									"            break;\r",
 									"        }\r",
 									"    }\r",
-									"    \r",
 									"});\r",
 									"\r",
-									""
+									"function isGuid(stringToTest) {\r",
+									"    var regexGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;\r",
+									"    return regexGuid.test(stringToTest);\r",
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -409,6 +413,66 @@
 								"applications",
 								"{{org}}",
 								"{{app}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET App Texts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ce37f250-8e44-4034-9ec3-b9ee5feac332",
+								"exec": [
+									"pm.test(\"Platform - Storage - Applications - Get App texts - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "8d8e1d9b-b806-4e08-9253-38e5c2b62658",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}/texts/nb",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"applications",
+								"{{org}}",
+								"{{app}}",
+								"texts",
+								"nb"
 							]
 						}
 					},
