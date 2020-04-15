@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Altinn.Platform.Storage.Interface.Models;
@@ -1045,13 +1046,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="config">The ServiceConfiguration to save</param>
         /// <returns>The repository created in gitea</returns>
-        public RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration config)
+        public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration config)
         {
             string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string repoPath = _settings.GetServicePath(org, config.RepositoryName, userName);
             var options = new RepositoryClient.Model.CreateRepoOption(config.RepositoryName);
 
-            RepositoryClient.Model.Repository repository = CreateRepository(org, options);
+            RepositoryClient.Model.Repository repository = await CreateRepository(org, options);
 
             if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
             {
@@ -1204,9 +1205,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">the options for creating a repository</param>
         /// <returns>The newly created repository</returns>
-        public Altinn.Studio.Designer.RepositoryClient.Model.Repository CreateRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
+        public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
         {
-            return _gitea.CreateRepository(org, options).Result;
+            return await _gitea.CreateRepository(org, options);
         }
 
         /// <summary>

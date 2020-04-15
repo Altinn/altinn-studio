@@ -90,6 +90,7 @@ function Receipt(props: WithStyles<typeof styles>) {
       setTextResources(response.data.resources);
     } catch (error) {
       console.error(error);
+      setTextResources([]);
     }
   }
 
@@ -124,7 +125,6 @@ function Receipt(props: WithStyles<typeof styles>) {
     fetchOrganisations();
     fetchUser();
     fetchLanguage();
-    fetchTextResources();
   }, []);
 
   return (

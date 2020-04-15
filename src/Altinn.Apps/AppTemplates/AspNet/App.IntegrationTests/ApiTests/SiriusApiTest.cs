@@ -45,7 +45,7 @@ namespace App.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotNull(instance);
@@ -71,7 +71,7 @@ namespace App.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotNull(instance);
@@ -84,7 +84,7 @@ namespace App.IntegrationTests
             };
 
             HttpResponseMessage responseData = await client.SendAsync(httpRequestMessageGetData);
-            string responseContentData = responseData.Content.ReadAsStringAsync().Result;
+            string responseContentData = await responseData.Content.ReadAsStringAsync();
 
 
             Skjema siriusMainForm = (Skjema)JsonConvert.DeserializeObject(responseContentData, typeof(Skjema));
@@ -115,7 +115,7 @@ namespace App.IntegrationTests
             streamContentNæring.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment;  filename=data-element.xml");
 
             HttpResponseMessage postresponseNæring = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=næringsoppgave", streamContentNæring);
-            DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(postresponseNæring.Content.ReadAsStringAsync().Result, typeof(DataElement));
+            DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(await postresponseNæring.Content.ReadAsStringAsync(), typeof(DataElement));
 
 
             // Add skattemelding.xml
@@ -129,12 +129,12 @@ namespace App.IntegrationTests
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
 
             HttpResponseMessage postresponseskattemelding = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=skattemelding", streamContentNæring);
-            DataElement dataElementSkattemelding = (DataElement)JsonConvert.DeserializeObject(postresponseskattemelding.Content.ReadAsStringAsync().Result, typeof(DataElement));
+            DataElement dataElementSkattemelding = (DataElement)JsonConvert.DeserializeObject(await postresponseskattemelding.Content.ReadAsStringAsync(), typeof(DataElement));
 
             // Validate instance
             string url = "/tdd/sirius/instances/" + instance.Id + "/validate";
             HttpResponseMessage responseValidation = await client.GetAsync(url);
-            string responseContentValidation = responseValidation.Content.ReadAsStringAsync().Result;
+            string responseContentValidation = await responseValidation.Content.ReadAsStringAsync();
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContentValidation, typeof(List<ValidationIssue>));
 
             Assert.Empty(messages);
@@ -159,7 +159,7 @@ namespace App.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotNull(instance);
@@ -172,7 +172,7 @@ namespace App.IntegrationTests
             };
 
             HttpResponseMessage responseData = await client.SendAsync(httpRequestMessageGetData);
-            string responseContentData = responseData.Content.ReadAsStringAsync().Result;
+            string responseContentData = await responseData.Content.ReadAsStringAsync();
 
 
             Skjema siriusMainForm = (Skjema)JsonConvert.DeserializeObject(responseContentData, typeof(Skjema));
@@ -203,12 +203,12 @@ namespace App.IntegrationTests
             streamContentNæring.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=data-element.xml");
 
             HttpResponseMessage postresponseNæring = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=næringsoppgave", streamContentNæring);
-            DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(postresponseNæring.Content.ReadAsStringAsync().Result, typeof(DataElement));
+            DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(await postresponseNæring.Content.ReadAsStringAsync(), typeof(DataElement));
 
             //Validate instance
             string url = "/tdd/sirius/instances/" + instance.Id + "/validate";
             HttpResponseMessage responseValidation = await client.GetAsync(url);
-            string responseContentValidation = responseValidation.Content.ReadAsStringAsync().Result;
+            string responseContentValidation = await responseValidation.Content.ReadAsStringAsync();
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContentValidation, typeof(List<ValidationIssue>));
 
             Assert.Single(messages);
@@ -239,7 +239,7 @@ namespace App.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotNull(instance);
@@ -252,7 +252,7 @@ namespace App.IntegrationTests
             };
 
             HttpResponseMessage responseData = await client.SendAsync(httpRequestMessageGetData);
-            string responseContentData = responseData.Content.ReadAsStringAsync().Result;
+            string responseContentData = await responseData.Content.ReadAsStringAsync();
             Skjema siriusMainForm = (Skjema)JsonConvert.DeserializeObject(responseContentData, typeof(Skjema));
 
             // Modify the prefilled form. This would need to be replaced with the real sirius form
@@ -282,7 +282,7 @@ namespace App.IntegrationTests
             streamContentNæring.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
 
             HttpResponseMessage postresponseNæring = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=næringsoppgave", streamContentNæring);
-            DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(postresponseNæring.Content.ReadAsStringAsync().Result, typeof(DataElement));
+            DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(await postresponseNæring.Content.ReadAsStringAsync(), typeof(DataElement));
 
 
             // Add skattemelding.xml
@@ -297,12 +297,12 @@ namespace App.IntegrationTests
             streamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=data-element.xml");
 
             HttpResponseMessage postresponseskattemelding = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=skattemelding", streamContentNæring);
-            DataElement dataElementSkattemelding = (DataElement)JsonConvert.DeserializeObject(postresponseskattemelding.Content.ReadAsStringAsync().Result, typeof(DataElement));
+            DataElement dataElementSkattemelding = (DataElement)JsonConvert.DeserializeObject(await postresponseskattemelding.Content.ReadAsStringAsync(), typeof(DataElement));
 
             // Validate instance. This validates that main form has valid data and required data 
             string url = "/tdd/sirius/instances/" + instance.Id + "/validate";
             HttpResponseMessage responseValidation = await client.GetAsync(url);
-            string responseContentValidation = responseValidation.Content.ReadAsStringAsync().Result;
+            string responseContentValidation = await responseValidation.Content.ReadAsStringAsync();
             List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContentValidation, typeof(List<ValidationIssue>));
 
             Assert.Empty(messages);
@@ -313,14 +313,14 @@ namespace App.IntegrationTests
             };
 
             HttpResponseMessage responseFirstNext = await client.SendAsync(httpRequestMessageFirstNext);
-            string responseContentFirstNext = responseFirstNext.Content.ReadAsStringAsync().Result;
+            string responseContentFirstNext = await responseFirstNext.Content.ReadAsStringAsync();
 
             ProcessState stateAfterFirstNext = (ProcessState)JsonConvert.DeserializeObject(responseContentFirstNext, typeof(ProcessState));
             Assert.Equal("Task_2",stateAfterFirstNext.CurrentTask.ElementId);
 
             // Validate instance in Task_2. This validates that PDF for nærings is in place
             HttpResponseMessage responseValidationTask2 = await client.GetAsync(url);
-            string responseContentValidationTask2 = responseValidationTask2.Content.ReadAsStringAsync().Result;
+            string responseContentValidationTask2 = await responseValidationTask2.Content.ReadAsStringAsync();
             List<ValidationIssue> messagesTask2 = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContentValidationTask2, typeof(List<ValidationIssue>));
             Assert.Empty(messagesTask2);
 
@@ -330,7 +330,7 @@ namespace App.IntegrationTests
             };
 
             HttpResponseMessage responseSecondNext = await client.SendAsync(httpRequestMessageSecondNext);
-            string responseContentSecondNext = responseSecondNext.Content.ReadAsStringAsync().Result;
+            string responseContentSecondNext = await responseSecondNext.Content.ReadAsStringAsync();
 
             ProcessState stateAfterSecondNext = (ProcessState)JsonConvert.DeserializeObject(responseContentSecondNext, typeof(ProcessState));
             Assert.Equal("Task_3", stateAfterSecondNext.CurrentTask.ElementId);

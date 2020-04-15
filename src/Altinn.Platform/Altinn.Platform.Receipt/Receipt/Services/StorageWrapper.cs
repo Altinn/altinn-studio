@@ -30,7 +30,7 @@ namespace Altinn.Platform.Receipt.Services.Interfaces
         public StorageWrapper(HttpClient httpClient, IHttpContextAccessor httpContextAccessor, IOptions<PlatformSettings> platformSettings)
         {
             _platformSettings = platformSettings.Value;
-            httpClient.BaseAddress = new Uri(_platformSettings.ApiRegisterEndpoint);
+            httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
             httpClient.DefaultRequestHeaders.Add(_platformSettings.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
@@ -52,7 +52,7 @@ namespace Altinn.Platform.Receipt.Services.Interfaces
                 return instance;
             }
 
-            throw new PlatformHttpException(response);
+            throw new PlatformHttpException(response, string.Empty);
         }
     }
 }

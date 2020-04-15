@@ -127,7 +127,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page)
         {
-            User user = GetCurrentUser().Result;
+            User user = await GetCurrentUser();
 
             SearchResults repository = new SearchResults();
             string giteaSearchUriString = $"repos/search?limit={_settings.RepoSearchPageCount}";
@@ -314,7 +314,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null)
         {
-            string csrf = GetCsrf().Result;
+            string csrf = await GetCsrf();
 
             await Task.Run(() => DeleteCurrentAppKeys(csrf, keyName));
 

@@ -86,7 +86,7 @@ namespace Altinn.Platform.Receipt.Test
             {
                 _profileMock
                  .Setup(p => p.GetUser(It.IsAny<int>()))
-                 .Throws(new PlatformHttpException(new HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.Forbidden }));
+                 .Throws(new PlatformHttpException(new HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.Forbidden }, string.Empty));
 
                 HttpClient client = GetTestClient(_registerMock, _storageMock, _profileMock);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetUserToken(3));
@@ -193,7 +193,7 @@ namespace Altinn.Platform.Receipt.Test
 
                 _storageMock.Setup(s =>
                 s.GetInstance(It.IsAny<int>(), It.IsAny<Guid>()))
-                    .Throws(new PlatformHttpException(new HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.InternalServerError }));
+                    .Throws(new PlatformHttpException(new HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.InternalServerError }, string.Empty));
 
                 HttpClient client = GetTestClient(_registerMock, _storageMock, _profileMock);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetUserToken(3));
@@ -215,7 +215,7 @@ namespace Altinn.Platform.Receipt.Test
 
                 _registerMock.Setup(r =>
                 r.GetParty(It.IsAny<int>()))
-                 .Throws(new PlatformHttpException(new HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.NotFound }));
+                 .Throws(new PlatformHttpException(new HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.NotFound }, string.Empty));
 
                 _storageMock.Setup(s =>
                 s.GetInstance(It.IsAny<int>(), It.IsAny<Guid>()))

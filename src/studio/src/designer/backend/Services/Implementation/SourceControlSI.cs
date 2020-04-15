@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -219,7 +220,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
-        public void Push(string org, string repository)
+        public async Task Push(string org, string repository)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -443,9 +444,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="options">Options for the remote repository</param>
         /// <returns>The repostory from API</returns>
-        public Altinn.Studio.Designer.RepositoryClient.Model.Repository CreateRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
+        public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, Altinn.Studio.Designer.RepositoryClient.Model.CreateRepoOption options)
         {
-            return _gitea.CreateRepository(org, options).Result;
+            return await _gitea.CreateRepository(org, options);
         }
 
         /// <summary>
@@ -487,12 +488,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// Return the deploy Token generated to let azure devops pipeline clone private GITEA repos on behalf of app developer
         /// </summary>
         /// <returns>The deploy app token</returns>
-        public string GetDeployToken()
+        public async Task<string> GetDeployToken()
         {
             string deployToken = _httpContextAccessor.HttpContext.Request.Cookies[_settings.DeployCookieName];
             if (deployToken == null)
             {
-                KeyValuePair<string, string> deployKeyValuePair = _gitea.GetSessionAppKey("AltinnDeployToken").Result ?? default(KeyValuePair<string, string>);
+                KeyValuePair<string, string> deployKeyValuePair = await _gitea.GetSessionAppKey("AltinnDeployToken") ?? default(KeyValuePair<string, string>);
                 if (!deployKeyValuePair.Equals(default(KeyValuePair<string, string>)))
                 {
                     deployToken = deployKeyValuePair.Value;
