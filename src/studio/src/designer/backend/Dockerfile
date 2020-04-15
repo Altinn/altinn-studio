@@ -1,4 +1,4 @@
-FROM node:12.14.1-alpine3.11 AS generate-designer-js
+FROM node:12.16.2-alpine3.11 AS generate-designer-js
 COPY src/designer/backend/package.json .
 COPY src/designer/backend/package-lock.json .
 RUN npm ci
