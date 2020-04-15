@@ -1,9 +1,6 @@
 using System;
 using System.IO;
-using System.Threading.Tasks;
 using AltinnCore.Authentication.Constants;
-
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
