@@ -50,7 +50,7 @@ namespace Altinn.Studio.Designer
                 builder
                     .AddFilter("Microsoft", LogLevel.Warning)
                     .AddFilter("System", LogLevel.Warning)
-                    .AddFilter("Altinn.Platform.Authorization.Program", LogLevel.Debug)
+                    .AddFilter("Altinn.Studio.Designer.Program", LogLevel.Debug)
                     .AddConsole();
             });
 
