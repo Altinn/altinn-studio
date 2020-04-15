@@ -125,7 +125,6 @@ function Receipt(props: WithStyles<typeof styles>) {
     fetchOrganisations();
     fetchUser();
     fetchLanguage();
-    fetchTextResources();
   }, []);
 
   return (
