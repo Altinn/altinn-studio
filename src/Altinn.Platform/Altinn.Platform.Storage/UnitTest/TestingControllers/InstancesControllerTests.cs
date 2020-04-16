@@ -527,7 +527,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
 
                 instanceEventRepository ??= new Mock<IInstanceEventRepository>().Object;
-
+                Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
                     builder.ConfigureTestServices(services =>
