@@ -13,7 +13,12 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
 import org.apache.pdfbox.pdmodel.interactive.annotation.*;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitWidthDestination;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.w3c.dom.Document;
 
@@ -46,6 +51,8 @@ public class PDFGenerator {
   private Party userParty;
   private PDPage currentPage;
   private PDPageContentStream currentContent;
+  private PDDocumentOutline outline;
+  private PDOutlineItem pagesOutline;
   private ByteArrayOutputStream output;
 
   /**
@@ -54,6 +61,8 @@ public class PDFGenerator {
   public PDFGenerator(PdfContext pdfContext) {
     this.document = new PDDocument();
     this.form = new PDAcroForm(this.document);
+    this.outline = new PDDocumentOutline();
+    this.pagesOutline = new PDOutlineItem();
     this.formLayout = pdfContext.getFormLayout();
     this.textResources = pdfContext.getTextResources();
     this.instance = pdfContext.getInstance();
@@ -76,7 +85,11 @@ public class PDFGenerator {
     // General pdf setup
     PDDocumentInformation info = new PDDocumentInformation();
     info.setCreationDate(Calendar.getInstance());
+    info.setTitle(InstanceUtils.getInstanceName(instance));
     document.setDocumentInformation(info);
+    pagesOutline.setTitle("Alle sider");
+    outline.addLast(pagesOutline);
+    document.getDocumentCatalog().setDocumentOutline((outline));
     PDResources resources = new PDResources();
     font = PDType1Font.HELVETICA;
     fontBold = PDType1Font.HELVETICA_BOLD;
@@ -85,6 +98,7 @@ public class PDFGenerator {
     String defaultAppearance = "/Helv 10 Tf 0 0 0 rg";
     form.setDefaultAppearance(defaultAppearance);
     document.getDocumentCatalog().setAcroForm(form);
+    document.getDocumentCatalog().setLanguage("Norwegian"); // hardcoded for now, will be solved by issue #1253
 
     // creates a new page
     createNewPage();
@@ -127,6 +141,8 @@ public class PDFGenerator {
     }
 
     // saves and closes
+    pagesOutline.openNode();
+    outline.openNode();
     currentContent.close();
     document.save(output);
     document.close();
@@ -210,6 +226,13 @@ public class PDFGenerator {
     }
     currentPage = new PDPage(PDRectangle.A4);
     document.addPage((currentPage));
+    // adds page to bookmarks
+    PDPageDestination dest = new PDPageFitWidthDestination();
+    dest.setPage(currentPage);
+    PDOutlineItem bookmark = new PDOutlineItem();
+    bookmark.setDestination(dest);
+    bookmark.setTitle("Side " + document.getPages().getCount());
+    pagesOutline.addLast(bookmark);
     currentContent= new PDPageContentStream(document, currentPage);
   }
 
