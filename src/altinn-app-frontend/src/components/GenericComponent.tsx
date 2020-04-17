@@ -166,7 +166,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     />
     {/* { React.createElement(RenderComponent, componentProps) } */}
     {isSimple && hasValidationMessages &&
-          renderValidationMessagesForComponent(componentValidations.simpleBinding, props.id)
+          renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
     }
     <HelpTextPopover
         helpIconRef={helpIconRef}
