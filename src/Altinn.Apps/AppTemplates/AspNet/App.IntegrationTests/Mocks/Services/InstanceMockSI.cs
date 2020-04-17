@@ -77,9 +77,20 @@ namespace App.IntegrationTests.Mocks.Services
 
             if (File.Exists(instancePath))
             {
-                string content = System.IO.File.ReadAllText(instancePath);
+                string content = File.ReadAllText(instancePath);
                 Instance storedInstance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+               
+
+                // Archiving instance if process was ended
+                if (storedInstance.Process.Ended == null && process.Ended != null)
+                {
+                    storedInstance.Status ??= new InstanceStatus();
+                    storedInstance.Status.Archived = process.Ended;
+                }
+
                 storedInstance.Process = process;
+                storedInstance.LastChanged = DateTime.UtcNow;
+
                 File.WriteAllText(instancePath, JsonConvert.SerializeObject(storedInstance));
                 return Task.FromResult(storedInstance);
             }
