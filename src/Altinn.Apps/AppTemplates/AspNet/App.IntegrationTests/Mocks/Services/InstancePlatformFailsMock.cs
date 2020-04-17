@@ -51,11 +51,6 @@ namespace App.IntegrationTests.Mocks.Services
             throw await PlatformHttpException.CreateAsync(response);
         }
 
-        public Task<Instance> UpdateInstance(Instance instance)
-        {
-            throw new ServiceException(HttpStatusCode.Conflict, "CONFLICT");
-        }
-
         public Task<Instance> UpdateProcess(Instance instance)
         {
             throw new ServiceException(HttpStatusCode.Conflict, "CONFLICT");

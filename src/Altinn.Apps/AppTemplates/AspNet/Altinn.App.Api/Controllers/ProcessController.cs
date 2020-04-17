@@ -141,7 +141,7 @@ namespace Altinn.App.Api.Controllers
 
                 // trigger start event and goto next task
                 ProcessStateChange processStateChange = _processService.ProcessStartAndGotoNextTask(instance, validStartElement, User);
-                Instance updatedInstance = await UpdateInstanceAndDispatchEvents(instance, processStateChange);
+                Instance updatedInstance = await UpdateProcessAndDispatchEvents(instance, processStateChange);
 
                 return Ok(updatedInstance.Process);
             }
@@ -156,13 +156,13 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private async Task<Instance> UpdateInstanceAndDispatchEvents(Instance instance, ProcessStateChange processStateChange)
+        private async Task<Instance> UpdateProcessAndDispatchEvents(Instance instance, ProcessStateChange processStateChange)
         {
             await NotifyAppAboutEvents(_altinnApp, instance, processStateChange.Events);
 
             // need to update the instance process and then the instance in case appbase has changed it, e.g. endEvent sets status.archived
-            Instance instanceWithUpdatedProcess = await _instanceService.UpdateProcess(instance);
-            Instance updatedInstance = await _instanceService.UpdateInstance(instanceWithUpdatedProcess);
+            Instance updatedInstance = await _instanceService.UpdateProcess(instance);
+
             await _processService.DispatchProcessEventsToStorage(updatedInstance, processStateChange.Events);
 
             // remember to get the instance anew since AppBase can have updated a data element or stored something in the database.
@@ -309,7 +309,7 @@ namespace Altinn.App.Api.Controllers
                     ProcessStateChange nextResult = _processService.ProcessNext(instance, nextElement, User);
                     if (nextResult != null)
                     {
-                        Instance changedInstance = await UpdateInstanceAndDispatchEvents(instance, nextResult);
+                        Instance changedInstance = await UpdateProcessAndDispatchEvents(instance, nextResult);
 
                         return Ok(changedInstance.Process);
                     }
@@ -334,7 +334,7 @@ namespace Altinn.App.Api.Controllers
 
             if (instance.Process?.CurrentTask?.Validated == null || !instance.Process.CurrentTask.Validated.CanCompleteTask)
             {
-                validationIssues = await _validationService.ValidateAndUpdateInstance(instance, currentElementId);
+                validationIssues = await _validationService.ValidateAndUpdateProcess(instance, currentElementId);
 
                 canEndTask = await _altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
             }
@@ -427,7 +427,7 @@ namespace Altinn.App.Api.Controllers
 
                     if (nextResult != null)
                     {
-                        instance = await UpdateInstanceAndDispatchEvents(instance, nextResult);
+                        instance = await UpdateProcessAndDispatchEvents(instance, nextResult);
 
                         currentTaskId = instance.Process.CurrentTask?.ElementId;
                     }

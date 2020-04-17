@@ -25,6 +25,7 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly ILogger _logger;
         private readonly IData _dataService;
+        private readonly IInstance _instanceService;
         private readonly IAltinnApp _altinnApp;
         private readonly IAppResources _appResourcesService;
         private readonly IObjectModelValidator _objectModelValidator;
@@ -36,6 +37,7 @@ namespace Altinn.App.Services.Implementation
         public ValidationAppSI(
             ILogger<ApplicationAppSI> logger,
             IData dataService,
+            IInstance instanceService,
             IAltinnApp altinnApp,
             IAppResources appResourcesService,
             IObjectModelValidator objectModelValidator,
@@ -43,13 +45,14 @@ namespace Altinn.App.Services.Implementation
         {
             _logger = logger;
             _dataService = dataService;
+            _instanceService = instanceService;
             _altinnApp = altinnApp;
             _appResourcesService = appResourcesService;
             _objectModelValidator = objectModelValidator;
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<List<ValidationIssue>> ValidateAndUpdateInstance(Instance instance, string taskId)
+        public async Task<List<ValidationIssue>> ValidateAndUpdateProcess(Instance instance, string taskId)
         {
             // Todo. Figure out where to get this from
             Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
@@ -111,6 +114,7 @@ namespace Altinn.App.Services.Implementation
                 instance.Process.CurrentTask.Validated = new ValidationStatus { CanCompleteTask = false, Timestamp = DateTime.Now };
             }
 
+            instance = await _instanceService.UpdateProcess(instance);
             return messages;
         }
 

@@ -64,9 +64,7 @@ namespace AltinnCore.Runtime.RestControllers
                 throw new ValidationException("Unable to validate instance without a started process.");
             }
 
-            List<ValidationIssue> messages = await _validationService.ValidateAndUpdateInstance(instance, taskId);
-
-            await _instanceService.UpdateInstance(instance);
+            List<ValidationIssue> messages = await _validationService.ValidateAndUpdateProcess(instance, taskId);
 
             return Ok(messages);
         }

@@ -10,7 +10,7 @@ namespace App.IntegrationTestsRef.Mocks.Services
 {
     public class ValidationMockSI : IValidation
     {
-        public async Task<List<ValidationIssue>> ValidateAndUpdateInstance(Instance instance, string taskId)
+        public async Task<List<ValidationIssue>> ValidateAndUpdateProcess(Instance instance, string taskId)
         {
             return new List<ValidationIssue>();
         }
