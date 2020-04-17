@@ -9,7 +9,7 @@ namespace Altinn.App.Services.Interface
 {
     public interface IValidation
     {
-        Task<List<ValidationIssue>> ValidateAndUpdateInstance(Instance instance, string taskId);
+        Task<List<ValidationIssue>> ValidateAndUpdateProcess(Instance instance, string taskId);
 
         Task<List<ValidationIssue>> ValidateDataElement(Instance instance, DataType dataType, DataElement dataElement);
     }
