@@ -66,21 +66,36 @@ namespace App.IntegrationTests.Mocks.Services
             return Task.FromResult(instance);
         }
 
-        public Task<Instance> UpdateInstance(Instance instance)
+        public Task<Instance> UpdateProcess(Instance instance)
         {
+            ProcessState process = instance.Process;
+
             string app = instance.AppId.Split("/")[1];
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
             string instancePath = GetInstancePath(app, instance.Org, int.Parse(instance.InstanceOwner.PartyId), instanceGuid);
-           
-            File.WriteAllText(instancePath, JsonConvert.SerializeObject(instance));
-            
-            return Task.FromResult(instance);
-        }
 
-        public Task<Instance> UpdateProcess(Instance instance)
-        {
-            return UpdateInstance(instance);
+            if (File.Exists(instancePath))
+            {
+                string content = File.ReadAllText(instancePath);
+                Instance storedInstance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+               
+
+                // Archiving instance if process was ended
+                if (storedInstance?.Process?.Ended == null && process.Ended != null)
+                {
+                    storedInstance.Status ??= new InstanceStatus();
+                    storedInstance.Status.Archived = process.Ended;
+                }
+
+                storedInstance.Process = process;
+                storedInstance.LastChanged = DateTime.UtcNow;
+
+                File.WriteAllText(instancePath, JsonConvert.SerializeObject(storedInstance));
+                return Task.FromResult(storedInstance);
+            }
+
+            return null;
         }
 
         private Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)

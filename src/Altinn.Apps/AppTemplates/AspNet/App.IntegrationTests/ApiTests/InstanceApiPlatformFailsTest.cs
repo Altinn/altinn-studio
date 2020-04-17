@@ -41,34 +41,6 @@ namespace App.IntegrationTestsRef.ApiTests
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
-        /// </summary>
-        /// <returns></returns>
-        [Fact]
-        public async Task Instance_Put_FailsOK()
-        {
-            string token = PrincipalUtil.GetToken(1337);
-
-            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "platform-fails");
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            Instance instance = new Instance
-            {
-                Id = $"1337/26133fb5-a9f2-45d4-90b1-f6d93ad40713",
-                Org = "tdd",
-                AppId = "tdd/platform-fails",
-                InstanceOwner = new InstanceOwner
-                {
-                    PartyId = "1337",
-                },
-            };
-
-            StringContent httpContent = new StringContent(instance.ToString(), Encoding.UTF8, "application/json");
-    
-            HttpResponseMessage response = await client.PutAsync("/tdd/platform-fails/instances/1337/26133fb5-a9f2-45d4-90b1-f6d93ad40713",
-                httpContent);
-
-            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-        }
-
         [Fact]
         public async Task Instance_Post_Instance_FailOk()
         {
