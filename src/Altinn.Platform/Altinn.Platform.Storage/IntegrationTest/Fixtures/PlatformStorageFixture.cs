@@ -30,6 +30,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
         /// </summary>
         public PlatformStorageFixture()
         {
+            Program.ConfigureSetupLogging();
             ConfigurationBuilder config = new ConfigurationBuilder();
             Program.LoadAppSettingsFiles(config);
 
