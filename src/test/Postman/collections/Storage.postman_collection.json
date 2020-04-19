@@ -871,66 +871,6 @@
 					"response": []
 				},
 				{
-					"name": "PUT Edit App instance",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
-								"exec": [
-									"pm.test(\"Platform - Storage - Instances - Edit Instance - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{AltinnStudioRuntime}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{org}}/{{app}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
-						},
-						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
-							"protocol": "https",
-							"host": [
-								"platform",
-								"{{envUrl}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "PUT Edit Process",
 					"event": [
 						{

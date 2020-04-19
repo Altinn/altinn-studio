@@ -435,71 +435,6 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "PUT Edit Instance",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "49c4d8df-75ca-450e-be67-db55129f6ecc",
-								"exec": [
-									"pm.test(\"App Api - Instances - Get app instance by ID - Status - 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{AltinnStudioRuntime}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"id\": \"{{instanceOwnerId}}/{{instanceId}}\",\r\n    \"instanceOwner\": {\r\n        \"partyId\": \"{{instanceOwnerId}}\"\r\n    },\r\n    \"appId\": \"{{org}}/{{app}}\",\r\n    \"org\": \"{{org}}\",\r\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleAfter\": \"2019-05-20T00:00:00Z\",\r\n    \"title\": {\r\n        \"nb\": \"Arbeidsmelding\"\r\n    },\r\n    \"appOwner\": {\r\n        \"labels\": [\r\n            \"gr\",\r\n            \"asdf\"\r\n        ],\r\n        \"messages\": null,\r\n        \"canBeDeletedAfter\": null\r\n    },\r\n    \"data\": [],\r\n    \"created\": \"2019-11-26T09:59:49.3923233Z\",\r\n    \"createdBy\": null,\r\n    \"lastChanged\": \"2019-11-26T09:59:49.3923233Z\",\r\n    \"lastChangedBy\": null\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}"
-							]
-						}
-					},
-					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
@@ -2126,7 +2061,7 @@
 							{
 								"key": "Content-Type",
 								"type": "text",
-								"value": "application/octet-stream"
+								"value": "application/pdf"
 							}
 						],
 						"body": {

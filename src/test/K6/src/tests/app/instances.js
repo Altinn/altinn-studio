@@ -42,13 +42,6 @@ export default function(data) {
         instanceId = platformInstances.findInstanceId(instanceJson);
     };
 
-    //Test to edit an instance by id with App api and validate the response
-    res = appInstances.putInstanceById(runtimeToken, partyId, instanceId, instanceJson);    
-    success = check(res, {
-        "App PUT Edit Instance status is 200:": (r) => r.status === 200        
-        });  
-    addErrorCount(success);
-
     //Test to get an instance by id with App api and validate the response
     res = appInstances.getInstanceById(runtimeToken, partyId, instanceId);
     success = check(res, {
