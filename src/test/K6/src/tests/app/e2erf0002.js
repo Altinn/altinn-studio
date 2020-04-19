@@ -13,11 +13,7 @@ let users = JSON.parse(open("../../data/users.json"));
 export const options = {
     thresholds:{
         "errors": ["count<1"]
-    },
-    vus: 1,
-    stages: [
-        { duration: '5m', target: 20 }
-    ]
+    }
 };
 
 //Tests for App API: RF-0002

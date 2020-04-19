@@ -55,3 +55,12 @@ export function clearCookies(){
     jar.set("https://" + config.baseUrl, "AltinnStudioRuntime", "test", {"expires": "Mon, 02 Jan 2010 15:04:05 MST"});
     jar.set("https://" + config.baseUrl, ".ASPXAUTH", "test", {"expires": "Mon, 02 Jan 2010 15:04:05 MST"});         
 };
+
+//Request to generate maskinporten token from the maskinportengenerator project running locally
+//Link to project: https://github.com/Altinn/MaskinportenTokenGenerator
+export function generateMaskinPortenToken(){    
+    var endpoint = "http://localhost:17823/"
+    var response = http.get(endpoint);
+    var token = (JSON.parse(response.body)).access_token;
+    return token;
+};
