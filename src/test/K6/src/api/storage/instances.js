@@ -33,16 +33,6 @@ export function getAllinstances(altinnStudioRuntimeCookie, partyId){
     return http.get(endpoint, params);
 };
 
-//Api call to Storage:Instances to edit an instance by id and return response
-export function putInstanceById(altinnStudioRuntimeCookie, partyId, instanceId){
-    var endpoint = config.buildStorageUrls(partyId, instanceId, "", "instanceid");
-    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, "platform");
-    var timeStamp = new Date();
-    var requestbody = { "dueBefore":  timeStamp.toISOString()};
-    requestbody = JSON.stringify(requestbody);    
-    return http.put(endpoint, requestbody, params);
-};
-
 //Function to clip out the instance owner id and return only instance id
 export function findInstanceId(responseBody){
     var instanceId = (JSON.parse(responseBody)).id;

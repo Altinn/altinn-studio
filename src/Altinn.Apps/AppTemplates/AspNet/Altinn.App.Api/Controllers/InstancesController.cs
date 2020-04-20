@@ -128,55 +128,6 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        ///  Updates an instance object in storage.
-        /// </summary>
-        /// <param name="org">unique identifier of the organisation responsible for the app</param>
-        /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
-        /// <param name="instanceGuid">unique id to identify the instance</param>
-        /// <param name="instance">the instance with attributes that should be updated</param>
-        /// <returns>the updated instance</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
-        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
-        [Produces("application/json")]
-        [Consumes("application/json")]
-        [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> Put(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromRoute] int instanceOwnerPartyId,
-            [FromRoute] Guid instanceGuid,
-            [FromBody] Instance instance)
-        {
-            if (instance == null ||
-                !org.Equals(instance.Org) ||
-                !instance.AppId.EndsWith(app) ||
-                !instanceOwnerPartyId.Equals(int.Parse(instance.InstanceOwner.PartyId)) ||
-                !instance.Id.EndsWith(instanceGuid.ToString()))
-            {
-                return BadRequest($"Inconsistent values between path params and instance attributes");
-            }
-
-            try
-            {
-                Instance updatedInstance = await _instanceService.UpdateInstance(instance);
-
-                SelfLinkHelper.SetInstanceAppSelfLinks(updatedInstance, Request);
-
-                return Ok(updatedInstance);
-            }
-            catch (PlatformHttpException e)
-            {
-                return HandlePlatformHttpException(e, $"Update of instance {instanceOwnerPartyId}/{instanceGuid} failed.");
-            }
-            catch (Exception exception)
-            {
-                return ExceptionResponse(exception, $"Update of instance {instanceOwnerPartyId}/{instanceGuid} failed.");
-            }
-        }
-
-        /// <summary>
         /// Creates a new instance of an application in platform storage. Clients can send an instance as json or send a
         /// multipart form-data with the instance in the first part named "instance" and the prefill data in the next parts, with
         /// names that correspond to the element types defined in the application metadata.

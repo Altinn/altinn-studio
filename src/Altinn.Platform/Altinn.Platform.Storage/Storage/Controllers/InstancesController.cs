@@ -251,7 +251,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
             }
-        
+
             // Checking that user is authorized to instantiate.
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(appInfo.Org, appInfo.Id.Split('/')[1], HttpContext.User, "instantiate", instanceOwnerPartyId, null);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
@@ -293,70 +293,6 @@ namespace Altinn.Platform.Storage.Controllers
                 _logger.LogError($"Deleted instance {storedInstance.Id}");
                 return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException.Message}");
             }
-        }
-
-        /// <summary>
-        /// Updates an instance.
-        /// </summary>
-        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
-        /// <param name="instanceGuid">The id of the instance that should be updated.</param>
-        /// <param name="instance">The instance details to store in place of the existing instance.</param>
-        /// <returns>The updated instance.</returns>
-        [Authorize]
-        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
-        [Consumes("application/json")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Produces("application/json")]
-        public async Task<ActionResult<Instance>> Put(int instanceOwnerPartyId, Guid instanceGuid, [FromBody] Instance instance)
-        {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
-            Instance existingInstance;
-            try
-            {
-                existingInstance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-            }
-            catch (Exception e)
-            {
-                string message = $"Unable to find instance {instanceId} to update: {e}";
-                _logger.LogError(message);
-
-                return NotFound(message);
-            }
-
-            existingInstance.AppOwner = instance.AppOwner;
-
-            /* ignore process changes */
-
-            existingInstance.Status = instance.Status;
-            existingInstance.Title = instance.Title;
-
-            DateTime? dueBefore = DateTimeHelper.ConvertToUniversalTime(instance.DueBefore);
-            existingInstance.DueBefore ??= dueBefore;
-
-            DateTime? visibleAfter = DateTimeHelper.ConvertToUniversalTime(instance.VisibleAfter);
-            existingInstance.VisibleAfter ??= visibleAfter;
-
-            existingInstance.LastChangedBy = GetUserId();
-            existingInstance.LastChanged = DateTime.UtcNow;
-
-            Instance result;
-            try
-            {
-                existingInstance.Data = null;
-                result = await _instanceRepository.Update(existingInstance);
-                await DispatchEvent(InstanceEventType.Saved, result);
-                result.SetPlatformSelflink(_storageBaseAndHost);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Unable to update instance object {instanceId}. Due to {e}");
-                return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
-            }
-
-            return Ok(result);
         }
 
         /// <summary>
@@ -432,7 +368,7 @@ namespace Altinn.Platform.Storage.Controllers
                     return StatusCode(500, $"Unexpected exception when updating instance after soft delete: {e.Message}");
                 }
             }
-        }        
+        }
 
         /// <summary>
         /// Add complete confirmation.
