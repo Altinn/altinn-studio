@@ -1,19 +1,15 @@
 import * as React from 'react';
-import { Grid } from '@material-ui/core';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import HelpTextIcon from './HelpTextIcon';
 
-export interface IFormLabelProps {
+export interface IFormLegendProps {
   labelText: string;
-  id: string;
   language: any;
   required: boolean;
   helpTextProps: any;
 }
 
-export default function Label(props: IFormLabelProps) {
-
-  
+export default function Legend(props: IFormLegendProps) {
 
   const {helpIconRef, openPopover, toggleClickPopover, toggleKeypressPopover} = props.helpTextProps;
   if (!props.labelText)
@@ -36,18 +32,16 @@ export default function Label(props: IFormLabelProps) {
   }
 
   return (
-      <Grid item={true}>
-        <label className='a-form-label title-label' htmlFor={props.id}>
-          {props.labelText}
-          {props.required ? null :
-            <span className='label-optional'>
-              ({getLanguageFromKey('general.optional', props.language)})
-            </span>
-          }
-          {!!helpIconRef &&
-            renderHelpTextIcon()
-          }
-        </label>
-      </Grid>
+    <div className='a-form-label title-label'>
+      {props.labelText}
+      {props.required ? null :
+        <span className='label-optional'>
+          ({getLanguageFromKey('general.optional', props.language)})
+        </span>
+      }
+      {!!helpIconRef &&
+        renderHelpTextIcon()
+      }
+      </div>
   );
 }
