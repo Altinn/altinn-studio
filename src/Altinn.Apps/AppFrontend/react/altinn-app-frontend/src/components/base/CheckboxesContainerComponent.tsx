@@ -181,7 +181,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
               label={option.label}
             />
             { props.validationMessages &&
-              this.isOptionSelected(option.value) &&
+              isOptionSelected(option.value) &&
               renderValidationMessagesForComponent(props.validationMessages.simpleBinding, props.id) }
           </React.Fragment>
         ))}
