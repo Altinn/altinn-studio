@@ -57,14 +57,7 @@ export default function(data) {
     success = check(res, {
         "GET Instaces by instanceOwner status is 403:": (r) => r.status === 403        
         });  
-    addErrorCount(success);    
-
-    //Test to edit an instance by id in storage and validate the response
-    res = instances.putInstanceById(runtimeToken, partyId, instanceId);    
-    success = check(res, {
-        "PUT Edit Instance status is 200:": (r) => r.status === 200        
-        });  
-    addErrorCount(success);    
+    addErrorCount(success);       
 
     sbl.deleteSblInstance(runtimeToken, partyId, instanceId, "true"); 
 };
