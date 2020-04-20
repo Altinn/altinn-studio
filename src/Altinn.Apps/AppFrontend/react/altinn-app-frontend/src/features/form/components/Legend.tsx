@@ -3,9 +3,7 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import HelpTextIcon from './HelpTextIcon';
 
 export interface IFormLegendProps {
-  type: string;
   labelText: string;
-  id: string;
   language: any;
   required: boolean;
   helpTextProps: any;
