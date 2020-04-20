@@ -216,7 +216,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                         }
                     });
                 instanceRepository.Setup(r => r.Update(It.IsAny<Instance>())).ReturnsAsync((Instance i) => { return i; });
-
+                Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
                     builder.ConfigureTestServices(services =>

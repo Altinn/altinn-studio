@@ -13,27 +13,49 @@ using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-using Serilog;
-using Serilog.Core;
-using Serilog.Extensions.Logging;
-
 namespace Altinn.Studio.Designer
 {
     /// <summary>
     /// This is the main method for running this asp.net core application without IIS
     /// </summary>
-    public static class Program
+    public class Program
     {
-        private static Logger logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
+        private static ILogger _logger;
+
+        /// <summary>
+        /// Default protected constructor
+        /// </summary>
+        protected Program()
+        {
+        }
 
         /// <summary>
         /// The main method
         /// </summary>
         /// <param name="args">The Arguments</param>
         public static void Main(string[] args)
-            => CreateWebHostBuilder(args).Build().Run();
+        {
+            ConfigureSetupLogging();
+            CreateWebHostBuilder(args).Build().Run();
+        }
+
+        /// <summary>
+        /// Configure logging for setting up application. Temporary
+        /// </summary>
+        public static void ConfigureSetupLogging()
+        {
+            // Setup logging for the web host creation
+            var logFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .AddFilter("Microsoft", LogLevel.Warning)
+                    .AddFilter("System", LogLevel.Warning)
+                    .AddFilter("Altinn.Studio.Designer.Program", LogLevel.Debug)
+                    .AddConsole();
+            });
+
+            _logger = logFactory.CreateLogger<Program>();
+        }
 
         /// <summary>
         /// Configure the configuration builder
@@ -79,13 +101,13 @@ namespace Altinn.Studio.Designer
                     {
                         SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
                             keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
-                        SetTelemetry(secretBundle.Value);
+                        Startup.ApplicationInsightsKey = secretBundle.Value;
 
                         AddMaskinportenCertificate(stageOneConfig, keyVaultClient, keyVaultEndpoint, config);
                     }
                     catch (Exception vaultException)
                     {
-                        logger.Error($"Could not find secretBundle for application insights {vaultException}");
+                        _logger.LogError($"Could not find secretBundle for application insights {vaultException}");
                     }
                 }
 
@@ -99,16 +121,46 @@ namespace Altinn.Studio.Designer
                     }
                 }
             })
-            .ConfigureLogging((hostingContext, logging) =>
+            .ConfigureLogging(builder =>
             {
-                logging.ClearProviders();
-                Serilog.ILogger logger = new LoggerConfiguration()
-                                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss.ffff} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-                                .CreateLogger();
+                // The default ASP.NET Core project templates call CreateDefaultBuilder, which adds the following logging providers:
+                // Console, Debug, EventSource
+                // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-3.1
 
-                logging.AddProvider(new SerilogLoggerProvider(logger));
-            })
-            .UseStartup<Startup>()
+                // Clear log providers
+                builder.ClearProviders();
+
+                // Setup up application insight if ApplicationInsightsKey is available
+                if (!string.IsNullOrEmpty(Startup.ApplicationInsightsKey))
+                {
+                    // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
+                    // Providing an instrumentation key here is required if you're using
+                    // standalone package Microsoft.Extensions.Logging.ApplicationInsights
+                    // or if you want to capture logs from early in the application startup
+                    // pipeline from Startup.cs or Program.cs itself.
+                    builder.AddApplicationInsights(Startup.ApplicationInsightsKey);
+
+                    // Optional: Apply filters to control what logs are sent to Application Insights.
+                    // The following configures LogLevel Information or above to be sent to
+                    // Application Insights for all categories.
+                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(string.Empty, LogLevel.Warning);
+
+                    // Adding the filter below to ensure logs of all severity from Program.cs
+                    // is sent to ApplicationInsights.
+                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
+
+                    // Adding the filter below to ensure logs of all severity from Startup.cs
+                    // is sent to ApplicationInsights.
+                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Startup).FullName, LogLevel.Trace);
+                }
+                else
+                {
+                    // If not application insight is available log to console
+                    builder.AddFilter("Microsoft", LogLevel.Warning);
+                    builder.AddFilter("System", LogLevel.Warning);
+                    builder.AddConsole();
+                }
+            }).UseStartup<Startup>()
             .CaptureStartupErrors(true);
 
         private static void AddMaskinportenCertificate(
@@ -127,14 +179,6 @@ namespace Altinn.Studio.Designer
                 new KeyValuePair<string, string>("GeneralSettings:MaskinportenCertificate", secretCertificateBundle.Value),
                 new KeyValuePair<string, string>("GeneralSettings:MaskinportenClientId", maskinportenClientId.Value)
             });
-        }
-
-        private static void SetTelemetry(string instrumentationKey)
-        {
-            if (!string.IsNullOrEmpty(instrumentationKey))
-            {
-                Environment.SetEnvironmentVariable("ApplicationInsights--InstrumentationKey", instrumentationKey);
-            }
         }
     }
 }

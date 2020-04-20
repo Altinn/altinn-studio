@@ -116,26 +116,6 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> UpdateInstance(Instance instance)
-        {
-            string apiUrl = $"instances/{instance.Id}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-
-            StringContent httpContent = new StringContent(instance.ToString(), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, httpContent);
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                string instanceData = await response.Content.ReadAsStringAsync();
-                Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(instanceData);
-
-                return updatedInstance;
-            }
-
-            _logger.LogError($"Unable to update instance with instance id {instance.Id}");
-            throw await PlatformHttpException.CreateAsync(response);
-        }
-
-        /// <inheritdoc />
         public async Task<Instance> UpdateProcess(Instance instance)
         {
             ProcessState processState = instance.Process;

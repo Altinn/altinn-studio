@@ -26,11 +26,6 @@ namespace Altinn.App.Services.Interface
         Task<List<Instance>> GetInstances(int instanceOwnerPartyId);
 
         /// <summary>
-        /// Update instance metadata in storage. Notice that only selected properties are updated.
-        /// </summary>
-        Task<Instance> UpdateInstance(Instance instance);
-
-        /// <summary>
         /// Updates the process model of the instance and returns the updated instance.
         /// </summary>        
         Task<Instance> UpdateProcess(Instance instance);

@@ -25,11 +25,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
-using Serilog;
-using Serilog.Core;
 
 namespace Altinn.Platform.Storage
 {
@@ -50,17 +48,16 @@ namespace Altinn.Platform.Storage
 
         private readonly IWebHostEnvironment _env;
 
-        private static readonly Logger _logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
+        private readonly ILogger<Startup> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
-        public Startup(IConfiguration configuration, IWebHostEnvironment env)
+        public Startup(ILogger<Startup> logger, IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
             _env = env;
+            _logger = logger;
         }
 
         /// <summary>
@@ -74,7 +71,7 @@ namespace Altinn.Platform.Storage
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            _logger.Information("Startup // ConfigureServices");
+            _logger.LogInformation("Startup // ConfigureServices");
 
             services.AddControllers().AddNewtonsoftJson();
 
@@ -138,7 +135,7 @@ namespace Altinn.Platform.Storage
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
-                _logger.Information($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
+                _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
             }
 
             // Add Swagger support (Swashbuckle)
@@ -197,11 +194,11 @@ namespace Altinn.Platform.Storage
         /// <param name="env">the hosting environment</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            _logger.Information("Startup // Configure");
+            _logger.LogInformation("Startup // Configure");
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                _logger.Information("IsDevelopment");
+                _logger.LogInformation("IsDevelopment");
             }
             else
             {
