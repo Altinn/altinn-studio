@@ -59,7 +59,7 @@ const useStyles = makeStyles({
       borderColor: AltinnAppTheme.altinnPalette.primary.blueDark,
     },
   },
-  label: {
+  legend: {
     color: '#000000',
   },
 });
@@ -161,7 +161,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   return(
     <FormControl key={'checkboxes_control_' + props.id} component='fieldset'>
-      <FormLabel component='legend' classes={{root: classNames(classes.label)}}>
+      <FormLabel component='legend' classes={{root: classNames(classes.legend)}}>
         <RenderLegend />
       </FormLabel>
       <FormGroup row={checkBoxesIsRow} id={props.id}>
