@@ -50,16 +50,16 @@ export function findInstanceId(responseBody){
 
 //Function to find all the archived app instances for an appOwner for a specific app and returns instance id as an array
 export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, appName){
-    //var allInstances = getInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, "true");
+    var allInstances = getInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, "true");
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");    
-    /* allInstances = JSON.parse(allInstances.body);
-    var archivedInstances = findArchivedNotDeltedInstances(allInstances.instances); */
-   /*  while(allInstances.next !== null){
+    allInstances = JSON.parse(allInstances.body);
+    var archivedInstances = findArchivedNotDeltedInstances(allInstances.instances);
+    while(allInstances.next !== null){
         allInstances = http.get(allInstances.next, params);
         allInstances = JSON.parse(allInstances.body);
         var moreInstances = findArchivedNotDeltedInstances(allInstances.instances);
         archivedInstances.push(moreInstances);
-    }; */
+    };
     //console.log(archivedInstances.length);
 };
 
@@ -72,4 +72,11 @@ function findArchivedNotDeltedInstances(instancesArray){
         }
     };
     return archivedInstances;
+};
+
+//API call to platform:storage to completeconfirmation on the instance by an appOwner
+export function postCompleteConfirmation(altinnStudioRuntimeCookie, partyId, instanceId){
+    var endpoint = config.buildStorageUrls(partyId, instanceId, "", "completeconfirmation");
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");    
+    return http.post(endpoint, null , params);
 };

@@ -83,7 +83,13 @@ export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type){
             break;
         case "process":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/process";
-            break;        
+            break;
+        case "confirmdownloadall":
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/dataelements/confirmDownload";
+            break;
+        case "completeconfirmation":
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/complete";
+            break;
     };
     return value;
 };
