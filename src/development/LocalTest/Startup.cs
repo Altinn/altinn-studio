@@ -97,8 +97,8 @@ namespace LocalTest
                     };
                     options.Cookie.Domain = "altinn3local.no";
                     options.Cookie.Name = "AltinnStudioRuntime";
-                    //options.Cookie.SameSite = SameSiteMode.None;
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                    options.Cookie.SameSite = SameSiteMode.None;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
                 });
 
             services.AddAuthorization(options =>
