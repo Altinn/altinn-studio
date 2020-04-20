@@ -4,7 +4,6 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import HelpTextIcon from './HelpTextIcon';
 
 export interface IFormLabelProps {
-  type: string;
   labelText: string;
   id: string;
   language: any;
