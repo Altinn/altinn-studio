@@ -12,6 +12,7 @@ import { IRuntimeState } from '../types';
 import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
 import Label from '../features/form/components/Label';
+import Legend from '../features/form/components/Legend';
 import HelpTextPopover from '../features/form/components/HelpTextPopover';
 import { renderValidationMessagesForComponent } from '../utils/render';
 import {
@@ -128,6 +129,34 @@ export function GenericComponent(props: IGenericComponentProps) {
     return null;
   }
 
+  const RenderComponent = components.find((component: any) => component.name === props.type).Tag;
+
+  const RenderLabel = () => {
+    return (
+      <Label
+        labelText={getTextResource(props.textResourceBindings.title, textResources)}
+        helpTextProps={helpTextProps}
+        language={language}
+        textResourceBindings={textResources}
+        {...props}
+        {...component}
+      />
+    );
+  };
+
+  const RenderLegend = () => {
+    return (
+      <Legend
+        labelText={getTextResource(props.textResourceBindings.title, textResources)}
+        helpTextProps={helpTextProps}
+        language={language}
+        textResourceBindings={textResources}
+        {...props}
+        {...component}
+      />
+    );
+  }
+
   const helpTextProps = {
     toggleClickPopover,
     toggleKeypressPopover,
@@ -146,21 +175,27 @@ export function GenericComponent(props: IGenericComponentProps) {
     id,
     shouldFocus,
     text: getTextResource(props.textResourceBindings.title, textResources),
+    label: RenderLabel,
+    legend: RenderLegend,
     ...passThroughProps,
   }
 
-  const RenderComponent = components.find((component: any) => component.name === props.type).Tag;
+  const noLabelComponents: string[] = [
+    'Header',
+    'Paragraph',
+    'Submit',
+    'ThirdParty',
+    'AddressComponent',
+    'Button',
+    'Checkboxes',
+    'RadioButtons'
+  ];
 
   return (
     <>
-    <Label
-      labelText={getTextResource(props.textResourceBindings.title, textResources)}
-      helpTextProps={helpTextProps}
-      language={language}
-      textResourceBindings={textResources}
-      {...props}
-      {...component}
-    />
+    {noLabelComponents.includes(props.type) ? null :
+      <RenderLabel />
+    }
     <RenderComponent
       {...componentProps}
     />
