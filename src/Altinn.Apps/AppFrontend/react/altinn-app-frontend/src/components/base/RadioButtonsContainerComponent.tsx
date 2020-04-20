@@ -7,6 +7,7 @@ import classNames = require('classnames');
 import * as React from 'react';
 import {AltinnAppTheme} from 'altinn-shared/theme';
 import { renderValidationMessagesForComponent } from '../../utils/render';
+import { FormLabel } from '@material-ui/core';
 
 export interface IRadioButtonsContainerProps {
   id: string;
@@ -18,6 +19,7 @@ export interface IRadioButtonsContainerProps {
   preselectedOptionIndex: number;
   shouldFocus: boolean;
   title: string;
+  legend: () => JSX.Element;
 }
 
 const useStyles = makeStyles({
@@ -58,6 +60,9 @@ const useStyles = makeStyles({
       borderColor: AltinnAppTheme.altinnPalette.primary.blueDark,
     },
   },
+  legend: {
+    'color': '#000000',
+  }
 });
 
 export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps) => {
@@ -102,8 +107,16 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
     props.handleDataChange(event.target.value);
   };
 
+  const RenderLegend = props.legend;
+
   return (
-    <FormControl>
+    <FormControl component={'fieldset'}>
+      <FormLabel
+        component={'legend'}
+        classes={{root: classNames(classes.legend)}}  
+      >
+        <RenderLegend />
+      </FormLabel>
       <RadioGroup
         aria-label={props.title}
         name={props.title}
