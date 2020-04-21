@@ -10,7 +10,7 @@ const legend = () => {
   return (
     <Legend
       labelText={'Simple checkboxes'}
-      language={nb}
+      language={nb()}
       required={false}
       helpTextProps={{}}
     />

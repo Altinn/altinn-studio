@@ -193,10 +193,10 @@ export function AddressComponent(props: IAddressComponentProps) {
     return validationMessages;
   }
 
-  const renderLabel = (labelKey: string, hideOptional?: boolean) => {
+  const renderLabel = (labelKey: string, id: string, hideOptional?: boolean) => {
     const label = getLanguageFromKey(labelKey, props.language);
     return (
-      <label className='a-form-label title-label' htmlFor={props.id}>
+      <label className='a-form-label title-label' htmlFor={id}>
         {label}
         {props.required || hideOptional ? null :
           <span className='label-optional'>({getLanguageFromKey('general.optional', props.language)})</span>
@@ -208,9 +208,10 @@ export function AddressComponent(props: IAddressComponentProps) {
   const allValidations = joinValidationMessages();
 
   return(
-    <div className={'address-component'} key={'address_' + props.id}>
-      {renderLabel('ux_editor.modal_configure_address_component_address')}
+    <div className={'address-component'} key={'address_component_' + props.id}>
+      {renderLabel('ux_editor.modal_configure_address_component_address', 'address_address_' + props.id)}
       <input
+        id={'address_address_' + props.id}
         className={classNames('form-control',
           {
             'validation-error': (allValidations.address.errors.length),
@@ -229,8 +230,9 @@ export function AddressComponent(props: IAddressComponentProps) {
       {
         !props.simplified &&
         <>
-        {renderLabel('ux_editor.modal_configure_address_component_care_of')}
+        {renderLabel('ux_editor.modal_configure_address_component_care_of', 'address_care_of_' + props.id)}
         <input
+          id={'address_care_of_' + props.id}
           className={classNames('form-control',
             {
               'validation-error': (allValidations.careOf.errors.length),
@@ -250,8 +252,9 @@ export function AddressComponent(props: IAddressComponentProps) {
 
         <div className={'address-component-postplace-zipCode'}>
           <div className={'address-component-zipCode'}>
-            {renderLabel('ux_editor.modal_configure_address_component_zip_code')}
+            {renderLabel('ux_editor.modal_configure_address_component_zip_code', 'address_zip_code_' + props.id)}
             <input
+            id={'address_zip_code_' + props.id}
               className={classNames('address-component-small-inputs', 'form-control',
                 {
                   'validation-error': (allValidations.zipCode.errors.length),
@@ -270,8 +273,9 @@ export function AddressComponent(props: IAddressComponentProps) {
           </div>
 
           <div className={'address-component-postplace'}>
-            {renderLabel('ux_editor.modal_configure_address_component_post_place', true)}
+            {renderLabel('ux_editor.modal_configure_address_component_post_place', 'address_post_place_' + props.id, true)}
             <input
+              id={'address_post_place_' + props.id}
               className={classNames('form-control disabled',
                 {
                   'validation-error': (allValidations.postPlace.errors.length),
@@ -287,7 +291,7 @@ export function AddressComponent(props: IAddressComponentProps) {
         </div>
         {  !props.simplified &&
           <>
-          {renderLabel('ux_editor.modal_configure_address_component_house_number')}
+          {renderLabel('ux_editor.modal_configure_address_component_house_number', 'address_house_number_' + props.id)}
           <p>
             {
               getLanguageFromKey('ux_editor.modal_configure_address_component_house_number_helper',
@@ -295,6 +299,7 @@ export function AddressComponent(props: IAddressComponentProps) {
             }
           </p>
           <input
+            id={'address_house_number_' + props.id}
             className={classNames('address-component-small-inputs', 'form-control',
               {
                 'validation-error': (allValidations.houseNumber.errors.length),
