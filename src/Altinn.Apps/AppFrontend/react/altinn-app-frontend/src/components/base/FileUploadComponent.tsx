@@ -302,7 +302,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
     return (
       <div
         className={'container'}
-        id={'altinn-fileuploader-' + props.id}
+        id={props.id}
         tabIndex={0}
       >
         {shouldShowFileUpload() &&
