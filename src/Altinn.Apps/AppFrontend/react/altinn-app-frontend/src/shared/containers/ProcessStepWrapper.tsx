@@ -41,7 +41,10 @@ export default (props) => {
   }, []);
 
   React.useEffect(() => {
-    ProcessDispatcher.getProcessState();
+    if (!processStep) {
+      ProcessDispatcher.getProcessState();
+    }
+    
     switch (processStep) {
       case (ProcessSteps.FormFilling): {
         QueueActions.startInitialDataTaskQueue();
@@ -53,6 +56,8 @@ export default (props) => {
         IsLoadingActions.finishDataTaskIsloading();
         break;
       }
+      default:
+        break;
     }
   }, [processStep])
 
