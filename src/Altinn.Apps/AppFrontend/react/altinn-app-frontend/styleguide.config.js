@@ -55,5 +55,12 @@ module.exports = {
       exampleMode: 'expand',
       usageMode: 'expand'
     },
+    {
+      name: "Advanced",
+      content: 'styleguide/advanced.md',
+      components: 'src/components/advanced/*.tsx',
+      exampleMode: 'expand',
+      usageMode: 'expand'
+    },
   ]
 };

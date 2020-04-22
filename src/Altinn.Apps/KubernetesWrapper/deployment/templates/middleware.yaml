@@ -1,4 +1,0 @@
-{{- range $middleware := .Values.middlewares }}
-  {{ toYaml $middleware }}
----
-{{- end }}
