@@ -58,6 +58,15 @@
     <Folder Include="Fixtures\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="selfSignedEncryptionTestCertificate.pfx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="selfSignedEncryptionTestCertificatePublic.cer">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
