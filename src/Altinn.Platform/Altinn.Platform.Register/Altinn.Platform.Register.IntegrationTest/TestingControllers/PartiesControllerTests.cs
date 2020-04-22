@@ -132,6 +132,8 @@ namespace Altinn.Platform.Register.IntegrationTest.TestingControllers
 
         private HttpClient GetTestClient(IParties partiesService)
         {
+            Program.ConfigureSetupLogging();
+
             string projectDir = Directory.GetCurrentDirectory();
             string configPath = Path.Combine(projectDir, "appsettings.json");
 
