@@ -51,16 +51,16 @@ export function findInstanceId(responseBody){
 //Function to find all the archived app instances for an appOwner for a specific app and returns instance id as an array
 export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, appName){
     var allInstances = getInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, "true");
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");    
+    var params = header.buildHeaderWithRuntimeAsCookie(altinnStudioRuntimeCookie, "platform");
     allInstances = JSON.parse(allInstances.body);
-    var archivedInstances = findArchivedNotDeltedInstances(allInstances.instances);
+    let archivedInstances = findArchivedNotDeltedInstances(allInstances.instances);
     while(allInstances.next !== null){
         allInstances = http.get(allInstances.next, params);
         allInstances = JSON.parse(allInstances.body);
         var moreInstances = findArchivedNotDeltedInstances(allInstances.instances);
-        archivedInstances.push(moreInstances);
+        archivedInstances = archivedInstances.concat(moreInstances);
     };
-    //console.log(archivedInstances.length);
+    return archivedInstances;
 };
 
 //Function to build an array with instances that are not deleted from an json response
