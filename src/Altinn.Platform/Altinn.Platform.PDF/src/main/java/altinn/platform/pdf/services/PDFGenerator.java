@@ -56,7 +56,6 @@ public class PDFGenerator {
   private COSDictionary currentMarkedContentDictionary;
   private int mcid = 1;
   private PDStructureElement currentPart;
-  private int currentPartId = -1;
   private PDStructureElement currentSection;
 
 
@@ -350,7 +349,6 @@ public class PDFGenerator {
   private void addPart() {
     PDStructureElement part = new PDStructureElement(StandardStructureTypes.PART, document.getDocumentCatalog().getStructureTreeRoot());
     document.getDocumentCatalog().getStructureTreeRoot().appendKid(part);
-    currentPartId ++;
     currentPart = part;
   }
 
