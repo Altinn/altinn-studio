@@ -2,6 +2,7 @@ import http from "k6/http";
 import * as config from "./config.js";
 import * as headers from "./buildrequestheaders.js";
 import {getParties} from "./api/platform/authorization.js";
+import {printResponseToConsole} from "./errorcounter.js"
 
 let environment = __ENV.env;
 
@@ -22,7 +23,10 @@ export function authenticateUser(userName, userPassword){
 export function getAltinnStudioRuntimeToken(aspxauthCookie){
     var endpoint =   config.platformAuthentication["authentication"] + "?goto=" + config.platformAuthentication["refresh"];    
     var params = headers.buildHeaderWithAspxAuth(aspxauthCookie, "platform");       
-    var res = http.get(endpoint,params);      
+    var res = http.get(endpoint,params);
+    if(res.status !== 200){
+        printResponseToConsole("Authentication Failed:", false, res);
+    };
     return (res.body);    
 };
 

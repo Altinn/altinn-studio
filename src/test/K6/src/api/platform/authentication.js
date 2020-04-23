@@ -2,7 +2,7 @@ import http from "k6/http";
 import * as config from "../../config.js";
 import * as header from "../../buildrequestheaders.js";
 
-//Request to generate pdf from a json and returns the response
+//Request to convert a maskinporten token and returns altinnstudioruntime token for en appOwner
 export function convertMaskinPortenToken(maskinportentoken, isTest){    
     var endpoint = config.platformAuthentication["maskinporten"] + "?test=" + isTest;
     var params = header.buildHearderWithRuntime(maskinportentoken);
