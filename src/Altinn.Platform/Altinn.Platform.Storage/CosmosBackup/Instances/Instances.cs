@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CosmosBackup.Functions
 {
-    public static class BackUpCollections
+    public static class Instances
     {
         [FunctionName("InstancesCollectionBackup")]
         public static async void InstancesCollectionBackup([CosmosDBTrigger(
