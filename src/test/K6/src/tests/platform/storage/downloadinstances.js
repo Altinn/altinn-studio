@@ -1,3 +1,9 @@
+/* Pre-reqisite for test: 
+    1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
+    2. Installed appOwner certificate
+    3. Start local server to get maskinporten token. Refer readme file in github of MaskinPorteTokenGenerator
+*/
+
 import { check } from "k6";
 import {addErrorCount, printResponseToConsole} from "../../../errorcounter.js";
 import * as storageInstances from "../../../api/storage/instances.js"
