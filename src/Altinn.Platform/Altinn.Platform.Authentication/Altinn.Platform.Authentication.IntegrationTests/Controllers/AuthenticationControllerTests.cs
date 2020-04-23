@@ -426,7 +426,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             identity.AddClaims(claims);
             ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
 
-            string externalToken = JwtTokenMock.GenerateEncrptedAndSignedToken(externalPrincipal, TimeSpan.FromMinutes(2));
+            string externalToken = JwtTokenMock.GenerateEncryptedAndSignedToken(externalPrincipal, TimeSpan.FromMinutes(2));
             ClaimsPrincipal claimsPrincipal = JwtTokenMock.ValidateEncryptedAndSignedToken(externalToken);
             Assert.Equal(externalPrincipal.Identity.Name, claimsPrincipal.Identity.Name);
         }

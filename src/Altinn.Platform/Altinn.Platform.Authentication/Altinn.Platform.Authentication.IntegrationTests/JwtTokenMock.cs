@@ -40,7 +40,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests
         /// <param name="principal">The claims principal to include in the token.</param>
         /// <param name="tokenExipry">How long the token should be valid for.</param>
         /// <returns>A new token.</returns>
-        public static string GenerateEncrptedToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
+        public static string GenerateEncryptedToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
         {
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
@@ -60,7 +60,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests
         /// <param name="principal">The claims principal to include in the token.</param>
         /// <param name="tokenExipry">How long the token should be valid for.</param>
         /// <returns>A new token.</returns>
-        public static string GenerateEncrptedAndSignedToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
+        public static string GenerateEncryptedAndSignedToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
         {
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
