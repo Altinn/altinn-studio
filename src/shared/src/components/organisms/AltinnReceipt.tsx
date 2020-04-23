@@ -41,8 +41,8 @@ const styles = createStyles({
 
 export function ReceiptComponent(props: IReceiptComponentProps) {
 
-  // renders attachment groups. Always shows default group first.
-  const renderAttachmentGroupings = () => {
+  // renders attachment groups. Always shows default group first
+  function RenderAttachmentGroupings(): JSX.Element {
     const groupings = props.attachmentGroupings;
     const groups: JSX.Element[] = [];
 
@@ -61,16 +61,21 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
       }
     });
 
-    return groups;
+    return (
+      <>
+        {groups.map((element: JSX.Element) => {return element})}
+      </>
+    );
   }
 
-  const getAltinnCollapsibleAttachments = (attachments: IAttachment[], title: string) => {
+  function getAltinnCollapsibleAttachments(attachments: IAttachment[], title: string) {
     return (
         <AltinnCollapsibleAttachments
         attachments={attachments}
         collapsible={useMediaQuery('print') ? false : Boolean(attachments.length > 4)}
         title={title}
         hideCount={props.hideCollapsibleCount}
+        key={title}
       />
     );
   }
@@ -106,7 +111,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         <AltinnAttachment
           attachments={props.pdf}
         />
-        {props.attachmentGroupings && renderAttachmentGroupings()}
+        {props.attachmentGroupings && <RenderAttachmentGroupings/>}
 
       </MuiThemeProvider>
     </React.Fragment>
