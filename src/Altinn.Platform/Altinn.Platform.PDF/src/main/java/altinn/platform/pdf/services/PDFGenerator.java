@@ -276,12 +276,11 @@ public class PDFGenerator {
   }
 
   private void renderContent(String content) throws IOException {
-    float rectHeight = TextUtils.getHeightNeededForText(content, font, fontSize, width);
+    float rectHeight = TextUtils.getHeightNeededForTextBox(content, font, fontSize, width - 2*textFieldMargin, leading);
     float fontHeight = TextUtils.getFontHeight(font, fontSize);
-    renderBox(xPoint, yPoint + fontHeight + 2, width, rectHeight + textFieldMargin);
+    renderBox(xPoint, yPoint + fontHeight + 2, width, rectHeight);
     renderText(content, font, fontSize, StandardStructureTypes.P);
-    BasicLogger.log(Level.INFO, "Rect height: " + rectHeight);
-    yPoint -= (rectHeight - fontHeight - 2);
+    yPoint -= (rectHeight + fontHeight);
   }
 
   private void renderBox(float xStart, float yStart, float width, float height) throws IOException {
