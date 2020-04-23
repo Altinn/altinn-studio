@@ -21,6 +21,10 @@ export interface ICheckboxContainerProps {
   legend: () => JSX.Element;
 }
 
+export interface IStyledCheckboxProps extends CheckboxProps {
+  label: string;
+}
+
 const useStyles = makeStyles({
   root: {
     '&:hover': {
@@ -143,7 +147,8 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
     return props.shouldFocus && changed === index;
   }
 
-  const StyledCheckbox = (checkboxProps: CheckboxProps) => {
+  const StyledCheckbox = (styledCheckboxProps: IStyledCheckboxProps) => {
+    const {label, ...checkboxProps} = styledCheckboxProps;
     return (
       <Checkbox
         className={classes.root}
@@ -151,7 +156,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
         color='default'
         checkedIcon={<span className={classNames(classes.icon, classes.checkedIcon)} />}
         icon={<span className={classes.icon} />}
-        inputProps={{ 'aria-label': 'decorative checkbox' }}
+        inputProps={{ 'aria-label': label }}
         {...checkboxProps}
       />
     );
@@ -176,6 +181,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
                   value={index}
                   name={option.value}
                   autoFocus={inFocus(index)}
+                  label={option.label}
                 />
               )}
               label={option.label}
