@@ -1,5 +1,5 @@
-import { check, fail } from "k6";
-import {addErrorCount} from "../../../errorcounter.js";
+import { check } from "k6";
+import {addErrorCount, printResponseToConsole} from "../../../errorcounter.js";
 import * as storageInstances from "../../../api/storage/instances.js"
 import * as storageData from "../../../api/storage/data.js"
 import {convertMaskinPortenToken} from "../../../api/platform/authentication.js"
@@ -32,7 +32,7 @@ export default function(data){
     const instances = data.instances;
     var uniqueNum = ((__VU * maxIter) - (maxIter) + (__ITER));
     
-    //Get instance ids and separate party id and instance id
+    //Get instance ids and separate party id and instance id    
     var instanceId = instances[uniqueNum];
     instanceId = instanceId.split('/');
     var partyId = instanceId[0];
@@ -44,9 +44,7 @@ export default function(data){
         "Instance details are retrieved:": (r) => r.status === 200
       });
     addErrorCount(success);
-    if (!success){
-        fail("Instance details are not retrieved" + JSON.stringify(res));
-    };
+    printResponseToConsole("Instance details are retrieved:", success, res);
 
     var dataElements = JSON.parse(res.body).data;
     //Loop through the dataelements under an instance and download instance
@@ -55,10 +53,8 @@ export default function(data){
         success = check(res, {
             "Instance Data is downloaded:": (r) => r.status === 200
         });
-        addErrorCount(success);
-        if (!success){
-            fail("Instance Data is not downloaded" + JSON.stringify(res));
-        };
+        addErrorCount(success);       
+        printResponseToConsole("Instance Data is not downloaded:", success, res);
     };
 
     //Confirm that all the dataelements are downloaded by the appOwner
@@ -66,18 +62,14 @@ export default function(data){
     success = check(res, {
         "Instance Data download is confirmed:": (r) => r.status === 200
     });
-    addErrorCount(success);
-    if (!success){        
-        fail("Instance Data download is not confirmed" + JSON.stringify(res));
-    };
+    addErrorCount(success);    
+    printResponseToConsole("Instance Data download is not confirmed:", success, res);
 
     //Complete confirm the app instance as an appOwner
     res = storageInstances.postCompleteConfirmation(runtimeToken, partyId, instanceId);
     success = check(res, {
         "Instance is confirmed complete:": (r) => r.status === 200
     });
-    addErrorCount(success);
-    if (!success){        
-        fail("Instance is not confirmed complete" + JSON.stringify(res));
-    };
+    addErrorCount(success);    
+    printResponseToConsole("Instance is not confirmed complete:", success, res);
 };

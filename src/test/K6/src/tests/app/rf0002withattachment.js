@@ -1,5 +1,5 @@
-import { check, fail } from "k6";
-import {addErrorCount} from "../../errorcounter.js";
+import { check } from "k6";
+import {addErrorCount, printResponseToConsole} from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
@@ -19,11 +19,7 @@ let users = JSON.parse(open("../../data/users.json"));
 export const options = {
     thresholds:{
         "errors": ["count<1"]
-    },
-    vus: 100,
-    stages: [        
-        { duration: '10m', target: 100 }
-      ]
+    }
 };
 
 //Tests for App API: RF-0002
@@ -44,10 +40,7 @@ export default function() {
         "E2E App POST Create Instance status is 201:": (r) => r.status === 201        
       });  
     addErrorCount(success);
-
-    if (!success) {
-        fail("E2E App POST Create Instance status is 201: " + JSON.stringify(instanceId));
-    };
+    printResponseToConsole("E2E App POST Create Instance:", success, instanceId);
     
     dataId = appData.findDataId(instanceId.body);
     instanceId = platformInstances.findInstanceId(instanceId.body);  
@@ -58,10 +51,7 @@ export default function() {
         "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201        
     });  
     addErrorCount(success);
-
-    if (!success) {
-        fail("E2E PUT Edit Data by Id status is 201:" + JSON.stringify(res));
-    };
+    printResponseToConsole("E2E PUT Edit Data by Id:", success, res);
 
     //dynamically assign attachments - 60% VU gets small , 30% VU gets medium and 10% VU gets big attachment.
     if (userNumber < (users.length)*0.60)
@@ -75,30 +65,24 @@ export default function() {
     success = check(res, {
         "E2E POST upload attachment Data status is 201:": (r) => r.status === 201        
     });  
-    addErrorCount(success);
-
-    if (!success) {
-        fail("E2E POST upload attachment Data status is 201:" + JSON.stringify(res));
-    };
+    addErrorCount(success);    
+    printResponseToConsole("E2E POST upload attachment Data status:", success, res);
 
     //Test to get validate instance and verify that validation of instance is ok
     res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId);
     success = check(res, {
         "E2E App GET Validate Instance validation OK:": (r) => r.body && (JSON.parse(r.body)).length === 0     
     });  
-    addErrorCount(success);
-
-    if (!success) {
-        fail("E2E App GET Validate Instance is not OK: " + JSON.stringify(res));
-    };
+    addErrorCount(success);    
+    printResponseToConsole("E2E App GET Validate Instance is not OK:", success, res);
 
     //Test to get next process of an app instance again and verify response code  to be 200
     res = appProcess.getNextProcess(runtimeToken, partyId, instanceId);
-
-    if (res.status !== 200) {
-        fail("Unable to get next element id: " + JSON.stringify(res));
-    };
-
+    success = check(res, {
+        "E2E App GET Next process element id:": (r) => r.status === 200
+    });
+    addErrorCount(success);   
+    printResponseToConsole("Unable to get next element id:", success, res);
     var nextElement = (JSON.parse(res.body))[0];
 
     //Test to move the process of an app instance to the next process element and verify response code to be 200
@@ -107,20 +91,15 @@ export default function() {
         "E2E App PUT Move process to Next element status is 200:": (r) => r.status === 200      
     });  
     addErrorCount(success);
-
-    if (!success) {
-        fail("E2E App PUT Move process to Next element status is 200: " + JSON.stringify(res));
-    };
+    printResponseToConsole("E2E App PUT Move process to Next element:", success, res);
 
     //Test to call get instance details and verify the presence of archived date
     res = appInstances.getInstanceById(runtimeToken, partyId, instanceId);    
     success = check(res, {
         "E2E App Instance is archived:": (r) => (JSON.parse(r.body)).status.archived != null
-    }); 
-
-    if (!success) {
-        fail("E2E App Instance is not archived. " + JSON.stringify(res));
-    };
+    });
+    addErrorCount(success); 
+    printResponseToConsole("E2E App Instance is not archived:", success, res);
 
     deleteSblInstance(runtimeToken, partyId, instanceId, "true");    
 };
