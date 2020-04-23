@@ -21,8 +21,10 @@ export var authentication =  {
 //Platform APIs
 //Authentication
 export var platformAuthentication =  {
-    authentication: "https://platform." + baseUrl + "/authentication/api/v1/authentication",
-    refresh: "https://platform." + baseUrl + "/authentication/api/v1/refresh"
+    "authentication": "https://platform." + baseUrl + "/authentication/api/v1/authentication",
+    "refresh": "https://platform." + baseUrl + "/authentication/api/v1/refresh",
+    "maskinporten": "https://platform." + baseUrl + "/authentication/api/v1/exchange/maskinporten",
+    "idporten": "https://platform." + baseUrl + "/authentication/api/v1/exchange/id-porten"
 };
 
 //Profile
@@ -81,7 +83,13 @@ export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type){
             break;
         case "process":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/process";
-            break;        
+            break;
+        case "confirmdownloadall":
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/dataelements/confirmDownload";
+            break;
+        case "completeconfirmation":
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/complete";
+            break;
     };
     return value;
 };

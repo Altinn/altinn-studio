@@ -54,7 +54,18 @@ export function buildHeaderWithJson(api){
             "Content-Type": "application/json"            
         }    
     };  
-    params = addSubscriptionKey(params, subscriptionKey, api);       
+    params = addSubscriptionKey(params, subscriptionKey, api);     
+    return params;
+};
+
+//Function to build headers with altinnstudioruntime as cookie and returns the response
+export function buildHeaderWithRuntimeAsCookie(altinnStudioRuntimeCookie, api){
+    var params = {
+        "cookies": {
+            "AltinnStudioRuntime": altinnStudioRuntimeCookie
+        }
+    };
+    params = addSubscriptionKey(params, subscriptionKey, api);
     return params;
 };
 
