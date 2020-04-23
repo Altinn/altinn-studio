@@ -41,7 +41,7 @@ const styles = createStyles({
 
 export function ReceiptComponent(props: IReceiptComponentProps) {
 
-  // renders attachment groups. Always shows default group first.
+  // renders attachment groups. Always shows default group first
   function RenderAttachmentGroupings(): JSX.Element {
     const groupings = props.attachmentGroupings;
     const groups: JSX.Element[] = [];
