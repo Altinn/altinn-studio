@@ -46,37 +46,6 @@ namespace CosmosBackup.Functions
             }
         }
 
-        [FunctionName("ApplicationsCollectionBackup")]
-        public static async void ApplicationsCollectionBackup([CosmosDBTrigger(
-            databaseName: "Storage",
-            collectionName: "applications",
-            ConnectionStringSetting = "DBConnection",
-            LeaseCollectionName = "leases",
-            CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<Document> input,
-    ExecutionContext context,
-    ILogger log)
-        {
-            if (input != null && input.Count > 0)
-            {
-                IConfiguration config = LoadConfig(context);
-                string blobName = string.Empty;
-
-                try
-                {
-                    dynamic data = JObject.Parse(input[0].ToString());
-                    string id = input[0].Id;
-                    string partitionKey = data.org;
-                    blobName = $"{partitionKey}/{id}";
-
-                    await StoreBlob(config, $"applications/{blobName}", input[0].ToString());
-                }
-                catch (Exception e)
-                {
-                    log.LogError($"Exception occured when storing element {blobName}. Exception: {e}. Message: {e.Message}");
-                }
-            }
-        }
-
         private async static Task StoreBlob(IConfiguration config, string name, string data)
         {
             StorageCredentials storageCredentials = new StorageCredentials(config["AccountName"], config["AccountKey"]);
