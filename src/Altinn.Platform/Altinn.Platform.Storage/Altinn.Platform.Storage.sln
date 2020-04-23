@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Storage.Int
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Storage.UnitTest", "UnitTest\Altinn.Platform.Storage.UnitTest.csproj", "{7AD8A36D-CC19-4799-935E-FC99870CE096}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.Platform.Storage.Backup", "CosmosBackup\Altinn.Platform.Storage.Backup.csproj", "{E484AEDD-0708-4C1A-B77A-4239251D524A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Storage.CosmosBackup", "CosmosBackup\Altinn.Platform.Storage.CosmosBackup.csproj", "{E484AEDD-0708-4C1A-B77A-4239251D524A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
