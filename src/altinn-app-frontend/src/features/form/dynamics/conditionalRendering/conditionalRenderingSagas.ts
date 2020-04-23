@@ -12,6 +12,7 @@ import * as FormLayoutActionTypes from '../../layout/formLayoutActionTypes';
 import FormValidationActions from '../../validation/validationActions';
 import * as FormDynamicsActionTypes from '../formDynamicsActionTypes';
 import { IConditionalRenderingRules } from '../types';
+import * as RulesActionTypes from '../../rules/rulesActionTypes';
 
 export const ConditionalRenderingSelector:
   (store: IRuntimeState) => any = (store: IRuntimeState) => store.formDynamics.conditionalRendering;
@@ -58,6 +59,7 @@ export function* waitForAppSetupBeforeRunningConditionalRulesSaga(): SagaIterato
     take(FormConfigActionTypes.FETCH_FORM_CONFIG_FULFILLED),
     take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
     take(FormDynamicsActionTypes.FETCH_SERVICE_CONFIG_FULFILLED),
+    take(RulesActionTypes.FETCH_RULE_MODEL_FULFILLED)
   ]);
   yield call(checkIfConditionalRulesShouldRunSaga);
 }
