@@ -75,6 +75,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         collapsible={useMediaQuery('print') ? false : Boolean(attachments.length > 4)}
         title={title}
         hideCount={props.hideCollapsibleCount}
+        key={title}
       />
     );
   }
