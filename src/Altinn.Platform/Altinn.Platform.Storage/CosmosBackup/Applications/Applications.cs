@@ -9,12 +9,22 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
-namespace CosmosBackup.Applications
+namespace CosmosBackup
 {
+    /// <summary>
+    /// Azure Function class for handling tasks related to applications.
+    /// </summary>
     public static class Applications
     {
+        /// <summary>
+        /// Backs up Cosmos DB application documents in Blob Storage.
+        /// </summary>
+        /// <param name="input">Application document.</param>
+        /// <param name="context">Function context.</param>
+        /// <param name="log">Logger.</param>
         [FunctionName("ApplicationsCollectionBackup")]
-        public static async void ApplicationsCollectionBackup([CosmosDBTrigger(
+        public static async void ApplicationsCollectionBackup(
+            [CosmosDBTrigger(
             databaseName: "Storage",
             collectionName: "applications",
             ConnectionStringSetting = "DBConnection",

@@ -1,23 +1,25 @@
+using System;
+using System.Threading.Tasks;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Altinn.Platform.Storage.CosmosBackup
 {
+    /// <summary>
+    /// Class that handles integration with Azure Blob Storage.
+    /// </summary>
     public static class BlobService
     {
         /// <summary>
-        /// Saves data in blob storage defined in configuration
+        /// Saves data in blob storage defined in configuration.
         /// </summary>
-        /// <param name="config">Configuration</param>
-        /// <param name="name">Blob name</param>
-        /// <param name="data">Blob data</param>
-        public async static Task SaveBlob(IConfiguration config, string name, string data)
+        /// <param name="config">Configuration.</param>
+        /// <param name="name">Blob name.</param>
+        /// <param name="data">Blob data.</param>
+        public static async Task SaveBlob(IConfiguration config, string name, string data)
         {
             StorageCredentials storageCredentials = new StorageCredentials(config["AccountName"], config["AccountKey"]);
             CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
