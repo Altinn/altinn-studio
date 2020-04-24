@@ -36,3 +36,10 @@ export function deleteData(altinnStudioRuntimeCookie, partyId, instanceId, dataI
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");
     return http.del(endpoint, null, params);
 };
+
+//Api call to Platform:Storage to confirm all the data elements has been downloaded
+export function putConfirmDownloadAll(altinnStudioRuntimeCookie, partyId, instanceId){
+    var endpoint = config.buildStorageUrls(partyId, instanceId, "", "confirmdownloadall");
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");
+    return http.put(endpoint, null , params);    
+};

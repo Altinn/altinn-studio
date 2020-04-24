@@ -407,6 +407,30 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
+        /// <summary>
+        /// Test of mock method>.
+        /// </summary>
+        [Fact]
+        public async Task TokenMock_VerifyEncryptedAndSignedToken()
+        {
+            // Arrange
+            List<Claim> claims = new List<Claim>();
+
+            string pid = "19108000239";
+            string amr = "MinId-PIN";
+
+            claims.Add(new Claim("pid", pid));
+            claims.Add(new Claim("amr", amr));
+
+            ClaimsIdentity identity = new ClaimsIdentity();
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateEncryptedAndSignedToken(externalPrincipal, TimeSpan.FromMinutes(2));
+            ClaimsPrincipal claimsPrincipal = JwtTokenMock.ValidateEncryptedAndSignedToken(externalToken);
+            Assert.Equal(externalPrincipal.Identity.Name, claimsPrincipal.Identity.Name);
+        }
+
         private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService)
         {
             string projectDir = Directory.GetCurrentDirectory();
