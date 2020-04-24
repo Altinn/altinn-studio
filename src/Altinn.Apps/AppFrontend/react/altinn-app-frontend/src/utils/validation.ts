@@ -488,3 +488,43 @@ function runValidation(
     return false;
   }
 }
+
+/**
+ * gets unmapped errors from validations as string array
+ * @param validations the validaitons
+ */
+export function getUnmappedErrors(validations: IValidations): string[] {
+  const messages: string[] = [];
+  if (!validations || !validations.unmapped) {
+    return messages;
+  }
+  Object.keys(validations.unmapped).forEach((key: string) => {
+    validations.unmapped[key]?.errors?.forEach((message: string) => {
+      messages.push(message);
+    });
+  });
+  return messages;
+}
+
+/**
+ * gets mapped errors from validaitons as string array
+ * @param validations the validaitons
+ */
+export function getMappedErrors (validations: IValidations): string[] {
+  const messages: string[] = [];
+  if (!validations) {
+    return messages;
+  }
+
+  Object.keys(validations).forEach((validationKey: string) => {
+    if (!(validationKey == 'unmapped')) {
+      Object.keys(validations[validationKey] || {}).forEach((componentKey: string) => {
+        validations[validationKey][componentKey]?.errors?.forEach((message: string) => {
+          messages.push(message);
+        });
+      });
+    }
+  });
+
+  return messages;
+}

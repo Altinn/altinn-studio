@@ -3,6 +3,7 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import { IValidations, ITextResource } from 'src/types/global';
 import { getTextResourceByKey } from '../../utils/textResource';
 import { useRef, useEffect } from 'react';
+import { getUnmappedErrors, getMappedErrors } from '../../utils/validation';
 
 export interface IErrorProps {
   language: any;
@@ -11,26 +12,19 @@ export interface IErrorProps {
   formHasErrors: boolean;
 }
 
-const getUnmappedErrors = (validations: IValidations) => {
-  const messages: string[] = [];
-  if (!validations || !validations.unmapped) {
-    return messages;
-  }
-  Object.keys(validations.unmapped).forEach((key: string) => {
-    validations.unmapped[key]?.errors?.forEach((message: string) => {
-      messages.push(message);
-    });
-  });
-  return messages;
-}
 
 const ErrorReport = (props: IErrorProps) => {
     const unmappedErrors  = getUnmappedErrors(props.validations);
+    const mappedErrors = getMappedErrors(props.validations)
     const hasUnmappedErrors: boolean = unmappedErrors.length > 0;
     const errorRef = useRef(null);
 
     useEffect(() => {
-      errorRef?.current?.focus();
+      if (hasUnmappedErrors || (mappedErrors?.length > 1) ) {
+        // if we have unmapped errors or more than one mapped error we set focus to error report
+        // if we have one mapped error the foucs is set to the MessageComponent.tsx which is displayed under the field
+        errorRef?.current?.focus();
+      }
     });
 
     if (!props.formHasErrors) {
