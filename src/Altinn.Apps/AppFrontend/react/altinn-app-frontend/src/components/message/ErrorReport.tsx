@@ -22,7 +22,6 @@ const ErrorReport = (props: IErrorProps) => {
     useEffect(() => {
       if (hasUnmappedErrors || (numberOfComponentsWithErrors > 1) ) {
         // if we have unmapped errors or more than one mapped error we set focus to error report
-        // if we have one mapped error the foucs is set to the MessageComponent.tsx which is displayed under the field
         errorRef?.current?.focus();
       }
     });
