@@ -112,7 +112,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   }
 
   const getValidationsForInternalHandling = () => {
-    if (props.type === 'AddressComponent' || props.type === 'Datepicker') {
+    if (props.type === 'AddressComponent' || props.type === 'Datepicker' || props.type === 'FileUpload') {
       return componentValidations;
     } else {
       return null;

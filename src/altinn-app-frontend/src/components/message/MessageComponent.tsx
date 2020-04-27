@@ -8,30 +8,31 @@ export interface IMessageComponentProps {
   messageType: MessageType;
   message?: any;
   style?: any;
+  children: JSX.Element;
 }
 
-export interface IMessageComponentState { }
+export function MessageComponent(props: IMessageComponentProps) {
 
-class MessageComponent extends React.Component<IMessageComponentProps, IMessageComponentState> {
-  public render() {
-    return (
-      <div
-        id={this.props.id}
-        className={classNames(
-          'field-validation-error',
-          'a-message',
-          {
-            'a-message-info': this.props.messageType === 'info',
-            'a-message-error': this.props.messageType === 'error',
-            'a-message-success': this.props.messageType === 'success',
-          },
-        )}
-        style={this.props.style}
-      >
-        {this.props.message ? this.props.message : this.props.children}
-      </div>
-    );
-  }
+  return (
+    <div
+      id={props.id}
+      tabIndex={0}
+      key={props.id}
+      role={'alert'}
+      className={classNames(
+        'field-validation-error',
+        'a-message',
+        {
+          'a-message-info': props.messageType === 'info',
+          'a-message-error': props.messageType === 'error',
+          'a-message-success': props.messageType === 'success',
+        },
+      )}
+      style={props.style}
+    >
+      {props.message ? props.message : props.children}
+    </div>
+  );
 }
 
 export default MessageComponent;
