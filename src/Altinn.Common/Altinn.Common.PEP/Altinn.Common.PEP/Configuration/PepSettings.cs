@@ -9,5 +9,11 @@ namespace Altinn.Common.PEP.Configuration
         /// Gets or sets to disable pep er not
         /// </summary>
         public bool DisablePEP { get; set; }
+
+
+        /// <summary>
+        /// The timout on pdp decions
+        /// </summary>
+        public int PdpDecisionCachingTimeout { get; set; }
     }
 }

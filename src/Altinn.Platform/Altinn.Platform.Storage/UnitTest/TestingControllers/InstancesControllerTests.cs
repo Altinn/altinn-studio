@@ -27,6 +27,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
+using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
@@ -74,6 +75,59 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            }
+
+
+            [Fact]
+            public async void Get_One_Ok()
+            {
+                // Arrange
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "46133fb5-a9f2-45d4-90b1-f6d93ad40713";
+                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}";
+
+                HttpClient client = GetTestClient(_instanceRepository.Object);
+                string token = PrincipalUtil.GetToken(1337, 3);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                // Act
+                HttpResponseMessage response = await client.GetAsync(requestUri);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+                string responseContent = await response.Content.ReadAsStringAsync();
+                Instance instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
+                Assert.Equal("1337", instance.InstanceOwner.PartyId);
+            }
+
+
+            [Fact]
+            public async void Get_One_Twice_Ok()
+            {
+                RequestTracker.Clear();
+
+                // Arrange
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "46133fb5-a9f2-45d4-90b1-f6d93ad40713";
+                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}";
+
+                HttpClient client = GetTestClient(_instanceRepository.Object);
+                string token = PrincipalUtil.GetToken(1337, 3);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                // Act
+                HttpResponseMessage response = await client.GetAsync(requestUri);
+                HttpResponseMessage response2 = await client.GetAsync(requestUri);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                string responseContent = await response.Content.ReadAsStringAsync();
+                Instance instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
+                Assert.Equal("1337", instance.InstanceOwner.PartyId);
+                Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+
+                Assert.Equal(1, RequestTracker.GetRequestCount("GetDecisionForRequest"));
             }
 
             /// <summary>
@@ -535,7 +589,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                         services.AddSingleton(applicationRepository.Object);
                         services.AddSingleton(dataRepository.Object);
                         services.AddSingleton(instanceEventRepository);
-                        services.AddSingleton(instanceRepository);
+                        services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
                         services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
