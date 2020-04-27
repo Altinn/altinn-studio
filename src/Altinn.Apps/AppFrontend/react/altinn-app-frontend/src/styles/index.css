@@ -30,6 +30,17 @@ option {
   margin-bottom: 1.2rem;
 }
 
+.a-form-label.description-label p {
+  font-weight: 300;
+  line-height: 2.4rem;
+  margin-bottom: 1.2rem;
+}
+
+.a-form-label.description-label ul {
+  padding-left: 2rem;
+  margin-bottom: 1.6rem;
+}
+
 
 .a-form-label.title-label {
   font-weight: 500;
