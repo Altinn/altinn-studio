@@ -507,7 +507,7 @@ export function getUnmappedErrors(validations: IValidations): string[] {
 }
 
 /**
- * gets mapped errors from validaitons as string array
+ * gets total number of components with mapped errors
  * @param validations the validaitons
  */
 export function getNumberOfComponentsWithErrors (validations: IValidations): number {

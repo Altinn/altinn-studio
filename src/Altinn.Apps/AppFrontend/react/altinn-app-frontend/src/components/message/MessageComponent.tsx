@@ -1,6 +1,5 @@
 import classNames = require('classnames');
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 
 export type MessageType = 'message' | 'info' | 'error' | 'success';
 
