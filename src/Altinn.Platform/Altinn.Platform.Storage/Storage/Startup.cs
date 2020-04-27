@@ -195,10 +195,10 @@ namespace Altinn.Platform.Storage
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             _logger.LogInformation("Startup // Configure");
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsStaging())
             {
                 app.UseDeveloperExceptionPage();
-                _logger.LogInformation("IsDevelopment");
+                _logger.LogInformation("IsDevelopment || IsStaging");
             }
             else
             {

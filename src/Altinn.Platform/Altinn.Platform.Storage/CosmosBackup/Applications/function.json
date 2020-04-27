@@ -1,0 +1,22 @@
+{
+  "generatedBy": "Microsoft.NET.Sdk.Functions-3.0.6",
+  "configurationSource": "attributes",
+  "bindings": [
+    {
+      "type": "cosmosDBTrigger",
+      "connectionStringSetting": "DBConnection",
+      "leaseCollectionName": "leases",
+      "createLeaseCollectionIfNotExists": true,
+      "collectionName": "applications",
+      "databaseName": "Storage",
+      "leaseDatabaseName": "Storage",
+      "startFromBeginning": false,
+      "useMultipleWriteLocations": false,
+      "useDefaultJsonSerialization": false,
+      "name": "input"
+    }
+  ],
+  "disabled": false,
+  "scriptFile": "../bin/Altinn.Platform.Storage.CosmosBackup.dll",
+  "entryPoint": "CosmosBackup.Functions.BackUpCollections.ApplicationsCollectionBackup"
+}

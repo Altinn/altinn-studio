@@ -67,7 +67,7 @@ namespace Altinn.Platform.Authentication
 
             services.AddControllers().AddJsonOptions(options =>
             {
-                options.JsonSerializerOptions.WriteIndented = _env.IsDevelopment();
+                options.JsonSerializerOptions.WriteIndented = _env.IsDevelopment() || _env.IsStaging();
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
             services.AddMvc().AddControllersAsServices();
@@ -78,24 +78,24 @@ namespace Altinn.Platform.Authentication
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
-            {
-                GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-                options.Cookie.Name = generalSettings.JwtCookieName;
-                options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
-                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuerSigningKey = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    RequireExpirationTime = true,
-                    ValidateLifetime = true
-                };
+                    GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+                    options.Cookie.Name = generalSettings.JwtCookieName;
+                    options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true
+                    };
 
-                if (_env.IsDevelopment())
-                {
-                    options.RequireHttpsMetadata = false;
-                }
-            });
+                    if (_env.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
+                });
 
             services.AddSingleton(Configuration);
             services.AddHttpClient<ISblCookieDecryptionService, SblCookieDecryptionService>();
@@ -141,9 +141,9 @@ namespace Altinn.Platform.Authentication
         {
             _logger.LogInformation("Startup // Configure");
 
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsStaging())
             {
-                _logger.LogInformation("IsDevelopment");
+                _logger.LogInformation("IsDevelopment || IsStaging");
 
                 app.UseDeveloperExceptionPage();
 
