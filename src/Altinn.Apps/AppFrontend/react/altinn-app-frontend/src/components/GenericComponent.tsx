@@ -22,8 +22,7 @@ import {
   isComponentValid,
 } from '../utils/formComponentUtils';
 import FormLayoutActions from '../features/form/layout/formLayoutActions';
-import { getUnmappedErrors } from '../utils/validation';
-import { useRef } from 'react';
+import Description from '../features/form/components/Description';
 
 export interface IGenericComponentProps {
   id: string;
@@ -133,9 +132,10 @@ export function GenericComponent(props: IGenericComponentProps) {
   const RenderComponent = components.find((component: any) => component.name === props.type).Tag;
 
   const RenderLabel = () => {
+    const labelText = getTextResource(props.textResourceBindings.title, textResources);
     return (
       <Label
-        labelText={getTextResource(props.textResourceBindings.title, textResources)}
+        labelText={labelText}
         helpTextProps={helpTextProps}
         language={language}
         textResourceBindings={textResources}
@@ -144,6 +144,18 @@ export function GenericComponent(props: IGenericComponentProps) {
       />
     );
   };
+
+  const RenderDescription = () => {
+    if (!props.textResourceBindings.description){
+      return null;
+    }
+    const descriptionText = getTextResource(props.textResourceBindings.description, textResources);
+    return (
+      <Description
+        description={descriptionText}
+      />
+    )
+  }
 
   const RenderLegend = () => {
     return (
@@ -197,6 +209,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     {noLabelComponents.includes(props.type) ? null :
       <RenderLabel />
     }
+    {props.textResourceBindings.description ? <RenderDescription /> : null}
     <RenderComponent
       {...componentProps}
     />
