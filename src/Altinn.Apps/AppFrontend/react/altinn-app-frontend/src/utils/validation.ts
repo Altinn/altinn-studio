@@ -510,21 +510,24 @@ export function getUnmappedErrors(validations: IValidations): string[] {
  * gets mapped errors from validaitons as string array
  * @param validations the validaitons
  */
-export function getMappedErrors (validations: IValidations): string[] {
-  const messages: string[] = [];
+export function getNumberOfComponentsWithErrors (validations: IValidations): number {
+  let numberOfComponents = 0;
   if (!validations) {
-    return messages;
+    return numberOfComponents;
   }
 
-  Object.keys(validations).forEach((validationKey: string) => {
-    if (!(validationKey == 'unmapped')) {
-      Object.keys(validations[validationKey] || {}).forEach((componentKey: string) => {
-        validations[validationKey][componentKey]?.errors?.forEach((message: string) => {
-          messages.push(message);
-        });
+  Object.keys(validations).forEach((componentKey: string) => {
+    if (componentKey != 'unmapped') {
+      const componentHasErrors = Object.keys(validations[componentKey] || {}).some((bindingKey: string) => {
+        if (validations[componentKey][bindingKey].errors?.length > 0) {
+          return true;
+        }
       });
+      if (componentHasErrors) {
+        numberOfComponents ++;
+      }
     }
   });
 
-  return messages;
+  return numberOfComponents;
 }

@@ -2,14 +2,13 @@ import * as React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
-import { getLanguageFromKey } from 'altinn-shared/utils';
 import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
 import { IDataModelBindings, ITextResourceBindings, ILayoutComponent } from '../features/form/layout';
 import RuleActions from '../features/form/rules/rulesActions';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
-import { IDataModelFieldElement, ITextResource } from '../types/global';
+import { IDataModelFieldElement, ITextResource, IValidations } from '../types/global';
 import { IComponentValidations } from '../types/global';
 import Label from '../features/form/components/Label';
 import Legend from '../features/form/components/Legend';
@@ -23,6 +22,8 @@ import {
   isComponentValid,
 } from '../utils/formComponentUtils';
 import FormLayoutActions from '../features/form/layout/formLayoutActions';
+import { getUnmappedErrors } from '../utils/validation';
+import { useRef } from 'react';
 
 export interface IGenericComponentProps {
   id: string;
@@ -112,7 +113,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   }
 
   const getValidationsForInternalHandling = () => {
-    if (props.type === 'AddressComponent' || props.type === 'Datepicker') {
+    if (props.type === 'AddressComponent' || props.type === 'Datepicker' || props.type === 'FileUpload') {
       return componentValidations;
     } else {
       return null;
