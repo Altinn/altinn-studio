@@ -2,7 +2,6 @@ import * as React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
-import { getLanguageFromKey} from 'altinn-shared/utils';
 import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
 import { IDataModelBindings, ITextResourceBindings, ILayoutComponent } from '../features/form/layout';
