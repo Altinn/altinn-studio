@@ -8,7 +8,7 @@ import { IDataModelBindings, ITextResourceBindings, ILayoutComponent } from '../
 import RuleActions from '../features/form/rules/rulesActions';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
-import { IDataModelFieldElement, ITextResource, IValidations } from '../types/global';
+import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
 import Label from '../features/form/components/Label';
 import Legend from '../features/form/components/Legend';
