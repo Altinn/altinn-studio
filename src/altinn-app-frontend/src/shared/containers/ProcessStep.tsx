@@ -57,7 +57,10 @@ const ProcessStepComponent = (props) => {
                 validations={validations}
                 textResources={textResources}
               />
-              <NavBar handleClose={handleModalCloseButton} />
+              <NavBar
+                handleClose={handleModalCloseButton}
+                language={language}  
+              />
               <div className='a-modal-content-target'>
                 <div className='a-page a-current-page'>
                   <div className='modalPage'>
