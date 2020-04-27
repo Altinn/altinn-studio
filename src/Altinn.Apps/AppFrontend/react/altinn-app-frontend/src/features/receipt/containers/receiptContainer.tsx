@@ -87,6 +87,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   React.useEffect(() => {
     setUserLanguage(getUserLanguage());
     OrgsActions.fetchOrgs();
+    InstanceDataActions.getInstanceData(routeParams.partyId, routeParams.instanceGuid);	
   }, []);
 
   React.useEffect(() => {
