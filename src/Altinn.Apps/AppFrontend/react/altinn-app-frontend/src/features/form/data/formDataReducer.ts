@@ -119,15 +119,6 @@ const FormDataReducer: Reducer<IFormDataState> = (
       });
     }
     
-
-    case actionTypes.SUBMIT_FORM_DATA: {
-      return Immutable<IFormDataState>(state, {
-        isSubmitting: {
-          $set: true,
-        },
-      });
-    }
-
     default: {
       return state;
     }
