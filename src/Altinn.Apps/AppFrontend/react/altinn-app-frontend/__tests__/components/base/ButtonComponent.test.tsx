@@ -70,6 +70,4 @@ describe('components/base/ButtonComponent.tsx', () => {
     expect(wrapper.find('#' + mockId + '-loader')).toHaveLength(1);
 
   });
-
-  // '#' + mockId + '-loader'
 });
