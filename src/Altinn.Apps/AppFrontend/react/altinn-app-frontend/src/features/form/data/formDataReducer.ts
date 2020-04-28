@@ -96,9 +96,6 @@ const FormDataReducer: Reducer<IFormDataState> = (
         unsavedChanges: {
           $set: false,
         },
-        isSubmitting: {
-          $set: false,
-        }
       });
     }
 
