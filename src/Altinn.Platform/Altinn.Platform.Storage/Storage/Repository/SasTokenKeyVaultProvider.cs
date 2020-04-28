@@ -15,18 +15,18 @@ namespace Altinn.Platform.Storage.Repository
     /// Represents a collection of SAS tokens and the means to obtain new tokens when needed.
     /// This class should be used as a singleton through dependency injection.
     /// </summary>
-    public class SasTokenProvider : ISasTokenProvider
+    public class SasTokenKeyVaultProvider : ISasTokenProvider
     {
         private readonly ConcurrentDictionary<string, string> _sasTokens = new ConcurrentDictionary<string, string>();
 
         private readonly AzureStorageConfiguration _storageConfiguration;
         private readonly IKeyVaultClientWrapper _keyVaultWrapper;
-        private readonly ILogger<SasTokenProvider> _logger;
+        private readonly ILogger<SasTokenKeyVaultProvider> _logger;
 
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         /// <summary>
-        /// Initialize a new instance of the <see cref="SasTokenProvider"/> with the given <see cref="KeyVaultSettings"/>.
+        /// Initialize a new instance of the <see cref="SasTokenKeyVaultProvider"/> with the given <see cref="KeyVaultSettings"/>.
         /// </summary>
         /// <param name="keyVaultWrapper">
         /// An instance of <see cref="KeyVaultClientWrapper"/> with a principal with access to the application owner key vault(s).</param>
@@ -35,10 +35,10 @@ namespace Altinn.Platform.Storage.Repository
         /// The formats is used to generate the actual URI and storage account names based on organisation id.
         /// </param>
         /// <param name="logger">A logger that can be used to write to a log.</param>
-        public SasTokenProvider(
+        public SasTokenKeyVaultProvider(
             IKeyVaultClientWrapper keyVaultWrapper,
             IOptions<AzureStorageConfiguration> storageConfiguration,
-            ILogger<SasTokenProvider> logger)
+            ILogger<SasTokenKeyVaultProvider> logger)
         {
             _keyVaultWrapper = keyVaultWrapper;
             _storageConfiguration = storageConfiguration.Value;

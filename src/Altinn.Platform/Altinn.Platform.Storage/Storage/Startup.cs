@@ -84,6 +84,11 @@ namespace Altinn.Platform.Storage
             services.Configure<Common.PEP.Configuration.PepSettings>(Configuration.GetSection("PepSettings"));
             services.Configure<Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
+            if (_env.IsDevelopment())
+            {
+                services.Configure<UserSecrets>(Configuration.GetSection("UserSecrets"));
+            }
+
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
@@ -122,7 +127,16 @@ namespace Altinn.Platform.Storage
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<ITextRepository, TextRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddSingleton<ISasTokenProvider, SasTokenProvider>();
+
+            if (_env.IsDevelopment())
+            {
+                services.AddSingleton<ISasTokenProvider, SasTokenUserSecretProvider>();
+            }
+            else
+            {
+                services.AddSingleton<ISasTokenProvider, SasTokenKeyVaultProvider>();
+            }
+
             services.AddSingleton<IKeyVaultClientWrapper, KeyVaultClientWrapper>();
             services.AddSingleton<IPDP, PDPAppSI>();
 

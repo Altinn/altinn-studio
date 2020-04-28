@@ -235,7 +235,6 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dataType">The data type identifier for the data being uploaded.</param>
         /// <param name="refs">An optional array of data element references.</param>
         /// <returns>The metadata of the new data element.</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
         [HttpPost("data")]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]

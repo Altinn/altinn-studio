@@ -16,20 +16,20 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
 {
     public class SasTokenProviderTests
     {
-        private const string KeyVaultURI = "OrgKeyVaultURI_{0}";
+        private const string KeyVaultUri = "OrgKeyVaultURI_{0}";
         private const string StorageAccount = "OrgStorageAccount_{0}";
         private const string SasDefinition = "OrgSasDefinition_{0}";
 
-        private readonly Mock<ILogger<SasTokenProvider>> _mockLogger;
+        private readonly Mock<ILogger<SasTokenKeyVaultProvider>> _mockLogger;
         private readonly Mock<IOptions<AzureStorageConfiguration>> _storageConfiguration;
 
         public SasTokenProviderTests()
         {
-            _mockLogger= new Mock<ILogger<SasTokenProvider>>();
+            _mockLogger= new Mock<ILogger<SasTokenKeyVaultProvider>>();
 
             AzureStorageConfiguration storageSettings = new AzureStorageConfiguration
             {
-                OrgKeyVaultURI = KeyVaultURI,
+                OrgKeyVaultURI = KeyVaultUri,
                 OrgStorageAccount = StorageAccount,
                 OrgSasDefinition = SasDefinition
             };
@@ -43,7 +43,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
         {
             // Arrange
             string org = "ttd";
-            string uri = string.Format(KeyVaultURI, org);
+            string uri = string.Format(KeyVaultUri, org);
 
             string storageAccount = string.Format(StorageAccount, org);
             string sasDefinition = string.Format(SasDefinition, org);
@@ -52,7 +52,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
             Mock<IKeyVaultClientWrapper> keyVaultClient = new Mock<IKeyVaultClientWrapper>();
             keyVaultClient.Setup(s => s.GetSecretAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("ttdsecret");
 
-            SasTokenProvider target = new SasTokenProvider(keyVaultClient.Object, _storageConfiguration.Object, _mockLogger.Object);
+            SasTokenKeyVaultProvider target = new SasTokenKeyVaultProvider(keyVaultClient.Object, _storageConfiguration.Object, _mockLogger.Object);
 
             // Act
             string actual = await target.GetSasToken(org);
@@ -68,7 +68,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
         {
             // Arrange
             string org = "ttd";
-            string uri = string.Format(KeyVaultURI, org);
+            string uri = string.Format(KeyVaultUri, org);
 
             string storageAccount = string.Format(StorageAccount, org);
             string sasDefinition = string.Format(SasDefinition, org);
@@ -77,7 +77,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
             Mock<IKeyVaultClientWrapper> keyVaultClient = new Mock<IKeyVaultClientWrapper>();
             keyVaultClient.Setup(s => s.GetSecretAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("ttdsecret");
 
-            SasTokenProvider target = new SasTokenProvider(keyVaultClient.Object, _storageConfiguration.Object, _mockLogger.Object);
+            SasTokenKeyVaultProvider target = new SasTokenKeyVaultProvider(keyVaultClient.Object, _storageConfiguration.Object, _mockLogger.Object);
 
             // Act
             _ = await target.GetSasToken(org);
@@ -94,14 +94,14 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
         {
             // Arrange
             string org_ttd = "ttd";
-            string uri_ttd = string.Format(KeyVaultURI, org_ttd);
+            string uri_ttd = string.Format(KeyVaultUri, org_ttd);
 
             string storageAccount_ttd = string.Format(StorageAccount, org_ttd);
             string sasDefinition_ttd = string.Format(SasDefinition, org_ttd);
             string secretName_ttd = $"{storageAccount_ttd}-{sasDefinition_ttd}";
 
             string org_brg = "brg";
-            string uri_brg = string.Format(KeyVaultURI, org_brg);
+            string uri_brg = string.Format(KeyVaultUri, org_brg);
 
             string storageAccount_brg = string.Format(StorageAccount, org_brg);
             string sasDefinition_brg = string.Format(SasDefinition, org_brg);
@@ -110,7 +110,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
             Mock<IKeyVaultClientWrapper> keyVaultClient = new Mock<IKeyVaultClientWrapper>();
             keyVaultClient.Setup(s => s.GetSecretAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("secret");
 
-            SasTokenProvider target = new SasTokenProvider(keyVaultClient.Object, _storageConfiguration.Object, _mockLogger.Object);
+            SasTokenKeyVaultProvider target = new SasTokenKeyVaultProvider(keyVaultClient.Object, _storageConfiguration.Object, _mockLogger.Object);
 
             // Act
             await target.GetSasToken(org_ttd);
@@ -126,14 +126,14 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
         {
             // Arrange
             string org_ttd = "ttd";
-            string uri_ttd = string.Format(KeyVaultURI, org_ttd);
+            string uri_ttd = string.Format(KeyVaultUri, org_ttd);
 
             string storageAccount_ttd = string.Format(StorageAccount, org_ttd);
             string sasDefinition_ttd = string.Format(SasDefinition, org_ttd);
             string secretName_ttd = $"{storageAccount_ttd}-{sasDefinition_ttd}";
 
             string org_brg = "brg";
-            string uri_brg = string.Format(KeyVaultURI, org_brg);
+            string uri_brg = string.Format(KeyVaultUri, org_brg);
 
             string storageAccount_brg = string.Format(StorageAccount, org_brg);
             string sasDefinition_brg = string.Format(SasDefinition, org_brg);
@@ -143,7 +143,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
             keyVaultClient.Setup(s => s.GetSecretAsync(It.IsAny<string>(), It.Is<string>(i => i == secretName_ttd))).ReturnsAsync("ttdsecret");
             keyVaultClient.Setup(s => s.GetSecretAsync(It.IsAny<string>(), It.Is<string>(i => i == secretName_brg))).ReturnsAsync("brgsecret");
 
-            SasTokenProvider target = new SasTokenProvider(keyVaultClient.Object, _storageConfiguration.Object, _mockLogger.Object);
+            SasTokenKeyVaultProvider target = new SasTokenKeyVaultProvider(keyVaultClient.Object, _storageConfiguration.Object, _mockLogger.Object);
 
             // Act
             ManualResetEvent mre = new ManualResetEvent(false);
@@ -187,7 +187,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
         {
             // Arrange
             string org = "ttd";
-            string uri = string.Format(KeyVaultURI, org);
+            string uri = string.Format(KeyVaultUri, org);
 
             string storageAccount = string.Format(StorageAccount, org);
             string sasDefinition = string.Format(SasDefinition, org);
@@ -196,7 +196,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
             Mock<IKeyVaultClientWrapper> keyVaultClient = new Mock<IKeyVaultClientWrapper>();
             keyVaultClient.Setup(s => s.GetSecretAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("ttdsecret");
 
-            SasTokenProvider target = new SasTokenProvider(keyVaultClient.Object, _storageConfiguration.Object, _mockLogger.Object);
+            SasTokenKeyVaultProvider target = new SasTokenKeyVaultProvider(keyVaultClient.Object, _storageConfiguration.Object, _mockLogger.Object);
 
             // Act
             await target.GetSasToken(org);

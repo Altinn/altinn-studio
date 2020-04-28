@@ -350,5 +350,24 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
+
+        /// <summary>
+        /// Scenario:
+        ///   Request to create a new blob.
+        /// Expected:
+        ///   Request is stopped by PEP.
+        /// Success:
+        ///   403 forbidden status code returned. 
+        /// </summary>
+        [Fact]
+        public async void Post_AddNewBlob()
+        {
+            string dataPathWithDataGuid = $"{_versionPrefix}/instances/{_testInstanceOwnerId}/{Guid.NewGuid()}/data";
+
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _invalidToken);
+            HttpResponseMessage response = await _client.PostAsync($"{dataPathWithDataGuid}", null);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
     }
 }
