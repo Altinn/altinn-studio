@@ -20,16 +20,22 @@ export function* watchFetchFormDataFulfilled(): SagaIterator {
  yield takeLatest(FormDataActionTypes.UPDATE_FORM_DATA_FULFILLED, parseText);
 }
 
-function replaceTextResourceParams(textResources: ITextResource[], formData :IFormData): void {
+function replaceTextResourceParams(textResources: ITextResource[], formData: IFormData): void {
   textResources.forEach(resource => {
     if(resource.variables != null){
-      var replaceValues:string[] = [];
+      var replaceValues: string[] = [];
       resource.variables.forEach(variable => {
-          if(variable.dataSource.startsWith('dataModel')){
-            replaceValues.push(formData[variable.key] ? formData[variable.key] : variable.key);
-          }
+        if(variable.dataSource.startsWith('dataModel')){
+          replaceValues.push(formData[variable.key] ? formData[variable.key] : variable.key);
+        }
       });
-      resource.value = replaceParametersNullIndex(resource.unparsedValue, replaceValues);
+
+      var newValue: string = replaceParametersNullIndex(resource.unparsedValue, replaceValues);
+      if(resource.value != newValue){
+        resource.value = newValue;
+      }
+
+      resource.value =replaceParametersNullIndex(resource.unparsedValue, replaceValues);
     }
   });
 }
