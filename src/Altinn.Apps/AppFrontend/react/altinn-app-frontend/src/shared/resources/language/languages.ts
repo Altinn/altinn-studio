@@ -81,7 +81,7 @@ export const nb = () => (
       choose_label: 'Velg navn',
       choose_method: 'Velg metode',
       choose: 'Velg',
-      close: 'Lukk',
+      close: 'Lukk skjema',
       contains: 'Inneholder',
       control_submit: 'Kontroller og send inn',
       create_new: 'Opprett ny',

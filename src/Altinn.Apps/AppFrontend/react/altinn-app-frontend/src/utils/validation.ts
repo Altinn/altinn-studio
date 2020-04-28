@@ -488,3 +488,46 @@ function runValidation(
     return false;
   }
 }
+
+/**
+ * gets unmapped errors from validations as string array
+ * @param validations the validaitons
+ */
+export function getUnmappedErrors(validations: IValidations): string[] {
+  const messages: string[] = [];
+  if (!validations || !validations.unmapped) {
+    return messages;
+  }
+  Object.keys(validations.unmapped).forEach((key: string) => {
+    validations.unmapped[key]?.errors?.forEach((message: string) => {
+      messages.push(message);
+    });
+  });
+  return messages;
+}
+
+/**
+ * gets total number of components with mapped errors
+ * @param validations the validaitons
+ */
+export function getNumberOfComponentsWithErrors (validations: IValidations): number {
+  let numberOfComponents = 0;
+  if (!validations) {
+    return numberOfComponents;
+  }
+
+  Object.keys(validations).forEach((componentKey: string) => {
+    if (componentKey != 'unmapped') {
+      const componentHasErrors = Object.keys(validations[componentKey] || {}).some((bindingKey: string) => {
+        if (validations[componentKey][bindingKey].errors?.length > 0) {
+          return true;
+        }
+      });
+      if (componentHasErrors) {
+        numberOfComponents ++;
+      }
+    }
+  });
+
+  return numberOfComponents;
+}

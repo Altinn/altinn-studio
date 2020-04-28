@@ -1,7 +1,13 @@
 import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 
-const NavBar = (props) => {
+export interface INavBarProps {
+  language: any;
+  handleClose: (e: any) => void;
+}
+
+
+const NavBar = (props: INavBarProps) => {
   return (
     <div className='a-modal-navbar'>
       {/* Hide this button for the time being, ref. issue https://github.com/altinn/altinn-studio/issues/2500 */}
