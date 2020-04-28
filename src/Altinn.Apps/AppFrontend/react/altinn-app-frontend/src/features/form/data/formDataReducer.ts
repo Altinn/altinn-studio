@@ -4,6 +4,7 @@ import { IFetchFormDataFulfilled, IFetchFormDataRejected } from './fetch/fetchFo
 import { ISubmitFormDataRejected } from './submit/submitFormDataActions';
 import * as actionTypes from './formDataActionTypes';
 import { IUpdateFormDataFulfilled, IUpdateFormDataRejected } from './update/updateFormDataActions';
+import * as ProcessActionTypes from './../../../shared/resources/process/processActionTypes';
 
 export interface IFormData {
   [dataFieldKey: string]: any;
@@ -109,6 +110,15 @@ const FormDataReducer: Reducer<IFormDataState> = (
       });
     }
 
+    case ProcessActionTypes.COMPLETE_PROCESS_FULFILLED:
+    case ProcessActionTypes.COMPLETE_PROCESS_REJECTED: {
+      return Immutable<IFormDataState>(state, {
+        isSubmitting: {
+          $set: false,
+        },
+      });
+    }
+    
     default: {
       return state;
     }
