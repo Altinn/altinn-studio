@@ -96,6 +96,17 @@ const FormDataReducer: Reducer<IFormDataState> = (
         unsavedChanges: {
           $set: false,
         },
+        isSubmitting: {
+          $set: false,
+        }
+      });
+    }
+
+    case actionTypes.SUBMIT_FORM_DATA: {
+      return Immutable<IFormDataState>(state, {
+        isSubmitting: {
+          $set: true,
+        },
       });
     }
 
