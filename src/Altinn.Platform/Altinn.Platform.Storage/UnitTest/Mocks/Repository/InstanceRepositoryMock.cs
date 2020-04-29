@@ -1,6 +1,7 @@
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -9,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
@@ -71,11 +74,17 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
                 return Task.FromResult(instance);
             }
-            return null;
+
+            throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));
         }
 
         public Task<Instance> Update(Instance instance)
         {
+            if (instance.Id.Equals("1337/d3b326de-2dd8-49a1-834a-b1d23b11e540"))
+            {
+                throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));
+            }
+
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             string instancePath = GetInstancePath(int.Parse(instance.InstanceOwner.PartyId), instanceGuid);
 
@@ -99,5 +108,23 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return Path.Combine(unitTestFolder, @"..\..\..\data\instances");
         }
 
+
+        private static DocumentClientException CreateDocumentClientExceptionForTesting(string message, HttpStatusCode httpStatusCode)
+        {
+            Type type = typeof(DocumentClientException);
+
+            string fullName = type.FullName ?? "wtf?";
+
+            object documentClientExceptionInstance = type.Assembly.CreateInstance(
+                fullName,
+                false,
+                BindingFlags.Instance | BindingFlags.NonPublic,
+                null,
+                new object[] { message, null, null, httpStatusCode, null },
+                null,
+                null);
+
+            return (DocumentClientException)documentClientExceptionInstance;
+        }
     }
 }

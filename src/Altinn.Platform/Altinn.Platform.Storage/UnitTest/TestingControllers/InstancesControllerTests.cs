@@ -323,8 +323,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void AddCompleteConfirmation_PostAsValidAppOwner_RespondsWithUpdatedInstance()
             {
-               
-
                 // Arrange
                 string org = "tdd";
                 int instanceOwnerPartyId = 1337;
@@ -368,25 +366,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void AddCompleteConfirmation_ExceptionDuringInstanceUpdate_ReturnsInternalServerError()
             {
                 // Arrange
-                string org = "ttd";
-                int instanceOwnerPartyId = 1;
-                string instanceGuid = "cbdb00b1-4134-490d-b02b-3e33f7d8da33";
+                string org = "tdd";
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "d3b326de-2dd8-49a1-834a-b1d23b11e540";
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/complete";
 
-                Instance originalInstance = new Instance
-                {
-                    Id = $"{instanceOwnerPartyId}/{instanceGuid}",
-                    AppId = $"{org}/complete-test",
-                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
-                    Org = org,
-                    Process = new ProcessState { EndEvent = "Success" }
-                };
-                
-                DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
-                
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(originalInstance);
-                instanceRepository.Setup(r => r.Update(It.IsAny<Instance>())).ThrowsAsync(dex);
 
                 HttpClient client = GetTestClient(instanceRepository.Object);
 
@@ -398,10 +383,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-                
-                // GetOne is called more than once because of Authorization.
-                instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(2));
-                instanceRepository.Verify(s => s.Update(It.IsAny<Instance>()), Times.Once);
             }
 
             /// <summary>
@@ -415,26 +396,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void AddCompleteConfirmation_PostAsValidAppOwnerTwice_RespondsWithSameInstance()
             {
                 // Arrange
-                string org = "ttd";
-                int instanceOwnerPartyId = 1;
-                string instanceGuid = "cbdb00b1-4134-490d-b02b-3e33f7d8da33";
+                string org = "tdd";
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "ef1b16fc-4566-4577-b2d8-db74fbee4f7c";
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/complete";
-                DateTime confirmedOn = DateTime.UtcNow;
-
-                Instance originalInstance = new Instance
-                {
-                    Id = $"{instanceOwnerPartyId}/{instanceGuid}",
-                    AppId = $"{org}/complete-test",
-                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
-                    CompleteConfirmations = new List<CompleteConfirmation> { new CompleteConfirmation { ConfirmedOn = confirmedOn, StakeholderId = org } },
-                    Org = org,
-                    Process = new ProcessState { EndEvent = "Success" },
-                    Title = new LanguageString()
-                };
-                originalInstance.Title.Add("nb", "norwegian");
 
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(originalInstance);
 
                 HttpClient client = GetTestClient(instanceRepository.Object);
 
@@ -453,11 +420,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Don't compare original and updated instance in asserts. The two instances are identical.
                 Assert.NotNull(updatedInstance);
                 Assert.Equal(org, updatedInstance.CompleteConfirmations[0].StakeholderId);
-                Assert.Equal(confirmedOn, updatedInstance.CompleteConfirmations[0].ConfirmedOn);
+                Assert.Equal("111111111", updatedInstance.LastChangedBy);
+                // Verify it is the stored instance that is returned
+                Assert.Equal(6, updatedInstance.CompleteConfirmations[0].ConfirmedOn.Minute);
 
-                // GetOne is called more than once because of Authorization.
-                instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(2));
-                instanceRepository.Verify(s => s.Update(It.IsAny<Instance>()), Times.Never);
             }
 
             /// <summary>
@@ -471,16 +437,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void AddCompleteConfirmation_CompleteNonExistantInstance_ExceptionDuringAuthorization_RespondsWithInternalServerError()
             {
                 // Arrange
-                string org = "ttd";
-                int instanceOwnerPartyId = 1;
-                string instanceGuid = "cbdb00b1-4134-490d-b02b-3e33f7d8da33";
+                string org = "tdd";
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "406d1e74-e4f5-4df1-833f-06ef16246a6f";
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/complete";
-                DateTime confirmedOn = DateTime.UtcNow;
-                
-                DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
 
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(dex);
 
                 HttpClient client = GetTestClient(instanceRepository.Object);
 
@@ -492,9 +454,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-
-                instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
-                instanceRepository.Verify(s => s.Update(It.IsAny<Instance>()), Times.Never);
             }
 
             /// <summary>
