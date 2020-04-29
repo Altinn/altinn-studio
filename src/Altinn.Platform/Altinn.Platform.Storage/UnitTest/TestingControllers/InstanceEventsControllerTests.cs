@@ -116,9 +116,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void GetOne_ReponseIsDeny_ReturnStatusForbidden()
             {
-                // Arrange
-                string eventGuid = "b10774ca-1872-4393-8856-4001859dab4a";
-                string requestUri = $"{BasePath}/{eventGuid}";
+                string eventGuid = "9f07c256-a344-490b-b42b-1c855a83f6fc";
+                string requestUri = $"storage/api/v1/instances/1337/a6020470-2200-4448-bed9-ef46b679bdb8/events/{eventGuid}";
 
                 HttpClient client = GetTestClient(_instanceEventRepository.Object);
                 string token = PrincipalUtil.GetToken(-1);
