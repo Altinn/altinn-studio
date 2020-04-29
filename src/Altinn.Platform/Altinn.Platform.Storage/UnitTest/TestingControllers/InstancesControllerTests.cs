@@ -67,7 +67,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string instanceGuid = "20475edd-dc38-4ae0-bd64-1b20643f506c";
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}";
 
-                HttpClient client = GetTestClient(_instanceRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(1337, 0);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -87,7 +87,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string instanceGuid = "46133fb5-a9f2-45d4-90b1-f6d93ad40713";
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}";
 
-                HttpClient client = GetTestClient(_instanceRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(1337, 3);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -111,7 +111,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string instanceGuid = "377efa97-80ee-4cc6-8d48-09de12cc273d";
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}";
 
-                HttpClient client = GetTestClient(_instanceRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(1337, 3);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -141,7 +141,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string instanceGuid = "23d6aa98-df3b-4982-8d8a-8fe67a53b828";
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}";
 
-                HttpClient client = GetTestClient(_instanceRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(1, 3);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -163,7 +163,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string appId = "test/testApp1";
                 string requestUri = $"{BasePath}?appId={appId}";
 
-                HttpClient client = GetTestClient(_instanceRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -188,7 +188,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string appId = "test/testApp1";
                 string requestUri = $"{BasePath}?appId={appId}";
 
-                HttpClient client = GetTestClient(_instanceRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(1, 0);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -215,7 +215,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                  
                 string requestUri = $"{BasePath}/{instanceOwnerId}/{instanceGuid}";
 
-                HttpClient client = GetTestClient(_instanceRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(1337, 0);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -239,7 +239,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 string requestUri = $"{BasePath}/{instanceOwnerId}/{instanceGuid}";
 
-                HttpClient client = GetTestClient(_instanceRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(1, 3);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -260,7 +260,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Arrange
                 string requestUri = $"{BasePath}";
 
-                HttpClient client = GetTestClient(_instanceRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetOrgToken("testOrg", scope: "altinn:instances.read");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -281,7 +281,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Arrange
                 string requestUri = $"{BasePath}?org=testOrg";
 
-                HttpClient client = GetTestClient(_instanceRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetOrgToken("testOrg", scope: "altinn:instances.write");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -302,7 +302,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Arrange
                 string requestUri = $"{BasePath}?org=paradiseHotelOrg";
 
-                HttpClient client = GetTestClient(_instanceRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetOrgToken("testOrg", scope: "altinn:instances.read");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -333,7 +333,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
                
-                HttpClient client = GetTestClient(instanceRepository.Object);
+                HttpClient client = GetTestClient();
 
                 string token = PrincipalUtil.GetOrgToken(org);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -373,7 +373,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
 
-                HttpClient client = GetTestClient(instanceRepository.Object);
+                HttpClient client = GetTestClient();
 
                 string token = PrincipalUtil.GetOrgToken(org);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -403,7 +403,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
 
-                HttpClient client = GetTestClient(instanceRepository.Object);
+                HttpClient client = GetTestClient();
 
                 string token = PrincipalUtil.GetOrgToken(org);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -442,9 +442,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string instanceGuid = "406d1e74-e4f5-4df1-833f-06ef16246a6f";
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/complete";
 
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-
-                HttpClient client = GetTestClient(instanceRepository.Object);
+                HttpClient client = GetTestClient();
 
                 string token = PrincipalUtil.GetOrgToken(org);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -467,28 +465,14 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void AddCompleteConfirmation_AttemptToCompleteInstanceAsUser_ReturnsForbidden()
             {
                 // Arrange
-                string org = "ttd";
-                int instanceOwnerPartyId = 1;
-                string instanceGuid = "cbdb00b1-4134-490d-b02b-3e33f7d8da33";
+                string org = "brg";
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "8727385b-e7cb-4bf2-b042-89558c612826";
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/complete";
-                DateTime confirmedOn = DateTime.UtcNow;
 
-                Instance originalInstance = new Instance
-                {
-                    Id = $"{instanceOwnerPartyId}/{instanceGuid}",
-                    AppId = $"{org}/complete-test",
-                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
-                    CompleteConfirmations = new List<CompleteConfirmation> { new CompleteConfirmation { ConfirmedOn = confirmedOn, StakeholderId = org } },
-                    Org = org,
-                    Process = new ProcessState { EndEvent = "Success" }
-                };
+                HttpClient client = GetTestClient();
 
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(originalInstance);
-
-                HttpClient client = GetTestClient(instanceRepository.Object);
-
-                string token = PrincipalUtil.GetToken(1337);
+                string token = PrincipalUtil.GetOrgToken(org);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -496,12 +480,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-
-                instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Once);
-                instanceRepository.Verify(s => s.Update(It.IsAny<Instance>()), Times.Never);
             }
 
-            private HttpClient GetTestClient(IInstanceRepository instanceRepository, IInstanceEventRepository instanceEventRepository = null)
+            private HttpClient GetTestClient()
             {
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
                 Application testApp1 = new Application() { Id = "test/testApp1", Org = "test" };
@@ -513,7 +494,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
                 Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
 
-                instanceEventRepository ??= new Mock<IInstanceEventRepository>().Object;
                 Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
