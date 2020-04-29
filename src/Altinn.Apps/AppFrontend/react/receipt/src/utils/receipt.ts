@@ -2,7 +2,7 @@ import moment from 'moment';
 import { IApplication, IInstance, IParty } from '../../../shared/src/types';
 import { getCurrentTaskData } from '../../../shared/src/utils/applicationMetaDataUtils';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { getInstanceId } from './instance';
+import { getArchiveRef } from './instance';
 
 export const getInstanceMetaDataObject = (
   instance: IInstance,
@@ -30,7 +30,7 @@ export const getInstanceMetaDataObject = (
   }
   obj[getLanguageFromKey('receipt_platform.sender', language)] = sender;
   obj[getLanguageFromKey('receipt_platform.receiver', language)] = getOrganisationDisplayName(instance, organisations);
-  obj[getLanguageFromKey('receipt_platform.reference_number', language)] = getInstanceId();
+  obj[getLanguageFromKey('receipt_platform.reference_number', language)] = getArchiveRef();
   return obj;
 };
 

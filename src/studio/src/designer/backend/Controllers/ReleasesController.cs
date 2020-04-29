@@ -47,6 +47,13 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPushPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ActionResult<ReleaseEntity>> Create([FromBody]CreateReleaseRequestViewModel createRelease)
-            => Created(string.Empty, await _releaseService.CreateAsync(createRelease.ToEntityModel()));
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            return Created(string.Empty, await _releaseService.CreateAsync(createRelease.ToEntityModel()));
+        }
     }
 }

@@ -150,10 +150,10 @@ namespace Altinn.Platform.Register
         {
             _logger.LogInformation("Startup // Configure");
 
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsStaging())
             {
                 app.UseDeveloperExceptionPage();
-                _logger.LogInformation("IsDevelopment");
+                _logger.LogInformation("IsDevelopment || IsStaging");
             }
             else
             {

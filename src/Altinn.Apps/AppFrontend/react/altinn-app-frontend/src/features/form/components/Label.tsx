@@ -4,10 +4,11 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import HelpTextIcon from './HelpTextIcon';
 
 export interface IFormLabelProps {
-  labelText: string;
+  labelText: any;
   id: string;
   language: any;
   required: boolean;
+  readOnly: boolean;
   helpTextProps: any;
 }
 
@@ -39,7 +40,7 @@ export default function Label(props: IFormLabelProps) {
       <Grid item={true}>
         <label className='a-form-label title-label' htmlFor={props.id}>
           {props.labelText}
-          {props.required ? null :
+          {(props.required || props.readOnly) ? null :
             <span className='label-optional'>
               ({getLanguageFromKey('general.optional', props.language)})
             </span>

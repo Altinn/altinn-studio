@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Storage.Int
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Storage.UnitTest", "UnitTest\Altinn.Platform.Storage.UnitTest.csproj", "{7AD8A36D-CC19-4799-935E-FC99870CE096}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Storage.CosmosBackup", "CosmosBackup\Altinn.Platform.Storage.CosmosBackup.csproj", "{E484AEDD-0708-4C1A-B77A-4239251D524A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{7AD8A36D-CC19-4799-935E-FC99870CE096}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AD8A36D-CC19-4799-935E-FC99870CE096}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7AD8A36D-CC19-4799-935E-FC99870CE096}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E484AEDD-0708-4C1A-B77A-4239251D524A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E484AEDD-0708-4C1A-B77A-4239251D524A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E484AEDD-0708-4C1A-B77A-4239251D524A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E484AEDD-0708-4C1A-B77A-4239251D524A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

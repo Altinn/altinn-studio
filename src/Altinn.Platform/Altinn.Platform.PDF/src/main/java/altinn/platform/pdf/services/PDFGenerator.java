@@ -6,15 +6,20 @@ import altinn.platform.pdf.utils.*;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.*;
+import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.*;
+import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
+import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
+import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
-import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
-import org.apache.pdfbox.pdmodel.interactive.annotation.*;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitWidthDestination;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
-import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
+import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
 import org.w3c.dom.Document;
 
 import java.awt.*;
@@ -35,7 +40,6 @@ public class PDFGenerator {
   private float fontSize = 10;
   private float headerFontSize = 14;
   private float leading = 1.2f * fontSize;
-  private float textBoxMargin = 5;
   private PDFont font;
   private PDFont fontBold;
   private TextResources textResources;
@@ -46,7 +50,14 @@ public class PDFGenerator {
   private Party userParty;
   private PDPage currentPage;
   private PDPageContentStream currentContent;
+  private PDDocumentOutline outline;
+  private PDOutlineItem pagesOutline;
   private ByteArrayOutputStream output;
+  private COSDictionary currentMarkedContentDictionary;
+  private int mcid = 1;
+  private PDStructureElement currentPart;
+  private PDStructureElement currentSection;
+
 
   /**
    * Constructor for the AltinnPDFGenerator object
@@ -54,6 +65,8 @@ public class PDFGenerator {
   public PDFGenerator(PdfContext pdfContext) {
     this.document = new PDDocument();
     this.form = new PDAcroForm(this.document);
+    this.outline = new PDDocumentOutline();
+    this.pagesOutline = new PDOutlineItem();
     this.formLayout = pdfContext.getFormLayout();
     this.textResources = pdfContext.getTextResources();
     this.instance = pdfContext.getInstance();
@@ -76,7 +89,12 @@ public class PDFGenerator {
     // General pdf setup
     PDDocumentInformation info = new PDDocumentInformation();
     info.setCreationDate(Calendar.getInstance());
+    info.setTitle(InstanceUtils.getInstanceName(instance));
     document.setDocumentInformation(info);
+    pagesOutline.setTitle("Alle sider");
+    outline.addLast(pagesOutline);
+    PDDocumentCatalog catalog = document.getDocumentCatalog();
+    catalog.setDocumentOutline((outline));
     PDResources resources = new PDResources();
     font = PDType1Font.HELVETICA;
     fontBold = PDType1Font.HELVETICA_BOLD;
@@ -84,7 +102,14 @@ public class PDFGenerator {
     form.setDefaultResources(resources);
     String defaultAppearance = "/Helv 10 Tf 0 0 0 rg";
     form.setDefaultAppearance(defaultAppearance);
-    document.getDocumentCatalog().setAcroForm(form);
+    catalog.setAcroForm(form);
+    catalog.setLanguage("Norwegian"); // hardcoded for now, will be solved by issue #1253
+    catalog.setMarkInfo(new PDMarkInfo());
+    catalog.getMarkInfo().setMarked(true);
+    catalog.setViewerPreferences(new PDViewerPreferences(new COSDictionary()));
+    catalog.getViewerPreferences().setDisplayDocTitle(true);
+    catalog.setStructureTreeRoot(new PDStructureTreeRoot());
+    catalog.getStructureTreeRoot().setParentTree(new PDNumberTreeNode(PDParentTreeValue.class));
 
     // creates a new page
     createNewPage();
@@ -122,12 +147,14 @@ public class PDFGenerator {
         createNewPage();
         yPoint = currentPage.getMediaBox().getHeight() - margin;
       }
+      addPart();
       renderLayoutElement(element);
       yPoint -= componentMargin;
     }
 
-    // saves and closes
+    // close document and save
     currentContent.close();
+    document.getDocumentCatalog().getMarkInfo().setMarked(true);
     document.save(output);
     document.close();
     return output;
@@ -139,23 +166,23 @@ public class PDFGenerator {
     String titleKey = element.getTextResourceBindings().getTitle();
     if (titleKey != null && !titleKey.isEmpty()) {
       String title = TextUtils.getTextResourceByKey(titleKey, textResources);
-      renderText(title, fontBold, fontSize);
+      renderText(title, fontBold, fontSize, StandardStructureTypes.H2);
     }
 
     // Render description
     String descriptionKey = element.getTextResourceBindings().getDescription();
     if (descriptionKey != null && !descriptionKey.isEmpty()) {
       String description = TextUtils.getTextResourceByKey(descriptionKey, textResources);
-      renderText(description, font, fontSize);
+      renderText(description, font, fontSize, StandardStructureTypes.P);
     }
-
     String elementType = element.getType();
     // Render content
     if (elementType.equalsIgnoreCase("paragraph") || elementType.equalsIgnoreCase("header")) {
       // has no content, ignore
       return;
     }
-    else if (elementType.equalsIgnoreCase("fileupload")) {
+
+    if (elementType.equalsIgnoreCase("fileupload")) {
       // different view for file upload
       renderFileUploadContent(element);
     }
@@ -169,6 +196,11 @@ public class PDFGenerator {
   }
 
   private void renderHeader() throws IOException{
+    addPart();
+    addSection(currentPart);
+    beginMarkedContent(COSName.P);
+    addContentToCurrentSection(COSName.P, StandardStructureTypes.H1);
+    currentContent.endMarkedContent();
     currentContent.beginText();
     currentContent.newLineAtOffset(xPoint, yPoint);
     currentContent.setFont(fontBold, headerFontSize);
@@ -176,12 +208,16 @@ public class PDFGenerator {
     yPoint -= leading;
     currentContent.endText();
     yPoint -= textFieldMargin;
+    addContentToCurrentSection(COSName.P, StandardStructureTypes.H1);
+    currentContent.endMarkedContent();
   }
 
   private void renderSubmittedBy() throws IOException {
     if (party == null) {
       return;
     }
+    beginMarkedContent(COSName.P);
+    addSection(currentPart);
     currentContent.beginText();
     currentContent.newLineAtOffset(xPoint, yPoint);
     currentContent.setFont(font, fontSize);
@@ -199,8 +235,9 @@ public class PDFGenerator {
       yPoint -= leading;
     }
     currentContent.endText();
+    addContentToCurrentSection(COSName.P, StandardStructureTypes.P);
+    currentContent.endMarkedContent();
     yPoint -= componentMargin;
-
   }
 
   private void createNewPage() throws IOException {
@@ -210,10 +247,20 @@ public class PDFGenerator {
     }
     currentPage = new PDPage(PDRectangle.A4);
     document.addPage((currentPage));
+    // adds page to bookmarks
+    PDPageDestination dest = new PDPageFitWidthDestination();
+    dest.setPage(currentPage);
+    PDOutlineItem bookmark = new PDOutlineItem();
+    bookmark.setDestination(dest);
+    bookmark.setTitle("Side " + document.getPages().getCount());
+    pagesOutline.addLast(bookmark);
     currentContent= new PDPageContentStream(document, currentPage);
   }
 
-  private void renderText(String text, PDFont font, float fontSize) throws IOException {
+  private void renderText(String text, PDFont font, float fontSize, String type) throws IOException {
+    addSection(currentPart);
+    beginMarkedContent(COSName.P);
+    addContentToCurrentSection(COSName.P, type);
     currentContent.beginText();
     currentContent.newLineAtOffset(xPoint, yPoint);
     currentContent.setFont(font, fontSize);
@@ -224,43 +271,39 @@ public class PDFGenerator {
       yPoint -= leading;
     }
     currentContent.endText();
+    currentContent.endMarkedContent();
     yPoint -= textFieldMargin;
   }
 
-  private void renderContent(String content, String id) throws IOException {
-    PDTextField textField = new PDTextField(this.form);
-    textField.setPartialName(id);
-    String defaultAppearance = "/Helv 10 Tf 0 0 0 rg";
-    textField.setDefaultAppearance(defaultAppearance);
-    textField.setReadOnly(true);
-    this.form.getFields().add(textField);
-    PDAnnotationWidget widget = textField.getWidgets().get(0);
+  private void renderContent(String content) throws IOException {
     float rectHeight = TextUtils.getHeightNeededForTextBox(content, font, fontSize, width - 2*textFieldMargin, leading);
-    yPoint -= rectHeight;
-    PDRectangle rect = new PDRectangle(xPoint, yPoint, width, rectHeight);
-    widget.setRectangle(rect);
-    // Sets border color
-    PDAppearanceCharacteristicsDictionary fieldAppearance
-      = new PDAppearanceCharacteristicsDictionary(new COSDictionary());
-    fieldAppearance.setBorderColour(new PDColor(new float[]{0.0f,0.0f,0.0f}, PDDeviceRGB.INSTANCE));
-    widget.setAppearanceCharacteristics(fieldAppearance);
+    float fontHeight = TextUtils.getFontHeight(font, fontSize);
+    renderBox(xPoint, yPoint + fontHeight + 2, width, rectHeight);
+    renderText(content, font, fontSize, StandardStructureTypes.P);
+    yPoint -= (rectHeight + fontHeight);
+  }
 
-    // adds rect around widget and ands to page
-    widget.setPage(currentPage);
-    currentPage.getAnnotations().add(widget);
-    if (TextUtils.splitTextToLines(content, font, fontSize, width - 2*textBoxMargin).size() > 1) {
-      textField.setMultiline(true);
-    }
-    textField.setDoNotScroll(true);
-    textField.setValue(content);
+  private void renderBox(float xStart, float yStart, float width, float height) throws IOException {
+    renderLine(xStart, yStart, xStart + width, yStart);                                 // top
+    renderLine(xStart, yStart - height , xStart + width, yStart - height);   // bottom
+    renderLine(xStart, yStart, xStart, yStart - height);                                // left
+    renderLine(xStart + width, yStart, xStart + width, yStart - height);     // right
+  }
+
+  private void renderLine(float xStart, float yStart, float xEnd, float yEnd ) throws IOException {
+    currentContent.moveTo(xStart, yStart);
+    currentContent.lineTo(xEnd, yEnd);
+    currentContent.stroke();
   }
 
   private void renderLayoutElementContent(FormLayoutElement element) throws IOException {
-    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData), element.getId());
+    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData));
   }
 
   private void renderFileUploadContent(FormLayoutElement element) throws IOException {
     List<String> files = InstanceUtils.getAttachmentsByComponentId(element.getId(), this.instance);
+    addSection(currentPart);
+    beginMarkedContent(COSName.P);
     currentContent.setFont(font, fontSize);
     currentContent.beginText();
     float indent = 10;
@@ -271,33 +314,62 @@ public class PDFGenerator {
       yPoint -= leading;
     }
     currentContent.endText();
+    addContentToCurrentSection(COSName.P, StandardStructureTypes.P);
+    currentContent.endMarkedContent();
   }
 
   private void renderAddressComponent(FormLayoutElement element) throws IOException {
-    renderText("Gateadresse", font, fontSize);
-    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("address"), this.formData), element.getId());
+    renderText("Gateadresse", font, fontSize, StandardStructureTypes.P);
+    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("address"), this.formData));
     yPoint -= componentMargin;
 
 
-    renderText("Postnr", font, fontSize);
-    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("zipCode"), this.formData), element.getId());
+    renderText("Postnr", font, fontSize, StandardStructureTypes.P);
+    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("zipCode"), this.formData));
     yPoint -= componentMargin;
 
-    renderText("Poststed", font, fontSize);
-    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("postPlace"), this.formData), element.getId());
+    renderText("Poststed", font, fontSize, StandardStructureTypes.P);
+    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("postPlace"), this.formData));
     yPoint -= componentMargin;
 
 
     if (!element.isSimplified()) {
-      renderText("C/O eller annen tilleggsadresse", font, fontSize);
-      renderText("Om addressen er felles for flere boenhenter må du oppgi bolignummer. Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.", font, fontSize);
-      renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("careOf"), this.formData), element.getId());
+      renderText("C/O eller annen tilleggsadresse", font, fontSize, StandardStructureTypes.P);
+      renderText("Om addressen er felles for flere boenhenter må du oppgi bolignummer. Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.", font, fontSize, StandardStructureTypes.P);
+      renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("careOf"), this.formData));
       yPoint -= componentMargin;
 
-      renderText("Bolignummer", font, fontSize);
-      renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("houseNumber"), this.formData), element.getId());
+      renderText("Bolignummer", font, fontSize, StandardStructureTypes.P);
+      renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("houseNumber"), this.formData));
       yPoint -= componentMargin;
     }
+  }
+
+  private void addPart() {
+    PDStructureElement part = new PDStructureElement(StandardStructureTypes.PART, document.getDocumentCatalog().getStructureTreeRoot());
+    document.getDocumentCatalog().getStructureTreeRoot().appendKid(part);
+    currentPart = part;
+  }
+
+  private void addSection(PDStructureElement parent) {
+    PDStructureElement sect = new PDStructureElement(StandardStructureTypes.SECT, parent);
+    parent.appendKid(sect);
+    currentSection = sect;
+  }
+
+  private void addContentToCurrentSection(COSName name, String type) {
+    PDStructureElement structureElement = new PDStructureElement(type, currentSection);
+    structureElement.setPage(currentPage);
+    PDMarkedContent markedContent = new PDMarkedContent(name, currentMarkedContentDictionary);
+    structureElement.appendKid(markedContent);
+    currentSection.appendKid(structureElement);
+  }
+
+  private void beginMarkedContent(COSName name) throws IOException {
+    currentMarkedContentDictionary = new COSDictionary();
+    currentMarkedContentDictionary.setInt(COSName.MCID, mcid);
+    mcid++;
+    currentContent.beginMarkedContent(name, PDPropertyList.create(currentMarkedContentDictionary));
   }
 }
 

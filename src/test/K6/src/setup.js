@@ -2,6 +2,7 @@ import http from "k6/http";
 import * as config from "./config.js";
 import * as headers from "./buildrequestheaders.js";
 import {getParties} from "./api/platform/authorization.js";
+import {printResponseToConsole} from "./errorcounter.js"
 
 let environment = __ENV.env;
 
@@ -22,7 +23,10 @@ export function authenticateUser(userName, userPassword){
 export function getAltinnStudioRuntimeToken(aspxauthCookie){
     var endpoint =   config.platformAuthentication["authentication"] + "?goto=" + config.platformAuthentication["refresh"];    
     var params = headers.buildHeaderWithAspxAuth(aspxauthCookie, "platform");       
-    var res = http.get(endpoint,params);      
+    var res = http.get(endpoint,params);
+    if(res.status !== 200){
+        printResponseToConsole("Authentication Failed:", false, res);
+    };
     return (res.body);    
 };
 
@@ -54,4 +58,13 @@ export function clearCookies(){
     var jar = http.cookieJar();    
     jar.set("https://" + config.baseUrl, "AltinnStudioRuntime", "test", {"expires": "Mon, 02 Jan 2010 15:04:05 MST"});
     jar.set("https://" + config.baseUrl, ".ASPXAUTH", "test", {"expires": "Mon, 02 Jan 2010 15:04:05 MST"});         
+};
+
+//Request to generate maskinporten token from the maskinportengenerator project running locally
+//Link to project: https://github.com/Altinn/MaskinportenTokenGenerator
+export function generateMaskinPortenToken(){    
+    var endpoint = "http://localhost:17823/"
+    var response = http.get(endpoint);
+    var token = (JSON.parse(response.body)).access_token;
+    return token;
 };
