@@ -15,10 +15,11 @@ export function getInstanceId(): string {
 }
 
 export function getArchiveRef(): string {
-  try{
-    return getInstanceId().split('-')[4];
-  }
-  catch{
+  var instanceGuid:string = getInstanceId();
+
+  if(instanceGuid.length > 0){
+    return instanceGuid.split('-')[4];
+  } else {
     return '';
   }
 }
