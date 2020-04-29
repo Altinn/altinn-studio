@@ -10,21 +10,21 @@ using Newtonsoft.Json.Linq;
 namespace Altinn.Platform.Storage.CosmosBackup
 {
     /// <summary>
-    /// Azure Function class for handling tasks related to instances.
+    /// Azure Function class for handling tasks related to texts.
     /// </summary>
-    public static class Instances
+    public static class Texts
     {
         /// <summary>
-        /// Backs up Cosmos DB instance documents in Blob Storage.
+        /// Backs up Cosmos DB application documents in Blob Storage.
         /// </summary>
-        /// <param name="input">Instance document.</param>
+        /// <param name="input">Texts document.</param>
         /// <param name="context">Function context.</param>
         /// <param name="log">Logger.</param>
-        [FunctionName("InstancesCollectionBackup")]
-        public static async void InstancesCollectionBackup(
+        [FunctionName("TextsCollectionBackup")]
+        public static async void TextsCollectionBackup(
             [CosmosDBTrigger(
             databaseName: "Storage",
-            collectionName: "instances",
+            collectionName: "texts",
             ConnectionStringSetting = "DBConnection",
             LeaseCollectionName = "leases",
             CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<Document> input,
@@ -40,10 +40,10 @@ namespace Altinn.Platform.Storage.CosmosBackup
                 {
                     dynamic data = JObject.Parse(input[0].ToString());
                     string id = input[0].Id;
-                    string partitionKey = data.instanceOwner.partyId;
+                    string partitionKey = data.org;
                     blobName = $"{partitionKey}/{id}";
 
-                    await BlobService.SaveBlob(config, $"instances/{blobName}", input[0].ToString());
+                    await BlobService.SaveBlob(config, $"texts/{blobName}", input[0].ToString());
                 }
                 catch (Exception e)
                 {

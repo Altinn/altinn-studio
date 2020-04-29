@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
 
-using Altinn.Platform.Storage.CosmosBackup;
-
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
-namespace CosmosBackup
+namespace Altinn.Platform.Storage.CosmosBackup
 {
     /// <summary>
     /// Azure Function class for handling tasks related to applications.
