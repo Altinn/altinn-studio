@@ -244,6 +244,30 @@ namespace Altinn.Platform.Storage.Helpers
             return false;
         }
 
+        /// <summary>
+        /// Verifies a scope claim based on claimsprincipal.
+        /// </summary>
+        /// <param name="requieredScope">Requiered scope.</param>
+        /// <param name="user">Claim principal from http context.</param>
+        /// <returns></returns>
+        public bool ContainsRequieredScope(string requieredScope, ClaimsPrincipal user)
+        {
+            string contextScope = user.Identities?
+               .Where(i => i.AuthenticationType != null && i.AuthenticationType.Equals("AuthenticationTypes.Federation"))
+               .FirstOrDefault()?.Claims
+               .Where(c => c.Type.Equals("urn:altinn:scope"))?
+               .Select(c => c.Value).FirstOrDefault();
+
+            contextScope ??= user.Claims.Where(c => c.Type.Equals("scope")).Select(c => c.Value).FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(contextScope) && contextScope.Contains(requieredScope, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private static XacmlJsonCategory CreateMultipleSubjectCategory(IEnumerable<Claim> claims)
         {
             XacmlJsonCategory subjectAttributes = DecisionHelper.CreateSubjectCategory(claims);
