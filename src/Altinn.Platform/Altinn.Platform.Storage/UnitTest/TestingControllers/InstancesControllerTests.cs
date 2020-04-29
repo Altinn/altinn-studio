@@ -28,6 +28,7 @@ using Moq;
 using Newtonsoft.Json;
 using Xunit;
 using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
+using App.IntegrationTests.Utils;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
@@ -322,29 +323,19 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void AddCompleteConfirmation_PostAsValidAppOwner_RespondsWithUpdatedInstance()
             {
+               
+
                 // Arrange
-                string org = "ttd";
-                int instanceOwnerPartyId = 1;
-                string instanceGuid = "cbdb00b1-4134-490d-b02b-3e33f7d8da33";
+                string org = "tdd";
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "2f7fa5ce-e878-4e1f-a241-8c0eb1a83eab";
+                TestDataUtil.DeleteInstanceAndData(instanceOwnerPartyId, new Guid(instanceGuid));
+                TestDataUtil.PrepareInstance(instanceOwnerPartyId, new Guid(instanceGuid));
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/complete";
 
-                Instance originalInstance = new Instance
-                {
-                    Id = $"{instanceOwnerPartyId}/{instanceGuid}",
-                    AppId = $"{org}/complete-test",
-                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.ToString() },
-                    Org = org,
-                    Process = new ProcessState { EndEvent = "Success" }
-                };
-
                 Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(originalInstance);
-                instanceRepository.Setup(r => r.Update(It.IsAny<Instance>())).ReturnsAsync((Instance i) => i);
-
-                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
-                instanceEventRepository.Setup(r => r.InsertInstanceEvent(It.IsAny<InstanceEvent>())).ReturnsAsync((InstanceEvent i) => i);
-
-                HttpClient client = GetTestClient(instanceRepository.Object, instanceEventRepository.Object);
+               
+                HttpClient client = GetTestClient(instanceRepository.Object);
 
                 string token = PrincipalUtil.GetOrgToken(org);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -362,11 +353,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.NotNull(updatedInstance);
                 Assert.Equal(org, updatedInstance.CompleteConfirmations[0].StakeholderId);
                 Assert.Equal("111111111", updatedInstance.LastChangedBy);
-                
-                // GetOne is called more than once because of Authorization.
-                instanceRepository.Verify(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(2));
-                instanceRepository.Verify(s => s.Update(It.IsAny<Instance>()), Times.Once);
-                instanceEventRepository.Verify(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>()), Times.Once);
+
+                TestDataUtil.DeleteInstanceAndData(instanceOwnerPartyId, new Guid(instanceGuid));
             }
 
             /// <summary>
@@ -574,7 +562,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     {
                         services.AddSingleton(applicationRepository.Object);
                         services.AddSingleton(dataRepository.Object);
-                        services.AddSingleton(instanceEventRepository);
+                        services.AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>();
                         services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);

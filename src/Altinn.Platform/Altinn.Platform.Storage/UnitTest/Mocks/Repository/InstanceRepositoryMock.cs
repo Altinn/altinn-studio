@@ -74,9 +74,18 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return null;
         }
 
-        public Task<Instance> Update(Instance item)
+        public Task<Instance> Update(Instance instance)
         {
-            throw new NotImplementedException();
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+            string instancePath = GetInstancePath(int.Parse(instance.InstanceOwner.PartyId), instanceGuid);
+
+            if (File.Exists(instancePath))
+            {
+                File.WriteAllText(instancePath, JsonConvert.SerializeObject(instance));
+                return Task.FromResult(instance);
+            }
+
+            return null;
         }
 
         private string GetInstancePath(int instanceOwnerId, Guid instanceId)
