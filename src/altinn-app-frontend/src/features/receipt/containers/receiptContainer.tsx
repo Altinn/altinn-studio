@@ -50,7 +50,7 @@ export const returnInstanceMetaDataObject = (
     obj[getLanguageFromKey('receipt.receiver', languageData)] = 'Error: Receiver org not found';
   }
 
-  obj[getLanguageFromKey('receipt.ref_num', languageData)] = instanceGuid;
+  obj[getLanguageFromKey('receipt.ref_num', languageData)] = instanceGuid.split('-')[4];
 
   return obj;
 };
@@ -87,7 +87,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   React.useEffect(() => {
     setUserLanguage(getUserLanguage());
     OrgsActions.fetchOrgs();
-    InstanceDataActions.getInstanceData(routeParams.partyId, routeParams.instanceGuid);	
+    InstanceDataActions.getInstanceData(routeParams.partyId, routeParams.instanceGuid);
   }, []);
 
   React.useEffect(() => {
