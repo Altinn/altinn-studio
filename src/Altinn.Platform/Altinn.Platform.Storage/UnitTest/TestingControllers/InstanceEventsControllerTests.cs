@@ -22,6 +22,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
+using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
@@ -94,11 +95,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void GetOne_UserHasToLowAuthLv_ReturnStatusForbidden()
             {
                 // Arrange
-                string eventGuid = "b10774ca-1872-4393-8856-4001859dab4a";
-                string requestUri = $"{BasePath}/{eventGuid}";
+                string eventGuid = "c8a44353-114a-48fc-af8f-b85392793cb2";
+                string requestUri = $"storage/api/v1/instances/1337/3c42ee2a-9464-42a8-a976-16eb926bd20a/events/{eventGuid}";
 
                 HttpClient client = GetTestClient(_instanceEventRepository.Object);
-                string token = PrincipalUtil.GetToken(1, 0);
+                string token = PrincipalUtil.GetToken(1337, 0);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -234,8 +235,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     {
                         services.AddSingleton(applicationRepository.Object);
                         services.AddSingleton(dataRepository.Object);
-                        services.AddSingleton(instanceEventRepository);
-                        services.AddSingleton(instanceRepository.Object);
+                        services.AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>();
+                        services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
                         services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
