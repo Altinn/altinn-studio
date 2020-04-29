@@ -37,11 +37,18 @@ export const getParsedLanguageFromKey = (key: string, language: any, params?: an
   }
 };
 
-export const getParsedLanguageFromText = (text: string, allowedTags?: string[]) => {
+export const getParsedLanguageFromText = (text: string, allowedTags?: string[], allowedAttr?: string[]) => {
   const dirty = marked(text);
-  const tags = allowedTags ? allowedTags : ['a', 'b', 'br'];
-  const clean =  DOMPurify.sanitize(dirty, {ALLOWED_TAGS: tags, ALLOWED_ATTR: ['href', 'target', 'rel']});
-  return ReactHtmlParser(clean);
+  const options: DOMPurify.Config = {};
+  if (allowedTags) {
+    options.ALLOWED_TAGS = allowedTags;
+  }
+
+  if (allowedAttr) {
+    options.ALLOWED_ATTR = allowedAttr;
+  }
+  const clean =  DOMPurify.sanitize(dirty, options);
+  return ReactHtmlParser(clean.toString());
 }
 
 const replaceParameters = (nameString: any, params: any[]) => {

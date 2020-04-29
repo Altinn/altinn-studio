@@ -1,10 +1,11 @@
 using System;
+using System.IO;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
-
+using Azure.Core;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Altinn.Platform.Storage.CosmosBackup
 {
@@ -21,28 +22,21 @@ namespace Altinn.Platform.Storage.CosmosBackup
         /// <param name="data">Blob data.</param>
         public static async Task SaveBlob(IConfiguration config, string name, string data)
         {
-            StorageCredentials storageCredentials = new StorageCredentials(config["AccountName"], config["AccountKey"]);
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-            CloudBlobClient client;
+            BlobClient client;
 
-            if (config["AccountName"].StartsWith("devstoreaccount1"))
-            {
-                StorageUri storageUrl = new StorageUri(new Uri(config["BlobEndPoint"]));
-                client = new CloudBlobClient(storageUrl, storageCredentials);
-            }
-            else
-            {
-                client = storageAccount.CreateCloudBlobClient();
-            }
+            StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(config["AccountName"], config["AccountKey"]);
+            BlobServiceClient serviceClient = new BlobServiceClient(new Uri(config["BlobEndPoint"]), storageCredentials);
+            BlobContainerClient blobContainerClient = serviceClient.GetBlobContainerClient(config["StorageContainer"]);
 
-            CloudBlobContainer container = client.GetContainerReference(config["StorageContainer"]);
-
-            await container.CreateIfNotExistsAsync();
-
-            CloudBlockBlob blob = container.GetBlockBlobReference(name);
-            blob.Properties.ContentType = "application/json";
-
-            await blob.UploadTextAsync(data);
+            client = blobContainerClient.GetBlobClient(name);
+            
+            Stream stream = new MemoryStream();
+            StreamWriter writer = new StreamWriter(stream);
+            writer.Write(data);
+            writer.Flush();
+            stream.Position = 0;
+            await client.UploadAsync(stream, true);
+            stream.Dispose();
         }
     }
 }

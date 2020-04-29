@@ -48,6 +48,13 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPushPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ActionResult<DeploymentEntity>> Create([FromBody]CreateDeploymentRequestViewModel createDeployment)
-            => Created(string.Empty, await _deploymentService.CreateAsync(createDeployment.ToDomainModel()));
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            return Created(string.Empty, await _deploymentService.CreateAsync(createDeployment.ToDomainModel()));
+        }
     }
 }

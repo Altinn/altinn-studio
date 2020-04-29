@@ -4,6 +4,7 @@ import { IFetchFormDataFulfilled, IFetchFormDataRejected } from './fetch/fetchFo
 import { ISubmitFormDataRejected } from './submit/submitFormDataActions';
 import * as actionTypes from './formDataActionTypes';
 import { IUpdateFormDataFulfilled, IUpdateFormDataRejected } from './update/updateFormDataActions';
+import * as ProcessActionTypes from './../../../shared/resources/process/processActionTypes';
 
 export interface IFormData {
   [dataFieldKey: string]: any;
@@ -14,6 +15,7 @@ export interface IFormDataState {
   error: Error;
   responseInstance: any;
   unsavedChanges: boolean;
+  isSubmitting: boolean;
 }
 
 const initialState: IFormDataState = {
@@ -21,6 +23,7 @@ const initialState: IFormDataState = {
   error: null,
   responseInstance: null,
   unsavedChanges: false,
+  isSubmitting: false,
 };
 
 Immutable.extend('$setField', (params: any, original: IFormData) => {
@@ -82,6 +85,9 @@ const FormDataReducer: Reducer<IFormDataState> = (
         error: {
           $set: error,
         },
+        isSubmitting: {
+          $set: false,
+        }
       });
     }
 
@@ -93,6 +99,23 @@ const FormDataReducer: Reducer<IFormDataState> = (
       });
     }
 
+    case actionTypes.SUBMIT_FORM_DATA: {
+      return Immutable<IFormDataState>(state, {
+        isSubmitting: {
+          $set: true,
+        },
+      });
+    }
+
+    case ProcessActionTypes.COMPLETE_PROCESS_FULFILLED:
+    case ProcessActionTypes.COMPLETE_PROCESS_REJECTED: {
+      return Immutable<IFormDataState>(state, {
+        isSubmitting: {
+          $set: false,
+        },
+      });
+    }
+    
     default: {
       return state;
     }

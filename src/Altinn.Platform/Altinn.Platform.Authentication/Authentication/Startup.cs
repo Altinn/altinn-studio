@@ -80,7 +80,7 @@ namespace Altinn.Platform.Authentication
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                 {
                     GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-                    options.Cookie.Name = generalSettings.JwtCookieName;
+                    options.JwtCookieName = generalSettings.JwtCookieName;
                     options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {

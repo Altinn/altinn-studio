@@ -1,6 +1,9 @@
 import * as React from 'react';
 import FormDataActions from '../../features/form/data/formDataActions';
-import { IAltinnWindow, } from './../../types';
+import { IAltinnWindow, IRuntimeState, } from './../../types';
+import { useSelector } from 'react-redux';
+import { getLanguageFromKey } from 'altinn-shared/utils/language';
+import { AltinnLoader } from 'altinn-shared/components';
 
 export interface IButtonProvidedProps {
   id: string;
@@ -8,10 +11,11 @@ export interface IButtonProvidedProps {
   disabled: boolean;
   handleDataChange: (value: any) => void;
   formDataCount: number;
+  language: any;
 }
 
 export function ButtonComponent(props: IButtonProvidedProps) {
-
+  const isSubmitting = useSelector((state: IRuntimeState) => state.formData.isSubmitting);
 
   const renderSubmitButton = () => {
     return (
@@ -27,6 +31,19 @@ export function ButtonComponent(props: IButtonProvidedProps) {
     );
   }
 
+  const renderLoader = () => {
+    return (
+      <AltinnLoader
+        srContent={getLanguageFromKey('general.loading', props.language)}
+        style={{
+        marginLeft: '40px',
+        marginTop: '2px',
+        height: '45px' // same height as button
+        }}
+      />
+    )
+  }
+
   const submitForm = () => {
     const {org, app, instanceId } = window as Window as IAltinnWindow;
     FormDataActions.submitFormData(
@@ -37,7 +54,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
 
   return (
     <div className='a-btn-group' style={{ marginTop: '3.6rem', marginBottom: '0' }}>
-      {renderSubmitButton()}
+      {isSubmitting ? renderLoader() : renderSubmitButton()}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { IDataModelBindings, IComponentValidations, ITextResource } from "../types/global";
-import { getLanguageFromKey } from "altinn-shared/utils";
+import { getLanguageFromKey, getParsedLanguageFromText } from "altinn-shared/utils";
 
 export const isSimpleComponent = (component: any): boolean => {
   if (!component || !component.dataModelBindings) {
@@ -58,9 +58,9 @@ export const isComponentValid = (validations: IComponentValidations): boolean =>
   return isValid;
 };
 
-export const getTextResource = (resourceKey: string, textResources: ITextResource[]): string => {
+export const getTextResource = (resourceKey: string, textResources: ITextResource[]): any => {
   const textResource = textResources.find((resource: ITextResource) => resource.id === resourceKey);
-  return textResource ? textResource.value : resourceKey;
+  return textResource ? getParsedLanguageFromText(textResource.value) : resourceKey;
 };
 
 export function getFileUploadComponentValidations(validationError: string, language: any): IComponentValidations {
