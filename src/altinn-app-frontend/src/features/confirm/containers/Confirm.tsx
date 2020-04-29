@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import moment = require('moment');
 import { createMuiTheme } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
-import { AltinnReceipt, AltinnContentLoader, AltinnContentIconReceipt, AltinnButton } from 'altinn-shared/components';
+import { AltinnReceipt, AltinnContentLoader, AltinnContentIconReceipt, AltinnButton, AltinnLoader } from 'altinn-shared/components';
 import { IInstance, IParty, IPresentationField } from 'altinn-shared/types';
 import {getLanguageFromKey, getUserLanguage } from 'altinn-shared/utils/language';
 import { getCurrentTaskData, mapInstanceAttachments } from 'altinn-shared/utils';
@@ -79,6 +79,7 @@ const Confirm = (props: IConfirmProps) => {
   const [lastChangedDateTime, setLastChangedDateTime] = React.useState('');
   const [instanceMetaObject, setInstanceMetaObject] = React.useState({});
   const [userLanguage, setUserLanguage] = React.useState('nb');
+  const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
 
   const applicationMetadata: IApplicationMetadata = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
@@ -147,12 +148,15 @@ const Confirm = (props: IConfirmProps) => {
   }, [instance, applicationMetadata]);
 
   const onClickConfirm = () => {
+    setIsSubmitting(true);
     get(getValidationUrl(instanceId)).then((data: any) => {
       const mappedValidations = mapDataElementValidationToRedux(data, layout, textResources);
       FormValidationActions.updateValidations(mappedValidations);
       if (data.length === 0) {
         ProcessDispatcher.completeProcess();
       }
+    }).catch(() => {
+      setIsSubmitting(false);
     });
   }
 
@@ -174,12 +178,19 @@ const Confirm = (props: IConfirmProps) => {
         title={`${getTextFromAppOrDefault('confirm.title', textResources, language)}`}
         titleSubmitted={getTextFromAppOrDefault('confirm.answers', textResources, language)}
       />
-      <AltinnButton
+      {isSubmitting ?
+        <AltinnLoader 
+          style={{
+          paddingTop: '30px',
+          marginLeft: '40px',
+          height: '64px'}} 
+          srContent={getLanguageFromKey('general.loading', language)}/> :
+        <AltinnButton
         btnText={getTextFromAppOrDefault('confirm.button_text', textResources, language)}
         onClickFunction={onClickConfirm}
         className={classes.button}
-      />
-    </>
+      />}
+      </>
     }
     </>
   );

@@ -94,6 +94,7 @@ export const nb = () => (
       error_message_with_colon: 'Feilmelding:',
       for: 'for',
       label: 'Navn',
+      loading: "Laster innhold",
       no_options: 'Ingen alternativer tilgjenglig',
       optional: 'Valgfri',
       required: 'Obligatorisk',
