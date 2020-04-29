@@ -72,6 +72,7 @@ export default function() {
         <Route path={'/'} exact={true} component={Instantiate} />
         <Route path={'/partyselection/:errorCode?'} exact={true} component={PartySelection} />
         <Route path={'/instance/:partyId/:instanceGuid'} exact={true} component={ProcessStepWrapper} />
+        
       </Switch>
     </MuiThemeProvider>
   );
