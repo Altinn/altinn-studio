@@ -16,6 +16,7 @@ describe('components/base/ButtonComponent.tsx', () => {
   let initialStateSubmitting;
   let mockStore;
   let mockStoreSubmitting;
+  let mockLanguage;
 
   beforeAll(() => {
     const createStore = configureStore();
@@ -34,9 +35,9 @@ describe('components/base/ButtonComponent.tsx', () => {
         isSubmitting: true,
       }
     };
-
     mockStore = createStore(initialState);
     mockStoreSubmitting = createStore(initialStateSubmitting);
+    mockLanguage = {};
   });
 
   it('+++ should render button when isSubmitting is false', () => {
@@ -48,6 +49,7 @@ describe('components/base/ButtonComponent.tsx', () => {
           handleDataChange={mockHandleDataChange}
           disabled={mockDisabled}
           formDataCount={formDataCount}
+          language={mockLanguage}
         />
       </Provider>
     );
@@ -64,10 +66,11 @@ describe('components/base/ButtonComponent.tsx', () => {
           handleDataChange={mockHandleDataChange}
           disabled={mockDisabled}
           formDataCount={formDataCount}
+          language={mockLanguage}
         />
       </Provider>
     );
-    expect(wrapper.find('#' + mockId + '-loader')).toHaveLength(1);
+    expect(wrapper.find('#altinn-loader')).toHaveLength(1);
 
   });
 });
