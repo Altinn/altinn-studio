@@ -61,9 +61,9 @@ const FormDataReducer: Reducer<IFormDataState> = (
       if (!data || data === '') {
         return Immutable<IFormDataState>(state, {
           formData: {
-            $unset: [field]
-          }
-        })
+            $unset: [field],
+          },
+        });
       }
       return Immutable<IFormDataState>(state, {
         formData: {

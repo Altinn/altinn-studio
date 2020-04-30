@@ -92,11 +92,12 @@ function DatepickerComponent(props: IDatePickerProps) {
 
   const isDateEmpty = () => {
     return date && date.parsingFlags().parsedDateParts.length === 0;
-  }
+  };
 
   const getValidationMessages = () => {
     const checkDate = isDateEmpty() ? '' : date?.toISOString();
-    const validations: IComponentBindingValidation = validateDatepickerFormData(checkDate, minDate, maxDate, format, props.language);
+    const validations: IComponentBindingValidation =
+      validateDatepickerFormData(checkDate, minDate, maxDate, format, props.language);
     const suppliedValidations = props.componentValidations?.simpleBinding;
     if (suppliedValidations?.errors) {
       suppliedValidations.errors.forEach((validation: string) => {
@@ -122,7 +123,7 @@ function DatepickerComponent(props: IDatePickerProps) {
 
   React.useEffect(() => {
     setValidationMessages(getValidationMessages());
-  },[props.formData, props.componentValidations]);
+  }, [props.formData, props.componentValidations]);
 
   const handleDataChangeWrapper = (date: moment.Moment) => {
     setDate(date);

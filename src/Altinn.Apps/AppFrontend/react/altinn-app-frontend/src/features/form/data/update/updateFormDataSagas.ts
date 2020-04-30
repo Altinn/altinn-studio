@@ -47,7 +47,7 @@ function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): Sag
 }
 
 function shouldUpdateFormData(currentData: any, newData: any): boolean {
-  if (newData && newData !== '' && !currentData){
+  if (newData && newData !== '' && !currentData) {
     return true;
   }
 
