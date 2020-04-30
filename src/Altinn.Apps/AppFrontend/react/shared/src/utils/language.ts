@@ -53,19 +53,10 @@ export const getParsedLanguageFromText = (text: string, allowedTags?: string[], 
 }
 
 const replaceParameters = (nameString: any, params: any[]) => {
-  let index = 1;
-  for (const param of params) {
-    nameString = nameString.replace(`{${index}}`, param);
-    index++;
-  }
-  return nameString;
-};
-
-const replaceParametersNullIndex = (nameString: any, params: any[]) => {
   let index = 0;
   for (const param of params) {
     nameString = nameString.replace(`{${index}}`, param);
-    index++;
+    index +=1;
   }
   return nameString;
 };
@@ -80,20 +71,18 @@ export function getTextResourceByKey(key: string, textResources: ITextResource[]
 
 export function replaceTextResourceParams(textResources: ITextResource[], dataSources: IDataSources): void {
   textResources.forEach(resource => {
-    if(resource.variables){
+    if (resource.variables){
       var replaceValues: string[] = [];
       resource.variables.forEach(variable => {
-        if(variable.dataSource.startsWith('dataModel')){
+        if (variable.dataSource.startsWith('dataModel')){
           replaceValues.push(dataSources['dataModel'][variable.key] ? dataSources['dataModel'][variable.key] : variable.key);
         }
       });
 
-      var newValue: string = replaceParametersNullIndex(resource.unparsedValue, replaceValues);
-      if(resource.value != newValue){
+      var newValue: string = replaceParameters(resource.unparsedValue, replaceValues);
+      if (resource.value != newValue){
         resource.value = newValue;
       }
-
-      resource.value = replaceParametersNullIndex(resource.unparsedValue, replaceValues);
     }
   });
 }
