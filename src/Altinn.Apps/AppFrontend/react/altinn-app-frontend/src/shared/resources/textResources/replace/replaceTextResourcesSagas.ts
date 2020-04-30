@@ -22,7 +22,7 @@ export function* watchFetchFormDataFulfilled(): SagaIterator {
 
 function replaceTextResourceParams(textResources: ITextResource[], formData: IFormData): void {
   textResources.forEach(resource => {
-    if(resource.variables != null){
+    if(resource.variables){
       var replaceValues: string[] = [];
       resource.variables.forEach(variable => {
         if(variable.dataSource.startsWith('dataModel')){
@@ -35,7 +35,7 @@ function replaceTextResourceParams(textResources: ITextResource[], formData: IFo
         resource.value = newValue;
       }
 
-      resource.value =replaceParametersNullIndex(resource.unparsedValue, replaceValues);
+      resource.value = replaceParametersNullIndex(resource.unparsedValue, replaceValues);
     }
   });
 }
