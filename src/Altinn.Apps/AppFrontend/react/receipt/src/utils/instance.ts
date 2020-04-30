@@ -13,3 +13,12 @@ export function getInstanceId(): string {
     return window.location.pathname.split('/')[3];
   }
 }
+
+export function getArchiveRef(): string {
+  try{
+    return getInstanceId().split('-')[4];
+  }
+  catch{
+    return '';
+  }
+}
