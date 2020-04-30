@@ -58,6 +58,13 @@ const FormDataReducer: Reducer<IFormDataState> = (
     }
     case actionTypes.UPDATE_FORM_DATA_FULFILLED: {
       const { field, data } = action as IUpdateFormDataFulfilled;
+      if (!data || data === '') {
+        return Immutable<IFormDataState>(state, {
+          formData: {
+            $unset: [field],
+          },
+        });
+      }
       return Immutable<IFormDataState>(state, {
         formData: {
           $setField: {
