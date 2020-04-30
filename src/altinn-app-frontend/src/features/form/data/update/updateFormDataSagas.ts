@@ -26,7 +26,7 @@ function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): Sag
       state.formValidations.validations[componentId],
     );
 
-    if (state.formData.formData[field] !== data) {
+    if (shouldUpdateFormData(state.formData.formData[field], data)) {
       yield call(FormDataActions.updateFormDataFulfilled, field, data);
     }
 
@@ -44,6 +44,18 @@ function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): Sag
     console.error(err);
     yield call(FormDataActions.updateFormDataRejected, err);
   }
+}
+
+function shouldUpdateFormData(currentData: any, newData: any): boolean {
+  if (newData && newData !== '' && !currentData) {
+    return true;
+  }
+
+  if (currentData !== newData) {
+    return true;
+  }
+
+  return false;
 }
 
 export function* watchUpdateFormDataSaga(): SagaIterator {
