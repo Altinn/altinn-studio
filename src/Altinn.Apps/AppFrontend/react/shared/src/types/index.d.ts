@@ -215,7 +215,7 @@ export interface IVariable {
 }
 
 export interface IAttachmentGrouping {
-  [title: string]: IAttachemnt[];
+  [title: string]: IAttachment[];
 }
 
 export interface IDataSource{
