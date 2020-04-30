@@ -93,7 +93,7 @@ export function replaceTextResourceParams(textResources: ITextResource[], dataSo
         resource.value = newValue;
       }
 
-      resource.value =replaceParametersNullIndex(resource.unparsedValue, replaceValues);
+      resource.value = replaceParametersNullIndex(resource.unparsedValue, replaceValues);
     }
   });
 }
