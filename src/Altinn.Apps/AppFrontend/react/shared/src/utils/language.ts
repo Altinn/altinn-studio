@@ -1,7 +1,8 @@
 import * as DOMPurify from 'dompurify';
 // import * as marked from 'marked';
 import ReactHtmlParser from 'react-html-parser';
-import { ITextResource } from '../types';
+import { ITextResource, IDataSources } from '../types';
+
 const marked = require('marked');
 
 export function getLanguageFromKey(key: string, language: any) {
@@ -60,10 +61,39 @@ const replaceParameters = (nameString: any, params: any[]) => {
   return nameString;
 };
 
+const replaceParametersNullIndex = (nameString: any, params: any[]) => {
+  let index = 0;
+  for (const param of params) {
+    nameString = nameString.replace(`{${index}}`, param);
+    index++;
+  }
+  return nameString;
+};
+
 export function getTextResourceByKey(key: string, textResources: ITextResource[]) {
   if (!textResources) {
     return key;
   }
   const textResource = textResources.find((resource: ITextResource) => resource.id === key);
   return textResource ? textResource.value : key;
+}
+
+export function replaceTextResourceParams(textResources: ITextResource[], dataSources: IDataSources): void {
+  textResources.forEach(resource => {
+    if(resource.variables){
+      var replaceValues: string[] = [];
+      resource.variables.forEach(variable => {
+        if(variable.dataSource.startsWith('dataModel')){
+          replaceValues.push(dataSources['dataModel'][variable.key] ? dataSources['dataModel'][variable.key] : variable.key);
+        }
+      });
+
+      var newValue: string = replaceParametersNullIndex(resource.unparsedValue, replaceValues);
+      if(resource.value != newValue){
+        resource.value = newValue;
+      }
+
+      resource.value =replaceParametersNullIndex(resource.unparsedValue, replaceValues);
+    }
+  });
 }

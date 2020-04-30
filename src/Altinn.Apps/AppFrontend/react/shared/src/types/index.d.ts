@@ -217,3 +217,10 @@ export interface IVariable {
 export interface IAttachmentGrouping {
   [title: string]: IAttachemnt[];
 }
+
+export interface IDataSource{
+  [key: string]: any;
+}
+export interface IDataSources {
+     [key: string]: IDataSource;
+}
