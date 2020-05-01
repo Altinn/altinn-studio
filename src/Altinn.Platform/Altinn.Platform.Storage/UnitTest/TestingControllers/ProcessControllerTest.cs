@@ -55,11 +55,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void GetProcessHistory_UserHasToLowAuthLv_ReturnStatusForbidden()
             {
                 // Arrange
-                string requestUri = $"{BasePath}{InstanceId}/process/history";
+                string requestUri = $"storage/api/v1/instances/1337/ba577e7f-3dfd-4ff6-b659-350308a47348/process/history";
                 _repositoryMock.Setup(r => r.ListInstanceEvents(It.IsAny<string>(), It.IsAny<string[]>(), null, null)).ReturnsAsync(new List<InstanceEvent>());
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(1, 1);
+                string token = PrincipalUtil.GetToken(1337, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
