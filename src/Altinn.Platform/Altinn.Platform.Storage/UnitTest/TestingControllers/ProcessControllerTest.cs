@@ -96,12 +96,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void GetProcessHistory_UserIsAuthorized_ReturnsEmptyProcessHistoryReturnStatusForbidden()
             {
-                // Arrange
-                string requestUri = $"{BasePath}{InstanceId}/process/history";
+                // Arrange 17ad1851-f6cb-4573-bfcb-a17d145307b3
+                string requestUri = $"storage/api/v1/instances/1337/17ad1851-f6cb-4573-bfcb-a17d145307b3/process/history";
                 _repositoryMock.Setup(r => r.ListInstanceEvents(It.IsAny<string>(), It.IsAny<string[]>(), null, null)).ReturnsAsync(new List<InstanceEvent>());
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(1, 2);
+                string token = PrincipalUtil.GetToken(1337, 2);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act

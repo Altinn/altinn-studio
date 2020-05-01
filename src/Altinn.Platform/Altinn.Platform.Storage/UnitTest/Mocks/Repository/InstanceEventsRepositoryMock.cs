@@ -1,5 +1,6 @@
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -30,6 +31,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
             instanceEvent.Id = Guid.NewGuid();
 
+
             string instancePath = GetInstanceEventPath(instanceEvent.InstanceId , instanceEvent.InstanceOwnerPartyId,  instanceEvent.Id.Value);
             File.WriteAllText(instancePath, instanceEvent.ToString());
 
@@ -38,7 +40,20 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<List<InstanceEvent>> ListInstanceEvents(string instanceId, string[] eventTypes, DateTime? fromDateTime, DateTime? toDateTime)
         {
-            throw new NotImplementedException();
+            List<InstanceEvent> events = new List<InstanceEvent>();
+            string eventsPath = GetInstanceEventsPath(instanceId.Split("/")[1], instanceId.Split("/")[0]);
+            if (Directory.Exists(eventsPath))
+            {
+                string[] instanceEventPath = Directory.GetFiles(eventsPath);
+                foreach (string path in instanceEventPath)
+                {
+                    string content = System.IO.File.ReadAllText(path);
+                    InstanceEvent instance = (InstanceEvent)JsonConvert.DeserializeObject(content, typeof(InstanceEvent));
+                    events.Add(instance);
+                }
+            }
+
+            return Task.FromResult(events);
         }
 
         private string GetInstanceEventPath(string instanceGuid, string instanceOwnerPartyId, Guid id)
