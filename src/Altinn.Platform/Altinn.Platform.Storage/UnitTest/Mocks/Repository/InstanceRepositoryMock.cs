@@ -70,9 +70,17 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string instancePath = GetInstancePath(instanceOwnerPartyId, new Guid(instanceId.Split("/")[1]));
             if (File.Exists(instancePath))
             {
-                string content = System.IO.File.ReadAllText(instancePath);
-                Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                return Task.FromResult(instance);
+                try
+                {
+                    string content = System.IO.File.ReadAllText(instancePath);
+                    Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                    return Task.FromResult(instance);
+                }
+                catch(Exception ex)
+                {
+                    throw;
+                }
+
             }
 
             throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));
@@ -80,12 +88,12 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<Instance> Update(Instance instance)
         {
-            if (instance.Id.Equals("1337/d3b326de-2dd8-49a1-834a-b1d23b11e540"))
+            if (instance.Id.Equals("d3b326de-2dd8-49a1-834a-b1d23b11e540"))
             {
                 throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));
             }
 
-            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+            Guid instanceGuid = Guid.Parse(instance.Id);
             string instancePath = GetInstancePath(int.Parse(instance.InstanceOwner.PartyId), instanceGuid);
 
             if (File.Exists(instancePath))

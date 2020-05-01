@@ -24,6 +24,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
+using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
@@ -75,7 +76,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void GetProcessHistory_ReponseIsDeny_ReturnStatusForbidden()
             { // Arrange
-                string requestUri = $"{BasePath}{InstanceId}/process/history";
+                string requestUri = $"storage/api/v1/instances/1337/ba577e7f-3dfd-4ff6-b659-350308a47348/process/history";
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
                 string token = PrincipalUtil.GetToken(-1);
@@ -191,31 +192,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
                 Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
 
-                instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(
-                    new Instance
-                    {
-                        Id = InstanceId,
-                        InstanceOwner = new InstanceOwner
-                        {
-                            PartyId = "5000"
-                        },
-                        Org = "ttd",
-                        AppId = "ttd/testapp",
-                        Process = new ProcessState
-                        {
-                            StartEvent = "StartEvent_1",
-                            Started = DateTime.UtcNow.AddDays(-1),
-                            CurrentTask = new ProcessElementInfo
-                            {
-                                Flow = 2,
-                                ElementId = "Task_1",
-                                AltinnTaskType = "data",
-                                Name = "Utfylling",
-                                Started = DateTime.UtcNow
-                            }
-                        }
-                    });
-                instanceRepository.Setup(r => r.Update(It.IsAny<Instance>())).ReturnsAsync((Instance i) => { return i; });
                 Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
@@ -223,8 +199,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     {
                         services.AddSingleton(applicationRepository.Object);
                         services.AddSingleton(dataRepository.Object);
-                        services.AddSingleton(instanceEventRepository);
-                        services.AddSingleton(instanceRepository.Object);
+                        services.AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>();
+                        services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
                         services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();

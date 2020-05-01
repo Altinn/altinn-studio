@@ -231,7 +231,7 @@ namespace Altinn.Platform.Storage.Helpers
         {
             XacmlJsonCategory resourceCategory = new XacmlJsonCategory { Attribute = new List<XacmlJsonAttribute>() };
 
-            string instanceId = instance.Id.Split("/")[1];
+            string instanceId = instance.Id;
             string task = instance.Process?.CurrentTask?.ElementId;
             string instanceOwnerPartyId = instance.InstanceOwner.PartyId;
             string org = instance.Org;
