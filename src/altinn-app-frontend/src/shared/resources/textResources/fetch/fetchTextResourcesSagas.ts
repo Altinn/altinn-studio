@@ -9,6 +9,11 @@ import { FETCH_TEXT_RESOURCES } from './fetchTextResourcesActionTypes';
 function* fetchTextResources(): SagaIterator {
   try {
     const resource: any = yield call(get, textResourcesUrl);
+    resource.resources.forEach(res => {
+      if (res.variables != null){
+        res.unparsedValue =  res.value
+      }
+    });
     yield call(TextResourcesActions.fetchTextResourcesFulfilled, resource.language, resource.resources);
   } catch (err) {
     yield call(TextResourcesActions.fetchTextResourcesRejected, err);
