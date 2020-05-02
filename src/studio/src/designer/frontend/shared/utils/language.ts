@@ -38,7 +38,7 @@ export const getParsedLanguageFromKey = (key: string, language: any, params?: an
 };
 
 const replaceParameters = (nameString: any, params: any[]) => {
-  let index = 1;
+  let index = 0;
   for (const param of params) {
     nameString = nameString.replace(`{${index}}`, param);
     index++;
