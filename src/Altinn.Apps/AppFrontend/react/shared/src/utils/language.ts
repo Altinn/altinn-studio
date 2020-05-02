@@ -56,7 +56,7 @@ const replaceParameters = (nameString: any, params: any[]) => {
   let index = 0;
   for (const param of params) {
     nameString = nameString.replace(`{${index}}`, param);
-    index +=1;
+    index += 1;
   }
   return nameString;
 };
@@ -70,16 +70,18 @@ export function getTextResourceByKey(key: string, textResources: ITextResource[]
 }
 
 export function replaceTextResourceParams(textResources: ITextResource[], dataSources: IDataSources): void {
-  textResources.forEach(resource => {
+  var replaceValues: string[];
+
+  textResources.forEach((resource) => {
     if (resource.variables){
-      var replaceValues: string[] = [];
-      resource.variables.forEach(variable => {
+      replaceValues = [];
+      resource.variables.forEach((variable) => {
         if (variable.dataSource.startsWith('dataModel')){
           replaceValues.push(dataSources['dataModel'][variable.key] ? dataSources['dataModel'][variable.key] : variable.key);
         }
       });
 
-      var newValue: string = replaceParameters(resource.unparsedValue, replaceValues);
+      const newValue = replaceParameters(resource.unparsedValue, replaceValues);
       if (resource.value != newValue){
         resource.value = newValue;
       }
