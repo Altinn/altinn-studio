@@ -4,7 +4,9 @@ import { replaceTextResourceParams } from '../../src/utils/language';
 
 
 describe('>>> src/Altinn.Apps/AppFrontend/react/shared/src/utils/language.ts', () => {
-  let mockTextResources_1, mockTextResources_2, mockTextResources_3 : ITextResource[];
+  let mockTextResources_1 : ITextResource[];
+  let mockTextResources_2 : ITextResource[];
+  let mockTextResources_3 : ITextResource[];
   let mockDataSources : IDataSources;
   let mockDataSource : IDataSource;
 
