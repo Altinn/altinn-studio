@@ -25,6 +25,7 @@ using Moq;
 using Newtonsoft.Json;
 using Xunit;
 using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
+using App.IntegrationTests.Utils;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
@@ -145,7 +146,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void PutProcess_PDPResponseIsDeny_ReturnStatusForbidden()
             {
                 // Arrange
-                string requestUri = $"{BasePath}{InstanceId}/process";
+                string requestUri = $"storage/api/v1/instances/1337/ae3fe2fa-1fcb-42b4-8e63-69a42d4e3502/process/";
+
                 ProcessState state = new ProcessState();
                 StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
@@ -167,13 +169,16 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void PutProcess_UserIsAuthorized_ReturnStatusOK()
             {
-                // Arrange
-                string requestUri = $"{BasePath}{InstanceId}/process";
+                TestDataUtil.DeleteInstanceAndData(1337, new Guid("20a1353e-91cf-44d6-8ff7-f68993638ffe"));
+                TestDataUtil.PrepareInstance(1337, new Guid("20a1353e-91cf-44d6-8ff7-f68993638ffe"));
+         
+                // Arrange 
+                string requestUri = $"storage/api/v1/instances/1337/20a1353e-91cf-44d6-8ff7-f68993638ffe/process/";
                 ProcessState state = new ProcessState();
                 StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(1);
+                string token = PrincipalUtil.GetToken(1337,3);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -181,6 +186,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+                TestDataUtil.DeleteInstanceAndData(1337, new Guid("20a1353e-91cf-44d6-8ff7-f68993638ffe"));
             }
 
             private HttpClient GetTestClient(IInstanceEventRepository instanceEventRepository)
