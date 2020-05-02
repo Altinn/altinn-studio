@@ -96,9 +96,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void GetProcessHistory_UserIsAuthorized_ReturnsEmptyProcessHistoryReturnStatusForbidden()
             {
-                // Arrange 17ad1851-f6cb-4573-bfcb-a17d145307b3
+                // Arrange 
                 string requestUri = $"storage/api/v1/instances/1337/17ad1851-f6cb-4573-bfcb-a17d145307b3/process/history";
-                _repositoryMock.Setup(r => r.ListInstanceEvents(It.IsAny<string>(), It.IsAny<string[]>(), null, null)).ReturnsAsync(new List<InstanceEvent>());
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
                 string token = PrincipalUtil.GetToken(1337, 2);
@@ -122,12 +121,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void PutProcess_UserHasToLowAuthLv_ReturnStatusForbidden()
             {
                 // Arrange
-                string requestUri = $"{BasePath}{InstanceId}/process";
+                string requestUri = $"storage/api/v1/instances/1337/ae3fe2fa-1fcb-42b4-8e63-69a42d4e3502/process/";
+
                 ProcessState state = new ProcessState();
                 StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(1, 1);
+                string token = PrincipalUtil.GetToken(1337, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act

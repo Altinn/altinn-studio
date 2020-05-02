@@ -65,7 +65,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             throw new NotImplementedException();
         }
 
-        public Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
+        public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
             string instancePath = GetInstancePath(instanceOwnerPartyId, new Guid(instanceId.Split("/")[1]));
             if (File.Exists(instancePath))
@@ -74,7 +74,8 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 {
                     string content = System.IO.File.ReadAllText(instancePath);
                     Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                    return Task.FromResult(instance);
+                    await PostProcess(instance);
+                    return instance;
                 }
                 catch(Exception ex)
                 {
@@ -88,6 +89,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<Instance> Update(Instance instance)
         {
+            PreProcess(instance);
             if (instance.Id.Equals("d3b326de-2dd8-49a1-834a-b1d23b11e540"))
             {
                 throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));
@@ -133,6 +135,59 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 null);
 
             return (DocumentClientException)documentClientExceptionInstance;
+        }
+
+        /// <summary>
+        /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerPartyId}/{instanceGuid} to be used outside cosmos.
+        /// </summary>
+        /// <param name="instance">the instance to preprocess</param>
+        private async Task PostProcess(Instance instance)
+        {
+            Guid instanceGuid = Guid.Parse(instance.Id);
+            string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
+
+            instance.Id = instanceId;
+           // instance.Data = await _dataRepository.ReadAll(instanceGuid);
+        }
+
+        /// <summary>
+        /// Preprosesses a list of instances.
+        /// </summary>
+        /// <param name="instances">the list of instances</param>
+        private async Task PostProcess(List<Instance> instances)
+        {
+            foreach (Instance item in instances)
+            {
+                await PostProcess(item);
+            }
+        }
+
+        /// <summary>
+        /// Converts the instanceId (id) of the instance from {instanceOwnerPartyId}/{instanceGuid} to {instanceGuid} to use as id in cosmos.
+        /// </summary>
+        /// <param name="instance">the instance to preprocess</param>
+        private void PreProcess(Instance instance)
+        {
+            instance.Id = InstanceIdToCosmosId(instance.Id);
+        }
+
+        /// <summary>
+        /// An instanceId should follow this format {int}/{guid}.
+        /// Cosmos does not allow / in id.
+        /// But in some old cases instanceId is just {guid}.
+        /// </summary>
+        /// <param name="instanceId">the id to convert to cosmos</param>
+        /// <returns>the guid of the instance</returns>
+        private string InstanceIdToCosmosId(string instanceId)
+        {
+            string cosmosId = instanceId;
+
+            if (instanceId != null && instanceId.Contains("/"))
+            {
+                cosmosId = instanceId.Split("/")[1];
+            }
+
+            return cosmosId;
         }
     }
 }
