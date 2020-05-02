@@ -121,6 +121,13 @@ export interface ITextResourceBindings {
 export interface ITextResource {
   id: string;
   value: string;
+  unparsedValue: string;
+  variables:IVariable[];
+}
+
+export interface IVariable {
+  key: string;
+  dataSource: string;
 }
 
 // Datamodel
