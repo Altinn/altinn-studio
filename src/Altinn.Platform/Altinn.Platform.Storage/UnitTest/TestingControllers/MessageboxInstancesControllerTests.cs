@@ -28,6 +28,7 @@ using Moq;
 using Newtonsoft.Json;
 using Xunit;
 using System.IO;
+using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
@@ -67,20 +68,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Arrange
                 MessageBoxTestData testData = new MessageBoxTestData();
                 List<Instance> testInstances = testData.GetInstances_App3();
-
-                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
-
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(s => s.GetInstancesInStateOfInstanceOwner(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(testInstances);
-
-                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-                applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App3);
-
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+                               
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337,3));
 
                 // Act
-                HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}?state=active");
+                HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/{1337}?state=active");
 
                 // Assert
                 string content = await response.Content.ReadAsStringAsync();
@@ -109,19 +102,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 MessageBoxTestData testData = new MessageBoxTestData();
                 List<Instance> testInstances = testData.GetInstances_App2();
 
-                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
-
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(s => s.GetInstancesInStateOfInstanceOwner(It.IsAny<int>(), It.IsAny<string>())).ReturnsAsync(testInstances);
-
-                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-                applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App2);
-
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
                 // Act
-                HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}?state=active&language=en");
+                HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/1337?state=active&language=en");
                 string content = await response.Content.ReadAsStringAsync();
                 List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
 
@@ -159,7 +144,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
                 applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App1);
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
                 // Act
@@ -200,7 +185,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
                 applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App1);
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
                 // Act
@@ -247,7 +232,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
                     .ReturnsAsync((InstanceEvent r) => r);
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
                 // Act
@@ -290,7 +275,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
                     .ReturnsAsync((InstanceEvent r) => r);
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(1, 0);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -328,7 +313,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
                     .ReturnsAsync((InstanceEvent r) => r);
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -363,7 +348,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
                 // Act
@@ -401,7 +386,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
                 // Act
@@ -445,7 +430,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
                     .ReturnsAsync((InstanceEvent r) => r);
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
                 // Act
@@ -492,7 +477,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
                     .ReturnsAsync((InstanceEvent r) => r);
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(1, 0);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -532,7 +517,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
                     .ReturnsAsync((InstanceEvent r) => r);
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(-1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -574,7 +559,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
                     .ReturnsAsync((InstanceEvent r) => r);
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
 
                 // Act
@@ -626,7 +611,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
                     .ReturnsAsync((InstanceEvent r) => r);
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validTokenUsr3);
 
                 // Act
@@ -674,7 +659,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
                     .ReturnsAsync((InstanceEvent r) => r);
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validTokenUsr3);
 
                 // Act
@@ -709,17 +694,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 Instance storedInstance = null;
 
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
-                instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).Callback<Instance>(p => storedInstance = p).ReturnsAsync((Instance i) => i);
-
                 InstanceEvent instanceEvent = null;
 
-                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
-                instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
-                    .ReturnsAsync((InstanceEvent r) => r);
+               
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validTokenUsr3);
 
                 // Act
@@ -767,7 +746,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
                     .ReturnsAsync((InstanceEvent r) => r);
 
-                HttpClient client = GetTestClient(instanceRepository.Object, applicationRepository.Object, instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validTokenUsr3);
 
                 // Act
@@ -778,10 +757,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.Equal(expectedStatusCode, actualStatusCode);
             }
 
-            private HttpClient GetTestClient(
-                IInstanceRepository instanceRepository,
-                IApplicationRepository applicationRepository,
-                IInstanceEventRepository instanceEventRepository)
+            private HttpClient GetTestClient()
             {
                 // No setup required for these services. They are not in use by the MessageBoxInstancesController
                 Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
@@ -793,9 +769,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     builder.ConfigureTestServices(services =>
                     {
                         services.AddSingleton(dataRepository.Object);
-                        services.AddSingleton(instanceRepository);
-                        services.AddSingleton(applicationRepository);
-                        services.AddSingleton(instanceEventRepository);
+                        services.AddSingleton<IApplicationRepository, ApplicationRepositoryMock>();
+                        services.AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>();
+                        services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
                         services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();

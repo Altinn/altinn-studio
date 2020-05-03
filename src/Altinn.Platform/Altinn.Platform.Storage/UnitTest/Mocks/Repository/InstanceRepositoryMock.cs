@@ -50,9 +50,29 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             throw new NotImplementedException();
         }
 
-        public Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
+        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
         {
-            throw new NotImplementedException();
+            List<Instance> instances = new List<Instance>();
+
+            string instancesForPartyPath = GetInstancesPath()+ "/" + instanceOwnerPartyId;
+
+            if (Directory.Exists(instancesForPartyPath))
+            {
+                string[] instancesFiles = Directory.GetFiles(instancesForPartyPath);
+                foreach (string instancePath in instancesFiles)
+                {
+                    if (!instancePath.Contains("pretest"))
+                    {
+                        string content = System.IO.File.ReadAllText(instancePath);
+                        Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                        await PostProcess(instance);
+
+                        instances.Add(instance);
+                    }
+                }
+            }
+
+            return instances;
         }
 
         public Task<InstanceQueryResponse> GetInstancesOfApplication(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
