@@ -66,9 +66,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void GetMessageBoxInstanceList_RequestAllInstancesForAnOwnerWithtoutLanguage_ReturnsAllElementsUsingDefaultLanguage()
             {
                 // Arrange
-                MessageBoxTestData testData = new MessageBoxTestData();
-                List<Instance> testInstances = testData.GetInstances_App3();
-                               
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337,3));
 
@@ -99,11 +96,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void GetMessageBoxInstanceList_RequestAllInstancesForAnOwnerInEnglish_ReturnsAllElementsWithEnglishTitles()
             {
                 // Arrange
-                MessageBoxTestData testData = new MessageBoxTestData();
-                List<Instance> testInstances = testData.GetInstances_App2();
-
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
 
                 // Act
                 HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/1337?state=active&language=en");
@@ -114,8 +108,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string actualTitle = messageBoxInstances.First().Title;
 
                 // Assert
-                int expectedCount = 2;
-                string expectedTitle = "Test application 2 english";
+                int expectedCount = 11;
+                string expectedTitle = "Name change";
                 Assert.Equal(expectedCount, actualCount);
                 Assert.Equal(expectedTitle, actualTitle);
             }
