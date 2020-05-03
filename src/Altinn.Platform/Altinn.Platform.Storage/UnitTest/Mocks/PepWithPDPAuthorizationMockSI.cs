@@ -1,3 +1,4 @@
+using Altinn.Authorization.ABAC;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
@@ -56,37 +57,89 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
         {
             RequestTracker.AddRequest("GetDecisionForRequest", xacmlJsonRequest);
 
-            if (_pepSettings.DisablePEP)
+            return await Authorize(xacmlJsonRequest.Request);
+        }
+
+        private async Task<XacmlJsonResponse> Authorize(XacmlJsonRequest decisionRequest)
+        {
+            if (decisionRequest.MultiRequests == null || decisionRequest.MultiRequests.RequestReference == null
+                || decisionRequest.MultiRequests.RequestReference.Count < 2)
             {
-                return new XacmlJsonResponse
+                XacmlContextRequest request = XacmlJsonXmlConverter.ConvertRequest(decisionRequest);
+                XacmlContextResponse xmlResponse = await Authorize(request);
+                return XacmlJsonXmlConverter.ConvertResponse(xmlResponse);
+            }
+            else
+            {
+                XacmlJsonResponse multiResponse = new XacmlJsonResponse();
+                foreach (XacmlJsonRequestReference xacmlJsonRequestReference in decisionRequest.MultiRequests.RequestReference)
                 {
-                    Response = new List<XacmlJsonResult>()
+                    XacmlJsonRequest jsonMultiRequestPart = new XacmlJsonRequest();
+
+                    foreach (string refer in xacmlJsonRequestReference.ReferenceId)
                     {
-                        new XacmlJsonResult
+                        IEnumerable<XacmlJsonCategory> resourceCategoriesPart = decisionRequest.Resource.Where(i => i.Id.Equals(refer));
+
+                        if (resourceCategoriesPart != null && resourceCategoriesPart.Count() > 0)
                         {
-                            Decision = XacmlContextDecision.Permit.ToString(),
+                            if (jsonMultiRequestPart.Resource == null)
+                            {
+                                jsonMultiRequestPart.Resource = new List<XacmlJsonCategory>();
+                            }
+
+                            jsonMultiRequestPart.Resource.AddRange(resourceCategoriesPart);
                         }
-                    },
-                };
+
+                        IEnumerable<XacmlJsonCategory> subjectCategoriesPart = decisionRequest.AccessSubject.Where(i => i.Id.Equals(refer));
+
+                        if (subjectCategoriesPart != null && subjectCategoriesPart.Count() > 0)
+                        {
+                            if (jsonMultiRequestPart.AccessSubject == null)
+                            {
+                                jsonMultiRequestPart.AccessSubject = new List<XacmlJsonCategory>();
+                            }
+
+                            jsonMultiRequestPart.AccessSubject.AddRange(subjectCategoriesPart);
+                        }
+
+                        IEnumerable<XacmlJsonCategory> actionCategoriesPart = decisionRequest.Action.Where(i => i.Id.Equals(refer));
+
+                        if (actionCategoriesPart != null && actionCategoriesPart.Count() > 0)
+                        {
+                            if (jsonMultiRequestPart.Action == null)
+                            {
+                                jsonMultiRequestPart.Action = new List<XacmlJsonCategory>();
+                            }
+
+                            jsonMultiRequestPart.Action.AddRange(actionCategoriesPart);
+                        }
+                    }
+
+                    XacmlContextResponse partResponse = await Authorize(XacmlJsonXmlConverter.ConvertRequest(jsonMultiRequestPart));
+                    XacmlJsonResponse xacmlJsonResponsePart = XacmlJsonXmlConverter.ConvertResponse(partResponse);
+
+                    if (multiResponse.Response == null)
+                    {
+                        multiResponse.Response = new List<XacmlJsonResult>();
+                    }
+
+                    multiResponse.Response.Add(xacmlJsonResponsePart.Response.First());
+                }
+
+                return multiResponse;
             }
+        }
 
-            try
-            {
-                XacmlContextRequest decisionRequest = XacmlJsonXmlConverter.ConvertRequest(xacmlJsonRequest.Request);
-                decisionRequest = await Enrich(decisionRequest);
+        private async Task<XacmlContextResponse> Authorize(XacmlContextRequest decisionRequest)
+        {
+            decisionRequest = await Enrich(decisionRequest);
 
-                Altinn.Authorization.ABAC.PolicyDecisionPoint pdp = new Altinn.Authorization.ABAC.PolicyDecisionPoint();
+             XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
 
-                XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
-                XacmlContextResponse contextResponse = pdp.Authorize(decisionRequest, policy);
+            PolicyDecisionPoint pdp = new PolicyDecisionPoint();
+            XacmlContextResponse xacmlContextResponse = pdp.Authorize(decisionRequest, policy);
 
-                return XacmlJsonXmlConverter.ConvertResponse(contextResponse);
-            }
-            catch
-            {
-            }
-
-            return null;
+            return xacmlContextResponse;
         }
 
         public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)

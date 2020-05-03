@@ -79,8 +79,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string content = await response.Content.ReadAsStringAsync();
                 List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject(content, typeof(List<MessageBoxInstance>)) as List<MessageBoxInstance>;
 
-                int expectedCount = 2;
-                string expectedTitle = "Test applikasjon 3 bokmål";
+                int expectedCount = 11;
+                string expectedTitle = "Endring av navn (RF-1453)";
                 int actualCount = messageBoxInstances.Count;
                 string actualTitle = messageBoxInstances.First().Title;
                 Assert.Equal(expectedCount, actualCount);
