@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import * as React from 'react';
 import DropZone from 'react-dropzone';
 import { useSelector } from 'react-redux';
@@ -151,12 +152,16 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
   };
 
   const handleDeleteKeypress = (index: number, event: any) => {
+    console.log('handle delte keypress');
     if (event.key === 'Enter') {
+      console.log('event', event);
+      console.log('index', index);
       handleDeleteFile(index);
     }
   };
 
   const handleDeleteFile = (index: number) => {
+    console.log('handle delte file');
     const attachmentToDelete = attachments[index];
     const fileType = props.id; // component id used as filetype identifier for now, see issue #1364
     dispatch({ type: 'delete', index });
@@ -172,10 +177,10 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
         <table className='file-upload-table'>
           <thead>
             <tr className='blue-underline' id='altinn-file-list-row-header'>
-              <th>{getLanguageFromKey('form_filler.file_uploader_list_header_name', props.language)}</th>
-              <th>{getLanguageFromKey('form_filler.file_uploader_list_header_file_size', props.language)}</th>
-              <th>{getLanguageFromKey('form_filler.file_uploader_list_header_status', props.language)}</th>
-              <th />
+              <th scope='col'>{getLanguageFromKey('form_filler.file_uploader_list_header_name', props.language)}</th>
+              <th scope='col'>{getLanguageFromKey('form_filler.file_uploader_list_header_file_size', props.language)}</th>
+              <th scope='col'>{getLanguageFromKey('form_filler.file_uploader_list_header_status', props.language)}</th>
+              <th scope='col'/>
             </tr>
           </thead>
           <tbody>
@@ -200,15 +205,11 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
                       </div>
                     }
                     {!attachment.uploaded &&
-                      <div
-                        className='a-loader' id='loader-upload'
-                        data-testid='loader-upload'
-                      >
-                        <div
-                          className='loader loader-ellipsis'
-                          style={{ marginLeft: '1.3rem', marginBottom: '1.6rem' }}
-                        />
-                      </div>
+                      <AltinnLoader
+                        id='loader-upload'
+                        style={{ marginBottom: '1.6rem', marginRight: '1.3rem' }}
+                        srContent={getLanguageFromKey('general.loading', props.language)}
+                      />
                     }
                   </td>
                   <td>
@@ -227,6 +228,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
                       }
                       {attachment.deleting &&
                         <AltinnLoader
+                          id='loader-delete'
                           style={{ marginBottom: '1.6rem', marginRight: '1.0rem' }}
                           srContent={getLanguageFromKey('general.loading', props.language)}
                         />
@@ -300,7 +302,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
         {
           `${getLanguageFromKey('form_filler.file_uploader_number_of_files', props.language)} ${
             props.minNumberOfAttachments ? `${attachments.length}/${props.maxNumberOfAttachments}`
-              : attachments.length}`
+              : attachments.length}.`
         }
       </div>
     );
@@ -330,7 +332,6 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
           maxSize={props.maxFileSizeInMB * bytesInOneMB} // mb to bytes
           disabled={props.readOnly}
           accept={(props.hasCustomFileEndings) ? props.validFileEndings : null}
-          aria-describedby='max-size'
         >
           {({
             getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject,
@@ -346,8 +347,13 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
                 style={styles}
                 id={`altinn-drop-zone-${props.id}`}
                 className={`file-upload${hasValidationMessages ? ' file-upload-invalid' : ''}`}
+                aria-describedby='max-size number-of-attachments'
+                role='button'
               >
-                <input {...getInputProps()} id={props.id} aria-describedby='max-size'/>
+                <input
+                  {...getInputProps()}
+                  id={props.id}
+                />
                 {renderFileUploadContent()}
               </div>
             );

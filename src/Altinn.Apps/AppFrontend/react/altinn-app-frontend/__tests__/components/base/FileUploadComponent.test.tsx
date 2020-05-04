@@ -80,8 +80,8 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         />
       </Provider>
     );
-    expect(wrapper.find('#loader-upload')).toHaveLength(1);
-    expect(wrapper.find('#loader-delete')).toHaveLength(1);
+    expect(wrapper.find('#loader-upload')).toHaveLength(2); // div and react node
+    expect(wrapper.find('#loader-delete')).toHaveLength(2); // div and react node
   });
 
 //   it('+++ should add validation error on onDrop rejection', () => {
