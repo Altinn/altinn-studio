@@ -13,7 +13,10 @@ export function authenticateUser(userName, userPassword){
         "UserName": userName,
         "UserPassword": userPassword
     };        
-    var res = http.post(endpoint, requestBody); 
+    var res = http.post(endpoint, requestBody);
+    if(res.status !== 200){
+        printResponseToConsole("Authentication towards Altinn 2 Failed:", false, res);
+    };
     const cookieName = ".ASPXAUTH"   
     var cookieValue = (res.cookies[cookieName])[0].value;    
     return cookieValue;
@@ -25,7 +28,7 @@ export function getAltinnStudioRuntimeToken(aspxauthCookie){
     var params = headers.buildHeaderWithAspxAuth(aspxauthCookie, "platform");       
     var res = http.get(endpoint,params);
     if(res.status !== 200){
-        printResponseToConsole("Authentication Failed:", false, res);
+        printResponseToConsole("T3.0 Authentication Failed:", false, res);
     };
     return (res.body);    
 };
@@ -35,6 +38,9 @@ export function getUserData(altinnStudioRuntimeCookie){
     var endpoint =   config.appProfile["user"];
     var params = headers.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");    
     var res = http.get(endpoint,params);
+    if(res.status !== 200){
+        printResponseToConsole("Get User data failed:", false, res);
+    };
     res = JSON.parse(res.body);
     var userData = {
         "userId": res.userId,
@@ -43,6 +49,9 @@ export function getUserData(altinnStudioRuntimeCookie){
     };
     //get parties and find an Org that an user can represent
     res = getParties(userData["userId"]);
+    if(res.status !== 200){
+        printResponseToConsole("Get User data failed:", false, res);
+    };
     res = JSON.parse(res.body);
     for(var i=0; i < res.length; i++){
         if(res[i].orgNumber != null){
