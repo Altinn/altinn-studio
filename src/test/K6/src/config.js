@@ -96,9 +96,11 @@ export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type){
 
 //App APIs
 export var appApiBaseUrl = "https://" + appOwner + ".apps." + baseUrl + "/" + appOwner + "/" + appName;
+export var appValidateInstantiation = appApiBaseUrl + "/api/v1/parties/validateInstantiation";
 
+//App Profile
 export var appProfile =  {
-    user: appApiBaseUrl + "/api/v1/profile/user"
+    "user": appApiBaseUrl + "/api/v1/profile/user"
 };
 
 //Function to build endpoints in App Api with instanceOwnerId, instanceId, dataId, type
@@ -117,4 +119,20 @@ export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type){
             break;        
     };
     return value;
+};
+
+
+//App Resources
+export var appResources = {
+    "textresources" : appApiBaseUrl + "/api/textresources",
+    "applicationmetadata" : appApiBaseUrl + "/api/v1/applicationmetadata",
+    "servicemetadata": appApiBaseUrl + "/api/metadata/ServiceMetaData",
+    "formlayout": appApiBaseUrl + "/api/resource/FormLayout.json",
+    "rulehandler": appApiBaseUrl + "/api/resource/RuleHandler.js",
+    "ruleconfiguration": appApiBaseUrl + "/api/resource/RuleConfiguration.json"
+};
+
+//App Authorization
+export var appAuthorization =  {
+    "currentparties": appApiBaseUrl + "/api/authorization/parties/current?returnPartyObject=true"
 };
