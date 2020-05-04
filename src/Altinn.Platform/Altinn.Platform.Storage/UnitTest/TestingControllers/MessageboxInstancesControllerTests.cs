@@ -281,28 +281,14 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void Delete_SoftDeleteActiveInstance_InstanceIsMarked_EventIsCreated_ReturnsTrue()
             {
                 // Arrange
-                MessageBoxTestData testData = new MessageBoxTestData();
-                Instance instance = testData.GetActiveInstance();
-
-                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-
-                Instance storedInstance = null;
-
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
-                instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).Callback<Instance>(p => storedInstance = p).ReturnsAsync((Instance i) => i);
-
-                InstanceEvent instanceEvent = null;
-
-                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
-                instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
-                    .ReturnsAsync((InstanceEvent r) => r);
+                TestDataUtil.DeleteInstanceAndData(1337, new Guid("08274f48-8313-4e2d-9788-bbdacef5a54e"));
+                TestDataUtil.PrepareInstance(1337, new Guid("08274f48-8313-4e2d-9788-bbdacef5a54e"));
 
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
 
                 // Act
-                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id.Split("/")[1]}?hard=false");
+                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/1337/08274f48-8313-4e2d-9788-bbdacef5a54e?hard=false");
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -310,12 +296,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string content = await response.Content.ReadAsStringAsync();
                 bool actualResult = JsonConvert.DeserializeObject<bool>(content);
                 Assert.True(actualResult);
-
-                Assert.True(storedInstance.Status.SoftDeleted.HasValue);
-                Assert.False(storedInstance.Status.HardDeleted.HasValue);
-
-                Assert.NotNull(instanceEvent);
-                Assert.Equal("Deleted", instanceEvent.EventType);
+                TestDataUtil.DeleteInstanceAndData(1337, new Guid("08274f48-8313-4e2d-9788-bbdacef5a54e"));
             }
 
             /// <summary>
