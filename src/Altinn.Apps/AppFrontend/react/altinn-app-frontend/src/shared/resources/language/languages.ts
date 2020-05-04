@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length */
-export default function nb() {
+// eslint-disable-next-line import/prefer-default-export
+export function nb() {
   return {
     access_control: {
       about_header: 'Om tilgang',
