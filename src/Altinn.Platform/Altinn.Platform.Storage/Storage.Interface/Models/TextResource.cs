@@ -46,5 +46,26 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "value")]
         public string Value { get; set; }
+
+        /// <summary>
+        /// gets or sets the variables
+        /// </summary>
+        [JsonProperty(PropertyName = "variables")]
+        public List<TextResourceVariable> Variables { get; set; }
+    }
+
+    public class TextResourceVariable
+    {
+        /// <summary>
+        /// gets or sets the key
+        /// </summary>
+        [JsonProperty(PropertyName = "key")]
+        public string Key { get; set; }
+
+        /// <summary>
+        /// gets or sets the dataSource
+        /// </summary>
+        [JsonProperty(PropertyName = "dataSource")]
+        public string DataSource { get; set; }
     }
 }

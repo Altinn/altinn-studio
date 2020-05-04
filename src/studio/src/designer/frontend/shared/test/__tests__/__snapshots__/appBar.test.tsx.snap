@@ -5,7 +5,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
   className="AppBarComponent-root-1"
 >
   <header
-    className="MuiPaper-root MuiPaper-elevation0 MuiAppBar-root MuiAppBar-positionStatic AppBarComponent-appBar-2 MuiAppBar-colorPrimary"
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic AppBarComponent-appBar-2 MuiAppBar-colorPrimary MuiPaper-elevation0"
     style={
       Object {
         "backgroundColor": "#EFEFEF",
@@ -51,7 +51,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
   className="AppBarComponent-root-1"
 >
   <header
-    className="MuiPaper-root MuiPaper-elevation0 MuiAppBar-root MuiAppBar-positionStatic AppBarComponent-appBar-2 MuiAppBar-colorPrimary"
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic AppBarComponent-appBar-2 MuiAppBar-colorPrimary MuiPaper-elevation0"
     style={
       Object {
         "backgroundColor": "#EFEFEF",
@@ -97,7 +97,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
   className="AppBarComponent-root-1"
 >
   <header
-    className="MuiPaper-root MuiPaper-elevation0 MuiAppBar-root MuiAppBar-positionStatic AppBarComponent-appBar-2 MuiAppBar-colorPrimary"
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic AppBarComponent-appBar-2 MuiAppBar-colorPrimary MuiPaper-elevation0"
     style={
       Object {
         "backgroundColor": "pink",
@@ -143,7 +143,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
   className="AppBarComponent-root-1"
 >
   <header
-    className="MuiPaper-root MuiPaper-elevation0 MuiAppBar-root MuiAppBar-positionStatic AppBarComponent-appBar-2 MuiAppBar-colorPrimary"
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic AppBarComponent-appBar-2 MuiAppBar-colorPrimary MuiPaper-elevation0"
     style={
       Object {
         "backgroundColor": "#EFEFEF",
@@ -189,7 +189,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
   className="AppBarComponent-root-1"
 >
   <header
-    className="MuiPaper-root MuiPaper-elevation0 MuiAppBar-root MuiAppBar-positionStatic AppBarComponent-appBar-2 MuiAppBar-colorPrimary"
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic AppBarComponent-appBar-2 MuiAppBar-colorPrimary MuiPaper-elevation0"
     style={
       Object {
         "backgroundColor": "#EFEFEF",
@@ -235,7 +235,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
   className="AppBarComponent-root-1"
 >
   <header
-    className="MuiPaper-root MuiPaper-elevation0 MuiAppBar-root MuiAppBar-positionStatic AppBarComponent-appBar-2 MuiAppBar-colorPrimary"
+    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic AppBarComponent-appBar-2 MuiAppBar-colorPrimary MuiPaper-elevation0"
     style={
       Object {
         "backgroundColor": "#EFEFEF",

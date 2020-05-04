@@ -90,8 +90,14 @@ function DatepickerComponent(props: IDatePickerProps) {
   const theme = useTheme();
   const inline = useMediaQuery(theme.breakpoints.up('sm'));
 
+  const isDateEmpty = () => {
+    return date && date.parsingFlags().parsedDateParts.length === 0;
+  };
+
   const getValidationMessages = () => {
-    const validations: IComponentBindingValidation = validateDatepickerFormData(date?.toISOString(), minDate, maxDate, format, props.language);
+    const checkDate = isDateEmpty() ? '' : date?.toISOString();
+    const validations: IComponentBindingValidation =
+      validateDatepickerFormData(checkDate, minDate, maxDate, format, props.language);
     const suppliedValidations = props.componentValidations?.simpleBinding;
     if (suppliedValidations?.errors) {
       suppliedValidations.errors.forEach((validation: string) => {
@@ -117,7 +123,7 @@ function DatepickerComponent(props: IDatePickerProps) {
 
   React.useEffect(() => {
     setValidationMessages(getValidationMessages());
-  },[props.formData]);
+  }, [props.formData, props.componentValidations]);
 
   const handleDataChangeWrapper = (date: moment.Moment) => {
     setDate(date);
@@ -140,7 +146,8 @@ function DatepickerComponent(props: IDatePickerProps) {
   const handleOnBlur = () => {
     setValidDate(isValidDate(date));
     setValidationMessages(getValidationMessages());
-    props.handleDataChange(date?.toISOString());
+    const saveDate = isDateEmpty() ? '' : date?.toISOString();
+    props.handleDataChange(saveDate);
   }
 
   return (
