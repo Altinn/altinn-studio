@@ -29,6 +29,7 @@ using Newtonsoft.Json;
 using Xunit;
 using System.IO;
 using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
+using App.IntegrationTests.Utils;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
@@ -147,49 +148,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             /// <summary>
             /// Scenario:
-            ///   Request list of archived instances where task of the instance is not set. 
-            /// Expected:
-            ///   A list of instances is returned regardless.
-            /// Success:
-            ///   A single instance is returned and the task has the value of end event. 
-            /// </summary>
-            [Fact]
-            public async void GetMessageBoxInstanceList_RequestArchivedInstancesForGivenOwner_ReturnsCorrectListOfInstancesWithEndEventTask()
-            {
-                // Arrange
-                MessageBoxTestData testData = new MessageBoxTestData();
-                List<Instance> testInstances = testData.GetInstances_App4();
-
-                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
-
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(s => s.GetInstancesInStateOfInstanceOwner(It.IsAny<int>(), It.Is<string>(p2 => p2 == "archived")))
-                    .ReturnsAsync(testInstances);
-
-                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-                applicationRepository.Setup(s => s.GetAppTitles(It.IsAny<List<string>>())).ReturnsAsync(TestData.AppTitles_Dict_App1);
-
-                HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
-
-                // Act
-                HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}?state=archived");
-
-                // Assert
-                instanceRepository.VerifyAll();
-
-                Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
-
-                string responseContent = await responseMessage.Content.ReadAsStringAsync();
-                List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseContent);
-
-                int actualCount = messageBoxInstances.Count;
-                int expectedCount = 1;
-                Assert.Equal(expectedCount, actualCount);
-            }
-
-            /// <summary>
-            /// Scenario:
             ///   Restore a soft deleted instance in storage.
             /// Expected result:
             ///   The instance is restored.
@@ -199,39 +157,23 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void Undelete_RestoreSoftDeletedInstance_ReturnsTrue()
             {
+                TestDataUtil.DeleteInstanceAndData(1337, new Guid("da1f620f-1764-4f98-9f03-74e5e20f10fe"));
+                TestDataUtil.PrepareInstance(1337, new Guid("da1f620f-1764-4f98-9f03-74e5e20f10fe"));
                 // Arrange
-                MessageBoxTestData testData = new MessageBoxTestData();
-                Instance instance = testData.GetSoftDeletedInstance();
-                instance.Status.HardDeleted = null;
-
-                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
-                instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).ReturnsAsync((Instance i) => i);
-
-                InstanceEvent instanceEvent = null;
-
-                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
-                instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
-                    .ReturnsAsync((InstanceEvent r) => r);
-
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
 
                 // Act
-                HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id.Split("/")[1]}/undelete", null);
+                HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{1337}/da1f620f-1764-4f98-9f03-74e5e20f10fe/undelete", null);
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-                Assert.NotNull(instanceEvent);
-                Assert.Equal("Undeleted", instanceEvent.EventType);
-
+                
                 string content = await response.Content.ReadAsStringAsync();
                 bool actualResult = JsonConvert.DeserializeObject<bool>(content);
 
                 Assert.True(actualResult);
+                TestDataUtil.DeleteInstanceAndData(1337, new Guid("da1f620f-1764-4f98-9f03-74e5e20f10fe"));
             }
 
             /// <summary>
