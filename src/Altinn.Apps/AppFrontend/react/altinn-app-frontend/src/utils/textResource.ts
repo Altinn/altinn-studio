@@ -9,11 +9,15 @@ export function getTextResourceByKey(key: string, textResources: ITextResource[]
   return textResource ? textResource.value : key;
 }
 
-export const getTextFromAppOrDefault = (key: string, textResources: ITextResource[], language: any, params?: string[]) => {
-  const textResource: string = getTextResourceByKey(key, textResources);
+export const getTextFromAppOrDefault = 
+  (key: string, textResources: ITextResource[], language: any, params?: string[], stringOutput?: boolean) => {
+  let textResource: string = getTextResourceByKey(key, textResources);
   if (textResource !== key) {
+    if (stringOutput) {
+      return textResource;
+    }
     return getParsedLanguageFromText(textResource);
   }
 
-  return getParsedLanguageFromKey(key, language, params);
+  return getParsedLanguageFromKey(key, language, params, stringOutput);
 }
