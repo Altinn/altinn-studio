@@ -72,7 +72,42 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 }
             }
 
-            return instances;
+            return Filter(instanceState, instances);
+        }
+
+
+        private List<Instance> Filter(string instanceState, List<Instance> unfilteredInstances)
+        {
+            IEnumerable<Instance> filter;
+            if (instanceState.Equals("active"))
+            {
+                filter = unfilteredInstances
+                        .Where(i => (!i.VisibleAfter.HasValue || i.VisibleAfter <= DateTime.UtcNow))
+                        .Where(i => !i.Status.SoftDeleted.HasValue)
+                        .Where(i => !i.Status.HardDeleted.HasValue)
+                        .Where(i => !i.Status.Archived.HasValue);
+            }
+            else if (instanceState.Equals("deleted"))
+            {
+                filter = unfilteredInstances
+                        .Where(i => i.Status.SoftDeleted.HasValue)
+                        .Where(i => !i.Status.HardDeleted.HasValue);
+            }
+            else if (instanceState.Equals("archived"))
+            {
+                filter =
+                       unfilteredInstances
+                       .Where(i => i.Status.Archived.HasValue)
+                       .Where(i => !i.Status.SoftDeleted.HasValue)
+                       .Where(i => !i.Status.HardDeleted.HasValue);
+            }
+            else
+            {
+                // empty list
+                return unfilteredInstances;
+            }
+
+            return filter.ToList();
         }
 
         public Task<InstanceQueryResponse> GetInstancesOfApplication(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
