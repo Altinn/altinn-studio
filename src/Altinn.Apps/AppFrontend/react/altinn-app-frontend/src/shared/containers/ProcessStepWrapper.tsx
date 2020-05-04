@@ -53,7 +53,7 @@ export default (props) => {
       case (ProcessSteps.Confirm):
       case (ProcessSteps.Feedback):
       case (ProcessSteps.Archived): {
-        IsLoadingActions.finishDataTaskIsloading();
+        QueueActions.startInitialDataTaskQueue();
         break;
       }
       default:
