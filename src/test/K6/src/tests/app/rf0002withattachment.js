@@ -15,6 +15,7 @@ let smallAttachment = open("../../data/50kb.txt");
 let mediumAttachment = open("../../data/1mb.txt");
 let bigAttachment = open("../../data/99mb.txt");
 let users = JSON.parse(open("../../data/users.json"));
+const usersCount = users.length;
 
 export const options = {
     thresholds:{
@@ -24,9 +25,15 @@ export const options = {
 
 //Tests for App API: RF-0002
 export default function() {
-    var userNumber = (__VU - 1) % users.length;
+    var userNumber = (__VU - 1) % usersCount;
     var maxVus = (options.vus) ? options.vus : 1;
-    var aspxauthCookie = setUpData.authenticateUser(users[userNumber].username, users[userNumber].password);  
+    try {
+        var userSSN = users[userNumber].username;
+        var userPwd = users[userNumber].password;    
+    } catch (error) {
+        printResponseToConsole("Testdata missing", false, null)
+    };
+    var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
     var attachmentDataType = apps.getAppByName(runtimeToken, appOwner, level2App);
