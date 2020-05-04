@@ -23,10 +23,6 @@ const allLayoutHiddenSelector = (state: IRuntimeState) => {
   return state.formLayout.uiConfig.hiddenFields;
 };
 
-const autoSaveSelector = (state: IRuntimeState) => {
-  return state.formLayout.uiConfig.autoSave;
-};
-
 const getLayout = () => {
   return createSelector(
     [layoutSelector],
@@ -57,13 +53,6 @@ const getHidden = () => {
   );
 };
 
-const getAutoSave = () => {
-  return createSelector(
-    [autoSaveSelector],
-    (autoSave: boolean) => autoSave,
-  );
-};
-
 const getFirstAutofocusableElement = () => {
   return createSelector(
     [layoutSelector, allLayoutHiddenSelector],
@@ -78,4 +67,3 @@ export const makeGetLayoutElement = getLayoutElement;
 export const makeGetFocus = getFocus;
 export const makeGetHidden = getHidden;
 export const makeGetFirstAutofocusableElement = getFirstAutofocusableElement;
-export const makeGetAutoSave = getAutoSave;
