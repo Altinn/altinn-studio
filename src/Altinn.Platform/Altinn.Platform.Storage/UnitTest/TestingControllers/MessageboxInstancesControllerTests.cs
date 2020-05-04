@@ -309,17 +309,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void Delete_UserHasTooLowAuthLv_ReturnsStatusForbidden()
             {
                 // Arrange
-                MessageBoxTestData testData = new MessageBoxTestData();
-                Instance instance = testData.GetActiveInstance();
-
-                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-
-                Instance storedInstance = null;
-
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
-                instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).Callback<Instance>(p => storedInstance = p).ReturnsAsync((Instance i) => i);
-
                 InstanceEvent instanceEvent = null;
 
                 Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
@@ -327,11 +316,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     .ReturnsAsync((InstanceEvent r) => r);
 
                 HttpClient client = GetTestClient();
-                string token = PrincipalUtil.GetToken(1, 0);
+                string token = PrincipalUtil.GetToken(1337, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
-                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id.Split("/")[1]}?hard=false");
+                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/1337/6323a337-26e7-4d40-89e8-f5bb3d80be3a?hard=false");
 
                 // Assert
                 Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);

@@ -1,5 +1,5 @@
 {
-  "id": "08274f48-8313-4e2d-9788-bbdacef5a54e",
+  "id": "6323a337-26e7-4d40-89e8-f5bb3d80be3a",
   "instanceOwner": {
     "partyId": "1337",
     "organisationNumber": "725736800"
@@ -15,7 +15,6 @@
     "currentTask": { "elementId": "Task_1" }
   },
   "status": {
-    "softDeleted": "2020-04-29T13:53:06.117891Z"
   },
   "appOwner": {},
   "data": [
