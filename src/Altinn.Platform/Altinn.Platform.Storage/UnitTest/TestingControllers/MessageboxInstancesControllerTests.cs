@@ -234,21 +234,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void Undelete_AttemptToRestoreHardDeletedInstance_ReturnsBadRequest()
             {
                 // Arrange
-                MessageBoxTestData testData = new MessageBoxTestData();
-                Instance instance = testData.GetHardDeletedInstance();
-
-                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
-
-                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
-
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
 
                 // Act
-                HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instance.Id.Split("/")[1]}/undelete", null);
+                HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/1337/f888c42b-8749-41d6-8048-8fc28c70beaa/undelete", null);
 
                 // Assert
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
