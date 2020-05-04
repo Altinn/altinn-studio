@@ -15,6 +15,7 @@ let smallAttachment = open("../../data/50kb.txt");
 let mediumAttachment = open("../../data/1mb.txt");
 let bigAttachment = open("../../data/99mb.txt");
 let users = JSON.parse(open("../../data/users.json"));
+const usersCount = users.length;
 
 export const options = {
     thresholds:{
@@ -24,8 +25,15 @@ export const options = {
 
 //Tests for App API: RF-0002
 export default function() {
-    var userNumber = (__VU - 1) % users.length;
-    var aspxauthCookie = setUpData.authenticateUser(users[userNumber].username, users[userNumber].password);  
+    var userNumber = (__VU - 1) % usersCount;
+    var maxVus = (options.vus) ? options.vus : 1;
+    try {
+        var userSSN = users[userNumber].username;
+        var userPwd = users[userNumber].password;    
+    } catch (error) {
+        printResponseToConsole("Testdata missing", false, null)
+    };
+    var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
     var attachmentDataType = apps.getAppByName(runtimeToken, appOwner, level2App);
@@ -54,10 +62,10 @@ export default function() {
     printResponseToConsole("E2E PUT Edit Data by Id:", success, res);
 
     //dynamically assign attachments - 60% VU gets small , 30% VU gets medium and 10% VU gets big attachment.
-    if (userNumber < (users.length)*0.60)
+    if (userNumber < (maxVus)*0.60)
         {var attachment = smallAttachment;}
     else{
-        var attachment = (userNumber < (users.length)*0.90) ? mediumAttachment : bigAttachment;
+        var attachment = (userNumber < (maxVus)*0.90) ? mediumAttachment : bigAttachment;
     };
     
     //upload a upload attachment to an instance with App API

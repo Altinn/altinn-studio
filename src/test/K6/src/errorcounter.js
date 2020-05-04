@@ -10,7 +10,9 @@ export function addErrorCount(success){
 };
 
 export function printResponseToConsole(testName, success, res){
-    if (!success){
+    if (!success && res != null){
         fail(testName + " Response code: "+ res.status);
+    }else if(!success){
+        fail(testName);
     };
 };
