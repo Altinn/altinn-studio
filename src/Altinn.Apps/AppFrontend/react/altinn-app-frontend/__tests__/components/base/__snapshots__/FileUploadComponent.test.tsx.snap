@@ -35,7 +35,13 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             </th>
             <th
               scope="col"
-            />
+            >
+              <p
+                class="sr-only"
+              >
+                form_filler.file_uploader_list_header_delete_sr
+              </p>
+            </th>
           </tr>
         </thead>
         <tbody>

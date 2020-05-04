@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 // import { get } from '../../../../utils/networking';
-import { nb } from '../languages';
+import nb from '../languages';
 import LanguageActions from './../languageActions';
 import { IFetchLanguage } from './fetchLanguageActions';
 import * as LanguageActionTypes from './fetchLanguageActionTypes';

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-console */
 import * as React from 'react';
 import DropZone from 'react-dropzone';
@@ -14,7 +15,7 @@ import { renderValidationMessagesForComponent } from '../../utils/render';
 
 import uuid = require('uuid');
 
-export interface IFileUploadProvidedProps {
+export interface IFileUploadProps {
   displayMode: string;
   hasCustomFileEndings?: boolean;
   id: string;
@@ -51,18 +52,21 @@ const validationErrorStyle = {
 export const bytesInOneMB = 1048576;
 export const emptyArray = [];
 
-export function FileUploadComponent(props: IFileUploadProvidedProps) {
+export function FileUploadComponent(props: IFileUploadProps) {
   const [attachments, dispatch] = React.useReducer(reducer, []);
-
   const [validations, setValidations] = React.useState([]);
   const [showFileUpload, setShowFileUpload] = React.useState(false);
 
   function reducer(state, action) {
     if (action.type === 'replace') {
       return action.value;
-    } if (action.type === 'add') {
+    }
+
+    if (action.type === 'add') {
       return state.concat(action.value);
-    } if (action.type === 'delete') {
+    }
+
+    if (action.type === 'delete') {
       const attachmentToDelete = state[action.index];
       if (!attachmentToDelete.uploaded) {
         return state;
@@ -180,7 +184,11 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
               <th scope='col'>{getLanguageFromKey('form_filler.file_uploader_list_header_name', props.language)}</th>
               <th scope='col'>{getLanguageFromKey('form_filler.file_uploader_list_header_file_size', props.language)}</th>
               <th scope='col'>{getLanguageFromKey('form_filler.file_uploader_list_header_status', props.language)}</th>
-              <th scope='col'/>
+              <th scope='col'>
+                <p className='sr-only'>
+                  {getLanguageFromKey('form_filler.file_uploader_list_header_delete_sr', props.language)}
+                </p>
+              </th>
             </tr>
           </thead>
           <tbody>
