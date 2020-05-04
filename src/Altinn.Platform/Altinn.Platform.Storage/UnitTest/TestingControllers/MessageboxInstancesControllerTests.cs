@@ -253,38 +253,20 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Scenario:
             ///   Non-existent instance to be restored
             /// Expected result:
-            ///   Error code is returned from the controller
-            /// Success criteria:
-            ///   Not found error code is returned.
+            ///   Internal server error
             /// </summary>
             [Fact]
             public async void Undelete_RestoreNonExistentInstance_ReturnsNotFound()
             {
                 // Arrange
-                MessageBoxTestData testData = new MessageBoxTestData();
-                string instanceGuid = Guid.NewGuid().ToString();
-
-                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-
-                DocumentClientException dex = CreateDocumentClientExceptionForTesting("Not found", HttpStatusCode.NotFound);
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ThrowsAsync(dex);
-
-                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
-
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
 
                 // Act
-                HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{testData.GetInstanceOwnerPartyId()}/{instanceGuid}/undelete", null);
+                HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/1337/4be22ede-a16c-4a93-be7f-c529788d6a4c/undelete", null);
 
                 // Assert
-                Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-
-                string content = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                string expectedMsg = $"Didn't find the object that should be restored with instanceId={testData.GetInstanceOwnerPartyId()}/{instanceGuid}";
-
-                Assert.Equal(expectedMsg, content);
+                Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
             }
 
             /// <summary>
