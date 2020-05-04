@@ -25,6 +25,7 @@ export const options = {
 //Tests for App API: RF-0002
 export default function() {
     var userNumber = (__VU - 1) % users.length;
+    var maxVus = (options.vus) ? options.vus : 1;
     var aspxauthCookie = setUpData.authenticateUser(users[userNumber].username, users[userNumber].password);  
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
@@ -54,10 +55,10 @@ export default function() {
     printResponseToConsole("E2E PUT Edit Data by Id:", success, res);
 
     //dynamically assign attachments - 60% VU gets small , 30% VU gets medium and 10% VU gets big attachment.
-    if (userNumber < (users.length)*0.60)
+    if (userNumber < (maxVus)*0.60)
         {var attachment = smallAttachment;}
     else{
-        var attachment = (userNumber < (users.length)*0.90) ? mediumAttachment : bigAttachment;
+        var attachment = (userNumber < (maxVus)*0.90) ? mediumAttachment : bigAttachment;
     };
     
     //upload a upload attachment to an instance with App API
