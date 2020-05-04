@@ -15,11 +15,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
-using Serilog;
-using Serilog.Core;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Altinn.Platform.Register
@@ -29,6 +28,8 @@ namespace Altinn.Platform.Register
     /// </summary>
     public class Startup
     {
+        private ILogger _logger;
+
         /// <summary>
         /// The key valt key for application insights.
         /// </summary>
@@ -38,10 +39,6 @@ namespace Altinn.Platform.Register
         /// The application insights key.
         /// </summary>
         internal static string ApplicationInsightsKey { get; set; }
-
-        private static readonly Logger _logger = new LoggerConfiguration()
-          .WriteTo.Console()
-          .CreateLogger();
 
         private readonly IWebHostEnvironment _env;
 
@@ -66,7 +63,17 @@ namespace Altinn.Platform.Register
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            _logger.Information("Startup // ConfigureServices");
+            // Setup logging for the web host creation
+            var logFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .AddFilter("Altinn.Platform.Register.Program", LogLevel.Debug)
+                    .AddConsole();
+            });
+
+            _logger = logFactory.CreateLogger<Startup>();
+
+            _logger.LogInformation("Startup // ConfigureServices");
 
             services.AddControllers().AddJsonOptions(options =>
             {
@@ -99,18 +106,17 @@ namespace Altinn.Platform.Register
                       }
                   });
 
-            services.AddSingleton<IOrganizations, OrganizationsWrapper>();
-            services.AddSingleton<IPersons, PersonsWrapper>();
-            services.AddSingleton<IParties, PartiesWrapper>();
+            services.AddHttpClient<IOrganizations, OrganizationsWrapper>();
+            services.AddHttpClient<IPersons, PersonsWrapper>();
+            services.AddHttpClient<IParties, PartiesWrapper>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
-                services.AddApplicationInsightsKubernetesEnricher();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
-                _logger.Information($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
+                _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
             }
 
             // Add Swagger support (Swashbuckle)
@@ -131,7 +137,7 @@ namespace Altinn.Platform.Register
             }
             catch (Exception e)
             {
-                _logger.Warning("Exception when attempting to include the XML comments file(s): " + e.Message);
+                _logger.LogWarning("Exception when attempting to include the XML comments file(s): " + e.Message);
             }
         }
 
@@ -142,12 +148,12 @@ namespace Altinn.Platform.Register
         /// <param name="env">the hosting environment</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            _logger.Information("Startup // Configure");
+            _logger.LogInformation("Startup // Configure");
 
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsStaging())
             {
                 app.UseDeveloperExceptionPage();
-                _logger.Information("IsDevelopment");
+                _logger.LogInformation("IsDevelopment || IsStaging");
             }
             else
             {

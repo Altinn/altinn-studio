@@ -12,6 +12,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly IApplicationMetadataService _applicationMetadataService;
         private readonly IAuthorizationPolicyService _authorizationPolicyService;
+        private readonly ITextResourceService _textResourceService;
         private readonly IGitea _giteaApiWrapper;
 
         /// <summary>
@@ -20,10 +21,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public ApplicationInformationService(
             IApplicationMetadataService applicationMetadataService,
             IAuthorizationPolicyService authorizationPolicyService,
+            ITextResourceService textResourceService,
             IGitea giteaApiWrapper)
         {
             _applicationMetadataService = applicationMetadataService;
             _authorizationPolicyService = authorizationPolicyService;
+            _textResourceService = textResourceService;
             _giteaApiWrapper = giteaApiWrapper;
         }
 
@@ -40,10 +43,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Task updateAuthPolicyTask = _authorizationPolicyService
                 .UpdateApplicationAuthorizationPolicyAsync(org, app, shortCommitId, deploymentEnvironment);
 
+            Task updateTextResources = _textResourceService
+                .UpdateTextResourcesAsync(org, app, shortCommitId, deploymentEnvironment);
+
             await Task.WhenAll(new List<Task>
             {
                 updateMetadataTask,
-                updateAuthPolicyTask
+                updateAuthPolicyTask,
+                updateTextResources
             });
         }
     }

@@ -10,7 +10,7 @@ import QueueActions from './shared/resources/queue/queueActions';
 import { get } from './utils/networking';
 import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from './utils/urlHelper';
 import { useSelector } from 'react-redux';
-import { IRuntimeState } from './types';
+import { makeGetHasErrorsSelector } from './selectors/getErrors';
 
 const theme = createMuiTheme(AltinnAppTheme);
 
@@ -18,7 +18,8 @@ const theme = createMuiTheme(AltinnAppTheme);
 const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
 
 export default function() {
-  const appTaskError: any = useSelector((state: IRuntimeState) => state.queue.appTask.error);
+  const hasErrorSelector = makeGetHasErrorsSelector();
+  const hasApiErrors: boolean = useSelector(hasErrorSelector);
 
   let lastRefreshTokenTimestamp: number = 0;
 
@@ -61,7 +62,7 @@ export default function() {
     };
   }, []);
 
-  if (appTaskError) {
+  if (hasApiErrors) {
     return <UnknownError />
   }
 

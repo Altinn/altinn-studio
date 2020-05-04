@@ -60,10 +60,16 @@ namespace Altinn.Platform.Storage.Interface.Models
         public List<DataType> DataTypes { get; set; }
 
         /// <summary>
-        /// Gets of sets the different party types that are allowed to be owners of instances based on this application.
+        /// Gets or sets the different party types that are allowed to be owners of instances based on this application.
         /// </summary>
         [JsonProperty(PropertyName = "partyTypesAllowed")]
         public PartyTypesAllowed PartyTypesAllowed { get; set; }
+
+        /// <summary>
+        /// Gets or sets any custom static data to present to end user.
+        /// </summary>
+        [JsonProperty(PropertyName = "presentationFields")]
+        public List<PresentationField> PresentationFields { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()

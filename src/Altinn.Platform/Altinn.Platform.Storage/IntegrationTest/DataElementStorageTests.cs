@@ -9,11 +9,8 @@ using Altinn.Platform.Storage.IntegrationTest.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.IntegrationTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
-
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
-
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -34,8 +31,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly string testAppId = "tests/sailor";
         private readonly int testInstanceOwnerId = 500;
         private readonly string dataType = "default";
-        private CloudBlobClient _blobClient;
-        private CloudBlobContainer _blobContainer;
+        private BlobServiceClient _blobClient;
+        private BlobContainerClient _blobContainer;
         private bool blobSetup = false;
         private string _validToken;
 
@@ -52,12 +49,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
             this.instanceClient = new InstanceClient(this.client);
 
             // connect to azure blob storage
-            StorageCredentials storageCredentials = new StorageCredentials("devstoreaccount1", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==");
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+            StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential("devstoreaccount1", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==");
 
-            StorageUri storageUrl = new StorageUri(new Uri("http://127.0.0.1:10000/devstoreaccount1"));
-            _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
-            _blobContainer = _blobClient.GetContainerReference("servicedata");
+            Uri storageUrl = new Uri("http://127.0.0.1:10000/devstoreaccount1");
+            _blobClient = new BlobServiceClient(storageUrl, storageCredentials);
+            _blobContainer = _blobClient.GetBlobContainerClient("servicedata");
             _validToken = PrincipalUtil.GetToken(1);   
 
             CreateTestApplication();

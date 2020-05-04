@@ -8,10 +8,12 @@ import { IRuntimeState, ProcessSteps, IAltinnWindow } from '../../types';
 import ProcessStep from './ProcessStep';
 import Form from '../../features/form/containers/Form';
 import ReceiptContainer from '../../features/receipt/containers/receiptContainer';
-import { Confirm } from '../../features/confirm/containers/Confirm';
+import Confirm from '../../features/confirm/containers/Confirm';
 import UnknownError from '../../features/instantiate/containers/UnknownError';
 import QueueActions from '../resources/queue/queueActions';
 import IsLoadingActions from '../resources/isLoading/isLoadingActions';
+import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
+import Feedback from '../../features/feedback/Feedback';
 
 export default (props) => {
   const {
@@ -29,7 +31,8 @@ export default (props) => {
   const isLoading: boolean = useSelector((state: IRuntimeState) => state.isLoading.dataTask);
   const textResources: any[] = useSelector((state: IRuntimeState) => state.language.language);
   const processStep: ProcessSteps = useSelector((state: IRuntimeState) => state.process.state);
-  const queue: any = useSelector((state: IRuntimeState) => state.queue);
+  const hasErrorSelector = makeGetHasErrorsSelector();
+  const hasApiErrors = useSelector(hasErrorSelector);
 
   (window as Window as IAltinnWindow).instanceId = partyId + '/' + instanceGuid;
 
@@ -38,14 +41,23 @@ export default (props) => {
   }, []);
 
   React.useEffect(() => {
-    ProcessDispatcher.getProcessState();
+    if (!processStep) {
+      ProcessDispatcher.getProcessState();
+    }
+    
     switch (processStep) {
       case (ProcessSteps.FormFilling): {
         QueueActions.startInitialDataTaskQueue();
+        break;
       }
-      case (ProcessSteps.Confirm): {
+      case (ProcessSteps.Confirm):
+      case (ProcessSteps.Feedback):
+      case (ProcessSteps.Archived): {
         IsLoadingActions.finishDataTaskIsloading();
+        break;
       }
+      default:
+        break;
     }
   }, [processStep])
 
@@ -55,7 +67,7 @@ export default (props) => {
     }
   }, [instantiation]);
 
-  if (queue.dataTask.error || queue.appTask.error) {
+  if (hasApiErrors) {
     return <UnknownError />
   }
 
@@ -85,11 +97,12 @@ export default (props) => {
           }
           {processStep === ProcessSteps.Confirm &&
             <div id='ConfirmContainer'>
-              <Confirm
-                language={textResources}
-                partyId={partyId}
-                instanceGuid={instanceGuid}
-              />
+              <Confirm />
+            </div>
+          }
+          {processStep === ProcessSteps.Feedback &&
+            <div id="FeedbackContainer">
+              <Feedback />
             </div>
           }
           </>

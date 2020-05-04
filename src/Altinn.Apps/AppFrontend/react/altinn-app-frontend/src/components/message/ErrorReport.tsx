@@ -1,13 +1,37 @@
 import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
+import { IValidations, ITextResource } from 'src/types/global';
+import { getTextResourceByKey } from '../../utils/textResource';
+import { useRef, useEffect } from 'react';
+import { getUnmappedErrors, getNumberOfComponentsWithErrors } from '../../utils/validation';
 
-const ErrorReport = (props: any) => {
+export interface IErrorProps {
+  language: any;
+  validations: IValidations;
+  textResources: ITextResource[];
+  formHasErrors: boolean;
+}
+
+
+const ErrorReport = (props: IErrorProps) => {
+    const unmappedErrors  = getUnmappedErrors(props.validations);
+    const numberOfComponentsWithErrors = getNumberOfComponentsWithErrors(props.validations)
+    const hasUnmappedErrors: boolean = unmappedErrors.length > 0;
+    const errorRef = useRef(null);
+
+    useEffect(() => {
+      if (hasUnmappedErrors || (numberOfComponentsWithErrors > 1) ) {
+        // if we have unmapped errors or more than one mapped error we set focus to error report
+        errorRef?.current?.focus();
+      }
+    });
+
     if (!props.formHasErrors) {
       return null;
     }
 
     return (
-      <div id='errorReport' className='a-modal-content-target' style={{ marginTop: '55px' }}>
+      <div id='errorReport' className='a-modal-content-target' style={{ marginTop: '55px' }} ref={errorRef} tabIndex={0} >
         <div className='a-page a-current-page'>
           <div className='modalPage'>
             <div className='modal-content'>
@@ -32,11 +56,24 @@ const ErrorReport = (props: any) => {
                 </div>
               </div>
               <div className='modal-body a-modal-body' style={{paddingTop: '0px', paddingBottom: '24px'}}>
-                <h4 className='a-fontReg'>
-                  <span>
-                  {getLanguageFromKey('form_filler.error_report_description', props.language)}
-                  </span>
-                </h4>
+                  {hasUnmappedErrors && unmappedErrors.map((key: string) => {
+                    // List unmapped errors
+                    return (
+                      <h4 className='a-fontReg' style={{marginBottom: '12px'}} key={key}>
+                      <span>
+                        {getTextResourceByKey(key, props.textResources)}
+                      </span>
+                      </h4>
+                    )
+                  })}
+                  {!hasUnmappedErrors &&
+                    // No errors to list, show a generic error message
+                    <h4 className='a-fontReg' style={{marginBottom: '12px'}}>
+                      <span>
+                        {getLanguageFromKey('form_filler.error_report_description', props.language)}
+                      </span>
+                    </h4>
+                  }
               </div>
             </div>
           </div>

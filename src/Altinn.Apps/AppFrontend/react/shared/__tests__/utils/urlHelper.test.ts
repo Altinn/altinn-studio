@@ -23,7 +23,7 @@ describe('Shared urlHelper.ts', () => {
   });
 
   test('returnUrlToMessagebox() returning tt02 messagebox', () => {
-    const origin = 'http://altinn3.no/tdd/tjeneste-20190826-1130';
+    const origin = 'http://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
     expect(returnUrlToMessagebox(origin)).toContain('tt02.altinn.no');
   });
 });

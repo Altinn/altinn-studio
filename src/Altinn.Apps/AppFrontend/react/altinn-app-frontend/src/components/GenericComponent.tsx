@@ -2,7 +2,6 @@ import * as React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
-import { getLanguageFromKey } from 'altinn-shared/utils';
 import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
 import { IDataModelBindings, ITextResourceBindings, ILayoutComponent } from '../features/form/layout';
@@ -12,6 +11,7 @@ import { IRuntimeState } from '../types';
 import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
 import Label from '../features/form/components/Label';
+import Legend from '../features/form/components/Legend';
 import HelpTextPopover from '../features/form/components/HelpTextPopover';
 import { renderValidationMessagesForComponent } from '../utils/render';
 import {
@@ -22,6 +22,7 @@ import {
   isComponentValid,
 } from '../utils/formComponentUtils';
 import FormLayoutActions from '../features/form/layout/formLayoutActions';
+import Description from '../features/form/components/Description';
 
 export interface IGenericComponentProps {
   id: string;
@@ -111,7 +112,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   }
 
   const getValidationsForInternalHandling = () => {
-    if (props.type === 'AddressComponent' || props.type === 'Datepicker') {
+    if (props.type === 'AddressComponent' || props.type === 'Datepicker' || props.type === 'FileUpload') {
       return componentValidations;
     } else {
       return null;
@@ -126,6 +127,47 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   if (hidden) {
     return null;
+  }
+
+  const RenderComponent = components.find((component: any) => component.name === props.type).Tag;
+
+  const RenderLabel = () => {
+    const labelText = getTextResource(props.textResourceBindings.title, textResources);
+    return (
+      <Label
+        labelText={labelText}
+        helpTextProps={helpTextProps}
+        language={language}
+        textResourceBindings={textResources}
+        {...props}
+        {...component}
+      />
+    );
+  };
+
+  const RenderDescription = () => {
+    if (!props.textResourceBindings.description){
+      return null;
+    }
+    const descriptionText = getTextResource(props.textResourceBindings.description, textResources);
+    return (
+      <Description
+        description={descriptionText}
+      />
+    )
+  }
+
+  const RenderLegend = () => {
+    return (
+      <Legend
+        labelText={getTextResource(props.textResourceBindings.title, textResources)}
+        helpTextProps={helpTextProps}
+        language={language}
+        textResourceBindings={textResources}
+        {...props}
+        {...component}
+      />
+    );
   }
 
   const helpTextProps = {
@@ -146,27 +188,34 @@ export function GenericComponent(props: IGenericComponentProps) {
     id,
     shouldFocus,
     text: getTextResource(props.textResourceBindings.title, textResources),
+    label: RenderLabel,
+    legend: RenderLegend,
     ...passThroughProps,
   }
 
-  const RenderComponent = components.find((component: any) => component.name === props.type).Tag;
+  const noLabelComponents: string[] = [
+    'Header',
+    'Paragraph',
+    'Submit',
+    'ThirdParty',
+    'AddressComponent',
+    'Button',
+    'Checkboxes',
+    'RadioButtons'
+  ];
 
   return (
     <>
-    <Label
-      labelText={getTextResource(props.textResourceBindings.title, textResources)}
-      helpTextProps={helpTextProps}
-      language={language}
-      textResourceBindings={textResources}
-      {...props}
-      {...component}
-    />
+    {noLabelComponents.includes(props.type) ? null :
+      <RenderLabel />
+    }
+    {props.textResourceBindings.description ? <RenderDescription /> : null}
     <RenderComponent
       {...componentProps}
     />
     {/* { React.createElement(RenderComponent, componentProps) } */}
     {isSimple && hasValidationMessages &&
-          renderValidationMessagesForComponent(componentValidations.simpleBinding, props.id)
+          renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
     }
     <HelpTextPopover
         helpIconRef={helpIconRef}

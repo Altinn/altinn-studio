@@ -7,7 +7,7 @@ using Altinn.Platform.Authentication.Controllers;
 using Altinn.Platform.Authentication.IntegrationTests.Fakes;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services;
-
+using Altinn.Platform.Authentication.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -86,7 +86,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         {
             string projectDir = Directory.GetCurrentDirectory();
             string configPath = Path.Combine(projectDir, "appsettings.json");
-
+            Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>

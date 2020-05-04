@@ -56,6 +56,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="state">the instance state; active, archived or deleted</param>
         /// <param name="language"> language nb, en, nn-NO</param>
         /// <returns>list of instances</returns>
+        [Authorize]
         [HttpGet("{instanceOwnerPartyId:int}")]
         public async Task<ActionResult> GetMessageBoxInstanceList(int instanceOwnerPartyId, [FromQuery] string state, [FromQuery] string language)
         {
@@ -121,8 +122,6 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return NotFound($"Could not find instance {instanceId}");
             }
-
-            //// TODO: Authorise
 
             Dictionary<string, Dictionary<string, string>> appTitle = await _applicationRepository.GetAppTitles(new List<string> { instance.AppId });
 

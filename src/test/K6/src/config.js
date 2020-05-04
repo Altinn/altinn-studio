@@ -3,7 +3,8 @@ export var baseUrls = {
     at22: "at22.altinn.cloud",
     at23: "at23.altinn.cloud",
     at24: "at24.altinn.cloud",
-    tt02: "tt02.altinn.no"
+    tt02: "tt02.altinn.no",
+    yt01: "yt01.altinn.cloud"
 };
 
 //Get values from environment
@@ -20,8 +21,10 @@ export var authentication =  {
 //Platform APIs
 //Authentication
 export var platformAuthentication =  {
-    authentication: "https://platform." + baseUrl + "/authentication/api/v1/authentication",
-    refresh: "https://platform." + baseUrl + "/authentication/api/v1/refresh"
+    "authentication": "https://platform." + baseUrl + "/authentication/api/v1/authentication",
+    "refresh": "https://platform." + baseUrl + "/authentication/api/v1/refresh",
+    "maskinporten": "https://platform." + baseUrl + "/authentication/api/v1/exchange/maskinporten",
+    "idporten": "https://platform." + baseUrl + "/authentication/api/v1/exchange/id-porten"
 };
 
 //Profile
@@ -80,16 +83,24 @@ export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type){
             break;
         case "process":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/process";
-            break;        
+            break;
+        case "confirmdownloadall":
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/dataelements/confirmDownload";
+            break;
+        case "completeconfirmation":
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/complete";
+            break;
     };
     return value;
 };
 
 //App APIs
 export var appApiBaseUrl = "https://" + appOwner + ".apps." + baseUrl + "/" + appOwner + "/" + appName;
+export var appValidateInstantiation = appApiBaseUrl + "/api/v1/parties/validateInstantiation";
 
+//App Profile
 export var appProfile =  {
-    user: appApiBaseUrl + "/api/v1/profile/user"
+    "user": appApiBaseUrl + "/api/v1/profile/user"
 };
 
 //Function to build endpoints in App Api with instanceOwnerId, instanceId, dataId, type
@@ -108,4 +119,20 @@ export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type){
             break;        
     };
     return value;
+};
+
+
+//App Resources
+export var appResources = {
+    "textresources" : appApiBaseUrl + "/api/textresources",
+    "applicationmetadata" : appApiBaseUrl + "/api/v1/applicationmetadata",
+    "servicemetadata": appApiBaseUrl + "/api/metadata/ServiceMetaData",
+    "formlayout": appApiBaseUrl + "/api/resource/FormLayout.json",
+    "rulehandler": appApiBaseUrl + "/api/resource/RuleHandler.js",
+    "ruleconfiguration": appApiBaseUrl + "/api/resource/RuleConfiguration.json"
+};
+
+//App Authorization
+export var appAuthorization =  {
+    "currentparties": appApiBaseUrl + "/api/authorization/parties/current?returnPartyObject=true"
 };

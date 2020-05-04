@@ -1,10 +1,8 @@
 import * as React from 'react';
 
-export default function Description({descriptionTextKey}){
-  if (!descriptionTextKey) {
+export default function Description({description}){
+  if (!description) {
     return null;
   }
-
-  const description: string = this.getTextResource(descriptionTextKey);
   return <span className='a-form-label description-label'>{description}</span>;
 }

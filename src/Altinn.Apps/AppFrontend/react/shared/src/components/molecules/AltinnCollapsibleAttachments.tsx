@@ -22,6 +22,8 @@ const styles = createStyles({
   },
   transition: {
     transitionDuration: '0.1s',
+    minWidth: '0px',
+    marginRight: '10px'
   },
   collapsedTitle: {
     fontSize: '20px',
@@ -32,6 +34,7 @@ interface IAltinnCollapsibleAttachmentsProps extends WithStyles<typeof styles> {
   attachments?: IAttachment[];
   collapsible?: boolean;
   title?: string;
+  hideCount?: boolean;
 }
 
 export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachmentsProps) {
@@ -40,6 +43,8 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
   function handleOpenClose() {
     setOpen(!open);
   }
+
+  const attachmentCount = props.hideCount ? '' : `(${props.attachments && props.attachments.length})`;
 
   return(
     <>
@@ -63,7 +68,7 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
               />
             </ListItemIcon>
             <ListItemText
-              primary={`${props.title} (${props.attachments && props.attachments.length})`}
+              primary={`${props.title} ${attachmentCount}`}
               classes={{
                 root: classNames(props.classes.listItemTextPadding),
                 primary: classNames(props.classes.collapsedTitle),
@@ -81,7 +86,7 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
       ) : (
         <>
           <Typography style={{ fontSize: 18, fontWeight: 600 }}>
-            {`${props.title} (${props.attachments && props.attachments.length})`}
+            {`${props.title} ${attachmentCount}`}
           </Typography>
           <AltinnAttachment
             attachments={props.attachments}

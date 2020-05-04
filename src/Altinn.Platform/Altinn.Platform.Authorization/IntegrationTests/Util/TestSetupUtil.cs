@@ -40,10 +40,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         {
             string requestText;
 
-              if (testcase.Contains("AltinnApps"))
+            if (testcase.Contains("AltinnApps"))
             {
-            
-                requestText  =  System.IO.File.ReadAllText(Path.Combine(GetAltinnAppsPath(), testcase + "Request.json"));
+
+                requestText = System.IO.File.ReadAllText(Path.Combine(GetAltinnAppsPath(), testcase + "Request.json"));
             }
             else
             {
@@ -65,7 +65,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         public static async Task<XacmlContextResponse> GetXacmlContextResponseAsync(HttpClient client, HttpRequestMessage httpRequestMessage)
         {
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             XacmlContextResponse contextResponse;
 
@@ -90,7 +90,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         public static async Task<XacmlJsonResponse> GetXacmlJsonProfileContextResponseAsync(HttpClient client, HttpRequestMessage httpRequestMessage)
         {
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             XacmlJsonResponse xacmlJsonresponse = (XacmlJsonResponse)JsonConvert.DeserializeObject(responseContent, typeof(XacmlJsonResponse));
             return xacmlJsonresponse;
@@ -111,7 +111,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         public static XacmlJsonResponse ReadExpectedJsonProfileResponse(string testCase)
         {
             string content = null;
-         
+
             if (testCase.Contains("AltinnApps"))
             {
                 content = System.IO.File.ReadAllText(Path.Combine(GetAltinnAppsPath(), testCase + "Response.json"));

@@ -68,33 +68,32 @@ namespace Altinn.Platform.Profile
 
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
-                  .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
-                  {
-                      GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-                      options.JwtCookieName = generalSettings.JwtCookieName;
-                      options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
-                      options.TokenValidationParameters = new TokenValidationParameters
-                      {
-                          ValidateIssuerSigningKey = true,
-                          ValidateIssuer = false,
-                          ValidateAudience = false,
-                          RequireExpirationTime = true,
-                          ValidateLifetime = true
-                      };
+                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
+                {
+                    GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+                    options.JwtCookieName = generalSettings.JwtCookieName;
+                    options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true
+                    };
 
-                      if (_env.IsDevelopment())
-                      {
-                          options.RequireHttpsMetadata = false;
-                      }
-                  });
+                    if (_env.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
+                });
 
-            services.AddSingleton<IUserProfiles, UserProfilesWrapper>();
+            services.AddHttpClient<IUserProfiles, UserProfilesWrapper>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
-                services.AddApplicationInsightsKubernetesEnricher();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
@@ -132,7 +131,7 @@ namespace Altinn.Platform.Profile
         {
             _logger.LogInformation($"Startup // Configure {env.ApplicationName}");
 
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsStaging())
             {
                 app.UseDeveloperExceptionPage();
             }

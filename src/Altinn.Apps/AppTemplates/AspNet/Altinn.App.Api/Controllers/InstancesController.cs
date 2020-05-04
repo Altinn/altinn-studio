@@ -5,29 +5,30 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+
 using Altinn.App.Api.Filters;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
+using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Models;
-using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
-using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Validation;
+
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Common.PEP.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -127,59 +128,10 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        ///  Updates an instance object in storage.
-        /// </summary>
-        /// <param name="org">unique identifier of the organisation responsible for the app</param>
-        /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
-        /// <param name="instanceGuid">unique id to identify the instance</param>
-        /// <param name="instance">the instance with attributes that should be updated</param>
-        /// <returns>the updated instance</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
-        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
-        [Produces("application/json")]
-        [Consumes("application/json")]
-        [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> Put(
-            [FromRoute] string org,
-            [FromRoute] string app,
-            [FromRoute] int instanceOwnerPartyId,
-            [FromRoute] Guid instanceGuid,
-            [FromBody] Instance instance)
-        {
-            if (instance == null ||
-                !org.Equals(instance.Org) ||
-                !instance.AppId.EndsWith(app) ||
-                !instanceOwnerPartyId.Equals(int.Parse(instance.InstanceOwner.PartyId)) ||
-                !instance.Id.EndsWith(instanceGuid.ToString()))
-            {
-                return BadRequest($"Inconsistent values between path params and instance attributes");
-            }
-
-            try
-            {
-                Instance updatedInstance = await _instanceService.UpdateInstance(instance);
-
-                SelfLinkHelper.SetInstanceAppSelfLinks(updatedInstance, Request);
-
-                return Ok(updatedInstance);
-            }
-            catch (PlatformHttpException e)
-            {
-                return HandlePlatformHttpException(e, $"Update of instance {instanceOwnerPartyId}/{instanceGuid} failed.");
-            }
-            catch (Exception exception)
-            {
-                return ExceptionResponse(exception, $"Update of instance {instanceOwnerPartyId}/{instanceGuid} failed.");
-            }
-        }
-
-        /// <summary>
         /// Creates a new instance of an application in platform storage. Clients can send an instance as json or send a
         /// multipart form-data with the instance in the first part named "instance" and the prefill data in the next parts, with
         /// names that correspond to the element types defined in the application metadata.
-        /// The data elements are stored. Currently calculate and validate is not implemented. 
+        /// The data elements are stored. Currently calculate and validate is not implemented.
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
@@ -221,7 +173,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Error when reading content: {JsonConvert.SerializeObject(parsedRequest.Errors)}");
             }
 
-            Instance instanceTemplate = ExtractInstanceTemplate(parsedRequest);
+            Instance instanceTemplate = await ExtractInstanceTemplate(parsedRequest);
 
             if (!instanceOwnerPartyId.HasValue && instanceTemplate == null)
             {
@@ -463,12 +415,13 @@ namespace Altinn.App.Api.Controllers
                     {
                         throw new ServiceException(HttpStatusCode.InternalServerError, $"App.GetAppModelType failed: {altinnAppException.Message}", altinnAppException);
                     }
+                    
+                    ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
+                    object data = await deserializer.DeserializeAsync(part.Stream, part.ContentType);
 
-                    object data = DataController.ParseFormDataAndDeserialize(type, part.ContentType, part.Stream, out string errorText);
-
-                    if (!string.IsNullOrEmpty(errorText))
+                    if (!string.IsNullOrEmpty(deserializer.Error))
                     {
-                        throw new InvalidOperationException(errorText);
+                        throw new InvalidOperationException(deserializer.Error);
                     }
 
                     dataElement = await _dataService.InsertFormData(
@@ -500,7 +453,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="reader">multipart reader object</param>
         /// <returns>the instance template or null if none is found</returns>
-        private Instance ExtractInstanceTemplate(MultipartRequestReader reader)
+        private async Task<Instance> ExtractInstanceTemplate(MultipartRequestReader reader)
         {
             Instance instanceTemplate = null;
 
@@ -517,7 +470,7 @@ namespace Altinn.App.Api.Controllers
                 reader.Parts.Remove(instancePart);
 
                 using StreamReader streamReader = new StreamReader(instancePart.Stream, Encoding.UTF8);
-                string content = streamReader.ReadToEndAsync().Result;
+                string content = await streamReader.ReadToEndAsync();
 
                 instanceTemplate = JsonConvert.DeserializeObject<Instance>(content);
             }

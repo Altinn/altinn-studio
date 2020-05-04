@@ -4,6 +4,7 @@ import { store } from '../../../store';
 import { ProcessSteps } from '../../../types';
 import * as CompleteProcessActions from './completeProcess/completeProcessActions';
 import * as GetProcessStateActions from './getProcessState/getProcessStateActions';
+import * as CheckProcessUpdatedActions from './checkProcessUpdated/checkProcessUpdatedActions';
 
 /**
  * Define a interface describing the the different Actions available
@@ -16,6 +17,7 @@ export interface IProcessDispatchers extends ActionCreatorsMapObject {
   completeProcess: () => Action;
   completeProcessFulfilled: (processStep: ProcessSteps) => CompleteProcessActions.ICompleteProcessFulfilled;
   completeProcessRejected: (error: Error) => CompleteProcessActions.ICompleteProcessRejected;
+  checkProcessUpdated: () => Action;
 }
 
 /**
@@ -29,6 +31,7 @@ const actions: IProcessDispatchers = {
   completeProcess: CompleteProcessActions.completeProcess,
   completeProcessFulfilled: CompleteProcessActions.getProcessStateFulfilledAction,
   completeProcessRejected: CompleteProcessActions.getProcessStateRejectedAction,
+  checkProcessUpdated: CheckProcessUpdatedActions.CheckProcessUpdated,
 };
 
 /**

@@ -33,9 +33,8 @@ function* instantiationSaga(): SagaIterator {
             putWithoutConfig(invalidateCookieUrl);
             yield call(redirectToUpgrade, reqAuthLevel);
           }
-        } else {
-          throw error;
         }
+        throw error;
       }
 
       yield call(InstanceDataActions.getInstanceDataFulfilled, instanceResponse.data);

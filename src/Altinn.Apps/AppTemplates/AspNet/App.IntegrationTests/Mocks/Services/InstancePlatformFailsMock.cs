@@ -16,15 +16,16 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class InstancePlatformFailsMock : IInstance
     {
-        public Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
+        public async Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
         {
             HttpResponseMessage response = new HttpResponseMessage
             {
                 StatusCode = System.Net.HttpStatusCode.BadRequest,
                 Content = new StringContent("ERROR"),
             };
-            throw new PlatformHttpException(response);
-            
+
+            throw await PlatformHttpException.CreateAsync(response);
+
         }
 
         /// <inheritdoc />
@@ -36,10 +37,10 @@ namespace App.IntegrationTests.Mocks.Services
                 Content = new StringContent("ERROR"),
             };
 
-            throw new PlatformHttpException(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
-        public Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {
             HttpResponseMessage response = new HttpResponseMessage
             {
@@ -47,12 +48,7 @@ namespace App.IntegrationTests.Mocks.Services
                 Content = new StringContent("ERROR"),
             };
 
-            throw new PlatformHttpException(response);
-        }
-
-        public Task<Instance> UpdateInstance(Instance instance)
-        {
-            throw new ServiceException(HttpStatusCode.Conflict, "CONFLICT");
+            throw await PlatformHttpException.CreateAsync(response);
         }
 
         public Task<Instance> UpdateProcess(Instance instance)

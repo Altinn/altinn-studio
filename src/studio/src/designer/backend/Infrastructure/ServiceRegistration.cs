@@ -30,6 +30,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
             services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
             services.AddTransient<IPipelineService, PipelineService>();
+            services.AddTransient<ITextResourceService, TextResourceService>();
 
             return services;
         }

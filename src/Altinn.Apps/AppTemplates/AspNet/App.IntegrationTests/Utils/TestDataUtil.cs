@@ -19,7 +19,16 @@ namespace App.IntegrationTests.Utils
             File.Copy(preInstancePath, instancePath);
         }
 
-        public static void DeletInstanceAndData(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public static void DeleteInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        {
+            string instancePath = GetInstancePath(org, app, instanceOwnerId, instanceGuid);
+            if (File.Exists(instancePath))
+            {
+                File.Delete(instancePath);
+            }
+        }
+
+        public static void DeleteInstanceAndData(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
            DeleteDataForInstance(org, app, instanceOwnerId, instanceGuid);
 

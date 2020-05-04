@@ -333,7 +333,7 @@ export function FileUploadComponent(props: IFileUploadProvidedProps) {
                     id={'altinn-drop-zone-' + props.id}
                     className={'file-upload' + (hasValidationMessages ? ' file-upload-invalid' : '')}
                   >
-                    <input {...getInputProps()} />
+                    <input {...getInputProps()} id={props.id} />
                     {renderFileUploadContent()}
                   </div>
                 );

@@ -220,6 +220,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             private HttpClient GetTestClient(IInstanceEventRepository instanceEventRepository)
             {
+                Program.ConfigureSetupLogging();
                 // No setup required for these services. They are not in use by the InstanceEventController
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
                 Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();

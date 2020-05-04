@@ -1,4 +1,4 @@
-import { FormControlLabel, FormGroup } from '@material-ui/core';
+import { FormControlLabel, FormGroup, FormLabel } from '@material-ui/core';
 import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
 import { makeStyles } from '@material-ui/core/styles';
@@ -18,6 +18,11 @@ export interface ICheckboxContainerProps {
   preselectedOptionIndex: number;
   readOnly: boolean;
   shouldFocus: boolean;
+  legend: () => JSX.Element;
+}
+
+export interface IStyledCheckboxProps extends CheckboxProps {
+  label: string;
 }
 
 const useStyles = makeStyles({
@@ -57,6 +62,9 @@ const useStyles = makeStyles({
     'input:hover ~ &': {
       borderColor: AltinnAppTheme.altinnPalette.primary.blueDark,
     },
+  },
+  legend: {
+    color: '#000000',
   },
 });
 
@@ -139,7 +147,8 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
     return props.shouldFocus && changed === index;
   }
 
-  const StyledCheckbox = (checkboxProps: CheckboxProps) => {
+  const StyledCheckbox = (styledCheckboxProps: IStyledCheckboxProps) => {
+    const {label, ...checkboxProps} = styledCheckboxProps;
     return (
       <Checkbox
         className={classes.root}
@@ -147,14 +156,19 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
         color='default'
         checkedIcon={<span className={classNames(classes.icon, classes.checkedIcon)} />}
         icon={<span className={classes.icon} />}
-        inputProps={{ 'aria-label': 'decorative checkbox' }}
+        inputProps={{ 'aria-label': label }}
         {...checkboxProps}
       />
     );
   };
 
+  const RenderLegend = props.legend;
+
   return(
-    <FormControl key={'checkboxes_control_' + props.id}>
+    <FormControl key={'checkboxes_control_' + props.id} component='fieldset'>
+      <FormLabel component='legend' classes={{root: classNames(classes.legend)}}>
+        <RenderLegend />
+      </FormLabel>
       <FormGroup row={checkBoxesIsRow} id={props.id}>
         {props.options.map((option, index) => (
           <React.Fragment key={index}>
@@ -167,12 +181,13 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
                   value={index}
                   name={option.value}
                   autoFocus={inFocus(index)}
+                  label={option.label}
                 />
               )}
               label={option.label}
             />
             { props.validationMessages &&
-              this.isOptionSelected(option.value) &&
+              isOptionSelected(option.value) &&
               renderValidationMessagesForComponent(props.validationMessages.simpleBinding, props.id) }
           </React.Fragment>
         ))}

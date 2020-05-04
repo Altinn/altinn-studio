@@ -43,7 +43,7 @@ namespace App.IntegrationTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Instance instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
 
@@ -84,13 +84,13 @@ namespace App.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotNull(instance);
             Assert.Equal("1337", instance.InstanceOwner.PartyId);
 
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
         [Fact]
@@ -127,7 +127,7 @@ namespace App.IntegrationTests
             Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
 
             Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn",1337, new Guid(createdInstance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn",1337, new Guid(createdInstance.Id.Split('/')[1]));
 
         }
 
@@ -165,7 +165,7 @@ namespace App.IntegrationTests
             Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
 
             Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
 
         }
 
@@ -216,7 +216,7 @@ namespace App.IntegrationTests
             Assert.Single(createdInstance.Data);
             Assert.Equal("default", createdInstance.Data[0].DataType);
 
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
         [Fact]
@@ -250,7 +250,7 @@ namespace App.IntegrationTests
                 Assert.Single(createdInstance.Data);
                 Assert.Equal("default", createdInstance.Data[0].DataType);
 
-                TestDataUtil.DeletInstanceAndData("tdd", "custom-validering", 1337, new Guid(createdInstance.Id.Split('/')[1]));
+                TestDataUtil.DeleteInstanceAndData("tdd", "custom-validering", 1337, new Guid(createdInstance.Id.Split('/')[1]));
             }
 
         }
@@ -279,13 +279,13 @@ namespace App.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotNull(instance);
             Assert.Equal("1337", instance.InstanceOwner.PartyId);
 
-            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(instance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
         
@@ -314,7 +314,7 @@ namespace App.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -333,7 +333,7 @@ namespace App.IntegrationTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Dictionary<string, string> failedObligations = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseContent);
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             Assert.NotNull(failedObligations);

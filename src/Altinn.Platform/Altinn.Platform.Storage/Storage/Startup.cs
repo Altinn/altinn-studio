@@ -22,15 +22,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
-using Serilog;
-using Serilog.Core;
 
 namespace Altinn.Platform.Storage
 {
@@ -51,17 +48,16 @@ namespace Altinn.Platform.Storage
 
         private readonly IWebHostEnvironment _env;
 
-        private static readonly Logger _logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
+        private readonly ILogger<Startup> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
-        public Startup(IConfiguration configuration, IWebHostEnvironment env)
+        public Startup(ILogger<Startup> logger, IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
             _env = env;
+            _logger = logger;
         }
 
         /// <summary>
@@ -75,16 +71,11 @@ namespace Altinn.Platform.Storage
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            _logger.Information("Startup // ConfigureServices");
+            _logger.LogInformation("Startup // ConfigureServices");
 
-            services.AddControllers(config =>
-            {
-                AuthorizationPolicy policy = new AuthorizationPolicyBuilder()
-                    .AddAuthenticationSchemes(JwtCookieDefaults.AuthenticationScheme)
-                    .RequireAuthenticatedUser()
-                    .Build();
-                config.Filters.Add(new AuthorizeFilter(policy));
-            }).AddNewtonsoftJson();
+            services.AddControllers().AddNewtonsoftJson();
+
+            services.AddHttpClient<AuthorizationApiClient>();
 
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
@@ -120,6 +111,7 @@ namespace Altinn.Platform.Storage
                 options.AddPolicy(AuthzConstants.POLICY_INSTANCE_READ, policy => policy.Requirements.Add(new AppAccessRequirement("read")));
                 options.AddPolicy(AuthzConstants.POLICY_INSTANCE_WRITE, policy => policy.Requirements.Add(new AppAccessRequirement("write")));
                 options.AddPolicy(AuthzConstants.POLICY_INSTANCE_DELETE, policy => policy.Requirements.Add(new AppAccessRequirement("delete")));
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_COMPLETE, policy => policy.Requirements.Add(new AppAccessRequirement("complete")));
                 options.AddPolicy(AuthzConstants.POLICY_SCOPE_APPDEPLOY, policy => policy.Requirements.Add(new ScopeAccessRequirement("altinn:appdeploy")));
                 options.AddPolicy(AuthzConstants.POLICY_SCOPE_INSTANCE_READ, policy => policy.Requirements.Add(new ScopeAccessRequirement("altinn:instances.read")));
             });
@@ -128,8 +120,8 @@ namespace Altinn.Platform.Storage
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
+            services.AddSingleton<ITextRepository, TextRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
             services.AddSingleton<ISasTokenProvider, SasTokenProvider>();
             services.AddSingleton<IKeyVaultClientWrapper, KeyVaultClientWrapper>();
             services.AddSingleton<IPDP, PDPAppSI>();
@@ -141,10 +133,9 @@ namespace Altinn.Platform.Storage
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
-                services.AddApplicationInsightsKubernetesEnricher();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
-                _logger.Information($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
+                _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
             }
 
             // Add Swagger support (Swashbuckle)
@@ -184,6 +175,7 @@ namespace Altinn.Platform.Storage
                     // catch swashbuckle exception if it doesn't find the generated xml documentation file
                 }
             });
+            services.AddSwaggerGenNewtonsoftSupport();
         }
 
         private string GetXmlCommentsPathForControllers()
@@ -202,11 +194,11 @@ namespace Altinn.Platform.Storage
         /// <param name="env">the hosting environment</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            _logger.Information("Startup // Configure");
-            if (env.IsDevelopment())
+            _logger.LogInformation("Startup // Configure");
+            if (env.IsDevelopment() || env.IsStaging())
             {
                 app.UseDeveloperExceptionPage();
-                _logger.Information("IsDevelopment");
+                _logger.LogInformation("IsDevelopment || IsStaging");
             }
             else
             {

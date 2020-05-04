@@ -88,7 +88,6 @@ namespace Altinn.Platform.Authorization
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
-                services.AddApplicationInsightsKubernetesEnricher();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
@@ -133,10 +132,10 @@ namespace Altinn.Platform.Authorization
         {
             _logger.LogInformation("Startup // Configure");
 
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsStaging())
             {
                 app.UseDeveloperExceptionPage();
-                _logger.LogInformation("IsDevelopment");
+                _logger.LogInformation("IsDevelopment || IsStaging");
             }
             else
             {

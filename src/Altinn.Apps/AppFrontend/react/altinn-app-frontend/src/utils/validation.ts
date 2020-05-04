@@ -2,11 +2,12 @@ import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/util
 import { IFormData } from '../features/form/data/formDataReducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
 import { IValidationIssue, Severity } from '../types';
-import { IComponentValidations, IDataModelFieldElement, IValidations, IComponentBindingValidation } from '../types/global';
+import { IComponentValidations, IDataModelFieldElement, IValidations, IComponentBindingValidation, ITextResource } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 import moment from 'moment';
 import { DatePickerMinDateDefault, DatePickerMaxDateDefault, DatePickerFormatDefault } from '../components/base/DatepickerComponent';
 import { getFormDataForComponent } from './formComponentUtils';
+import { getTextResourceByKey } from './textResource';
 
 export function min(value: number, test: number): boolean {
   test = Number(test);
@@ -384,7 +385,7 @@ export function mapApiValidationsToRedux(
 }
 
 /* Function to map the new data element validations to our internal redux structure*/
-export function mapDataElementValidationToRedux(validations: IValidationIssue[], layout: ILayout) {
+export function mapDataElementValidationToRedux(validations: IValidationIssue[], layout: ILayout, textResources: ITextResource[]) {
   const validationResult: IValidations = {};
   if (!validations) {
     return validationResult;
@@ -392,25 +393,29 @@ export function mapDataElementValidationToRedux(validations: IValidationIssue[],
   validations.forEach((validation) => {
     // for each validation, map to correct component and field key
     const componentValidations: IComponentValidations = {};
-    const component = layout.find((layoutElement) => {
-      const componentCandidate = layoutElement as ILayoutComponent;
-      let found = false;
-
-      if (validation.field === componentCandidate.id) {
-        found = true;
-        addValidation(componentValidations, validation, 'simpleBinding');
-      } else {
-        Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
-          // tslint:disable-next-line: max-line-length
-          if (validation.field && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === validation.field.toLowerCase()) {
-            found = true;
-            addValidation(componentValidations, validation, dataModelBindingKey);
-          }
-        });
-      }
-
-      return found;
-    });
+    let component;
+    if (layout) {
+      component = layout.find((layoutElement) => {
+        const componentCandidate = layoutElement as ILayoutComponent;
+        let found = false;
+  
+        if (validation.field === componentCandidate.id) {
+          found = true;
+          addValidation(componentValidations, validation, 'simpleBinding', textResources);
+        } else {
+          Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
+            // tslint:disable-next-line: max-line-length
+            if (validation.field && componentCandidate.dataModelBindings[dataModelBindingKey].toLowerCase() === validation.field.toLowerCase()) {
+              found = true;
+              addValidation(componentValidations, validation, dataModelBindingKey, textResources);
+            }
+          });
+        }
+  
+        return found;
+      });
+    }
+    
     if (component) {
       // we have found a matching component
       if (!validationResult[component.id]) {
@@ -447,14 +452,14 @@ export function mapDataElementValidationToRedux(validations: IValidationIssue[],
   return validationResult;
 }
 
-function addValidation(componentValidations: IComponentValidations, validation: IValidationIssue, dataModelBindingKey: string) {
+function addValidation(componentValidations: IComponentValidations, validation: IValidationIssue, dataModelBindingKey: string, textResources: ITextResource[]) {
   if (!componentValidations[dataModelBindingKey]) {
     componentValidations[dataModelBindingKey] = {errors: [], warnings: []};
   }
   if (validation.severity === Severity.Error) {
-    componentValidations[dataModelBindingKey].errors.push(validation.description);
+    componentValidations[dataModelBindingKey].errors.push(getTextResourceByKey(validation.description, textResources));
   } else {
-    componentValidations[dataModelBindingKey].warnings.push(validation.description);
+    componentValidations[dataModelBindingKey].warnings.push(getTextResourceByKey(validation.description, textResources));
   }
 }
 
@@ -482,4 +487,47 @@ function runValidation(
     console.error('Validation function failed...', error);
     return false;
   }
+}
+
+/**
+ * gets unmapped errors from validations as string array
+ * @param validations the validaitons
+ */
+export function getUnmappedErrors(validations: IValidations): string[] {
+  const messages: string[] = [];
+  if (!validations || !validations.unmapped) {
+    return messages;
+  }
+  Object.keys(validations.unmapped).forEach((key: string) => {
+    validations.unmapped[key]?.errors?.forEach((message: string) => {
+      messages.push(message);
+    });
+  });
+  return messages;
+}
+
+/**
+ * gets total number of components with mapped errors
+ * @param validations the validaitons
+ */
+export function getNumberOfComponentsWithErrors (validations: IValidations): number {
+  let numberOfComponents = 0;
+  if (!validations) {
+    return numberOfComponents;
+  }
+
+  Object.keys(validations).forEach((componentKey: string) => {
+    if (componentKey != 'unmapped') {
+      const componentHasErrors = Object.keys(validations[componentKey] || {}).some((bindingKey: string) => {
+        if (validations[componentKey][bindingKey].errors?.length > 0) {
+          return true;
+        }
+      });
+      if (componentHasErrors) {
+        numberOfComponents ++;
+      }
+    }
+  });
+
+  return numberOfComponents;
 }

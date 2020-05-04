@@ -1,21 +1,18 @@
 import { Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, MuiThemeProvider, WithStyles, withStyles } from '@material-ui/core/styles';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableRow from '@material-ui/core/TableRow';
-import classNames from 'classnames';
 import * as React from 'react';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import altinnTheme from '../../theme/altinnAppTheme';
-import { IAttachment } from '../../types/index.d';
+import { IAttachment, IAttachmentGrouping } from '../../types/index.d';
 import AltinnAttachment from '../atoms/AltinnAttachment';
 import AltinnCollapsibleAttachments from '../molecules/AltinnCollapsibleAttachments';
+import AltinnSummaryTable from '../molecules/AltinnSummaryTable';
 
 export interface IReceiptComponentProps extends WithStyles<typeof styles> {
-  attachments?: IAttachment[];
+  attachmentGroupings?: IAttachmentGrouping;
   body: string;
   collapsibleTitle: string;
+  hideCollapsibleCount?: boolean;
   instanceMetaDataObject: any;
   pdf?: IAttachment[];
   subtitle?: boolean;
@@ -37,43 +34,51 @@ const styles = createStyles({
   tableRow: {
     height: 'auto',
   },
-  paddingTop24: {
+    paddingTop24: {
     paddingTop: '2.4rem',
   },
 });
 
 export function ReceiptComponent(props: IReceiptComponentProps) {
-  const returnInstanceMetaDataGridRow = (name: string, prop: string, classes: any, index: number) => {
+
+  // renders attachment groups. Always shows default group first
+  function RenderAttachmentGroupings(): JSX.Element {
+    const groupings = props.attachmentGroupings;
+    const groups: JSX.Element[] = [];
+
+    if (!groupings) {
+      return null;
+    }
+
+    if (groupings['null']) {
+      // we have attachments that does not have a grouping. Render them first with default title
+      groups.push(getAltinnCollapsibleAttachments(groupings['null'], props.collapsibleTitle))
+    }
+
+    Object.keys(groupings || {}).forEach((title: string) => {
+      if (title && title !== 'null') {
+        groups.push(getAltinnCollapsibleAttachments(groupings[title], title));
+      }
+    });
+
     return (
-      <TableRow
-        key={index}
-        classes={{
-          root: classNames(classes.tableRow),
-        }}
-      >
-        <TableCell
-          padding='none'
-          classes={{
-            root: classNames(classes.tableCell),
-          }}
-        >
-          <Typography variant='body1'>
-            {name}:
-          </Typography>
-        </TableCell>
-        <TableCell
-          padding='none'
-          classes={{
-            root: classNames(classes.tableCell),
-          }}
-        >
-          <Typography variant='body1'>
-            {prop}
-          </Typography>
-        </TableCell>
-      </TableRow>
+      <>
+        {groups.map((element: JSX.Element) => {return element})}
+      </>
     );
-  };
+  }
+
+  function getAltinnCollapsibleAttachments(attachments: IAttachment[], title: string) {
+    return (
+        <AltinnCollapsibleAttachments
+        attachments={attachments}
+        collapsible={useMediaQuery('print') ? false : Boolean(attachments.length > 4)}
+        title={title}
+        hideCount={props.hideCollapsibleCount}
+        key={title}
+      />
+    );
+  }
 
   return (
     <React.Fragment>
@@ -81,17 +86,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         <Typography variant='h2'>
           {props.title}
         </Typography>
-        <Table
-          style={{ height: 'auto', width: 'auto' }}
-          padding='none'
-          className={props.classes.instanceMetaData}
-        >
-          <TableBody>
-            {Object.keys(props.instanceMetaDataObject).map((name, i) => (
-              returnInstanceMetaDataGridRow(name, props.instanceMetaDataObject[name], props.classes, i)
-            ))}
-          </TableBody>
-        </Table>
+        <AltinnSummaryTable summaryDataObject={props.instanceMetaDataObject} />
         {props.subtitle && (
           <Typography variant='body1' className={props.classes.paddingTop24}>
             <a href={props.subtitleurl}>{props.subtitle}</a>
@@ -101,26 +96,22 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         <Typography variant='body1' className={props.classes.paddingTop24}>
           {props.body}
         </Typography>
-        <Typography
-          variant='h3'
-          style={{
-            paddingTop: '4.1rem',
-            paddingBottom: '0.5rem',
-            fontWeight: 600,
-          }}
-        >
-          {props.titleSubmitted}
-        </Typography>
+        {props.titleSubmitted &&
+          <Typography
+            variant='h3'
+            style={{
+              paddingTop: '4.1rem',
+              paddingBottom: '0.5rem',
+              fontWeight: 600,
+            }}
+          >
+            {props.titleSubmitted}
+          </Typography>
+        }
         <AltinnAttachment
           attachments={props.pdf}
         />
-        {props.attachments && (
-          <AltinnCollapsibleAttachments
-            attachments={props.attachments}
-            collapsible={useMediaQuery('print') ? false : Boolean(props.attachments.length > 4)}
-            title={props.collapsibleTitle}
-          />
-        )}
+        {props.attachmentGroupings && <RenderAttachmentGroupings/>}
 
       </MuiThemeProvider>
     </React.Fragment>

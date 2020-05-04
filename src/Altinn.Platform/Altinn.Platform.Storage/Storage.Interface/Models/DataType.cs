@@ -34,6 +34,14 @@ namespace Altinn.Platform.Storage.Interface.Models
         public List<string> AllowedContentTypes { get; set; }
 
         /// <summary>
+        /// Gets or sets a list of allowed contributers.
+        /// Value should be preceded by an approved key.
+        /// If null or empty no contributer restrictions are set.
+        /// </summary>
+        [JsonProperty(PropertyName = "allowedContributers")]
+        public List<string> AllowedContributers { get; set; }
+
+        /// <summary>
         /// Gets or sets an object with information about how the application logic will handle the data element.
         /// </summary>
         [JsonProperty(PropertyName = "appLogic")]
@@ -70,5 +78,14 @@ namespace Altinn.Platform.Storage.Interface.Models
         [JsonProperty(PropertyName = "minCount")]
         [DefaultValue(1)]
         public int MinCount { get; set; }
+
+        /// <summary>
+        /// Gets or sets the grouping for this data type. Can be a a string ("Photos") or a text resource key ("scheme.grouping") if the grouping name should support multiple languages.
+        /// </summary>
+        /// <remarks>
+        /// Leaving field empty means that this data element should not have it's own grouping and will be grouped with other binary attachments that do not have defined a grouping.
+        /// </remarks>
+        [JsonProperty(PropertyName = "grouping")]
+        public string Grouping { get; set;}
     }
 }

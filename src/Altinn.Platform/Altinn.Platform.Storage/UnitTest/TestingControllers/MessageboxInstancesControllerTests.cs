@@ -787,7 +787,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
                 Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
                 Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
-
+                Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
                     builder.ConfigureTestServices(services =>

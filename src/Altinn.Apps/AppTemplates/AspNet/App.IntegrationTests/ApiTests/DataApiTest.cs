@@ -1,26 +1,76 @@
-
-using Altinn.App.IntegrationTests;
-using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
-using Newtonsoft.Json;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+
+using Altinn.App.IntegrationTests;
+
+using Altinn.Platform.Storage.Interface.Models;
+
+using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Utils;
+
+using Newtonsoft.Json;
+
 using Xunit;
 
 namespace App.IntegrationTests.ApiTests
 {
     public class DataApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
-
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
 
         public DataApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
             _factory = factory;
+        }
+
+        [Fact]
+        public async Task Create_RequestWithXmlHasInvalidModelInBody_ReturnsValidationErrors_NoDataIsStored()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "model-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = "/ttd/model-validation/instances/1337/8fab6615-3c57-484b-bd32-3065be958a1e/data?dataType=default";
+            string requestBody = "<?xml version=\"1.0\"?><Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"hei\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\"><Foretak-grp-8820 gruppeid=\"8820\"><EnhetNavnEndring-datadef-31 orid=\"31\">Test Test 123</EnhetNavnEndring-datadef-31></Foretak-grp-8820></Skjema>";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/xml")
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains("There is an error in XML document", responseContent);
+        }
+
+        [Fact]
+        public async Task Create_RequestWithJsonHasInvalidModelInBody_ReturnsValidationErrors_NoDataIsStored()
+        {
+            string token = PrincipalUtil.GetToken(1337);
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "ttd", "model-validation");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = "/ttd/model-validation/instances/1337/8fab6615-3c57-484b-bd32-3065be958a1e/data?dataType=default";
+            string requestBody = "{\"skjemanummer\": \"hei\",\"spesifikasjonsnummer\": \"hade\",\"blankettnummer\": \"AFP-01\",\"tittel\": \"Arbeidsgiverskjema AFP\",\"gruppeid\": \"8818\",\"foretakgrp8820\": {\"gruppeid\": \"8820\",\"enhetNavnEndringdatadef31\": {\"orid\": \"31\",\"value\": \"Test Test 123\"}}}";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+            {
+                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Contains("Could not convert string to decimal: hei. Path 'skjemanummer'", responseContent);
         }
 
         [Fact]
@@ -38,7 +88,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1337, guid);
@@ -60,7 +110,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -81,7 +131,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -102,7 +152,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
@@ -120,7 +170,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Contains("\"journalnummerdatadef33316\":{\"orid\":33316,\"value\":1001}", responseContent);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -142,7 +192,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
@@ -151,7 +201,7 @@ namespace App.IntegrationTests.ApiTests
             };
 
             response = await client.SendAsync(httpRequestMessage);
-            responseContent = response.Content.ReadAsStringAsync().Result;
+            responseContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Contains("\"enhetNavnEndringdatadef31\":{\"orid\":31,\"value\":\"Test Test 123\"}", responseContent);
@@ -177,20 +227,20 @@ namespace App.IntegrationTests.ApiTests
             // Fetch data element
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"/tdd/endring-av-navn/instances/1337/{guid}/data?dataType=default"){};
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
 
             // Fetch data and compare with expected prefill
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/1337/{guid}/data/{dataElement.Id}"){};
             response = await client.SendAsync(httpRequestMessage);
-            responseContent = response.Content.ReadAsStringAsync().Result;
+            responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var skjema = JsonConvert.DeserializeObject<App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn.Skjema>(responseContent);
-            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value, "01039012345");
-            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value, "Oslo");
-            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value, "Grev Wedels Plass");
+            Assert.Equal("01039012345", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value);
+            Assert.Equal("Oslo", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value);
+            Assert.Equal("Grev Wedels Plass", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value);
 
             TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1337, guid);
         }
@@ -213,24 +263,303 @@ namespace App.IntegrationTests.ApiTests
             // Fetch data element
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"/tdd/endring-av-navn/instances/500600/{guid}/data?dataType=default"){};
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
+            string responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(responseContent);
 
             // Fetch data and compare with expected prefill
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"/tdd/endring-av-navn/instances/500600/{guid}/data/{dataElement.Id}"){};
             response = await client.SendAsync(httpRequestMessage);
-            responseContent = response.Content.ReadAsStringAsync().Result;
+            responseContent = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             var skjema = JsonConvert.DeserializeObject<App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn.Skjema>(responseContent);
-            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value, "Sofies Gate 2");
-            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value, "EAS Health Consulting");
-            Assert.Equal(skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value, "http://setrabrl.no");
+            Assert.Equal("Sofies Gate 2", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetGardNavndatadef34931.value);
+            Assert.Equal("EAS Health Consulting", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value);
+            Assert.Equal("http://setrabrl.no", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value);
 
             TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 500600, guid);
         }
 
+        /// <summary>
+        /// Test case: post data as a user not included in allowed contributers
+        /// Expected: no match in allowed contributers. Forbidden is returned.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_WithContributerRestriction_Forbidden()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetToken(1337);
 
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=customElement";
+
+            HttpResponseMessage response = await client.PostAsync(url, new StringContent(string.Empty));
+            await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: post data as a org with org name included in allowed contributers
+        /// Expected: match in allowed contributers. Data element is uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_WithContributerOrgRestriction_Ok()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("tdd");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=customElement";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=test.pdf");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: post data as a org with org number included in allowed contributers
+        /// Expected: match in allowed contributers. Data element is uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_WithContributerOrgNoRestriction_Ok()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=customElement";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=test.pdf");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: post data without content disposition header in request
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_MissingContentDispHeader_BadRequest()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            string expectedMsg = "Invalid data provided. Error: Conent-Disposition header containing 'filename' must be included in request.";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(expectedMsg, message);
+        }
+
+        /// <summary>
+        /// Test case: post data without filename in content disposition header in request
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_MissingFilenameInHeader_BadRequest()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            string expectedMsg = "Invalid data provided. Error: Content-Disposition header must contain 'filename'.";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(expectedMsg, message);
+        }
+
+        /// <summary>
+        /// Test case: post data with invalid filename format in content disposition header in request
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_InvalidFilenameFormatInHeader_BadRequest()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            string expectedMsg = "Invalid data provided. Error: Invalid format for filename: testfile. Filename is expected to end with '.{filetype}'.";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(expectedMsg, message);
+        }
+
+        /// <summary>
+        /// Test case: post data with invalid filetype
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_InvalidFiletypeCorrectContentType_BadRequest()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            string expectedMsg = "Invalid data provided. Error: Invalid content type: text/xml. Please try another file. Permitted content types include: application/pdf, image/png, application/json";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.xml");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(expectedMsg, message);
+        }
+
+        /// <summary>
+        /// Test case: post data with  validfiletype
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_ValidFiletype_Ok()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.pdf");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: post data with validfiletype and complex filename
+        /// Expected: Ok. Attachment uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_ValidComplexFileName_Ok()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=appsettings.development.json");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: post data with  validfiletype
+        /// Expected: Bad request. Data element is not uploaded.
+        /// </summary>
+        [Fact]
+        public async Task Data_Post_MisMatchContentTypeFileType_BadRequest()
+        {
+            string app = "contributer-restriction";
+            Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+            TestDataUtil.DeleteInstance("tdd", app, 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", app, 1337, guid);
+            string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+            string expectedMsg = "Invalid data provided. Error: Content type header text/xml does not match mime type application/pdf for uploaded file. Please fix header or upload another file.";
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string url = $"/tdd/{app}/instances/1337/{guid}/data?dataType=specificFileType";
+            HttpContent content = new StringContent(string.Empty);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("text/xml");
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("attachment; filename=testfile.pdf");
+
+            HttpResponseMessage response = await client.PostAsync(url, content);
+            string message = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstanceAndData ("tdd", app, 1337, guid);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(expectedMsg, message);
+        }
     }
 }

@@ -127,7 +127,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page)
         {
-            User user = GetCurrentUser().Result;
+            User user = await GetCurrentUser();
 
             SearchResults repository = new SearchResults();
             string giteaSearchUriString = $"repos/search?limit={_settings.RepoSearchPageCount}";
@@ -314,7 +314,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null)
         {
-            string csrf = GetCsrf().Result;
+            string csrf = await GetCsrf();
 
             await Task.Run(() => DeleteCurrentAppKeys(csrf, keyName));
 
@@ -357,6 +357,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{filePath}?ref={shortCommitId}");
             return await response.Content.ReadAsAsync<GiteaFileContent>();
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<GiteaFileContent>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId)
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/contents/{directoryPath}?ref={shortCommitId}");
+            return await response.Content.ReadAsAsync<List<GiteaFileContent>>();
         }
 
         private async Task<Organization> GetOrganization(string name)

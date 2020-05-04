@@ -25,6 +25,13 @@ export interface IAppOwner {
   canBeDeletedAfter: string;
 }
 
+export interface IAttachment {
+  name: string;
+  iconClass: string;
+  url: string;
+  dataType: string;
+}
+
 export interface IData {
   id: string;
   dataType: string;
@@ -41,21 +48,22 @@ export interface IData {
   lastChangedBy: string;
 }
 
-export interface IAttachment {
-  name: string;
-  iconClass: string;
-  url: string;
-}
-
 export interface IDataType {
   id: string;
   description: string;
   allowedContentTypes: string[];
+  allowedContributers: string[];
   appLogic: any;
   taskId: string;
   maxSize: number;
   maxCount: number;
   mincount: number;
+  grouping: string;
+}
+
+export interface IExtendedInstance {
+  instance: IInstance;
+  party: IParty;
 }
 
 export interface IInstance {
@@ -138,9 +146,11 @@ export interface IPerson {
   addressCity: string;
 }
 
-export interface IExtendedInstance {
-  instance: IInstance;
-  party: IParty;
+export interface IPresentationField {
+  id: string;
+  textResource: string;
+  value: string;
+  taskIds: string[];
 }
 
 export interface IProcess {
@@ -190,4 +200,27 @@ export interface ITitle {
 export interface IValidated {
   timestamp: string;
   canCompleteTask: boolean;
+}
+
+export interface ITextResource {
+  id: string;
+  value: string;
+  unparsedValue: string;
+  variables:IVariable[];
+}
+
+export interface IVariable {
+  key: string;
+  dataSource: string;
+}
+
+export interface IAttachmentGrouping {
+  [title: string]: IAttachment[];
+}
+
+export interface IDataSource{
+  [key: string]: any;
+}
+export interface IDataSources {
+     [key: string]: IDataSource;
 }

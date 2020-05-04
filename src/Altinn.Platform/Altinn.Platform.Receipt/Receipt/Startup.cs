@@ -1,7 +1,6 @@
 using System;
 using System.Net;
 
-using Altinn.Platform.Receipt.Clients;
 using Altinn.Platform.Receipt.Configuration;
 using Altinn.Platform.Receipt.Services;
 using Altinn.Platform.Receipt.Services.Interfaces;
@@ -17,10 +16,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-
-using Serilog;
-using Serilog.Core;
 
 namespace Altinn.Platform.Receipt
 {
@@ -29,6 +26,8 @@ namespace Altinn.Platform.Receipt
     /// </summary>
     public class Startup
     {
+        private ILogger _logger;
+
         /// <summary>
         /// The key valt key for application insights.
         /// </summary>
@@ -40,10 +39,6 @@ namespace Altinn.Platform.Receipt
         internal static string ApplicationInsightsKey { get; set; }
 
         private readonly IWebHostEnvironment _env;
-
-        private static readonly Logger _logger = new LoggerConfiguration()
-           .WriteTo.Console()
-           .CreateLogger();
 
         /// <summary>
         ///  Initializes a new instance of the <see cref="Startup"/> class
@@ -65,7 +60,17 @@ namespace Altinn.Platform.Receipt
         /// <param name="services">the service configuration.</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            _logger.Information("Startup // ConfigureServices");
+            // Setup logging for the web host creation
+            var logFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .AddFilter("Altinn.Platform.Receipt.Startup", LogLevel.Debug)
+                    .AddConsole();
+            });
+
+            _logger = logFactory.CreateLogger<Program>();
+
+            _logger.LogInformation("Startup // ConfigureServices");
 
             services.AddControllersWithViews();
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
@@ -91,10 +96,9 @@ namespace Altinn.Platform.Receipt
                 });
 
             services.AddSingleton(Configuration);
-            services.AddSingleton<IRegister, RegisterWrapper>();
-            services.AddSingleton<IStorage, StorageWrapper>();
-            services.AddSingleton<IProfile, ProfileWrapper>();
-            services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
+            services.AddHttpClient<IRegister, RegisterWrapper>();
+            services.AddHttpClient<IStorage, StorageWrapper>();
+            services.AddHttpClient<IProfile, ProfileWrapper>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
@@ -103,10 +107,9 @@ namespace Altinn.Platform.Receipt
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
-                services.AddApplicationInsightsKubernetesEnricher();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
-                _logger.Information($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
+                _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
             }
         }
 
@@ -117,7 +120,7 @@ namespace Altinn.Platform.Receipt
         /// <param name="env">the hosting environment.</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            _logger.Information("Startup // Configure");
+            _logger.LogInformation("Startup // Configure");
 
             string authenticationEndpoint = string.Empty;
             if (Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpoint") != null)
@@ -129,7 +132,7 @@ namespace Altinn.Platform.Receipt
                 authenticationEndpoint = Configuration["PlatformSettings:ApiAuthenticationEndpoint"];
             }
 
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsStaging())
             {
                 app.UseDeveloperExceptionPage();
             }

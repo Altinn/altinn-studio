@@ -1,19 +1,22 @@
-import { check, sleep } from "k6";
+import { check } from "k6";
 import {addErrorCount} from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as platformInstances from "../../api/storage/instances.js"
 import {deleteSblInstance} from "../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
+let userName = __ENV.username;
+let userPassword = __ENV.userpwd;
+
 export const options = {
     thresholds:{
-        "errors": ["rate<0.000001"]
+        "errors": ["count<1"]
     }
 };
 
 //Function to setup data and return AltinnstudioRuntime Token
 export function setup(){
-    var aspxauthCookie = setUpData.authenticateUser();    
+    var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
     var data = setUpData.getUserData(altinnStudioRuntimeCookie);
     data.RuntimeToken = altinnStudioRuntimeCookie;
@@ -38,13 +41,6 @@ export default function(data) {
     if((JSON.parse(instanceJson)).id != null){
         instanceId = platformInstances.findInstanceId(instanceJson);
     };
-
-    //Test to edit an instance by id with App api and validate the response
-    res = appInstances.putInstanceById(runtimeToken, partyId, instanceId, instanceJson);    
-    success = check(res, {
-        "App PUT Edit Instance status is 200:": (r) => r.status === 200        
-        });  
-    addErrorCount(success);
 
     //Test to get an instance by id with App api and validate the response
     res = appInstances.getInstanceById(runtimeToken, partyId, instanceId);

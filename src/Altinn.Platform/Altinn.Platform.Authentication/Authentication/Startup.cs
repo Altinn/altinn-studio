@@ -5,6 +5,7 @@ using System.Reflection;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Repositories;
 using Altinn.Platform.Authentication.Services;
+using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Telemetry;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
@@ -66,36 +67,39 @@ namespace Altinn.Platform.Authentication
 
             services.AddControllers().AddJsonOptions(options =>
             {
-                options.JsonSerializerOptions.WriteIndented = _env.IsDevelopment();
+                options.JsonSerializerOptions.WriteIndented = _env.IsDevelopment() || _env.IsStaging();
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
             services.AddMvc().AddControllersAsServices();
+       
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
-            {
-                GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-                options.Cookie.Name = generalSettings.JwtCookieName;
-                options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
-                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuerSigningKey = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    RequireExpirationTime = true,
-                    ValidateLifetime = true
-                };
+                    GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+                    options.JwtCookieName = generalSettings.JwtCookieName;
+                    options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true
+                    };
 
-                if (_env.IsDevelopment())
-                {
-                    options.RequireHttpsMetadata = false;
-                }
-            });
+                    if (_env.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
+                });
 
-            services.AddSingleton<ISblCookieDecryptionService, SblCookieDecryptionService>();
+            services.AddSingleton(Configuration);
+            services.AddHttpClient<ISblCookieDecryptionService, SblCookieDecryptionService>();
+            services.AddHttpClient<IUserProfileService, UserProfileService>();
             services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddTransient<IOrganisationRepository, OrganisationRepository>();
@@ -103,8 +107,7 @@ namespace Altinn.Platform.Authentication
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
-                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);   
-                services.AddApplicationInsightsKubernetesEnricher();
+                services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
@@ -138,9 +141,9 @@ namespace Altinn.Platform.Authentication
         {
             _logger.LogInformation("Startup // Configure");
 
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsStaging())
             {
-                _logger.LogInformation("IsDevelopment");
+                _logger.LogInformation("IsDevelopment || IsStaging");
 
                 app.UseDeveloperExceptionPage();
 
