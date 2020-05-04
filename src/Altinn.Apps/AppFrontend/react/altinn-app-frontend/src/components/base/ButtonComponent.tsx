@@ -2,7 +2,6 @@ import * as React from 'react';
 import FormDataActions from '../../features/form/data/formDataActions';
 import { IAltinnWindow, IRuntimeState, } from './../../types';
 import { useSelector } from 'react-redux';
-import { makeGetAutoSave } from '../../selectors/getLayoutData';
 
 export interface IButtonProvidedProps {
   id: string;
@@ -13,8 +12,7 @@ export interface IButtonProvidedProps {
 }
 
 export function ButtonComponent(props: IButtonProvidedProps) {
-  const GetAutoSave = makeGetAutoSave();
-  const autoSave: boolean = useSelector((state: IRuntimeState) => GetAutoSave(state));
+  const autoSave = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.autoSave);
 
   const renderSubmitButton = () => {
     return (
