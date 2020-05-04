@@ -172,6 +172,7 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
     </div>
     <button
       class="file-upload-button blue-underline"
+      type="button"
     >
       form_filler.file_uploader_add_attachment
     </button>
