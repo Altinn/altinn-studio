@@ -86,7 +86,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
 
 function* autoSaveSaga(): SagaIterator {
   const uiConfig: IUiConfig = yield select(UIConfigSelector);
-  if (!uiConfig.autoSave === false) {
+  if (uiConfig.autoSave !== false) {
     // undefined should default to auto save
     yield call(FormDataActions.submitFormData, null);
   }
