@@ -62,7 +62,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
     }
 
     if (action.type === 'add') {
-      return state.concat(action.value);
+      return action.value;
     }
 
     if (action.type === 'delete') {
