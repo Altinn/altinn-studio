@@ -50,19 +50,19 @@ namespace App.IntegrationTests.Utils
         private static string GetInstancePath(int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", instanceOwnerId + @"\", instanceGuid.ToString() + @".json");
+            return Path.Combine(unitTestFolder, @"..\..\..\data\instances\", instanceOwnerId + @"\", instanceGuid.ToString() + @".json");
         }
 
         private static string GetDataPath(int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
+            return Path.Combine(unitTestFolder, @"..\..\..\data\instances\", instanceOwnerId + @"\", instanceGuid.ToString());
         }
 
         private static string GetDataBlobPath(int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\blob\" + dataId.ToString());
+            return Path.Combine(unitTestFolder, @"..\..\..\data\instances\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\blob\" + dataId.ToString());
         }
     }
 }

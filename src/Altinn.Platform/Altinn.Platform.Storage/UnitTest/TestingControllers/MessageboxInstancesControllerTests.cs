@@ -394,43 +394,22 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void Delete_ActiveHasRole_ReturnsOk()
             {
+                TestDataUtil.DeleteInstanceAndData(1337, new Guid("d9a586ca-17ab-453d-9fc5-35eaadb3369b"));
+                TestDataUtil.PrepareInstance(1337, new Guid("d9a586ca-17ab-453d-9fc5-35eaadb3369b"));
+
                 // Arrange
-                int instanceOwnerId = 1000;
-                string instanceGuid = "1916cd18-3b8e-46f8-aeaf-4bc3397ddd08";
-                string json = File.ReadAllText($"data/instances/{org}/{app}/{instanceOwnerId}/{instanceGuid}.json");
-                Instance instance = JsonConvert.DeserializeObject<Instance>(json);
-                HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
-                bool expectedResult = true;
-
-
-                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-
-                Instance storedInstance = null;
-
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
-                instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).Callback<Instance>(p => storedInstance = p).ReturnsAsync((Instance i) => i);
-
-                InstanceEvent instanceEvent = null;
-
-                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
-                instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
-                    .ReturnsAsync((InstanceEvent r) => r);
-
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validTokenUsr3);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
 
                 // Act
-                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{instanceOwnerId}/{instanceGuid}?hard=false");
+                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/1337/d9a586ca-17ab-453d-9fc5-35eaadb3369b?hard=true");
                 HttpStatusCode actualStatusCode = response.StatusCode;
                 string content = await response.Content.ReadAsStringAsync();
                 bool actualResult = JsonConvert.DeserializeObject<bool>(content);
 
                 // Assert
-                Assert.Equal(expectedResult, actualResult);
-                Assert.Equal(expectedStatusCode, actualStatusCode);
-                Assert.False(storedInstance.Status.HardDeleted.HasValue);
-                Assert.True(storedInstance.Status.SoftDeleted.HasValue);
+                Assert.True(actualResult);
+                TestDataUtil.DeleteInstanceAndData(1337, new Guid("d9a586ca-17ab-453d-9fc5-35eaadb3369b"));
             }
 
             /// <summary>
