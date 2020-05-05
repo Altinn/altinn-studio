@@ -163,6 +163,7 @@
         "maximum": 2
       }
     ],
-    "react/jsx-boolean-value": "off"
+    "react/jsx-boolean-value": "off",
+    "linebreak-style": "off"
   }
 }
