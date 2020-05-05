@@ -118,7 +118,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
       const { apiMode } = action as ISubmitDataAction;
       return Immutable<IFormDataState>(state, {
         isSubmitting: {
-          $set: (apiMode === 'Complete')
+          $set: (apiMode === 'Complete'),
         },
         isSaving: {
           $set: (apiMode !== 'Complete'),
@@ -134,7 +134,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
         },
       });
     }
-    
+
     default: {
       return state;
     }
