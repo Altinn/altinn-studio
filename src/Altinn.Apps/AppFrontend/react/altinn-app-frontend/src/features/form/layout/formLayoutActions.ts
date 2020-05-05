@@ -15,7 +15,7 @@ export interface IFormLayoutActions extends ActionCreatorsMapObject {
     => UpdateFormLayout.IUpdateFormLayout;
   updateHiddenComponents: (componentsToHide: string[]) => UpdateFormLayout.IUpdateHiddenComponents;
   updateAutoSave: (autoSave: boolean) => UpdateFormLayout.IUpdateAutoSave;
-  updateAutoSaveFulfilled: () => Action;
+  updateAutoSaveFulfilled: (autoSave: boolean) => UpdateFormLayout.IUpdateAutoSaveFulfilled;
   updateAutoSaveRejected: (error: Error) => UpdateFormLayout.IUpdateAutoSaveRejected;
 }
 
@@ -30,7 +30,7 @@ const actions: IFormLayoutActions = {
   updateHiddenComponents: UpdateFormLayout.updateHiddenComponents,
   updateAutoSave: UpdateFormLayout.updateAutoSave,
   updateAutoSaveFulfilled: UpdateFormLayout.updateAutoSaveFulfilled,
-  updateAutoSaveRejected: UpdateFormLayout.updateAutoSaveRejected
+  updateAutoSaveRejected: UpdateFormLayout.updateAutoSaveRejected,
 };
 
 const FormLayoutActions: IFormLayoutActions = bindActionCreators<any, any>(actions, store.dispatch);

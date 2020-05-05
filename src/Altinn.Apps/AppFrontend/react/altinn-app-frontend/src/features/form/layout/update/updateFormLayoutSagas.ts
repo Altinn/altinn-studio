@@ -26,9 +26,9 @@ function* updateFocus({ currentComponentId, step }: IUpdateFocus): SagaIterator 
   }
 }
 
-function* updateAutoSaveSaga({autoSave} : IUpdateAutoSave): SagaIterator {
+function* updateAutoSaveSaga({ autoSave } : IUpdateAutoSave): SagaIterator {
   try {
-    yield call (FormLayoutActions.updateAutoSaveFulfilled, autoSave);
+    yield call(FormLayoutActions.updateAutoSaveFulfilled, autoSave);
   } catch (err) {
     yield call(FormLayoutActions.updateAutoSaveRejected, err);
   }

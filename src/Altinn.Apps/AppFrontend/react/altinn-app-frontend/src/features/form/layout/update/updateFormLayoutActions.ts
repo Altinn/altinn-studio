@@ -41,6 +41,10 @@ export interface IUpdateAutoSave extends Action {
   autoSave: boolean;
 }
 
+export interface IUpdateAutoSaveFulfilled extends Action {
+  autoSave: boolean;
+}
+
 export interface IUpdateAutoSaveRejected extends Action {
   error: Error;
 }
@@ -89,9 +93,10 @@ export function updateAutoSave(autoSave: boolean): IUpdateAutoSave {
   });
 }
 
-export function updateAutoSaveFulfilled(): Action {
-  return({
-    type: UPDATE_AUTO_SAVE_FULFILLED
+export function updateAutoSaveFulfilled(autoSave: boolean): IUpdateAutoSave {
+  return ({
+    type: UPDATE_AUTO_SAVE_FULFILLED,
+    autoSave,
   });
 }
 
