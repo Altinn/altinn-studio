@@ -57,7 +57,8 @@ namespace Altinn.Platform.Register.IntegrationTest.Mocks
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 RequireExpirationTime = true,
-                ValidateLifetime = true
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.FromMinutes(0)
             };
 
             JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();

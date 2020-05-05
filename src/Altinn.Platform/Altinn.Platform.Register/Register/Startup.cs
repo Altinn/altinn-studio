@@ -97,7 +97,8 @@ namespace Altinn.Platform.Register
                           ValidateIssuer = false,
                           ValidateAudience = false,
                           RequireExpirationTime = true,
-                          ValidateLifetime = true
+                          ValidateLifetime = true,
+                          ClockSkew = TimeSpan.FromMinutes(0)
                       };
 
                       if (_env.IsDevelopment())

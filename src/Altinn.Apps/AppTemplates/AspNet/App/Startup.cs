@@ -104,7 +104,8 @@ namespace Altinn.App
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         RequireExpirationTime = true,
-                        ValidateLifetime = true
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromMinutes(0)
                     };
                     options.JwtCookieName = Services.Constants.General.RuntimeCookieName;
                     options.MetadataAddress = Configuration["AppSettings:OpenIdWellKnownEndpoint"];
