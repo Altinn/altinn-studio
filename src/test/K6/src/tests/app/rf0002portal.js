@@ -10,6 +10,7 @@ import * as appResources from "../../api/app/resources.js"
 
 let instanceFormDataXml = open("../../data/rf-0002.xml");
 let users = JSON.parse(open("../../data/users.json"));
+const usersCount = users.length;
 
 export const options = {
     thresholds:{
@@ -19,8 +20,14 @@ export const options = {
 
 //Tests for App API: RF-0002
 export default function() {
-    var userNumber = (__VU - 1) % users.length;
-    var aspxauthCookie = setUpData.authenticateUser(users[userNumber].username, users[userNumber].password);
+    var userNumber = (__VU - 1) % usersCount;
+    try {
+        var userSSN = users[userNumber].username;
+        var userPwd = users[userNumber].password;    
+    } catch (error) {
+        printResponseToConsole("Testdata missing", false, null)
+    };
+    var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
     const partyId = users[userNumber].partyid;
