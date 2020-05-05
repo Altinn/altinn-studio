@@ -172,11 +172,11 @@ const Confirm = (props: IConfirmProps) => {
       <AltinnReceipt
         attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
         body={getTextFromAppOrDefault('confirm.body', textResources, language, [appName])}
-        collapsibleTitle={getTextFromAppOrDefault('confirm.attachments', textResources, language)}
+        collapsibleTitle={getTextFromAppOrDefault('confirm.attachments', textResources, language, null, true)}
         hideCollapsibleCount={true}
         instanceMetaDataObject={instanceMetaObject}
-        title={`${getTextFromAppOrDefault('confirm.title', textResources, language)}`}
-        titleSubmitted={getTextFromAppOrDefault('confirm.answers', textResources, language)}
+        title={getTextFromAppOrDefault('confirm.title', textResources, language, null, true)}
+        titleSubmitted={getTextFromAppOrDefault('confirm.answers', textResources, language, null, true)}
       />
       {isSubmitting ?
         <AltinnLoader 

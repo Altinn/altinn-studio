@@ -11,7 +11,6 @@ import ReceiptContainer from '../../features/receipt/containers/receiptContainer
 import Confirm from '../../features/confirm/containers/Confirm';
 import UnknownError from '../../features/instantiate/containers/UnknownError';
 import QueueActions from '../resources/queue/queueActions';
-import IsLoadingActions from '../resources/isLoading/isLoadingActions';
 import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
 import Feedback from '../../features/feedback/Feedback';
 
@@ -53,7 +52,7 @@ export default (props) => {
       case (ProcessSteps.Confirm):
       case (ProcessSteps.Feedback):
       case (ProcessSteps.Archived): {
-        IsLoadingActions.finishDataTaskIsloading();
+        QueueActions.startInitialDataTaskQueue();
         break;
       }
       default:
