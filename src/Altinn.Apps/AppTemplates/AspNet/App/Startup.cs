@@ -55,7 +55,7 @@ namespace Altinn.App
 
             // Internal Application services
             services.AddSingleton<IAppResources, AppResourcesSI>();
-            
+
             // Services for Altinn Platform components
             services.AddTransient<IPDP, PDPAppSI>();
             services.AddTransient<IValidation, ValidationAppSI>();
@@ -105,7 +105,7 @@ namespace Altinn.App
                         ValidateAudience = false,
                         RequireExpirationTime = true,
                         ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromMinutes(0)
+                        ClockSkew = TimeSpan.Zero
                     };
                     options.JwtCookieName = Services.Constants.General.RuntimeCookieName;
                     options.MetadataAddress = Configuration["AppSettings:OpenIdWellKnownEndpoint"];

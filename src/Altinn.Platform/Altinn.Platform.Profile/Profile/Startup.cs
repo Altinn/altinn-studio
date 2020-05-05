@@ -80,7 +80,7 @@ namespace Altinn.Platform.Profile
                         ValidateAudience = false,
                         RequireExpirationTime = true,
                         ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromMinutes(0)
+                        ClockSkew = TimeSpan.Zero
                     };
 
                     if (_env.IsDevelopment())

@@ -89,7 +89,7 @@ namespace Altinn.Platform.Authentication
                         ValidateAudience = false,
                         RequireExpirationTime = true,
                         ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromMinutes(0)
+                        ClockSkew = TimeSpan.Zero
                     };
 
                     if (_env.IsDevelopment())

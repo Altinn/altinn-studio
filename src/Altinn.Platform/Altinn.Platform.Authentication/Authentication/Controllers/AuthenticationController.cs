@@ -227,7 +227,7 @@ namespace Altinn.Platform.Authentication.Controllers
                     ValidateAudience = false,
                     RequireExpirationTime = true,
                     ValidateLifetime = true,
-                    ClockSkew = TimeSpan.FromMinutes(0)
+                    ClockSkew = TimeSpan.Zero
                 };
 
                 ClaimsPrincipal originalPrincipal = _validator.ValidateToken(originalToken, validationParameters, out _);
@@ -301,7 +301,7 @@ namespace Altinn.Platform.Authentication.Controllers
                     ValidateAudience = false,
                     RequireExpirationTime = true,
                     ValidateLifetime = true,
-                    ClockSkew = TimeSpan.FromMinutes(0)
+                    ClockSkew = TimeSpan.Zero
                 };
 
                 _validator.ValidateToken(originalToken, validationParameters, out _);
