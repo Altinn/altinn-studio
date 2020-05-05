@@ -77,7 +77,7 @@ namespace LocalTest
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
             services.AddSingleton<IRoles, RolesWrapper>();
-            
+
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
             SecurityKey key = new X509SecurityKey(cert);
 
@@ -93,7 +93,8 @@ namespace LocalTest
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         RequireExpirationTime = true,
-                        ValidateLifetime = true
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
                     };
                     options.Cookie.Domain = "altinn3local.no";
                     options.Cookie.Name = "AltinnStudioRuntime";
