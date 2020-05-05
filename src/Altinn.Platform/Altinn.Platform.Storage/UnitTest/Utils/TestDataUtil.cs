@@ -7,7 +7,10 @@ namespace App.IntegrationTests.Utils
 {
     public class TestDataUtil
     {
-
+        public static void PrepareInstance(int instanceOwnerId, string instanceGuid)
+        {
+            PrepareInstance(instanceOwnerId, new Guid(instanceGuid));
+        }
 
         public static void PrepareInstance(int instanceOwnerId, Guid instanceGuid)
         {
@@ -25,6 +28,11 @@ namespace App.IntegrationTests.Utils
             {
                 File.Delete(instancePath);
             }
+        }
+
+        public static void DeleteInstanceAndData(int instanceOwnerId, string instanceguid)
+        {
+            DeleteInstanceAndData(instanceOwnerId, new Guid(instanceguid));
         }
 
         public static void DeleteInstanceAndData(int instanceOwnerId, Guid instanceGuid)

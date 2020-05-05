@@ -23,7 +23,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<Application> FindOne(string appId, string org)
         {
-            throw new NotImplementedException();
+           return Task.FromResult(GetTestApplication(org, appId.Split("/")[1]));
         }
 
         public Task<Dictionary<string, Dictionary<string, string>>> GetAppTitles(List<string> appIds)

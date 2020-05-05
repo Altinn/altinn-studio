@@ -77,7 +77,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string content = await response.Content.ReadAsStringAsync();
                 List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject(content, typeof(List<MessageBoxInstance>)) as List<MessageBoxInstance>;
 
-                int expectedCount = 8;
+                int expectedCount = 11;
                 string expectedTitle = "Endring av navn (RF-1453)";
                 int actualCount = messageBoxInstances.Count;
                 string actualTitle = messageBoxInstances.First().Title;
@@ -109,7 +109,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string actualTitle = messageBoxInstances.First().Title;
 
                 // Assert
-                int expectedCount = 8;
+                int expectedCount = 11;
                 string expectedTitle = "Name change";
                 Assert.Equal(expectedCount, actualCount);
                 Assert.Equal(expectedTitle, actualTitle);
@@ -142,7 +142,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseContent);
 
                 int actualCount = messageBoxInstances.Count;
-                int expectedCount = 3;
+                int expectedCount = 4;
                 Assert.Equal(expectedCount, actualCount);
             }
 
@@ -446,37 +446,22 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void Delete_ArchivedHasRole_ReturnsOk()
             {
+                TestDataUtil.DeleteInstanceAndData(1337,"3b67392f-36c6-42dc-998f-c367e771dcdd");
+                TestDataUtil.PrepareInstance(1337, "3b67392f-36c6-42dc-998f-c367e771dcdd");
                 // Arrange
-                int instanceOwnerId = 1000;
-                string instanceGuid = "1916cd18-3b8e-46f8-aeaf-4bc3397ddd12";
-                string json = File.ReadAllText($"data/instances/{org}/{app}/{instanceOwnerId}/{instanceGuid}.json");
-                Instance instance = JsonConvert.DeserializeObject<Instance>(json);
-                HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
-                bool expectedResult = true;
-
-
-                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-
-                Instance storedInstance = null;
-
-                InstanceEvent instanceEvent = null;
-
-               
-
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validTokenUsr3);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
 
                 // Act
-                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{instanceOwnerId}/{instanceGuid}?hard=false");
+                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/1337/3b67392f-36c6-42dc-998f-c367e771dcdd?hard=false");
                 HttpStatusCode actualStatusCode = response.StatusCode;
                 string content = await response.Content.ReadAsStringAsync();
                 bool actualResult = JsonConvert.DeserializeObject<bool>(content);
 
                 // Assert
-                Assert.Equal(expectedResult, actualResult);
-                Assert.Equal(expectedStatusCode, actualStatusCode);
-                Assert.False(storedInstance.Status.HardDeleted.HasValue);
-                Assert.True(storedInstance.Status.SoftDeleted.HasValue);
+                Assert.True(actualResult);
+                Assert.Equal(HttpStatusCode.OK, actualStatusCode);
+                TestDataUtil.DeleteInstanceAndData(1337, "3b67392f-36c6-42dc-998f-c367e771dcdd");
             }
 
             /// <summary>
@@ -491,35 +476,15 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void Delete_ArchivedMissingRole_ReturnsForbidden()
             {
                 // Arrange
-                int instanceOwnerId = 1600;
-                string instanceGuid = "1916cd18-3b8e-46f8-aeaf-4bc3397ddd12";
-                string json = File.ReadAllText($"data/instances/{org}/{app}/{instanceOwnerId}/{instanceGuid}.json");
-                Instance instance = JsonConvert.DeserializeObject<Instance>(json);
-                HttpStatusCode expectedStatusCode = HttpStatusCode.Forbidden;
-
-                Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-
-                Instance storedInstance = null;
-
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-                instanceRepository.Setup(s => s.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(instance);
-                instanceRepository.Setup(s => s.Update(It.IsAny<Instance>())).Callback<Instance>(p => storedInstance = p).ReturnsAsync((Instance i) => i);
-
-                InstanceEvent instanceEvent = null;
-
-                Mock<IInstanceEventRepository> instanceEventRepository = new Mock<IInstanceEventRepository>();
-                instanceEventRepository.Setup(s => s.InsertInstanceEvent(It.IsAny<InstanceEvent>())).Callback<InstanceEvent>(p => instanceEvent = p)
-                    .ReturnsAsync((InstanceEvent r) => r);
-
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validTokenUsr3);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 3));
 
                 // Act
-                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/{instanceOwnerId}/{instanceGuid}?hard=false");
+                HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/1337/367a5e5a-12c6-4a74-b72b-766d95f859b0?hard=false");
                 HttpStatusCode actualStatusCode = response.StatusCode;
 
                 // Assert
-                Assert.Equal(expectedStatusCode, actualStatusCode);
+                Assert.Equal(HttpStatusCode.Forbidden, actualStatusCode);
             }
 
             private HttpClient GetTestClient()

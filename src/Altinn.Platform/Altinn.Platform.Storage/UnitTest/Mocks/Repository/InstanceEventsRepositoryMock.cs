@@ -23,16 +23,22 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<InstanceEvent> InsertInstanceEvent(InstanceEvent instanceEvent)
         {
+            string instanceId = instanceEvent.InstanceId;
 
-            if(!Directory.Exists(GetInstanceEventsPath(instanceEvent.InstanceId.Split("/")[1], instanceEvent.InstanceOwnerPartyId)))
+            if (instanceId.Contains("/"))
             {
-                Directory.CreateDirectory(GetInstanceEventsPath(instanceEvent.InstanceId.Split("/")[1], instanceEvent.InstanceOwnerPartyId));
+                instanceId = instanceEvent.InstanceId.Split("/")[1];
+            }
+
+            if (!Directory.Exists(GetInstanceEventsPath(instanceId, instanceEvent.InstanceOwnerPartyId)))
+            {
+                Directory.CreateDirectory(GetInstanceEventsPath(instanceId, instanceEvent.InstanceOwnerPartyId));
             }
 
             instanceEvent.Id = Guid.NewGuid();
 
 
-            string instancePath = GetInstanceEventPath(instanceEvent.InstanceId.Split("/")[1] , instanceEvent.InstanceOwnerPartyId,  instanceEvent.Id.Value);
+            string instancePath = GetInstanceEventPath(instanceId, instanceEvent.InstanceOwnerPartyId,  instanceEvent.Id.Value);
             File.WriteAllText(instancePath, instanceEvent.ToString());
 
             return Task.FromResult(instanceEvent);

@@ -160,7 +160,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void Post_ReponseIsDeny_ReturnsStatusForbidden()
             {
                 // Arrange
-                string appId = "test/testApp1";
+                string appId = "tdd/endring-av-navn";
                 string requestUri = $"{BasePath}?appId={appId}";
 
                 HttpClient client = GetTestClient();
@@ -168,7 +168,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Laste opp test instance.. 
-                Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1" }, Org = "test", AppId = "test/testApp1" };
+                Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1337" }, Org = "tdd", AppId = "tdd/endring-av-navn" };
 
                 // Act
                 HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
@@ -185,15 +185,15 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void Post_UserHasTooLowAuthLv_ReturnsStatusForbidden()
             {
                 // Arrange
-                string appId = "test/testApp1";
+                string appId = "tdd/endring-av-navn";
                 string requestUri = $"{BasePath}?appId={appId}";
 
                 HttpClient client = GetTestClient();
-                string token = PrincipalUtil.GetToken(1, 0);
+                string token = PrincipalUtil.GetToken(1337,0);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Laste opp test instance.. 
-                Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1" }, Org = "test", AppId = "test/testApp1" };
+                Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1337" }, Org = "tdd", AppId = "tdd/endring-av-navn" };
 
                 // Act
                 HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
@@ -420,7 +420,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Don't compare original and updated instance in asserts. The two instances are identical.
                 Assert.NotNull(updatedInstance);
                 Assert.Equal(org, updatedInstance.CompleteConfirmations[0].StakeholderId);
-                Assert.Equal("111111111", updatedInstance.LastChangedBy);
+                Assert.Equal("1337", updatedInstance.LastChangedBy);
                 // Verify it is the stored instance that is returned
                 Assert.Equal(6, updatedInstance.CompleteConfirmations[0].ConfirmedOn.Minute);
 
@@ -499,7 +499,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 {
                     builder.ConfigureTestServices(services =>
                     {
-                        services.AddSingleton(applicationRepository.Object);
+                        services.AddSingleton<IApplicationRepository, ApplicationRepositoryMock>();
                         services.AddSingleton(dataRepository.Object);
                         services.AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>();
                         services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
