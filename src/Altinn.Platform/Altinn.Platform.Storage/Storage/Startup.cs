@@ -97,7 +97,8 @@ namespace Altinn.Platform.Storage
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         RequireExpirationTime = true,
-                        ValidateLifetime = true
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
                     };
 
                     if (_env.IsDevelopment())
