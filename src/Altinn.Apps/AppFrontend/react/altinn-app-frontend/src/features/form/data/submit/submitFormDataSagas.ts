@@ -3,7 +3,7 @@ import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
 import { getCurrentTaskDataTypeId, get, put } from 'altinn-shared/utils';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
-import { IRuntimeStore } from '../../../../types/global';
+import { IRuntimeStore, IUiConfig } from '../../../../types/global';
 import { convertDataBindingToModel } from '../../../../utils/databindings';
 import { dataElementUrl, getValidationUrl } from '../../../../utils/urlHelper';
 import {
@@ -22,6 +22,7 @@ import {
 import * as FormDataActionTypes from '../formDataActionTypes';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
+const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
 
 function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
   try {
@@ -83,7 +84,18 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
   }
 }
 
+function* autoSaveSaga(): SagaIterator {
+  const uiConfig: IUiConfig = yield select(UIConfigSelector);
+  if (uiConfig.autoSave !== false) {
+    // undefined should default to auto save
+    yield call(FormDataActions.submitFormData, null);
+  }
+}
+
 export function* watchSubmitFormSaga(): SagaIterator {
   yield takeLatest(FormDataActionTypes.SUBMIT_FORM_DATA, submitFormSaga);
-  yield takeLatest(FormDataActionTypes.UPDATE_FORM_DATA_FULFILLED, submitFormSaga);
+}
+
+export function* watchAutoSaveSaga(): SagaIterator {
+  yield takeLatest(FormDataActionTypes.UPDATE_FORM_DATA_FULFILLED, autoSaveSaga);
 }

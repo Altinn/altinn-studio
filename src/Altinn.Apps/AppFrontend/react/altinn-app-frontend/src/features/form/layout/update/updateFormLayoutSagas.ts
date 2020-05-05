@@ -4,7 +4,7 @@ import { IRuntimeState } from 'src/types';
 import { ILayoutComponent } from '..';
 import FormLayoutActions from '../formLayoutActions';
 import * as ActionTypes from '../formLayoutActionTypes';
-import { IUpdateFocus } from './updateFormLayoutActions';
+import { IUpdateFocus, IUpdateAutoSave } from './updateFormLayoutActions';
 import { ILayoutState } from '../formLayoutReducer';
 
 const selectFormLayoutConnection = (state: IRuntimeState): ILayoutState => state.formLayout;
@@ -26,6 +26,18 @@ function* updateFocus({ currentComponentId, step }: IUpdateFocus): SagaIterator 
   }
 }
 
+function* updateAutoSaveSaga({ autoSave } : IUpdateAutoSave): SagaIterator {
+  try {
+    yield call(FormLayoutActions.updateAutoSaveFulfilled, autoSave);
+  } catch (err) {
+    yield call(FormLayoutActions.updateAutoSaveRejected, err);
+  }
+}
+
 export function* watchUpdateFocusSaga(): SagaIterator {
   yield takeLatest(ActionTypes.UPDATE_FOCUS, updateFocus);
+}
+
+export function* watchUpdateAutoSave(): SagaIterator {
+  yield takeLatest(ActionTypes.UPDATE_AUTO_SAVE, updateAutoSaveSaga);
 }
