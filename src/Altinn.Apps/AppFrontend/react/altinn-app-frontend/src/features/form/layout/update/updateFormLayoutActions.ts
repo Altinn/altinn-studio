@@ -89,7 +89,7 @@ export function updateFormLayout(layoutElement: ILayoutComponent | ILayoutGroup,
 export function updateAutoSave(autoSave: boolean): IUpdateAutoSave {
   return ({
     type: UPDATE_AUTO_SAVE,
-    autoSave
+    autoSave,
   });
 }
 
@@ -101,8 +101,8 @@ export function updateAutoSaveFulfilled(autoSave: boolean): IUpdateAutoSave {
 }
 
 export function updateAutoSaveRejected(error: Error): IUpdateAutoSaveRejected {
-  return({
+  return ({
     type: UPDATE_AUTO_SAVE_REJECTED,
-    error
+    error,
   });
 }

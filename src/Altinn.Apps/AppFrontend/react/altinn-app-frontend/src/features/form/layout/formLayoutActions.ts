@@ -1,4 +1,4 @@
-import { ActionCreatorsMapObject, bindActionCreators, Action } from 'redux';
+import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { ILayoutComponent, ILayoutGroup } from './index';
 import { store } from '../../../store';
 import * as FetchForm from './fetch/fetchFormLayoutActions';

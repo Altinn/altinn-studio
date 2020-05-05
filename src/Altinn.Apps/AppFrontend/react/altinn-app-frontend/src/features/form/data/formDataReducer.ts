@@ -110,7 +110,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
         },
         isSaving: {
           $set: false,
-        }
+        },
       });
     }
 
