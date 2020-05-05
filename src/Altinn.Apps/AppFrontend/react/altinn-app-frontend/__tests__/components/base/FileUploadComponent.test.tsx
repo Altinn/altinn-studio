@@ -4,7 +4,7 @@ import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { bytesInOneMB, FileUploadComponent, IFileUploadProvidedProps } from '../../../src/components/base/FileUploadComponent';
+import { bytesInOneMB, FileUploadComponent, IFileUploadProps } from '../../../src/components/base/FileUploadComponent';
 import { render } from '@testing-library/react';
 // import { mapAttachmentListToAttachments } from '../../../src/utils/attachment';
 import { getFileUploadComponentValidations } from '../../../src/utils/formComponentUtils';
@@ -80,8 +80,8 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         />
       </Provider>
     );
-    expect(wrapper.find('#loader-upload')).toHaveLength(1);
-    expect(wrapper.find('#loader-delete')).toHaveLength(1);
+    expect(wrapper.find('#loader-upload')).toHaveLength(2); // div and react node
+    expect(wrapper.find('#loader-delete')).toHaveLength(2); // div and react node
   });
 
 //   it('+++ should add validation error on onDrop rejection', () => {
@@ -249,8 +249,8 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
 //     const result = instance.shouldShowFileUpload();
 //     expect(result).toBe(false);
 //   });
-  function renderFileUploadComponent(props: Partial<IFileUploadProvidedProps> = {}) {
-    const defaultProps: IFileUploadProvidedProps = {
+  function renderFileUploadComponent(props: Partial<IFileUploadProps> = {}) {
+    const defaultProps: IFileUploadProps = {
       id: mockId,
       displayMode: mockDisplayMode,
       language: {},

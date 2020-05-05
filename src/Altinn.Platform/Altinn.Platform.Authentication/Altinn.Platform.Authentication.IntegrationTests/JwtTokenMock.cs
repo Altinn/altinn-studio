@@ -35,7 +35,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests
         }
 
         /// <summary>
-        /// Creates a encrypted token 
+        /// Creates a encrypted token
         /// </summary>
         /// <param name="principal">The claims principal to include in the token.</param>
         /// <param name="tokenExipry">How long the token should be valid for.</param>
@@ -55,7 +55,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests
         }
 
         /// <summary>
-        /// Creates a encrypted and signed token 
+        /// Creates a encrypted and signed token
         /// </summary>
         /// <param name="principal">The claims principal to include in the token.</param>
         /// <param name="tokenExipry">How long the token should be valid for.</param>
@@ -93,7 +93,8 @@ namespace Altinn.Platform.Authentication.IntegrationTests
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 RequireExpirationTime = true,
-                ValidateLifetime = true
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
             };
 
             JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
@@ -119,7 +120,8 @@ namespace Altinn.Platform.Authentication.IntegrationTests
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 RequireExpirationTime = true,
-                ValidateLifetime = true
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
             };
 
             JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();

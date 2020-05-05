@@ -226,7 +226,8 @@ namespace Altinn.Platform.Authentication.Controllers
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     RequireExpirationTime = true,
-                    ValidateLifetime = true
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
                 };
 
                 ClaimsPrincipal originalPrincipal = _validator.ValidateToken(originalToken, validationParameters, out _);
@@ -299,7 +300,8 @@ namespace Altinn.Platform.Authentication.Controllers
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     RequireExpirationTime = true,
-                    ValidateLifetime = true
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
                 };
 
                 _validator.ValidateToken(originalToken, validationParameters, out _);
