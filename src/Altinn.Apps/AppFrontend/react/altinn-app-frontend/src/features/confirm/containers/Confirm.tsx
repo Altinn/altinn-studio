@@ -20,6 +20,7 @@ import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
+import { IValidations } from 'src/types/global';
 
 export interface IConfirmProps extends RouteChildrenProps {}
 
@@ -85,6 +86,7 @@ const Confirm = (props: IConfirmProps) => {
   const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
+  const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
 
   const routeParams: any = props.match.params;
 
@@ -146,6 +148,10 @@ const Confirm = (props: IConfirmProps) => {
       }
     }
   }, [instance, applicationMetadata]);
+
+  React.useEffect(() => {
+    setIsSubmitting(false);
+  }, [validations]);
 
   const onClickConfirm = () => {
     setIsSubmitting(true);
