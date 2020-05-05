@@ -17,32 +17,41 @@ export interface IButtonProvidedProps {
 export function ButtonComponent(props: IButtonProvidedProps) {
   const autoSave = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.autoSave);
   const isSubmitting = useSelector((state: IRuntimeState) => state.formData.isSubmitting);
+  const isSaving = useSelector((state: IRuntimeState) => state.formData.isSaving);
 
   const renderSubmitButton = () => {
     return (
-      <button
-        type='submit'
-        className={'a-btn a-btn-success'}
-        onClick={submitForm}
-        id={props.id}
-        style={{ marginBottom: '0' }}
-      >
-        {props.text}
-      </button>
+      <div className="col-4 pl-0">
+        {isSubmitting ? renderLoader() : 
+        <button
+          type='submit'
+          className={'a-btn a-btn-success'}
+          onClick={submitForm}
+          id={props.id}
+          style={{ marginBottom: '0' }}
+        >
+          {props.text}
+        </button>
+      }
+      </div>
     );
   }
 
   const renderSaveButton = () => {
     return (
-      <button
-        type='submit'
-        className={'a-btn a-btn-success'}
-        onClick={saveFormData}
-        id='saveBtn'
-        style={{ marginBottom: '0' }}
-      >
-        Lagre
-      </button>
+      <div className="col-2 pl-0">
+      {isSaving ? renderLoader() :
+        <button
+          type='submit'
+          className={'a-btn a-btn-success'}
+          onClick={saveFormData}
+          id='saveBtn'
+          style={{ marginBottom: '0' }}
+        >
+          Lagre
+        </button>
+      }
+      </div>
     );
   }
 
@@ -75,9 +84,13 @@ export function ButtonComponent(props: IButtonProvidedProps) {
   }
 
   return (
-    <div className='a-btn-group' style={{ marginTop: '3.6rem', marginBottom: '0' }}>
-      {autoSave === false && renderSaveButton()}
-      {isSubmitting ? renderLoader() : renderSubmitButton()}
+    <div className='container pl-0'>
+      <div className='a-btn-group' style={{ marginTop: '3.6rem', marginBottom: '0' }}>
+        <div className="row">
+          {autoSave === false && renderSaveButton()}
+          {renderSubmitButton()}
+        </div>
+      </div>
     </div>
   );
 }
