@@ -230,7 +230,7 @@ public class PDFGenerator {
       submittedBy = "Levert av " + userParty.getName() + " på vegne av " + party.getName();
     }
     List<String> lines = TextUtils.splitTextToLines(submittedBy, font, fontSize, width);
-    lines.add("Referansenummer: " + TextUtils.getInstanceGuid(instance.getId()).split("-")[4];
+    lines.add("Referansenummer: " + TextUtils.getInstanceGuid(instance.getId()).split("-")[4]);
     for(String line : lines) {
       currentContent.showText(line);
       currentContent.newLineAtOffset(0, -leading);
