@@ -3,8 +3,10 @@ import { fork } from 'redux-saga/effects';
 
 import { watchFetchFormLayoutSaga } from './fetch/fetchFormLayoutSagas';
 import { watchUpdateFocusSaga } from './update/updateFormLayoutSagas';
+import { watchUpdateAutoSave } from './update/updateFormLayoutSagas';
 
 export default function*(): SagaIterator {
   yield fork(watchFetchFormLayoutSaga);
   yield fork(watchUpdateFocusSaga);
+  yield fork(watchUpdateAutoSave);
 }

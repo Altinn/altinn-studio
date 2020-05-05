@@ -1,7 +1,7 @@
 import Immutable from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IFetchFormDataFulfilled, IFetchFormDataRejected } from './fetch/fetchFormDataActions';
-import { ISubmitFormDataRejected } from './submit/submitFormDataActions';
+import { ISubmitFormDataRejected, ISubmitDataAction } from './submit/submitFormDataActions';
 import * as actionTypes from './formDataActionTypes';
 import { IUpdateFormDataFulfilled, IUpdateFormDataRejected } from './update/updateFormDataActions';
 import * as ProcessActionTypes from './../../../shared/resources/process/processActionTypes';
@@ -16,6 +16,7 @@ export interface IFormDataState {
   responseInstance: any;
   unsavedChanges: boolean;
   isSubmitting: boolean;
+  isSaving: boolean;
 }
 
 const initialState: IFormDataState = {
@@ -24,6 +25,7 @@ const initialState: IFormDataState = {
   responseInstance: null,
   unsavedChanges: false,
   isSubmitting: false,
+  isSaving: false,
 };
 
 Immutable.extend('$setField', (params: any, original: IFormData) => {
@@ -94,6 +96,9 @@ const FormDataReducer: Reducer<IFormDataState> = (
         },
         isSubmitting: {
           $set: false,
+        },
+        isSaving: {
+          $set: false,
         }
       });
     }
@@ -103,13 +108,20 @@ const FormDataReducer: Reducer<IFormDataState> = (
         unsavedChanges: {
           $set: false,
         },
+        isSaving: {
+          $set: false,
+        },
       });
     }
 
     case actionTypes.SUBMIT_FORM_DATA: {
+      const { apiMode } = action as ISubmitDataAction;
       return Immutable<IFormDataState>(state, {
         isSubmitting: {
-          $set: true,
+          $set: (apiMode === 'Complete'),
+        },
+        isSaving: {
+          $set: (apiMode !== 'Complete'),
         },
       });
     }
@@ -122,7 +134,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
         },
       });
     }
-    
+
     default: {
       return state;
     }
