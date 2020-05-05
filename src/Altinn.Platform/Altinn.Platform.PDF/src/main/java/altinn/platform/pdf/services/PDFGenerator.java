@@ -375,7 +375,7 @@ public class PDFGenerator {
   }
 
   private List<TextResourceElement> parseTextResources(List<TextResourceElement> resources, Document formData){
-    List<String> replaceValues = new ArrayList<String>();
+    List<String> replaceValues = new ArrayList<>();
 
     for(TextResourceElement res : resources){
       replaceValues.clear();
