@@ -35,9 +35,73 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             _factory = factory;
         }
 
-        /// <summary>
-        /// Test that seeks to ensure that the lookup endpoint has model validation. It does not test model validation.
-        /// </summary>
+        [Fact]
+        public async Task GetParty_ValidTokenRequestForExistingParty_ReturnsParty()
+        {
+            string token = PrincipalUtil.GetToken(1);
+            int partyId = 6565;
+
+            // Arrange
+            Mock<IParties> partiesService = new Mock<IParties>();
+            partiesService.Setup(s => s.GetParty(It.Is<int>(o => o == partyId))).ReturnsAsync(new Party());
+
+            HttpClient client = GetTestClient(partiesService.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync("/register/api/v1/parties/" + partyId);
+
+            // Assert
+            partiesService.VerifyAll();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            
+            Party actual = await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
+
+            Assert.NotNull(actual);
+        }
+
+        [Fact]
+        public async Task GetParty_ValidTokenRequestForNonExistingParty_ReturnsNotFound()
+        {
+            string token = PrincipalUtil.GetToken(1);
+            int partyId = 6565;
+
+            // Arrange
+            Mock<IParties> partiesService = new Mock<IParties>();
+            partiesService.Setup(s => s.GetParty(It.Is<int>(o => o == partyId))).ReturnsAsync((Party)null);
+
+            HttpClient client = GetTestClient(partiesService.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync("/register/api/v1/parties/" + partyId);
+
+            // Assert
+            partiesService.VerifyAll();
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetParty_ExpiredToken_ReturnsUnAuthorized()
+        {
+            string token = PrincipalUtil.GetExpiredToken();
+            int partyId = 6565;
+
+            // Arrange
+            Mock<IParties> partiesService = new Mock<IParties>();
+
+            HttpClient client = GetTestClient(partiesService.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await client.GetAsync("/register/api/v1/parties/" + partyId);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
         [Fact]
         public async Task PostPartyLookup_ModelIsInvalid_ReturnsBadRequest()
         {
@@ -60,9 +124,6 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
-        /// <summary>
-        /// Test that seeks to ensure that the lookup endpoint responds with NotFound if party lookup based on string value returns null.
-        /// </summary>
         [Fact]
         public async Task PostPartyLookup_InputIsSsn_BackendServiceRespondsWithNull_ControllerRespondsWithNotFound()
         {
@@ -90,9 +151,6 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
-        /// <summary>
-        /// Test that seeks to ensure that the lookup endpoint responds Ok and a party if the given organisation number is found.
-        /// </summary>
         [Fact]
         public async Task PostPartyLookup_InputIsOrgNo_BackendServiceRespondsWithParty_ControllerRespondsWithOkAndParty()
         {
@@ -128,6 +186,30 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             Party actual = await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
 
             Assert.NotNull(actual);
+        }
+
+        [Fact]
+        public async Task PostPartyLookup_ExpiredToken_ReturnsUnAuthorized()
+        {
+            string token = PrincipalUtil.GetExpiredToken();
+
+            // Arrange
+            string OrgNo = "555000103";
+
+            Mock<IParties> partiesService = new Mock<IParties>();
+
+            HttpClient client = GetTestClient(partiesService.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            PartyLookup lookUp = new PartyLookup { OrgNo = OrgNo }; 
+
+            StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookUp), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.PostAsync("/register/api/v1/parties/lookup", requestBody);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
         private HttpClient GetTestClient(IParties partiesService)

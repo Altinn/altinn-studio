@@ -34,9 +34,6 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             _factory = factory;
         }
 
-        /// <summary>
-        /// Requesting an existing organization with a valid token. 
-        /// </summary>
         [Fact]
         public async Task GetOrganization_ValidTokenRequestForExistingOrganization_ReturnsOrganization()
         {
@@ -63,9 +60,6 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             Assert.NotNull(actual);
         }
 
-        /// <summary>
-        /// Requesting an existing organization with a valid token. 
-        /// </summary>
         [Fact]
         public async Task GetOrganization_ValidTokenRequestForNonExistingOrganization_ReturnsStatusNotFound()
         {
@@ -88,11 +82,8 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
-        /// <summary>
-        /// Requesting an existing organization with a valid token. 
-        /// </summary>
         [Fact]
-        public async Task GetOrganization_ExpiredTokenRequestForNonExistingOrganization_ReturnsStatusNotFound()
+        public async Task GetOrganization_ExpiredToken_ReturnsUnauthorized()
         {
             string token = PrincipalUtil.GetExpiredToken();
             string orgNo = "836281763";
