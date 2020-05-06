@@ -13,19 +13,16 @@ export interface IFormLabelProps {
 }
 
 export default function Label(props: IFormLabelProps) {
+  const { helpIconRef, openPopover, toggleClickPopover, toggleKeypressPopover } = props.helpTextProps;
 
-  
-
-  const {helpIconRef, openPopover, toggleClickPopover, toggleKeypressPopover} = props.helpTextProps;
-  if (!props.labelText)
-  {
+  if (!props.labelText) {
     return null;
   }
 
   const renderHelpTextIcon = () => {
     return (
       <span>
-        <HelpTextIcon 
+        <HelpTextIcon
           helpIconRef={helpIconRef}
           language={props.language}
           toggleClickPopover={toggleClickPopover}
@@ -37,18 +34,23 @@ export default function Label(props: IFormLabelProps) {
   }
 
   return (
-      <Grid item={true}>
-        <label className='a-form-label title-label' htmlFor={props.id}>
-          {props.labelText}
-          {(props.required || props.readOnly) ? null :
-            <span className='label-optional'>
-              ({getLanguageFromKey('general.optional', props.language)})
-            </span>
-          }
-          {!!helpIconRef &&
-            renderHelpTextIcon()
-          }
-        </label>
-      </Grid>
+    <Grid item={true}>
+      <label
+        className='a-form-label title-label'
+        htmlFor={props.id}
+        id={`label-${props.id}`}
+      >
+        {props.labelText}
+        {(props.required || props.readOnly) ?
+          null :
+          <span className='label-optional'>
+            ({getLanguageFromKey('general.optional', props.language)})
+          </span>
+        }
+        {!!helpIconRef &&
+          renderHelpTextIcon()
+        }
+      </label>
+    </Grid>
   );
 }
