@@ -5,11 +5,13 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Platform.Register.IntegrationTest.Utils;
+
+using Altinn.Platform.Register.Tests.Utils;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Services.Interfaces;
-using Altinn.Platform.Storage.IntegrationTest.Mocks.Authentication;
+using Altinn.Platform.Register.Tests.Mocks.Authentication;
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +20,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-namespace Altinn.Platform.Register.IntegrationTest.TestingControllers
+namespace Altinn.Platform.Register.Tests.TestingControllers
 {
     public class PartiesControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
@@ -81,8 +83,6 @@ namespace Altinn.Platform.Register.IntegrationTest.TestingControllers
 
             // Act
             HttpResponseMessage response = await client.PostAsync("/register/api/v1/parties/lookup", requestBody);
-
-            string responseCp = await response.Content.ReadAsStringAsync();
 
             // Assert
             partiesService.VerifyAll();

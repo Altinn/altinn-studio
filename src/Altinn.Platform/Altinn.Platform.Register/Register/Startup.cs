@@ -108,7 +108,6 @@ namespace Altinn.Platform.Register
                   });
 
             services.AddHttpClient<IOrganizations, OrganizationsWrapper>();
-            services.AddHttpClient<IPersons, PersonsWrapper>();
             services.AddHttpClient<IParties, PartiesWrapper>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))

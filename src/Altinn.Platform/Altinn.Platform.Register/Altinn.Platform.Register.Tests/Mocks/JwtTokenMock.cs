@@ -5,7 +5,7 @@ using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Altinn.Platform.Register.IntegrationTest.Mocks
+namespace Altinn.Platform.Register.Tests.Mocks
 {
     /// <summary>
     /// Represents a mechanism for creating JSON Web tokens for use in integration tests.
@@ -33,36 +33,6 @@ namespace Altinn.Platform.Register.IntegrationTest.Mocks
             string tokenstring = tokenHandler.WriteToken(token);
 
             return tokenstring;
-        }
-
-        /// <summary>
-        /// Validates a token and return the ClaimsPrincipal if successful. The validation key used is from the self signed certificate
-        /// and is included in the integration test project as a separate file.
-        /// </summary>
-        /// <param name="token">The token to be validated.</param>
-        /// <returns>ClaimsPrincipal</returns>
-        public static ClaimsPrincipal ValidateToken(string token)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.CodeBase).LocalPath);
-
-            string certPath = "JWTValidationCert.cer";
-
-            X509Certificate2 cert = new X509Certificate2(certPath);
-            SecurityKey key = new X509SecurityKey(cert);
-
-            TokenValidationParameters validationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = key,
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                RequireExpirationTime = true,
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
-            };
-
-            JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
-            return validator.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
         }
 
         private static SigningCredentials GetSigningCredentials()
