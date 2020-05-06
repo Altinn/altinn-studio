@@ -18,7 +18,7 @@ namespace Altinn.Platform.Register.Controllers
         private readonly IParties _partiesWrapper;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PartiesController"/> class
+        /// Initializes a new instance of the <see cref="PartiesController"/> class.
         /// </summary>
         /// <param name="partiesWrapper">The parties wrapper used as a client when calling SBL Bridge.</param>
         public PartiesController(IParties partiesWrapper)
