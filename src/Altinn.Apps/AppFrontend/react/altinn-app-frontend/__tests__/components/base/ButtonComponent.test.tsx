@@ -28,13 +28,24 @@ describe('components/base/ButtonComponent.tsx', () => {
     initialState = {
       formData: {
         isSubmitting: false,
-      }
+      },
+      formLayout: {
+        uiConfig: {
+          autoSave: true,
+        },
+      },
     };
     initialStateSubmitting = {
       formData: {
         isSubmitting: true,
-      }
+      },
+      formLayout: {
+        uiConfig: {
+          autoSave: true,
+        },
+      },
     };
+
     mockStore = createStore(initialState);
     mockStoreSubmitting = createStore(initialStateSubmitting);
     mockLanguage = {};

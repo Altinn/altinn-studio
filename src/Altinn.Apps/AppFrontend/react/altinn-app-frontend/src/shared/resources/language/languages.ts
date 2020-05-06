@@ -1,7 +1,7 @@
 /* tslint:disable:max-line-length */
-
-export const nb = () => (
-  {
+// eslint-disable-next-line import/prefer-default-export
+export function nb() {
+  return {
     access_control: {
       about_header: 'Om tilgang',
       bankruptcyEstate: 'Konkursbo',
@@ -36,11 +36,11 @@ export const nb = () => (
       today_label: 'I dag',
       min_date_exeeded: 'Dato valgt er før tidligste dato tillat',
       max_date_exeeded: 'Dato valgt er etter seneste dato tillat',
-      aria_label_icon: 'Åpne datovelger'
+      aria_label_icon: 'Åpne datovelger',
     },
     feedback: {
       title: 'Du blir snart videresendt',
-      body: 'Vi venter på verifikasjon, når den er på plass blir du videresendt.'
+      body: 'Vi venter på verifikasjon, når den er på plass blir du videresendt.',
     },
     form_filler: {
       error_report_header: 'Det er feil i skjema',
@@ -55,8 +55,9 @@ export const nb = () => (
       file_uploader_list_header_name: 'Navn',
       file_uploader_list_header_status: 'Status',
       file_uploader_list_status_done: 'Ferdig lastet',
+      file_uploader_list_header_delete_sr: 'Slett',
       file_uploader_max_size: 'Maks filstørrelse',
-      file_uploader_mb: 'MB',
+      file_uploader_mb: 'MB.',
       file_uploader_number_of_files: 'Antall filer',
       file_uploader_valid_file_format: 'Tillate filformater er:',
       file_uploader_validation_error_delete: 'Noe gikk galt under slettingen av filen, prøv igjen senere.',
@@ -94,7 +95,7 @@ export const nb = () => (
       error_message_with_colon: 'Feilmelding:',
       for: 'for',
       label: 'Navn',
-      loading: "Laster innhold",
+      loading: 'Laster innhold',
       no_options: 'Ingen alternativer tilgjenglig',
       optional: 'Valgfri',
       required: 'Obligatorisk',
@@ -125,7 +126,7 @@ export const nb = () => (
       authorization_error_check_rights: '<a href="https://{0}/ui/Profile/" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
       authorization_error_info_rights: '<a href="https://{0}/hjelp/profil/roller-og-rettigheter/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
       authorization_error_info_customer_service: 'Du kan også kontakte oss på brukerservice {0}.',
-      authorization_error_instantiate_validation_info_customer_service: 'Om du står fast kontakt oss på brukerservice {0}.'
+      authorization_error_instantiate_validation_info_customer_service: 'Om du står fast kontakt oss på brukerservice {0}.',
     },
     party_selection: {
       error_caption_prefix: 'Feil',
@@ -320,5 +321,5 @@ export const nb = () => (
       length: 'Antall tillatte tegn er {0}',
       pattern: 'Feil format eller verdi',
     },
-  }
-);
+  };
+}

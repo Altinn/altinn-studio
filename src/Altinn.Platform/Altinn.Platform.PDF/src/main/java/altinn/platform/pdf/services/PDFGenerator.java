@@ -25,6 +25,7 @@ import org.w3c.dom.Document;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Level;
@@ -75,12 +76,13 @@ public class PDFGenerator {
     this.userParty = pdfContext.getUserParty();
     try {
       this.formData = FormDataUtils.parseXml(pdfContext.getData());
+      this.textResources.setResources(parseTextResources(this.textResources.getResources(), this.formData));
     } catch (Exception e) {
       BasicLogger.log(Level.SEVERE, e.toString());
     }
   }
 
-  /**
+   /**
    * Generetes the pdf based on the pdf context
    * @return a byte array output stream containing the generated pdf
    * @throws IOException
@@ -228,7 +230,7 @@ public class PDFGenerator {
       submittedBy = "Levert av " + userParty.getName() + " på vegne av " + party.getName();
     }
     List<String> lines = TextUtils.splitTextToLines(submittedBy, font, fontSize, width);
-    lines.add("Referansenummer: " + TextUtils.getInstanceGuid(instance.getId()));
+    lines.add("Referansenummer: " + TextUtils.getInstanceGuid(instance.getId()).split("-")[4]);
     for(String line : lines) {
       currentContent.showText(line);
       currentContent.newLineAtOffset(0, -leading);
@@ -370,6 +372,34 @@ public class PDFGenerator {
     currentMarkedContentDictionary.setInt(COSName.MCID, mcid);
     mcid++;
     currentContent.beginMarkedContent(name, PDPropertyList.create(currentMarkedContentDictionary));
+  }
+
+  private List<TextResourceElement> parseTextResources(List<TextResourceElement> resources, Document formData){
+    List<String> replaceValues = new ArrayList<>();
+
+    for(TextResourceElement res : resources){
+      replaceValues.clear();
+      if(res.getVariables() != null){
+        for(TextResourceVariableElement variable : res.getVariables()){
+          if(variable.getDataSource().startsWith("dataModel")){
+            replaceValues.add(FormDataUtils.getFormDataByKey(variable.getKey(), formData));
+          }
+        }
+        res.setValue(replaceParameters(res.getValue(), replaceValues));
+      }
+    }
+
+    return resources;
+  }
+
+  private String replaceParameters(String nameString, List<String> params){
+    int index = 0;
+    for (String param : params) {
+      nameString = nameString.replace("{" + index + "}", param);
+      index++;
+    }
+
+    return nameString;
   }
 }
 
