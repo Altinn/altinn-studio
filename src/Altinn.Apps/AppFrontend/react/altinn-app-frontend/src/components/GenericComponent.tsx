@@ -161,8 +161,8 @@ export function GenericComponent(props: IGenericComponentProps) {
   const RenderLegend = () => {
     return (
       <Legend
-        labelText={getTextResource(props.textResourceBindings.title, textResources)}
-        descriptionText={getTextResource(props.textResourceBindings.description, textResources)}
+        labelText={getTextResource(props?.textResourceBindings?.title, textResources)}
+        descriptionText={getTextResource(props?.textResourceBindings?.description, textResources)}
         helpTextProps={helpTextProps}
         language={language}
         textResourceBindings={textResources}
