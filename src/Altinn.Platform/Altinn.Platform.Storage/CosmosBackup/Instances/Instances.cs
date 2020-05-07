@@ -37,18 +37,21 @@ namespace Altinn.Platform.Storage.CosmosBackup
                 IConfiguration config = ConfigHelper.LoadConfig(context);
                 string blobName = string.Empty;
 
-                try
+                foreach (Document item in input)
                 {
-                    dynamic data = JObject.Parse(input[0].ToString());
-                    string id = input[0].Id;
-                    string partitionKey = data.instanceOwner.partyId;
-                    blobName = $"{partitionKey}/{id}";
+                    try
+                    {
+                        dynamic data = JObject.Parse(item.ToString());
+                        string id = item.Id;
+                        string partitionKey = data.instanceOwner.partyId;
+                        blobName = $"{partitionKey}/{id}";
 
-                    await BlobService.SaveBlob(config, $"instances/{blobName}", input[0].ToString());
-                }
-                catch (Exception e)
-                {
-                    log.LogError($"Exception occured when storing element {blobName}. Exception: {e}. Message: {e.Message}");
+                        await BlobService.SaveBlob(config, $"instances/{blobName}", item.ToString());
+                    }
+                    catch (Exception e)
+                    {
+                        log.LogError($"Exception occured when storing element {blobName}. Exception: {e}. Message: {e.Message}");
+                    }
                 }
             }
         }
