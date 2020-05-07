@@ -96,19 +96,19 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Party> LookupParty(string personOrOrganisationNumber)
+        public async Task<Party> LookupParty(PartyLookup partyLookup)
         {
             Party party;
 
-            string endpointUrl = "parties/lookupObject";
+            string endpointUrl = "parties/lookup";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            StringContent content = new StringContent(JsonConvert.SerializeObject(personOrOrganisationNumber));
+            StringContent content = new StringContent(JsonConvert.SerializeObject(partyLookup));
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             HttpRequestMessage request = new HttpRequestMessage
             {
                 RequestUri = new System.Uri(endpointUrl, System.UriKind.Relative),
-                Method = HttpMethod.Get,
+                Method = HttpMethod.Post,
                 Content = content,
                
             };
@@ -123,7 +123,7 @@ namespace Altinn.App.Services.Implementation
             else
             {
                 string reason = await response.Content.ReadAsStringAsync();
-                _logger.LogError($"// Getting party with personOrOrganisationNumber {personOrOrganisationNumber} failed with statuscode {response.StatusCode} - {reason}");
+                _logger.LogError($"// Getting party with orgNo: {partyLookup.OrgNo} or ssn: {partyLookup.Ssn} failed with statuscode {response.StatusCode} - {reason}");
 
                 throw await PlatformHttpException.CreateAsync(response);
             }
