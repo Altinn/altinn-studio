@@ -27,6 +27,7 @@ namespace Altinn.Platform.Storage.CosmosBackup
             collectionName: "instanceEvents",
             ConnectionStringSetting = "DBConnection",
             LeaseCollectionName = "leases",
+            LeaseCollectionPrefix = "instanceEvents",
             CreateLeaseCollectionIfNotExists = true)]IReadOnlyList<Document> input,
             ExecutionContext context,
             ILogger log)

@@ -257,6 +257,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
           <label
             htmlFor={props.id}
             className='file-upload-text-bold'
+            id='file-upload-description'
           >
             {getLanguageFromKey('form_filler.file_uploader_drag', props.language)}
             <span className='file-upload-text-bold blue-underline'>
@@ -268,6 +269,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
           <label
             htmlFor={props.id}
             className='file-upload-text'
+            id='file-format-description'
           >
             {getLanguageFromKey('form_filler.file_uploader_valid_file_format', props.language)}
             {props.hasCustomFileEndings ? (` ${props.validFileEndings}`) :
@@ -360,7 +362,8 @@ export function FileUploadComponent(props: IFileUploadProps) {
                 style={styles}
                 id={`altinn-drop-zone-${props.id}`}
                 className={`file-upload${hasValidationMessages ? ' file-upload-invalid' : ''}`}
-                aria-describedby='max-size number-of-attachments'
+                aria-describedby='file-upload-description file-format-description max-size number-of-attachments'
+                aria-labelledby={`label-${props.id}`}
                 role='button'
               >
                 <input
