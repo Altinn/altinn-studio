@@ -1,26 +1,30 @@
 import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import HelpTextIcon from './HelpTextIcon';
+import Description from './Description';
 
 export interface IFormLegendProps {
   labelText: string;
+  descriptionText: string;
   language: any;
   required: boolean;
   helpTextProps: any;
+  id: string;
 }
 
 export default function Legend(props: IFormLegendProps) {
+  const {
+    helpIconRef, openPopover, toggleClickPopover, toggleKeypressPopover,
+  } = props.helpTextProps;
 
-  const {helpIconRef, openPopover, toggleClickPopover, toggleKeypressPopover} = props.helpTextProps;
-  if (!props.labelText)
-  {
+  if (!props.labelText) {
     return null;
   }
 
   const renderHelpTextIcon = () => {
     return (
       <span>
-        <HelpTextIcon 
+        <HelpTextIcon
           helpIconRef={helpIconRef}
           language={props.language}
           toggleClickPopover={toggleClickPopover}
@@ -28,20 +32,33 @@ export default function Legend(props: IFormLegendProps) {
           openPopover={openPopover}
         />
       </span>
-    )
-  }
+    );
+  };
 
   return (
-    <div className='a-form-label title-label'>
-      {props.labelText}
-      {props.required ? null :
-        <span className='label-optional'>
-          ({getLanguageFromKey('general.optional', props.language)})
-        </span>
+    <>
+      <label
+        className='a-form-label title-label'
+        htmlFor={props.id}
+      >
+        {props.labelText}
+        {props.required ?
+          null
+          :
+          <span className='label-optional'>
+            ({getLanguageFromKey('general.optional', props.language)})
+          </span>
+        }
+        {!!helpIconRef &&
+          renderHelpTextIcon()
+        }
+      </label>
+      {props.descriptionText &&
+        <Description
+          description={props.descriptionText}
+          {...props}
+        />
       }
-      {!!helpIconRef &&
-        renderHelpTextIcon()
-      }
-      </div>
+    </>
   );
 }
