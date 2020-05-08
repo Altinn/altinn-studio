@@ -87,6 +87,12 @@ namespace Altinn.Platform.Storage.Controllers
                 return Ok(new List<MessageBoxInstance>());
             }
 
+            // removing properties only used for active messageBoxInstances
+            if (!state.Equals("active"))
+            {
+                allInstances.ForEach(i => i.DueBefore = null);
+            }
+
             List<MessageBoxInstance> autorizedInstances = await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
             List<string> appIds = autorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
             Dictionary<string, Dictionary<string, string>> appTitles = await _applicationRepository.GetAppTitles(appIds);
