@@ -18,9 +18,7 @@
   <script src="https://use.fortawesome.com/bdabc5c1.js"></script>
 
   <!-- Javascript -->
-  <script src="https://altinncdn.no/toolkits/jquery/3.3.1/jquery-3.3.1.min.js" asp-append-version="true"></script>
   <script src="https://altinncdn.no/toolkits/bootstrap/4.3.1/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
-  <script src="https://altinncdn.no/toolkits/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
@@ -49,56 +47,6 @@
     <div id="root" class="media-body flex-column d-flex"></div>
     <script>
       loadScript();
-
-      (function ($) {
-        $.fn.datepicker.dates['no'] = {
-          days: ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'],
-          daysShort: ['søn', 'man', 'tir', 'ons', 'tor', 'fre', 'lør'],
-          daysMin: ['sø', 'ma', 'ti', 'on', 'to', 'fr', 'lø'],
-          months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'],
-          monthsShort: ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'],
-          today: 'i dag',
-          monthsTitle: 'Måneder',
-          clear: 'Nullstill',
-          weekStart: 1,
-          format: 'dd.mm.yyyy'
-        };
-      }(jQuery));
-
-      (function ($) {
-        $.fn.datepicker.dates['nn'] = {
-          days: ['sundag', 'måndag', 'tysdag', 'onsdag', 'torsdag', 'fredag', 'laurdag'],
-          daysShort: ['sun', 'mån', 'tys', 'ons', 'tor', 'fre', 'lau'],
-          daysMin: ['su', 'må', 'ty', 'on', 'to', 'fr', 'la'],
-          months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'],
-          monthsShort: ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'],
-          today: 'i dag',
-          monthsTitle: 'Månadar',
-          clear: 'Nullstill',
-          weekStart: 1,
-          format: 'dd.mm.yyyy'
-        };
-      }(jQuery));
-
-      function initDatePicker(dateId, dateFormat, dateLanguage) {
-        $('#' + dateId).datepicker({
-          format: dateFormat,
-          language: dateLanguage,
-          todayHighlight: true,
-          orientation: 'bottom left',
-          updateViewDate: false,
-          autoclose: true,
-          maxViewMode: 0,
-          templates: {
-            leftArrow: '<i class="fa fa-back"></i>',
-            rightArrow: '<i class="fa fa-arrowright"></i>'
-          }
-        }).on('show', function (e) {
-          $('#' + dateId).find('table').attr('cellpadding', '0');
-          $('#' + dateId).find('table').attr('cellspacing', '0');
-        });
-      }
-      window.initDatePicker = initDatePicker;
     </script>
   </div>
   <script src="https://altinncdn.no/toolkits/altinn-app-frontend/1/altinn-app-frontend.js"></script>
