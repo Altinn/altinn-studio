@@ -8,8 +8,8 @@ import MomentUtils from '@date-io/moment';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Moment } from 'moment';
-import { renderValidationMessagesForComponent } from '../../utils/render';
 import { IComponentValidations, IComponentBindingValidation } from 'src/types/global';
+import { renderValidationMessagesForComponent } from '../../utils/render';
 import { validateDatepickerFormData } from '../../utils/validation';
 
 export interface IDatePickerProps{
@@ -29,7 +29,7 @@ export interface IDatePickerProps{
 const useStyles = makeStyles({
   root: {
     fontSize: '1.6rem',
-    borderWidth:'2px',
+    borderWidth: '2px',
     borderStyle: 'solid',
     marginBottom: '0px',
     borderColor: AltinnAppTheme.altinnPalette.primary.blueMedium,
@@ -38,20 +38,20 @@ const useStyles = makeStyles({
     },
     '&:focus-within': {
       outlineOffset: '0px',
-      outline: '2px solid ' + AltinnAppTheme.altinnPalette.primary.blueDark,
-    }
+      outline: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueDark}`,
+    },
   },
   input: {
-    marginLeft: '12px'
+    marginLeft: '12px',
   },
   invalid: {
-    borderColor: AltinnAppTheme.altinnPalette.primary.red + ' !important',
-    outlineColor: AltinnAppTheme.altinnPalette.primary.red + ' !important',
+    borderColor: `${AltinnAppTheme.altinnPalette.primary.red} !important`,
+    outlineColor: `${AltinnAppTheme.altinnPalette.primary.red} !important`,
   },
   icon: {
     // must be the same to center align icon
     fontSize: '30px',
-    lineHeight: '30px'
+    lineHeight: '30px',
   },
   formHelperText: {
     fontSize: '1.4rem',
@@ -60,20 +60,20 @@ const useStyles = makeStyles({
     width: 'auto',
     marginBottom: '0px',
     marginTop: '0px',
-  }
+  },
 });
 
 class AltinnMomentUtils extends MomentUtils {
   getDatePickerHeaderText(date: Moment) {
     if (date && date.locale() == 'nb') {
-      return date.format("ddd, D MMM");
+      return date.format('ddd, D MMM');
     }
-    else return super.getDatePickerHeaderText(date);
+    return super.getDatePickerHeaderText(date);
   }
 }
 
-export const DatePickerMinDateDefault = "1900-01-01T12:00:00.000Z";
-export const DatePickerMaxDateDefault = "2100-01-01T12:00:00.000Z";
+export const DatePickerMinDateDefault = '1900-01-01T12:00:00.000Z';
+export const DatePickerMaxDateDefault = '2100-01-01T12:00:00.000Z';
 export const DatePickerFormatDefault = 'DD/MM/YYYY';
 
 function DatepickerComponent(props: IDatePickerProps) {
@@ -85,7 +85,7 @@ function DatepickerComponent(props: IDatePickerProps) {
   const maxDate = props.maxDate || DatePickerMaxDateDefault;
   const format = props.format || DatePickerFormatDefault;
 
-  let locale = window.navigator?.language || (window.navigator as any)?.userLanguage || "nb-NO";
+  const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb-NO';
   moment.locale(locale);
   const theme = useTheme();
   const inline = useMediaQuery(theme.breakpoints.up('sm'));
@@ -101,23 +101,23 @@ function DatepickerComponent(props: IDatePickerProps) {
     const suppliedValidations = props.componentValidations?.simpleBinding;
     if (suppliedValidations?.errors) {
       suppliedValidations.errors.forEach((validation: string) => {
-        if (validations.errors.indexOf(validation) == -1){
+        if (validations.errors.indexOf(validation) == -1) {
           validations.errors.push(validation);
         }
       });
     }
-    if (suppliedValidations?.warnings){
+    if (suppliedValidations?.warnings) {
       suppliedValidations.warnings.forEach((validation: string) => {
-        if (validations.warnings.indexOf(validation) == -1){
+        if (validations.warnings.indexOf(validation) == -1) {
           validations.warnings.push(validation);
         }
       });
     }
     return validations;
-  }
+  };
 
   React.useEffect(() => {
-    let date = moment(props.formData || '');
+    const date = moment(props.formData || '');
     setDate(date);
   }, [props.formData]);
 
@@ -133,22 +133,21 @@ function DatepickerComponent(props: IDatePickerProps) {
       props.handleDataChange(date?.toISOString());
       setValidDate(isValidDate(date)); // the date can have a valid format but not pass min/max validation
     }
-  }
+  };
 
   const isValidDate = (date: moment.Moment): boolean => {
     if (!date) {
       return true;
-    } else {
-      return date.isValid() && date.isAfter(minDate) && date.isBefore(maxDate);
     }
-  }
+    return date.isValid() && date.isAfter(minDate) && date.isBefore(maxDate);
+  };
 
   const handleOnBlur = () => {
     setValidDate(isValidDate(date));
     setValidationMessages(getValidationMessages());
     const saveDate = isDateEmpty() ? '' : date?.toISOString();
     props.handleDataChange(saveDate);
-  }
+  };
 
   return (
     <>
@@ -158,57 +157,56 @@ function DatepickerComponent(props: IDatePickerProps) {
           item
           xs={12}
         >
-            <KeyboardDatePicker
-              readOnly={props.readOnly}
-              required={props.required}
-              variant={inline ? 'inline' : 'dialog'}
-              format={format}
-              margin="normal"
-              id={props.id}
-              value={date}
-              placeholder={format}
-              key={props.id}
-              onChange={handleDataChangeWrapper}
-              onBlur={handleOnBlur}
-              autoOk={true}
-              invalidDateMessage={''} // all validation messages intentionally left empty
-              maxDateMessage={''}
-              minDateMessage={''}
-              minDate={minDate}
-              maxDate={maxDate}
-              cancelLabel={getLanguageFromKey('date_picker.cancel_label', props.language)}
-              clearLabel={getLanguageFromKey('date_picker.clear_label', props.language)}
-              todayLabel={getLanguageFromKey('date_picker.today_label', props.language)}
-              InputProps={{
-                disableUnderline: true,
-                error: (!props.isValid || !validDate),
-                classes: {
-                  root: classes.root + ((!props.isValid || !validDate) ? ' ' + classes.invalid : ''),
-                  input: classes.input,
-                },
-              }}
-              FormHelperTextProps={{
-                classes: {
-                  root: classes.formHelperText
-                }
-              }}
-              KeyboardButtonProps={{
-                "aria-label": getLanguageFromKey('date_picker.aria_label_icon', props.language),
-              }}
-              keyboardIcon={
-                <Icon
-                  className={classes.icon + ' ai ai-date'}
-                />
-              }
-              className={classes.datepicker}
-            />
-          </Grid>
-        </MuiPickersUtilsProvider>
-        {renderValidationMessagesForComponent(validationMessages, `${props.id}_validations`)}
-
-      </>
-
-  )
+          <KeyboardDatePicker
+            readOnly={props.readOnly}
+            required={props.required}
+            variant={inline ? 'inline' : 'dialog'}
+            format={format}
+            margin='normal'
+            id={props.id}
+            value={date}
+            placeholder={format}
+            key={props.id}
+            onChange={handleDataChangeWrapper}
+            onBlur={handleOnBlur}
+            autoOk={true}
+            invalidDateMessage='' // all validation messages intentionally left empty
+            maxDateMessage=''
+            minDateMessage=''
+            minDate={minDate}
+            maxDate={maxDate}
+            cancelLabel={getLanguageFromKey('date_picker.cancel_label', props.language)}
+            clearLabel={getLanguageFromKey('date_picker.clear_label', props.language)}
+            todayLabel={getLanguageFromKey('date_picker.today_label', props.language)}
+            InputProps={{
+              disableUnderline: true,
+              'aria-describedby': `description-${props.id}`,
+              error: (!props.isValid || !validDate),
+              classes: {
+                root: classes.root + ((!props.isValid || !validDate) ? ` ${classes.invalid}` : ''),
+                input: classes.input,
+              },
+            }}
+            FormHelperTextProps={{
+              classes: {
+                root: classes.formHelperText,
+              },
+            }}
+            KeyboardButtonProps={{
+              'aria-label': getLanguageFromKey('date_picker.aria_label_icon', props.language),
+            }}
+            keyboardIcon={
+              <Icon
+                className={`${classes.icon} ai ai-date`}
+              />
+            }
+            className={classes.datepicker}
+          />
+        </Grid>
+      </MuiPickersUtilsProvider>
+      {renderValidationMessagesForComponent(validationMessages, `${props.id}_validations`)}
+    </>
+  );
 }
 
 export default DatepickerComponent;

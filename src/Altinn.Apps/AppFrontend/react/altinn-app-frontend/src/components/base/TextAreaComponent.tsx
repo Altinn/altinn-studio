@@ -36,6 +36,7 @@ export function TextAreaComponent(props: ITextAreaComponentProps) {
           + (props.readOnly ? ' disabled' : '')}
         value={value}
         data-testid={props.id}
+        aria-describedby={`description-${props.id}`}
       />
     </div>
   );
