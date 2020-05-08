@@ -216,17 +216,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
                 string attachmentId = attachmentMetadata.GetValue("id").Value;
-                string fileTypes = attachmentMetadata.GetValue("fileType") == null ? "all" : attachmentMetadata.GetValue("fileType").Value;
-                string[] fileType = fileTypes.Split(",");
                 DataType applicationForm = new DataType();
                 if (applicationForm.AllowedContentTypes == null)
                 {
                     applicationForm.AllowedContentTypes = new List<string>();
                 }
 
-                foreach (string type in fileType)
+                if (!attachmentMetadata.GetValue("fileType") == null)
                 {
-                    applicationForm.AllowedContentTypes.Add(MimeTypeMap.GetMimeType(type.Trim()));
+                    string fileTypes = attachmentMetadata.GetValue("fileType").Value;
+                    string[] fileType = fileTypes.Split(",");
+
+                    foreach (string type in fileType)
+                    {
+                        applicationForm.AllowedContentTypes.Add(MimeTypeMap.GetMimeType(type.Trim()));
+                    }
                 }
 
                 applicationForm.Id = attachmentMetadata.GetValue("id").Value;
