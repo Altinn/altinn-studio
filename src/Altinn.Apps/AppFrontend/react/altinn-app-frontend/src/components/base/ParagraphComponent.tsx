@@ -14,7 +14,10 @@ export function ParagraphComponent(props: IParagraphProps) {
   };
 
   return (
-    <Typography id={props.id} style={style} tabIndex={0}>
+    <Typography
+      id={props.id}
+      style={style}
+    >
       {props.text}
     </Typography>
   );
