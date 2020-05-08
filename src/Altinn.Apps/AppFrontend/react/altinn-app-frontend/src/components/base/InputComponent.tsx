@@ -30,21 +30,20 @@ export function InputComponent(props: IInputProps) {
 
   return (
     <>
-    <input
-      key={'input_' + props.id}
-      id={props.id}
-      type={props.type}
-      onBlur={onDataChangeSubmit}
-      onChange={onDataChanged}
-      readOnly={props.readOnly}
-      required={props.required}
-      className={classNames('form-control',
-        { 'validation-error': !props.isValid, 'disabled': props.readOnly },
-      )}
-      value={value}
-      data-testid={props.id}
-      role={'input'}
-    />
+      <input
+        key={`input_${props.id}`}
+        id={props.id}
+        type={props.type}
+        onBlur={onDataChangeSubmit}
+        onChange={onDataChanged}
+        readOnly={props.readOnly}
+        required={props.required}
+        className={classNames('form-control',
+          { 'validation-error': !props.isValid, disabled: props.readOnly })}
+        value={value}
+        data-testid={props.id}
+        aria-describedby={`description-${props.id}`}
+      />
     </>
   );
 }

@@ -3,10 +3,10 @@
 exports[`components/base/InputComponent.tsx components/base/InputComponent.tsx -- should match snapshot 1`] = `
 <DocumentFragment>
   <input
+    aria-describedby="description-mock-id"
     class="form-control"
     data-testid="mock-id"
     id="mock-id"
-    role="input"
     type="Input"
     value=""
   />

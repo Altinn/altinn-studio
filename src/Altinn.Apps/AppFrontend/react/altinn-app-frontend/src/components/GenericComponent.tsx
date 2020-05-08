@@ -146,21 +146,23 @@ export function GenericComponent(props: IGenericComponentProps) {
   };
 
   const RenderDescription = () => {
-    if (!props.textResourceBindings.description){
+    if (!props.textResourceBindings.description) {
       return null;
     }
     const descriptionText = getTextResource(props.textResourceBindings.description, textResources);
     return (
       <Description
         description={descriptionText}
+        {...component}
       />
-    )
-  }
+    );
+  };
 
   const RenderLegend = () => {
     return (
       <Legend
-        labelText={getTextResource(props.textResourceBindings.title, textResources)}
+        labelText={getTextResource(props?.textResourceBindings?.title, textResources)}
+        descriptionText={getTextResource(props?.textResourceBindings?.description, textResources)}
         helpTextProps={helpTextProps}
         language={language}
         textResourceBindings={textResources}
@@ -168,7 +170,7 @@ export function GenericComponent(props: IGenericComponentProps) {
         {...component}
       />
     );
-  }
+  };
 
   const helpTextProps = {
     toggleClickPopover,
@@ -181,8 +183,8 @@ export function GenericComponent(props: IGenericComponentProps) {
   const componentProps = {
     handleDataChange: handleDataUpdate,
     handleFocusUpdate,
-    getTextResource: getTextResource,
-    formData: formData,
+    getTextResource,
+    formData,
     isValid,
     language,
     id,
@@ -191,7 +193,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     label: RenderLabel,
     legend: RenderLegend,
     ...passThroughProps,
-  }
+  };
 
   const noLabelComponents: string[] = [
     'Header',
@@ -201,23 +203,32 @@ export function GenericComponent(props: IGenericComponentProps) {
     'AddressComponent',
     'Button',
     'Checkboxes',
-    'RadioButtons'
+    'RadioButtons',
   ];
 
   return (
     <>
-    {noLabelComponents.includes(props.type) ? null :
-      <RenderLabel />
-    }
-    {props.textResourceBindings.description ? <RenderDescription /> : null}
-    <RenderComponent
-      {...componentProps}
-    />
-    {/* { React.createElement(RenderComponent, componentProps) } */}
-    {isSimple && hasValidationMessages &&
-          renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
-    }
-    <HelpTextPopover
+      {noLabelComponents.includes(props.type) ?
+        null
+        :
+        <RenderLabel />
+      }
+
+      {noLabelComponents.includes(props.type) ?
+        null
+        :
+        <RenderDescription/>
+      }
+
+      <RenderComponent
+        {...componentProps}
+      />
+
+      {isSimple && hasValidationMessages &&
+            renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
+      }
+
+      <HelpTextPopover
         helpIconRef={helpIconRef}
         openPopover={openPopover}
         language={language}
@@ -225,7 +236,7 @@ export function GenericComponent(props: IGenericComponentProps) {
         closePopover={closePopover}
         key={props.id}
       />
-  </>
+    </>
   )
 }
 

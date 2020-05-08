@@ -362,7 +362,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
                 style={styles}
                 id={`altinn-drop-zone-${props.id}`}
                 className={`file-upload${hasValidationMessages ? ' file-upload-invalid' : ''}`}
-                aria-describedby='file-upload-description file-format-description max-size number-of-attachments'
+                aria-describedby={`description-${props.id} file-upload-description file-format-description max-size number-of-attachments`}
                 aria-labelledby={`label-${props.id}`}
                 role='button'
               >
