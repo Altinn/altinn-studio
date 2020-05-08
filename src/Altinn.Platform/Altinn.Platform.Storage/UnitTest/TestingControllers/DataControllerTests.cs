@@ -45,9 +45,9 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
         /// Scenario:
         ///   Add data element to created instances.
         /// Expected:
-        ///   Request is stopped by PEP.
+        ///   Request is authorized
         /// Success:
-        ///   403 forbidden status code returned. 
+        /// Created 
         /// </summary>
         [Fact]
         public async void Post_NewData_Ok()
@@ -55,7 +55,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "bc19107c-508f-48d9-bcd7-54ffec905306", "tdd", "endring-av-navn");
             TestDataUtil.PrepareInstance(1337, "bc19107c-508f-48d9-bcd7-54ffec905306");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/bc19107c-508f-48d9-bcd7-54ffec905306/data";
-            HttpContent content = new StringContent(string.Empty);
+            HttpContent content = new StringContent("This is a blob file");
 
             HttpClient client = GetTestClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
@@ -63,6 +63,51 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "bc19107c-508f-48d9-bcd7-54ffec905306", "tdd", "endring-av-navn");
+        }
+
+
+        /// <summary>
+        /// Scenario:
+        ///   Add data element to created instances. Authenticated users is not authorized to perform this operation.
+        /// Expected:
+        ///   Request is authorized
+        /// Success:
+        /// Created 
+        /// </summary>
+        [Fact]
+        public async void Post_NewData_NotAuthorized()
+        {
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/69c259d1-9c1f-4ab6-9d8b-5c210042dc4f/data";
+            HttpContent content = new StringContent("This is a blob file");
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 3));
+            HttpResponseMessage response = await client.PostAsync($"{dataPathWithData}?dataType=default", content);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+
+
+        /// <summary>
+        /// Scenario:
+        ///   Add data element to created instances. Authenticated users is not authorized to perform this operation.
+        /// Expected:
+        ///   Request is authorized
+        /// Success:
+        /// Created 
+        /// </summary>
+        [Fact]
+        public async void Post_NewData_ToLowAuthenticationLevel()
+        {
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/69c259d1-9c1f-4ab6-9d8b-5c210042dc4f/data";
+            HttpContent content = new StringContent("This is a blob file");
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 0));
+            HttpResponseMessage response = await client.PostAsync($"{dataPathWithData}?dataType=default", content);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         /// <summary>
