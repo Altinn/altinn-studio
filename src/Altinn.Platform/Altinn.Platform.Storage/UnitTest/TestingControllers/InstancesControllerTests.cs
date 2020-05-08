@@ -43,7 +43,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             private const string BasePath = "storage/api/v1/instances";
 
             private readonly WebApplicationFactory<Startup> _factory;
-            private readonly Mock<IInstanceRepository> _instanceRepository;
 
             /// <summary>
             /// Constructor.
@@ -52,7 +51,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public InstancesControllerTests(WebApplicationFactory<Startup> factory)
             {
                 _factory = factory;
-                _instanceRepository = new Mock<IInstanceRepository>();
             }
 
             /// <summary>
@@ -226,6 +224,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+                Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
                 string json = await response.Content.ReadAsStringAsync();
                 Instance createdInstance = JsonConvert.DeserializeObject<Instance>(json);
 
