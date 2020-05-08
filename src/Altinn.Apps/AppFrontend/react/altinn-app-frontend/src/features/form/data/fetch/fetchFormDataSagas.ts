@@ -7,17 +7,18 @@ import {
   take,
 } from 'redux-saga/effects';
 import { get, getCurrentTaskDataTypeId } from 'altinn-shared/utils';
+import { IInstance } from 'altinn-shared/types';
 import { convertModelToDataBinding } from '../../../../utils/databindings';
 import FormActions from '../formDataActions';
 import { IFetchFormData } from './fetchFormDataActions';
 import * as FormDataActionTypes from '../formDataActionTypes';
 import { IRuntimeState, IAltinnWindow } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
-import { IInstance } from 'altinn-shared/types';
 import { FETCH_DATA_MODEL_FULFILLED } from '../../datamodel/fetch/fetchFormDatamodelActionTypes';
 import FormRulesActions from '../../rules/rulesActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import QueueActions from '../../../../shared/resources/queue/queueActions';
+import { jsonSchema } from '../../../../utils/validationHelper';
 
 const SelectFormDataModel: (store: any) => any = (store: any) => store.formDataModel.dataModel;
 const appMetaDataSelector = (state: IRuntimeState): IApplicationMetadata =>
@@ -50,9 +51,8 @@ function* fetchFormDataInitialSaga(): SagaIterator {
     const currentTaskDataTypeId = getCurrentTaskDataTypeId(applicationMetadata, instance);
     const url = `${window.location.origin}/${org}/${app}/instances/${instanceId}/data/${currentTaskDataTypeId}`;
     const fetchedData: any = yield call(get, url);
-    const dataModel = yield select(SelectFormDataModel);
-
-    const parsedLayout = convertModelToDataBinding(fetchedData, dataModel);
+    const schema = jsonSchema;
+    const parsedLayout = convertModelToDataBinding(fetchedData, schema);
     yield call(FormActions.fetchFormDataFulfilled, parsedLayout);
 
     yield call(

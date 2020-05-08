@@ -1,13 +1,15 @@
 import { object } from 'dot-object';
 
+const jsonPtr = require('json-ptr');
+
 /**
  * Converts the formdata in store (that is flat) to a JSON
  * object that matches the JSON datamodel defined by the service from
  * XSD. This is needed for the API to understand
  * @param formData the complete datamodel in store
  */
-export function convertDataBindingToModel(formData: any, dataModelElements: any[]): any {
-  return object(Object.assign({}, formData));
+export function convertDataBindingToModel(formData: any): any {
+  return object({ ...formData });
 }
 
 export interface IData {
@@ -18,20 +20,24 @@ export interface IData {
  * Convertes JSON to the flat datamodel used in Redux data store
  * @param data The formdata as JSON
  */
-export function convertModelToDataBinding(data: any, model: any[]): any {
+export function convertModelToDataBinding(data: any, model: any): any {
   const result = flattenObject(data);
   return filterFormData(result, model);
 }
 
-const filterFormData = (data: any, model: any[]): any => {
+const filterFormData = (data: any, model: any): any => {
   const filteredResult: any = {};
+  const modelPath = model.properties.melding.$ref.slice(1);
+  const pointer = jsonPtr.create(modelPath);
+  const root = pointer.get(model);
   Object.keys(data).forEach((key: string) => {
     const formDataKey = getKeyWithoutIndex(key);
-    if (model.find((m) => m.dataBindingName === formDataKey && m.type === 'Field')) {
+    const formDataRoot = formDataKey.split('.')[0];
+    const element = root.properties[formDataRoot];
+    if (element && (!element['@xsdType'] || element['@xsdType'] !== 'XmlAttribute')) {
       filteredResult[key] = data[key];
     }
   });
-
   return filteredResult;
 };
 

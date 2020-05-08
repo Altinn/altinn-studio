@@ -164,6 +164,11 @@ export interface IDataModelBinding {
   parentGroup: string;
 }
 
+export interface IValidationResult {
+  validations: IValidations;
+  invalidDataTypes: boolean;
+}
+
 export interface IValidations {
   [id: string]: IComponentValidations;
 }

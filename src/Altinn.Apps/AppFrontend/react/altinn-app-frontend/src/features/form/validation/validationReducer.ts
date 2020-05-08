@@ -8,12 +8,14 @@ import { IUpdateValidations } from './update/updateValidationsActions';
 
 export interface IValidationState {
   validations: IValidations;
+  invalidDataTypes: boolean;
   error: Error;
 }
 
 const initialValidationState: IValidationState = {
   validations: {},
   error: null,
+  invalidDataTypes: false,
 };
 
 const ValidationReducer: Reducer<IValidationState> = (
@@ -25,12 +27,19 @@ const ValidationReducer: Reducer<IValidationState> = (
   }
   switch (action.type) {
     case ActionTypes.UPDATE_COMPONENT_VALIDATIONS: {
-      const { validations, componentId } = action as IUpdateComponentValidations;
+      const {
+        validations,
+        componentId,
+        invalidDataTypes,
+      } = action as IUpdateComponentValidations;
       return update<IValidationState>(state, {
         validations: {
           [componentId]: {
             $set: validations,
           },
+        },
+        invalidDataTypes: {
+          $set: !!invalidDataTypes,
         },
       });
     }

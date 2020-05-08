@@ -15,7 +15,7 @@ export function* runSingleFieldValidationSaga({
 }: IRunSingleFieldValidationAction): SagaIterator {
   const state: IRuntimeStore = yield select();
   try {
-    const requestBody = convertDataBindingToModel(state.formData.formData, state.formDataModel.dataModel);
+    const requestBody = convertDataBindingToModel(state.formData.formData);
     const config: AxiosRequestConfig = {
       headers: {
         ValidationTriggerField: dataModelBinding,

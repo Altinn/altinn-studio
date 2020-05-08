@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length */
 
+// eslint-disable-next-line import/prefer-default-export
 export const nb = () => (
   {
     access_control: {
@@ -319,6 +320,8 @@ export const nb = () => (
       maxLength: 'Bruk {0} eller færre tegn',
       length: 'Antall tillatte tegn er {0}',
       pattern: 'Feil format eller verdi',
+      required: 'Feltet er påkrevd',
+      enum: 'Kun verdiene {0} er tillatt',
     },
   }
 );
