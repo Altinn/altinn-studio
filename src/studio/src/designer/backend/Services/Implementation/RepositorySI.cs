@@ -217,12 +217,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
                 string attachmentId = attachmentMetadata.GetValue("id").Value;
                 DataType applicationForm = new DataType();
-                if (applicationForm.AllowedContentTypes == null)
-                {
-                    applicationForm.AllowedContentTypes = new List<string>();
-                }
+                applicationForm.AllowedContentTypes = new List<string>();
 
-                if (!attachmentMetadata.GetValue("fileType") == null)
+                if (!(attachmentMetadata.GetValue("fileType") == null))
                 {
                     string fileTypes = attachmentMetadata.GetValue("fileType").Value;
                     string[] fileType = fileTypes.Split(",");
