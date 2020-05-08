@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web;
 
 using Altinn.Platform.Authentication.Configuration;
+using Altinn.Platform.Authentication.Enum;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Repositories;
 using Altinn.Platform.Authentication.Services.Interfaces;
@@ -313,10 +314,15 @@ namespace Altinn.Platform.Authentication.Controllers
                 string authLevel = token.Claims.Where(c => c.Type.Equals(AuthLevelClaimName)).Select(c => c.Value).FirstOrDefault();
                 string authMethod = token.Claims.Where(c => c.Type.Equals(AuthMethodClaimName)).Select(c => c.Value).FirstOrDefault();
 
-                if (string.IsNullOrWhiteSpace(pid) || string.IsNullOrWhiteSpace(authLevel) || string.IsNullOrWhiteSpace(authMethod))
+                if (string.IsNullOrWhiteSpace(pid) || string.IsNullOrWhiteSpace(authLevel))
                 {
                     _logger.LogInformation("Token containted invalid or missing claims.");
                     return Unauthorized();
+                }
+
+                if (string.IsNullOrEmpty(authMethod))
+                {
+                    authMethod = AuthenticationMethod.NotDefined.ToString();
                 }
 
                 UserProfile userProfile = await _userProfileService.GetUser(pid);
