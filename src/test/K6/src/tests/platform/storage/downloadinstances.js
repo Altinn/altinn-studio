@@ -4,7 +4,8 @@
     3. Send maskinporten token as environment variable after generating the token
 
     This test script can only be run with virtual users and iterations count and not based on duration.
-    example: k6 run -i 20 -u 10 /src/tests/platform/storage/downloadinstances.js -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=***
+    example: k6 run -i 20 -u 10 /src/tests/platform/storage/downloadinstances.js -e env=test -e org=ttd 
+    -e level2app=rf-0002 -e subskey=*** -e maskinporten=token
 */
 
 import { check } from "k6";
