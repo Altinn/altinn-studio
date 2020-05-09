@@ -1,7 +1,7 @@
 /* Pre-reqisite for test: 
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
-    3. Start local server to get maskinporten token. Refer readme file in github of MaskinPorteTokenGenerator
+    3. Send maskinporten token as environment variable after generating the token
 */
 
 import { check } from "k6";
@@ -11,9 +11,10 @@ import * as storageData from "../../../api/storage/data.js"
 import {convertMaskinPortenToken} from "../../../api/platform/authentication.js"
 import * as setUpData from "../../../setup.js";
 
-let appOwner = __ENV.org;
-let level2App = __ENV.level2app;
-let maxIter = __ENV.maxiter;
+const appOwner = __ENV.org;
+const level2App = __ENV.level2app;
+const maxIter = __ENV.maxiter;
+const maskinPortenToken = __ENV.maskinporten;
 
 export const options = {
     thresholds:{
@@ -23,7 +24,6 @@ export const options = {
 
 //Function to authenticate a app owner, get all archived instances of an app and return data for the test
 export function setup(){
-    var maskinPortenToken = setUpData.generateMaskinPortenToken();
     var altinnStudioRuntimeToken = convertMaskinPortenToken(maskinPortenToken, "true");
     var data = {};
     data.runtimeToken = altinnStudioRuntimeToken;
