@@ -24,13 +24,15 @@ export const options = {
 
 //Tests for App API: RF-0002
 export default function() {
-    var userNumber = (__VU - 1) % usersCount;    
+    var userNumber = (__VU - 1) % usersCount;  
+
     try {
         var userSSN = users[userNumber].username;
         var userPwd = users[userNumber].password;    
     } catch (error) {
         printResponseToConsole("Testdata missing", false, null)
     };
+    
     var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();

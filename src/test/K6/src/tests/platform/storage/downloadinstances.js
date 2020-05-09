@@ -2,6 +2,9 @@
     1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
     2. Installed appOwner certificate
     3. Send maskinporten token as environment variable after generating the token
+
+    This test script can only be run with virtual users and iterations count and not based on duration.
+    example: k6 run -i 20 -u 10 /src/tests/platform/storage/downloadinstances.js -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=***
 */
 
 import { check } from "k6";
@@ -13,7 +16,6 @@ import * as setUpData from "../../../setup.js";
 
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
-const maxIter = __ENV.maxiter;
 const maskinPortenToken = __ENV.maskinporten;
 
 export const options = {
@@ -28,6 +30,7 @@ export function setup(){
     var data = {};
     data.runtimeToken = altinnStudioRuntimeToken;
     var archivedAppInstances = storageInstances.findAllArchivedInstances(altinnStudioRuntimeToken, appOwner, level2App);
+    archivedAppInstances = setUpData.shuffle(archivedAppInstances);
     data.instances = archivedAppInstances;
     setUpData.clearCookies();
     return data;
@@ -36,14 +39,21 @@ export function setup(){
 export default function(data){
     const runtimeToken = data["runtimeToken"];
     const instances = data.instances;
+    var totalIterations = (options.iterations) ? options.iterations : 1;
+    var maxVus = (options.vus) ? options.vus : 1;
+    var maxIter = totalIterations / maxVus; //maximum iteration per vu
     var uniqueNum = ((__VU * maxIter) - (maxIter) + (__ITER));
     uniqueNum = uniqueNum % instances.length;
 
     //Get instance ids and separate party id and instance id    
-    var instanceId = instances[uniqueNum];
-    instanceId = instanceId.split('/');
-    var partyId = instanceId[0];
-    instanceId = instanceId[1];
+    try {
+        var instanceId = instances[uniqueNum];
+        instanceId = instanceId.split('/');
+        var partyId = instanceId[0];
+        instanceId = instanceId[1];    
+    } catch (error) {
+        printResponseToConsole("Testdata missing", false, null);
+    }    
 
     //Get instance by id
     var res = storageInstances.getInstanceById(runtimeToken, partyId, instanceId);
@@ -54,6 +64,7 @@ export default function(data){
     printResponseToConsole("Instance details are retrieved:", success, res);
 
     var dataElements = JSON.parse(res.body).data;
+
     //Loop through the dataelements under an instance and download instance
     for(var i = 0; i < dataElements.length; i++){
         res = storageData.getData(runtimeToken, partyId, instanceId, dataElements[i].id);

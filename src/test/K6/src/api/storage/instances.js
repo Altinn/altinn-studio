@@ -1,6 +1,7 @@
 import http from "k6/http";
 import * as config from "../../config.js";
 import * as header from "../../buildrequestheaders.js"
+import {printResponseToConsole} from "../../errorcounter.js";
 
 //Api call to Storage:Instances to create an app instance and returns response
 export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, level2App, instanceJson){
@@ -53,11 +54,14 @@ export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, ap
     var allInstances = getInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, "true");
     var params = header.buildHeaderWithRuntimeAsCookie(altinnStudioRuntimeCookie, "platform");
     allInstances = JSON.parse(allInstances.body);
-    let archivedInstances = findArchivedNotDeltedInstances(allInstances.instances);
+    let archivedInstances = buildArrayWithInstanceIds(allInstances.instances);
     while(allInstances.next !== null){
         allInstances = http.get(allInstances.next, params);
+        if(allInstances.status != 200){
+            printResponseToConsole("Get all instances failed:", false, allInstances);
+        };
         allInstances = JSON.parse(allInstances.body);
-        var moreInstances = findArchivedNotDeltedInstances(allInstances.instances);
+        var moreInstances = buildArrayWithInstanceIds(allInstances.instances);
         archivedInstances = archivedInstances.concat(moreInstances);
     };
     return archivedInstances;
@@ -66,12 +70,21 @@ export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, ap
 //Function to build an array with instances that are not deleted from an json response
 function findArchivedNotDeltedInstances(instancesArray){
     var archivedInstances = [];
-    for(var i = 0; i < instancesArray.length ;  i++){
+    for(var i = 0; i < instancesArray.length; i++){
         if(!("softDeleted" in instancesArray[i].status)){
             archivedInstances.push(instancesArray[i].id);
         }
     };
     return archivedInstances;
+};
+
+//Function to build an array with instance id from instances json response
+function buildArrayWithInstanceIds(instancesArray){
+    var instanceIds = [];
+    for(var i = 0; i < instancesArray.length; i++){       
+        instanceIds.push(instancesArray[i].id);        
+    };
+    return instanceIds;
 };
 
 //API call to platform:storage to completeconfirmation on the instance by an appOwner
