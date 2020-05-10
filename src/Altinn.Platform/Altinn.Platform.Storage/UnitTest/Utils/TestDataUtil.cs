@@ -1,3 +1,5 @@
+using Altinn.Platform.Storage.Interface.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -63,9 +65,28 @@ namespace App.IntegrationTests.Utils
             {
                 File.Delete(instancePath);
             }
+
+            DeleteInstanceEVents(instanceGuid);
         }
 
-        
+        public static void DeleteInstanceEVents(Guid instanceGuid)
+        {
+            string eventsPath = GetInstanceEventsPath();
+            if (Directory.Exists(eventsPath))
+            {
+                string[] instanceEventPath = Directory.GetFiles(eventsPath);
+                foreach (string path in instanceEventPath)
+                {
+                    string content = System.IO.File.ReadAllText(path);
+                    InstanceEvent instance = (InstanceEvent)JsonConvert.DeserializeObject(content, typeof(InstanceEvent));
+                    if (instance.InstanceId.Contains(instanceGuid.ToString()))
+                    {
+                        File.Delete(path);
+                    }
+                }
+            }
+
+        }
 
         public static void DeleteDataForInstance(int instanceOwnerId, Guid instanceGuid)
         {
@@ -130,6 +151,12 @@ namespace App.IntegrationTests.Utils
                     DirectoryCopy(subdir.FullName, temppath, copySubDirs);
                 }
             }
+        }
+
+        private static string GetInstanceEventsPath()
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollection\instanceEvents\");
         }
     }
 }

@@ -69,19 +69,19 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         private string GetInstanceEventsPath(string instanceGuid, string instanceOwnerPartyId)
         {
-            string path = Path.Combine(GetInstancesPath(), instanceOwnerPartyId + @"\" + instanceGuid + @"\events\");
-            return path;
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceRepositoryMock).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollection\instanceEvents\");
         }
 
         private string GetInstancePath(int instanceOwnerId, Guid instanceId)
         {
-            return Path.Combine(GetInstancesPath(), instanceOwnerId + @"\" + instanceId.ToString() + ".json");
+            return Path.Combine(GetInstancesPath(), instanceId.ToString() + ".json");
         }
 
         private string GetInstancesPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceRepositoryMock).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\data\instances");
+            return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollection\instances");
         }
 
     }
