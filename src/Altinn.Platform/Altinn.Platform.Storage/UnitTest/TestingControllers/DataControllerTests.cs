@@ -110,6 +110,34 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
+
+        /// <summary>
+        /// Scenario:
+        ///   Add data element to created instances.
+        /// Expected:
+        ///   Request is authorized
+        /// Success:
+        /// Created 
+        /// </summary>
+        [Fact]
+        public async void Put_UpdateData_Ok()
+        {
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
+            TestDataUtil.PrepareInstance(1337, new Guid("649388f0-a2c0-4774-bd11-c870223ed819"), "tdd", "endring-av-navn");
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/bc19107c-508f-48d9-bcd7-54ffec905306/data/649388f0-a2c0-4774-bd11-c870223ed819";
+            HttpContent content = new StringContent("This is a blob file with updated data");
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
+            HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}?dataType=default", content);
+
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
+        }
+
+
+
+
         /// <summary>
         /// Scenario:
         ///   Request to add confirm download on all data elements on an instance, but user isn't authorized.

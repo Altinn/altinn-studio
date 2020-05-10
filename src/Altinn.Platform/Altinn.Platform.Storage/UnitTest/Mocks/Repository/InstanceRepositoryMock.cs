@@ -39,7 +39,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 Data = new List<DataElement>(),
             };
 
-            string instancePath = GetInstancePath(int.Parse(partyId), instanceGuid);
+            string instancePath = GetInstancePath(instanceGuid);
             File.WriteAllText(instancePath, instance.ToString());
 
             return Task.FromResult(instance);
@@ -54,7 +54,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         {
             List<Instance> instances = new List<Instance>();
 
-            string instancesForPartyPath = GetInstancesPath()+ "/" + instanceOwnerPartyId;
+            string instancesForPartyPath = GetInstancesPath();
 
             if (Directory.Exists(instancesForPartyPath))
             {
@@ -67,7 +67,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                         Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
                         await PostProcess(instance);
 
-                        instances.Add(instance);
+                        if (instance.InstanceOwner.PartyId == instanceOwnerPartyId.ToString())
+                        {
+                            instances.Add(instance);
+                        }
                     }
                 }
             }
@@ -122,7 +125,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
-            string instancePath = GetInstancePath(instanceOwnerPartyId, new Guid(instanceId.Split("/")[1]));
+            string instancePath = GetInstancePath(new Guid(instanceId.Split("/")[1]));
             if (File.Exists(instancePath))
             {
                 try
@@ -151,7 +154,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             }
 
             Guid instanceGuid = Guid.Parse(instance.Id);
-            string instancePath = GetInstancePath(int.Parse(instance.InstanceOwner.PartyId), instanceGuid);
+            string instancePath = GetInstancePath(instanceGuid);
 
             if (File.Exists(instancePath))
             {
@@ -162,15 +165,15 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return null;
         }
 
-        private string GetInstancePath(int instanceOwnerId, Guid instanceId)
+        private string GetInstancePath(Guid instanceId)
         {
-            return Path.Combine(GetInstancesPath(), instanceOwnerId + @"\" + instanceId.ToString() + ".json");
+            return Path.Combine(GetInstancesPath(), instanceId.ToString() + ".json");
         }
 
         private string GetInstancesPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceRepositoryMock).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\data\instances");
+            return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\instances");
         }
 
 
