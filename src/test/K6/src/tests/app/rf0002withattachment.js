@@ -45,12 +45,12 @@ export default function(data) {
     var totalIterations = (options.iterations) ? options.iterations : 1;
     var userNumber = (__VU - 1) % usersCount;
     var maxVus = (options.vus) ? options.vus : 1;
-    var maxIter = totalIterations / maxVus; //maximum iteration per vu
+    var maxIter = Math.floor(totalIterations / maxVus); //maximum iteration per vu
     data = (data[0]) ? data : ['s'];
 
     //Find a unique number for the type of attachment to upload
     var uniqueNum = ((__VU * maxIter) - (maxIter) + (__ITER));
-    uniqueNum = (uniqueNum > data.length) ? (uniqueNum % data.length) : uniqueNum;
+    uniqueNum = (uniqueNum > data.length) ? Math.floor((uniqueNum % data.length)) : uniqueNum;
 
     //Find a username and password from the users file
     try {

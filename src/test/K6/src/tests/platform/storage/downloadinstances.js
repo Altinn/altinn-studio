@@ -42,10 +42,10 @@ export default function(data){
     const instances = data.instances;
     var totalIterations = (options.iterations) ? options.iterations : 1;
     var maxVus = (options.vus) ? options.vus : 1;
-    var maxIter = totalIterations / maxVus; //maximum iteration per vu
+    var maxIter = Math.floor(totalIterations / maxVus); //maximum iteration per vu
     var uniqueNum = ((__VU * maxIter) - (maxIter) + (__ITER));
-    uniqueNum = uniqueNum % instances.length;
-
+    uniqueNum = (uniqueNum > instances.length) ? (Math.floor(uniqueNum % instances.length)) : uniqueNum;
+    
     //Get instance ids and separate party id and instance id    
     try {
         var instanceId = instances[uniqueNum];
