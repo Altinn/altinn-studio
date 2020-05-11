@@ -13,9 +13,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
     {
         public Task<DataElement> Create(DataElement dataElement)
         {
+            Directory.CreateDirectory(GetDataElementsPath());
 
             string jsonData = JsonConvert.SerializeObject(dataElement);
-            using StreamWriter sw = new StreamWriter(GetDataBlobPath() + dataElement.BlobStoragePath + @".json");
+            using StreamWriter sw = new StreamWriter(GetDataElementsPath() + dataElement.Id + @".json");
 
             sw.Write(jsonData.ToString());
             sw.Close();
@@ -76,10 +77,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         }
 
 
-        private string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        private string GetDataElementsPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DataRepositoryMock).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
+            return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\dataelements\");
         }
 
         private string GetDataBlobPath()
