@@ -69,12 +69,6 @@ namespace Altinn.Platform.Storage.Authorization
         /// <returns>A Task</returns>
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AppAccessRequirement requirement)
         {
-            if (_pepSettings.DisablePEP)
-            {
-                context.Succeed(requirement);
-                return;
-            }
-
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
 
             _logger.LogInformation($"// Altinn PEP // AppAccessHandler // Request sent: {JsonConvert.SerializeObject(request)}");

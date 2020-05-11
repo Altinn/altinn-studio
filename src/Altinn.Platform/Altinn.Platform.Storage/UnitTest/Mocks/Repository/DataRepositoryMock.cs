@@ -36,7 +36,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<DataElement> Read(Guid instanceGuid, Guid dataElementId)
         {
-            throw new NotImplementedException();
+            string elementPath = Path.Combine(GetDataElementsPath(), dataElementId.ToString() + ".json");
+            string content = System.IO.File.ReadAllText(elementPath);
+            DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+            return Task.FromResult(dataElement);
         }
 
         public Task<List<DataElement>> ReadAll(Guid instanceGuid)
@@ -51,7 +54,15 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<DataElement> Update(DataElement dataElement)
         {
-            throw new NotImplementedException();
+            Directory.CreateDirectory(GetDataElementsPath());
+
+            string jsonData = JsonConvert.SerializeObject(dataElement);
+            using StreamWriter sw = new StreamWriter(GetDataElementsPath() + dataElement.Id + @".json");
+
+            sw.Write(jsonData.ToString());
+            sw.Close();
+
+            return Task.FromResult(dataElement);
         }
 
         public async Task<long> WriteDataToStorage(string org, Stream stream, string blobStoragePath)

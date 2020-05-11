@@ -30,7 +30,37 @@ namespace App.IntegrationTests.Utils
                     DirectoryCopy(blobPath + "pretest", blobPath, true);
                 }
             }
+
+            PrepereDataElements(instanceGuid);
         }
+
+        private static void PrepereDataElements(Guid instanceGuid)
+        {
+            Instance instance = GetInstance(instanceGuid);
+
+           string dataBlob = GetBlobPathForApp(instance.Org, instance.AppId.Split("/")[1], instanceGuid.ToString());
+
+            // Copy blobs
+            DirectoryCopy(dataBlob.Replace(instanceGuid.ToString(), "pretest" + instanceGuid), dataBlob, true);
+
+           string dataElementsPath = GetDataElementsPath();
+
+            string[] dataElementPaths = Directory.GetFiles(dataElementsPath);
+            foreach (string elementPath in dataElementPaths)
+            {
+                if (elementPath.Contains("pretest"))
+                {
+                    string content = System.IO.File.ReadAllText(elementPath);
+                    DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                    if (dataElement.InstanceGuid.Contains(instanceGuid.ToString()))
+                    {
+                        File.Copy(elementPath, elementPath.Replace(".pretest.json", ".json"));
+                    }
+                }
+            }
+
+        }
+
 
         public static void DeleteInstance(int instanceOwnerId, Guid instanceGuid)
         {
@@ -96,13 +126,23 @@ namespace App.IntegrationTests.Utils
                     string[] dataElementsPaths = Directory.GetFiles(eventsPath);
                     foreach (string elementPath in dataElementsPaths)
                     {
-                        string content = System.IO.File.ReadAllText(elementPath);
-                        DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
-                        if (dataElement.InstanceGuid.Contains(instanceGuid.ToString()))
+                        if (!elementPath.Contains("pretest"))
                         {
-                            string blobPath = GetBlobPathForApp(instance.Org, instance.AppId.Split("/")[1], instanceGuid.ToString()) + dataElement.Id;
-                            File.Delete(blobPath);
-                            File.Delete(elementPath);
+                            string content = System.IO.File.ReadAllText(elementPath);
+                            DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                            if (dataElement.InstanceGuid.Contains(instanceGuid.ToString()))
+                            {
+                                string blobPath = GetBlobPathForApp(instance.Org, instance.AppId.Split("/")[1], instanceGuid.ToString()) + dataElement.Id;
+                                if (File.Exists(blobPath))
+                                {
+                                    File.Delete(blobPath);
+                                }
+
+                                if (File.Exists(elementPath))
+                                {
+                                    File.Delete(elementPath);
+                                }
+                            }
                         }
                     }
                 }
@@ -134,22 +174,21 @@ namespace App.IntegrationTests.Utils
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\dataelements", instanceOwnerId + @"\", instanceGuid.ToString());
         }
 
-        private static string GetBlobPathForApp(string org, string app, string instanceId)
+        private static string GetBlobPathForApp(string org, string app, string instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\data\blob\", org + @"\", app + @"\", instanceId + @"\data\");
+            return Path.Combine(unitTestFolder, @"..\..\..\data\blob\", org + @"\", app + @"\", instanceGuid + @"\data\");
         }
 
         private static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
         {
+    
             // Get the subdirectories for the specified directory.
             DirectoryInfo dir = new DirectoryInfo(sourceDirName);
 
             if (!dir.Exists)
             {
-                throw new DirectoryNotFoundException(
-                    "Source directory does not exist or could not be found: "
-                    + sourceDirName);
+                return;
             }
 
             DirectoryInfo[] dirs = dir.GetDirectories();
