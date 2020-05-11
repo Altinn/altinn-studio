@@ -366,12 +366,12 @@ namespace Altinn.App.Api.Controllers
                     if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
                     {
                         lookupNumber = "personNumber";
-                        party = await _registerService.LookupParty(instanceOwner.PersonNumber);
+                        party = await _registerService.LookupParty(new PartyLookup { Ssn = instanceOwner.PersonNumber });
                     }
                     else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
                     {
                         lookupNumber = "organisationNumber";
-                        party = await _registerService.LookupParty(instanceOwner.OrganisationNumber);
+                        party = await _registerService.LookupParty(new PartyLookup { OrgNo = instanceOwner.OrganisationNumber });
                     }
                     else
                     {
@@ -415,7 +415,7 @@ namespace Altinn.App.Api.Controllers
                     {
                         throw new ServiceException(HttpStatusCode.InternalServerError, $"App.GetAppModelType failed: {altinnAppException.Message}", altinnAppException);
                     }
-                    
+
                     ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
                     object data = await deserializer.DeserializeAsync(part.Stream, part.ContentType);
 

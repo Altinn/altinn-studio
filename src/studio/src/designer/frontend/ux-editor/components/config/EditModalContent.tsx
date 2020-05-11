@@ -266,6 +266,9 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   public handleHasCustomFileEndingsChange = (event: any) => {
     const component = (this.props.component as IFormFileUploaderComponent);
     component.hasCustomFileEndings = (event.target.value === 'true');
+    if (!component.hasCustomFileEndings) {
+      component.validFileEndings = undefined;
+    }
     this.setState({
       component,
     });
