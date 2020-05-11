@@ -3,11 +3,12 @@ import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
 import { getCurrentTaskDataTypeId, get, put } from 'altinn-shared/utils';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
-import { IRuntimeStore, IValidationResult } from '../../../../types/global';
+import { IValidationResult } from '../../../../types/global';
 import { convertDataBindingToModel } from '../../../../utils/databindings';
 import { dataElementUrl, getValidationUrl } from '../../../../utils/urlHelper';
 import {
   canFormBeSaved,
+  createValidator,
   mapDataElementValidationToRedux,
   validateEmptyFields,
   validateFormComponents,
@@ -16,18 +17,23 @@ import {
 import { ILayoutState } from '../../layout/formLayoutReducer';
 import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
-import {
-  ISubmitDataAction,
-} from './submitFormDataActions';
+import { ISubmitDataAction } from './submitFormDataActions';
 import * as FormDataActionTypes from '../formDataActionTypes';
+import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 
-const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
+const LayoutSelector: (state: IRuntimeState) => ILayoutState = (state: IRuntimeState) => state.formLayout;
 
 function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
+    const currentDataTaskDataTypeId = getDataTaskDataTypeId(
+      state.instanceData.instance.process.currentTask.elementId,
+      state.applicationMetadata.applicationMetadata.dataTypes,
+    );
+    const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
+    const validator = createValidator(schema);
     const model = convertDataBindingToModel(state.formData.formData);
-    const validationResult = validateFormData(model, state.formLayout.layout);
+    const validationResult = validateFormData(model, state.formLayout.layout, validator);
     let validations = validationResult.validations;
     const componentSpecificValidations =
       validateFormComponents(state.attachments.attachments, state.formLayout.layout, state.formData.formData,
@@ -87,7 +93,7 @@ function* saveFormDataSaga(): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     const model = convertDataBindingToModel(state.formData.formData);
-    let validations = state.formValidations.validations;
+    let validations = { ...state.formValidations.validations };
     const componentSpecificValidations =
       validateFormComponents(state.attachments.attachments, state.formLayout.layout, state.formData.formData,
         state.language.language, state.formLayout.uiConfig.hiddenFields);

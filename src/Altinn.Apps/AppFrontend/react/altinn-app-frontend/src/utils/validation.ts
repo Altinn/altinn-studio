@@ -4,18 +4,27 @@ import Ajv from 'ajv';
 import jsonPtr from 'json-ptr';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout';
 import { IValidationIssue, Severity } from '../types';
-import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult } from '../types/global';
+import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator } from '../types/global';
 // eslint-disable-next-line import/no-cycle
 import { DatePickerMinDateDefault, DatePickerMaxDateDefault, DatePickerFormatDefault } from '../components/base/DatepickerComponent';
 import { getFormDataForComponent } from './formComponentUtils';
 import { getTextResourceByKey } from './textResource';
-import { jsonSchema } from './validationHelper';
 
-const ajv = new Ajv({ allErrors: true, coerceTypes: true });
-ajv.addFormat('year', /^[0-9]{4}$/);
-ajv.addSchema(jsonSchema, 'schema');
-const rootPtr = jsonPtr.create(jsonSchema.properties.melding.$ref);
-const rootElement = rootPtr.get(jsonSchema);
+export function createValidator(schema: any): ISchemaValidator {
+  const ajv = new Ajv({ allErrors: true, coerceTypes: true });
+  ajv.addFormat('year', /^[0-9]{4}$/);
+  ajv.addSchema(schema, 'schema');
+  const rootPtr = jsonPtr.create(schema.properties.melding.$ref);
+  const rootElement = rootPtr.get(schema);
+  const rootElementPath = schema.properties.melding.$ref;
+  const schemaValidator: ISchemaValidator = {
+    validator: ajv,
+    schema,
+    rootElement,
+    rootElementPath,
+  };
+  return schemaValidator;
+}
 
 export const errorMessageKeys = {
   minimum: {
@@ -189,14 +198,20 @@ export function validateComponentFormData(
   dataModelField: string,
   component: ILayoutComponent,
   language: any,
+  schemaValidator: ISchemaValidator,
   existingValidationErrors?: IComponentValidations,
 ): IValidationResult {
+  const {
+    validator,
+    rootElement,
+    schema,
+  } = schemaValidator;
   const fieldKey = Object.keys(component.dataModelBindings).find(
     (binding: string) => component.dataModelBindings[binding] === dataModelField,
   );
   const dataModelPaths = dataModelField.split('.');
-  const fieldSchema = getSchemaPart(dataModelPaths || [dataModelField], rootElement);
-  const valid = (!formData || formData === '') || ajv.validate(fieldSchema, formData);
+  const fieldSchema = getSchemaPart(dataModelPaths || [dataModelField], rootElement, schema);
+  const valid = (!formData || formData === '') || validator.validate(fieldSchema, formData);
 
   const validationResult: IValidationResult = {
     validations: {
@@ -211,7 +226,10 @@ export function validateComponentFormData(
   };
 
   if (!valid) {
-    ajv.errors.forEach((error) => {
+    validator.errors.forEach((error) => {
+      if (error.keyword === 'type' || error.keyword === 'format') {
+        validationResult.invalidDataTypes = true;
+      }
       let errorParams = error.params[errorMessageKeys[error.keyword].paramKey];
       if (Array.isArray(errorParams)) {
         errorParams = errorParams.join(', ');
@@ -241,18 +259,18 @@ export function validateComponentFormData(
   return null;
 }
 
-export function getSchemaPart(dataModelPath: string[], schema: any) {
+export function getSchemaPart(dataModelPath: string[], subSchema: any, mainSchema: any) {
   const dataModelRoot = dataModelPath[0];
-  if (schema.properties && schema.properties[dataModelRoot] && dataModelPath && dataModelPath.length !== 0) {
-    const localRootElement = schema.properties[dataModelRoot];
+  if (subSchema.properties && subSchema.properties[dataModelRoot] && dataModelPath && dataModelPath.length !== 0) {
+    const localRootElement = subSchema.properties[dataModelRoot];
     if (localRootElement.$ref) {
       const childSchemaPtr = jsonPtr.create(localRootElement.$ref);
-      return getSchemaPart(dataModelPath.slice(1), childSchemaPtr.get(jsonSchema));
+      return getSchemaPart(dataModelPath.slice(1), childSchemaPtr.get(mainSchema), mainSchema);
     }
     return localRootElement;
   }
 
-  return schema;
+  return subSchema;
 }
 
 /*
@@ -261,9 +279,10 @@ export function getSchemaPart(dataModelPath: string[], schema: any) {
 export function validateFormData(
   formData: any,
   layout: ILayout,
+  schemaValidator: ISchemaValidator,
 ): IValidationResult {
-  const rootElementRef = jsonSchema.properties.melding.$ref;
-  const valid = ajv.validate(`schema${rootElementRef}`, formData);
+  const { validator, rootElementPath } = schemaValidator;
+  const valid = validator.validate(`schema${rootElementPath}`, formData);
 
   const result: IValidationResult = {
     validations: {},
@@ -271,8 +290,7 @@ export function validateFormData(
   };
 
   if (!valid) {
-    console.log(ajv.errors);
-    ajv.errors.forEach((error) => {
+    validator.errors.forEach((error) => {
       if (error.keyword === 'type' || error.keyword === 'format') {
         result.invalidDataTypes = true;
       }
