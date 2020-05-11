@@ -137,7 +137,7 @@ namespace App.IntegrationTests.Utils
         private static string GetBlobPathForApp(string org, string app, string instanceId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\data\blob\", org + @"\", app + @"\", instanceId);
+            return Path.Combine(unitTestFolder, @"..\..\..\data\blob\", org + @"\", app + @"\", instanceId + @"\data\");
         }
 
         private static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
