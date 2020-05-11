@@ -11,9 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="data\apps\tdd\endring-av-navn\logic\**" />
     <Compile Remove="data\Roles\user_1 - Copy\**" />
+    <Content Remove="data\apps\tdd\endring-av-navn\logic\**" />
     <Content Remove="data\Roles\user_1 - Copy\**" />
+    <EmbeddedResource Remove="data\apps\tdd\endring-av-navn\logic\**" />
     <EmbeddedResource Remove="data\Roles\user_1 - Copy\**" />
+    <None Remove="data\apps\tdd\endring-av-navn\logic\**" />
     <None Remove="data\Roles\user_1 - Copy\**" />
   </ItemGroup>
 
@@ -117,10 +121,6 @@
     <None Update="selfSignedTestCertificatePublic.cer">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="data\apps\tdd\endring-av-navn\logic\" />
   </ItemGroup>
 
 </Project>
