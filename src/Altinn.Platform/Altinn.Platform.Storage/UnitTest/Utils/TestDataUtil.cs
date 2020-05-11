@@ -44,11 +44,7 @@ namespace App.IntegrationTests.Utils
         public static void DeleteInstanceAndDataAndBlobs(int instanceOwnerId, string instanceguid, string org, string app)
         {
             DeleteInstanceAndData(instanceOwnerId, new Guid(instanceguid));
-            string path = GetBlobPathForApp(org, app, instanceguid);
-            if (Directory.Exists(path))
-            {
-                Directory.Delete(path, true);
-            }
+            
         }
 
         public static void DeleteInstanceAndData(int instanceOwnerId, string instanceguid)
@@ -58,15 +54,13 @@ namespace App.IntegrationTests.Utils
 
         public static void DeleteInstanceAndData(int instanceOwnerId, Guid instanceGuid)
         {
-           DeleteDataForInstance(instanceOwnerId, instanceGuid);
-
+            DeleteDataForInstance(instanceOwnerId, instanceGuid);
+            DeleteInstanceEVents(instanceGuid);
             string instancePath = GetInstancePath(instanceGuid);
             if (File.Exists(instancePath))
             {
                 File.Delete(instancePath);
             }
-
-            DeleteInstanceEVents(instanceGuid);
         }
 
         public static void DeleteInstanceEVents(Guid instanceGuid)
@@ -88,32 +82,44 @@ namespace App.IntegrationTests.Utils
 
         }
 
-        public static void DeleteDataElements(Guid instanceGuid)
+
+
+        public static void DeleteDataForInstance(int instanceOwnerId, Guid instanceGuid)
         {
-            string eventsPath = GetInstanceEventsPath();
-            if (Directory.Exists(eventsPath))
+            Instance instance = GetInstance(instanceGuid);
+
+            if (instance != null)
             {
-                string[] instanceEventPath = Directory.GetFiles(eventsPath);
-                foreach (string path in instanceEventPath)
+                string eventsPath = GetDataElementsPath();
+                if (Directory.Exists(eventsPath))
                 {
-                    string content = System.IO.File.ReadAllText(path);
-                    InstanceEvent instance = (InstanceEvent)JsonConvert.DeserializeObject(content, typeof(InstanceEvent));
-                    if (instance.InstanceId.Contains(instanceGuid.ToString()))
+                    string[] dataElementsPaths = Directory.GetFiles(eventsPath);
+                    foreach (string elementPath in dataElementsPaths)
                     {
-                        File.Delete(path);
+                        string content = System.IO.File.ReadAllText(elementPath);
+                        DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                        if (dataElement.InstanceGuid.Contains(instanceGuid.ToString()))
+                        {
+                            string blobPath = GetBlobPathForApp(instance.Org, instance.AppId.Split("/")[1], instanceGuid.ToString()) + dataElement.Id;
+                            File.Delete(blobPath);
+                            File.Delete(elementPath);
+                        }
                     }
                 }
             }
         }
 
-
-        public static void DeleteDataForInstance(int instanceOwnerId, Guid instanceGuid)
+        public static Instance GetInstance(Guid instanceGuid)
         {
-            string path = GetDataPath(instanceOwnerId, instanceGuid);
-            if (Directory.Exists(path))
+            string path = GetInstancePath(instanceGuid);
+            if(!File.Exists(path))
             {
-                Directory.Delete(path, true);
+                return null;
             }
+
+            string content = System.IO.File.ReadAllText(path);
+            Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+            return instance;
         }
 
         private static string GetInstancePath(Guid instanceGuid)
@@ -176,6 +182,12 @@ namespace App.IntegrationTests.Utils
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\instanceEvents\");
+        }
+
+        private static string GetDataElementsPath()
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\dataelements\");
         }
     }
 }
