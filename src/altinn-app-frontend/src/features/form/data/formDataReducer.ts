@@ -17,6 +17,7 @@ export interface IFormDataState {
   unsavedChanges: boolean;
   isSubmitting: boolean;
   isSaving: boolean;
+  hasSubmitted: boolean;
 }
 
 const initialState: IFormDataState = {
@@ -26,6 +27,7 @@ const initialState: IFormDataState = {
   unsavedChanges: false,
   isSubmitting: false,
   isSaving: false,
+  hasSubmitted: false,
 };
 
 Immutable.extend('$setField', (params: any, original: IFormData) => {
@@ -99,7 +101,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
         },
         isSaving: {
           $set: false,
-        }
+        },
       });
     }
 
@@ -118,6 +120,9 @@ const FormDataReducer: Reducer<IFormDataState> = (
       const { apiMode } = action as ISubmitDataAction;
       return Immutable<IFormDataState>(state, {
         isSubmitting: {
+          $set: (apiMode === 'Complete'),
+        },
+        hasSubmitted: {
           $set: (apiMode === 'Complete'),
         },
         isSaving: {

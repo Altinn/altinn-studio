@@ -1,5 +1,6 @@
-import classNames = require('classnames');
 import * as React from 'react';
+
+import classNames = require('classnames');
 
 export type MessageType = 'message' | 'info' | 'error' | 'success';
 
@@ -16,9 +17,7 @@ export function MessageComponent(props: IMessageComponentProps) {
   return (
     <div
       id={props.id}
-      tabIndex={0}
       key={props.id}
-      role={'alert'}
       className={classNames(
         'field-validation-error',
         'a-message',
