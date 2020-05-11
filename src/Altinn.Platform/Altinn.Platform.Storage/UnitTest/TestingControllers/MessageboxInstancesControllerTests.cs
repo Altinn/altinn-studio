@@ -142,7 +142,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseContent);
 
                 int actualCount = messageBoxInstances.Count;
-                int expectedCount = 5;
+                int expectedCount = 4;
                 Assert.Equal(expectedCount, actualCount);
             }
 
