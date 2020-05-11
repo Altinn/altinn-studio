@@ -147,7 +147,7 @@ namespace Altinn.Platform.Receipt
             {
                 var request = context.HttpContext.Request;
                 var response = context.HttpContext.Response;
-                string url = $"https://{request.Host.ToString()}{request.Path.ToString()}";
+                string url = $"https://platform.{Configuration["GeneralSettings:Hostname"]}{request.Path.ToString()}";
 
                 // you may also check requests path to do this only for specific methods
                 // && request.Path.Value.StartsWith("/specificPath")
