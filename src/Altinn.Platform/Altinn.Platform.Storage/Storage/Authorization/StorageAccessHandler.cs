@@ -1,7 +1,6 @@
 using System;
-using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Configuration;
@@ -151,34 +150,34 @@ namespace Altinn.Platform.Storage.Authorization
 
         private string GetCacheKeyForDecisionRequest(XacmlJsonRequestRoot request)
         {
-            string resourceKey = string.Empty;
+            StringBuilder resourceKey = new StringBuilder();
             foreach (XacmlJsonCategory category in request.Request.Resource)
             {
                 foreach (XacmlJsonAttribute atr in category.Attribute)
                 {
-                    resourceKey += atr.AttributeId + ":" + atr.Value + ";";
+                    resourceKey.Append(atr.AttributeId + ":" + atr.Value + ";");
                 }
             }
 
-            string subjectKey = string.Empty;
+            StringBuilder subjectKey = new StringBuilder();
             foreach (XacmlJsonCategory category in request.Request.AccessSubject)
             {
                 foreach (XacmlJsonAttribute atr in category.Attribute)
                 {
-                    subjectKey += atr.AttributeId + ":" + atr.Value + ";";
+                    subjectKey.Append(atr.AttributeId + ":" + atr.Value + ";");
                 }
             }
 
-            string actionKey = string.Empty;
+            StringBuilder actionKey = new StringBuilder();
             foreach (XacmlJsonCategory category in request.Request.Action)
             {
                 foreach (XacmlJsonAttribute atr in category.Attribute)
                 {
-                    actionKey += atr.AttributeId + ":" + atr.Value + ";";
+                    actionKey.Append(atr.AttributeId + ":" + atr.Value + ";");
                 }
             }
 
-            return subjectKey + actionKey + resourceKey;
+            return subjectKey.ToString() + actionKey.ToString() + resourceKey.ToString();
         }
     }
 }
