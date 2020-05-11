@@ -37,6 +37,8 @@ export function nb() {
       min_date_exeeded: 'Dato valgt er før tidligste dato tillat',
       max_date_exeeded: 'Dato valgt er etter seneste dato tillat',
       aria_label_icon: 'Åpne datovelger',
+      aria_label_left_arrow: 'Forrige måned.',
+      aria_label_right_arrow: 'Neste måned.',
     },
     feedback: {
       title: 'Du blir snart videresendt',
