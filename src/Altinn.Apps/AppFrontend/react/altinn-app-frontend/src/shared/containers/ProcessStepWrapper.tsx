@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components'
@@ -25,7 +26,8 @@ export default (props) => {
   } = props;
   const [userLanguage, setUserLanguage] = React.useState('nb');
 
-  const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
+  const instantiating = useSelector((state: IRuntimeState) => state.instantiation.instantiating);
+  const instanceId = useSelector((state: IRuntimeState) => state.instantiation.instanceId);
   const applicationMetadata: any = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const isLoading: boolean = useSelector((state: IRuntimeState) => state.isLoading.dataTask);
   const textResources: any[] = useSelector((state: IRuntimeState) => state.language.language);
@@ -33,7 +35,7 @@ export default (props) => {
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors = useSelector(hasErrorSelector);
 
-  (window as Window as IAltinnWindow).instanceId = partyId + '/' + instanceGuid;
+  (window as Window as IAltinnWindow).instanceId = `${partyId}/${instanceGuid}`;
 
   React.useEffect(() => {
     setUserLanguage(getUserLanguage());
@@ -43,7 +45,7 @@ export default (props) => {
     if (!processStep) {
       ProcessDispatcher.getProcessState();
     }
-    
+
     switch (processStep) {
       case (ProcessSteps.FormFilling): {
         QueueActions.startInitialDataTaskQueue();
@@ -58,16 +60,16 @@ export default (props) => {
       default:
         break;
     }
-  }, [processStep])
+  }, [processStep]);
 
   React.useEffect(() => {
-    if (!instantiation.instantiating && !instantiation.instanceId) {
+    if (!instantiating && !instanceId) {
       InstanceDataActions.getInstanceData(partyId, instanceGuid);
     }
-  }, [instantiation]);
+  }, [instantiating, instanceId]);
 
   if (hasApiErrors) {
-    return <UnknownError />
+    return <UnknownError />;
   }
 
   if (!processStep) {
@@ -86,24 +88,24 @@ export default (props) => {
       <div>
         {isLoading === false ? (
           <>
-          {processStep === ProcessSteps.FormFilling &&
-            <Form />
-          }
-          {processStep === ProcessSteps.Archived &&
-            <div id='ReceiptContainer'>
-              <ReceiptContainer/>
-            </div>
-          }
-          {processStep === ProcessSteps.Confirm &&
-            <div id='ConfirmContainer'>
-              <Confirm />
-            </div>
-          }
-          {processStep === ProcessSteps.Feedback &&
-            <div id="FeedbackContainer">
-              <Feedback />
-            </div>
-          }
+            {processStep === ProcessSteps.FormFilling &&
+              <Form />
+            }
+            {processStep === ProcessSteps.Archived &&
+              <div id='ReceiptContainer'>
+                <ReceiptContainer/>
+              </div>
+            }
+            {processStep === ProcessSteps.Confirm &&
+              <div id='ConfirmContainer'>
+                <Confirm />
+              </div>
+            }
+            {processStep === ProcessSteps.Feedback &&
+              <div id='FeedbackContainer'>
+                <Feedback />
+              </div>
+            }
           </>
         ) : (
           <div style={{ marginTop: '2.5rem' }}>
