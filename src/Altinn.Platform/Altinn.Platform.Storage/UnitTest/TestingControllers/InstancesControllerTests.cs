@@ -405,7 +405,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-                Assert.Equal(responseMessage, expected);
+                Assert.Contains(expected, responseMessage);
             }
 
             /// <summary>

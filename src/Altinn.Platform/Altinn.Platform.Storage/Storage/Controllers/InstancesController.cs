@@ -69,7 +69,6 @@ namespace Altinn.Platform.Storage.Controllers
             _logger = logger;
             _storageBaseAndHost = $"{settings.Value.Hostname}/storage/api/v1/";
             _authzHelper = new AuthorizationHelper(pdp, authzLogger);
-
         }
 
         /// <summary>

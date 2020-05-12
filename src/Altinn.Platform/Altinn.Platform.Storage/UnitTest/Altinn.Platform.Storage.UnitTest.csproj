@@ -100,6 +100,15 @@
     <None Update="data\apps\ttd\complete-test\config\authorization\policy.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="data\apps\ttd\dato-eksempel\config\authorization\policy.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="data\apps\ttd\endring-av-navn-v2\config\authorization\policy.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="data\apps\ttd\steffens-2020-v2\config\authorization\policy.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="data\binary_file.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
