@@ -360,7 +360,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             /// <summary>
             /// Test case: User requests to get multiple instances from a single instanceOwner they represent.
-            /// Expected: List of instances is returned.
+            /// Expected: List of instances is returned after unathorized instances are removed.
             /// </summary>
             [Fact]
             public async void GetMany_UserRequestsAnotherPartiesInstances_Ok()
@@ -382,6 +382,30 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
+            }
+
+            /// <summary>
+            /// Test case: Get Multiple instances without specifying instance owner partyId.
+            /// Expected: Returns status bad request.
+            /// </summary>
+            [Fact]
+            public async void GetMany_UserRequestsInstancesNoPartyIdDefined_ReturnsBadRequest()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}";
+
+                HttpClient client = GetTestClient();
+                string token = PrincipalUtil.GetToken(3);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                string expected = "InstanceOwnerPartyId must be defined.";
+
+                // Act
+                HttpResponseMessage response = await client.GetAsync(requestUri);
+                string responseMessage = await response.Content.ReadAsStringAsync();
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                Assert.Contains(expected, responseMessage);
             }
 
             /// <summary>

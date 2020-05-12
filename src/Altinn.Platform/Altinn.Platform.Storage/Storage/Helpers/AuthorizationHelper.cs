@@ -291,8 +291,8 @@ namespace Altinn.Platform.Storage.Helpers
         public bool ContainsRequieredScope(string requieredScope, ClaimsPrincipal user)
         {
             string contextScope = user.Identities?
-               .Where(i => i.AuthenticationType != null && i.AuthenticationType.Equals("AuthenticationTypes.Federation"))
-               .FirstOrDefault()?.Claims
+               .FirstOrDefault(i => i.AuthenticationType != null && i.AuthenticationType.Equals("AuthenticationTypes.Federation"))
+               ?.Claims
                .Where(c => c.Type.Equals("urn:altinn:scope"))?
                .Select(c => c.Value).FirstOrDefault();
 
