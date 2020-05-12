@@ -21,7 +21,6 @@ namespace UnitTests
         public ScopeAccessHandlerTest()
         {
             _pepSettings = Options.Create(new PepSettings());
-            _pepSettings.Value.DisablePEP = false;
             _sah = new ScopeAccessHandler(_pepSettings, new Mock<ILogger<ScopeAccessHandler>>().Object);
         }
 

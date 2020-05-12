@@ -44,20 +44,6 @@ namespace Altinn.Common.PEP.Implementation
         {
             XacmlJsonResponse xacmlJsonResponse = null;
 
-            if (_pepSettings.DisablePEP)
-            {
-                return new XacmlJsonResponse
-                {
-                    Response = new List<XacmlJsonResult>()
-                    {
-                        new XacmlJsonResult
-                        {
-                            Decision = XacmlContextDecision.Permit.ToString(),
-                        }
-                    },
-                };
-            }
-
             try
             {
                 xacmlJsonResponse = await _authorizationApiClient.AuthorizeRequest(xacmlJsonRequest);
@@ -73,11 +59,6 @@ namespace Altinn.Common.PEP.Implementation
         /// <inheritdoc/>
         public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
         {
-            if (_pepSettings.DisablePEP)
-            {
-                return true;
-            }
-
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
 
             if (response?.Response == null)

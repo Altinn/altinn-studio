@@ -31,12 +31,6 @@ namespace Altinn.Common.PEP.Authorization
         {
             _logger.LogInformation(($"// ScopeAccessHandler // HandleRequirementAsync // Verifying scope: {requirement.Scope}"));
 
-            if (_pepSettings.DisablePEP)
-            {
-                context.Succeed(requirement);
-                return;
-            }
-
             // get scope parameter from  user claims
             string contextScope = context?.User?.Identities?
                 .Where(i => i.AuthenticationType != null && i.AuthenticationType.Equals("AuthenticationTypes.Federation"))
