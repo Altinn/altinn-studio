@@ -1,6 +1,7 @@
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Utils;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -52,30 +53,37 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
         {
-            List<Instance> instances = new List<Instance>();
 
-            string instancesForPartyPath = GetInstancesPath();
+                List<Instance> instances = new List<Instance>();
 
-            if (Directory.Exists(instancesForPartyPath))
-            {
-                string[] instancesFiles = Directory.GetFiles(instancesForPartyPath);
-                foreach (string instancePath in instancesFiles)
+                string instancesForPartyPath = GetInstancesPath();
+
+                if (Directory.Exists(instancesForPartyPath))
                 {
-                    if (!instancePath.Contains("pretest"))
+                    string[] instancesFiles = Directory.GetFiles(instancesForPartyPath);
+                    foreach (string instancePath in instancesFiles)
                     {
-                        string content = System.IO.File.ReadAllText(instancePath);
-                        Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                        await PostProcess(instance);
-
-                        if (instance.InstanceOwner.PartyId == instanceOwnerPartyId.ToString())
+                        if (!instancePath.Contains("pretest"))
                         {
-                            instances.Add(instance);
+                            Instance instance = null;
+                            lock (TestDataUtil.dataLock)
+                            {
+                            string content = System.IO.File.ReadAllText(instancePath);
+                            instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                            }
+
+                            await PostProcess(instance);
+
+                            if (instance.InstanceOwner.PartyId == instanceOwnerPartyId.ToString())
+                            {
+                                instances.Add(instance);
+                            }
                         }
                     }
                 }
-            }
 
-            return Filter(instanceState, instances);
+                return Filter(instanceState, instances);
+           
         }
 
 

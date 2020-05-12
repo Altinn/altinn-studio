@@ -9,6 +9,8 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
 {
     public class TestDataUtil
     {
+        public static readonly object dataLock = new object();
+
         public static void PrepareInstance(int instanceOwnerId, string instanceGuid)
         {
             PrepareInstance(instanceOwnerId, new Guid(instanceGuid));
@@ -16,80 +18,97 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
 
         public static void PrepareInstance(int instanceOwnerId, Guid instanceGuid, string org = null, string app = null)
         {
-            string instancePath = GetInstancePath(instanceGuid);
-
-            string preInstancePath = instancePath.Replace(".json", ".pretest.json");
-
-            File.Copy(preInstancePath, instancePath);
-
-            if (org != null && app != null)
+            lock (dataLock)
             {
-                string blobPath = GetBlobPathForApp(org, app, instanceGuid.ToString());
-                if (Directory.Exists(blobPath + "pretest"))
-                {
-                    DirectoryCopy(blobPath + "pretest", blobPath, true);
-                }
-            }
 
-            PrepereDataElements(instanceGuid);
+                string instancePath = GetInstancePath(instanceGuid);
+
+                string preInstancePath = instancePath.Replace(".json", ".pretest.json");
+
+                File.Copy(preInstancePath, instancePath);
+
+                if (org != null && app != null)
+                {
+                    string blobPath = GetBlobPathForApp(org, app, instanceGuid.ToString());
+                    if (Directory.Exists(blobPath + "pretest"))
+                    {
+                        DirectoryCopy(blobPath + "pretest", blobPath, true);
+                    }
+                }
+
+                PrepereDataElements(instanceGuid);
+            }
         }
 
         private static void PrepereDataElements(Guid instanceGuid)
         {
-            Instance instance = GetInstance(instanceGuid);
+             Instance instance = GetInstance(instanceGuid);
 
-           string dataBlob = GetBlobPathForApp(instance.Org, instance.AppId.Split("/")[1], instanceGuid.ToString());
+                string dataBlob = GetBlobPathForApp(instance.Org, instance.AppId.Split("/")[1], instanceGuid.ToString());
 
-            // Copy blobs
-            DirectoryCopy(dataBlob.Replace(instanceGuid.ToString(), "pretest" + instanceGuid), dataBlob, true);
+                // Copy blobs
+                DirectoryCopy(dataBlob.Replace(instanceGuid.ToString(), "pretest" + instanceGuid), dataBlob, true);
 
-           string dataElementsPath = GetDataElementsPath();
+               string dataElementsPath = GetDataElementsPath();
 
-            string[] dataElementPaths = Directory.GetFiles(dataElementsPath);
-            foreach (string elementPath in dataElementPaths)
-            {
-                if (elementPath.Contains("pretest"))
+
+    
+                string[] dataElementPaths = Directory.GetFiles(dataElementsPath);
+                foreach (string elementPath in dataElementPaths)
                 {
-                    string content = System.IO.File.ReadAllText(elementPath);
-                    DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
-                    if (dataElement.InstanceGuid.Contains(instanceGuid.ToString()))
+                    if (elementPath.Contains("pretest"))
                     {
-                        File.Copy(elementPath, elementPath.Replace(".pretest.json", ".json"));
+                        string content = System.IO.File.ReadAllText(elementPath);
+                        DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                        if (dataElement.InstanceGuid.Contains(instanceGuid.ToString()))
+                        {
+                            File.Copy(elementPath, elementPath.Replace(".pretest.json", ".json"));
+                        }
                     }
                 }
-            }
-
+            
         }
 
 
         public static void DeleteInstance(int instanceOwnerId, Guid instanceGuid)
         {
-            string instancePath = GetInstancePath(instanceGuid);
-            if (File.Exists(instancePath))
+            lock (dataLock)
             {
-                File.Delete(instancePath);
+                string instancePath = GetInstancePath(instanceGuid);
+                if (File.Exists(instancePath))
+                {
+                    File.Delete(instancePath);
+                }
             }
         }
 
         public static void DeleteInstanceAndDataAndBlobs(int instanceOwnerId, string instanceguid, string org, string app)
         {
-            DeleteInstanceAndData(instanceOwnerId, new Guid(instanceguid));
-            
+            lock (dataLock)
+            {
+                DeleteInstanceAndData(instanceOwnerId, new Guid(instanceguid));
+            }
         }
 
         public static void DeleteInstanceAndData(int instanceOwnerId, string instanceguid)
         {
-            DeleteInstanceAndData(instanceOwnerId, new Guid(instanceguid));
+            lock (dataLock)
+            {
+                DeleteInstanceAndData(instanceOwnerId, new Guid(instanceguid));
+            }
         }
 
         public static void DeleteInstanceAndData(int instanceOwnerId, Guid instanceGuid)
         {
-            DeleteDataForInstance(instanceOwnerId, instanceGuid);
-            DeleteInstanceEVents(instanceGuid);
-            string instancePath = GetInstancePath(instanceGuid);
-            if (File.Exists(instancePath))
+            lock (dataLock)
             {
-                File.Delete(instancePath);
+                DeleteDataForInstance(instanceOwnerId, instanceGuid);
+                DeleteInstanceEVents(instanceGuid);
+                string instancePath = GetInstancePath(instanceGuid);
+                if (File.Exists(instancePath))
+                {
+                    File.Delete(instancePath);
+                }
             }
         }
 

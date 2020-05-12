@@ -4,6 +4,7 @@ using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Configuration;
+using Altinn.Common.PEP.Constants;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
@@ -45,7 +46,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
         public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
-            RequestTracker.AddRequest("GetDecisionForRequest", xacmlJsonRequest);
+            RequestTracker.AddRequest("GetDecisionForRequest" + GetInstanceID(xacmlJsonRequest), xacmlJsonRequest);
 
             return await Authorize(xacmlJsonRequest.Request);
         }
@@ -130,6 +131,23 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
             XacmlContextResponse xacmlContextResponse = pdp.Authorize(decisionRequest, policy);
 
             return xacmlContextResponse;
+        }
+
+        private string GetInstanceID(XacmlJsonRequestRoot xacmlJsonRequest)
+        {
+            string instanceId = string.Empty;
+            foreach (XacmlJsonCategory category in xacmlJsonRequest.Request.Resource)
+            {
+                foreach (var atr in category.Attribute)
+                {
+                    if (atr.AttributeId.Equals(AltinnXacmlUrns.InstanceId))
+                    {
+                        instanceId = atr.Value;
+                        break;
+                    }
+                }
+            }
+            return instanceId;
         }
 
         public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
