@@ -28,7 +28,6 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
         private const string urnAuthLv = "urn:altinn:authlevel";
         private const string urnUserId = "urn:altinn:userid";
 
-        int instanceOwnerId = 1000;
         private readonly AuthorizationHelper _authzHelper;
         private readonly IPDP _pdp;
         private readonly Mock<IInstanceRepository> _instanceRepository = new Mock<IInstanceRepository>();
@@ -36,11 +35,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
 
         public AuthorizeInstancesHelperTest()
         {
-            _pdp = new PepWithPDPAuthorizationMockSI(_instanceRepository.Object, Options.Create(new PepSettings
-            {
-                DisablePEP = false
-
-            }));
+            _pdp = new PepWithPDPAuthorizationMockSI(_instanceRepository.Object);
 
             _authzHelper = new AuthorizationHelper(_pdp, Mock.Of<ILogger<AuthorizationHelper>>());
         }
