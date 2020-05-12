@@ -107,10 +107,11 @@ namespace Altinn.Platform.Storage.Authorization
 
             if (!_memoryCache.TryGetValue(cacheKey, out XacmlJsonResponse response))
             {
-                // Key not in cache, so get data.
+                // Key not in cache, so get decisin from PDP.
                 response = await _pdp.GetDecisionForRequest(request);
 
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                // Set the cache options
+                MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
                .SetAbsoluteExpiration(new TimeSpan(0, 5, 0));
 
@@ -149,6 +150,11 @@ namespace Altinn.Platform.Storage.Authorization
             return instance;
         }
 
+        /// <summary>
+        /// This method creates a uniqe cache key based on all relevant attributes in a decision request
+        /// </summary>
+        /// <param name="request">The decision requonst</param>
+        /// <returns>The cache key</returns>
         private string GetCacheKeyForDecisionRequest(XacmlJsonRequestRoot request)
         {
             StringBuilder resourceKey = new StringBuilder();
