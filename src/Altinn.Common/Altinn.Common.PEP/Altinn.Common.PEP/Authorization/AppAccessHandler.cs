@@ -1,14 +1,12 @@
 using System;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Common.PEP.Configuration;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.Common.PEP.Authorization
@@ -23,7 +21,6 @@ namespace Altinn.Common.PEP.Authorization
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPDP _pdp;
-        private readonly PepSettings _pepSettings;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -36,12 +33,10 @@ namespace Altinn.Common.PEP.Authorization
         public AppAccessHandler(
             IHttpContextAccessor httpContextAccessor,
             IPDP pdp,
-            IOptions<PepSettings> pepSettings,
             ILogger<AppAccessHandler> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _pdp = pdp;
-            _pepSettings = pepSettings.Value;
             _logger = logger;
         }
 
@@ -54,12 +49,6 @@ namespace Altinn.Common.PEP.Authorization
         /// <returns>A Task</returns>
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AppAccessRequirement requirement)
         {
-            if (_pepSettings.DisablePEP)
-            {
-                context.Succeed(requirement);
-                return;
-            }
-
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
 
             _logger.LogInformation($"// Altinn PEP // AppAccessHandler // Request sent: {JsonConvert.SerializeObject(request)}");

@@ -1,0 +1,10 @@
+{
+  "id": "67f568ce-f114-48e7-ba12-dd422f73667a",
+  "instanceOwner": { "partyId": "1337" },
+  "appId": "tdd/endring-av-navn",
+  "org": "tdd",
+  "data": [],
+  "status": {
+    "softDeleted": "2020-04-29T13:53:06.117891Z"
+  }
+}

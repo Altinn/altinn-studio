@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Security.Claims;
 
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Common.PEP.Configuration;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
@@ -13,9 +11,7 @@ using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.HelperTests
@@ -28,19 +24,13 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
         private const string urnAuthLv = "urn:altinn:authlevel";
         private const string urnUserId = "urn:altinn:userid";
 
-        int instanceOwnerId = 1000;
         private readonly AuthorizationHelper _authzHelper;
         private readonly IPDP _pdp;
         private readonly Mock<IInstanceRepository> _instanceRepository = new Mock<IInstanceRepository>();
 
-
         public AuthorizeInstancesHelperTest()
         {
-            _pdp = new PepWithPDPAuthorizationMockSI(_instanceRepository.Object, Options.Create(new PepSettings
-            {
-                DisablePEP = false
-
-            }));
+            _pdp = new PepWithPDPAuthorizationMockSI(_instanceRepository.Object);
 
             _authzHelper = new AuthorizationHelper(_pdp, Mock.Of<ILogger<AuthorizationHelper>>());
         }
