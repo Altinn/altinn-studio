@@ -490,16 +490,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The deploy app token</returns>
         public async Task<string> GetDeployToken()
         {
-            string deployToken = _httpContextAccessor.HttpContext.Request.Cookies[_settings.DeployCookieName];
-            if (deployToken == null)
-            {
-                KeyValuePair<string, string> deployKeyValuePair = await _gitea.GetSessionAppKey("AltinnDeployToken") ?? default(KeyValuePair<string, string>);
-                if (!deployKeyValuePair.Equals(default(KeyValuePair<string, string>)))
-                {
-                    deployToken = deployKeyValuePair.Value;
-                }
+            string deployToken = string.Empty;
 
-                _httpContextAccessor.HttpContext.Response.Cookies.Append(_settings.DeployCookieName, deployToken);
+            KeyValuePair<string, string> deployKeyValuePair = await _gitea.GetSessionAppKey("AltinnDeployToken") ?? default(KeyValuePair<string, string>);
+            if (!deployKeyValuePair.Equals(default(KeyValuePair<string, string>)))
+            {
+                deployToken = deployKeyValuePair.Value;
             }
 
             return deployToken;
