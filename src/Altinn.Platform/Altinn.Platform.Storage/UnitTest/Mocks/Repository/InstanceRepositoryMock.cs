@@ -121,7 +121,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return filter.ToList();
         }
 
-        public async Task<InstanceQueryResponse> GetInstancesOfApplication(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
+        public async Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
             InstanceQueryResponse response = new InstanceQueryResponse();
             List<Instance> instances = new List<Instance>();
@@ -199,11 +199,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             response.Count = instances.Count();
             response.TotalHits = instances.Count();
             return response;
-        }
-
-        public Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerPartyId)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
