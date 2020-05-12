@@ -153,27 +153,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        ///  Checks that the GET returns a proper encoding.
-        /// </summary>
-        [Fact]
-        public async void GetInstancesAndCheckEncoding()
-        {
-            if (!blobSetup)
-            {
-                await EnsureValidStorage();
-            }
-
-            await _instanceClient.PostInstances(testAppId, testInstanceOwnerId);
-
-            string url = $"{versionPrefix}/instances?org={testOrg}&appId={testAppId}&instanceOwner.partyId={testInstanceOwnerId}";
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validOrgToken);
-            HttpResponseMessage response = await _client.GetAsync(url);
-
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
-        }
-
-        /// <summary>
         /// Store a json file.
         /// </summary>
         [Fact]

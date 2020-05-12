@@ -6,7 +6,7 @@ using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
-
+using Altinn.Platform.Storage.Authorization;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Repository;
@@ -74,6 +74,7 @@ namespace Altinn.Platform.Storage
             _logger.LogInformation("Startup // ConfigureServices");
 
             services.AddControllers().AddNewtonsoftJson();
+            services.AddMemoryCache();
 
             services.AddHttpClient<AuthorizationApiClient>();
 
@@ -127,7 +128,7 @@ namespace Altinn.Platform.Storage
             services.AddSingleton<IKeyVaultClientWrapper, KeyVaultClientWrapper>();
             services.AddSingleton<IPDP, PDPAppSI>();
 
-            services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
+            services.AddTransient<IAuthorizationHandler, StorageAccessHandler>();
             services.AddTransient<IAuthorizationHandler, ScopeAccessHandler>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
