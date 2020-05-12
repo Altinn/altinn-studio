@@ -71,7 +71,7 @@ namespace Altinn.Platform.Storage.Authorization
         {
             XacmlJsonRequestRoot request = DecisionHelper.CreateDecisionRequest(context, requirement, _httpContextAccessor.HttpContext.GetRouteData());
 
-            _logger.LogInformation($"// Altinn PEP // AppAccessHandler // Request sent: {JsonConvert.SerializeObject(request)}");
+            _logger.LogInformation($"// Storage PEP // AppAccessHandler // Request sent: {JsonConvert.SerializeObject(request)}");
 
             XacmlJsonResponse response;
 
