@@ -1,7 +1,6 @@
 /* eslint-disable no-prototype-builtins */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-restricted-syntax */
-import classNames from 'classnames';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { AltinnAppHeader } from 'altinn-shared/components';
@@ -24,10 +23,10 @@ const ProcessStepComponent = (props) => {
   const party: IParty = useSelector((state: IRuntimeState) => (state.party ? state.party.selectedParty : {} as IParty));
   const language: any = useSelector((state: IRuntimeState) => (state.language ? state.language.language : {}));
   const formHasErrors: boolean = useSelector(
-    (state: IRuntimeState) => getFormHasErrors(state.formValidations.validations)
+    (state: IRuntimeState) => getFormHasErrors(state.formValidations.validations),
   );
   const userParty: IParty = useSelector(
-    (state: IRuntimeState) => (state.profile.profile ? state.profile.profile.party : {} as IParty)
+    (state: IRuntimeState) => (state.profile.profile ? state.profile.profile.party : {} as IParty),
   );
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
