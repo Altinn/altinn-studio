@@ -319,7 +319,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:instances.read");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                int expectedNoInstances = 11;
+                int expectedNoInstances = 10;
 
                 // Act
                 HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -337,7 +337,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected: List of instances is returned.
             /// </summary>
             [Fact]
-            public async void GetMany_Party_Ok()
+            public async void GetMany_PartyRequestsOwnInstances_Ok()
             {
                 // Arrange
                 string requestUri = $"{BasePath}?instanceOwner.PartyId=1600";
@@ -346,7 +346,33 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string token = PrincipalUtil.GetToken(1600, 4);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                int expectedNoInstances = 7;
+                int expectedNoInstances = 8;
+
+                // Act
+                HttpResponseMessage response = await client.GetAsync(requestUri);
+                string json = await response.Content.ReadAsStringAsync();
+                InstanceQueryResponse queryResponse = JsonConvert.DeserializeObject<InstanceQueryResponse>(json);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
+            }
+
+            /// <summary>
+            /// Test case: User requests to get multiple instances from a single instanceOwner they represent.
+            /// Expected: List of instances is returned.
+            /// </summary>
+            [Fact]
+            public async void GetMany_UserRequestsAnotherPartiesInstances_Ok()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}?instanceOwner.PartyId=1600";
+
+                HttpClient client = GetTestClient();
+                string token = PrincipalUtil.GetToken(3);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                int expectedNoInstances = 2;
 
                 // Act
                 HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -363,7 +389,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected: Returns status bad request.
             /// </summary>
             [Fact]
-            public async void GetMany_NoOrgDefined_ReturnsBadRequest()
+            public async void GetMany_OrgRequestsInstancesNoOrgDefined_ReturnsBadRequest()
             {
                 // Arrange
                 string requestUri = $"{BasePath}";
@@ -371,12 +397,15 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetOrgToken("testOrg", scope: "altinn:instances.read");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                string expected = "Org or AppId must be defined.";
 
                 // Act
                 HttpResponseMessage response = await client.GetAsync(requestUri);
+                string responseMessage = await response.Content.ReadAsStringAsync();
 
                 // Assert
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                Assert.Equal(responseMessage, expected);
             }
 
             /// <summary>

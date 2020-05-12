@@ -196,6 +196,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             }
 
             response.Instances = instances;
+            response.Count = instances.Count();
             response.TotalHits = instances.Count();
             return response;
         }

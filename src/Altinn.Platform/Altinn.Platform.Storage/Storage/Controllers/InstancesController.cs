@@ -179,8 +179,10 @@ namespace Altinn.Platform.Storage.Controllers
 
                 if (!isOrgQuerying)
                 {
+                    int originalCount = result.Instances.Count;
                     result.Instances = await _authzHelper.AuthorizeInstances(User, result.Instances);
                     result.Count = result.Instances.Count;
+                    result.TotalHits = result.TotalHits - (originalCount - result.Instances.Count);
                 }
 
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
