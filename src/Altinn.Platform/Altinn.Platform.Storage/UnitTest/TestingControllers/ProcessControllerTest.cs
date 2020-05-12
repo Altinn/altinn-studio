@@ -25,7 +25,6 @@ using Moq;
 using Newtonsoft.Json;
 using Xunit;
 using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
-using App.IntegrationTests.Utils;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {

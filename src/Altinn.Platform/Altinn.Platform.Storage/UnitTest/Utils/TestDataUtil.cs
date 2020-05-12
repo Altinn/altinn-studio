@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace App.IntegrationTests.Utils
+namespace Altinn.Platform.Storage.UnitTest.Utils
 {
     public class TestDataUtil
     {
