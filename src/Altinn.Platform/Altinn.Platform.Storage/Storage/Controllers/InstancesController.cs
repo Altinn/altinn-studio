@@ -124,7 +124,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 isOrgQuerying = true;
 
-                if (!_authzHelper.ContainsRequieredScope(INSTANCE_READ_SCOPE, User))
+                if (!_authzHelper.ContainsRequiredScope(INSTANCE_READ_SCOPE, User))
                 {
                     return Forbid();
                 }
