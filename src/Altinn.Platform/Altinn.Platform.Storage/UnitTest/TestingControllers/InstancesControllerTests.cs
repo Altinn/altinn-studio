@@ -279,6 +279,59 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             }
 
             /// <summary>
+            /// Test case: Org user requests to get multiple instances from one of their apps.
+            /// Expected: List of instances is returned.
+            /// </summary>
+            [Fact]
+            public async void GetMany_Org_Ok()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}?appId=ttd/complete-test";
+
+                HttpClient client = GetTestClient();
+                string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:instances.read");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                int expectedNoInstances = 4;
+
+                // Act
+                HttpResponseMessage response = await client.GetAsync(requestUri);
+                string json = await response.Content.ReadAsStringAsync();
+                InstanceQueryResponse queryResponse = JsonConvert.DeserializeObject<InstanceQueryResponse>(json);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
+            }
+
+
+            /// <summary>
+            /// Test case: User requests to get multiple instances from a single instanceOwner - themselves.
+            /// Expected: List of instances is returned.
+            /// </summary>
+            [Fact]
+            public async void GetMany_Party_Ok()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}?instanceOwner.PartyId=1600";
+
+                HttpClient client = GetTestClient();
+                string token = PrincipalUtil.GetToken(1600, 4);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                int expectedNoInstances = 4;
+
+                // Act
+                HttpResponseMessage response = await client.GetAsync(requestUri);
+                string json = await response.Content.ReadAsStringAsync();
+                InstanceQueryResponse queryResponse = JsonConvert.DeserializeObject<InstanceQueryResponse>(json);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
+            }
+
+            /// <summary>
             /// Test case: Get Multiple instances without specifying org.
             /// Expected: Returns status bad request.
             /// </summary>

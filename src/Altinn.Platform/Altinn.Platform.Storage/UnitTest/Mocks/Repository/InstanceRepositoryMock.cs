@@ -113,9 +113,48 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return filter.ToList();
         }
 
-        public Task<InstanceQueryResponse> GetInstancesOfApplication(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
+        public async Task<InstanceQueryResponse> GetInstancesOfApplication(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
-            throw new NotImplementedException();
+            InstanceQueryResponse response = new InstanceQueryResponse();
+            List<Instance> instances = new List<Instance>();
+
+
+            string instancesPath = GetInstancesPath();
+
+            if (queryParams.ContainsKey("appId"))
+            {
+                string appPath = queryParams.GetValueOrDefault("appId").ToString().Replace("/", "\\");
+                instancesPath += $"\\{appPath}";
+
+                if (Directory.Exists(instancesPath))
+                {
+
+                    string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
+
+                    foreach (var file in files)
+                    {
+                        string content = File.ReadAllText(file);
+                        Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                        await PostProcess(instance);
+                        instances.Add(instance);
+                    }
+                }
+            }else if (queryParams.ContainsKey("instanceOwner.PartyId"))
+            {
+                instancesPath += $"\\{queryParams.GetValueOrDefault("instanceOwner.PartyId")}";
+                string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
+                foreach (var file in files)
+                {
+                    string content = File.ReadAllText(file);
+                    Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                    await PostProcess(instance);
+                    instances.Add(instance);
+                }
+            }
+
+            response.Instances = instances;
+            response.TotalHits = instances.Count();
+            return response;
         }
 
         public Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerPartyId)
@@ -128,10 +167,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string instancePath = GetInstancePath(new Guid(instanceId.Split("/")[1]));
             if (File.Exists(instancePath))
             {
-                    string content = System.IO.File.ReadAllText(instancePath);
-                    Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                    await PostProcess(instance);
-                    return instance;
+                string content = System.IO.File.ReadAllText(instancePath);
+                Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                await PostProcess(instance);
+                return instance;
             }
 
             throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));
@@ -197,7 +236,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
             instance.Id = instanceId;
-           // instance.Data = await _dataRepository.ReadAll(instanceGuid);
+            // instance.Data = await _dataRepository.ReadAll(instanceGuid);
         }
 
         /// <summary>
