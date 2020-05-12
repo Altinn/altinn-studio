@@ -284,7 +284,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected: List of instances is returned.
             /// </summary>
             [Fact]
-            public async void GetMany_Org_Ok()
+            public async void GetMany_OrgRequestsAllAppInstances_Ok()
             {
                 // Arrange
                 string requestUri = $"{BasePath}?appId=ttd/complete-test";
@@ -294,6 +294,32 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 int expectedNoInstances = 4;
+
+                // Act
+                HttpResponseMessage response = await client.GetAsync(requestUri);
+                string json = await response.Content.ReadAsStringAsync();
+                InstanceQueryResponse queryResponse = JsonConvert.DeserializeObject<InstanceQueryResponse>(json);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
+            }
+
+            /// <summary>
+            /// Test case: Org user requests to get all instances linked to their org.
+            /// Expected: List of instances is returned.
+            /// </summary>
+            [Fact]
+            public async void GetMany_OrgRequestsAllInstances_Ok()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}?org=ttd";
+
+                HttpClient client = GetTestClient();
+                string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:instances.read");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                int expectedNoInstances = 11;
 
                 // Act
                 HttpResponseMessage response = await client.GetAsync(requestUri);
@@ -323,13 +349,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 int expectedNoInstances = 7;
 
                 // Act
-              //  HttpResponseMessage response = await client.GetAsync(requestUri);
-              //  string json = await response.Content.ReadAsStringAsync();
-              //  InstanceQueryResponse queryResponse = JsonConvert.DeserializeObject<InstanceQueryResponse>(json);
+                HttpResponseMessage response = await client.GetAsync(requestUri);
+                string json = await response.Content.ReadAsStringAsync();
+                InstanceQueryResponse queryResponse = JsonConvert.DeserializeObject<InstanceQueryResponse>(json);
 
                 // Assert
-               // Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-               // Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
             }
 
             /// <summary>

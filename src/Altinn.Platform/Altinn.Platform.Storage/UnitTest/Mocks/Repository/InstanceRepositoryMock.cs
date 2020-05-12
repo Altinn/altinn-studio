@@ -160,10 +160,13 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
                 foreach (var file in files)
                 {
-                    string content = File.ReadAllText(file);
-                    Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                    await PostProcess(instance);
-                    instances.Add(instance);
+                    if (!file.Contains("pretest"))
+                    {
+                        string content = File.ReadAllText(file);
+                        Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                        await PostProcess(instance);
+                        instances.Add(instance);
+                    }
                 }
             }
             else if (queryParams.ContainsKey("org"))
