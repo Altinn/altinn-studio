@@ -31,7 +31,6 @@ namespace Altinn.Platform.Storage.Authorization
         private readonly IInstanceRepository _instanceRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPDP _pdp;
-        private readonly PepSettings _pepSettings;
         private readonly ILogger _logger;
         private readonly IMemoryCache _memoryCache;
 
@@ -47,14 +46,12 @@ namespace Altinn.Platform.Storage.Authorization
         public StorageAccessHandler(
             IHttpContextAccessor httpContextAccessor,
             IPDP pdp,
-            IOptions<PepSettings> pepSettings,
             ILogger<StorageAccessHandler> logger,
             IInstanceRepository instanceRepository,
             IMemoryCache memoryCache)
         {
             _httpContextAccessor = httpContextAccessor;
             _pdp = pdp;
-            _pepSettings = pepSettings.Value;
             _logger = logger;
             _instanceRepository = instanceRepository;
             _memoryCache = memoryCache;
@@ -89,7 +86,7 @@ namespace Altinn.Platform.Storage.Authorization
 
             if (response?.Response == null)
             {
-                throw new ArgumentNullException("response");
+                throw new Exception("Response is null from PDP");
             }
 
             if (!DecisionHelper.ValidatePdpDecision(response.Response, context.User))
