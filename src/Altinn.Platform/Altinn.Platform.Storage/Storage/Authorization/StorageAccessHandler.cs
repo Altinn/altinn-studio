@@ -33,6 +33,7 @@ namespace Altinn.Platform.Storage.Authorization
         private readonly IPDP _pdp;
         private readonly ILogger _logger;
         private readonly IMemoryCache _memoryCache;
+        private readonly PepSettings _pepSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StorageAccessHandler"/> class.
@@ -46,6 +47,7 @@ namespace Altinn.Platform.Storage.Authorization
         public StorageAccessHandler(
             IHttpContextAccessor httpContextAccessor,
             IPDP pdp,
+            IOptions<PepSettings> pepSettings,
             ILogger<StorageAccessHandler> logger,
             IInstanceRepository instanceRepository,
             IMemoryCache memoryCache)
@@ -53,6 +55,7 @@ namespace Altinn.Platform.Storage.Authorization
             _httpContextAccessor = httpContextAccessor;
             _pdp = pdp;
             _logger = logger;
+            _pepSettings = pepSettings.Value;
             _instanceRepository = instanceRepository;
             _memoryCache = memoryCache;
         }
@@ -110,7 +113,7 @@ namespace Altinn.Platform.Storage.Authorization
                 // Set the cache options
                 MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, 5, 0));
+               .SetAbsoluteExpiration(new TimeSpan(0, _pepSettings.PdpDecisionCachingTimeout, 0));
 
                 _memoryCache.Set(cacheKey, response, cacheEntryOptions);
             }
