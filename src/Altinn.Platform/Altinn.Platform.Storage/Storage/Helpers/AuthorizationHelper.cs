@@ -293,8 +293,8 @@ namespace Altinn.Platform.Storage.Helpers
             string contextScope = user.Identities?
                .FirstOrDefault(i => i.AuthenticationType != null && i.AuthenticationType.Equals("AuthenticationTypes.Federation"))
                ?.Claims
-               .Where(c => c.Type.Equals("urn:altinn:scope"))?
-               .Select(c => c.Value).FirstOrDefault();
+               .Where(c => c.Type.Equals("urn:altinn:scope"))
+               ?.Select(c => c.Value).FirstOrDefault();
 
             contextScope ??= user.Claims.Where(c => c.Type.Equals("scope")).Select(c => c.Value).FirstOrDefault();
 
