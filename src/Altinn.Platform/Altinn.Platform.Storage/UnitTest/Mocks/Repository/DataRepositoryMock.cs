@@ -1,5 +1,6 @@
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Utils;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,15 +14,18 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
     {
         public Task<DataElement> Create(DataElement dataElement)
         {
-            Directory.CreateDirectory(GetDataElementsPath());
+            lock (TestDataUtil.dataLock)
+            {
+                Directory.CreateDirectory(GetDataElementsPath());
 
-            string jsonData = JsonConvert.SerializeObject(dataElement);
-            using StreamWriter sw = new StreamWriter(GetDataElementsPath() + dataElement.Id + @".json");
+                string jsonData = JsonConvert.SerializeObject(dataElement);
+                using StreamWriter sw = new StreamWriter(GetDataElementsPath() + dataElement.Id + @".json");
 
-            sw.Write(jsonData.ToString());
-            sw.Close();
+                sw.Write(jsonData.ToString());
+                sw.Close();
 
-            return Task.FromResult(dataElement);
+                return Task.FromResult(dataElement);
+            }
         }
 
         public Task<bool> Delete(DataElement dataElement)
@@ -36,10 +40,13 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<DataElement> Read(Guid instanceGuid, Guid dataElementId)
         {
-            string elementPath = Path.Combine(GetDataElementsPath(), dataElementId.ToString() + ".json");
-            string content = System.IO.File.ReadAllText(elementPath);
-            DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
-            return Task.FromResult(dataElement);
+            lock (TestDataUtil.dataLock)
+            {
+                string elementPath = Path.Combine(GetDataElementsPath(), dataElementId.ToString() + ".json");
+                string content = System.IO.File.ReadAllText(elementPath);
+                DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                return Task.FromResult(dataElement);
+            }
         }
 
         public Task<List<DataElement>> ReadAll(Guid instanceGuid)
@@ -67,24 +74,25 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public async Task<long> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
         {
-            Guid dataGuid = Guid.NewGuid();
-            string dataPath = GetDataBlobPath() + blobStoragePath;
+                 Guid dataGuid = Guid.NewGuid();
+                string dataPath = GetDataBlobPath() + blobStoragePath;
 
-            if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(dataPath));
-            }
+                if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(dataPath));
+                }
 
-            long filesize;
+                long filesize;
 
-            using (Stream streamToWriteTo = File.Open(dataPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
-            {
-                await stream.CopyToAsync(streamToWriteTo);
-                streamToWriteTo.Flush();
-                filesize = streamToWriteTo.Length;
-            }
+                using (Stream streamToWriteTo = File.Open(dataPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+                {
+                    await stream.CopyToAsync(streamToWriteTo);
+                    streamToWriteTo.Flush();
+                    filesize = streamToWriteTo.Length;
+                }
 
-            return filesize;
+                return filesize;
+
         }
 
 

@@ -59,6 +59,12 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
             HttpResponseMessage response = await client.PostAsync($"{dataPathWithData}?dataType=default", content);
 
+            if (response.StatusCode.Equals(HttpStatusCode.InternalServerError))
+            {
+                string serverContent = await response.Content.ReadAsStringAsync();
+                Assert.Equal("Hei", serverContent);
+            }
+
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "bc19107c-508f-48d9-bcd7-54ffec905306", "tdd", "endring-av-navn");
         }

@@ -60,8 +60,15 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Act
                 HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
 
+                if (response.StatusCode.Equals(HttpStatusCode.InternalServerError))
+                {
+                    string serverContent = await response.Content.ReadAsStringAsync();
+                    Assert.Equal("Hei", serverContent);
+                }
+
                 // Assert
                 Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+  
             }
 
             /// <summary>

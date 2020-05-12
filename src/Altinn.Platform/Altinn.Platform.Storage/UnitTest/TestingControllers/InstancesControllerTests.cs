@@ -28,6 +28,7 @@ using Moq;
 using Newtonsoft.Json;
 using Xunit;
 using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
+using Microsoft.Azure.Documents.SystemFunctions;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
@@ -118,7 +119,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 HttpResponseMessage response2 = await client.GetAsync(requestUri);
 
                 // Assert
-                Assert.Equal(1, RequestTracker.GetRequestCount("GetDecisionForRequest"));
+                Assert.Equal(1, RequestTracker.GetRequestCount("GetDecisionForRequest1337/377efa97-80ee-4cc6-8d48-09de12cc273d"));
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 string responseContent = await response.Content.ReadAsStringAsync();
                 Instance instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
@@ -438,6 +439,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Act
                 HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(string.Empty));
+
+                if (response.StatusCode.Equals(HttpStatusCode.InternalServerError))
+                {
+                    string serverContent = await response.Content.ReadAsStringAsync();
+                    throw new Exception(serverContent);
+                    //Assert.Equal("Hei", serverContent);
+                }
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
