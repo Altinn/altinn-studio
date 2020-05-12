@@ -12,7 +12,6 @@ namespace Altinn.Common.PEP.Authorization
 {
     public class ScopeAccessHandler : AuthorizationHandler<ScopeAccessRequirement>
     {
-        private readonly PepSettings _pepSettings;
         private readonly ILogger _logger;
         
         /// <summary>
@@ -20,10 +19,8 @@ namespace Altinn.Common.PEP.Authorization
         /// </summary>
         /// <param name="pepSettings"> The settings for PEP.</param>
         public ScopeAccessHandler(
-            IOptions<PepSettings> pepSettings,
             ILogger<ScopeAccessHandler> logger)
         {
-            _pepSettings = pepSettings.Value;
             _logger = logger;
         }
 

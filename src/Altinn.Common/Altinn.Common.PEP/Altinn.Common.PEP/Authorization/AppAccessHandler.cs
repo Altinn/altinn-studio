@@ -23,7 +23,6 @@ namespace Altinn.Common.PEP.Authorization
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPDP _pdp;
-        private readonly PepSettings _pepSettings;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -36,12 +35,10 @@ namespace Altinn.Common.PEP.Authorization
         public AppAccessHandler(
             IHttpContextAccessor httpContextAccessor,
             IPDP pdp,
-            IOptions<PepSettings> pepSettings,
             ILogger<AppAccessHandler> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _pdp = pdp;
-            _pepSettings = pepSettings.Value;
             _logger = logger;
         }
 
