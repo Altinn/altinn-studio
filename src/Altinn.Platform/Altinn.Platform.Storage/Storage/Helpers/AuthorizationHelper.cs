@@ -227,7 +227,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// </summary>
         /// <param name="jsonRequest">The JSON Request</param>
         /// <param name="instance">The instance</param>
-        public static void EnrichXacmJsonRequest(XacmlJsonRequestRoot jsonRequest, Instance instance)
+        public static void EnrichXacmlJsonRequest(XacmlJsonRequestRoot jsonRequest, Instance instance)
         {
             XacmlJsonCategory resourceCategory = new XacmlJsonCategory { Attribute = new List<XacmlJsonAttribute>() };
 

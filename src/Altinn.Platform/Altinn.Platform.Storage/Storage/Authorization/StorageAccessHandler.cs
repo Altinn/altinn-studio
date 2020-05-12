@@ -78,7 +78,7 @@ namespace Altinn.Platform.Storage.Authorization
             Instance instance = await GetInstance(request);
             if (instance != null)
             {
-                AuthorizationHelper.EnrichXacmJsonRequest(request, instance);
+                AuthorizationHelper.EnrichXacmlJsonRequest(request, instance);
                 response = await GetDecisionForRequest(request);
             }
             else
