@@ -13,7 +13,7 @@ using Moq;
 
 using Xunit;
 
-namespace Altinn.Platform.Register.IntegrationTest.TestingFilters
+namespace Altinn.Platform.Register.Tests.TestingFilters
 {
     public class ValidateModelStateAttributeTests
     {

@@ -18,7 +18,7 @@ namespace Altinn.Platform.Register.Controllers
         private readonly IParties _partiesWrapper;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PartiesController"/> class
+        /// Initializes a new instance of the <see cref="PartiesController"/> class.
         /// </summary>
         /// <param name="partiesWrapper">The parties wrapper used as a client when calling SBL Bridge.</param>
         public PartiesController(IParties partiesWrapper)
@@ -29,63 +29,21 @@ namespace Altinn.Platform.Register.Controllers
         /// <summary>
         /// Gets the party for a given party id.
         /// </summary>
-        /// <param name="partyID">The party id.</param>
+        /// <param name="partyId">The party id.</param>
         /// <returns>The information about a given party.</returns>
-        [HttpGet("{partyID:int}")]
+        [HttpGet("{partyId:int}")]
         [ProducesResponseType(404)]
         [ProducesResponseType(200)]
         [Produces("application/json")]
-        public async Task<ActionResult<Party>> Get(int partyID)
+        public async Task<ActionResult<Party>> Get(int partyId)
         {
-            Party result = await _partiesWrapper.GetParty(partyID);
+            Party result = await _partiesWrapper.GetParty(partyId);
             if (result == null)
             {
                 return NotFound();
             }
 
             return Ok(result);
-        }
-
-        /// <summary>
-        /// Gets the party for a given social security number or organization number.
-        /// </summary>
-        /// <param name="lookupValue">SSN or OrgNumber.</param>
-        /// <returns>The party represeting the provided SNN/OrgNumber.</returns>
-        [HttpGet("lookupObject")]
-        [Consumes("application/json")]
-        [ProducesResponseType(404)]
-        [ProducesResponseType(200)]
-        [Produces("application/json")]
-        public async Task<ActionResult<Party>> LookupPartyBySSNOrOrgNo([FromBody]string lookupValue)
-        {
-            Party result = await _partiesWrapper.LookupPartyBySSNOrOrgNo(lookupValue);
-            if (result != null)
-            {
-                return Ok(result);
-            }
-
-            return NotFound();
-        }
-
-        /// <summary>
-        /// Gets the party id for a given social security number or organization number.
-        /// </summary>
-        /// <param name="lookupValue">SSN or OrgNumber.</param>
-        /// <returns>The party id for the party represeting the provided SNN/OrgNumber.</returns>
-        [HttpGet("lookup")]
-        [Consumes("application/json")]
-        [ProducesResponseType(404)]
-        [ProducesResponseType(200)]
-        [Produces("application/json")]
-        public async Task<ActionResult<int>> LookupPartyIdBySSNOrOrgNo([FromBody]string lookupValue)
-        {
-            int result = await _partiesWrapper.LookupPartyIdBySSNOrOrgNo(lookupValue);
-            if (result != -1)
-            {
-                return Ok(result);
-            }
-
-            return NotFound();
         }
 
         /// <summary>

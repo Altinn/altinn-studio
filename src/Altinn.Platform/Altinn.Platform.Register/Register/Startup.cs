@@ -43,9 +43,10 @@ namespace Altinn.Platform.Register
         private readonly IWebHostEnvironment _env;
 
         /// <summary>
-        ///  Initializes a new instance of the <see cref="Startup"/> class
+        ///  Initializes a new instance of the <see cref="Startup"/> class.
         /// </summary>
-        /// <param name="configuration">The configuration for the register component</param>
+        /// <param name="configuration">The configuration for the register component.</param>
+        /// <param name="env">The current WebHostEnvironment.</param>
         public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
@@ -84,7 +85,6 @@ namespace Altinn.Platform.Register
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
 
-            GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                   .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                   {
@@ -108,7 +108,6 @@ namespace Altinn.Platform.Register
                   });
 
             services.AddHttpClient<IOrganizations, OrganizationsWrapper>();
-            services.AddHttpClient<IPersons, PersonsWrapper>();
             services.AddHttpClient<IParties, PartiesWrapper>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))

@@ -4,14 +4,12 @@ exports[`>>> components/message/MessageComponent.tsx +++ should match snapshot 1
 <div
   className="field-validation-error a-message"
   id="mockId"
-  role="alert"
   style={
     Object {
       "display": "block",
       "width": "fit-content",
     }
   }
-  tabIndex={0}
 >
   <ol>
     <li>
