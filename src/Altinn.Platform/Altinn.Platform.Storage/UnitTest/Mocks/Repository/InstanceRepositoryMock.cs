@@ -128,18 +128,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string instancePath = GetInstancePath(new Guid(instanceId.Split("/")[1]));
             if (File.Exists(instancePath))
             {
-                try
-                {
                     string content = System.IO.File.ReadAllText(instancePath);
                     Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
                     await PostProcess(instance);
                     return instance;
-                }
-                catch(Exception ex)
-                {
-                    throw;
-                }
-
             }
 
             throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));

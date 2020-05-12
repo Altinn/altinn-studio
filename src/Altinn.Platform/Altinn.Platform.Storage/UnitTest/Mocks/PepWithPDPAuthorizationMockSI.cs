@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -28,17 +27,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
     {
         private readonly IInstanceRepository _instanceService;
 
-        private readonly PepSettings _pepSettings;
-
         private readonly string OrgAttributeId = "urn:altinn:org";
 
         private readonly string AppAttributeId = "urn:altinn:app";
-
-        private readonly string InstanceAttributeId = "urn:altinn:instance-id";
-
-        private readonly string TaskAttributeId = "urn:altinn:task";
-
-        private readonly string EndEventAttributeId = "urn:altinn:end-event";
 
         private readonly string PartyAttributeId = "urn:altinn:partyid";
 
@@ -46,10 +37,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
         private readonly string AltinnRoleAttributeId = "urn:altinn:rolecode";
 
-        public PepWithPDPAuthorizationMockSI(IInstanceRepository instanceService, IOptions<PepSettings> pepSettings)
+        public PepWithPDPAuthorizationMockSI(IInstanceRepository instanceService)
         {
             this._instanceService = instanceService;
-            _pepSettings = pepSettings.Value;
         }
 
 
@@ -144,11 +134,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
         public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
         {
-            if (_pepSettings.DisablePEP)
-            {
-                return true;
-            }
-
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
             return DecisionHelper.ValidatePdpDecision(response.Response, user);
         }
