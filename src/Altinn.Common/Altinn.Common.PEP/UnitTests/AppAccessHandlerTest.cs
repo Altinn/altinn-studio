@@ -28,7 +28,7 @@ namespace Altinn.Common.PEP.Authorization
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _pdpMock = new Mock<IPDP>();
             _generalSettings = Options.Create(new PepSettings());
-            _aah = new AppAccessHandler(_httpContextAccessorMock.Object, _pdpMock.Object, _generalSettings, new Mock<ILogger<AppAccessHandler>>().Object);
+            _aah = new AppAccessHandler(_httpContextAccessorMock.Object, _pdpMock.Object, new Mock<ILogger<AppAccessHandler>>().Object);
         }
 
         /// <summary>
