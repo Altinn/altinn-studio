@@ -21,7 +21,7 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Storage.Authorization
 {
     /// <summary>
-    /// AuthorizationHandler that is created for handling access to app.
+    /// AuthorizationHandler that is created for handling access to storage and supporting caching of decisions from PDP
     /// Authorizes based om AppAccessRequirement and app id from route
     /// <see href="https://docs.asp.net/en/latest/security/authorization/policies.html"/> for details about authorization
     /// in asp.net core
