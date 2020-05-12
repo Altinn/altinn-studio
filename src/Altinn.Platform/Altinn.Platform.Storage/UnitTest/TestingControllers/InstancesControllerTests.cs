@@ -236,6 +236,36 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected: Returns status forbidden.
             /// </summary>
             [Fact]
+            public async void Post_Ok()
+            {
+                // Arrange
+                string appId = "tdd/endring-av-navn";
+                string requestUri = $"{BasePath}?appId={appId}";
+
+                HttpClient client = GetTestClient();
+                string token = PrincipalUtil.GetToken(1337, 3);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                // Laste opp test instance.. 
+                Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1337" }, Org = "tdd", AppId = "tdd/endring-av-navn" };
+
+                // Act
+                HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
+
+                // Assert
+                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+                Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
+                string json = await response.Content.ReadAsStringAsync();
+                Instance createdInstance = JsonConvert.DeserializeObject<Instance>(json);
+
+                TestDataUtil.DeleteInstanceAndData(1337, createdInstance.Id.Split("/")[1]);
+            }
+
+            /// <summary>
+            /// Test case: User has to low authentication level. 
+            /// Expected: Returns status forbidden.
+            /// </summary>
+            [Fact]
             public async void Delete_UserHasTooLowAuthLv_ReturnsStatusForbidden()
             {
                 // Arrange

@@ -71,7 +71,7 @@ namespace Altinn.Platform.Authentication
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
             services.AddMvc().AddControllersAsServices();
-       
+
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
@@ -88,7 +88,8 @@ namespace Altinn.Platform.Authentication
                         ValidateIssuer = false,
                         ValidateAudience = false,
                         RequireExpirationTime = true,
-                        ValidateLifetime = true
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
                     };
 
                     if (_env.IsDevelopment())
@@ -103,7 +104,7 @@ namespace Altinn.Platform.Authentication
             services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddTransient<IOrganisationRepository, OrganisationRepository>();
-            
+
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
@@ -199,6 +200,6 @@ namespace Altinn.Platform.Authentication
             }
 
             return environmentKey;
-        }       
+        }
     }
 }

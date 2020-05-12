@@ -47,7 +47,7 @@ describe('>>> utils/receipt.test.tsx', () => {
       'Dato sendt': '24.12.2018 / 10:33',
       'Avsender': '12345678-Ola Nordmann',
       'Mottaker': 'TEST ORG',
-      'Referansenummer': 'mockInstanceId',
+      'Referansenummer': 'd6a414a797ae',
     };
     mockApplication = {
       dataTypes: [{appLogic: true, id: 'default'}],

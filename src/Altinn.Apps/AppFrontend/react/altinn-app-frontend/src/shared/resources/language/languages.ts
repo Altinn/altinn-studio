@@ -1,7 +1,7 @@
 /* tslint:disable:max-line-length */
-
-export const nb = () => (
-  {
+// eslint-disable-next-line import/prefer-default-export
+export function nb() {
+  return {
     access_control: {
       about_header: 'Om tilgang',
       bankruptcyEstate: 'Konkursbo',
@@ -23,24 +23,26 @@ export const nb = () => (
     confirm: {
       answers: 'Dine svar',
       attachments: 'Vedlegg',
-      body: 'Du er nå  klar for å sende inn {1}. Før du sender inn vil vi abefale å se over svarene dine. Du kan ikke endre svarene etter at du har sendt inn.',
+      body: 'Du er nå  klar for å sende inn {0}. Før du sender inn vil vi abefale å se over svarene dine. Du kan ikke endre svarene etter at du har sendt inn.',
       button_text: 'Send inn',
       deadline: 'Frist innsending',
       sender: 'Person',
       title: 'Se over svarene dine før du sender inn',
     },
     date_picker: {
-      invalid_date_message: 'Ugyldig datoformat. Bruk formatet {1}.',
+      invalid_date_message: 'Ugyldig datoformat. Bruk formatet {0}.',
       cancel_label: 'Avbryt',
       clear_label: 'Tøm',
       today_label: 'I dag',
       min_date_exeeded: 'Dato valgt er før tidligste dato tillat',
       max_date_exeeded: 'Dato valgt er etter seneste dato tillat',
-      aria_label_icon: 'Åpne datovelger'
+      aria_label_icon: 'Åpne datovelger',
+      aria_label_left_arrow: 'Forrige måned.',
+      aria_label_right_arrow: 'Neste måned.',
     },
     feedback: {
       title: 'Du blir snart videresendt',
-      body: 'Vi venter på verifikasjon, når den er på plass blir du videresendt.'
+      body: 'Vi venter på verifikasjon, når den er på plass blir du videresendt.',
     },
     form_filler: {
       error_report_header: 'Det er feil i skjema',
@@ -55,8 +57,9 @@ export const nb = () => (
       file_uploader_list_header_name: 'Navn',
       file_uploader_list_header_status: 'Status',
       file_uploader_list_status_done: 'Ferdig lastet',
+      file_uploader_list_header_delete_sr: 'Slett',
       file_uploader_max_size: 'Maks filstørrelse',
-      file_uploader_mb: 'MB',
+      file_uploader_mb: 'MB.',
       file_uploader_number_of_files: 'Antall filer',
       file_uploader_valid_file_format: 'Tillate filformater er:',
       file_uploader_validation_error_delete: 'Noe gikk galt under slettingen av filen, prøv igjen senere.',
@@ -94,6 +97,7 @@ export const nb = () => (
       error_message_with_colon: 'Feilmelding:',
       for: 'for',
       label: 'Navn',
+      loading: 'Laster innhold',
       no_options: 'Ingen alternativer tilgjenglig',
       optional: 'Valgfri',
       required: 'Obligatorisk',
@@ -116,24 +120,24 @@ export const nb = () => (
       unknown_error_title: 'Ukjent feil',
       unknown_error_text: 'Det har skjedd en ukjent feil, vennligst prøv igjen senere.',
       unknown_error_status: 'Ukjent feil',
-      unknown_error_customer_support: 'Om problemet vedvarer, ta kontakt med oss på brukerservice {1}.',
+      unknown_error_customer_support: 'Om problemet vedvarer, ta kontakt med oss på brukerservice {0}.',
       authorization_error_main_title: 'Du mangler rettigheter for å se denne tjenesten.',
       authorization_error_instantiate_validation_title: 'Du kan ikke starte denne tjenesten',
-      authorization_error_rights: 'Det ser ut til at du ikke har rettigheter til å starte denne tjenesten for {1}',
+      authorization_error_rights: 'Det ser ut til at du ikke har rettigheter til å starte denne tjenesten for {0}',
       authorization_error_ask: 'Du kan be om de nødvendige rettighetene fra personer med tilgangsstyring i organisasjonen din.',
-      authorization_error_check_rights: '<a href="https://{1}/ui/Profile/" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
-      authorization_error_info_rights: '<a href="https://{1}/hjelp/profil/roller-og-rettigheter/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
-      authorization_error_info_customer_service: 'Du kan også kontakte oss på brukerservice {1}.',
-      authorization_error_instantiate_validation_info_customer_service: 'Om du står fast kontakt oss på brukerservice {1}.'
+      authorization_error_check_rights: '<a href="https://{0}/ui/Profile/" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
+      authorization_error_info_rights: '<a href="https://{0}/hjelp/profil/roller-og-rettigheter/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
+      authorization_error_info_customer_service: 'Du kan også kontakte oss på brukerservice {0}.',
+      authorization_error_instantiate_validation_info_customer_service: 'Om du står fast kontakt oss på brukerservice {0}.',
     },
     party_selection: {
       error_caption_prefix: 'Feil',
       invalid_selection_first_part: 'Du har startet tjenesten som',
       invalid_selection_second_part: 'Denne tjenesten er kun for tilgjengelig for',
       invalid_selection_third_part: 'Velg ny aktør under.',
-      no_valid_selection_first_part: 'Dette er en tjeneste for {1}',
-      no_valid_selection_second_part: 'Det ser ut som du ikke har tilgang til en aktør som har lov til å starte <b>{1}</b>.',
-      no_valid_selection_third_part: 'For å starte denne tjenesten må du ha tilganger som knytter deg til en {1}.',
+      no_valid_selection_first_part: 'Dette er en tjeneste for {0}',
+      no_valid_selection_second_part: 'Det ser ut som du ikke har tilgang til en aktør som har lov til å starte <b>{0}</b>.',
+      no_valid_selection_third_part: 'For å starte denne tjenesten må du ha tilganger som knytter deg til en {0}.',
       no_valid_selection_binding_word: 'og',
       change_party: 'skift aktør her',
       read_more_roles_link: 'Her finner du mer informasjon om roller og rettigheter',
@@ -312,12 +316,12 @@ export const nb = () => (
       toolbar_header: 'Overskrift',
     },
     validation_errors: {
-      min: 'Minste gyldig verdi er {1}',
-      max: 'Største gyldig verdi er {1}',
-      minLength: 'Bruk {1} eller flere tegn',
-      maxLength: 'Bruk {1} eller færre tegn',
-      length: 'Antall tillatte tegn er {1}',
+      min: 'Minste gyldig verdi er {0}',
+      max: 'Største gyldig verdi er {0}',
+      minLength: 'Bruk {0} eller flere tegn',
+      maxLength: 'Bruk {0} eller færre tegn',
+      length: 'Antall tillatte tegn er {0}',
       pattern: 'Feil format eller verdi',
     },
-  }
-);
+  };
+}

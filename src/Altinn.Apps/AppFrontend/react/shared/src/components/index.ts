@@ -23,6 +23,7 @@ export {default as AltinnSearchInput } from './AltinnSearchInput';
 export {default as AltinnSpinner } from './AltinnSpinner';
 export {default as AltinnSwitch } from './AltinnSwitch';
 export {default as AltinnTextArea } from './AltinnTextArea';
+export {default as AltinnLoader} from './AltinnLoader';
 
 // atoms
 export {default as AltinnAttachment } from './atoms/AltinnAttachment';

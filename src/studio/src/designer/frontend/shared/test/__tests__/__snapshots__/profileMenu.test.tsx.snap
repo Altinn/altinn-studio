@@ -26,7 +26,7 @@ exports[`ProfileMenu should match snapshot 1`] = `
       className="MuiIconButton-label"
     >
       <svg
-        aria-hidden="false"
+        aria-hidden={null}
         aria-label="profilikon"
         className="MuiSvgIcon-root MuiSvgIcon-fontSizeLarge"
         focusable="false"
@@ -71,7 +71,7 @@ exports[`ProfileMenu should match snapshot with logout text 1`] = `
       className="MuiIconButton-label"
     >
       <svg
-        aria-hidden="false"
+        aria-hidden={null}
         aria-label="profilikon"
         className="MuiSvgIcon-root MuiSvgIcon-fontSizeLarge"
         focusable="false"

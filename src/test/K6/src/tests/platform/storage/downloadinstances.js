@@ -37,7 +37,8 @@ export default function(data){
     const runtimeToken = data["runtimeToken"];
     const instances = data.instances;
     var uniqueNum = ((__VU * maxIter) - (maxIter) + (__ITER));
-    
+    uniqueNum = uniqueNum % instances.length;
+
     //Get instance ids and separate party id and instance id    
     var instanceId = instances[uniqueNum];
     instanceId = instanceId.split('/');

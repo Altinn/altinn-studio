@@ -205,8 +205,22 @@ export interface IValidated {
 export interface ITextResource {
   id: string;
   value: string;
+  unparsedValue: string;
+  variables:IVariable[];
+}
+
+export interface IVariable {
+  key: string;
+  dataSource: string;
 }
 
 export interface IAttachmentGrouping {
-  [title: string]: IAttachemnt[];
+  [title: string]: IAttachment[];
+}
+
+export interface IDataSource{
+  [key: string]: any;
+}
+export interface IDataSources {
+     [key: string]: IDataSource;
 }

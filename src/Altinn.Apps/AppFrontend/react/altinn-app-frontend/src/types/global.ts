@@ -121,6 +121,13 @@ export interface ITextResourceBindings {
 export interface ITextResource {
   id: string;
   value: string;
+  unparsedValue: string;
+  variables:IVariable[];
+}
+
+export interface IVariable {
+  key: string;
+  dataSource: string;
 }
 
 // Datamodel
@@ -185,6 +192,7 @@ export interface IAttachments {
 export interface IUiConfig {
   focus: string;
   hiddenFields: string[];
+  autoSave: boolean;
 }
 
 export interface IQueueTask {

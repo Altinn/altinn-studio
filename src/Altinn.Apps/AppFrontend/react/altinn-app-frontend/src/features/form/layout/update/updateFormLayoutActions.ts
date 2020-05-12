@@ -6,6 +6,9 @@ import {
   UPDATE_FOCUS_REJECTED,
   UPDATE_FORM_LAYOUT,
   UPDATE_HIDDEN_COMPONENTS,
+  UPDATE_AUTO_SAVE,
+  UPDATE_AUTO_SAVE_FULFILLED,
+  UPDATE_AUTO_SAVE_REJECTED,
 } from '../formLayoutActionTypes';
 
 export interface IUpdateFocus extends Action {
@@ -31,6 +34,18 @@ export interface IUpdateHiddenComponents extends Action {
 }
 
 export interface IUpdateHiddenComponentRejected extends Action {
+  error: Error;
+}
+
+export interface IUpdateAutoSave extends Action {
+  autoSave: boolean;
+}
+
+export interface IUpdateAutoSaveFulfilled extends Action {
+  autoSave: boolean;
+}
+
+export interface IUpdateAutoSaveRejected extends Action {
   error: Error;
 }
 
@@ -68,5 +83,26 @@ export function updateFormLayout(layoutElement: ILayoutComponent | ILayoutGroup,
     type: UPDATE_FORM_LAYOUT,
     layoutElement,
     index,
+  });
+}
+
+export function updateAutoSave(autoSave: boolean): IUpdateAutoSave {
+  return ({
+    type: UPDATE_AUTO_SAVE,
+    autoSave,
+  });
+}
+
+export function updateAutoSaveFulfilled(autoSave: boolean): IUpdateAutoSave {
+  return ({
+    type: UPDATE_AUTO_SAVE_FULFILLED,
+    autoSave,
+  });
+}
+
+export function updateAutoSaveRejected(error: Error): IUpdateAutoSaveRejected {
+  return ({
+    type: UPDATE_AUTO_SAVE_REJECTED,
+    error,
   });
 }
