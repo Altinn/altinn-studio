@@ -1,184 +1,161 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
+using Altinn.Authorization.ABAC;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Configuration;
+using Altinn.Common.PEP.Constants;
 using Altinn.Common.PEP.Helpers;
-using Altinn.Common.PEP.Interfaces;
-using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
-using Altinn.Platform.Storage.UnitTest.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Constants;
+using Altinn.Platform.Storage.UnitTest.Models;
+using Altinn.Platform.Storage.UnitTest.Utils;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Altinn.Authorization.ABAC;
-
-#pragma warning disable 1998
-#pragma warning disable 1591
-#pragma warning disable SA1600
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Xml;
 
 namespace Altinn.Platform.Storage.UnitTest.Mocks
 {
-    public class PepWithPDPAuthorizationMockSI : IPDP
+    public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
     {
-        private readonly IInstanceRepository _instanceRepository;
+        private readonly IInstanceRepository _instanceService;
 
-        private readonly PepSettings _pepSettings;
+        private readonly string OrgAttributeId = "urn:altinn:org";
 
-        private readonly string orgAttributeId = "urn:altinn:org";
+        private readonly string AppAttributeId = "urn:altinn:app";
 
-        private readonly string appAttributeId = "urn:altinn:app";
+        private readonly string PartyAttributeId = "urn:altinn:partyid";
 
-        private readonly string instanceAttributeId = "urn:altinn:instance-id";
+        private readonly string UserAttributeId = "urn:altinn:userid";
 
-        private readonly string taskAttributeId = "urn:altinn:task";
+        private readonly string AltinnRoleAttributeId = "urn:altinn:rolecode";
 
-        private readonly string endEventAttributeId = "urn:altinn:end-event";
-
-        private readonly string partyAttributeId = "urn:altinn:partyid";
-
-        private readonly string userAttributeId = "urn:altinn:userid";
-
-        private readonly string altinnRoleAttributeId = "urn:altinn:rolecode";
-
-        public PepWithPDPAuthorizationMockSI(IInstanceRepository instanceRepository, IOptions<PepSettings> pepSettings)
+        public PepWithPDPAuthorizationMockSI(IInstanceRepository instanceService)
         {
-            _instanceRepository = instanceRepository;
-            _pepSettings = pepSettings.Value;
+            this._instanceService = instanceService;
         }
+
 
         public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
-            string jsonResponse = string.Empty;
+            RequestTracker.AddRequest("GetDecisionForRequest" + GetInstanceID(xacmlJsonRequest), xacmlJsonRequest);
 
-            if (xacmlJsonRequest.Request.MultiRequests != null)
+            return await Authorize(xacmlJsonRequest.Request);
+        }
+
+        private async Task<XacmlJsonResponse> Authorize(XacmlJsonRequest decisionRequest)
+        {
+            if (decisionRequest.MultiRequests == null || decisionRequest.MultiRequests.RequestReference == null
+                || decisionRequest.MultiRequests.RequestReference.Count < 2)
             {
-                try
-                {
-                    Authorization.ABAC.PolicyDecisionPoint pdp = new Authorization.ABAC.PolicyDecisionPoint();
-                    XacmlJsonResponse multiResponse = new XacmlJsonResponse();
-                    foreach (XacmlJsonRequestReference xacmlJsonRequestReference in xacmlJsonRequest.Request.MultiRequests.RequestReference)
-                    {
-                        XacmlJsonRequest jsonMultiRequestPart = new XacmlJsonRequest();
-
-                        foreach (string refer in xacmlJsonRequestReference.ReferenceId)
-                        {
-                            IEnumerable<XacmlJsonCategory> resourceCategoriesPart = xacmlJsonRequest.Request.Resource.Where(i => i.Id.Equals(refer));
-
-                            if (resourceCategoriesPart != null && resourceCategoriesPart.Count() > 0)
-                            {
-                                if (jsonMultiRequestPart.Resource == null)
-                                {
-                                    jsonMultiRequestPart.Resource = new List<XacmlJsonCategory>();
-                                }
-
-                                jsonMultiRequestPart.Resource.AddRange(resourceCategoriesPart);
-                            }
-
-                            IEnumerable<XacmlJsonCategory> subjectCategoriesPart = xacmlJsonRequest.Request.AccessSubject.Where(i => i.Id.Equals(refer));
-
-                            if (subjectCategoriesPart != null && subjectCategoriesPart.Count() > 0)
-                            {
-                                if (jsonMultiRequestPart.AccessSubject == null)
-                                {
-                                    jsonMultiRequestPart.AccessSubject = new List<XacmlJsonCategory>();
-                                }
-
-                                jsonMultiRequestPart.AccessSubject.AddRange(subjectCategoriesPart);
-                            }
-
-                            IEnumerable<XacmlJsonCategory> actionCategoriesPart = xacmlJsonRequest.Request.Action.Where(i => i.Id.Equals(refer));
-
-                            if (actionCategoriesPart != null && actionCategoriesPart.Count() > 0)
-                            {
-                                if (jsonMultiRequestPart.Action == null)
-                                {
-                                    jsonMultiRequestPart.Action = new List<XacmlJsonCategory>();
-                                }
-
-                                jsonMultiRequestPart.Action.AddRange(actionCategoriesPart);
-                            }
-                        }
-
-                        XacmlContextResponse partResponse = await Authorize(XacmlJsonXmlConverter.ConvertRequest(jsonMultiRequestPart));
-                        XacmlJsonResponse xacmlJsonResponsePart = XacmlJsonXmlConverter.ConvertResponse(partResponse);
-
-                        if (multiResponse.Response == null)
-                        {
-                            multiResponse.Response = new List<XacmlJsonResult>();
-                        }
-
-                        multiResponse.Response.Add(xacmlJsonResponsePart.Response.First());
-                    }
-
-                    return multiResponse;
-                }
-                catch
-                {
-                }
-            }
-            else if (xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => (a.AttributeId == "urn:altinn:userid" && int.Parse(a.Value) >= 3)) ||
-                xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => a.AttributeId == "urn:altinn:org"))
-            {
-                XacmlContextRequest decisionRequest = XacmlJsonXmlConverter.ConvertRequest(xacmlJsonRequest.Request);
-                decisionRequest = await Enrich(decisionRequest);
-
-                PolicyDecisionPoint pdp = new PolicyDecisionPoint();
-
-                XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
-                XacmlContextResponse contextResponse = pdp.Authorize(decisionRequest, policy);
-
-                return XacmlJsonXmlConverter.ConvertResponse(contextResponse);
-
-            }
-            else if (xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => (a.AttributeId == "urn:altinn:userid" && a.Value == "1")) ||
-               xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => a.AttributeId == "urn:altinn:org"))
-            {
-                jsonResponse = File.ReadAllText("data/response_permit.json");
-
-            }
-            else if (xacmlJsonRequest.Request.AccessSubject[0].Attribute.Exists(a => (a.AttributeId == "urn:altinn:userid" && a.Value == "-1")))
-            {
-                jsonResponse = File.ReadAllText("data/response_deny.json");
+                XacmlContextRequest request = XacmlJsonXmlConverter.ConvertRequest(decisionRequest);
+                XacmlContextResponse xmlResponse = await Authorize(request);
+                return XacmlJsonXmlConverter.ConvertResponse(xmlResponse);
             }
             else
             {
-                jsonResponse = File.ReadAllText("data/response_deny.json");
+                XacmlJsonResponse multiResponse = new XacmlJsonResponse();
+                foreach (XacmlJsonRequestReference xacmlJsonRequestReference in decisionRequest.MultiRequests.RequestReference)
+                {
+                    XacmlJsonRequest jsonMultiRequestPart = new XacmlJsonRequest();
+
+                    foreach (string refer in xacmlJsonRequestReference.ReferenceId)
+                    {
+                        IEnumerable<XacmlJsonCategory> resourceCategoriesPart = decisionRequest.Resource.Where(i => i.Id.Equals(refer));
+
+                        if (resourceCategoriesPart != null && resourceCategoriesPart.Count() > 0)
+                        {
+                            if (jsonMultiRequestPart.Resource == null)
+                            {
+                                jsonMultiRequestPart.Resource = new List<XacmlJsonCategory>();
+                            }
+
+                            jsonMultiRequestPart.Resource.AddRange(resourceCategoriesPart);
+                        }
+
+                        IEnumerable<XacmlJsonCategory> subjectCategoriesPart = decisionRequest.AccessSubject.Where(i => i.Id.Equals(refer));
+
+                        if (subjectCategoriesPart != null && subjectCategoriesPart.Count() > 0)
+                        {
+                            if (jsonMultiRequestPart.AccessSubject == null)
+                            {
+                                jsonMultiRequestPart.AccessSubject = new List<XacmlJsonCategory>();
+                            }
+
+                            jsonMultiRequestPart.AccessSubject.AddRange(subjectCategoriesPart);
+                        }
+
+                        IEnumerable<XacmlJsonCategory> actionCategoriesPart = decisionRequest.Action.Where(i => i.Id.Equals(refer));
+
+                        if (actionCategoriesPart != null && actionCategoriesPart.Count() > 0)
+                        {
+                            if (jsonMultiRequestPart.Action == null)
+                            {
+                                jsonMultiRequestPart.Action = new List<XacmlJsonCategory>();
+                            }
+
+                            jsonMultiRequestPart.Action.AddRange(actionCategoriesPart);
+                        }
+                    }
+
+                    XacmlContextResponse partResponse = await Authorize(XacmlJsonXmlConverter.ConvertRequest(jsonMultiRequestPart));
+                    XacmlJsonResponse xacmlJsonResponsePart = XacmlJsonXmlConverter.ConvertResponse(partResponse);
+
+                    if (multiResponse.Response == null)
+                    {
+                        multiResponse.Response = new List<XacmlJsonResult>();
+                    }
+
+                    multiResponse.Response.Add(xacmlJsonResponsePart.Response.First());
+                }
+
+                return multiResponse;
             }
-
-            XacmlJsonResponse response = JsonConvert.DeserializeObject<XacmlJsonResponse>(jsonResponse);
-
-            return response;
-        }
-
-        public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
-        {
-            if (_pepSettings.DisablePEP)
-            {
-                return true;
-            }
-
-            XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
-            return DecisionHelper.ValidatePdpDecision(response.Response, user);
         }
 
         private async Task<XacmlContextResponse> Authorize(XacmlContextRequest decisionRequest)
         {
             decisionRequest = await Enrich(decisionRequest);
-            XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
 
-            Altinn.Authorization.ABAC.PolicyDecisionPoint pdp = new Altinn.Authorization.ABAC.PolicyDecisionPoint();
+             XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
+
+            PolicyDecisionPoint pdp = new PolicyDecisionPoint();
             XacmlContextResponse xacmlContextResponse = pdp.Authorize(decisionRequest, policy);
+
             return xacmlContextResponse;
         }
+
+        private string GetInstanceID(XacmlJsonRequestRoot xacmlJsonRequest)
+        {
+            string instanceId = string.Empty;
+            foreach (XacmlJsonCategory category in xacmlJsonRequest.Request.Resource)
+            {
+                foreach (var atr in category.Attribute)
+                {
+                    if (atr.AttributeId.Equals(AltinnXacmlUrns.InstanceId))
+                    {
+                        instanceId = atr.Value;
+                        break;
+                    }
+                }
+            }
+            return instanceId;
+        }
+
+        public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
+        {
+            XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
+            return DecisionHelper.ValidatePdpDecision(response.Response, user);
+        }
+
 
         public async Task<XacmlContextRequest> Enrich(XacmlContextRequest request)
         {
@@ -189,106 +166,76 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
         private async Task EnrichResourceAttributes(XacmlContextRequest request)
         {
-            string orgAttributeValue = string.Empty;
-            string appAttributeValue = string.Empty;
-            string instanceAttributeValue = string.Empty;
-            string resourcePartyAttributeValue = string.Empty;
-            string taskAttributeValue = string.Empty;
-            string endEventAttribute = string.Empty;
-
             XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
-
-            foreach (XacmlAttribute attribute in resourceContextAttributes.Attributes)
-            {
-                if (attribute.AttributeId.OriginalString.Equals(orgAttributeId))
-                {
-                    orgAttributeValue = attribute.AttributeValues.First().Value;
-                }
-
-                if (attribute.AttributeId.OriginalString.Equals(appAttributeId))
-                {
-                    appAttributeValue = attribute.AttributeValues.First().Value;
-                }
-
-                if (attribute.AttributeId.OriginalString.Equals(instanceAttributeId))
-                {
-                    instanceAttributeValue = attribute.AttributeValues.First().Value;
-                }
-
-                if (attribute.AttributeId.OriginalString.Equals(taskAttributeId))
-                {
-                    taskAttributeValue = attribute.AttributeValues.First().Value;
-                }
-
-                if (attribute.AttributeId.OriginalString.Equals(partyAttributeId))
-                {
-                    resourcePartyAttributeValue = attribute.AttributeValues.First().Value;
-                }
-
-                if (attribute.AttributeId.OriginalString.Equals(endEventAttributeId))
-                {
-                    endEventAttribute = attribute.AttributeValues.First().Value;
-                }
-            }
+            XacmlResourceAttributes resourceAttributes = GetResourceAttributeValues(resourceContextAttributes);
 
             bool resourceAttributeComplete = false;
 
-            if (!string.IsNullOrEmpty(orgAttributeValue) &&
-                !string.IsNullOrEmpty(appAttributeValue) &&
-                !string.IsNullOrEmpty(instanceAttributeValue) &&
-                !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
-                (!string.IsNullOrEmpty(taskAttributeValue) ||
-                !string.IsNullOrEmpty(endEventAttribute)))
+            if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.TaskValue))
             {
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
             }
-            else if (!string.IsNullOrEmpty(orgAttributeValue) &&
-                !string.IsNullOrEmpty(appAttributeValue) &&
-                string.IsNullOrEmpty(instanceAttributeValue) &&
-                !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
-                (!string.IsNullOrEmpty(taskAttributeValue) ||
-                !string.IsNullOrEmpty(endEventAttribute)))
+            else if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
+                string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
+                string.IsNullOrEmpty(resourceAttributes.TaskValue))
             {
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
             }
+
 
             if (!resourceAttributeComplete)
             {
-                Instance instanceData = await _instanceRepository.GetOne(instanceAttributeValue.Split('/')[1], Convert.ToInt32(instanceAttributeValue.Split('/')[0]));
-
-                if (string.IsNullOrEmpty(orgAttributeValue) && instanceData != null)
-                {
-                    resourceContextAttributes.Attributes.Add(GetOrgAttribute(instanceData));
-                }
-
-                if (string.IsNullOrEmpty(appAttributeValue) && instanceData != null)
-                {
-                    resourceContextAttributes.Attributes.Add(GetAppAttribute(instanceData));
-                }
-
-                if (string.IsNullOrEmpty(taskAttributeValue) && instanceData?.Process?.CurrentTask != null)
-                {
-                    resourceContextAttributes.Attributes.Add(GetProcessElementAttribute(instanceData));
-                }
-                else if (string.IsNullOrEmpty(endEventAttribute) && instanceData?.Process?.EndEvent != null)
-                {
-                    resourceContextAttributes.Attributes.Add(GetEndEventAttribute(instanceData));
-                }
-
-                if (string.IsNullOrEmpty(resourcePartyAttributeValue) && instanceData != null)
-                {
-                    resourceContextAttributes.Attributes.Add(GetPartyAttribute(instanceData));
-                }
+                Instance instanceData = await _instanceService.GetOne(resourceAttributes.InstanceValue, Convert.ToInt32(resourceAttributes.InstanceValue.Split('/')[0]));
 
                 if (instanceData != null)
                 {
-                    resourcePartyAttributeValue = instanceData.InstanceOwner.PartyId;
+                    AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.OrgAttribute, resourceAttributes.OrgValue, instanceData.Org);
+                    string app = instanceData.AppId.Split("/")[1];
+                    AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.AppAttribute, resourceAttributes.AppValue, app);
+                    if (instanceData.Process?.CurrentTask != null)
+                    {
+                        AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.TaskAttribute, resourceAttributes.TaskValue, instanceData.Process.CurrentTask.ElementId);
+                    }
+                    else if (instanceData.Process?.EndEvent != null)
+                    {
+                        AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.EndEventAttribute, null, instanceData.Process.EndEvent);
+                    }
+
+                    AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.PartyAttribute, resourceAttributes.ResourcePartyValue, instanceData.InstanceOwner.PartyId);
+                    resourceAttributes.ResourcePartyValue = instanceData.InstanceOwner.PartyId;
                 }
             }
 
-            await EnrichSubjectAttributes(request, resourcePartyAttributeValue);
+            await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
+        }
+
+        private void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
+        {
+            if (string.IsNullOrEmpty(attributeValue))
+            {
+                resourceAttributes.Attributes.Add(GetAttribute(attributeId, newAttributeValue));
+            }
+        }
+
+        private XacmlAttribute GetAttribute(string attributeId, string attributeValue)
+        {
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(attributeId), false);
+            if (attributeId.Equals(XacmlRequestAttribute.PartyAttribute))
+            {
+                // When Party attribute is missing from input it is good to return it so PEP can get this information
+                attribute.IncludeInResult = true;
+            }
+
+            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), attributeValue));
+            return attribute;
         }
 
         private async Task EnrichSubjectAttributes(XacmlContextRequest request, string resourceParty)
@@ -306,7 +253,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
             foreach (XacmlAttribute xacmlAttribute in subjectContextAttributes.Attributes)
             {
-                if (xacmlAttribute.AttributeId.OriginalString.Equals(userAttributeId))
+                if (xacmlAttribute.AttributeId.OriginalString.Equals(UserAttributeId))
                 {
                     subjectUserId = Convert.ToInt32(xacmlAttribute.AttributeValues.First().Value);
                 }
@@ -322,38 +269,45 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }
 
-        private XacmlAttribute GetOrgAttribute(Instance instance)
-        {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(orgAttributeId), false);
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Org));
-            return attribute;
-        }
 
-        private XacmlAttribute GetAppAttribute(Instance instance)
+        private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
         {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(appAttributeId), false);
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.AppId.Split('/')[1]));
-            return attribute;
-        }
+            XacmlResourceAttributes resourceAttributes = new XacmlResourceAttributes();
 
-        private XacmlAttribute GetProcessElementAttribute(Instance instance)
-        {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(taskAttributeId), false);
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Process.CurrentTask.ElementId));
-            return attribute;
-        }
+            foreach (XacmlAttribute attribute in resourceContextAttributes.Attributes)
+            {
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.OrgAttribute))
+                {
+                    resourceAttributes.OrgValue = attribute.AttributeValues.First().Value;
+                }
 
-        private XacmlAttribute GetEndEventAttribute(Instance instance)
-        {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(endEventAttributeId), false);
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Process.EndEvent));
-            return attribute;
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.AppAttribute))
+                {
+                    resourceAttributes.AppValue = attribute.AttributeValues.First().Value;
+                }
+
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.InstanceAttribute))
+                {
+                    resourceAttributes.InstanceValue = attribute.AttributeValues.First().Value;
+                }
+
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.PartyAttribute))
+                {
+                    resourceAttributes.ResourcePartyValue = attribute.AttributeValues.First().Value;
+                }
+
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.TaskAttribute))
+                {
+                    resourceAttributes.TaskValue = attribute.AttributeValues.First().Value;
+                }
+            }
+
+            return resourceAttributes;
         }
 
         private XacmlAttribute GetPartyAttribute(Instance instance)
         {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(partyAttributeId), false);
-
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(PartyAttributeId), false);
             // When Party attribute is missing from input it is good to return it so PEP can get this information
             attribute.IncludeInResult = true;
             attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.InstanceOwner.PartyId));
@@ -362,7 +316,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
         private XacmlAttribute GetRoleAttribute(List<Role> roles)
         {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(altinnRoleAttributeId), false);
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(AltinnRoleAttributeId), false);
             foreach (Role role in roles)
             {
                 attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), role.Value));
@@ -388,7 +342,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
         private string GetRolesPath(int userId, int resourcePartyId)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PDPMock).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PepWithPDPAuthorizationMockSI).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
         }
 
@@ -407,7 +361,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
                 {
                     foreach (XacmlAttribute asd in attr.Attributes)
                     {
-                        if (asd.AttributeId.OriginalString.Equals(orgAttributeId))
+                        if (asd.AttributeId.OriginalString.Equals(OrgAttributeId))
                         {
                             foreach (var asff in asd.AttributeValues)
                             {
@@ -416,7 +370,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
                             }
                         }
 
-                        if (asd.AttributeId.OriginalString.Equals(appAttributeId))
+                        if (asd.AttributeId.OriginalString.Equals(AppAttributeId))
                         {
                             foreach (var asff in asd.AttributeValues)
                             {
@@ -430,6 +384,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
             return GetAltinnAppsPolicyPath(org, app);
         }
+
 
         public static XacmlPolicy ParsePolicy(string policyDocumentTitle, string policyPath)
         {
