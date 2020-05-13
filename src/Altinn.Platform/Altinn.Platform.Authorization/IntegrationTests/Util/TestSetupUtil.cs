@@ -201,8 +201,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
         private static string GetRolesPath(int userId, int resourcePartyId)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ContextHandlerTest).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
+            // string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ContextHandlerTest).Assembly.CodeBase).LocalPath);
+            // return Path.Combine(unitTestFolder, @"..\..\..\Data\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
+            return "";
         }
 
     }

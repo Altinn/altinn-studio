@@ -1,4 +1,5 @@
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
+using Altinn.Platform.Authorization.IntegrationTests.Util;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -9,7 +10,7 @@ using Xunit;
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
     [Collection("Our Test Collection #1")]
-    public class PolicyControllerTest : IClassFixture<PolicyRetrivevalPointFixture>, IClassFixture<BlobStorageFixture>
+    public class PolicyControllerTest : IClassFixture<PolicyRetrivevalPointFixture>
     {
         private readonly HttpClient _client;
         private const string ORG = "ttd";
@@ -37,6 +38,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             // Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", content);
 
+            TestSetupUtil.DeleteAppBlobData("org", "app");
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -56,6 +58,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             // Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", content);
 
+            TestSetupUtil.DeleteAppBlobData("org", "app");
+
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -69,6 +73,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         {
             // Arrange & Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", null);
+            TestSetupUtil.DeleteAppBlobData("org", "app");
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

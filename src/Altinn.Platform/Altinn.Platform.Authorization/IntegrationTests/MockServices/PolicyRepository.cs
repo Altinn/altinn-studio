@@ -5,7 +5,7 @@ using Altinn.Platform.Authorization.Repositories.Interface;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
-    public class PolicyRepositoryMock : IPolicyRepository
+    public class PolicyRepository : IPolicyRepository
     {
         public Task<Stream> GetPolicyAsync(string filepath)
         {
@@ -49,7 +49,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         private string GetDataBlobPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepository).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\blobs\");
         }
     }

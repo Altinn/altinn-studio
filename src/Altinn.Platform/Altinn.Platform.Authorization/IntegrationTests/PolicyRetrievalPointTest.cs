@@ -41,7 +41,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 BlobEndpoint = "http://127.0.0.1:10000/devstoreaccount1"
             });
 
-            _pr = new PolicyRepositoryMock();
+            _pr = new PolicyRepository();
             _prp = new Services.Implementation.PolicyRetrievalPoint(_pr);
         }
 
