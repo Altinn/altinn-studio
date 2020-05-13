@@ -33,7 +33,7 @@ function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
     const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
     const validator = createValidator(schema);
     const model = convertDataBindingToModel(state.formData.formData);
-    const validationResult = validateFormData(model, state.formLayout.layout, validator);
+    const validationResult = validateFormData(model, state.formLayout.layout, validator, state.language.language);
     let validations = validationResult.validations;
     const componentSpecificValidations =
       validateFormComponents(state.attachments.attachments, state.formLayout.layout, state.formData.formData,

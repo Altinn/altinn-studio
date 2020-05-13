@@ -14,9 +14,10 @@ export function createValidator(schema: any): ISchemaValidator {
   const ajv = new Ajv({ allErrors: true, coerceTypes: true });
   ajv.addFormat('year', /^[0-9]{4}$/);
   ajv.addSchema(schema, 'schema');
-  const rootPtr = jsonPtr.create(schema.properties.melding.$ref);
+  const rootKey = Object.keys(schema.properties)[0];
+  const rootElementPath = schema.properties[rootKey].$ref;
+  const rootPtr = jsonPtr.create(rootElementPath);
   const rootElement = rootPtr.get(schema);
-  const rootElementPath = schema.properties.melding.$ref;
   const schemaValidator: ISchemaValidator = {
     validator: ajv,
     schema,
@@ -71,6 +72,14 @@ export const errorMessageKeys = {
     textKey: 'enum',
     paramKey: 'allowedValues',
   },
+  const: {
+    textKey: 'enum',
+    paramKey: 'allowedValues',
+  },
+  multipleOf: {
+    textKey: 'multipleOf',
+    paramKey: 'multipleOf',
+  }
 };
 
 /*
@@ -280,6 +289,7 @@ export function validateFormData(
   formData: any,
   layout: ILayout,
   schemaValidator: ISchemaValidator,
+  language: any,
 ): IValidationResult {
   const { validator, rootElementPath } = schemaValidator;
   const valid = validator.validate(`schema${rootElementPath}`, formData);
@@ -295,8 +305,18 @@ export function validateFormData(
         result.invalidDataTypes = true;
       }
 
-      const dataBindingName = error.dataPath.slice(1);
-      mapToComponentValidations(layout, dataBindingName, error.message, result.validations);
+      let errorParams = error.params[errorMessageKeys[error.keyword].paramKey];
+      if (Array.isArray(errorParams)) {
+        errorParams = errorParams.join(', ');
+      }
+      const errorMessage = getParsedLanguageFromKey(
+        `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
+        language,
+        [errorParams],
+      );
+
+      const dataBindingName = processDataPath(error.dataPath);
+      mapToComponentValidations(layout, dataBindingName, errorMessage, result.validations);
     });
   }
 
@@ -315,23 +335,19 @@ export function mapToComponentValidations(
       return (validatedComponent as ILayoutComponent).dataModelBindings[name] === dataBindingName;
     })) : null;
 
+  const layoutComponent = validatedComponent || layout.find((c) => {
+    const component = c as unknown as ILayoutComponent;
+    if (component.dataModelBindings) {
+      dataModelFieldKey = Object.keys(component.dataModelBindings).find((key) => {
+        return key && component.dataModelBindings[key] && component.dataModelBindings[key].toLowerCase() === dataBindingName.toLowerCase();
+      });
+    }
+    return !!dataModelFieldKey;
+  });
+
   if (!dataModelFieldKey) {
     return;
   }
-
-  const layoutComponent = validatedComponent || layout.find((c) => {
-    let foundComponent = false;
-    const component = c as unknown as ILayoutComponent;
-    if (component.dataModelBindings) {
-      Object.keys(component.dataModelBindings).forEach((key) => {
-        if (key && component.dataModelBindings[key] && component.dataModelBindings[key] === dataBindingName) {
-          dataModelFieldKey = key;
-          foundComponent = true;
-        }
-      });
-    }
-    return foundComponent;
-  });
 
   if (layoutComponent) {
     if (validations[layoutComponent.id]) {

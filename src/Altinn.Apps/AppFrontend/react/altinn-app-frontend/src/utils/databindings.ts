@@ -20,14 +20,14 @@ export interface IData {
  * Convertes JSON to the flat datamodel used in Redux data store
  * @param data The formdata as JSON
  */
-export function convertModelToDataBinding(data: any, model: any): any {
-  const result = flattenObject(data);
-  return filterFormData(result, model);
+export function convertModelToDataBinding(data: any): any {
+  return flattenObject(data);
 }
 
-const filterFormData = (data: any, model: any): any => {
+export const filterFormData = (data: any, model: any): any => {
   const filteredResult: any = {};
-  const modelPath = model.properties.melding.$ref.slice(1);
+  const rootKey = Object.keys(model.properties)[0];
+  const modelPath = model.properties[rootKey].$ref.slice(1);
   const pointer = jsonPtr.create(modelPath);
   const root = pointer.get(model);
   Object.keys(data).forEach((key: string) => {

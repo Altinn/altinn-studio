@@ -18,28 +18,15 @@ import { FETCH_DATA_MODEL_FULFILLED, FETCH_JSON_SCHEMA_FULFILLED } from '../../d
 import FormRulesActions from '../../rules/rulesActions';
 import FormDynamicsActions from '../../dynamics/formDynamicsActions';
 import QueueActions from '../../../../shared/resources/queue/queueActions';
-import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
-import { IJsonSchemas } from '../../../../types/global';
 
 const appMetaDataSelector =
   (state: IRuntimeState): IApplicationMetadata => state.applicationMetadata.applicationMetadata;
 const instanceDataSelector = (state: IRuntimeState): IInstance => state.instanceData.instance;
-const schemaSelector = (state: IRuntimeState): IJsonSchemas => state.formDataModel.schemas;
 
 function* fetchFormDataSaga({ url }: IFetchFormData): SagaIterator {
   try {
     const fetchedData: any = yield call(get, url);
-    // This is a temporary solution for the "one task - one datamodel - process"
-    const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
-    const instance: IInstance = yield select(instanceDataSelector);
-    const schemas: IJsonSchemas = yield select(schemaSelector);
-
-    const currentTaskDataTypeId = getDataTaskDataTypeId(
-      instance.process.currentTask.elementId,
-      applicationMetadata.dataTypes,
-    );
-
-    const parsedLayout = convertModelToDataBinding(fetchedData, schemas[currentTaskDataTypeId]);
+    const parsedLayout = convertModelToDataBinding(fetchedData);
     yield call(FormActions.fetchFormDataFulfilled, parsedLayout);
   } catch (err) {
     yield call(FormActions.fetchFormDataRejected, err);
@@ -60,18 +47,12 @@ function* fetchFormDataInitialSaga(): SagaIterator {
     // This is a temporary solution for the "one task - one datamodel - process"
     const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     const instance: IInstance = yield select(instanceDataSelector);
-    const schemas: IJsonSchemas = yield select(schemaSelector);
 
     const currentTaskDataId = getCurrentTaskDataTypeId(applicationMetadata, instance);
     const url = `${window.location.origin}/${org}/${app}/instances/${instanceId}/data/${currentTaskDataId}`;
     const fetchedData: any = yield call(get, url);
 
-    const currentTaskDataTypeId = getDataTaskDataTypeId(
-      instance.process.currentTask.elementId,
-      applicationMetadata.dataTypes,
-    );
-
-    const parsedLayout = convertModelToDataBinding(fetchedData, schemas[currentTaskDataTypeId]);
+    const parsedLayout = convertModelToDataBinding(fetchedData);
     yield call(FormActions.fetchFormDataFulfilled, parsedLayout);
 
     yield call(
