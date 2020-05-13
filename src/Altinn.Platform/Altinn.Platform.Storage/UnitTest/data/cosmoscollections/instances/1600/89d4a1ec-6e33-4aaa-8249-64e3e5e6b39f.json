@@ -1,0 +1,31 @@
+{
+  "id": "89d4a1ec-6e33-4aaa-8249-64e3e5e6b39f",
+  "instanceOwner": {
+    "partyId": "1600",
+    "personNumber": "01044091042"
+  },
+  "appId": "ttd/dato-eksempel",
+  "org": "ttd",
+  "title": {
+    "nb": "dato-eksempel"
+  },
+  "process": {
+    "started": "2020-02-27T13:05:22.8148373Z",
+    "startEvent": "StartEvent_1",
+    "ended": "2020-02-27T13:09:13.343901Z",
+    "endEvent": "EndEvent_1"
+  },
+  "status": {
+    "archived": "2020-02-27T13:09:13.343901Z"
+  },
+  "appOwner": {},
+  "created": "2020-02-27T13:05:22.9021981Z",
+  "createdBy": "20000013",
+  "lastChanged": "2020-02-27T13:09:14.0498346Z",
+  "lastChangedBy": "20000013",
+  "_rid": "uHp7ALWZ1j9RAwAAAAAAAA==",
+  "_self": "dbs/uHp7AA==/colls/uHp7ALWZ1j8=/docs/uHp7ALWZ1j9RAwAAAAAAAA==/",
+  "_etag": "\"01004a55-0000-3c00-0000-5e57bf7a0000\"",
+  "_attachments": "attachments/",
+  "_ts": 1582808954
+}

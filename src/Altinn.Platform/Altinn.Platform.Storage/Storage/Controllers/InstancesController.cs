@@ -39,7 +39,9 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
+        private readonly AuthorizationHelper _authzHelper;
         private readonly string _storageBaseAndHost;
+        private const string INSTANCE_READ_SCOPE = "altinn:instances.read";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -48,6 +50,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
         /// <param name="logger">the logger</param>
+        /// <param name="authzLogger">the logger for the authorization helper</param>
         /// <param name="pdp">the policy decision point.</param>
         /// <param name="settings">the general settings.</param>
         public InstancesController(
@@ -55,6 +58,7 @@ namespace Altinn.Platform.Storage.Controllers
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
             ILogger<InstancesController> logger,
+            ILogger<AuthorizationHelper> authzLogger,
             IPDP pdp,
             IOptions<GeneralSettings> settings)
         {
@@ -64,6 +68,7 @@ namespace Altinn.Platform.Storage.Controllers
             _pdp = pdp;
             _logger = logger;
             _storageBaseAndHost = $"{settings.Value.Hostname}/storage/api/v1/";
+            _authzHelper = new AuthorizationHelper(pdp, authzLogger);
         }
 
         /// <summary>
@@ -85,7 +90,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="size">The page size.</param>
         /// <returns>List of all instances for given instance owner.</returns>
         /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
-        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_INSTANCE_READ)]
+        [Authorize]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -109,18 +114,43 @@ namespace Altinn.Platform.Storage.Controllers
             int pageSize = size ?? 100;
             string selfContinuationToken = null;
 
-            if (string.IsNullOrEmpty(org) && string.IsNullOrEmpty(appId))
+            bool isOrgQuerying = false;
+
+            // if user is org
+            string orgClaim = User.GetOrg();
+            int? userId = User.GetUserIdAsInt();
+
+            if (orgClaim != null)
             {
-                return BadRequest("Org or AppId must be defined.");
+                isOrgQuerying = true;
+
+                if (!_authzHelper.ContainsRequiredScope(INSTANCE_READ_SCOPE, User))
+                {
+                    return Forbid();
+                }
+
+                if (string.IsNullOrEmpty(org) && string.IsNullOrEmpty(appId))
+                {
+                    return BadRequest("Org or AppId must be defined.");
+                }
+
+                org = string.IsNullOrEmpty(org) ? appId.Split('/')[0] : org;
+
+                if (!orgClaim.Equals(org, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return Forbid();
+                }
             }
-
-            org = string.IsNullOrEmpty(org) ? appId.Split('/')[0] : org;
-
-            _logger.LogInformation($" // InstancesController // GetInstances // Tyring to get instances for org: {org}");
-
-            if (!AuthorizationHelper.VerifyOrgInClaimPrincipal(org, HttpContext.User))
+            else if (userId != null)
             {
-                return Forbid();
+                if (instanceOwnerPartyId == null)
+                {
+                    return BadRequest("InstanceOwnerPartyId must be defined.");
+                }
+            }
+            else
+            {
+                return BadRequest();
             }
 
             if (!string.IsNullOrEmpty(continuationToken))
@@ -139,11 +169,19 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                InstanceQueryResponse result = await _instanceRepository.GetInstancesOfApplication(queryParams, continuationToken, pageSize);
+                InstanceQueryResponse result = await _instanceRepository.GetInstancesFromQuery(queryParams, continuationToken, pageSize);
 
                 if (!string.IsNullOrEmpty(result.Exception))
                 {
                     return BadRequest(result.Exception);
+                }
+
+                if (!isOrgQuerying)
+                {
+                    int originalCount = result.Instances.Count;
+                    result.Instances = await _authzHelper.AuthorizeInstances(User, result.Instances);
+                    result.Count = result.Instances.Count;
+                    result.TotalHits = result.TotalHits - (originalCount - result.Instances.Count);
                 }
 
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);

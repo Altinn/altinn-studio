@@ -11,13 +11,6 @@ namespace Altinn.Platform.Storage.Repository
     public interface IInstanceRepository
     {
         /// <summary>
-        /// Gets all the instances for an instance owner
-        /// </summary>
-        /// <param name="instanceOwnerPartyId">the owner of the instance</param>
-        /// <returns>The list of instances for an instance owner</returns>
-        Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerPartyId);
-
-        /// <summary>
         /// Gets all the instances for an instance owner that should be visible for the user and in a given state
         /// </summary>
         /// <param name="instanceOwnerPartyId">the owner of the instance</param>
@@ -26,13 +19,13 @@ namespace Altinn.Platform.Storage.Repository
         Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState);
 
         /// <summary>
-        /// Gets all the instances for an app
+        /// Gets all the instances that satisfy given query parameters
         /// </summary>
         /// <param name="queryParams">the query params</param>
         /// <param name="continuationToken">a token to get the next page, more performant than using page</param>
         /// <param name="size">The number of items per page</param>
         /// <returns>The query response including the list of instances</returns>
-        Task<InstanceQueryResponse> GetInstancesOfApplication(Dictionary<string, StringValues> queryParams, string continuationToken, int size);
+        Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size);
 
         /// <summary>
         /// Get an instance for a given instance id

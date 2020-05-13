@@ -16,12 +16,12 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
             PrepareInstance(instanceOwnerId, new Guid(instanceGuid));
         }
 
-        public static void PrepareInstance(int instanceOwnerId, Guid instanceGuid, string org = null, string app = null)
+        public static void PrepareInstance(int instanceOwnerPartyId, Guid instanceGuid, string org = null, string app = null)
         {
             lock (dataLock)
             {
 
-                string instancePath = GetInstancePath(instanceGuid);
+                string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
 
                 string preInstancePath = instancePath.Replace(".json", ".pretest.json");
 
@@ -36,13 +36,13 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
                     }
                 }
 
-                PrepereDataElements(instanceGuid);
+                PrepereDataElements(instanceOwnerPartyId, instanceGuid);
             }
         }
 
-        private static void PrepereDataElements(Guid instanceGuid)
+        private static void PrepereDataElements(int instanceOwnerPartyId, Guid instanceGuid)
         {
-             Instance instance = GetInstance(instanceGuid);
+             Instance instance = GetInstance(instanceOwnerPartyId, instanceGuid);
 
                 string dataBlob = GetBlobPathForApp(instance.Org, instance.AppId.Split("/")[1], instanceGuid.ToString());
 
@@ -74,7 +74,7 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
         {
             lock (dataLock)
             {
-                string instancePath = GetInstancePath(instanceGuid);
+                string instancePath = GetInstancePath(instanceOwnerId, instanceGuid);
                 if (File.Exists(instancePath))
                 {
                     File.Delete(instancePath);
@@ -82,29 +82,29 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
             }
         }
 
-        public static void DeleteInstanceAndDataAndBlobs(int instanceOwnerId, string instanceguid, string org, string app)
+        public static void DeleteInstanceAndDataAndBlobs(int instanceOwnerPartyId, string instanceguid, string org, string app)
         {
             lock (dataLock)
             {
-                DeleteInstanceAndData(instanceOwnerId, new Guid(instanceguid));
+                DeleteInstanceAndData(instanceOwnerPartyId, new Guid(instanceguid));
             }
         }
 
-        public static void DeleteInstanceAndData(int instanceOwnerId, string instanceguid)
+        public static void DeleteInstanceAndData(int instanceOwnerPartyId, string instanceguid)
         {
             lock (dataLock)
             {
-                DeleteInstanceAndData(instanceOwnerId, new Guid(instanceguid));
+                DeleteInstanceAndData(instanceOwnerPartyId, new Guid(instanceguid));
             }
         }
 
-        public static void DeleteInstanceAndData(int instanceOwnerId, Guid instanceGuid)
+        public static void DeleteInstanceAndData(int instanceOwnerPartyId, Guid instanceGuid)
         {
             lock (dataLock)
             {
-                DeleteDataForInstance(instanceOwnerId, instanceGuid);
+                DeleteDataForInstance(instanceOwnerPartyId, instanceGuid);
                 DeleteInstanceEVents(instanceGuid);
-                string instancePath = GetInstancePath(instanceGuid);
+                string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
                 if (File.Exists(instancePath))
                 {
                     File.Delete(instancePath);
@@ -135,7 +135,7 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
 
         public static void DeleteDataForInstance(int instanceOwnerId, Guid instanceGuid)
         {
-            Instance instance = GetInstance(instanceGuid);
+            Instance instance = GetInstance(instanceOwnerId, instanceGuid);
 
             if (instance != null)
             {
@@ -168,9 +168,9 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
             }
         }
 
-        public static Instance GetInstance(Guid instanceGuid)
+        public static Instance GetInstance(int instanceOwnerId, Guid instanceGuid)
         {
-            string path = GetInstancePath(instanceGuid);
+            string path = GetInstancePath(instanceOwnerId, instanceGuid);
             if(!File.Exists(path))
             {
                 return null;
@@ -181,10 +181,10 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
             return instance;
         }
 
-        private static string GetInstancePath(Guid instanceGuid)
+        private static string GetInstancePath(int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\instances\", instanceGuid.ToString() + @".json");
+            return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\instances\", instanceOwnerId.ToString() ,instanceGuid.ToString() + @".json");
         }
 
         private static string GetDataPath(int instanceOwnerId, Guid instanceGuid)
