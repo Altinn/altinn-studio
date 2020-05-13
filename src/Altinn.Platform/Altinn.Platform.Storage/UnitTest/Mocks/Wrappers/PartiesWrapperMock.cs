@@ -1,13 +1,22 @@
+using System;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Wrappers;
 
 namespace Altinn.Platform.Storage.UnitTest.Mocks.Wrappers
 {
     public class PartiesWrapperMock : IParties
     {
-        public Task SetHasAltinn3Instances(int instanceOwnerPartyId)
+        public async Task SetHasAltinn3Instances(int instanceOwnerPartyId)
         {
-            throw new System.NotImplementedException();
+            switch (instanceOwnerPartyId)
+            {
+                case 1337:
+                    await Task.CompletedTask;
+                    break;
+                default:
+                    throw new ArgumentException("Unknown instanceOwnerPartyId");
+            }
         }
     }
 }

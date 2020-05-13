@@ -150,6 +150,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             // No setup required for these services. They are not in use by the InstanceController
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
             Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
+            Mock<IParties> partiesWrapper = new Mock<IParties>();
 
             Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
@@ -162,6 +163,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
                     services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                     services.AddSingleton(sasTokenProvider.Object);
                     services.AddSingleton(keyVaultWrapper.Object);
+                    services.AddSingleton(partiesWrapper.Object);
                     services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });

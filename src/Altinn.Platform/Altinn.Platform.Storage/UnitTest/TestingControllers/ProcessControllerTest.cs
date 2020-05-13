@@ -195,7 +195,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // No setup required for these services. They are not in use by the ApplicationController
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
                 Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
                 Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
                 Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
                 Mock<IParties> partiesWrapper = new Mock<IParties>();
@@ -211,7 +210,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                         services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
-                        services.AddSingleton(instanceRepository.Object);
                         services.AddSingleton(partiesWrapper.Object);
                         services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();

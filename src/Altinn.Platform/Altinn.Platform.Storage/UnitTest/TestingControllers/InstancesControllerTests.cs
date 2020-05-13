@@ -214,11 +214,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string token = PrincipalUtil.GetToken(3, 1337, 3);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                // Laste opp test instance.. 
-                Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1337" }, Org = "tdd", AppId = "tdd/endring-av-navn" };
+                Instance instance = new Instance { InstanceOwner = new InstanceOwner { PartyId = "1337" }, Org = "tdd", AppId = "tdd/endring-av-navn" };
 
                 // Act
-                HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
+                HttpResponseMessage response = await client.PostAsync(requestUri,
+                    new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
 
                 // Assert
                 Assert.Equal(HttpStatusCode.Created, response.StatusCode);
