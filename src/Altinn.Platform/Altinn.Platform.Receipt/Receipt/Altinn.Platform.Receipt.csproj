@@ -23,10 +23,6 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-	  <CoreLanguage Include="../../../AltinnCore/Common/Languages/ini/*" />
-  </ItemGroup>
-
   <Target Name="AfterPublishScript" AfterTargets="Publish">
 	  <MakeDir Directories="$(PublishDir)Languages" Condition="!Exists('$(PublishDir)Languages')" />
 	  <Copy SourceFiles="@(CoreLanguage)" DestinationFolder="$(PublishDir)Languages" />
