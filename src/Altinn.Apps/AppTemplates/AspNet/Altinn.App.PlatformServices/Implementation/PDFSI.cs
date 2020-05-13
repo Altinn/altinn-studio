@@ -35,9 +35,7 @@ namespace Altinn.App.Services.Implementation
         /// </summary>
         /// <param name="appSettings">The app settings</param>
         /// <param name="logger">The logger</param>
-        /// <param name="httpClientAccessor">The http client accessor</param>
         /// <param name="dataService">The data service</param>
-        /// <param name="repositoryService">The repository service</param>
         /// <param name="registerService">The register service</param>
         /// <param name="applicationSerice">The application service</param>
         public PDFSI(IOptions<PlatformSettings> platformSettings,
