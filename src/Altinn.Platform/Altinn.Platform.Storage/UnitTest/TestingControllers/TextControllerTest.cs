@@ -235,7 +235,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void RegularTokenShouldNotBeAbleToPostPutAndDelete()
             {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1000));
                 string org = "testOrg";
                 string app = "testApp";
                 string requestUriPost = $"{BasePath}/{org}/{app}/texts";

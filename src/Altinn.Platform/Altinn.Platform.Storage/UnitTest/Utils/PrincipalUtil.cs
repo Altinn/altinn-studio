@@ -14,13 +14,13 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
         public static readonly string AltinnCoreClaimTypesOrg = "urn:altinn:org";
         public static readonly string AltinnCoreClaimTypesOrgNumber = "urn:altinn:orgNumber";
 
-        public static string GetToken(int userId, int authenticationLevel = 2)
+        public static string GetToken(int userId, int partyId, int authenticationLevel = 2)
         {
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userId.ToString(), ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, "UserOne", ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userId.ToString(), ClaimValueTypes.Integer32, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId.ToString(), ClaimValueTypes.Integer32, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "Mock", ClaimValueTypes.String, issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, authenticationLevel.ToString(), ClaimValueTypes.Integer32, issuer));
 

@@ -56,7 +56,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             HttpContent content = new StringContent("This is a blob file");
 
             HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
             HttpResponseMessage response = await client.PostAsync($"{dataPathWithData}?dataType=default", content);
 
             if (response.StatusCode.Equals(HttpStatusCode.InternalServerError))
@@ -85,7 +85,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             HttpContent content = new StringContent("This is a blob file");
 
             HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 3));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1337, 3));
             HttpResponseMessage response = await client.PostAsync($"{dataPathWithData}?dataType=default", content);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -108,7 +108,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             HttpContent content = new StringContent("This is a blob file");
 
             HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 0));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 0));
             HttpResponseMessage response = await client.PostAsync($"{dataPathWithData}?dataType=default", content);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -132,7 +132,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             HttpContent content = new StringContent("This is a blob file with updated data");
 
             HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
             HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}?dataType=default", content);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
