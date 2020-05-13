@@ -138,9 +138,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             return XacmlTestDataParser.ParseRequest(testCase + "EnrichedRequest.xml", GetAltinnAppsPath());
         }
 
-        public static Instance GetInstanceData(string instanceFileName)
+        public static Instance GetInstanceData(string instanceId)
         {
-            string filePath = Path.Combine(GetInstancePath(), instanceFileName);
+            string filePath = Path.Combine(GetInstancePath(), instanceId);
             string instanceData = File.ReadAllText(filePath);
             Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
             return instance;
@@ -163,7 +163,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         public static void DeleteAppBlobData(string org, string app)
         {
             string blobPath = Path.Combine(GetDataBlobPath(), $"{org}\\{app}");
-            
+
             if (Directory.Exists(blobPath))
             {
                 Directory.Delete(blobPath, true);
@@ -198,13 +198,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyInformationRepositoryTest).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Applications");
         }
-
-        private static string GetRolesPath(int userId, int resourcePartyId)
+        private static string GetRolesPath(int coveredByUserId, int offeredByPartyId)
         {
-            // string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ContextHandlerTest).Assembly.CodeBase).LocalPath);
-            // return Path.Combine(unitTestFolder, @"..\..\..\Data\Roles\User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
-            return "";
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ContextHandlerTest).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Roles\User_" + coveredByUserId + @"\party_" + offeredByPartyId + @"\roles.json");
         }
-
     }
 }
