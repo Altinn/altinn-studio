@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -14,6 +12,8 @@ using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
 using Altinn.Platform.Storage.UnitTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
+using Altinn.Platform.Storage.UnitTest.Mocks.Wrappers;
 using Altinn.Platform.Storage.Wrappers;
 
 using AltinnCore.Authentication.JwtCookie;
@@ -27,8 +27,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
-using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
-using Microsoft.Azure.Documents.SystemFunctions;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
@@ -541,6 +539,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                         services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
+                        services.AddSingleton<IParties, PartiesWrapperMock>();
                         services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                     });

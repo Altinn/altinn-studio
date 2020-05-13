@@ -492,6 +492,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
                 Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
                 Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
+                Mock<IParties> partiesWrapper = new Mock<IParties>();
+
                 Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
@@ -503,6 +505,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                         services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
+                        services.AddSingleton(partiesWrapper.Object);
                         services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                     });

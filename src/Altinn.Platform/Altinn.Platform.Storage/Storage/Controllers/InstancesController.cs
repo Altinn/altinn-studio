@@ -12,6 +12,7 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.Wrappers;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -37,6 +38,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly IParties _partiesWrapper;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
         private readonly string _storageBaseAndHost;
@@ -47,6 +49,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
+        /// <param name="partiesWrapper">An implementation of <see cref="IParties"/> that can be used to send information to SBL.</param>
         /// <param name="logger">the logger</param>
         /// <param name="pdp">the policy decision point.</param>
         /// <param name="settings">the general settings.</param>
@@ -54,6 +57,7 @@ namespace Altinn.Platform.Storage.Controllers
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
+            IParties partiesWrapper,
             ILogger<InstancesController> logger,
             IPDP pdp,
             IOptions<GeneralSettings> settings)
@@ -61,6 +65,7 @@ namespace Altinn.Platform.Storage.Controllers
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
+            _partiesWrapper = partiesWrapper;
             _pdp = pdp;
             _logger = logger;
             _storageBaseAndHost = $"{settings.Value.Hostname}/storage/api/v1/";
@@ -116,7 +121,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             org = string.IsNullOrEmpty(org) ? appId.Split('/')[0] : org;
 
-            _logger.LogInformation($" // InstancesController // GetInstances // Tyring to get instances for org: {org}");
+            _logger.LogInformation($" // InstancesController // GetInstances // Trying to get instances for org: {org}");
 
             if (!AuthorizationHelper.VerifyOrgInClaimPrincipal(org, HttpContext.User))
             {
@@ -281,6 +286,8 @@ namespace Altinn.Platform.Storage.Controllers
                 _logger.LogInformation($"Created instance: {storedInstance.Id}");
                 storedInstance.SetPlatformSelflink(_storageBaseAndHost);
 
+                await _partiesWrapper.SetHasAltinn3Instances(instanceOwnerPartyId);
+
                 return Created(storedInstance.SelfLinks.Platform, storedInstance);
             }
             catch (Exception storageException)
@@ -300,7 +307,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance that should be deleted.</param>
-        /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribut set to todays date and time.</param>
+        /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribute set to current date and time.</param>
         /// <returns>Information from the deleted instance.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_DELETE)]
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
@@ -364,7 +371,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"Unexpeced exception when updating instance after soft delete: {e}");
+                    _logger.LogError($"Unexpected exception when updating instance after soft delete: {e}");
                     return StatusCode(500, $"Unexpected exception when updating instance after soft delete: {e.Message}");
                 }
             }
