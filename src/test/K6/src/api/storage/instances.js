@@ -50,12 +50,15 @@ export function findInstanceId(responseBody){
 };
 
 //Function to find all the archived app instances for an appOwner for a specific app and returns instance id as an array
-export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, appName){
+export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, appName, count){
     var allInstances = getInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, "true");
     var params = header.buildHeaderWithRuntimeAsCookie(altinnStudioRuntimeCookie, "platform");
     allInstances = JSON.parse(allInstances.body);
     let archivedInstances = buildArrayWithInstanceIds(allInstances.instances);
     while(allInstances.next !== null){
+        if (archivedInstances.length >= count){
+            break; // exit loop if the archivedInstances array length is more than required count (total iterations)
+        };
         allInstances = http.get(allInstances.next, params);
         if(allInstances.status != 200){
             printResponseToConsole("Get all instances failed:", false, allInstances);

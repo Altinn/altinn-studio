@@ -29,10 +29,13 @@ export const options = {
 export function setup(){
     var altinnStudioRuntimeToken = convertMaskinPortenToken(maskinPortenToken, "true");
     var data = {};
+    var maxVus = (options.vus) ? options.vus : 1;
+    var totalIterations = (options.iterations) ? options.iterations : 1;    
+    data.maxIter = Math.floor(totalIterations / maxVus); //maximum iteration per vu
     data.runtimeToken = altinnStudioRuntimeToken;
-    var archivedAppInstances = storageInstances.findAllArchivedInstances(altinnStudioRuntimeToken, appOwner, level2App);
+    var archivedAppInstances = storageInstances.findAllArchivedInstances(altinnStudioRuntimeToken, appOwner, level2App, totalIterations);
     archivedAppInstances = setUpData.shuffle(archivedAppInstances);
-    data.instances = archivedAppInstances;
+    data.instances = archivedAppInstances;    
     setUpData.clearCookies();
     return data;
 };
@@ -40,9 +43,7 @@ export function setup(){
 export default function(data){
     const runtimeToken = data["runtimeToken"];
     const instances = data.instances;
-    var totalIterations = (options.iterations) ? options.iterations : 1;
-    var maxVus = (options.vus) ? options.vus : 1;
-    var maxIter = Math.floor(totalIterations / maxVus); //maximum iteration per vu
+    var maxIter = data.maxIter;
     var uniqueNum = ((__VU * maxIter) - (maxIter) + (__ITER));
     uniqueNum = (uniqueNum > instances.length) ? (Math.floor(uniqueNum % instances.length)) : uniqueNum;
     

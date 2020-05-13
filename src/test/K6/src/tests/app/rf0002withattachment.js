@@ -34,19 +34,21 @@ export const options = {
 
 //setup functions creates an array of attachment data based on the distribution percentage and total iteration count
 export function setup(){
+    var data = {};
     var totalIterations = (options.iterations) ? options.iterations : 1;
+    var maxVus = (options.vus) ? options.vus : 1;
+    data.maxIter = Math.floor(totalIterations / maxVus); //maximum iteration per vu
     attachmentDistribution = (attachmentDistribution) ? attachmentDistribution : "";
     let attachmentTypes = setUpData.buildAttachmentTypeArray(attachmentDistribution, totalIterations);
-    return attachmentTypes;
+    data.attachmentTypes = attachmentTypes;
+    return data;
 }
 
 //Tests for App API: RF-0002
 export default function(data) {
-    var totalIterations = (options.iterations) ? options.iterations : 1;
     var userNumber = (__VU - 1) % usersCount;
-    var maxVus = (options.vus) ? options.vus : 1;
-    var maxIter = Math.floor(totalIterations / maxVus); //maximum iteration per vu
-    data = (data[0]) ? data : ['s'];
+    var maxIter = data.maxIter
+    var attachmentTypes = (data.attachmentTypes[0]) ? data.attachmentTypes : ['s'];    
 
     //Find a unique number for the type of attachment to upload
     var uniqueNum = ((__VU * maxIter) - (maxIter) + (__ITER));
@@ -89,7 +91,7 @@ export default function(data) {
     printResponseToConsole("E2E PUT Edit Data by Id:", success, res);
 
     //dynamically assign attachments - based on the value from the array holding the attachment type
-    var attachment = (data[uniqueNum] === 's') ? smallAttachment : ((data[uniqueNum] === 'm') ? mediumAttachment : largeAttachment);
+    var attachment = (attachmentTypes[uniqueNum] === 's') ? smallAttachment : ((attachmentTypes[uniqueNum] === 'm') ? mediumAttachment : largeAttachment);
     
     //upload a upload attachment to an instance with App API
     res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, attachment);
