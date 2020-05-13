@@ -28,7 +28,8 @@ using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
-    public partial class IntegrationTests {
+    public partial class IntegrationTests
+    {
 
         /// <summary>
         /// Test class for Process Controller. Focuses on authorization of requests.
@@ -59,7 +60,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 _repositoryMock.Setup(r => r.ListInstanceEvents(It.IsAny<string>(), It.IsAny<string[]>(), null, null)).ReturnsAsync(new List<InstanceEvent>());
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(1337, 1);
+                string token = PrincipalUtil.GetToken(3, 1337, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -79,7 +80,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string requestUri = $"storage/api/v1/instances/1337/ba577e7f-3dfd-4ff6-b659-350308a47348/process/history";
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(-1);
+                string token = PrincipalUtil.GetToken(-1, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -100,7 +101,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string requestUri = $"storage/api/v1/instances/1337/17ad1851-f6cb-4573-bfcb-a17d145307b3/process/history";
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(1337, 2);
+                string token = PrincipalUtil.GetToken(3, 1337, 2);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -127,7 +128,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(1337, 1);
+                string token = PrincipalUtil.GetToken(3, 1337, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -151,7 +152,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(-1);
+                string token = PrincipalUtil.GetToken(-1, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -170,14 +171,14 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 TestDataUtil.DeleteInstanceAndData(1337, new Guid("20a1353e-91cf-44d6-8ff7-f68993638ffe"));
                 TestDataUtil.PrepareInstance(1337, new Guid("20a1353e-91cf-44d6-8ff7-f68993638ffe"));
-         
+
                 // Arrange 
                 string requestUri = $"storage/api/v1/instances/1337/20a1353e-91cf-44d6-8ff7-f68993638ffe/process/";
                 ProcessState state = new ProcessState();
                 StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(1337,3);
+                string token = PrincipalUtil.GetToken(3, 1337, 3);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act

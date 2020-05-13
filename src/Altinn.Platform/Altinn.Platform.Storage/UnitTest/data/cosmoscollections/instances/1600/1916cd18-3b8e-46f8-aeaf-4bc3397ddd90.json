@@ -1,10 +1,10 @@
 {
-  "id": "1600/1916cd18-3b8e-46f8-aeaf-4bc3397ddd12",
+  "id": "1916cd18-3b8e-46f8-aeaf-4bc3397ddd90",
   "instanceOwner": {
     "partyId": "1600"
   },
-  "appId": "tdd/test-applikasjon-1",
-  "org": "tdd",  
+  "appId": "ttd/complete-test",
+  "org": "ttd",  
   "dueBefore": "2019-07-05T00:00:00Z",
   "visibleAfter": "2019-06-05T00:00:00Z",
   "process": {

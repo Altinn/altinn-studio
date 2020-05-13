@@ -383,7 +383,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 HttpClient client = GetTestClient(applicationRepository.Object);
 
-                string token = PrincipalUtil.GetToken(1, 0);
+                string token = PrincipalUtil.GetToken(10001, 50001, 0);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 Application updatedApp = CreateApplication(org, appName);
@@ -418,7 +418,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 HttpClient client = GetTestClient(applicationRepository.Object);
 
-                string token = PrincipalUtil.GetToken(-1);
+                string token = PrincipalUtil.GetToken(-10001, 50001);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 Application updatedApp = CreateApplication(org, appName);

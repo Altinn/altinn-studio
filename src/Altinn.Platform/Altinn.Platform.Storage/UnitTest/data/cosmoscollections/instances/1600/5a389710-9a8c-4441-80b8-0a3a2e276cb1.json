@@ -1,0 +1,31 @@
+{
+  "id": "5a389710-9a8c-4441-80b8-0a3a2e276cb1",
+  "instanceOwner": {
+    "partyId": "1600",
+    "personNumber": "01044091042"
+  },
+  "appId": "ttd/endring-av-navn-v2",
+  "org": "ttd",
+  "title": {
+    "nb": "Endring av navn test"
+  },
+  "process": {
+    "started": "2020-01-29T13:16:29.1955508Z",
+    "startEvent": "StartEvent_1",
+    "ended": "2020-01-29T13:16:46.244377Z",
+    "endEvent": "EndEvent_1"
+  },
+  "status": {
+    "archived": "2020-01-29T13:16:46.244377Z"
+  },
+  "appOwner": {},
+  "created": "2020-01-29T13:16:29.2725276Z",
+  "createdBy": "20000013",
+  "lastChanged": "2020-01-29T13:16:47.0369678Z",
+  "lastChangedBy": "20000013",
+  "_rid": "uHp7ALWZ1j9vAAAAAAAAAA==",
+  "_self": "dbs/uHp7AA==/colls/uHp7ALWZ1j8=/docs/uHp7ALWZ1j9vAAAAAAAAAA==/",
+  "_etag": "\"0300a75b-0000-3c00-0000-5e3185bf0000\"",
+  "_attachments": "attachments/",
+  "_ts": 1580303807
+}

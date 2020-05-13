@@ -40,7 +40,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 Data = new List<DataElement>(),
             };
 
-            string instancePath = GetInstancePath(instanceGuid);
+            string instancePath = GetInstancePath(instance.InstanceOwner.PartyId, instanceGuid);
             File.WriteAllText(instancePath, instance.ToString());
 
             return Task.FromResult(instance);
@@ -54,36 +54,36 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
         {
 
-                List<Instance> instances = new List<Instance>();
+            List<Instance> instances = new List<Instance>();
 
-                string instancesForPartyPath = GetInstancesPath();
+            string instancesForPartyPath = $"{GetInstancesPath()}\\{instanceOwnerPartyId}";
 
-                if (Directory.Exists(instancesForPartyPath))
+            if (Directory.Exists(instancesForPartyPath))
+            {
+                string[] instancesFiles = Directory.GetFiles(instancesForPartyPath);
+                foreach (string instancePath in instancesFiles)
                 {
-                    string[] instancesFiles = Directory.GetFiles(instancesForPartyPath);
-                    foreach (string instancePath in instancesFiles)
+                    if (!instancePath.Contains("pretest"))
                     {
-                        if (!instancePath.Contains("pretest"))
+                        Instance instance = null;
+                        lock (TestDataUtil.dataLock)
                         {
-                            Instance instance = null;
-                            lock (TestDataUtil.dataLock)
-                            {
-                            string content = System.IO.File.ReadAllText(instancePath);
+                            string content = File.ReadAllText(instancePath);
                             instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                            }
+                        }
 
-                            await PostProcess(instance);
+                        await PostProcess(instance);
 
-                            if (instance.InstanceOwner.PartyId == instanceOwnerPartyId.ToString())
-                            {
-                                instances.Add(instance);
-                            }
+                        if (instance.InstanceOwner.PartyId == instanceOwnerPartyId.ToString())
+                        {
+                            instances.Add(instance);
                         }
                     }
                 }
+            }
 
-                return Filter(instanceState, instances);
-           
+            return Filter(instanceState, instances);
+
         }
 
 
@@ -121,25 +121,95 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return filter.ToList();
         }
 
-        public Task<InstanceQueryResponse> GetInstancesOfApplication(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
+        public async Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
-            throw new NotImplementedException();
-        }
+            InstanceQueryResponse response = new InstanceQueryResponse();
+            List<Instance> instances = new List<Instance>();
 
-        public Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerPartyId)
-        {
-            throw new NotImplementedException();
+
+            string instancesPath = GetInstancesPath();
+
+            if (queryParams.ContainsKey("appId"))
+            {
+                string appId = queryParams.GetValueOrDefault("appId").ToString();
+
+
+                if (Directory.Exists(instancesPath))
+                {
+
+                    string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
+
+                    foreach (var file in files)
+                    {
+                        if (!file.Contains("pretest"))
+                        {
+                            string content = File.ReadAllText(file);
+                            Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                            if (instance.AppId.Equals(appId, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                await PostProcess(instance);
+                                instances.Add(instance);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (queryParams.ContainsKey("instanceOwner.PartyId"))
+            {
+                instancesPath += $"\\{queryParams.GetValueOrDefault("instanceOwner.PartyId")}";
+                string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
+                foreach (var file in files)
+                {
+                    if (!file.Contains("pretest"))
+                    {
+                        string content = File.ReadAllText(file);
+                        Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                        await PostProcess(instance);
+                        instances.Add(instance);
+                    }
+                }
+            }
+            else if (queryParams.ContainsKey("org"))
+            {
+                string org = queryParams.GetValueOrDefault("org").ToString();
+
+
+                if (Directory.Exists(instancesPath))
+                {
+
+                    string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
+
+                    foreach (var file in files)
+                    {
+                        if (!file.Contains("pretest"))
+                        {
+                            string content = File.ReadAllText(file);
+                            Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                            if (instance.Org.Equals(org, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                await PostProcess(instance);
+                                instances.Add(instance);
+                            }
+                        }
+                    }
+                }
+            }
+
+            response.Instances = instances;
+            response.Count = instances.Count();
+            response.TotalHits = instances.Count();
+            return response;
         }
 
         public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
-            string instancePath = GetInstancePath(new Guid(instanceId.Split("/")[1]));
+            string instancePath = GetInstancePath(instanceOwnerPartyId.ToString(), new Guid(instanceId.Split("/")[1]));
             if (File.Exists(instancePath))
             {
-                    string content = System.IO.File.ReadAllText(instancePath);
-                    Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                    await PostProcess(instance);
-                    return instance;
+                string content = File.ReadAllText(instancePath);
+                Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                await PostProcess(instance);
+                return instance;
             }
 
             throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));
@@ -154,7 +224,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             }
 
             Guid instanceGuid = Guid.Parse(instance.Id);
-            string instancePath = GetInstancePath(instanceGuid);
+            string instancePath = GetInstancePath(instance.InstanceOwner.PartyId, instanceGuid);
 
             if (File.Exists(instancePath))
             {
@@ -165,9 +235,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return null;
         }
 
-        private string GetInstancePath(Guid instanceId)
+        private string GetInstancePath(string instanceOwnerPartyId, Guid instanceGuid)
         {
-            return Path.Combine(GetInstancesPath(), instanceId.ToString() + ".json");
+            return Path.Combine(GetInstancesPath(), instanceOwnerPartyId, instanceGuid.ToString() + ".json");
         }
 
         private string GetInstancesPath()
@@ -205,7 +275,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
             instance.Id = instanceId;
-           // instance.Data = await _dataRepository.ReadAll(instanceGuid);
+            // instance.Data = await _dataRepository.ReadAll(instanceGuid);
         }
 
         /// <summary>

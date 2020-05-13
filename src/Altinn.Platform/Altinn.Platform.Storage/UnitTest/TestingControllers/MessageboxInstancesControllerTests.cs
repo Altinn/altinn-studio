@@ -50,8 +50,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public MessageboxInstancesControllerTests(WebApplicationFactory<Startup> factory)
             {
                 _factory = factory;
-                _validToken = PrincipalUtil.GetToken(1);
-                _validTokenUsr3 = PrincipalUtil.GetToken(3);
+                _validToken = PrincipalUtil.GetToken(1, 1000);
+                _validTokenUsr3 = PrincipalUtil.GetToken(3, 1000);
             }
 
             /// <summary>
@@ -67,7 +67,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 // Arrange
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337,3));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
                 // Act
                 HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/{1337}?state=active");
@@ -97,7 +97,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 // Arrange
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
                 // Act
                 HttpResponseMessage response = await client.GetAsync($"{BasePath}/sbl/instances/1337?state=active&language=en");
@@ -129,7 +129,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 MessageBoxTestData testData = new MessageBoxTestData();
 
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
                 // Act
                 HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/{1337}?state=archived");
@@ -160,7 +160,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 TestDataUtil.PrepareInstance(1337, new Guid("da1f620f-1764-4f98-9f03-74e5e20f10fe"));
                 // Arrange
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
                 // Act
                 HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/{1337}/da1f620f-1764-4f98-9f03-74e5e20f10fe/undelete", null);
@@ -186,7 +186,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 // Arrange
                 HttpClient client = GetTestClient();
-                string token = PrincipalUtil.GetToken(1337, 1);
+                string token = PrincipalUtil.GetToken(1337, 1337, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -209,7 +209,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 // Arrange
                 HttpClient client = GetTestClient();
-                string token = PrincipalUtil.GetToken(-1);
+                string token = PrincipalUtil.GetToken(-1, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -234,7 +234,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 // Arrange
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
                 // Act
                 HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/1337/f888c42b-8749-41d6-8048-8fc28c70beaa/undelete", null);
@@ -259,7 +259,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 // Arrange
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
                 // Act
                 HttpResponseMessage response = await client.PutAsync($"{BasePath}/sbl/instances/1337/4be22ede-a16c-4a93-be7f-c529788d6a4c/undelete", null);
@@ -284,7 +284,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 TestDataUtil.PrepareInstance(1337, new Guid("08274f48-8313-4e2d-9788-bbdacef5a54e"));
 
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
                 // Act
                 HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/1337/08274f48-8313-4e2d-9788-bbdacef5a54e?hard=false");
@@ -315,7 +315,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     .ReturnsAsync((InstanceEvent r) => r);
 
                 HttpClient client = GetTestClient();
-                string token = PrincipalUtil.GetToken(1337, 1);
+                string token = PrincipalUtil.GetToken(1337, 1337, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -338,7 +338,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 // Arrange
                 HttpClient client = GetTestClient();
-                string token = PrincipalUtil.GetToken(-1);
+                string token = PrincipalUtil.GetToken(-1, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -365,7 +365,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 TestDataUtil.DeleteInstanceAndData(1337, new Guid("7a951b5b-ef96-4032-9273-f8d7651266f4"));
                 TestDataUtil.PrepareInstance(1337, new Guid("7a951b5b-ef96-4032-9273-f8d7651266f4"));
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337,3));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
                 // Act
                 HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/1337/7a951b5b-ef96-4032-9273-f8d7651266f4?hard=true");
@@ -398,7 +398,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Arrange
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
                 // Act
                 HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/1337/d9a586ca-17ab-453d-9fc5-35eaadb3369b?hard=true");
@@ -424,7 +424,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 // Arrange
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 3));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1, 3));
 
                 // Act
                 HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/1337/e6efc10e-913b-4a81-a36a-02376f5f5678?hard=true");
@@ -449,7 +449,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 TestDataUtil.PrepareInstance(1337, "3b67392f-36c6-42dc-998f-c367e771dcdd");
                 // Arrange
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 3));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
                 // Act
                 HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/1337/3b67392f-36c6-42dc-998f-c367e771dcdd?hard=false");
@@ -476,7 +476,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 // Arrange
                 HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 3));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1337, 3));
 
                 // Act
                 HttpResponseMessage response = await client.DeleteAsync($"{BasePath}/sbl/instances/1337/367a5e5a-12c6-4a74-b72b-766d95f859b0?hard=false");
