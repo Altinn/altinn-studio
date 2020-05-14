@@ -55,7 +55,7 @@ export default function(data) {
     //Test to get all instances for a party from storage and validate the response to have 403 as code
     res = instances.getAllinstancesByPartyId(runtimeToken, partyId);
     success = check(res, {
-        "GET Instaces by instanceOwner status is 403:": (r) => r.status === 403        
+        "GET Instaces by instanceOwner status is 200:": (r) => r.status === 200        
         });  
     addErrorCount(success);       
 
