@@ -4,19 +4,17 @@ import { useSelector } from 'react-redux';
 import moment from 'moment';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
-import {AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent} from 'altinn-shared/components';
+import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent} from 'altinn-shared/components';
 import { IInstance, IParty, ITextResource } from 'altinn-shared/types';
-import {
-  getCurrentTaskData,
+import { getCurrentTaskData,
   mapInstanceAttachments,
   getLanguageFromKey,
   getUserLanguage,
-  returnUrlToMessagebox
-} from 'altinn-shared/utils';
+  returnUrlToMessagebox } from 'altinn-shared/utils';
+import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IRuntimeState } from '../../../types';
-import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 
 export interface IReceiptContainerProps extends RouteChildrenProps {
 }

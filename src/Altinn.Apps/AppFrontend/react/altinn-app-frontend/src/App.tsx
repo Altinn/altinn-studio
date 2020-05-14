@@ -1,7 +1,8 @@
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import {AltinnAppTheme} from 'altinn-shared/theme';
+import { AltinnAppTheme } from 'altinn-shared/theme';
+import { useSelector } from 'react-redux';
 import ProcessStepWrapper from './shared/containers/ProcessStepWrapper';
 import Instantiate from './features/instantiate/containers';
 import UnknownError from './features/instantiate/containers/UnknownError';
@@ -9,7 +10,6 @@ import PartySelection from './features/instantiate/containers/PartySelection';
 import QueueActions from './shared/resources/queue/queueActions';
 import { get } from './utils/networking';
 import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from './utils/urlHelper';
-import { useSelector } from 'react-redux';
 import { makeGetHasErrorsSelector } from './selectors/getErrors';
 
 const theme = createMuiTheme(AltinnAppTheme);
@@ -17,7 +17,7 @@ const theme = createMuiTheme(AltinnAppTheme);
 // 1 minute = 60.000ms
 const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
 
-export default function() {
+export default function () {
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors: boolean = useSelector(hasErrorSelector);
 
@@ -42,14 +42,14 @@ export default function() {
     if ((timeNow - lastRefreshTokenTimestamp) > TEN_MINUTE_IN_MILLISECONDS) {
       lastRefreshTokenTimestamp = timeNow;
       get(refreshJwtTokenUrl)
-      .catch((err) => {
-        // Most likely the user has an expired token, so we redirect to the login-page
-        try {
-          window.location.href = getEnvironmentLoginUrl();
-        } catch (error) {
-          console.error(err, error);
-        }
-      });
+        .catch((err) => {
+          // Most likely the user has an expired token, so we redirect to the login-page
+          try {
+            window.location.href = getEnvironmentLoginUrl();
+          } catch (error) {
+            console.error(err, error);
+          }
+        });
     }
   }
 
@@ -58,7 +58,7 @@ export default function() {
     QueueActions.startInitialAppTaskQueue();
     setUpEventListeners();
     return function cleanup() {
-     removeEventListeners();
+      removeEventListeners();
     };
   }, []);
 
@@ -69,9 +69,21 @@ export default function() {
   return (
     <MuiThemeProvider theme={theme}>
       <Switch>
-        <Route path={'/'} exact={true} component={Instantiate} />
-        <Route path={'/partyselection/:errorCode?'} exact={true} component={PartySelection} />
-        <Route path={'/instance/:partyId/:instanceGuid'} exact={true} component={ProcessStepWrapper} />
+        <Route
+          path='/'
+          exact={true}
+          component={Instantiate}
+        />
+        <Route
+          path='/partyselection/:errorCode?'
+          exact={true}
+          component={PartySelection}
+        />
+        <Route
+          path='/instance/:partyId/:instanceGuid'
+          exact={true}
+          component={ProcessStepWrapper}
+        />
       </Switch>
     </MuiThemeProvider>
   );
