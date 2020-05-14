@@ -7,12 +7,13 @@ using System.Web;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
+
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-using Altinn.Platform.Storage.Wrappers;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -35,15 +36,16 @@ namespace Altinn.Platform.Storage.Controllers
     [ApiController]
     public class InstancesController : ControllerBase
     {
+        private const string InstanceReadScope = "altinn:instances.read";
+
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly IParties _partiesWrapper;
+        private readonly IPartiesWithInstancesClient _partiesWithInstancesClient;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
         private readonly AuthorizationHelper _authzHelper;
         private readonly string _storageBaseAndHost;
-        private const string INSTANCE_READ_SCOPE = "altinn:instances.read";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -51,7 +53,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
-        /// <param name="partiesWrapper">An implementation of <see cref="IParties"/> that can be used to send information to SBL.</param>
+        /// <param name="partiesWithInstancesClient">An implementation of <see cref="IPartiesWithInstancesClient"/> that can be used to send information to SBL.</param>
         /// <param name="logger">the logger</param>
         /// <param name="authzLogger">the logger for the authorization helper</param>
         /// <param name="pdp">the policy decision point.</param>
@@ -60,7 +62,7 @@ namespace Altinn.Platform.Storage.Controllers
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
-            IParties partiesWrapper,
+            IPartiesWithInstancesClient partiesWithInstancesClient,
             ILogger<InstancesController> logger,
             ILogger<AuthorizationHelper> authzLogger,
             IPDP pdp,
@@ -69,7 +71,7 @@ namespace Altinn.Platform.Storage.Controllers
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
-            _partiesWrapper = partiesWrapper;
+            _partiesWithInstancesClient = partiesWithInstancesClient;
             _pdp = pdp;
             _logger = logger;
             _storageBaseAndHost = $"{settings.Value.Hostname}/storage/api/v1/";
@@ -129,7 +131,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 isOrgQuerying = true;
 
-                if (!_authzHelper.ContainsRequiredScope(INSTANCE_READ_SCOPE, User))
+                if (!_authzHelper.ContainsRequiredScope(InstanceReadScope, User))
                 {
                     return Forbid();
                 }
@@ -324,7 +326,7 @@ namespace Altinn.Platform.Storage.Controllers
                 _logger.LogInformation($"Created instance: {storedInstance.Id}");
                 storedInstance.SetPlatformSelflink(_storageBaseAndHost);
 
-                await _partiesWrapper.SetHasAltinn3Instances(instanceOwnerPartyId);
+                await _partiesWithInstancesClient.SetHasAltinn3Instances(instanceOwnerPartyId);
 
                 return Created(storedInstance.SelfLinks.Platform, storedInstance);
             }

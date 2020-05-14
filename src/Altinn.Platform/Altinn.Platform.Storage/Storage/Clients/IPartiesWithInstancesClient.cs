@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
 
-namespace Altinn.Platform.Storage.Wrappers
+namespace Altinn.Platform.Storage.Clients
 {
     /// <summary>
-    /// Interface for actions related to actor
+    /// Interface for actions related to the parties with instances resource in SBL.
     /// </summary>
-    public interface IParties
+    public interface IPartiesWithInstancesClient
     {
         /// <summary>
         /// Call SBL to inform about a party getting an instance of an app.

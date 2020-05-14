@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Configuration;
-using Altinn.Platform.Storage.Wrappers;
 
 using Microsoft.Extensions.Options;
 
@@ -14,14 +13,10 @@ using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace Altinn.Platform.Storage.UnitTest.TestingWrappers
+namespace Altinn.Platform.Storage.UnitTest.TestingClients
 {
-    public class PartiesWrapperTests
+    public class PartiesWithInstancesClientTests
     {
-        public PartiesWrapperTests()
-        {
-        }
-
         [Fact]
         public async Task SetHasAltinn3Instances_InputPartyId_LogicCallsCorrectEndpoint()
         {
@@ -43,7 +38,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingWrappers
                 });
 
             HttpClient httpClient = new HttpClient(mockHttpMessageHandler.Object);
-            PartiesWrapper target = new PartiesWrapper(new PartyClient(httpClient, generalSettings));
+            PartiesWithInstancesClient target = new PartiesWithInstancesClient(httpClient, generalSettings);
 
             // Act
             await target.SetHasAltinn3Instances(instanceOwnerPartyId);

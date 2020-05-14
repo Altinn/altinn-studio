@@ -8,6 +8,7 @@ using System.Reflection;
 
 using Altinn.Common.PEP.Interfaces;
 
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
@@ -492,7 +493,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
                 Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
                 Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
-                Mock<IParties> partiesWrapper = new Mock<IParties>();
+                Mock<IPartiesWithInstancesClient> partiesWrapper = new Mock<IPartiesWithInstancesClient>();
 
                 Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>

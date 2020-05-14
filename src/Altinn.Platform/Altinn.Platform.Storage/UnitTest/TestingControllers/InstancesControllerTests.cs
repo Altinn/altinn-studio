@@ -7,13 +7,14 @@ using System.Text;
 
 using Altinn.Common.PEP.Interfaces;
 
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
 using Altinn.Platform.Storage.UnitTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Mocks.Clients;
 using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
-using Altinn.Platform.Storage.UnitTest.Mocks.Wrappers;
 using Altinn.Platform.Storage.Wrappers;
 
 using AltinnCore.Authentication.JwtCookie;
@@ -671,7 +672,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                         services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
-                        services.AddSingleton<IParties, PartiesWrapperMock>();
+                        services.AddSingleton<IPartiesWithInstancesClient, PartiesWithInstancesClientMock>();
                         services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                     });

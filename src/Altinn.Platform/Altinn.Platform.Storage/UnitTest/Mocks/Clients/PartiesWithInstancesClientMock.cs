@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
 
-using Altinn.Platform.Storage.Wrappers;
+using Altinn.Platform.Storage.Clients;
 
-namespace Altinn.Platform.Storage.UnitTest.Mocks.Wrappers
+namespace Altinn.Platform.Storage.UnitTest.Mocks.Clients
 {
-    public class PartiesWrapperMock : IParties
+    public class PartiesWithInstancesClientMock : IPartiesWithInstancesClient
     {
         public async Task SetHasAltinn3Instances(int instanceOwnerPartyId)
         {
