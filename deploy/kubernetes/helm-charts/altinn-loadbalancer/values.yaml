@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: nginx
-  tag: latest
+  tag: 1.18.0-alpine
   pullPolicy: IfNotPresent
   containerPorts:
     http: 80

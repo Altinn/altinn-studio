@@ -1,10 +1,10 @@
 {
-  "id": "1000/1916cd18-3b8e-46f8-aeaf-4bc3397ddd08",
+  "id": "1916cd18-3b8e-46f8-aeaf-4bc3397ddd69",
   "instanceOwner": {
     "partyId": "1000"
   },
-  "appId": "tdd/test-applikasjon-1",
-  "org": "tdd",
+  "appId": "ttd/complete-test",
+  "org": "ttd",
   "created": "2019-07-31T09:57:23.4729995Z",
   "lastChanged": "2019-07-31T09:57:23.4729995Z",
   "dueBefore": "2019-07-05T00:00:00Z",
