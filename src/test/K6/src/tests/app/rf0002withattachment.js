@@ -52,7 +52,7 @@ export default function(data) {
 
     //Find a unique number for the type of attachment to upload
     var uniqueNum = ((__VU * maxIter) - (maxIter) + (__ITER));
-    uniqueNum = (uniqueNum > data.length) ? Math.floor((uniqueNum % data.length)) : uniqueNum;
+    uniqueNum = (uniqueNum > attachmentTypes.length) ? Math.floor((uniqueNum % attachmentTypes.length)) : uniqueNum;
 
     //Find a username and password from the users file
     try {
