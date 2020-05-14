@@ -418,7 +418,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </remarks>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
-        /// <returns>Returns a list of the process events.</returns>        
+        /// <returns>Returns a list of the process events.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_COMPLETE)]
         [HttpPost("{instanceOwnerPartyId:int}/{instanceGuid:guid}/complete")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -473,7 +473,6 @@ namespace Altinn.Platform.Storage.Controllers
                 AppId = appInfo.Id,
                 Org = appInfo.Org,
                 VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleAfter),
-                Title = instanceTemplate.Title,
                 Status = instanceTemplate.Status,
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
                 AppOwner = new ApplicationOwnerState
@@ -481,19 +480,6 @@ namespace Altinn.Platform.Storage.Controllers
                     Labels = instanceTemplate.AppOwner?.Labels,
                 },
             };
-
-            // copy applications title to presentation field if not set by instance template
-            if (createdInstance.Title == null && appInfo.Title != null)
-            {
-                LanguageString presentation = new LanguageString();
-
-                foreach (KeyValuePair<string, string> title in appInfo.Title)
-                {
-                    presentation.Add(title.Key, title.Value);
-                }
-
-                createdInstance.Title = presentation;
-            }
 
             createdInstance.Data = new List<DataElement>();
 
