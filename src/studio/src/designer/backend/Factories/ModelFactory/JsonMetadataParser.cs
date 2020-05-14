@@ -62,11 +62,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 .AppendLine("using System;")
                 .AppendLine("using System.Collections.Generic;")
                 .AppendLine("using System.Linq;")
-                .AppendLine("using System.Text.Json.Serialization;")
                 .AppendLine("using System.Threading.Tasks;")
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
+                .AppendLine("using Newtonsoft.Json;")
                 .AppendLine("namespace " + string.Format(CodeGeneration.AppNamespaceTemplate + ".Models"))
                 .AppendLine("{")
                 ////Append all classes
@@ -109,7 +109,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     else
                     {
                         classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\")]");
-                        classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
+                        classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
                     }
 
                     if (element.Value.MaxOccurs > 1)
@@ -125,7 +125,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 {
                     WriteRestrictionAnnotations(classBuilder, element.Value);
                     classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\")]");
-                    classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
+                    classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
 
                     if (element.Value.MaxOccurs > 1)
                     {
