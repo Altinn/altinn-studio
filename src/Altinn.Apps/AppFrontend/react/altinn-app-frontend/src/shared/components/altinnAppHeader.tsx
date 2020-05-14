@@ -5,8 +5,8 @@ import { AltinnLogo } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey, returnUrlToMessagebox } from 'altinn-shared/utils';
 import { IProfile } from 'altinn-shared/types';
-import { renderParty } from '../resources/utils/party';
 import { returnUrlToAllSchemas, returnUrlToProfile } from 'altinn-shared/utils/urlHelper';
+import { renderParty } from '../resources/utils/party';
 
 export interface IHeaderProps {
   classes: any;
