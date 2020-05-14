@@ -24,10 +24,10 @@
   "dependencies": {
     "bootstrap": "4.4.1",
     "bootstrap-list-filter": "0.3.3",
-    "jquery": "3.4.1",
+    "jquery": "3.5.1",
     "jquery-ui-dist": "1.12.1",
-    "jquery-validation": "1.17.0",
-    "jquery-validation-unobtrusive": "3.2.10",
+    "jquery-validation": "1.19.1",
+    "jquery-validation-unobtrusive": "3.2.11",
     "js-beautify": "1.7.5",
     "json-editor": "0.7.28",
     "monaco-editor": "0.13.1",

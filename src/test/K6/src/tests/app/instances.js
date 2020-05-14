@@ -5,8 +5,8 @@ import * as platformInstances from "../../api/storage/instances.js"
 import {deleteSblInstance} from "../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
-let userName = __ENV.username;
-let userPassword = __ENV.userpwd;
+const userName = __ENV.username;
+const userPassword = __ENV.userpwd;
 
 export const options = {
     thresholds:{

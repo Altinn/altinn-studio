@@ -186,6 +186,7 @@ export interface ITextResourceBindings {
 export interface IUiConfig {
   focus: string;
   hiddenFields: string[];
+  autoSave: boolean;
 }
 
 export interface IValidations {

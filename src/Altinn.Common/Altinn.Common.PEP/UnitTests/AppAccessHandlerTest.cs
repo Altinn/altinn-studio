@@ -28,8 +28,7 @@ namespace Altinn.Common.PEP.Authorization
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _pdpMock = new Mock<IPDP>();
             _generalSettings = Options.Create(new PepSettings());
-            _generalSettings.Value.DisablePEP = false;
-            _aah = new AppAccessHandler(_httpContextAccessorMock.Object, _pdpMock.Object, _generalSettings, new Mock<ILogger<AppAccessHandler>>().Object);
+            _aah = new AppAccessHandler(_httpContextAccessorMock.Object, _pdpMock.Object, new Mock<ILogger<AppAccessHandler>>().Object);
         }
 
         /// <summary>
@@ -176,25 +175,6 @@ namespace Altinn.Common.PEP.Authorization
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>(() => _aah.HandleAsync(context));
-        }
-
-        /// <summary>
-        /// Test case: Send request and get response where disablePEP is true
-        /// Expected: Context will succeed
-        /// </summary>
-        [Fact]
-        public async Task HandleRequirementAsync_TC08Async()
-        {
-            // Arrange
-            _generalSettings.Value.DisablePEP = true;
-            AuthorizationHandlerContext context = CreateAuthorizationHandlerContext();
-
-            // Act
-            await _aah.HandleAsync(context);
-
-            // Assert
-            Assert.True(context.HasSucceeded);
-            Assert.False(context.HasFailed);
         }
 
         private ClaimsPrincipal CreateUser()

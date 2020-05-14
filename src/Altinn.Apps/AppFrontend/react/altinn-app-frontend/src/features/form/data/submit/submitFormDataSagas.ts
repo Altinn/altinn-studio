@@ -3,7 +3,7 @@ import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
 import { getCurrentTaskDataTypeId, get, put } from 'altinn-shared/utils';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
-import { IValidationResult } from '../../../../types/global';
+import { IRuntimeStore, IUiConfig, IValidationResult } from '../../../../types/global';
 import { convertDataBindingToModel } from '../../../../utils/databindings';
 import { dataElementUrl, getValidationUrl } from '../../../../utils/urlHelper';
 import {
@@ -21,7 +21,8 @@ import { ISubmitDataAction } from './submitFormDataActions';
 import * as FormDataActionTypes from '../formDataActionTypes';
 import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 
-const LayoutSelector: (state: IRuntimeState) => ILayoutState = (state: IRuntimeState) => state.formLayout;
+const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
+const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
 
 function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
   try {
@@ -130,10 +131,22 @@ function* saveFormDataSaga(): SagaIterator {
   }
 }
 
+function* autoSaveSaga(): SagaIterator {
+  const uiConfig: IUiConfig = yield select(UIConfigSelector);
+  if (uiConfig.autoSave !== false) {
+    // undefined should default to auto save
+    yield call(FormDataActions.saveFormData);
+  }
+}
+
 export function* watchSubmitFormSaga(): SagaIterator {
   yield takeLatest(FormDataActionTypes.SUBMIT_FORM_DATA, submitFormSaga);
 }
 
 export function* watchSaveFormDataSaga(): SagaIterator {
-  yield takeLatest(FormDataActionTypes.UPDATE_FORM_DATA_FULFILLED, saveFormDataSaga);
+  yield takeLatest(FormDataActionTypes.SAVE_FORM_DATA, saveFormDataSaga);
+}
+
+export function* watchAutoSaveSaga(): SagaIterator {
+  yield takeLatest(FormDataActionTypes.UPDATE_FORM_DATA_FULFILLED, autoSaveSaga);
 }

@@ -419,6 +419,71 @@
 					"response": []
 				},
 				{
+					"name": "PUT Edit App",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7762b309-0916-44bc-bb7c-5fb2dc8e639b",
+								"exec": [
+									"pm.test(\"Platform - Storage - Application - Edit  App - Not possible for a person - Status - 403\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"{{org}}/{{app}}\",\r\n    \"versionId\": \"2\",\r\n    \"org\": \"{{org}}\",\r\n    \"title\": {\r\n        \"nb\": \"{{app}}\"\r\n    },\r\n    \"validFrom\": \"{{current_timestamp}}\",\r\n    \"dataTypes\": [\r\n        {\r\n            \"id\": \"default\",\r\n            \"allowedContentTypes\": [\r\n                \"application/xml\"\r\n            ],\r\n            \"appLogic\": {\r\n                \"autoCreate\": true,\r\n                \"classRef\": \"Altinn.App.Models.flyttemelding\",\r\n                \"schemaRef\": null\r\n            },\r\n            \"taskId\": \"Task_1\",\r\n            \"maxCount\": 0,\r\n            \"minCount\": 0\r\n        },\r\n        {\r\n            \"id\": \"ref-data-as-pdf\",\r\n            \"allowedContentTypes\": [\r\n                \"application/pdf\"\r\n            ],\r\n            \"taskId\": \"Task_1\",\r\n            \"maxCount\": 1,\r\n            \"minCount\": 1\r\n        },\r\n        {\r\n            \"id\": \"attachment\",\r\n            \"allowedContentTypes\": [\r\n                \"application/octet-stream\"\r\n            ],\r\n            \"appLogic\": {\r\n                \"autoCreate\": false\r\n            },\r\n            \"taskId\": \"Task_1\",\r\n            \"maxCount\": 1,\r\n            \"minCount\": 0,\r\n            \"maxSize\": 2\r\n        }\r\n    ],\r\n    \"partyTypesAllowed\": {\r\n        \"bankruptcyEstate\": false,\r\n        \"organisation\": true,\r\n        \"person\": true,\r\n        \"subUnit\": false\r\n    },\r\n    \"created\": \"{{current_timestamp}}\",\r\n    \"lastChanged\": \"{{current_timestamp}}\"\r\n}"
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"applications",
+								"{{org}}",
+								"{{app}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Text",
+			"item": [
+				{
 					"name": "GET App Texts",
 					"event": [
 						{
@@ -479,16 +544,94 @@
 					"response": []
 				},
 				{
-					"name": "PUT Edit App",
+					"name": "POST App Texts",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "7762b309-0916-44bc-bb7c-5fb2dc8e639b",
+								"id": "a2413d3e-8083-4e5c-97f9-4e38cecc0299",
 								"exec": [
-									"pm.test(\"Platform - Storage - Application - Edit  App - Not possible for a person - Status - 403\", function () {\r",
+									"pm.test(\"Platform - Storage - Applications - POST Upload App texts - Status - 403\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
 									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "ec68a4ed-6e43-4fe2-9eee-c5b12935e838",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"{{org}}-{{app}}-nb\",\r\n    \"org\": \"{{org}}\",\r\n    \"language\": \"nb\",\r\n    \"resources\": [\r\n        {\r\n            \"id\": \"testid\",\r\n            \"value\": \"testvalue\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}/texts",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"applications",
+								"{{org}}",
+								"{{app}}",
+								"texts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT App Texts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6dbf50d8-d5e7-452c-8eb2-5fbae9797c5c",
+								"exec": [
+									"pm.test(\"Platform - Storage - Applications - PUT Edit App texts - Status - 403\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "66eeec08-53c9-4567-b0c6-466b993dc8c8",
+								"exec": [
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -506,20 +649,18 @@
 							]
 						},
 						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": \"{{org}}/{{app}}\",\r\n    \"versionId\": \"2\",\r\n    \"org\": \"{{org}}\",\r\n    \"title\": {\r\n        \"nb\": \"{{app}}\"\r\n    },\r\n    \"validFrom\": \"{{current_timestamp}}\",\r\n    \"dataTypes\": [\r\n        {\r\n            \"id\": \"default\",\r\n            \"allowedContentTypes\": [\r\n                \"application/xml\"\r\n            ],\r\n            \"appLogic\": {\r\n                \"autoCreate\": true,\r\n                \"classRef\": \"Altinn.App.Models.flyttemelding\",\r\n                \"schemaRef\": null\r\n            },\r\n            \"taskId\": \"Task_1\",\r\n            \"maxCount\": 0,\r\n            \"minCount\": 0\r\n        },\r\n        {\r\n            \"id\": \"ref-data-as-pdf\",\r\n            \"allowedContentTypes\": [\r\n                \"application/pdf\"\r\n            ],\r\n            \"taskId\": \"Task_1\",\r\n            \"maxCount\": 1,\r\n            \"minCount\": 1\r\n        },\r\n        {\r\n            \"id\": \"attachment\",\r\n            \"allowedContentTypes\": [\r\n                \"application/octet-stream\"\r\n            ],\r\n            \"appLogic\": {\r\n                \"autoCreate\": false\r\n            },\r\n            \"taskId\": \"Task_1\",\r\n            \"maxCount\": 1,\r\n            \"minCount\": 0,\r\n            \"maxSize\": 2\r\n        }\r\n    ],\r\n    \"partyTypesAllowed\": {\r\n        \"bankruptcyEstate\": false,\r\n        \"organisation\": true,\r\n        \"person\": true,\r\n        \"subUnit\": false\r\n    },\r\n    \"created\": \"{{current_timestamp}}\",\r\n    \"lastChanged\": \"{{current_timestamp}}\"\r\n}"
+							"raw": "{\r\n    \"id\": \"{{org}}-{{app}}-nb\",\r\n    \"org\": \"{{org}}\",\r\n    \"language\": \"nb\",\r\n    \"resources\": [\r\n        {\r\n            \"id\": \"testid\",\r\n            \"value\": \"testvalue\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}",
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}/texts/nb",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -531,7 +672,69 @@
 								"v1",
 								"applications",
 								"{{org}}",
-								"{{app}}"
+								"{{app}}",
+								"texts",
+								"nb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE App Texts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "62554466-a108-40fc-aaf7-c3a84d6822af",
+								"exec": [
+									"pm.test(\"Platform - Storage - Applications - DELETE App texts - Status - 403\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "dff0987b-d9e5-481a-bf78-5053f64a5ab5",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}/texts/nb",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"applications",
+								"{{org}}",
+								"{{app}}",
+								"texts",
+								"nb"
 							]
 						}
 					},

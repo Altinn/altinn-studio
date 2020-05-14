@@ -3,11 +3,11 @@ using System.IO;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Repositories.Interface;
+using Azure.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace Altinn.Platform.Authorization.Repositories
 {
@@ -18,8 +18,6 @@ namespace Altinn.Platform.Authorization.Repositories
     {
         private readonly ILogger<PolicyRepository> _logger;
         private readonly AzureStorageConfiguration _storageConfig;
-        private CloudBlobClient _blobClient;
-        private CloudBlobContainer _blobContainer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyRepository"/> class
@@ -31,73 +29,52 @@ namespace Altinn.Platform.Authorization.Repositories
             ILogger<PolicyRepository> logger)
         {
             _logger = logger;
-
             _storageConfig = storageConfig.Value;
-            SetUpBlobConnection();
         }
 
         /// <inheritdoc />
         public async Task<Stream> GetPolicyAsync(string filepath)
         {
-            CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
-            var memoryStream = new MemoryStream();
+            BlobClient blockBlob = CreateBlobClient(filepath);
+            Stream memoryStream = new MemoryStream();
 
             if (await blockBlob.ExistsAsync())
             {
-                await blockBlob.DownloadToStreamAsync(memoryStream);
+                await blockBlob.DownloadToAsync(memoryStream);
                 memoryStream.Position = 0;
 
                 return memoryStream;
             }
 
-            return null;
+            return memoryStream;
         }
 
         /// <inheritdoc />
         public async Task<bool> WritePolicyAsync(string filepath, Stream fileStream)
         {
-            _logger.LogInformation($"// PolicyRepository // Wrie to filepath: {filepath}");
-            CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
-            _logger.LogInformation($"// PolicyRepository // blockBlob name: {blockBlob.Name}");
-            _logger.LogInformation($"// PolicyRepository // blockBlob name: {blockBlob.StorageUri}");
-
             try
             {
-                await blockBlob.UploadFromStreamAsync(fileStream);
-                await blockBlob.FetchAttributesAsync();
+                BlobClient blockBlob = CreateBlobClient(filepath);
 
-                // blockBlolb.Properties.Length is -1 before successful upload
-                return blockBlob.Properties.Length >= 0;
+                await blockBlob.UploadAsync(fileStream, true);
+                BlobProperties properties = await blockBlob.GetPropertiesAsync();
+
+                return properties.ContentLength > 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError("failed to save policy file. " + ex);
+                _logger.LogError($"Failed to save policy file {filepath}. " + ex);
                 throw;
             }
         }
 
-        private void SetUpBlobConnection()
+        private BlobClient CreateBlobClient(string blobName)
         {
-            // connect to azure blob storage
-            StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+            StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(_storageConfig.AccountName, _storageConfig.AccountKey);
+            BlobServiceClient serviceClient = new BlobServiceClient(new Uri(_storageConfig.BlobEndpoint), storageCredentials);
+            BlobContainerClient blobContainerClient = serviceClient.GetBlobContainerClient(_storageConfig.MetadataContainer);
 
-            // creating blob client
-            if (_storageConfig.AccountName.StartsWith("devstoreaccount1"))
-            {
-                StorageUri storageUrl = new StorageUri(new Uri(_storageConfig.BlobEndpoint));
-                _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
-            }
-            else
-            {
-                _blobClient = storageAccount.CreateCloudBlobClient();
-            }
-
-            _blobContainer = _blobClient.GetContainerReference(_storageConfig.MetadataContainer);
-            _blobContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
-            _logger.LogInformation($" // PolicyRepository // Blob connection // Container exists: {_blobContainer.ExistsAsync()}");
-            _logger.LogInformation($" // PolicyRepository // Blob connection // Container uri: {_blobContainer.Uri}");
-
+            return blobContainerClient.GetBlobClient(blobName);
         }
     }
 }

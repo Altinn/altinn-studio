@@ -45,18 +45,24 @@ namespace App.IntegrationTests.Mocks.Services
             return null;
         }
 
-        public Task<Party> LookupParty(string personOrOrganisationNumber)
+        public Task<Party> LookupParty(PartyLookup partyLookup)
         {
-            // TODO: fetch from disk
-            Party party = new Party
+            if (!string.IsNullOrEmpty(partyLookup.Ssn))
             {
-                PartyId = 1000,
-                Name = "Test Lookup",
-                SSN = personOrOrganisationNumber,
-                PartyTypeName = PartyType.Person,
-            };
+                // TODO: fetch from disk
+                Party party = new Party
+                {
+                    PartyId = 1000,
+                    Name = "Test Lookup",
+                    SSN = partyLookup.Ssn,
+                    PartyTypeName = PartyType.Person,
+                };
 
-            return Task.FromResult(party);
+                return Task.FromResult(party);
+            }
+
+            return Task.FromResult(new Party());
+           
         }
 
         private string GetPartyPath(int partyId)

@@ -1,4 +1,3 @@
-using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Configuration;
@@ -8,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -20,7 +18,6 @@ namespace Altinn.Common.PEP.Implementation
     public class PDPAppSI : IPDP
     {
         private readonly ILogger _logger;
-        private readonly PepSettings _pepSettings;
         private readonly AuthorizationApiClient _authorizationApiClient;
 
         /// <summary>
@@ -35,7 +32,6 @@ namespace Altinn.Common.PEP.Implementation
                 AuthorizationApiClient authorizationApiClient)
         {
             _logger = logger;
-            _pepSettings = pepSettings.Value;
             _authorizationApiClient = authorizationApiClient;
         }
 
@@ -43,20 +39,6 @@ namespace Altinn.Common.PEP.Implementation
         public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
             XacmlJsonResponse xacmlJsonResponse = null;
-
-            if (_pepSettings.DisablePEP)
-            {
-                return new XacmlJsonResponse
-                {
-                    Response = new List<XacmlJsonResult>()
-                    {
-                        new XacmlJsonResult
-                        {
-                            Decision = XacmlContextDecision.Permit.ToString(),
-                        }
-                    },
-                };
-            }
 
             try
             {
@@ -73,11 +55,6 @@ namespace Altinn.Common.PEP.Implementation
         /// <inheritdoc/>
         public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
         {
-            if (_pepSettings.DisablePEP)
-            {
-                return true;
-            }
-
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
 
             if (response?.Response == null)

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Configuration;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -21,8 +20,7 @@ namespace UnitTests
         public ScopeAccessHandlerTest()
         {
             _pepSettings = Options.Create(new PepSettings());
-            _pepSettings.Value.DisablePEP = false;
-            _sah = new ScopeAccessHandler(_pepSettings, new Mock<ILogger<ScopeAccessHandler>>().Object);
+            _sah = new ScopeAccessHandler(new Mock<ILogger<ScopeAccessHandler>>().Object);
         }
 
         /// <summary>

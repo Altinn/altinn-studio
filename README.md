@@ -5,21 +5,22 @@
 
 Altinn Studio is the next generation Altinn application development solution. Together with Altinn Apps and Altinn Platform, it makes a complete application development and hosting platform.
 
-An early test version of Altinn Studio is available at https://altinn.studio.
+Altinn Studio is available at https://altinn.studio.
 
-Use the [documentation](https://docs.altinn.studio/) to get started using Altinn Studio.
+Use the [documentation](https://docs.altinn.studio/teknologi/altinnstudio/) to get started.
 
-## Develop Apps?
-if you just want to run app locally go [here](LOCALAPP.md)
+## Developing apps?
+If you just want to run apps locally go [here](LOCALAPP.md)
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+See deployment for notes on how to deploy the project on a live system.
 
 
 ### Installing
 
-Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder.
+Clone the [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder.
 
 ```cmd
 git clone https://github.com/Altinn/altinn-studio
@@ -36,7 +37,7 @@ Follow the instructions found [here](/src/studio/).
 
 It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.
 
-_NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command
+_NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command_
 
 ```cmd
 docker-compose down

@@ -1,0 +1,31 @@
+{
+  "id": "3af7ad95-0dd4-45d5-bb97-c1ee66c600d7",
+  "instanceOwner": {
+    "partyId": "1600",
+    "personNumber": "01044091042"
+  },
+  "appId": "ttd/steffens-2020-v2",
+  "org": "ttd",
+  "title": {
+    "nb": "steffens-2020-v2"
+  },
+  "process": {
+    "started": "2020-01-23T15:38:31.7891852Z",
+    "startEvent": "StartEvent_1",
+    "ended": "2020-01-23T15:38:44.1504337Z",
+    "endEvent": "EndEvent_1"
+  },
+  "status": {
+    "archived": "2020-01-23T15:38:44.1504337Z"
+  },
+  "appOwner": {},
+  "created": "2020-01-23T15:38:32.0832414Z",
+  "createdBy": "20000013",
+  "lastChanged": "2020-01-23T15:38:44.9036392Z",
+  "lastChangedBy": "20000013",
+  "_rid": "uHp7ALWZ1j8EAAAAAAAAAA==",
+  "_self": "dbs/uHp7AA==/colls/uHp7ALWZ1j8=/docs/uHp7ALWZ1j8EAAAAAAAAAA==/",
+  "_etag": "\"5b004d91-0000-3c00-0000-5e29be040000\"",
+  "_attachments": "attachments/",
+  "_ts": 1579793924
+}

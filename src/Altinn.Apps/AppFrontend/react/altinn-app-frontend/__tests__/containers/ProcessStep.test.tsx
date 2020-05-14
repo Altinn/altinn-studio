@@ -84,7 +84,10 @@ describe('>>> containers/ProcessStep.tsx', () => {
             ssn: '01017512345',
           }
         ],
-      }
+      },
+      formData: {
+        hasSubmitted: false,
+      },
     };
     mockStore = createStore(initialState);
   });
@@ -191,6 +194,9 @@ describe('>>> containers/ProcessStep.tsx', () => {
       instanceData: {
         instance: null,
       },
+      formData: {
+        hasSubmitted: false,
+      },
     };
     mockStore = createStore(newState);
     const wrapper = mount(
@@ -234,6 +240,9 @@ describe('>>> containers/ProcessStep.tsx', () => {
       },
       instanceData: {
         instance: null,
+      },
+      formData: {
+        hasSubmitted: false,
       },
     };
     mockStore = createStore(newState);

@@ -8,7 +8,7 @@ import {
   IFetchFormLayoutRejected,
 } from './fetch/fetchFormLayoutActions';
 import * as ActionTypes from './formLayoutActionTypes';
-import { IUpdateFocusFulfilled, IUpdateFormLayout, IUpdateHiddenComponents } from './update/updateFormLayoutActions';
+import { IUpdateFocusFulfilled, IUpdateFormLayout, IUpdateHiddenComponents, IUpdateAutoSave } from './update/updateFormLayoutActions';
 import { IUiConfig } from '../../../types/global';
 
 export interface ILayoutState {
@@ -23,6 +23,7 @@ const initialState: ILayoutState = {
   uiConfig: {
     focus: null,
     hiddenFields: [],
+    autoSave: null,
   },
 };
 
@@ -80,6 +81,16 @@ const LayoutReducer: Reducer<ILayoutState> = (
         uiConfig: {
           hiddenFields: {
             $set: componentsToHide,
+          },
+        },
+      });
+    }
+    case ActionTypes.UPDATE_AUTO_SAVE: {
+      const { autoSave } = action as IUpdateAutoSave;
+      return update<ILayoutState>(state, {
+        uiConfig: {
+          autoSave: {
+            $set: autoSave,
           },
         },
       });

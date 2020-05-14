@@ -223,6 +223,44 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
+        /// Replaces Resource attributes with data from instance. Add all relevant values so PDP have it all
+        /// </summary>
+        /// <param name="jsonRequest">The JSON Request</param>
+        /// <param name="instance">The instance</param>
+        public static void EnrichXacmlJsonRequest(XacmlJsonRequestRoot jsonRequest, Instance instance)
+        {
+            XacmlJsonCategory resourceCategory = new XacmlJsonCategory { Attribute = new List<XacmlJsonAttribute>() };
+
+            string instanceId = instance.Id;
+            string task = instance.Process?.CurrentTask?.ElementId;
+            string instanceOwnerPartyId = instance.InstanceOwner.PartyId;
+            string org = instance.Org;
+            string app = instance.AppId.Split("/")[1];
+
+            if (task != null)
+            {
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceTaskId, task, DefaultType, DefaultIssuer));
+            }
+            else if (instance.Process?.EndEvent != null)
+            {
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(XacmlResourceEndId, instance.Process.EndEvent, DefaultType, DefaultIssuer));
+            }
+
+            if (!string.IsNullOrWhiteSpace(instanceId))
+            {
+                resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceId, DefaultType, DefaultIssuer, true));
+            }
+
+            resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.PartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer));
+            resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.OrgId, org, DefaultType, DefaultIssuer));
+            resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));
+
+            // Replaces the current Resource attributes
+            jsonRequest.Request.Resource = new List<XacmlJsonCategory>();
+            jsonRequest.Request.Resource.Add(resourceCategory);
+        }
+
+        /// <summary>
         /// Verifies that org string matches org in user claims.
         /// </summary>
         /// <param name="org">Organisation to match in claims.</param>
@@ -237,6 +275,30 @@ namespace Altinn.Platform.Storage.Helpers
             Console.WriteLine($"AuthzHelper // VerifyOrg // Org claim: {orgClaim}.");
 
             if (org.Equals(orgClaim, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Verifies a scope claim based on claimsprincipal.
+        /// </summary>
+        /// <param name="requiredScope">Requiered scope.</param>
+        /// <param name="user">Claim principal from http context.</param>
+        /// <returns></returns>
+        public bool ContainsRequiredScope(string requiredScope, ClaimsPrincipal user)
+        {
+            string contextScope = user.Identities?
+               .FirstOrDefault(i => i.AuthenticationType != null && i.AuthenticationType.Equals("AuthenticationTypes.Federation"))
+               ?.Claims
+               .Where(c => c.Type.Equals("urn:altinn:scope"))
+               ?.Select(c => c.Value).FirstOrDefault();
+
+            contextScope ??= user.Claims.Where(c => c.Type.Equals("scope")).Select(c => c.Value).FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(contextScope) && contextScope.Contains(requiredScope, StringComparison.InvariantCultureIgnoreCase))
             {
                 return true;
             }

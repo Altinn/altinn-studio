@@ -207,7 +207,7 @@ export class AdministrationComponent extends
         {this.props.initialCommit &&
           <Typography className={classNames(classes.sidebarCreatedBy)}>
             {/* tslint:disable-next-line:max-line-length */}
-            {getLanguageFromKey('administration.created_by', this.props.language)} {formatNameAndDate(this.props.initialCommit.author.name, this.props.initialCommit.author.when)}
+            {getLanguageFromKey('administration.created_by', this.props.language)} {formatNameAndDate(this.props.initialCommit.author.name, this.props.service.created_at)}
           </Typography>
         }
     </>

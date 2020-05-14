@@ -61,6 +61,7 @@
       "warn",
       2
     ],
+    "react/jsx-props-no-spreading": "off",
     "max-len": [
       "warn",
       120,

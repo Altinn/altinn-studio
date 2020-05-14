@@ -3,8 +3,8 @@ import {addErrorCount} from "../../../errorcounter.js";
 import * as profile from "../../../api/platform/profile.js"
 import * as setUpData from "../../../setup.js";
 
-let userName = __ENV.username;
-let userPassword = __ENV.userpwd;
+const userName = __ENV.username;
+const userPassword = __ENV.userpwd;
 
 export const options = {    
     thresholds:{

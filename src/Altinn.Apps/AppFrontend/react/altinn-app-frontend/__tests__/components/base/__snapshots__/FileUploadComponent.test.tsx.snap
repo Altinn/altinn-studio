@@ -5,7 +5,6 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
   <div
     class="container"
     id="altinn-fileuploader-mockId"
-    tabindex="0"
   >
     <div
       data-testid="mockId"
@@ -19,16 +18,30 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             class="blue-underline"
             id="altinn-file-list-row-header"
           >
-            <th>
+            <th
+              scope="col"
+            >
               form_filler.file_uploader_list_header_name
             </th>
-            <th>
+            <th
+              scope="col"
+            >
               form_filler.file_uploader_list_header_file_size
             </th>
-            <th>
+            <th
+              scope="col"
+            >
               form_filler.file_uploader_list_header_status
             </th>
-            <th />
+            <th
+              scope="col"
+            >
+              <p
+                class="sr-only"
+              >
+                form_filler.file_uploader_list_header_delete_sr
+              </p>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -37,20 +50,14 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             id="altinn-file-list-row-attachment-id-1"
             tabindex="0"
           >
-            <td
-              tabindex="0"
-            >
+            <td>
               attachment-name-1
             </td>
-            <td
-              tabindex="0"
-            >
+            <td>
               0.00 form_filler.file_uploader_mb
             </td>
             <td>
-              <div
-                tabindex="0"
-              >
+              <div>
                 form_filler.file_uploader_list_status_done
                 <i
                   class="ai ai-check-circle"
@@ -60,6 +67,7 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             <td>
               <div
                 id="attachment-delete-0"
+                role="button"
                 tabindex="0"
               >
                 form_filler.file_uploader_list_delete
@@ -74,31 +82,33 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             id="altinn-file-list-row-attachment-id-2"
             tabindex="0"
           >
-            <td
-              tabindex="0"
-            >
+            <td>
               attachment-name-2
             </td>
-            <td
-              tabindex="0"
-            >
+            <td>
               0.00 form_filler.file_uploader_mb
             </td>
             <td>
               <div
-                class="a-loader"
-                data-testid="loader-upload"
+                aria-live="polite"
+                class="a-loader float-left"
                 id="loader-upload"
+                style="margin-bottom: 1.6rem; margin-right: 1.3rem;"
               >
                 <div
                   class="loader loader-ellipsis"
-                  style="margin-left: 1.3rem; margin-bottom: 1.6rem;"
                 />
+                <p
+                  class="sr-only"
+                >
+                  general.loading
+                </p>
               </div>
             </td>
             <td>
               <div
                 id="attachment-delete-1"
+                role="button"
                 tabindex="0"
               >
                 form_filler.file_uploader_list_delete
@@ -113,20 +123,14 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             id="altinn-file-list-row-attachment-id-3"
             tabindex="0"
           >
-            <td
-              tabindex="0"
-            >
+            <td>
               attachment-name-3
             </td>
-            <td
-              tabindex="0"
-            >
+            <td>
               0.00 form_filler.file_uploader_mb
             </td>
             <td>
-              <div
-                tabindex="0"
-              >
+              <div>
                 form_filler.file_uploader_list_status_done
                 <i
                   class="ai ai-check-circle"
@@ -136,17 +140,23 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             <td>
               <div
                 id="attachment-delete-2"
+                role="button"
                 tabindex="0"
               >
                 <div
-                  class="a-loader"
-                  data-testid="loader-delete"
+                  aria-live="polite"
+                  class="a-loader float-left"
                   id="loader-delete"
+                  style="margin-bottom: 1.6rem; margin-right: 1.0rem;"
                 >
                   <div
                     class="loader loader-ellipsis"
-                    style="margin-bottom: 1.6rem; margin-right: 1.0rem;"
                   />
+                  <p
+                    class="sr-only"
+                  >
+                    general.loading
+                  </p>
                 </div>
               </div>
             </td>
@@ -154,13 +164,15 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
         </tbody>
       </table>
     </div>
-    <p
+    <div
       class="file-upload-text-bold-small"
+      id="number-of-attachments"
     >
-      form_filler.file_uploader_number_of_files 3/4
-    </p>
+      form_filler.file_uploader_number_of_files 3/4.
+    </div>
     <button
       class="file-upload-button blue-underline"
+      type="button"
     >
       form_filler.file_uploader_add_attachment
     </button>

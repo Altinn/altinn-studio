@@ -141,11 +141,6 @@ namespace Altinn.Platform.Storage.IntegrationTest.Mocks
 
         public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
         {
-            if (_pepSettings.DisablePEP)
-            {
-                return true;
-            }
-
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
             return DecisionHelper.ValidatePdpDecision(response.Response, user);
         }
