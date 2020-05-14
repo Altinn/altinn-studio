@@ -110,6 +110,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     else
                     {
                         classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\")]");
+
+                        // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
+                        // deserialization, we need both JsonProperty and JsonPropertyName annotations.
                         classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
                         classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
                     }
@@ -127,6 +130,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 {
                     WriteRestrictionAnnotations(classBuilder, element.Value);
                     classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\")]");
+
+                    // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
+                    // deserialization, we need both JsonProperty and JsonPropertyName annotations.
                     classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
                     classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
 
