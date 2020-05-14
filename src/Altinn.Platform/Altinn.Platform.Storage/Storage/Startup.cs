@@ -132,7 +132,7 @@ namespace Altinn.Platform.Storage
             services.AddTransient<IAuthorizationHandler, StorageAccessHandler>();
             services.AddTransient<IAuthorizationHandler, ScopeAccessHandler>();
 
-            services.AddHttpClient<PartiesWithInstancesClient>();
+            services.AddHttpClient<IPartiesWithInstancesClient, PartiesWithInstancesClient>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
