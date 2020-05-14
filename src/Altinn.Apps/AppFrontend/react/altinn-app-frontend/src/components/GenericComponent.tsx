@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
+import { getTextResourceByKey } from 'altinn-shared/utils';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
 import FormDataActions from '../features/form/data/formDataActions';
@@ -114,10 +115,9 @@ export function GenericComponent(props: IGenericComponentProps) {
   const getValidationsForInternalHandling = () => {
     if (props.type === 'AddressComponent' || props.type === 'Datepicker' || props.type === 'FileUpload') {
       return componentValidations;
-    } else {
-      return null;
     }
-  }
+    return null;
+  };
 
   // some compoenets handle their validations internally (i.e merge with internal validaiton state)
   const internalComponentValidations = getValidationsForInternalHandling();
@@ -180,6 +180,15 @@ export function GenericComponent(props: IGenericComponentProps) {
     helpTextKey: props.textResourceBindings.help,
   };
 
+  const getText = () => {
+    if (component.type === 'Header') {
+      // disabled markdown parsing
+      return getTextResourceByKey(props.textResourceBindings.title, textResources);
+    }
+
+    return getTextResource(props.textResourceBindings.title, textResources);
+  };
+
   const componentProps = {
     handleDataChange: handleDataUpdate,
     handleFocusUpdate,
@@ -189,7 +198,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     language,
     id,
     shouldFocus,
-    text: getTextResource(props.textResourceBindings.title, textResources),
+    text: getText(),
     label: RenderLabel,
     legend: RenderLegend,
     ...passThroughProps,
