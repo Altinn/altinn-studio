@@ -7,8 +7,10 @@ using System.Text;
 
 using Altinn.Common.PEP.Interfaces;
 
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
+using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 using Altinn.Platform.Storage.UnitTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
@@ -24,7 +26,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
-using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
@@ -195,9 +196,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // No setup required for these services. They are not in use by the ApplicationController
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
                 Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
                 Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
                 Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
+                Mock<IPartiesWithInstancesClient> partiesWrapper = new Mock<IPartiesWithInstancesClient>();
 
                 Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
@@ -210,6 +211,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                         services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
+                        services.AddSingleton(partiesWrapper.Object);
                         services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                     });
