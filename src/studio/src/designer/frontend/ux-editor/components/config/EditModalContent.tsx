@@ -467,7 +467,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                     className='custom-select a-custom-select'
                     onChange={this.handleUpdateOptionLabel.bind(this, index)}
                     value={option.label}
-                  >}
+                  >
                     <option key='empty' value=''>
                       {this.props.language.general.choose_label}
                     </option>
