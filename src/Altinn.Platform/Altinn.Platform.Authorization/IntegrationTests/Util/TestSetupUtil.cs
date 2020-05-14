@@ -1,6 +1,8 @@
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Platform.Storage.Interface.Models;
+using Authorization.Platform.Authorization.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -125,6 +127,55 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             return xacmlJsonresponse;
         }
 
+
+        public static XacmlContextRequest CreateXacmlContextRequest(string testCase)
+        {
+            return XacmlTestDataParser.ParseRequest(testCase + "Request.xml", GetAltinnAppsPath());
+        }
+
+        public static XacmlContextRequest GetEnrichedRequest(string testCase)
+        {
+            return XacmlTestDataParser.ParseRequest(testCase + "EnrichedRequest.xml", GetAltinnAppsPath());
+        }
+
+        public static Instance GetInstanceData(string instanceId)
+        {
+            string filePath = Path.Combine(GetInstancePath(), instanceId);
+            string instanceData = File.ReadAllText(filePath);
+            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+            return instance;
+        }
+
+        public static List<Role> GetRoles(int userId, int resourcePartyId)
+        {
+            string rolesPath = GetRolesPath(userId, resourcePartyId);
+
+            List<Role> roles = new List<Role>();
+
+            if (File.Exists(rolesPath))
+            {
+                string content = System.IO.File.ReadAllText(rolesPath);
+                roles = (List<Role>)JsonConvert.DeserializeObject(content, typeof(List<Role>));
+            }
+            return roles;
+        }
+
+        public static void DeleteAppBlobData(string org, string app)
+        {
+            string blobPath = Path.Combine(GetDataBlobPath(), $"{org}\\{app}");
+
+            if (Directory.Exists(blobPath))
+            {
+                Directory.Delete(blobPath, true);
+            }
+        }
+
+        private static string GetDataBlobPath()
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRetrievalPointTest).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\data\blobs\");
+        }
+
         private static string GetAltinnAppsPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
@@ -146,6 +197,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyInformationRepositoryTest).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Applications");
+        }
+        private static string GetRolesPath(int coveredByUserId, int offeredByPartyId)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ContextHandlerTest).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Roles\User_" + coveredByUserId + @"\party_" + offeredByPartyId + @"\roles.json");
         }
     }
 }

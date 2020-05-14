@@ -46,6 +46,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
         }
 
+        public static void AssertEqual(XacmlContextRequest expected, XacmlContextRequest actual)
+        {
+            Assert.Equal(expected.Attributes.Count, actual.Attributes.Count);
+            Assert.Equal(expected.GetResourceAttributes().Attributes.Count, actual.GetResourceAttributes().Attributes.Count);
+            Assert.Equal(expected.GetSubjectAttributes().Attributes.Count, actual.GetSubjectAttributes().Attributes.Count);
+            AssertEqual(expected.Attributes, actual.Attributes);
+        }
+
         private static void AssertEqual(List<XacmlJsonObligationOrAdvice> expected, List<XacmlJsonObligationOrAdvice> actual)
         {
             if (expected == null)
@@ -100,7 +108,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.Category, actual.Category);
             Assert.Equal(expected.DataType, actual.DataType);
             Assert.Equal(expected.Issuer, actual.Issuer);
-            Assert.Equal(expected.Value, actual.Value);
+            Assert.Equal(expected.Value, actual.Value, ignoreCase: true);
         }
 
         private static void AssertEqual(List<XacmlJsonAttribute> expected, List<XacmlJsonAttribute> actual)
@@ -124,7 +132,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.DataType, actual.DataType);
             Assert.Equal(expected.IncludeInResult, actual.IncludeInResult);
             Assert.Equal(expected.Issuer, actual.Issuer);
-            Assert.Equal(expected.Value, actual.Value);
+            Assert.Equal(expected.Value, actual.Value, ignoreCase: true);
         }
 
         private static void AssertEqual(XacmlContextResult expected, XacmlContextResult actual)
@@ -223,15 +231,16 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         private static void AssertEqual(XacmlAttributeValue expected, XacmlAttributeValue actual)
         {
             Assert.Equal(expected.DataType, actual.DataType);
-            Assert.Equal(expected.Value, actual.Value);
+            Assert.Equal(expected.Value, actual.Value, ignoreCase: true);
         }
 
         private static void AssertEqual(XacmlAttributeAssignment expected, XacmlAttributeAssignment actual)
         {
-            Assert.Equal(expected.Value, actual.Value);
+            Assert.Equal(expected.Value, actual.Value, ignoreCase: true);
             Assert.Equal(expected.Category, actual.Category);
             Assert.Equal(expected.AttributeId, actual.AttributeId);
             Assert.Equal(expected.DataType, actual.DataType);
         }
+
     }
 }

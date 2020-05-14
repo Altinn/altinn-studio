@@ -1,39 +1,40 @@
 using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Platform.Authorization.UnitTest.Util;
+using Altinn.Platform.Authorization.Configuration;
+using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
+using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
-using Moq;
-using System.Threading.Tasks;
-using Xunit;
-using System.Collections.Generic;
 using Altinn.Platform.Storage.Interface.Models;
-using Newtonsoft.Json;
 using Authorization.Platform.Authorization.Models;
 using Microsoft.Extensions.Caching.Memory;
-using Altinn.Platform.Authorization.Configuration;
 using Microsoft.Extensions.Options;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using Xunit;
 
-namespace Altinn.Platform.Authorization.UnitTest
+namespace Altinn.Platform.Authorization.IntegrationTests
 {
     /// <summary>
     /// Test class for <see cref="ContextHandler">
     /// </summary>
-    public class ContextHandlerTest
+    public class ContextHandlerTest 
     {
-        private readonly Mock<IPolicyInformationRepository> _policyInformationRepositoryMock;
-        private readonly Mock<IRoles> _rolesMock;
+        private readonly IPolicyInformationRepository _pir;
+        private readonly IRoles _roles;
         private readonly ContextHandler _contextHandler;
         private readonly IMemoryCache _memoryCache;
 
 
         public ContextHandlerTest()
         {
-            _policyInformationRepositoryMock = new Mock<IPolicyInformationRepository>();
-            _rolesMock = new Mock<IRoles>();
+            _pir = new MockServices.PolicyInformationRepository();
+            _roles = new MockServices.Roles();
             _memoryCache = new MemoryCache(new MemoryCacheOptions());
             IOptions<GeneralSettings> settingsOption = Options.Create<GeneralSettings>(new GeneralSettings() { RoleCacheTimeout = 5 });
-            _contextHandler = new ContextHandler(_policyInformationRepositoryMock.Object, _rolesMock.Object, _memoryCache, settingsOption);
+            _contextHandler = new ContextHandler(_pir, _roles, _memoryCache, settingsOption);
         }
 
         /// <summary>
@@ -47,24 +48,16 @@ namespace Altinn.Platform.Authorization.UnitTest
         /// A xacml request populated with the required attributes is returned
         /// </summary>
         [Fact]
-        public async Task ContextHanler_TC01()
+        public async Task ContextHandler_TC01()
         {
             // Arrange
-            string testCase = "AltinnApps0001";
+            string testCase = "AltinnApps0021";
 
             XacmlContextRequest request = TestSetupUtil.CreateXacmlContextRequest(testCase);
             XacmlContextRequest expectedEnrichedRequest = TestSetupUtil.GetEnrichedRequest(testCase);
 
             // Act
-
-            Instance instance = TestSetupUtil.GetInstanceData("7dd3c208-0062-4ff6-9ef7-2384e9199a6c.json");
-            List<Role> roles = TestSetupUtil.GetRoles(1, 1000);
-            
-            _policyInformationRepositoryMock.Setup(p => p.GetInstance(It.Is<string>(s => s.Equals("1000/7dd3c208-0062-4ff6-9ef7-2384e9199a6c")))).ReturnsAsync(instance);
-            _rolesMock.Setup(p => p.GetDecisionPointRolesForUser(It.Is<int>(s => s.Equals(1)), It.Is<int>(p => p.Equals(1000)))).ReturnsAsync(roles);
-
             XacmlContextRequest enrichedRequest = await _contextHandler.Enrich(request);
-
 
             // Assert
             Assert.NotNull(enrichedRequest);
@@ -86,19 +79,12 @@ namespace Altinn.Platform.Authorization.UnitTest
         public async Task ContextHandler_TC02()
         {
             // Arrange
-            string testCase = "AltinnApps0002";
+            string testCase = "AltinnApps0022";
 
             XacmlContextRequest request = TestSetupUtil.CreateXacmlContextRequest(testCase);
             XacmlContextRequest expectedEnrichedRequest = TestSetupUtil.GetEnrichedRequest(testCase);
 
             // Act
-
-            Instance instance = TestSetupUtil.GetInstanceData("26133fb5-a9f2-45d4-90b1-f6d93ad40713.json");
-            List<Role> roles = TestSetupUtil.GetRoles(1, 1000);
-
-            _policyInformationRepositoryMock.Setup(p => p.GetInstance(It.Is<string>(s => s.Equals("1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713")))).ReturnsAsync(instance);
-            _rolesMock.Setup(p => p.GetDecisionPointRolesForUser(It.Is<int>(s => s.Equals(1)), It.Is<int>(p => p.Equals(1000)))).ReturnsAsync(roles);
-
             XacmlContextRequest enrichedRequest = await _contextHandler.Enrich(request);
 
             // Assert
@@ -121,19 +107,12 @@ namespace Altinn.Platform.Authorization.UnitTest
         public async Task ContextHandler_TC03()
         {
             // Arrange
-            string testCase = "AltinnApps0003";
+            string testCase = "AltinnApps0023";
 
             XacmlContextRequest request = TestSetupUtil.CreateXacmlContextRequest(testCase);
             XacmlContextRequest expectedEnrichedRequest = TestSetupUtil.GetEnrichedRequest(testCase);
 
             // Act
-
-            Instance instance = TestSetupUtil.GetInstanceData("26133fb5-a9f2-45d4-90b1-f6d93ad40713.json");
-            List<Role> roles = TestSetupUtil.GetRoles(1, 1000);
-
-            _policyInformationRepositoryMock.Setup(p => p.GetInstance(It.Is<string>(s => s.Equals("1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713")))).ReturnsAsync(instance);
-            _rolesMock.Setup(p => p.GetDecisionPointRolesForUser(It.Is<int>(s => s.Equals(1)), It.Is<int>(p => p.Equals(1000)))).ReturnsAsync(roles);
-
             XacmlContextRequest enrichedRequest = await _contextHandler.Enrich(request);
 
             // Assert
@@ -141,6 +120,7 @@ namespace Altinn.Platform.Authorization.UnitTest
             Assert.NotNull(expectedEnrichedRequest);
             AssertionUtil.AssertEqual(expectedEnrichedRequest, enrichedRequest);
         }
+
 
         /// <summary>
         /// Scenario:
@@ -156,7 +136,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         public async Task ContextHandler_TC04()
         {
             // Arrange
-            string testCase = "AltinnApps0004";
+            string testCase = "AltinnApps0024";
 
             XacmlContextRequest request = TestSetupUtil.CreateXacmlContextRequest(testCase);
             XacmlContextRequest expectedEnrichedRequest = TestSetupUtil.GetEnrichedRequest(testCase);
@@ -164,8 +144,6 @@ namespace Altinn.Platform.Authorization.UnitTest
             // Act
 
             List<Role> roles = TestSetupUtil.GetRoles(1, 1000);
-
-            _rolesMock.Setup(p => p.GetDecisionPointRolesForUser(It.Is<int>(s => s.Equals(1)), It.Is<int>(p => p.Equals(1000)))).ReturnsAsync(roles);
 
             XacmlContextRequest enrichedRequest = await _contextHandler.Enrich(request);
 
@@ -189,7 +167,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         public async Task ContextHandler_TC05()
         {
             // Arrange
-            string testCase = "AltinnApps0004";
+            string testCase = "AltinnApps0025";
 
             XacmlContextRequest request = TestSetupUtil.CreateXacmlContextRequest(testCase);
             XacmlContextRequest expectedEnrichedRequest = TestSetupUtil.GetEnrichedRequest(testCase);
@@ -198,8 +176,6 @@ namespace Altinn.Platform.Authorization.UnitTest
 
             List<Role> roles = TestSetupUtil.GetRoles(1, 1000);
 
-            _rolesMock.Setup(p => p.GetDecisionPointRolesForUser(It.Is<int>(s => s.Equals(1)), It.Is<int>(p => p.Equals(1000)))).ReturnsAsync(roles);
-
             XacmlContextRequest enrichedRequest = await _contextHandler.Enrich(request);
 
             // Assert
@@ -207,7 +183,7 @@ namespace Altinn.Platform.Authorization.UnitTest
             Assert.NotNull(expectedEnrichedRequest);
             AssertionUtil.AssertEqual(expectedEnrichedRequest, enrichedRequest);
         }
-        
+
         /// <summary>
         /// Scenario:
         /// Tests if the xacml request is enriched with the required resource, subject attributes
@@ -222,28 +198,18 @@ namespace Altinn.Platform.Authorization.UnitTest
         public async Task ContextHandler_TC06()
         {
             // Arrange
-            string testCase = "AltinnApps0006";
+            string testCase = "AltinnApps0026";
 
             XacmlContextRequest request = TestSetupUtil.CreateXacmlContextRequest(testCase);
             XacmlContextRequest expectedEnrichedRequest = TestSetupUtil.GetEnrichedRequest(testCase);
 
             // Act
-            Instance instance = TestSetupUtil.GetInstanceData("26133fb5-a9f2-45d4-90b1-f6d93ad40713.json");
-            List<Role> roles = TestSetupUtil.GetRoles(1, 1000);
-
-            _policyInformationRepositoryMock.Setup(p => p.GetInstance(It.Is<string>(s => s.Equals("1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713")))).ReturnsAsync(instance);
-            _rolesMock.Setup(p => p.GetDecisionPointRolesForUser(It.Is<int>(s => s.Equals(1)), It.Is<int>(p => p.Equals(1000)))).ReturnsAsync(roles);
-
             XacmlContextRequest enrichedRequest = await _contextHandler.Enrich(request);
-
-            var a = JsonConvert.SerializeObject(enrichedRequest);
-            var b = JsonConvert.SerializeObject(expectedEnrichedRequest);
 
             // Assert
             Assert.NotNull(enrichedRequest);
             Assert.NotNull(expectedEnrichedRequest);
             AssertionUtil.AssertEqual(expectedEnrichedRequest, enrichedRequest);
         }
-
     }
 }
