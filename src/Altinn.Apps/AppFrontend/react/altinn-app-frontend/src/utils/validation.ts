@@ -406,11 +406,11 @@ export function getErrorCount(validations: IValidations) {
 * Checks if form can be saved. If it contains anything other than valid error messages it returns false
 */
 export function canFormBeSaved(validationResult: IValidationResult, apiMode?: string): boolean {
-  if (validationResult.invalidDataTypes) {
+  if (validationResult && validationResult.invalidDataTypes) {
     return false;
   }
 
-  const validations = validationResult.validations;
+  const validations = validationResult?.validations;
   if (!validations || apiMode !== 'Complete') {
     return true;
   }
