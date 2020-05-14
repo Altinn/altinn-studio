@@ -2,7 +2,6 @@ import 'jest';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
 import { IValidationIssue, Severity } from '../../src/types';
 import * as validation from '../../src/utils/validation';
-import { ILayoutComponent } from '../../src/features/form/layout';
 import { getParsedLanguageFromKey } from '../../../shared/src';
 
 

@@ -12,7 +12,8 @@ import { get } from '../../../../utils/networking';
 import { IRuntimeState } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
 
-const AppMetadataSelector: (state: IRuntimeState) => IApplicationMetadata = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
+const AppMetadataSelector: (state: IRuntimeState) => IApplicationMetadata =
+  (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
 
 function* fetchFormDataModelSaga({ url }: IFetchDataModel): SagaIterator {
   try {

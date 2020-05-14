@@ -69,7 +69,8 @@ function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
         const serverValidation: any = yield call(get, getValidationUrl(instanceId));
         // update validation state
         const layoutState: ILayoutState = yield select(LayoutSelector);
-        const mappedValidations = mapDataElementValidationToRedux(serverValidation, layoutState.layout, state.textResources.resources);
+        const mappedValidations =
+          mapDataElementValidationToRedux(serverValidation, layoutState.layout, state.textResources.resources);
         FormValidationActions.updateValidations(mappedValidations);
         if (serverValidation && serverValidation.length > 0) {
           // we have validation errors, should not be able to submit
@@ -90,6 +91,7 @@ function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
   }
 }
 
+// eslint-disable-next-line consistent-return
 function* saveFormDataSaga(): SagaIterator {
   try {
     const state: IRuntimeState = yield select();

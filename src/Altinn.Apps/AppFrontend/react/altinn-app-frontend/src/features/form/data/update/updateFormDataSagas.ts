@@ -44,7 +44,12 @@ function* updateFormDataSaga({
     }
 
     if (componentValidations) {
-      yield call(FormValidationActions.updateComponentValidations, componentValidations, componentId, validationResult.invalidDataTypes);
+      yield call(
+        FormValidationActions.updateComponentValidations,
+        componentValidations,
+        componentId,
+        validationResult.invalidDataTypes,
+      );
     }
     if (state.formDynamics.conditionalRendering) {
       yield call(FormDynamicActions.checkIfConditionalRulesShouldRun);

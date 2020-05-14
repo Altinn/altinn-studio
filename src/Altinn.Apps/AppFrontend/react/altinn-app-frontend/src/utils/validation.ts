@@ -79,7 +79,7 @@ export const errorMessageKeys = {
   multipleOf: {
     textKey: 'multipleOf',
     paramKey: 'multipleOf',
-  }
+  },
 };
 
 /*
@@ -345,7 +345,8 @@ export function mapToComponentValidations(
     const component = c as unknown as ILayoutComponent;
     if (component.dataModelBindings) {
       dataModelFieldKey = Object.keys(component.dataModelBindings).find((key) => {
-        return key && component.dataModelBindings[key] && component.dataModelBindings[key].toLowerCase() === dataBindingName.toLowerCase();
+        return key && component.dataModelBindings[key]
+          && component.dataModelBindings[key].toLowerCase() === dataBindingName.toLowerCase();
       });
     }
     return !!dataModelFieldKey;
