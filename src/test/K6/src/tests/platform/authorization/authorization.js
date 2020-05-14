@@ -3,10 +3,10 @@ import {addErrorCount} from "../../../errorcounter.js";
 import * as authz from "../../../api/platform/authorization.js";
 import * as setUpData from "../../../setup.js";
 
-let userName = __ENV.username;
-let userPassword = __ENV.userpwd;
-let appOwner = __ENV.org;
-let testappName = __ENV.testapp;
+const userName = __ENV.username;
+const userPassword = __ENV.userpwd;
+const appOwner = __ENV.org;
+const testappName = __ENV.testapp;
 let policyFile = open("../../../data/policy.xml","b");
 let pdpInputJson = open("../../../data/pdpinput.json");
 

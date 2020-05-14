@@ -1,8 +1,9 @@
 import http from "k6/http";
+import { check } from "k6";
 import * as config from "./config.js";
 import * as headers from "./buildrequestheaders.js";
 import {getParties} from "./api/platform/authorization.js";
-import {printResponseToConsole} from "./errorcounter.js"
+import {addErrorCount, printResponseToConsole} from "./errorcounter.js"
 
 let environment = __ENV.env;
 
@@ -14,9 +15,12 @@ export function authenticateUser(userName, userPassword){
         "UserPassword": userPassword
     };        
     var res = http.post(endpoint, requestBody);
-    if(res.status !== 200){
-        printResponseToConsole("Authentication towards Altinn 2 Failed:", false, res);
-    };
+    var success = check(res, {
+        "Authentication towards Altinn 2 Success:": (r) => r.status === 200       
+    });
+    addErrorCount(success);
+    printResponseToConsole("Authentication towards Altinn 2 Failed:", success, res);
+
     const cookieName = ".ASPXAUTH"   
     var cookieValue = (res.cookies[cookieName])[0].value;    
     return cookieValue;
@@ -27,9 +31,11 @@ export function getAltinnStudioRuntimeToken(aspxauthCookie){
     var endpoint =   config.platformAuthentication["authentication"] + "?goto=" + config.platformAuthentication["refresh"];    
     var params = headers.buildHeaderWithAspxAuth(aspxauthCookie, "platform");       
     var res = http.get(endpoint,params);
-    if(res.status !== 200){
-        printResponseToConsole("T3.0 Authentication Failed:", false, res);
-    };
+    var success = check(res, {
+        "T3.0 Authentication Success:": (r) => r.status === 200       
+    });
+    addErrorCount(success);
+    printResponseToConsole("T3.0 Authentication Failed:", success, res);    
     return (res.body);    
 };
 
@@ -38,20 +44,27 @@ export function getUserData(altinnStudioRuntimeCookie){
     var endpoint =   config.appProfile["user"];
     var params = headers.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");    
     var res = http.get(endpoint,params);
-    if(res.status !== 200){
-        printResponseToConsole("Get User data failed:", false, res);
-    };
+    var success = check(res, {
+        "Get User data:": (r) => r.status === 200       
+    });
+    addErrorCount(success);
+    printResponseToConsole("Get User data failed:", success, res);    
     res = JSON.parse(res.body);
+
     var userData = {
         "userId": res.userId,
         "ssn": res.party.ssn,
         "partyId": res.partyId
     };
+
     //get parties and find an Org that an user can represent
     res = getParties(userData["userId"]);
-    if(res.status !== 200){
-        printResponseToConsole("Get User data failed:", false, res);
-    };
+    success = check(res, {
+        "Get User data:": (r) => r.status === 200       
+    });    
+    addErrorCount(success);
+    printResponseToConsole("Get User data failed:", success, res);
+    
     res = JSON.parse(res.body);
     for(var i=0; i < res.length; i++){
         if(res[i].orgNumber != null){
@@ -77,3 +90,32 @@ export function generateMaskinPortenToken(){
     var token = (JSON.parse(response.body)).access_token;
     return token;
 };
+
+//Generate array with type of attachment for all the iterations
+//based on the distribution across small, medium and large attachment
+export function buildAttachmentTypeArray(distribution, totalIterations){
+    distribution = distribution.split(";");
+    var small = (distribution[0] != null) ? buildArray(totalIterations * (distribution[0]/100), "s") : [];
+    var medium = (distribution[1] != null) ? buildArray(totalIterations * (distribution[1]/100), "m") : [];
+    var large = (distribution[2] != null) ? buildArray(totalIterations * (distribution[2]/100), "l") : [];
+    var attachmentTypes = small.concat(medium,large);
+    return shuffle(attachmentTypes);
+};
+
+//Function to build an array with the specified value and count
+function buildArray(count, value){
+    var array = [];
+    for(var i=0; i<count; i++){
+        array.push(value);
+    }
+    return array;
+}
+
+//Fisher–Yates shuffle of an array
+export function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1)); 
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
