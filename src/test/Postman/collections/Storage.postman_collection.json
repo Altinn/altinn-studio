@@ -16,7 +16,8 @@
 							"script": {
 								"id": "405f0af9-b1dd-42cb-acad-8835c9f15dd3",
 								"exec": [
-									""
+									"var current_timestamp = new Date();\r",
+									"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
 								],
 								"type": "text/javascript"
 							}
@@ -28,15 +29,11 @@
 								"exec": [
 									"const jar = pm.cookies.jar();",
 									"var domain = pm.environment.get(\"envUrl\");",
-									"jar.clear(domain, function (error){",
-									"    if(error)",
-									"    {",
-									"        console.log(\"error\",error);",
+									"jar.clear(domain, function (error) {",
+									"    if (error) {",
+									"        console.log(\"error\", error);",
 									"    }",
-									"});",
-									"",
-									"var current_timestamp = new Date();",
-									"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -152,13 +149,12 @@
 							"script": {
 								"id": "6505cb59-4588-4d0c-af60-b5faa7dcb8c1",
 								"exec": [
-									"if(pm.response.code == 200)",
-									"{",
+									"if (pm.response.code == 200) {",
 									"    var jsonData = pm.response.json();",
 									"    var partyId = jsonData.partyId;",
 									"    var ssn = jsonData.party.ssn;",
-									"    pm.environment.set(\"SSN\",ssn);",
-									"    pm.environment.set(\"instanceOwnerId\",partyId);",
+									"    pm.environment.set(\"SSN\", ssn);",
+									"    pm.environment.set(\"instanceOwnerId\", partyId);",
 									"}"
 								],
 								"type": "text/javascript"
@@ -958,6 +954,16 @@
 									"pm.test(\"Platform - Storage - Instances - Get Instances with Date filter - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "1515b68b-dddd-4d4a-bbdf-6fa1b5514197",
+								"exec": [
+									""
 								],
 								"type": "text/javascript"
 							}
