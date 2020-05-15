@@ -1,5 +1,4 @@
 import * as DOMPurify from 'dompurify';
-// import * as marked from 'marked';
 import ReactHtmlParser from 'react-html-parser';
 import { ITextResource, IDataSources } from '../types';
 
