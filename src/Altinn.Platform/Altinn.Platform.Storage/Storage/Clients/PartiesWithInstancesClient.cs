@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Configuration;
@@ -33,7 +34,7 @@ namespace Altinn.Platform.Storage.Clients
         /// <inheritdoc />
         public async Task SetHasAltinn3Instances(int instanceOwnerPartyId)
         {
-            StringContent content = new StringContent(instanceOwnerPartyId.ToString());
+            StringContent content = new StringContent(instanceOwnerPartyId.ToString(), Encoding.UTF8, "application/json");
             await _client.PostAsync("partieswithinstances", content);
         }
     }
