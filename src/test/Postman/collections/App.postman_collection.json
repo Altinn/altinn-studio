@@ -1866,7 +1866,7 @@
 						"body": {
 							"mode": "file",
 							"file": {
-								"src": "/C:/Repos/altinn-studio/src/test/Postman/test_file_morethan_1mb.txt"
+								"src": "test_file_morethan_1mb.txt"
 							},
 							"options": {
 								"raw": {
