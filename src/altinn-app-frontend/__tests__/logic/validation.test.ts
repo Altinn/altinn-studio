@@ -2,15 +2,18 @@ import 'jest';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
 import { IValidationIssue, Severity } from '../../src/types';
 import * as validation from '../../src/utils/validation';
-import { length, max, maxLength, min, minLength, pattern } from '../../src/utils/validation';
+import { getParsedLanguageFromKey } from '../../../shared/src';
+
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
   let mockLayout: any[];
   let mockReduxFormat: any;
   let mockLayoutState: any;
+  let mockJsonSchema: any;
+  let mockInvalidTypes: any;
   let mockFormData: IFormData;
-  let mockDataModelFields: any[];
+  let mockValidFormData: IFormData;
   let mockFormValidationResult: any;
   let mockLanguage: any;
   let mockFormAttachments: any;
@@ -41,8 +44,14 @@ describe('>>> utils/validations.ts', () => {
           file_uploader_validation_error_file_number_1: 'For å fortsette må du laste opp',
           file_uploader_validation_error_file_number_2: 'vedlegg',
         },
+        validation_errors: {
+          minLength: 'length must be bigger than {0}',
+          min: 'must be bigger than {0}',
+        },
       },
     };
+
+
 
     mockLayout = [
       {
@@ -121,68 +130,113 @@ describe('>>> utils/validations.ts', () => {
       random_key: 'some third value',
     };
 
-    mockDataModelFields = [
-      {
-        id: 'dataModelField_1',
-        dataBindingName: 'dataModelField_1',
-        restrictions: {
-          min: {
-            Value: '0',
-            ErrortText: 'must be bigger than 0',
-          },
-        },
-      },
-      {
-        id: 'dataModelField_2',
-        dataBindingName: 'dataModelField_2',
-        restrictions: {
-          minLength: {
-            Value: '10',
-            ErrortText: 'length must be bigger than 10',
-          },
-        },
-      },
-      {
-        id: 'dataModelField_3',
-        dataBindingName: 'dataModelField_3',
-        restrictions: {},
-      },
-    ];
+    mockValidFormData = {
+      dataModelField_1: '12',
+      dataModelField_2: 'Really quite long...',
+      dataModelField_3: 'Test 123',
+    };
 
-    mockFormValidationResult = {
-      componentId_1: {
-        simpleBinding: {
-          errors: [
-            'must be bigger than 0',
-          ],
-          warnings: [],
+    mockJsonSchema = {
+      $id: 'schema',
+      properties: {
+        root: {
+          $ref: '#/definitions/TestDataModel',
         },
       },
-      componentId_2: {
-        customBinding: {
-          errors: [
-            'length must be bigger than 10',
-          ],
-          warnings: [],
-        },
-      },
-      componentId_3: {
-        simpleBinding: {
-          errors: [
-            'Feltet er påkrevd',
-          ],
-          warnings: [],
+      definitions: {
+        TestDataModel: {
+          properties: {
+            dataModelField_1: {
+              type: 'number',
+              minimum: 0,
+            },
+            dataModelField_2: {
+              type: 'string',
+              minLength: 10,
+            },
+            dataModelField_3: {
+              type: 'string',
+            },
+          },
         },
       },
     };
+
+    mockFormValidationResult = {
+      validations: {
+        componentId_1: {
+          simpleBinding: {
+            errors: [
+              getParsedLanguageFromKey('validation_errors.min', mockLanguage.language, [0]),
+            ],
+          },
+        },
+        componentId_2: {
+          customBinding: {
+            errors: [
+              getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10]),
+            ],
+          },
+        },
+      },
+      invalidDataTypes: false,
+    };
+
+    mockInvalidTypes = {
+      validations: {},
+      invalidDataTypes: true,
+    };
+
     mockDataElementValidations = [
       // tslint:disable max-line-length
-      {field: 'dataModelField_1', severity: Severity.Error, scope: null, targetId: '', description: 'Error message 1', code: ''},
-      {field: 'dataModelField_1', severity: Severity.Error, scope: null, targetId: '', description: 'Error message 2', code: ''},
-      {field: 'dataModelField_2', severity: Severity.Warning, scope: null, targetId: '', description: 'Warning message 1', code: ''},
-      {field: 'dataModelField_2', severity: Severity.Warning, scope: null, targetId: '', description: 'Warning message 2', code: ''},
-      {field: 'random_key', severity: Severity.Warning, scope: null, targetId: '', description: 'test warning', code: ''},
-      {field: 'random_key', severity: Severity.Error, scope: null, targetId: '', description: 'test error', code: ''},
+      {
+        field: 'dataModelField_1',
+        severity: Severity.Error,
+        scope: null,
+        targetId: '',
+        description: 'Error message 1',
+        code: '',
+      },
+      {
+        field: 'dataModelField_1',
+        severity: Severity.Error,
+        scope: null,
+        targetId: '',
+        description: 'Error message 2',
+        code: '',
+      },
+      {
+        field: 'dataModelField_2',
+        severity: Severity.Warning,
+        scope: null,
+        targetId: '',
+        description: 'Warning message 1',
+        code: '',
+      },
+      {
+        field: 'dataModelField_2',
+        severity: Severity.Warning,
+        scope: null,
+        targetId: '',
+        description: 'Warning message 2',
+        code: '',
+      },
+      {
+        field: 'random_key',
+        severity: Severity.Warning,
+        scope: null,
+        targetId: '',
+        description: 'test warning',
+        code: '',
+      },
+      {
+        field: 'random_key',
+        severity: Severity.Error,
+        scope: null,
+        targetId: '',
+        description: 'test error',
+        code: '',
+      },
     ];
   });
 
@@ -206,87 +260,51 @@ describe('>>> utils/validations.ts', () => {
   // });
 
   it('+++ should count total number of errors correctly', () => {
-    const result = validation.getErrorCount(mockFormValidationResult);
-    expect(result).toEqual(3);
-  });
-
-  it('+++ validation function min should validate correctly', () => {
-    const falseResult = min(10, 12);
-    const trueResult = min(12, 10);
-    expect(falseResult).toBeFalsy();
-    expect(trueResult).toBeTruthy();
-  });
-
-  it('+++ validation function max should validate correctly', () => {
-    const falseResult = max(12, 10);
-    const trueResult = max(10, 12);
-    expect(falseResult).toBeFalsy();
-    expect(trueResult).toBeTruthy();
-  });
-
-  it('+++ validation function minLength should validate correctly', () => {
-    const falseResult = minLength('hello', 12);
-    const trueResult = minLength('hello', 3);
-    expect(falseResult).toBeFalsy();
-    expect(trueResult).toBeTruthy();
-  });
-
-  it('+++ validation function maxLength should validate correctly', () => {
-    const falseResult = maxLength('hello', 3);
-    const trueResult = maxLength('hello', 12);
-    expect(falseResult).toBeFalsy();
-    expect(trueResult).toBeTruthy();
-  });
-
-  it('+++ validation function length should validate correctly', () => {
-    const falseResult = length('hello', 3);
-    const trueResult = length('hello', 5);
-    expect(falseResult).toBeFalsy();
-    expect(trueResult).toBeTruthy();
-  });
-
-  it('+++ validation function pattern should validate correctly', () => {
-    const falseResult = pattern('123', '^[a-zA-Z]+$');
-    const trueResult = pattern('hello', '^[a-zA-Z]+$');
-    expect(falseResult).toBeFalsy();
-    expect(trueResult).toBeTruthy();
+    const result = validation.getErrorCount(mockFormValidationResult.validations);
+    expect(result).toEqual(2);
   });
 
   it('+++ canFormBeSaved should validate correctly', () => {
     const validValidationResult = {
-      componentId_1: {
-        simpleBinding: {
-          errors: [
-            'Field is required',
-          ],
-          warnings: [],
+      validations: {
+        componentId_1: {
+          simpleBinding: {
+            errors: [
+              'Field is required',
+            ],
+            warnings: [],
+          },
+        },
+        componentId_2: {
+          customBinding: {
+            errors: [],
+            warnings: [],
+          },
+        },
+        componentId_3: {
+          simpleBinding: {
+            errors: [
+              'Field is required',
+            ],
+            warnings: [],
+          },
         },
       },
-      componentId_2: {
-        customBinding: {
-          errors: [],
-          warnings: [],
-        },
-      },
-      componentId_3: {
-        simpleBinding: {
-          errors: [
-            'Field is required',
-          ],
-          warnings: [],
-        },
-      },
+      invalidDataTypes: false,
     };
     const apiModeComplete = "Complete";
     const falseResult = validation.canFormBeSaved(mockFormValidationResult, apiModeComplete);
+    const falseResult2 = validation.canFormBeSaved(mockInvalidTypes);
     const trueResult = validation.canFormBeSaved(validValidationResult, apiModeComplete);
     const trueResult2 = validation.canFormBeSaved(null);
     const trueResult3 = validation.canFormBeSaved(mockFormValidationResult);
     expect(falseResult).toBeFalsy();
+    expect(falseResult2).toBeFalsy();
     expect(trueResult).toBeTruthy();
     expect(trueResult2).toBeTruthy();
     expect(trueResult3).toBeTruthy();
   });
+
   it('+++ validateFormComponents should return error on fileUpload if its not enough files', () => {
     const componentSpesificValidations =
       validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockFormData, mockLanguage.language, []);
@@ -366,5 +384,23 @@ describe('>>> utils/validations.ts', () => {
   it('+++ data element validations should be mapped correctly to our redux format', () => {
     const mappedDataElementValidaitons = validation.mapDataElementValidationToRedux(mockDataElementValidations, mockLayoutState.layout, []);
     expect(mappedDataElementValidaitons).toEqual(mockReduxFormat);
+  });
+  it('+++ validateFormData should return error if form data is invalid', () => {
+    const mockValidator = validation.createValidator(mockJsonSchema);
+    const mockResult = validation.validateFormData(mockFormData, mockLayoutState.layout, mockValidator, mockLanguage.language);
+    expect(mockResult).toEqual(mockFormValidationResult);
+  });
+  it('+++ validateFormData should return no errors if form data is valid', () => {
+    const mockValidator = validation.createValidator(mockJsonSchema);
+    const mockResult = validation.validateFormData(mockValidFormData, mockLayoutState.layout, mockValidator, mockLanguage);
+    expect(mockResult.validations).toEqual({});
+  });
+  it('+++ validateFormData should return invalidDataTypes=true if form data is wrong type', () => {
+    const data: any = {
+      dataModelField_1: 'abc',
+    };
+    const mockValidator = validation.createValidator(mockJsonSchema);
+    const mockResult = validation.validateFormData(data, mockLayoutState.layout, mockValidator, mockLanguage);
+    expect(mockResult.invalidDataTypes).toBeTruthy();
   });
 });
