@@ -116,12 +116,10 @@ export default function() {
     printResponseToConsole("E2E App PUT Move process to Next element:", success, res);
 
     //Test to call get instance details and verify the presence of archived date
-    for(var i = 0; i < 2; i++){
-        res = appInstances.getInstanceById(runtimeToken, partyId, instanceId);
-        success = check(res, {
-            "E2E App Instance is archived:": (r) => r.body.length > 0 && (JSON.parse(r.body)).status.archived != null
-        });
-        addErrorCount(success);
-        printResponseToConsole("E2E App Instance is not archived:", success, res);
-    };
+    res = appInstances.getInstanceById(runtimeToken, partyId, instanceId);
+    success = check(res, {
+        "E2E App Instance is archived:": (r) => r.body.length > 0 && (JSON.parse(r.body)).status.archived != null
+    });
+    addErrorCount(success);
+    printResponseToConsole("E2E App Instance is not archived:", success, res);
 };

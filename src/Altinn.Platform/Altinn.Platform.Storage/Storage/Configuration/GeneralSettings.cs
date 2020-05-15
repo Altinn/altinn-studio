@@ -1,3 +1,5 @@
+using System;
+
 namespace Altinn.Platform.Storage.Configuration
 {
     /// <summary>
@@ -19,5 +21,10 @@ namespace Altinn.Platform.Storage.Configuration
         /// Name of the cookie for runtime
         /// </summary>
         public string RuntimeCookieName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the URI for the SBL Bridge Authorization API.
+        /// </summary>
+        public Uri BridgeApiAuthorizationEndpoint { get; set; }
     }
 }

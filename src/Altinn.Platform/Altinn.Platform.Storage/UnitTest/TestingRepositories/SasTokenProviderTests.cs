@@ -64,7 +64,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
         }
 
         [Fact]
-        public async Task GetSasToken_InputSameOrgId_KeyVaultCalledOnlyOnce()
+        public async Task GetSasToken_InputSameOrgIdTwice_KeyVaultCalledOnlyOnce()
         {
             // Arrange
             string org = "ttd";
@@ -90,7 +90,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
         }
 
         [Fact]
-        public async Task GetSasToken_InputDifferentOrgId_KeyVaultCalledTwice()
+        public async Task GetSasToken_InputTwoDifferentOrgId_KeyVaultCalledTwice()
         {
             // Arrange
             string org_ttd = "ttd";

@@ -33,7 +33,10 @@
 									"    {",
 									"        console.log(\"error\",error);",
 									"    }",
-									"});"
+									"});",
+									"",
+									"var current_timestamp = new Date();",
+									"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
 								],
 								"type": "text/javascript"
 							}
@@ -226,8 +229,7 @@
 							"script": {
 								"id": "c41aa913-9f1a-4cc8-87dc-d896ef72317c",
 								"exec": [
-									"var current_timestamp = new Date();\r",
-									"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -836,8 +838,8 @@
 							"script": {
 								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
 								"exec": [
-									"pm.test(\"Platform - Storage - Instances - Get All instances - Not allowed for instanceOwner - Status - 403\", function () {\r",
-									"    pm.response.to.have.status(403);\r",
+									"pm.test(\"Platform - Storage - Instances - Get All instances - Missing Request parameter - Status - 400\", function () {\r",
+									"    pm.response.to.have.status(400);\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -895,8 +897,8 @@
 							"script": {
 								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
 								"exec": [
-									"pm.test(\"Platform - Storage - Instances - Get Instance by onwerId - Not allowed for instanceOwner- Status - 403\", function () {\r",
-									"    pm.response.to.have.status(403);\r",
+									"pm.test(\"Platform - Storage - Instances - Get Instance by onwerId - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -953,8 +955,8 @@
 							"script": {
 								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
 								"exec": [
-									"pm.test(\"Platform - Storage - Instances - Get Instances with Date filter - Not allowed for instanceOwner - Status - 403\", function () {\r",
-									"    pm.response.to.have.status(403);\r",
+									"pm.test(\"Platform - Storage - Instances - Get Instances with Date filter - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -981,7 +983,7 @@
 							}
 						],
 						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&created=gt:{{current_timestamp}}&lastChanged=gte:2019-08-12T11:20:10.2003387Z",
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&created=gt:{{current_timestamp}}&lastChanged=gte:2019-08-12T11:20:10.2003387Z&instanceOwner.partyId={{instanceOwnerId}}",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -1005,6 +1007,10 @@
 								{
 									"key": "lastChanged",
 									"value": "gte:2019-08-12T11:20:10.2003387Z"
+								},
+								{
+									"key": "instanceOwner.partyId",
+									"value": "{{instanceOwnerId}}"
 								}
 							]
 						}
@@ -1019,8 +1025,8 @@
 							"script": {
 								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
 								"exec": [
-									"pm.test(\"Platform - Storage - Instances - Get Instances with Process filter - Not allowed for instanceOwner - Status - 403\", function () {\r",
-									"    pm.response.to.have.status(403);\r",
+									"pm.test(\"Platform - Storage - Instances - Get Instances with Process filter  - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1047,7 +1053,7 @@
 							}
 						],
 						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&process.currentTask={{processElementId}}",
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&process.currentTask=Task_1&instanceOwner.partyId={{instanceOwnerId}}",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -1066,7 +1072,11 @@
 								},
 								{
 									"key": "process.currentTask",
-									"value": "{{processElementId}}"
+									"value": "Task_1"
+								},
+								{
+									"key": "instanceOwner.partyId",
+									"value": "{{instanceOwnerId}}"
 								}
 							]
 						}
