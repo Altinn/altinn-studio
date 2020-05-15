@@ -7,8 +7,8 @@ import * as apps from "../../../api/storage/applications.js"
 import * as sbl from "../../../api/storage/messageboxinstances.js"
 import {postPartieslookup} from "../../../api/platform/register.js"
 
-let appOwner = __ENV.org;
-let level2App = __ENV.level2app;
+const appOwner = __ENV.org;
+const level2App = __ENV.level2app;
 let instanceFormDataXml = open("../../../data/rf-0002.xml");
 let instanceJson = open("../../../data/instance.json");
 let users = JSON.parse(open("../../../data/users.json"));

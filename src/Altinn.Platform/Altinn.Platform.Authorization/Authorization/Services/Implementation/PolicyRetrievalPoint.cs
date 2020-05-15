@@ -36,8 +36,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             string policyPath = GetPolicyPath(request);
             Stream policyStream = await _repository.GetPolicyAsync(policyPath);
-
-            return (policyStream != null) ? ParsePolicy(policyStream) : null; 
+            return (policyStream.Length > 0) ? ParsePolicy(policyStream) : null;
         }
 
         /// <inheritdoc/>

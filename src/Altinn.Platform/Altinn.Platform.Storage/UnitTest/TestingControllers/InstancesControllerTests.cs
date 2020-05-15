@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -9,11 +7,14 @@ using System.Text;
 
 using Altinn.Common.PEP.Interfaces;
 
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
 using Altinn.Platform.Storage.UnitTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Mocks.Clients;
+using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 using Altinn.Platform.Storage.Wrappers;
 
 using AltinnCore.Authentication.JwtCookie;
@@ -27,8 +28,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
-using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
-using Microsoft.Azure.Documents.SystemFunctions;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
@@ -216,11 +215,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string token = PrincipalUtil.GetToken(3, 1337, 3);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                // Laste opp test instance.. 
-                Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1337" }, Org = "tdd", AppId = "tdd/endring-av-navn" };
+                Instance instance = new Instance { InstanceOwner = new InstanceOwner { PartyId = "1337" }, Org = "tdd", AppId = "tdd/endring-av-navn" };
 
                 // Act
-                HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
+                HttpResponseMessage response = await client.PostAsync(requestUri,
+                    new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"));
 
                 // Assert
                 Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -673,6 +672,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                         services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
+                        services.AddSingleton<IPartiesWithInstancesClient, PartiesWithInstancesClientMock>();
                         services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                     });

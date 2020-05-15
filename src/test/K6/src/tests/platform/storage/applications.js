@@ -3,11 +3,11 @@ import {addErrorCount} from "../../../errorcounter.js";
 import * as application from "../../../api/storage/applications.js"
 import * as setUpData from "../../../setup.js";
 
-let userName = __ENV.username;
-let userPassword = __ENV.userpwd;
-let appOwner = __ENV.org;
-let level2App = __ENV.level2app;
-let testApp = __ENV.testapp;
+const userName = __ENV.username;
+const userPassword = __ENV.userpwd;
+const appOwner = __ENV.org;
+const level2App = __ENV.level2app;
+const testApp = __ENV.testapp;
 let metadata = open("../../../data/appmetadata.json");
 
 export const options = {

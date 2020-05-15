@@ -1,3 +1,8 @@
+/*
+  Create and archive instances of RF-0002 without attachments that simulates all the api calls from portal
+  example: k6 run -i 20 --duration 1m /src/tests/app/rf0002portal.js -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=***
+*/
+
 import { check } from "k6";
 import {addErrorCount, printResponseToConsole} from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
@@ -21,12 +26,14 @@ export const options = {
 //Tests for App API: RF-0002
 export default function() {
     var userNumber = (__VU - 1) % usersCount;
+    
     try {
         var userSSN = users[userNumber].username;
         var userPwd = users[userNumber].password;    
     } catch (error) {
-        printResponseToConsole("Testdata missing", false, null)
+        printResponseToConsole("Testdata missing", false, null);
     };
+
     var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();

@@ -78,7 +78,7 @@ export function isGuid(stringToTest) {
 //Function to add subscription key to the header when sent as env variable from command line
 //and env is YT01 or TT02 and endpoint is a platform endpoint
 function addSubscriptionKey(params, subscriptionKey, api){   
-    if((environment == "yt01" || environment == "tt02") && subscriptionKey != null && api =="platform"){                
+    if((environment == "yt01" || environment == "tt02" || environment == "prod") && subscriptionKey != null && api =="platform"){                
         if(params["headers"] == null){
             params["headers"]={};            
         };
