@@ -1,10 +1,11 @@
 import { AppBar, Grid, Toolbar } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
-import {AltinnLogo} from 'altinn-shared/components';
-import {AltinnAppTheme} from 'altinn-shared/theme';
-import { getLanguageFromKey } from 'altinn-shared/utils';
+import { AltinnLogo } from 'altinn-shared/components';
+import { AltinnAppTheme } from 'altinn-shared/theme';
+import { getLanguageFromKey, returnUrlToMessagebox } from 'altinn-shared/utils';
 import { IProfile } from 'altinn-shared/types';
+import { returnUrlToAllSchemas, returnUrlToProfile } from 'altinn-shared/utils/urlHelper';
 import { renderParty } from '../resources/utils/party';
 
 export interface IHeaderProps {
@@ -18,7 +19,7 @@ const theme = createMuiTheme(AltinnAppTheme);
 
 const styles = createStyles({
   appBarWrapper: {
-    'flexGrow': 1,
+    flexGrow: 1,
     '& header': {
       boxShadow: 'none',
     },
@@ -33,11 +34,11 @@ const styles = createStyles({
     backgroundColor: 'transparent',
   },
   headerLink: {
-    'color': AltinnAppTheme.altinnPalette.primary.blueDark,
-    'fontSize': '2.4rem',
-    'lineHeight': '1.5',
-    'marginLeft': '3.6rem',
-    'paddingBottom': '3px',
+    color: AltinnAppTheme.altinnPalette.primary.blueDark,
+    fontSize: '2.4rem',
+    lineHeight: '1.5',
+    marginLeft: '3.6rem',
+    paddingBottom: '3px',
     [theme.breakpoints.down('sm')]: {
       fontSize: '1.8rem',
     },
@@ -50,13 +51,13 @@ const styles = createStyles({
     },
     '& a:hover': {
       color: AltinnAppTheme.altinnPalette.primary.blueDark,
-      borderBottom: '3px solid ' + AltinnAppTheme.altinnPalette.primary.blueDark,
+      borderBottom: `3px solid ${AltinnAppTheme.altinnPalette.primary.blueDark}`,
     },
   },
   headerLinkList: {
-    'flexGrow': 1,
-    'listStyle': 'none',
-    'float': 'left',
+    flexGrow: 1,
+    listStyle: 'none',
+    float: 'left',
     '& li': {
       display: 'inline',
     },
@@ -83,14 +84,14 @@ const styles = createStyles({
     marginLeft: '5px',
   },
   toolbarContainer: {
-    'paddingTop': '3rem !important',
-    'marginBottom': '3.6rem',
+    paddingTop: '3rem !important',
+    marginBottom: '3.6rem',
     '& .a-personSwitcher': {
       marginTop: '0 !important',
       marginLeft: '2.4rem',
     },
-    'paddingLeft': '0',
-    'paddingRight': '0',
+    paddingLeft: '0',
+    paddingRight: '0',
   },
 });
 
@@ -99,87 +100,87 @@ const AltinnAppHeader = (props: IHeaderProps) => {
   const party = props.profile ? props.profile.party : null;
   return (
     <div className={classes.appBarWrapper}>
-    <AppBar
-      position='static'
-      className={type === 'partyChoice' ? classes.partyChoice : classes.default}
-    >
-      <Toolbar className={'container ' + classes.toolbarContainer}>
-        <Grid
-          item={true}
-          className={classes.logo}
-          style={!type ? {flexGrow: 1} : {}}
-        >
-          <AltinnLogo
-            color={
-              type === 'partyChoice' ? AltinnAppTheme.altinnPalette.primary.blueDark :
-              AltinnAppTheme.altinnPalette.primary.blueDarker}
-          />
-        </Grid>
-            {
-              type &&
+      <AppBar
+        position='static'
+        className={type === 'partyChoice' ? classes.partyChoice : classes.default}
+      >
+        <Toolbar className={`container ${classes.toolbarContainer}`}>
+          <Grid
+            item={true}
+            className={classes.logo}
+            style={!type ? { flexGrow: 1 } : {}}
+          >
+            <AltinnLogo
+              color={
+                type === 'partyChoice' ? AltinnAppTheme.altinnPalette.primary.blueDark :
+                  AltinnAppTheme.altinnPalette.primary.blueDarker}
+            />
+          </Grid>
+          {
+            type &&
               <ul
                 className={classes.headerLinkList}
               >
                 <li
                   className={classes.headerLink}
                 >
-                  <a href='https://altinn.no/ui/messagebox'>
+                  <a href={returnUrlToMessagebox(window.location.origin)}>
                     {getLanguageFromKey('instantiate.inbox', props.language)}
                   </a>
                 </li>
                 <li
                   className={classes.headerLink}
                 >
-                  <a href='https://altinn.no/nn/skjemaoversikt/'>
+                  <a href={returnUrlToAllSchemas(window.location.origin)}>
                     {getLanguageFromKey('instantiate.all_forms', props.language)}
                   </a>
                 </li>
                 <li
                   className={classes.headerLink}
                 >
-                  <a href='https://altinn.no/ui/profile'>
+                  <a href={returnUrlToProfile(window.location.origin)}>
                     {getLanguageFromKey('instantiate.profile', props.language)}
                   </a>
                 </li>
               </ul>
-            }
-        <div
-          className={'a-personSwitcher'}
-          title={renderParty(props.profile)}
-        >
-          <span className='a-personSwitcher-name' style={{ marginBottom: '10px' }}>
-            { !type &&
-            <>
-              <span className={'d-block ' + (type ? classes.blueDark : classes.blueDarker)}>
-                {renderParty(props.profile)}
-              </span>
-              <span className={type ? classes.blueDark : classes.blueDarker}>
-                {
-                  party && party.organisation &&
-                  getLanguageFromKey('general.for', props.language) + ' ' +
-                  party.organisation.name.toUpperCase()
-                }
-              </span>
-            </>
-            }
-            <span className='d-block' />
-          </span>
-          {party && party.organisation ?
-            <i
-              className={'fa fa-corp-circle-big ' + classes.partyIcon + ' ' +
-                (type ? classes.blueDark : classes.blueDarker)}
-              aria-hidden='true'
-            />
-            :
-            <i
-              className={'fa fa-private-circle-big ' + classes.partyIcon + ' ' +
-                (type ? classes.blueDark : classes.blueDarker)}
-              aria-hidden='true'
-            />
           }
-        </div>
-      </Toolbar>
-    </AppBar>
+          <div
+            className='a-personSwitcher'
+            title={renderParty(props.profile)}
+          >
+            <span className='a-personSwitcher-name' style={{ marginBottom: '10px' }}>
+              { !type &&
+              <>
+                <span className={`d-block ${type ? classes.blueDark : classes.blueDarker}`}>
+                  {renderParty(props.profile)}
+                </span>
+                <span className={type ? classes.blueDark : classes.blueDarker}>
+                  {
+                    party && party.organisation &&
+                  `${getLanguageFromKey('general.for', props.language)} ${
+                    party.organisation.name.toUpperCase()}`
+                  }
+                </span>
+              </>
+              }
+              <span className='d-block' />
+            </span>
+            {party && party.organisation ?
+              <i
+                className={`fa fa-corp-circle-big ${classes.partyIcon} ${
+                  type ? classes.blueDark : classes.blueDarker}`}
+                aria-hidden='true'
+              />
+              :
+              <i
+                className={`fa fa-private-circle-big ${classes.partyIcon} ${
+                  type ? classes.blueDark : classes.blueDarker}`}
+                aria-hidden='true'
+              />
+            }
+          </div>
+        </Toolbar>
+      </AppBar>
     </div>
   );
 };
