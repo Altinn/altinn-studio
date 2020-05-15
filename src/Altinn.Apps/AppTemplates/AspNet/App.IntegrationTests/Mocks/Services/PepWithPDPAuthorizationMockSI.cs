@@ -52,20 +52,6 @@ namespace App.IntegrationTests.Mocks.Services
 
         public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
-            if (_pepSettings.DisablePEP)
-            {
-                return new XacmlJsonResponse
-                {
-                    Response = new List<XacmlJsonResult>()
-                    {
-                        new XacmlJsonResult
-                        {
-                            Decision = XacmlContextDecision.Permit.ToString(),
-                        }
-                    },
-                };
-            }
-
             try
             {
                 XacmlContextRequest decisionRequest = XacmlJsonXmlConverter.ConvertRequest(xacmlJsonRequest.Request);
@@ -87,11 +73,6 @@ namespace App.IntegrationTests.Mocks.Services
 
         public async Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user)
         {
-            if (_pepSettings.DisablePEP)
-            {
-                return true;
-            }
-
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
             return DecisionHelper.ValidatePdpDecision(response.Response, user);
         }
