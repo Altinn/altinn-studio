@@ -2,36 +2,54 @@ import { SagaIterator } from 'redux-saga';
 import { actionChannel, call, select, take } from 'redux-saga/effects';
 
 import { IRuntimeState } from '../../../../types';
-import { IComponentValidations } from '../../../../types/global';
+import { IValidationResult } from '../../../../types/global';
 import { getLayoutComponentById } from '../../../../utils/layout';
-import { validateComponentFormData } from '../../../../utils/validation';
+import { createValidator, validateComponentFormData } from '../../../../utils/validation';
 import FormDynamicActions from '../../dynamics/formDynamicsActions';
 import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
 import * as FormDataActionTypes from '../formDataActionTypes';
-import { IUpdateFormData } from '../update/updateFormDataActions';
+import { IUpdateFormData } from './updateFormDataActions';
 import FormLayoutActions from '../../layout/formLayoutActions';
+import { getDataTaskDataTypeId } from '../../../../utils/appMetadata';
 
-function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): SagaIterator {
+function* updateFormDataSaga({
+  field,
+  data,
+  componentId,
+}: IUpdateFormData): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
+    const currentDataTaskDataTypeId = getDataTaskDataTypeId(
+      state.instanceData.instance.process.currentTask.elementId,
+      state.applicationMetadata.applicationMetadata.dataTypes,
+    );
+    const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
+    const validator = createValidator(schema);
     const component = getLayoutComponentById(componentId, state.formLayout.layout);
-    const dataModelField = state.formDataModel.dataModel.find((element: any) => element.dataBindingName === field);
     const focus = state.formLayout.uiConfig.focus;
-    const componentValidations: IComponentValidations = validateComponentFormData(
+    const validationResult: IValidationResult = validateComponentFormData(
       data,
-      dataModelField,
+      field,
       component,
       state.language.language,
+      validator,
       state.formValidations.validations[componentId],
     );
+
+    const componentValidations = validationResult?.validations[componentId];
 
     if (shouldUpdateFormData(state.formData.formData[field], data)) {
       yield call(FormDataActions.updateFormDataFulfilled, field, data);
     }
 
     if (componentValidations) {
-      yield call(FormValidationActions.updateComponentValidations, componentValidations, componentId);
+      yield call(
+        FormValidationActions.updateComponentValidations,
+        componentValidations,
+        componentId,
+        validationResult.invalidDataTypes,
+      );
     }
     if (state.formDynamics.conditionalRendering) {
       yield call(FormDynamicActions.checkIfConditionalRulesShouldRun);
