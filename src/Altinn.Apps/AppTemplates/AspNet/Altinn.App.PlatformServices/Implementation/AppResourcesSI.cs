@@ -148,6 +148,15 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
+        public string GetModelJsonSchema(string modelId)
+        {
+            string filename = $"{_settings.AppBasePath}{_settings.ModelsFolder}{modelId}.{_settings.JsonSchemaFileName}";
+            string filedata = File.ReadAllText(filename, Encoding.UTF8);
+
+            return filedata;
+        }
+
+        /// <inheritdoc/>
         public byte[] GetRuntimeResource(string resource)
         {
             byte[] fileContent = null;

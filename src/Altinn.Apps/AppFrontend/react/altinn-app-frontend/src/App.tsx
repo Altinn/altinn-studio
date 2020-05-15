@@ -63,7 +63,7 @@ export default function () {
   }, []);
 
   if (hasApiErrors) {
-    return <UnknownError />
+    return <UnknownError />;
   }
 
   return (

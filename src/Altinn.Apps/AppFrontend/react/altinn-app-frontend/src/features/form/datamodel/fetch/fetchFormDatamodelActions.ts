@@ -13,6 +13,11 @@ export interface IFetchDataModelRejected extends Action {
   error: Error;
 }
 
+export interface IFetchJsonSchemaFulfilled extends Action {
+  schema: any;
+  id: any;
+}
+
 export function fetchDataModel(url: string): IFetchDataModel {
   return {
     type: ActionTypes.FETCH_DATA_MODEL,
@@ -30,6 +35,28 @@ export function fetchDataModelFulfilled(dataModel: any): IFetchDataModelFulfille
 export function fetchDataModelRejected(error: Error): IFetchDataModelRejected {
   return {
     type: ActionTypes.FETCH_DATA_MODEL_REJECTED,
+    error,
+  };
+}
+
+export function fetchJsonSchema(url: string): IFetchDataModel {
+  return {
+    type: ActionTypes.FETCH_JSON_SCHEMA,
+    url,
+  };
+}
+
+export function fetchJsonSchemaFulfilled(schema: any, id: string): IFetchJsonSchemaFulfilled {
+  return {
+    type: ActionTypes.FETCH_JSON_SCHEMA_FULFILLED,
+    schema,
+    id,
+  };
+}
+
+export function fetchJsonSchemaRejected(error: Error): IFetchDataModelRejected {
+  return {
+    type: ActionTypes.FETCH_JSON_SCHEMA_REJECTED,
     error,
   };
 }
