@@ -101,5 +101,18 @@ namespace Altinn.App.Api.Controllers
             string metadata = _appResourceService.GetModelMetaDataJSON(org, app);
             return Ok(metadata);
         }
+
+        /// <summary>
+        /// Get the json schema for the model
+        /// </summary>
+        /// <param name="id">Unique identifier of the model to fetch json schema for.</param>
+        /// <returns>The model json schema.</returns>
+        [HttpGet]
+        [Route("{org}/{app}/api/jsonschema/{id}")]
+        public ActionResult ModelJsonSchema([FromRoute] string id)
+        {
+            string schema = _appResourceService.GetModelJsonSchema(id);
+            return Ok(schema);
+        }
     }
 }

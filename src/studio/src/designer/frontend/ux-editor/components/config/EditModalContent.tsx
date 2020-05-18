@@ -211,13 +211,11 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   }
 
   public getMinOccursFromDataModel = (dataBindingName: string): number => {
-    const parentComponent = dataBindingName.replace('.value', '');
+    const parentComponent = dataBindingName.replace('.value', '').replace(/\./, '/');
     const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) => {
-      const firstPeriod = e.id.indexOf('.');
-      const elementDataBindingName = e.id.substr(firstPeriod + 1, e.id.length - (firstPeriod + 1));
-      return elementDataBindingName.toLowerCase() === parentComponent.toLowerCase();
+      return e.xPath === `/${parentComponent}`;
     });
-    return element.minOccurs;
+    return element?.minOccurs;
   }
 
   public handleValidFileEndingsChange = (event: any) => {
@@ -469,7 +467,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                     className='custom-select a-custom-select'
                     onChange={this.handleUpdateOptionLabel.bind(this, index)}
                     value={option.label}
-                  >}
+                  >
                     <option key='empty' value=''>
                       {this.props.language.general.choose_label}
                     </option>

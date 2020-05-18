@@ -8,6 +8,7 @@ export interface IFormDataActions extends ActionCreatorsMapObject {
   updateFormData: (field: string, data: any, componentId: string) => UpdateFormData.IUpdateFormData;
   updateFormDataFulfilled: (field: string, data: any) => UpdateFormData.IUpdateFormDataFulfilled;
   updateFormDataRejected: (error: Error) => UpdateFormData.IUpdateFormDataRejected;
+  saveFormData: () => Action;
   submitFormData: (url: string, apiMode?: string) => SubmitFormData.ISubmitDataAction;
   submitFormDataFulfilled: () => Action;
   submitFormDataRejected: (error: Error) => SubmitFormData.ISubmitFormDataRejected;
@@ -21,6 +22,7 @@ const actions: IFormDataActions = {
   updateFormData: UpdateFormData.updateFormData,
   updateFormDataFulfilled: UpdateFormData.updateFormDataFulfilled,
   updateFormDataRejected: UpdateFormData.updateFormDataRejected,
+  saveFormData: SubmitFormData.saveFormdata,
   submitFormData: SubmitFormData.submitFormData,
   submitFormDataFulfilled: SubmitFormData.submitFormDataFulfilled,
   submitFormDataRejected: SubmitFormData.submitFormDataRejected,

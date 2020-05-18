@@ -17,6 +17,7 @@ export const UPDATE_VALIDATION_ERRORS: string = `${moduleName}.UPDATE_VALIDATION
 export const SUBMIT_FORM_DATA: string = `${moduleName}.SUBMIT_FORM_DATA`;
 export const SUBMIT_FORM_DATA_FULFILLED: string = `${moduleName}.SUBMIT_FORM_DATA_FULFILLED`;
 export const SUBMIT_FORM_DATA_REJECTED: string = `${moduleName}.SUBMIT_FORM_DATA_REJECTED`;
+export const SAVE_FORM_DATA: string = `${moduleName}.SAVE_FORM_DATA`;
 
 export const RESET_FORM_DATA: string = `${moduleName}.RESET_FORM_DATA`;
 export const RESET_FORM_DATA_FULFILLED: string = `${moduleName}.RESET_FORM_DATA_FULFILLED`;

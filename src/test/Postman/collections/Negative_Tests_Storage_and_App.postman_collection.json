@@ -16,7 +16,8 @@
 							"script": {
 								"id": "405f0af9-b1dd-42cb-acad-8835c9f15dd3",
 								"exec": [
-									""
+									"var current_timestamp = new Date();\r",
+									"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
 								],
 								"type": "text/javascript"
 							}

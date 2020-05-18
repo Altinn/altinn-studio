@@ -22,6 +22,11 @@ namespace Altinn.App.Services.Configuration
         public const string METADATA_FILENAME = "metadata.json";
 
         /// <summary>
+        /// Constant for the location of json schema file
+        /// </summary>
+        public const string JSON_SCHEMA_FILENAME = "schema.json";
+
+        /// <summary>
         /// The app configuration baseUrl where files are stored in the container
         /// </summary>
         public string AppBasePath { get; set; } = "";
@@ -75,6 +80,11 @@ namespace Altinn.App.Services.Configuration
         /// Gets or sets The ServiceMetadata file name
         /// </summary>
         public string ServiceMetadataFileName { get; set; } = METADATA_FILENAME;
+
+        /// <summary>
+        /// Gets or sets The JSON schema file name
+        /// </summary>
+        public string JsonSchemaFileName { get; set; } = JSON_SCHEMA_FILENAME;
 
         /// <summary>
         /// Gets or sets the filename for application meta data
