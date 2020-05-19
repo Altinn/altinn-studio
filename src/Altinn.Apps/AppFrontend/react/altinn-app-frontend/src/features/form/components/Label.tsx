@@ -20,16 +20,10 @@ export default function Label(props: IFormLabelProps) {
   }
 
   return (
-    <Grid
-      item={true}
-      id={`grid-id-${props.id}`}
-      key={`grid-key-${props.id}`}
-    >
+    <Grid item={true} >
       <label
         className='a-form-label title-label'
         htmlFor={props.id}
-        id={`label-${props.id}`}
-        key={`label-key-${props.id}`}
       >
         {props.labelText}
         {(props.required || props.readOnly) ?
