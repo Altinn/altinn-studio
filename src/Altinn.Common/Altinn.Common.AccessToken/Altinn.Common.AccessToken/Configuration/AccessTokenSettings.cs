@@ -9,7 +9,7 @@ namespace Altinn.Common.AccessToken.Configuration
     {
         public bool DisableAccesTokenVerification { get; set;  }
 
-        public string AccessTokenHeaderId { get; set; } = "AltinnAccessToken";
+        public string AccessTokenHeaderId { get; set; } = "PlatformAccessToken";
 
         public string AccessTokenSigningKeysFolder { get; set; } = "clientsigningkeys/";
 
