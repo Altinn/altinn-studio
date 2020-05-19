@@ -150,12 +150,11 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
 
   public handleUpdateOptionLabel = (
     index: number,
-    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+    optionLabel: any,
   ) => {
-    event.persist();
     this.setState((prevState: IEditModalContentState) => {
       const updatedComponent: IFormComponent = prevState.component;
-      updatedComponent.options[index].label = event.target?.value;
+      updatedComponent.options[index].label = optionLabel.value;
       return {
         component: {
           ...prevState.component,
