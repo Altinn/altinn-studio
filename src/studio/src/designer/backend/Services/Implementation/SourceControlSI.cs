@@ -532,6 +532,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 : $"{_settings.RepositoryLocation}{userName}/{org}/{repository}";
         }
 
+        /// <inheritdoc />
+        public void VerifyCloneExists(string org, string repository)
+        {
+            string repoLocation = FindLocalRepoLocation(org, repository);
+            if (!Directory.Exists(repoLocation))
+            {
+                try
+                {
+                    CloneRemoteRepository(org, repository);
+                }
+                catch(Exception e)
+                {
+                    _logger.LogError("Failed to clone reposito");
+                }
+            }
+        }
+
         /// <summary>
         /// Returns the remote repo
         /// </summary>
