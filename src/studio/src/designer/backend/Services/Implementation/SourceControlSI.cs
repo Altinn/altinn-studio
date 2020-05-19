@@ -544,7 +544,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch(Exception e)
                 {
-                    _logger.LogError($"Failed to clone repository {org}/{app} with exception: {e}");
+                    _logger.LogError($"Failed to clone repository {org}/{repository} with exception: {e}");
                 }
             }
         }
