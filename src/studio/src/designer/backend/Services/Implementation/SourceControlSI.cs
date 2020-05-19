@@ -535,8 +535,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public void VerifyCloneExists(string org, string repository)
         {
-            string repoLocaion = FindLocalRepoLocation(org, repository);
-            if (!Directory.Exists(repoLocaion))
+            string repoLocation = FindLocalRepoLocation(org, repository);
+            if (!Directory.Exists(repoLocation))
             {
                 try
                 {
@@ -544,7 +544,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch(Exception e)
                 {
-                    _logger.LogError($"Cloning repository {org}/{app} failed with exception: {e}.");
+                    _logger.LogError("Failed to clone reposito");
                 }
             }
         }
