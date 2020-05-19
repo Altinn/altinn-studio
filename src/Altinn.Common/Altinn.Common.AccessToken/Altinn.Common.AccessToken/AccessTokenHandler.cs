@@ -1,4 +1,5 @@
 using Altinn.Common.AccessToken.Configuration;
+using Altinn.Common.AccessToken.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -21,13 +22,15 @@ namespace Altinn.Common.AccessToken
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
         private readonly AccessTokenSettings _accessTokenSettings;
+        private readonly ISigningKeysRetriever _signingKeysRetriever;
 
         public AccessTokenHandler(IHttpContextAccessor httpContextAccessor,
-            ILogger<AccessTokenHandler> logger, IOptions<AccessTokenSettings> accessTokenSettings)
+            ILogger<AccessTokenHandler> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningKeysRetriever signingKeysRetriever)
         {
                 _httpContextAccessor = httpContextAccessor;
                 _logger = logger;
                 _accessTokenSettings = accessTokenSettings.Value;
+                _signingKeysRetriever = signingKeysRetriever;
         }
 
 
@@ -40,32 +43,34 @@ namespace Altinn.Common.AccessToken
                 await Task.CompletedTask;
             }
 
-            if (tokens.Count == 0)
+            if (tokens.Count != 1)
             {
                 context.Fail();
             }
 
+            bool isValid = await ValidateAccessToken(tokens[0]);
+            if (isValid)
+            {
+                context.Succeed(requirement);
+            }
+            else
+            {
+                context.Fail();
+            }
         }
 
-        private bool ValidateAccessToken(string token)
+        private async Task<bool> ValidateAccessToken(string token)
         {
-            TokenValidationParameters validationParameters = GetTokenValidationParameters();
             OpenIdConnectConfiguration configuration = GetOpenIDConfiguration();
-
-            if (configuration != null)
-            {
-                string[] issuers = new[] { configuration.Issuer };
-                validationParameters.ValidIssuers = validationParameters.ValidIssuers?.Concat(issuers) ?? issuers;
-
-                validationParameters.IssuerSigningKeys =
-                    validationParameters.IssuerSigningKeys?.Concat(configuration.SigningKeys) ?? configuration.SigningKeys;
-            }
-           
             JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
+
             if (!validator.CanReadToken(token))
             {
-               
+                return false;               
             }
+
+            JwtSecurityToken jwt = validator.ReadJwtToken(token);
+            TokenValidationParameters validationParameters = await GetTokenValidationParameters(jwt.Issuer);
 
             ClaimsPrincipal principal;
             SecurityToken validatedToken;
@@ -89,12 +94,22 @@ namespace Altinn.Common.AccessToken
             return openIdConnectConfiguration;
         }
 
-        private TokenValidationParameters GetTokenValidationParameters()
+        private async Task<TokenValidationParameters> GetTokenValidationParameters(string issuer)
         {
-            TokenValidationParameters tokenValidationParameters = new TokenValidationParameters();
+            TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                RequireExpirationTime = true,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
 
+            tokenValidationParameters.IssuerSigningKeys = await _signingKeysRetriever.GetSigningKeys(issuer);
             return tokenValidationParameters;
         }
+
 
         private StringValues GetAccessTokens()
         {

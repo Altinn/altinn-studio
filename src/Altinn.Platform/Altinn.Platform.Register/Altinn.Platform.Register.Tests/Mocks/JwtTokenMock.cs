@@ -26,7 +26,8 @@ namespace Altinn.Platform.Register.Tests.Mocks
                 Subject = new ClaimsIdentity(principal.Identity),
                 Expires = DateTime.UtcNow.AddSeconds(tokenExipry.TotalSeconds),
                 SigningCredentials = GetSigningCredentials(),
-                Audience = "altinn.no"
+                Audience = "altinn.no",
+                Issuer = "UnitTest"
             };
 
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);

@@ -28,7 +28,7 @@ namespace Altinn.Platform.Register.Tests.Utils
             ClaimsIdentity identity = new ClaimsIdentity("mock");
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-            string token = JwtTokenMock.GenerateToken(principal, new TimeSpan(0, 0, 5));
+            string token = JwtTokenMock.GenerateToken(principal, new TimeSpan(0, 1, 5));
 
             return token;
         }

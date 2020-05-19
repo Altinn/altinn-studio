@@ -19,6 +19,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
+using Microsoft.IdentityModel.Tokens;
+using Altinn.Common.AccessToken.Services;
+using Altinn.Platform.Register.Tests.Mocks;
 
 namespace Altinn.Platform.Register.Tests.TestingControllers
 {
@@ -169,14 +172,24 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
 
             HttpClient client = GetTestClient(partiesService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+          
 
             PartyLookup lookUp = new PartyLookup { OrgNo = OrgNo }; 
 
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookUp), Encoding.UTF8, "application/json");
 
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/register/api/v1/parties/lookup");
+            httpRequestMessage.Content = requestBody;
+            httpRequestMessage.Headers.Add("AltinnAccessToken", token);
 
             // Act
-            HttpResponseMessage response = await client.PostAsync("/register/api/v1/parties/lookup", requestBody);
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            // HttpResponseMessage response = await client.PostAsync("/register/api/v1/parties/lookup", requestBody);
+
+            if(!response.StatusCode.Equals(HttpStatusCode.OK))
+            {
+               string contentString = await response.Content.ReadAsStringAsync();
+            }
 
             // Assert
             partiesService.VerifyAll();
@@ -227,6 +240,7 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
 
                     // Set up mock authentication so that not well known endpoint is used
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
+                    services.AddSingleton<ISigningKeysRetriever, SigningKeyRetrieverMock>();
                 });
                 builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
             }).CreateClient();
