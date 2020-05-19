@@ -101,9 +101,9 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         GDay,
 
         /// <summary>
-        /// Month type
+        /// GMonth type
         /// </summary>
-        Month,
+        GMonth,
 
         /// <summary>
         /// Time period type

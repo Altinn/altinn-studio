@@ -201,17 +201,11 @@ export class SelectionEditComponent
                         </Typography>
                       </Grid>
                       <Grid item={true} classes={{ item: this.props.classes.gridItem }}>
-                        <Typography classes={{ root: this.props.classes.text }}>
-                          {this.props.language.general.label}
-                        </Typography>
-                        <Input
-                          classes={{ root: this.props.classes.input, focused: this.props.classes.inputFocused }}
-                          disableUnderline={true}
-                          type={'text'}
-                          fullWidth={true}
-                          onChange={this.props.handleUpdateOptionLabel.bind(this, index)}
-                          value={option.label}
-                        />
+                        {renderSelectTextFromResources('modal_text',
+                          this.props.handleUpdateOptionLabel.bind(this, index),
+                          this.props.textResources,
+                          this.props.language,
+                          option.label)}
                       </Grid>
                       <Grid item={true}>
                         <Typography classes={{ root: this.props.classes.text }}>
