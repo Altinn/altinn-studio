@@ -10,5 +10,11 @@ namespace Altinn.Common.AccessToken.Configuration
         public bool DisableAccesTokenVerification { get; set;  }
 
         public string AccessTokenHeaderId { get; set; } = "AltinnAccessToken";
+
+        public string AccessTokenSigningKeysFolder { get; set; } = "clientsigningkeys/";
+
+        public string AccessTokenSigningCredentialsFolder { get; set; } = "signingcredentials/";
+
+        public int TokenExpirySeconds { get; set; } = 300;
     }
 }

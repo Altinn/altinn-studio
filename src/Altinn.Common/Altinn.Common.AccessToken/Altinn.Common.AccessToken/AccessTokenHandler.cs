@@ -8,11 +8,8 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Altinn.Common.AccessToken
@@ -22,10 +19,10 @@ namespace Altinn.Common.AccessToken
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
         private readonly AccessTokenSettings _accessTokenSettings;
-        private readonly ISigningKeysRetriever _signingKeysRetriever;
+        private readonly ISigningKeyResolver _signingKeysRetriever;
 
         public AccessTokenHandler(IHttpContextAccessor httpContextAccessor,
-            ILogger<AccessTokenHandler> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningKeysRetriever signingKeysRetriever)
+            ILogger<AccessTokenHandler> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningKeyResolver signingKeysRetriever)
         {
                 _httpContextAccessor = httpContextAccessor;
                 _logger = logger;
@@ -33,7 +30,12 @@ namespace Altinn.Common.AccessToken
                 _signingKeysRetriever = signingKeysRetriever;
         }
 
-
+        /// <summary>
+        /// Handles verification of AccessTokens. Enabled with Policy on API controllers 
+        /// </summary>
+        /// <param name="context">The context</param>
+        /// <param name="requirement">The requirement for the given operation</param>
+        /// <returns></returns>
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AccessTokenRequirement requirement)
         {
             StringValues tokens = GetAccessTokens();
@@ -43,12 +45,13 @@ namespace Altinn.Common.AccessToken
                 await Task.CompletedTask;
             }
 
+            // It should only be one accesss token
             if (tokens.Count != 1)
             {
                 context.Fail();
             }
 
-            bool isValid = await ValidateAccessToken(tokens[0]);
+            bool isValid = ValidateAccessToken(tokens[0]);
             if (isValid)
             {
                 context.Succeed(requirement);
@@ -59,9 +62,13 @@ namespace Altinn.Common.AccessToken
             }
         }
 
-        private async Task<bool> ValidateAccessToken(string token)
+        /// <summary>
+        /// This validates the access token available in 
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        private bool ValidateAccessToken(string token)
         {
-            OpenIdConnectConfiguration configuration = GetOpenIDConfiguration();
             JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
 
             if (!validator.CanReadToken(token))
@@ -69,8 +76,9 @@ namespace Altinn.Common.AccessToken
                 return false;               
             }
 
+            // Read JWT token to extract Issuer
             JwtSecurityToken jwt = validator.ReadJwtToken(token);
-            TokenValidationParameters validationParameters = await GetTokenValidationParameters(jwt.Issuer);
+            TokenValidationParameters validationParameters = GetTokenValidationParameters(jwt.Issuer);
 
             ClaimsPrincipal principal;
             SecurityToken validatedToken;
@@ -87,14 +95,12 @@ namespace Altinn.Common.AccessToken
             return false;
         }
 
-        private OpenIdConnectConfiguration GetOpenIDConfiguration()
-        {
-            OpenIdConnectConfiguration openIdConnectConfiguration = new OpenIdConnectConfiguration();
-
-            return openIdConnectConfiguration;
-        }
-
-        private async Task<TokenValidationParameters> GetTokenValidationParameters(string issuer)
+        /// <summary>
+        /// Gets 
+        /// </summary>
+        /// <param name="issuer"></param>
+        /// <returns></returns>
+        private TokenValidationParameters GetTokenValidationParameters(string issuer)
         {
             TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
             {
@@ -106,7 +112,7 @@ namespace Altinn.Common.AccessToken
                 ClockSkew = TimeSpan.Zero
             };
 
-            tokenValidationParameters.IssuerSigningKeys = await _signingKeysRetriever.GetSigningKeys(issuer);
+            tokenValidationParameters.IssuerSigningKeys = _signingKeysRetriever.GetSigningKeys(issuer);
             return tokenValidationParameters;
         }
 

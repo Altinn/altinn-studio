@@ -8,9 +8,14 @@ using System.Threading.Tasks;
 
 namespace Altinn.Platform.Register.Tests.Mocks
 {
-    public class SigningKeyRetrieverMock: ISigningKeysRetriever
+    public class SigningKeyResolverMock: ISigningKeyResolver
     {
-        public async Task<IEnumerable<SecurityKey>> GetSigningKeys(string issuer)
+        public SigningCredentials GetSigningCredentials()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<SecurityKey> GetSigningKeys(string issuer)
         {
             List<SecurityKey> signingKeys = new List<SecurityKey>();
 
@@ -19,7 +24,7 @@ namespace Altinn.Platform.Register.Tests.Mocks
 
             signingKeys.Add(key);
 
-            return await Task.FromResult(signingKeys);
+            return signingKeys;
         }
     }
 }
