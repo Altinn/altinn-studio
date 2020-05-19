@@ -157,7 +157,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
           className="AltinnAppHeader-headerLink-5"
         >
           <a
-            href="https://altinn.no/ui/messagebox"
+            href={null}
           >
             instantiate.inbox
           </a>
@@ -166,7 +166,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
           className="AltinnAppHeader-headerLink-5"
         >
           <a
-            href="https://altinn.no/nn/skjemaoversikt/"
+            href={null}
           >
             instantiate.all_forms
           </a>
@@ -175,7 +175,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
           className="AltinnAppHeader-headerLink-5"
         >
           <a
-            href="https://altinn.no/ui/profile"
+            href={null}
           >
             instantiate.profile
           </a>

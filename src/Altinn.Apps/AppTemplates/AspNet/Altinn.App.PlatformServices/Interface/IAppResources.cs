@@ -36,6 +36,13 @@ namespace Altinn.App.Services.Interface
         string GetModelMetaDataJSON(string org, string app);
 
         /// <summary>
+        /// Returns the json schema for the provided model id.
+        /// </summary>
+        /// <param name="modelId">Unique identifier for the model.</param>
+        /// <returns>The JSON schema for the model</returns>
+        string GetModelJsonSchema(string modelId);
+
+        /// <summary>
         /// Method that fetches the runtime resources stored in wwwroot
         /// </summary>
         /// <param name="resource">the resource</param>

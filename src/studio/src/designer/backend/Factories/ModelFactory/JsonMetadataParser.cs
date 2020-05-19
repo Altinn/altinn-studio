@@ -62,10 +62,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 .AppendLine("using System;")
                 .AppendLine("using System.Collections.Generic;")
                 .AppendLine("using System.Linq;")
+                .AppendLine("using System.Text.Json.Serialization;")
                 .AppendLine("using System.Threading.Tasks;")
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
+                .AppendLine("using Newtonsoft.Json;")
                 .AppendLine("namespace " + string.Format(CodeGeneration.AppNamespaceTemplate + ".Models"))
                 .AppendLine("{")
                 ////Append all classes
@@ -108,6 +110,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     else
                     {
                         classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\")]");
+
+                        // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
+                        // deserialization, we need both JsonProperty and JsonPropertyName annotations.
+                        classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
+                        classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
                     }
 
                     if (element.Value.MaxOccurs > 1)
@@ -123,6 +130,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 {
                     WriteRestrictionAnnotations(classBuilder, element.Value);
                     classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\")]");
+
+                    // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
+                    // deserialization, we need both JsonProperty and JsonPropertyName annotations.
+                    classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
+                    classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
 
                     if (element.Value.MaxOccurs > 1)
                     {
@@ -243,7 +255,25 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case BaseValueType.PositiveInteger:
                     classBuilder.AppendLine("[Range(1,Int32.MaxValue" + errorMessage + ")]");
                     break;
-            }
+                case BaseValueType.GYear:
+                    classBuilder.AppendLine("[RegularExpression(@\"^[0-9]{4}$\"" + errorMessage + ")]");
+                    break;
+                case BaseValueType.GYearMonth:
+                    classBuilder.AppendLine("[RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])$\"" + errorMessage + ")]");
+                    break;
+                case BaseValueType.GMonth:
+                    classBuilder.AppendLine("[RegularExpression(@\"^0[1-9]|1[0-2]$\"" + errorMessage + ")]");
+                    break;
+                case BaseValueType.GDay:
+                    classBuilder.AppendLine("[RegularExpression(@\"^0[1-9]|[1,2][0-9]|3[0,1]$\"" + errorMessage + ")]");
+                    break;
+                case BaseValueType.Time:
+                    classBuilder.AppendLine("[RegularExpression(@\"^([0,1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9](Z|(\\+|-)([0,1][0-9]|[2][0-3]):[0-5][0-9])?$\"" + errorMessage + ")]");
+                    break;
+                case BaseValueType.TimePeriod:
+                    classBuilder.AppendLine("[RegularExpression(@\"^-?P([0-9]*Y)?([0-9]*M)?([0-9]*D)?(T([0-9]*H)?([0-9]*M)?([0-9]*S)?)?$\"" + errorMessage + ")]");
+                    break;
+            }   
         }
 
         private string GetPropertyTypeFromXsdType(BaseValueType? typeName)
@@ -253,6 +283,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case BaseValueType.String:
                 case BaseValueType.NormalizedString:
                 case BaseValueType.Token:
+                case BaseValueType.GDay:
+                case BaseValueType.GYear:
+                case BaseValueType.GYearMonth:
+                case BaseValueType.GMonth:
+                case BaseValueType.Time:
+                case BaseValueType.TimePeriod:
                 case null:
                     return "string";
                 case BaseValueType.Int:
@@ -268,12 +304,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     return "decimal";
                 case BaseValueType.Date:
                 case BaseValueType.DateTime:
-                case BaseValueType.GDay:
-                case BaseValueType.GYear:
-                case BaseValueType.GYearMonth:
-                case BaseValueType.Month:
-                case BaseValueType.Time:
-                case BaseValueType.TimePeriod:
                     return "DateTime";
                 case BaseValueType.Boolean:
                     return "bool";

@@ -13,7 +13,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
     className="MuiPaper-root MuiAppBar-root AltinnAppHeader-altinnAppHeader-1 MuiAppBar-positionRelative MuiAppBar-colorPrimary MuiPaper-elevation4"
     style={
       Object {
-        "backgroundColor": "#1EAEF7",
+        "backgroundColor": "#1EADF7",
         "color": "#022F51",
       }
     }

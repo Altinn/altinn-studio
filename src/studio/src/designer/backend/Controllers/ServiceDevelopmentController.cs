@@ -39,8 +39,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// Default action for the designer.
         /// </summary>
         /// <returns>default view for the app builder.</returns>
-        public IActionResult Index()
+        public IActionResult Index(string org, string app)
         {
+            _sourceControl.VerifyCloneExists(org, app);
             return View();
         }
 

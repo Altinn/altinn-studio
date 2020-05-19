@@ -322,6 +322,8 @@ export function nb() {
       maxLength: 'Bruk {0} eller færre tegn',
       length: 'Antall tillatte tegn er {0}',
       pattern: 'Feil format eller verdi',
+      required: 'Feltet er påkrevd',
+      enum: 'Kun verdiene {0} er tillatt',
     },
   };
 }

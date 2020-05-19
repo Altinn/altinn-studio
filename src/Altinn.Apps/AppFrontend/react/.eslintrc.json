@@ -137,6 +137,7 @@
       0
     ],
     "import/no-duplicates": "off",
+    "import/prefer-default-export": "off",
     "prefer-destructuring": "off",
     "react/destructuring-assignment": "off",
     "no-use-before-define":"off",

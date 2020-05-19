@@ -109,21 +109,28 @@ export function checkIfRuleShouldRun(
 
 export function getRuleModelFields() {
   const ruleModelFields: IRuleModelFieldElement[] = [];
-  for (const functionName of Object.keys((window as any).ruleHandlerObject)) {
+  const windowObj = window as any;
+  if (!windowObj.ruleHandlerObject || !windowObj.conditionalRuleHandlerObject) {
+    return ruleModelFields;
+  }
+
+  Object.keys(windowObj.ruleHandlerObject).forEach((functionName) => {
     const innerFuncObj = {
       name: functionName,
       inputs: (window as any).ruleHandlerHelper[functionName](),
       type: 'rule',
     };
     ruleModelFields.push(innerFuncObj);
-  }
-  for (const functionName of Object.keys((window as any).conditionalRuleHandlerObject)) {
+  });
+
+  Object.keys(windowObj.conditionalRuleHandlerObject).forEach((functionName) => {
     const innerFuncObj = {
       name: functionName,
       inputs: (window as any).conditionalRuleHandlerHelper[functionName](),
       type: 'condition',
     };
     ruleModelFields.push(innerFuncObj);
-  }
+  });
+
   return ruleModelFields;
 }

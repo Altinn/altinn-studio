@@ -164,5 +164,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         void AbortMerge(string org, string repository);
+
+        /// <summary>
+        /// Ensures repository is cloned if not, it clones it.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of the repository</param>
+        void VerifyCloneExists(string org, string repository);
     }
 }
