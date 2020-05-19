@@ -1,7 +1,8 @@
+/* eslint-disable react/prop-types */
 import * as React from 'react';
 import { Grid } from '@material-ui/core';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import HelpTextIcon from './HelpTextIcon';
+import { HelpTextContainer } from './HelpTextContainer';
 
 export interface IFormLabelProps {
   labelText: any;
@@ -9,36 +10,26 @@ export interface IFormLabelProps {
   language: any;
   required: boolean;
   readOnly: boolean;
-  helpTextProps: any;
+  helpText: string;
 }
 
 export default function Label(props: IFormLabelProps) {
-  const { helpIconRef, openPopover, toggleClickPopover, toggleKeypressPopover } = props.helpTextProps;
 
   if (!props.labelText) {
     return null;
   }
 
-  const renderHelpTextIcon = () => {
-    return (
-      <span>
-        <HelpTextIcon
-          helpIconRef={helpIconRef}
-          language={props.language}
-          toggleClickPopover={toggleClickPopover}
-          toggleKeypressPopover={toggleKeypressPopover}
-          openPopover={openPopover}
-        />
-      </span>
-    )
-  }
-
   return (
-    <Grid item={true}>
+    <Grid
+      item={true}
+      id={`grid-id-${props.id}`}
+      key={`grid-key-${props.id}`}
+    >
       <label
         className='a-form-label title-label'
         htmlFor={props.id}
         id={`label-${props.id}`}
+        key={`label-key-${props.id}`}
       >
         {props.labelText}
         {(props.required || props.readOnly) ?
@@ -47,8 +38,12 @@ export default function Label(props: IFormLabelProps) {
             ({getLanguageFromKey('general.optional', props.language)})
           </span>
         }
-        {!!helpIconRef &&
-          renderHelpTextIcon()
+        {props.helpText &&
+          <HelpTextContainer
+            language={props.language}
+            id={props.id}
+            helpText={props.helpText}
+          />
         }
       </label>
     </Grid>
