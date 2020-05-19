@@ -14,7 +14,6 @@ export interface IFormLegendProps {
 }
 
 export default function Legend(props: IFormLegendProps) {
-
   if (!props.labelText) {
     return null;
   }

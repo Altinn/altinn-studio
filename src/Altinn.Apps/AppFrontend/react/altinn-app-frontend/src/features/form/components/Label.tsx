@@ -14,7 +14,6 @@ export interface IFormLabelProps {
 }
 
 export default function Label(props: IFormLabelProps) {
-
   if (!props.labelText) {
     return null;
   }
