@@ -112,8 +112,8 @@ export function GenericComponent(props: IGenericComponentProps) {
   const RenderComponent = components.find((componentCandidate: any) => componentCandidate.name === props.type).Tag;
 
   const RenderLabel = () => {
-    const labelText = getTextResource(props.textResourceBindings.title, textResources);
-    const helpText = getTextResource(props.textResourceBindings.help, textResources);
+    const labelText = getTextResource(props?.textResourceBindings?.title, textResources);
+    const helpText = getTextResource(props?.textResourceBindings?.help, textResources);
     return (
       <Label
         labelText={labelText}
