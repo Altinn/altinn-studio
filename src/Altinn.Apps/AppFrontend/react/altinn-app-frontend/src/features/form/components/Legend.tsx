@@ -1,39 +1,22 @@
+/* eslint-disable react/prop-types */
 import * as React from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import HelpTextIcon from './HelpTextIcon';
 import Description from './Description';
+import { HelpTextContainer } from './HelpTextContainer';
 
 export interface IFormLegendProps {
   labelText: string;
   descriptionText: string;
   language: any;
   required: boolean;
-  helpTextProps: any;
+  helpText: string;
   id: string;
 }
 
 export default function Legend(props: IFormLegendProps) {
-  const {
-    helpIconRef, openPopover, toggleClickPopover, toggleKeypressPopover,
-  } = props.helpTextProps;
-
   if (!props.labelText) {
     return null;
   }
-
-  const renderHelpTextIcon = () => {
-    return (
-      <span>
-        <HelpTextIcon
-          helpIconRef={helpIconRef}
-          language={props.language}
-          toggleClickPopover={toggleClickPopover}
-          toggleKeypressPopover={toggleKeypressPopover}
-          openPopover={openPopover}
-        />
-      </span>
-    );
-  };
 
   return (
     <>
@@ -49,8 +32,12 @@ export default function Legend(props: IFormLegendProps) {
             ({getLanguageFromKey('general.optional', props.language)})
           </span>
         }
-        {!!helpIconRef &&
-          renderHelpTextIcon()
+        {props.helpText &&
+          <HelpTextContainer
+            language={props.language}
+            id={props.id}
+            helpText={props.helpText}
+          />
         }
       </label>
       {props.descriptionText &&
