@@ -31,26 +31,26 @@ export interface IAltinnPopoverProvidedProps {
 
 const theme = createMuiTheme(altinnTheme);
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    borderBottom: {
-      borderBottom: '1px solid' + theme.altinnPalette.primary.blueDark,
-    },
-    header: {
-      fontSize: '16px',
-      fontWeight: 500,
-    },
-    subHeader: {
-      fontSize: '16px',
-      marginTop: '10px',
-    },
-    popover: {
-      width: '445px',
-      margin: '24px',
-    },
+const useStyles = makeStyles(() => createStyles({
+  borderBottom: {
+    borderBottom: `1px solid${theme.altinnPalette.primary.blueDark}`,
   },
-  ),
-);
+  header: {
+    fontSize: '16px',
+    fontWeight: 500,
+    marginBottom: '10px',
+  },
+  subHeader: {
+    fontSize: '16px',
+  },
+  popover: {
+    width: '445px',
+    margin: '24px',
+  },
+  removeMargin: {
+    marginBottom: '-18px',
+  },
+}));
 
 const AltinnPopoverComponent = (props: any) => {
   const classes = useStyles(props);
@@ -61,7 +61,7 @@ const AltinnPopoverComponent = (props: any) => {
   return (
     <>
       <Popover
-        open={props.anchorEl ? true : false}
+        open={!!props.anchorEl}
         anchorEl={props.anchorEl}
         onClose={handleClose}
         anchorOrigin={{
@@ -72,20 +72,32 @@ const AltinnPopoverComponent = (props: any) => {
           horizontal: props.transformOrigin.horizontal ? props.transformOrigin.horizontal : 'left',
           vertical: props.transformOrigin.vertical ? props.transformOrigin.vertical : 'top',
         }}
-        anchorReference='anchorEl'
         PaperProps={{ square: true, ...props.paperProps }}
       >
-        <Grid container={true} direction='column' className={classes.popover}>
+        <Grid
+          container={true}
+          direction='column'
+          className={classes.popover}
+          aria-live='assertive'
+          role='alert'
+        >
           {props.header &&
-            <Typography variant='h3' className={classNames(classes.header)}>
+            <Typography
+              variant='h3'
+              className={classNames(classes.header)}
+              id='header'
+            >
               {props.header}
             </Typography>
           }
 
           {props.descriptionText &&
-            <Typography className={classNames(classes.subHeader)}>
+            <div className={classNames({
+              [classes.removeMargin]: (!(typeof props.descriptionText === 'string' || props.descriptionText instanceof String)),
+            })}
+            >
               {props.descriptionText}
-            </Typography>
+            </div>
           }
           {props.children}
         </Grid>
