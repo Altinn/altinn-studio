@@ -70,6 +70,14 @@ describe('>>> components/base/cloneService.tsx', () => {
       },
     };
     mockDate = moment.utc(new Date('2019-01-10T11:22:42Z')).local();
+
+    const mockWindow = { ...window.location };
+    delete mockWindow.assign;
+    delete window.location;
+    window.location = {
+      assign: jest.fn(),
+      ...mockWindow,
+    };
   });
 
   it('+++ should return first service in list', () => {
@@ -180,7 +188,6 @@ describe('>>> components/base/cloneService.tsx', () => {
       const secondGetSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(''));
       expect(cloneAndEditServiceSpy).toHaveBeenCalled();
       expect(instance.state.isLoading).toBe(true);
-      window.location.assign = jest.fn();
       // Resolving get in cloneAndEditService
       return Promise.resolve().then(() => {
         expect(secondGetSpy).toHaveBeenCalled();
@@ -207,7 +214,6 @@ describe('>>> components/base/cloneService.tsx', () => {
     const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
     const cloneAndEditServiceSpy = jest.spyOn(instance, 'cloneAndEditService');
     const getCurrentRepositoryInfoSpy = jest.spyOn(instance, 'getCurrentRepositoryInfo');
-    window.location.assign = jest.fn();
     instance.componentDidMount();
     // Resolving get in componentDidMount
     return Promise.resolve().then(() => {
@@ -237,7 +243,6 @@ describe('>>> components/base/cloneService.tsx', () => {
     const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockResult));
     const redirectToCodeSpy = jest.spyOn(instance, 'redirectToCode');
     const getCurrentRepositoryInfoSpy = jest.spyOn(instance, 'getCurrentRepositoryInfo');
-    window.location.assign = jest.fn();
     instance.componentDidMount();
     // Resolving get in componentDidMount
     return Promise.resolve().then(() => {

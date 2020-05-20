@@ -89,6 +89,7 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
       },
     });
   }
+
   public setFileEditorFocus = (type: string) => (e: any) => {
     const status = (type === 'focus');
 
@@ -96,6 +97,7 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
       fileEditorFocus: status,
     });
   }
+
   public handleKeyPress = (e: any) => {
     const divElement = this.state.monacoWrapperRef.current.firstChild as HTMLDivElement;
     const txtArea = divElement.children[0].children[0].children[3] as HTMLTextAreaElement;
@@ -161,7 +163,7 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
               options={
                 {
                   autoClosingBrackets: 'always',
-                  autoIndent: true,
+                  autoIndent: 'full',
                   automaticLayout: true,
                   colorDecorators: true,
                   minimap: {

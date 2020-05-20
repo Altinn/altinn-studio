@@ -20,6 +20,14 @@ describe('>>> components/base/createNewService.tsx', () => {
     mockClasses = {};
     mockLanguage = { dashboard: {} };
 
+    const mockWindow = { ...window.location };
+    delete mockWindow.assign;
+    delete window.location;
+    window.location = {
+      assign: jest.fn(),
+      ...mockWindow,
+    };
+
   });
 
   let consoleError: any;
@@ -267,7 +275,6 @@ describe('>>> components/base/createNewService.tsx', () => {
     const getSpy = jest.spyOn(networking, 'post').mockImplementation(getStub);
     getStub.mockReturnValue(Promise.resolve(mockResult));
 
-    window.location.assign = jest.fn();
     instance.createNewService();
     expect(instance.state.isLoading).toBe(true);
     return Promise.resolve().then(() => {

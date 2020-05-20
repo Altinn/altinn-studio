@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { delay } from 'redux-saga';
+import { delay } from 'redux-saga/effects';
 import { call, fork, race, select, take } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import * as AppClusterActionTypes from '../appClusterActionTypes';
