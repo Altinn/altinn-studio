@@ -66,7 +66,6 @@ namespace LocalTest
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
-            services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IPDP, PDPAppSI>();
 

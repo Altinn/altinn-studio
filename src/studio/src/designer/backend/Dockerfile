@@ -1,11 +1,11 @@
-FROM node:12.16.2-alpine3.11 AS generate-designer-js
+FROM node:12.16.3-alpine3.11 AS generate-designer-js
 COPY src/designer/backend/package.json .
 COPY src/designer/backend/package-lock.json .
 RUN npm ci
 COPY src/designer/backend .
 RUN npm run gulp build
 
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-alpine AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.300-alpine AS build
 COPY src/designer/backend ./designer/
 COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
 
@@ -18,7 +18,7 @@ FROM altinn-studio-app-development:latest AS altinn-studio-app-development
 # Altinn-Studio Dashboard
 FROM altinn-studio-dashboard:latest AS altinn-studio-dashboard
 
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.3-alpine AS final
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.4-alpine AS final
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .
