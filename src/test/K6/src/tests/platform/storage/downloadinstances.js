@@ -46,6 +46,7 @@ export default function(data){
     var maxIter = data.maxIter;
     var uniqueNum = ((__VU * maxIter) - (maxIter) + (__ITER));
     uniqueNum = (uniqueNum > instances.length) ? (Math.floor(uniqueNum % instances.length)) : uniqueNum;
+    var res, success;
     
     //Get instance ids and separate party id and instance id    
     try {
@@ -58,8 +59,8 @@ export default function(data){
     }    
 
     //Get instance by id
-    var res = storageInstances.getInstanceById(runtimeToken, partyId, instanceId);
-    var success = check(res, {
+    res = storageInstances.getInstanceById(runtimeToken, partyId, instanceId);
+    success = check(res, {
         "Instance details are retrieved:": (r) => r.status === 200
       });
     addErrorCount(success);
