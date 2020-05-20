@@ -42,6 +42,7 @@ export function getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOw
     //find archived instances of today
     var endpoint = config.platformStorage["instances"] + "?created=gt:" + todayDate +"&org=" + appOwner + "&appId=" + appOwner + "/" + appName + "&process.isComplete=" + isArchived;
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");    
+    params.timeout = 120000;
     return http.get(endpoint, params);
 };
 
@@ -57,6 +58,7 @@ export function findInstanceId(responseBody){
 export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, appName, count){
     var allInstances = getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, "true");
     var params = header.buildHeaderWithRuntimeAsCookie(altinnStudioRuntimeCookie, "platform");
+    params.timeout = 120000;
     allInstances = JSON.parse(allInstances.body);
     let archivedInstances = buildArrayWithInstanceIds(allInstances.instances);
     while(allInstances.next !== null){
