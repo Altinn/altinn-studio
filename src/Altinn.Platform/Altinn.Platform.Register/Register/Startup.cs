@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using Altinn.Common.AccessToken;
+using Altinn.Common.AccessToken.Configuration;
 using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Services.Implementation;
 using Altinn.Platform.Register.Services.Interfaces;
@@ -86,6 +87,7 @@ namespace Altinn.Platform.Register
 
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
 
             services.AddSingleton<IAuthorizationHandler, AccessTokenHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

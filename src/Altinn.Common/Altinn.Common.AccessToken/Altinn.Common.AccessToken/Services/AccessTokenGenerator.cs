@@ -11,11 +11,19 @@ using System.Threading.Tasks;
 
 namespace Altinn.Common.AccessToken.Services
 {
+    /// <summary>
+    /// Access token generator creating access tokens for accessing platform components
+    /// </summary>
     public class AccessTokenGenerator
     {
         private readonly AccessTokenSettings _accessTokenSettings;
         private readonly ISigningKeyResolver _signingKeysResolver;
 
+        /// <summary>
+        /// Default constructor. 
+        /// </summary>
+        /// <param name="accessTokenSettings"></param>
+        /// <param name="signingKeysResolver"></param>
         public AccessTokenGenerator(IOptions<AccessTokenSettings> accessTokenSettings, ISigningKeyResolver signingKeysResolver)
         {
             _accessTokenSettings = accessTokenSettings.Value;
@@ -23,13 +31,12 @@ namespace Altinn.Common.AccessToken.Services
         }
 
         /// <summary>
-        /// Generates A access tokenf or a
+        /// Generates a access token for apps in altinn apps or platform components needing to access other platform components.
         /// </summary>
         /// <param name="org"></param>
         /// <param name="app"></param>
-        /// <param name="expirerySeconds"></param>
         /// <returns></returns>
-        public string GenerateAccessToken(string org, string app, int expirerySeconds)
+        public string GenerateAccessToken(string org, string app)
         {
             List<Claim> claims = new List<Claim>();
             claims.Add(new Claim(AccessTokenClaimTypes.Org, org, ClaimValueTypes.String, org));
@@ -43,7 +50,7 @@ namespace Altinn.Common.AccessToken.Services
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(principal.Identity),
-                Expires = DateTime.UtcNow.AddSeconds(expirerySeconds),
+                Expires = DateTime.UtcNow.AddSeconds(_accessTokenSettings.TokenExpirySeconds),
                 SigningCredentials = _signingKeysResolver.GetSigningCredentials(),
                 Audience = "platform.altinn.no",
                 Issuer = org
@@ -54,6 +61,5 @@ namespace Altinn.Common.AccessToken.Services
 
             return tokenstring;
         }
-
     }
 }
