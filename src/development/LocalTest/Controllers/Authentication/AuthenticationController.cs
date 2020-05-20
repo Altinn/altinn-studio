@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
 using AltinnCore.Authentication.Constants;
-using AltinnCore.Authentication.JwtCookie;
 using LocalTest.Configuration;
-using LocalTest.Models;
-using Microsoft.AspNetCore.Authentication;
+using LocalTest.Services.Authentication.Interface;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -19,18 +18,18 @@ namespace LocalTest.Controllers.Authentication
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        private readonly JwtCookieHandler jwtHandler;
-        private readonly ILogger<AuthenticationController> logger;
-        private readonly GeneralSettings generalSettings;
+        private readonly ILogger<AuthenticationController> _logger;
+        private readonly GeneralSettings _generalSettings;
+        private readonly IAuthentication _authenticationService;
 
         public AuthenticationController(
             ILogger<AuthenticationController> logger,
             IOptions<GeneralSettings> generalSettings,
-            JwtCookieHandler jwtHandler)
+            IAuthentication authenticationService)
         {
-            this.logger = logger;
-            this.generalSettings = generalSettings.Value;
-            this.jwtHandler = jwtHandler;
+            _logger = logger;
+            _generalSettings = generalSettings.Value;
+            _authenticationService = authenticationService;
         }
 
         /// <summary>
@@ -41,12 +40,12 @@ namespace LocalTest.Controllers.Authentication
         [HttpGet("refresh")]
         public async Task<ActionResult> RefreshJWTCookie()
         {
-            logger.LogInformation($"Starting to refresh token...");
+            _logger.LogInformation($"Starting to refresh token...");
             ClaimsPrincipal principal = HttpContext.User;
-            logger.LogInformation("Refreshing token....");
+            _logger.LogInformation("Refreshing token....");
 
-            string token = await jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0));
-            logger.LogInformation($"End of refreshing token");
+            string token = _authenticationService.GenerateToken(principal, Convert.ToInt32(_generalSettings.JwtCookieValidityTime));
+            _logger.LogInformation($"End of refreshing token");
             return Ok(token);
         }
 
@@ -70,7 +69,7 @@ namespace LocalTest.Controllers.Authentication
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            string token = await jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0));
+            string token = _authenticationService.GenerateToken(principal, Convert.ToInt32(_generalSettings.JwtCookieValidityTime));
 
             return Ok(token);
         }
@@ -92,7 +91,7 @@ namespace LocalTest.Controllers.Authentication
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            string token = await jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0));
+            string token = _authenticationService.GenerateToken(principal, Convert.ToInt32(_generalSettings.JwtCookieValidityTime));
 
             return Ok(token);
         }
