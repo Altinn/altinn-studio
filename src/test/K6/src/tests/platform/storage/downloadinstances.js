@@ -65,7 +65,11 @@ export default function(data){
     addErrorCount(success);
     printResponseToConsole("Instance details are retrieved:", success, res);
 
-    var dataElements = JSON.parse(res.body).data;
+    try {
+        var dataElements = JSON.parse(res.body).data;    
+    } catch (error) {
+        printResponseToConsole("DataElements not retrieved:", false, null);  
+    };
 
     //Loop through the dataelements under an instance and download instance
     for(var i = 0; i < dataElements.length; i++){

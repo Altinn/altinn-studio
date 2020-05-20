@@ -48,8 +48,12 @@ export default function() {
     addErrorCount(success);    
     printResponseToConsole("E2E App POST Create Instance:", success, instanceId);
     
-    dataId = appData.findDataId(instanceId.body);
-    instanceId = platformInstances.findInstanceId(instanceId.body);
+    try {
+        dataId = appData.findDataId(instanceId.body);
+        instanceId = platformInstances.findInstanceId(instanceId.body); 
+    } catch (error) {
+        printResponseToConsole("Instance id and data id not retrieved:", false , null);
+    };
 
     //Test to edit a form data in an instance with App APi and validate the response
     var res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);

@@ -60,8 +60,12 @@ export default function() {
     addErrorCount(success);    
     printResponseToConsole("E2E App POST Create Instance:", success, res);
     
-    dataId = appData.findDataId(res.body);
-    instanceId = platformInstances.findInstanceId(res.body);
+    try {
+        dataId = appData.findDataId(instanceId.body);
+        instanceId = platformInstances.findInstanceId(instanceId.body); 
+    } catch (error) {
+        printResponseToConsole("Instance id and data id not retrieved:", false , null);
+    };
 
     //Test to get the current process of an app instance
     res = appProcess.getCurrentProcess(runtimeToken, partyId, instanceId);

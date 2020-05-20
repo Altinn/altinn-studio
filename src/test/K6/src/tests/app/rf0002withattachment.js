@@ -65,7 +65,15 @@ export default function(data) {
     var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
+
+    //Get App metadata and find attachchment data guid id
     var attachmentDataType = apps.getAppByName(runtimeToken, appOwner, level2App);
+    var success = check(attachmentDataType, {
+        "GET App Metadata": (r) => r.status === 200        
+      });  
+    addErrorCount(success);
+    printResponseToConsole("GET App Metadata Failed", success, instanceId);
+
     attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body);   
     const partyId = users[userNumber].partyid;  
     var instanceId = "";    
@@ -73,14 +81,19 @@ export default function(data) {
 
     //Test to create an instance with App api and validate the response
     instanceId = appInstances.postInstance(runtimeToken, partyId);
-    var success = check(instanceId, {
+    success = check(instanceId, {
         "E2E App POST Create Instance status is 201:": (r) => r.status === 201        
       });  
     addErrorCount(success);
     printResponseToConsole("E2E App POST Create Instance:", success, instanceId);
     
-    dataId = appData.findDataId(instanceId.body);
-    instanceId = platformInstances.findInstanceId(instanceId.body);  
+    try {
+        dataId = appData.findDataId(instanceId.body);
+        instanceId = platformInstances.findInstanceId(instanceId.body); 
+    } catch (error) {
+        printResponseToConsole("Instance id and data id not retrieved:", false , null);
+    };
+     
     
     //Test to edit a form data in an instance with App APi and validate the response
     var res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
