@@ -12,10 +12,6 @@ const useStyle = makeStyles({
     height: 'auto',
     width: 'auto',
   },
-  helpTextPopoverText: {
-    position: 'relative',
-    width: '100%',
-  },
 });
 
 export interface IHelpTextPopoverProps {
@@ -23,6 +19,7 @@ export interface IHelpTextPopoverProps {
   openPopover: boolean;
   helpText: string;
   language: any;
+  id: string
   closePopover: () => void;
 }
 
@@ -38,16 +35,15 @@ export default function HelpTextPopover(props: IHelpTextPopoverProps) {
 
   return (
     <>
-    {!!helpIconRef &&
+      {!!helpIconRef &&
       <AltinnPopover
-        ariaLabel={`${getLanguageFromKey('popover.popover_open', language)}.
-                    ${helpText}`}
+        ariaLabel={`${getLanguageFromKey('popover.popover_open', language)}`}
         anchorOrigin={{
           horizontal: 'right',
-          vertical: 'top',
+          vertical: 'bottom',
         }}
         transformOrigin={{
-          horizontal: 'right',
+          horizontal: 'left',
           vertical: 'bottom',
         }}
         backgroundColor={theme.altinnPalette.primary.yellowLight.toString()}
@@ -60,7 +56,7 @@ export default function HelpTextPopover(props: IHelpTextPopoverProps) {
         }}
         descriptionText={helpText}
       />
-    }
+      }
     </>
-  )
+  );
 }
