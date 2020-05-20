@@ -51,7 +51,6 @@ namespace Altinn.App.Services.Implementation
             _dataService = dataService;
             _registerService = registerService;
             _appResourcesService = appResourcesService;
-            _applicationService = applicationSerice;
             _appSettings = appSettings.Value;
             _camelCaseSerializer = JsonSerializer.Create(
                 new JsonSerializerSettings
