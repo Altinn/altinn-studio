@@ -2,7 +2,7 @@
 <xacml:Policy xmlns:xsl="http://www.w3.org/2001/XMLSchema-instance" xmlns:xacml="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" PolicyId="urn:altinn:example:policyid:1" Version="1.0" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides">
   <xacml:Target/>
   <xacml:Rule RuleId="urn:altinn:example:ruleid:1" Effect="Permit">
-    <xacml:Description>A rule giving user with role REGNA or DAGL and the app owner tdd the right to instantiate a instance of a given app of tdd/endring-av-navn</xacml:Description>
+    <xacml:Description>A rule giving user with role REGNA or DAGL and the app owner tdd the right to instantiate a instance of a given app of tdd/platform-fails</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
         <xacml:AllOf>
@@ -31,7 +31,7 @@
             <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">endring-av-navn</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">platform-fails</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
@@ -53,7 +53,7 @@
     </xacml:Target>
   </xacml:Rule>
   <xacml:Rule RuleId="urn:altinn:example:ruleid:2" Effect="Permit">
-    <xacml:Description>Rule that defines that user with role REGNA or DAGL can read and write for tdd/endring-av-navn when it is in Task_1</xacml:Description>
+    <xacml:Description>Rule that defines that user with role REGNA or DAGL can read and write for tdd/platform-fails when it is in Task_1</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
         <xacml:AllOf>
@@ -76,7 +76,7 @@
             <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">endring-av-navn</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">platform-fails</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
@@ -102,7 +102,7 @@
     </xacml:Target>
   </xacml:Rule>
   <xacml:Rule RuleId="urn:altinn:example:ruleid:3" Effect="Permit">
-    <xacml:Description>Rule that defines that org can write to instances of tdd/endring-av-navn for any states</xacml:Description>
+    <xacml:Description>Rule that defines that org can write to instances of tdd/platform-fails for any states</xacml:Description>
     <xacml:Target>
       <xacml:AnyOf>
         <xacml:AllOf>
@@ -119,7 +119,7 @@
             <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">endring-av-navn</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">platform-fails</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
