@@ -1,5 +1,6 @@
 using Microsoft.IdentityModel.Tokens;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Altinn.Common.AccessToken.Services
 {
@@ -13,8 +14,12 @@ namespace Altinn.Common.AccessToken.Services
         /// </summary>
         /// <param name="issuer">The issuer</param>
         /// <returns></returns>
-        IEnumerable<SecurityKey> GetSigningKeys(string issuer);
+        Task<IEnumerable<SecurityKey>> GetSigningKeys(string issuer);
 
+        /// <summary>
+        /// Returns certificat to be used for signing a JWT
+        /// </summary>
+        /// <returns>The signing credentials</returns>
         SigningCredentials GetSigningCredentials();
     }
 }

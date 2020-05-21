@@ -31,28 +31,29 @@ namespace Altinn.Common.AccessToken.Services
             return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
         }
 
-        public IEnumerable<SecurityKey> GetSigningKeys(string issuer)
+        public async Task<IEnumerable<SecurityKey>> GetSigningKeys(string issuer)
         {
-            string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-            string filePath = basePath + $"clientsigningkeys/{issuer.ToLower()}.cer";
             List<SecurityKey> signingKeys = new List<SecurityKey>();
-
-            X509Certificate2 cert = new X509Certificate2(filePath);
+            X509Certificate2 cert = await GetSigningCertFromKeyVault(issuer);
             SecurityKey key = new X509SecurityKey(cert);
-
             signingKeys.Add(key);
-
             return signingKeys;
         }
 
-        private async Task<string> GetSecretAsync(string org)
+        /// <summary>
+        /// Get the correct certificate from the keyvault
+        /// </summary>
+        /// <param name="issuer">The org or platform identificator</param>
+        /// <returns>returns a cert</returns>
+        private async Task<X509Certificate2> GetSigningCertFromKeyVault(string issuer)
         {
-            string certificateName = $"{org}"
+            string certificateName = $"{issuer}-access-token-public-cert";
             KeyVaultClient client = KeyVaultSettings.GetClient(_keyVaultSettings.ClientId, _keyVaultSettings.ClientSecret);
-            CertificateBundle certificate = await client.GetCertificateAsync(_keyVaultSettings.SecretUri, _certificateSettings.CertificateName);
+            CertificateBundle certificate = await client.GetCertificateAsync(_keyVaultSettings.SecretUri, certificateName);
             SecretBundle secret = await client.GetSecretAsync(certificate.SecretIdentifier.Identifier);
-            byte[] pfxBytes = Convert.FromBase64String(secret.Value);
-            _certificates.Add(new X509Certificate2(pfxBytes));
+            byte[] certBytes = Convert.FromBase64String(secret.Value);
+            X509Certificate2 cert = new X509Certificate2(certBytes);
+            return cert;
         }
 
     }

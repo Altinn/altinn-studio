@@ -39,10 +39,11 @@ namespace Altinn.Common.AccessToken
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AccessTokenRequirement requirement)
         {
             StringValues tokens = GetAccessTokens();
-            if (_accessTokenSettings.DisableAccesTokenVerification)
+            if (tokens.Count != 1 & _accessTokenSettings.DisableAccesTokenVerification)
             {
                 context.Succeed(requirement);
                 await Task.CompletedTask;
+                return;
             }
 
             // It should only be one accesss token
@@ -51,7 +52,26 @@ namespace Altinn.Common.AccessToken
                 context.Fail();
             }
 
-            bool isValid = ValidateAccessToken(tokens[0]);
+            bool isValid = false;
+            try
+            {
+                isValid = ValidateAccessToken(tokens[0]);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogWarning(ex, "Validation of Access Token Failed");
+                if (!_accessTokenSettings.DisableAccesTokenVerification)
+                {
+                    context.Fail();
+                }
+                else
+                {
+                    context.Succeed(requirement);
+                    await Task.CompletedTask;
+                    return;
+                }
+            }
+
             if (isValid)
             {
                 context.Succeed(requirement);
