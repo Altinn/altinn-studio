@@ -35,6 +35,7 @@ namespace Altinn.Platform.Register.Controllers
         [ProducesResponseType(404)]
         [ProducesResponseType(200)]
         [Produces("application/json")]
+        [Authorize(Policy = "PlatformAccess")]
         public async Task<ActionResult<Party>> Get(int partyId)
         {
             Party result = await _partiesWrapper.GetParty(partyId);

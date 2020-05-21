@@ -55,7 +55,7 @@ namespace Altinn.Common.AccessToken
             bool isValid = false;
             try
             {
-                isValid = ValidateAccessToken(tokens[0]);
+                isValid = await ValidateAccessToken(tokens[0]);
             }
             catch(Exception ex)
             {
@@ -87,7 +87,7 @@ namespace Altinn.Common.AccessToken
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        private bool ValidateAccessToken(string token)
+        private async Task<bool> ValidateAccessToken(string token)
         {
             JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
 
@@ -98,7 +98,7 @@ namespace Altinn.Common.AccessToken
 
             // Read JWT token to extract Issuer
             JwtSecurityToken jwt = validator.ReadJwtToken(token);
-            TokenValidationParameters validationParameters = GetTokenValidationParameters(jwt.Issuer);
+            TokenValidationParameters validationParameters = await GetTokenValidationParameters(jwt.Issuer);
 
             ClaimsPrincipal principal;
             SecurityToken validatedToken;
@@ -120,7 +120,7 @@ namespace Altinn.Common.AccessToken
         /// </summary>
         /// <param name="issuer"></param>
         /// <returns></returns>
-        private TokenValidationParameters GetTokenValidationParameters(string issuer)
+        private async Task<TokenValidationParameters> GetTokenValidationParameters(string issuer)
         {
             TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
             {
@@ -132,7 +132,7 @@ namespace Altinn.Common.AccessToken
                 ClockSkew = TimeSpan.Zero
             };
 
-            tokenValidationParameters.IssuerSigningKeys = _signingKeysRetriever.GetSigningKeys(issuer);
+            tokenValidationParameters.IssuerSigningKeys = await _signingKeysRetriever.GetSigningKeys(issuer);
             return tokenValidationParameters;
         }
 

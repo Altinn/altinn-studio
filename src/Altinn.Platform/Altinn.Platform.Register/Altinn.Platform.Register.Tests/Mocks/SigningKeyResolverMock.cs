@@ -26,5 +26,10 @@ namespace Altinn.Platform.Register.Tests.Mocks
 
             return signingKeys;
         }
+
+        Task<IEnumerable<SecurityKey>> ISigningKeyResolver.GetSigningKeys(string issuer)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
