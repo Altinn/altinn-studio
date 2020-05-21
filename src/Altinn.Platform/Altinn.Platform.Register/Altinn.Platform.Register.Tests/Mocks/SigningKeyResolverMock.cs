@@ -2,6 +2,7 @@ using Altinn.Common.AccessToken.Services;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ namespace Altinn.Platform.Register.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public IEnumerable<SecurityKey> GetSigningKeys(string issuer)
+        public Task<IEnumerable<SecurityKey>> GetSigningKeys(string issuer)
         {
             List<SecurityKey> signingKeys = new List<SecurityKey>();
 
@@ -24,12 +25,7 @@ namespace Altinn.Platform.Register.Tests.Mocks
 
             signingKeys.Add(key);
 
-            return signingKeys;
-        }
-
-        Task<IEnumerable<SecurityKey>> ISigningKeyResolver.GetSigningKeys(string issuer)
-        {
-            throw new NotImplementedException();
+            return Task.FromResult(signingKeys.AsEnumerable());
         }
     }
 }

@@ -51,9 +51,12 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             HttpClient client = GetTestClient(partiesService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            // Act
-            HttpResponseMessage response = await client.GetAsync("/register/api/v1/parties/" + partyId);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/parties/" + partyId);
+            httpRequestMessage.Headers.Add("PlatformAccessToken", token);
 
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+           
             // Assert
             partiesService.VerifyAll();
 
@@ -77,9 +80,12 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             HttpClient client = GetTestClient(partiesService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            // Act
-            HttpResponseMessage response = await client.GetAsync("/register/api/v1/parties/" + partyId);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/parties/" + partyId);
+            httpRequestMessage.Headers.Add("PlatformAccessToken", token);
 
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+           
             // Assert
             partiesService.VerifyAll();
 
@@ -120,8 +126,12 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
 
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookUp), Encoding.UTF8, "application/json");
 
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/register/api/v1/parties/lookup");
+            httpRequestMessage.Content = requestBody;
+            httpRequestMessage.Headers.Add("PlatformAccessToken", token);
+
             // Act
-            HttpResponseMessage response = await client.PostAsync("/register/api/v1/parties/lookup", requestBody);
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -145,8 +155,13 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
 
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookUp), Encoding.UTF8, "application/json");
 
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/register/api/v1/parties/lookup");
+            httpRequestMessage.Content = requestBody;
+            httpRequestMessage.Headers.Add("PlatformAccessToken", token);
+
             // Act
-            HttpResponseMessage response = await client.PostAsync("/register/api/v1/parties/lookup", requestBody);
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
 
             // Assert
             partiesService.VerifyAll();
@@ -180,7 +195,7 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/register/api/v1/parties/lookup");
             httpRequestMessage.Content = requestBody;
-            httpRequestMessage.Headers.Add("AltinnAccessToken", token);
+            httpRequestMessage.Headers.Add("PlatformAccessToken", token);
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);

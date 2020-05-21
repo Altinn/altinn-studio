@@ -55,6 +55,5 @@ namespace Altinn.Common.AccessToken.Services
             X509Certificate2 cert = new X509Certificate2(certBytes);
             return cert;
         }
-
     }
 }
