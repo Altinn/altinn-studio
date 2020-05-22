@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.App.PlatformServices
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC", "..\..\..\Altinn.Platform\Altinn.Platform.Authorization\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj", "{C9ABF5DB-928C-4280-B587-13E6DCE010BC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Common.AccessTokenClient", "..\..\..\Altinn.Common\Altinn.Common.AccessToken\Altinn.Common.AccessTokenClient\Altinn.Common.AccessTokenClient.csproj", "{27407F3C-4728-4FA2-A603-DA14DCE3F08D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{C9ABF5DB-928C-4280-B587-13E6DCE010BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9ABF5DB-928C-4280-B587-13E6DCE010BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9ABF5DB-928C-4280-B587-13E6DCE010BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27407F3C-4728-4FA2-A603-DA14DCE3F08D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27407F3C-4728-4FA2-A603-DA14DCE3F08D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27407F3C-4728-4FA2-A603-DA14DCE3F08D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27407F3C-4728-4FA2-A603-DA14DCE3F08D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

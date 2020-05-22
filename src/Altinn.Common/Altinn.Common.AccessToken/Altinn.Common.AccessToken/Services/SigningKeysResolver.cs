@@ -23,14 +23,6 @@ namespace Altinn.Common.AccessToken.Services
             _keyVaultSettings = keyVaultSettings.Value;
         }
 
-        public SigningCredentials GetSigningCredentials()
-        {
-            string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-            string certPath = basePath + $"accesstoken/signingcredentials.pfx";
-            X509Certificate2 cert = new X509Certificate2(certPath, "qwer1234");
-            return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
-        }
-
         public async Task<IEnumerable<SecurityKey>> GetSigningKeys(string issuer)
         {
             List<SecurityKey> signingKeys = new List<SecurityKey>();

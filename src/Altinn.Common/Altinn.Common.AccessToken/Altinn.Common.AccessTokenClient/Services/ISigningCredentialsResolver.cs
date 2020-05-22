@@ -2,18 +2,17 @@ using Microsoft.IdentityModel.Tokens;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Altinn.Common.AccessToken.Services
+namespace Altinn.Common.AccessTokenClient.Services
 {
     /// <summary>
     /// Interface to retrive signing credentials for issuer and signing keys for consumer of tokens
     /// </summary>
-    public interface ISigningKeyResolver
+    public interface ISigningCredentialsResolver
     {
         /// <summary>
-        /// Returns the signing keys for a given issuer
+        /// Returns certificat to be used for signing a JWT
         /// </summary>
-        /// <param name="issuer">The issuer</param>
-        /// <returns></returns>
-        Task<IEnumerable<SecurityKey>> GetSigningKeys(string issuer);
+        /// <returns>The signing credentials</returns>
+        SigningCredentials GetSigningCredentials();
     }
 }

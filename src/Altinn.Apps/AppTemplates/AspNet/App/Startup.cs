@@ -6,6 +6,8 @@ using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
+using Altinn.Common.AccessTokenClient.Configuration;
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
@@ -60,6 +62,7 @@ namespace Altinn.App
             services.AddTransient<IPDP, PDPAppSI>();
             services.AddTransient<IValidation, ValidationAppSI>();
             services.AddTransient<IPrefill, PrefillSI>();
+            services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
 
             // HttpClients for platform functionality. Registred as httpclients so default httpclientfactory is used
             services.AddHttpClient<AuthorizationApiClient>();
@@ -90,6 +93,7 @@ namespace Altinn.App
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(Configuration.GetSection("PEPSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
+            services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
 
             AppSettings appSettings = Configuration.GetSection("AppSettings").Get<AppSettings>();
 
