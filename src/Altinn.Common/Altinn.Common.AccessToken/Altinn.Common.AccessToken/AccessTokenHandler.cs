@@ -19,10 +19,10 @@ namespace Altinn.Common.AccessToken
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
         private readonly AccessTokenSettings _accessTokenSettings;
-        private readonly ISigningKeyResolver _signingKeysRetriever;
+        private readonly ISigningKeysResolver _signingKeysRetriever;
 
         public AccessTokenHandler(IHttpContextAccessor httpContextAccessor,
-            ILogger<AccessTokenHandler> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningKeyResolver signingKeysRetriever)
+            ILogger<AccessTokenHandler> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningKeysResolver signingKeysRetriever)
         {
                 _httpContextAccessor = httpContextAccessor;
                 _logger = logger;

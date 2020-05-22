@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Altinn.Common.AccessToken.Services
 {
-    public class SigningKeysResolver : ISigningKeyResolver
+    public class SigningKeysResolver : ISigningKeysResolver
     {
         private readonly AccessTokenSettings _accessTokenSettings;
         private readonly KeyVaultSettings _keyVaultSettings;

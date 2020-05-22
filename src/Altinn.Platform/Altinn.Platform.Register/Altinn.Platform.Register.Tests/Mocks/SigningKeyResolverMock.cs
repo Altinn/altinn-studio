@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Altinn.Platform.Register.Tests.Mocks
 {
-    public class SigningKeyResolverMock: ISigningKeyResolver
+    public class SigningKeyResolverMock: ISigningKeysResolver
     {
         public SigningCredentials GetSigningCredentials()
         {

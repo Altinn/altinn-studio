@@ -7,7 +7,7 @@ namespace Altinn.Common.AccessToken.Services
     /// <summary>
     /// Interface to retrive signing credentials for issuer and signing keys for consumer of tokens
     /// </summary>
-    public interface ISigningKeyResolver
+    public interface ISigningKeysResolver
     {
         /// <summary>
         /// Returns the signing keys for a given issuer

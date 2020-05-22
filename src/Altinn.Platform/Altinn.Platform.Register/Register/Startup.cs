@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Configuration;
+using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Services.Implementation;
 using Altinn.Platform.Register.Services.Interfaces;
@@ -84,6 +85,7 @@ namespace Altinn.Platform.Register
                 options.JsonSerializerOptions.WriteIndented = true;
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
+            services.AddMemoryCache();
 
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
@@ -92,6 +94,7 @@ namespace Altinn.Platform.Register
 
             services.AddSingleton<IAuthorizationHandler, AccessTokenHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<ISigningKeysResolver, SigningKeysResolver>();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                   .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
