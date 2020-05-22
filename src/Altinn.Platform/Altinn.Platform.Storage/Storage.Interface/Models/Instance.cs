@@ -55,12 +55,6 @@ namespace Altinn.Platform.Storage.Interface.Models
         public DateTime? VisibleAfter { get; set; }
 
         /// <summary>
-        /// Gets or sets the title of the instance. Used by message box in the portal. Usually the application title or name.
-        /// </summary>
-        [JsonProperty(PropertyName = "title")]
-        public LanguageString Title { get; set; }
-
-        /// <summary>
         /// Gets or sets an object containing the instance process state.
         /// </summary>
         [JsonProperty(PropertyName = "process")]

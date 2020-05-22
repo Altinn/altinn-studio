@@ -136,6 +136,7 @@ code appSettings.json
 ```
 
  - Change the setting `"AppRepsitoryBasePath"` to the full path to your app on the disk. Save the file.
+ - Change the setting `"LocalTestingStaticTestDataPath"`to the full path of this repo.
 
 4. Start the local platform services (make sure you are in the LocalTest folder)
 

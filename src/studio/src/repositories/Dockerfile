@@ -2,7 +2,10 @@
 FROM gitea/gitea:1.10.4
 
 # copy configuration file
-COPY ./src/repositories/gitea-data/gitea/conf/app.ini data/gitea/conf/app.ini
-COPY ./src/repositories/gitea-data/gitea/options data/gitea/options/
-COPY ./src/repositories/gitea-data/gitea/public/img data/gitea/public/img
-COPY ./src/repositories/gitea-data/gitea/templates data/gitea/templates
+# Has to be copied to the templates-folder so parsing of environment variables is correct
+COPY gitea-config/app.ini etc/templates/app.ini
+
+# Copy rest of configuration
+COPY gitea-data/gitea/options data/gitea/options/
+COPY gitea-data/gitea/public/img data/gitea/public/img
+COPY gitea-data/gitea/templates data/gitea/templates

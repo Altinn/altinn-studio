@@ -89,6 +89,10 @@ export enum PartyTypes {
 export class AccessControlContainerClass extends React.Component<
   IAccessControlContainerProps, IAccessControlContainerState> {
 
+  public componentDidMount(){
+    applicationMetadataDispatcher.getApplicationMetadata();
+  }
+
   public static getDerivedStateFromProps(nextProps: IAccessControlContainerProps, state: IAccessControlContainerState) {
     const { partyTypesAllowed } = nextProps.applicationMetadata;
     if (!partyTypesAllowed) {

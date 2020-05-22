@@ -16,7 +16,8 @@
 							"script": {
 								"id": "405f0af9-b1dd-42cb-acad-8835c9f15dd3",
 								"exec": [
-									""
+									"var current_timestamp = new Date();\r",
+									"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
 								],
 								"type": "text/javascript"
 							}
@@ -28,10 +29,9 @@
 								"exec": [
 									"const jar = pm.cookies.jar();",
 									"var domain = pm.environment.get(\"envUrl\");",
-									"jar.clear(domain, function (error){",
-									"    if(error)",
-									"    {",
-									"        console.log(\"error\",error);",
+									"jar.clear(domain, function (error) {",
+									"    if (error) {",
+									"        console.log(\"error\", error);",
 									"    }",
 									"});"
 								],
@@ -149,13 +149,12 @@
 							"script": {
 								"id": "6505cb59-4588-4d0c-af60-b5faa7dcb8c1",
 								"exec": [
-									"if(pm.response.code == 200)",
-									"{",
+									"if (pm.response.code == 200) {",
 									"    var jsonData = pm.response.json();",
 									"    var partyId = jsonData.partyId;",
 									"    var ssn = jsonData.party.ssn;",
-									"    pm.environment.set(\"SSN\",ssn);",
-									"    pm.environment.set(\"instanceOwnerId\",partyId);",
+									"    pm.environment.set(\"SSN\", ssn);",
+									"    pm.environment.set(\"instanceOwnerId\", partyId);",
 									"}"
 								],
 								"type": "text/javascript"
@@ -226,8 +225,7 @@
 							"script": {
 								"id": "c41aa913-9f1a-4cc8-87dc-d896ef72317c",
 								"exec": [
-									"var current_timestamp = new Date();\r",
-									"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -419,6 +417,71 @@
 					"response": []
 				},
 				{
+					"name": "PUT Edit App",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7762b309-0916-44bc-bb7c-5fb2dc8e639b",
+								"exec": [
+									"pm.test(\"Platform - Storage - Application - Edit  App - Not possible for a person - Status - 403\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"{{org}}/{{app}}\",\r\n    \"versionId\": \"2\",\r\n    \"org\": \"{{org}}\",\r\n    \"title\": {\r\n        \"nb\": \"{{app}}\"\r\n    },\r\n    \"validFrom\": \"{{current_timestamp}}\",\r\n    \"dataTypes\": [\r\n        {\r\n            \"id\": \"default\",\r\n            \"allowedContentTypes\": [\r\n                \"application/xml\"\r\n            ],\r\n            \"appLogic\": {\r\n                \"autoCreate\": true,\r\n                \"classRef\": \"Altinn.App.Models.flyttemelding\",\r\n                \"schemaRef\": null\r\n            },\r\n            \"taskId\": \"Task_1\",\r\n            \"maxCount\": 0,\r\n            \"minCount\": 0\r\n        },\r\n        {\r\n            \"id\": \"ref-data-as-pdf\",\r\n            \"allowedContentTypes\": [\r\n                \"application/pdf\"\r\n            ],\r\n            \"taskId\": \"Task_1\",\r\n            \"maxCount\": 1,\r\n            \"minCount\": 1\r\n        },\r\n        {\r\n            \"id\": \"attachment\",\r\n            \"allowedContentTypes\": [\r\n                \"application/octet-stream\"\r\n            ],\r\n            \"appLogic\": {\r\n                \"autoCreate\": false\r\n            },\r\n            \"taskId\": \"Task_1\",\r\n            \"maxCount\": 1,\r\n            \"minCount\": 0,\r\n            \"maxSize\": 2\r\n        }\r\n    ],\r\n    \"partyTypesAllowed\": {\r\n        \"bankruptcyEstate\": false,\r\n        \"organisation\": true,\r\n        \"person\": true,\r\n        \"subUnit\": false\r\n    },\r\n    \"created\": \"{{current_timestamp}}\",\r\n    \"lastChanged\": \"{{current_timestamp}}\"\r\n}"
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"applications",
+								"{{org}}",
+								"{{app}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Text",
+			"item": [
+				{
 					"name": "GET App Texts",
 					"event": [
 						{
@@ -479,16 +542,94 @@
 					"response": []
 				},
 				{
-					"name": "PUT Edit App",
+					"name": "POST App Texts",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "7762b309-0916-44bc-bb7c-5fb2dc8e639b",
+								"id": "a2413d3e-8083-4e5c-97f9-4e38cecc0299",
 								"exec": [
-									"pm.test(\"Platform - Storage - Application - Edit  App - Not possible for a person - Status - 403\", function () {\r",
+									"pm.test(\"Platform - Storage - Applications - POST Upload App texts - Status - 403\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
 									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "ec68a4ed-6e43-4fe2-9eee-c5b12935e838",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"{{org}}-{{app}}-nb\",\r\n    \"org\": \"{{org}}\",\r\n    \"language\": \"nb\",\r\n    \"resources\": [\r\n        {\r\n            \"id\": \"testid\",\r\n            \"value\": \"testvalue\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}/texts",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"applications",
+								"{{org}}",
+								"{{app}}",
+								"texts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT App Texts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6dbf50d8-d5e7-452c-8eb2-5fbae9797c5c",
+								"exec": [
+									"pm.test(\"Platform - Storage - Applications - PUT Edit App texts - Status - 403\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "66eeec08-53c9-4567-b0c6-466b993dc8c8",
+								"exec": [
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -506,20 +647,18 @@
 							]
 						},
 						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
+						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": \"{{org}}/{{app}}\",\r\n    \"versionId\": \"2\",\r\n    \"org\": \"{{org}}\",\r\n    \"title\": {\r\n        \"nb\": \"{{app}}\"\r\n    },\r\n    \"validFrom\": \"{{current_timestamp}}\",\r\n    \"dataTypes\": [\r\n        {\r\n            \"id\": \"default\",\r\n            \"allowedContentTypes\": [\r\n                \"application/xml\"\r\n            ],\r\n            \"appLogic\": {\r\n                \"autoCreate\": true,\r\n                \"classRef\": \"Altinn.App.Models.flyttemelding\",\r\n                \"schemaRef\": null\r\n            },\r\n            \"taskId\": \"Task_1\",\r\n            \"maxCount\": 0,\r\n            \"minCount\": 0\r\n        },\r\n        {\r\n            \"id\": \"ref-data-as-pdf\",\r\n            \"allowedContentTypes\": [\r\n                \"application/pdf\"\r\n            ],\r\n            \"taskId\": \"Task_1\",\r\n            \"maxCount\": 1,\r\n            \"minCount\": 1\r\n        },\r\n        {\r\n            \"id\": \"attachment\",\r\n            \"allowedContentTypes\": [\r\n                \"application/octet-stream\"\r\n            ],\r\n            \"appLogic\": {\r\n                \"autoCreate\": false\r\n            },\r\n            \"taskId\": \"Task_1\",\r\n            \"maxCount\": 1,\r\n            \"minCount\": 0,\r\n            \"maxSize\": 2\r\n        }\r\n    ],\r\n    \"partyTypesAllowed\": {\r\n        \"bankruptcyEstate\": false,\r\n        \"organisation\": true,\r\n        \"person\": true,\r\n        \"subUnit\": false\r\n    },\r\n    \"created\": \"{{current_timestamp}}\",\r\n    \"lastChanged\": \"{{current_timestamp}}\"\r\n}"
+							"raw": "{\r\n    \"id\": \"{{org}}-{{app}}-nb\",\r\n    \"org\": \"{{org}}\",\r\n    \"language\": \"nb\",\r\n    \"resources\": [\r\n        {\r\n            \"id\": \"testid\",\r\n            \"value\": \"testvalue\"\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}",
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}/texts/nb",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -531,7 +670,69 @@
 								"v1",
 								"applications",
 								"{{org}}",
-								"{{app}}"
+								"{{app}}",
+								"texts",
+								"nb"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE App Texts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "62554466-a108-40fc-aaf7-c3a84d6822af",
+								"exec": [
+									"pm.test(\"Platform - Storage - Applications - DELETE App texts - Status - 403\", function () {\r",
+									"    pm.response.to.have.status(403);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "dff0987b-d9e5-481a-bf78-5053f64a5ab5",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}/texts/nb",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"applications",
+								"{{org}}",
+								"{{app}}",
+								"texts",
+								"nb"
 							]
 						}
 					},
@@ -633,8 +834,8 @@
 							"script": {
 								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
 								"exec": [
-									"pm.test(\"Platform - Storage - Instances - Get All instances - Not allowed for instanceOwner - Status - 403\", function () {\r",
-									"    pm.response.to.have.status(403);\r",
+									"pm.test(\"Platform - Storage - Instances - Get All instances - Missing Request parameter - Status - 400\", function () {\r",
+									"    pm.response.to.have.status(400);\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -692,8 +893,8 @@
 							"script": {
 								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
 								"exec": [
-									"pm.test(\"Platform - Storage - Instances - Get Instance by onwerId - Not allowed for instanceOwner- Status - 403\", function () {\r",
-									"    pm.response.to.have.status(403);\r",
+									"pm.test(\"Platform - Storage - Instances - Get Instance by onwerId - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -750,9 +951,19 @@
 							"script": {
 								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
 								"exec": [
-									"pm.test(\"Platform - Storage - Instances - Get Instances with Date filter - Not allowed for instanceOwner - Status - 403\", function () {\r",
-									"    pm.response.to.have.status(403);\r",
+									"pm.test(\"Platform - Storage - Instances - Get Instances with Date filter - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
 									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "1515b68b-dddd-4d4a-bbdf-6fa1b5514197",
+								"exec": [
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -778,7 +989,7 @@
 							}
 						],
 						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&created=gt:{{current_timestamp}}&lastChanged=gte:2019-08-12T11:20:10.2003387Z",
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&created=gt:{{current_timestamp}}&lastChanged=gte:2019-08-12T11:20:10.2003387Z&instanceOwner.partyId={{instanceOwnerId}}",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -802,6 +1013,10 @@
 								{
 									"key": "lastChanged",
 									"value": "gte:2019-08-12T11:20:10.2003387Z"
+								},
+								{
+									"key": "instanceOwner.partyId",
+									"value": "{{instanceOwnerId}}"
 								}
 							]
 						}
@@ -816,8 +1031,8 @@
 							"script": {
 								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
 								"exec": [
-									"pm.test(\"Platform - Storage - Instances - Get Instances with Process filter - Not allowed for instanceOwner - Status - 403\", function () {\r",
-									"    pm.response.to.have.status(403);\r",
+									"pm.test(\"Platform - Storage - Instances - Get Instances with Process filter  - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -844,7 +1059,7 @@
 							}
 						],
 						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&process.currentTask={{processElementId}}",
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&process.currentTask=Task_1&instanceOwner.partyId={{instanceOwnerId}}",
 							"protocol": "https",
 							"host": [
 								"platform",
@@ -863,7 +1078,11 @@
 								},
 								{
 									"key": "process.currentTask",
-									"value": "{{processElementId}}"
+									"value": "Task_1"
+								},
+								{
+									"key": "instanceOwner.partyId",
+									"value": "{{instanceOwnerId}}"
 								}
 							]
 						}

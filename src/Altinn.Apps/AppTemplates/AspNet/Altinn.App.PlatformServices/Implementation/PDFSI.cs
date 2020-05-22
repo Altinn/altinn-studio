@@ -34,10 +34,9 @@ namespace Altinn.App.Services.Implementation
         /// </summary>
         /// <param name="appSettings">The app settings</param>
         /// <param name="logger">The logger</param>
-        /// <param name="httpClientAccessor">The http client accessor</param>
         /// <param name="dataService">The data service</param>
-        /// <param name="repositoryService">The repository service</param>
         /// <param name="registerService">The register service</param>
+        /// <param name="applicationSerice">The application service</param>
         public PDFSI(IOptions<PlatformSettings> platformSettings,
             IOptions<AppSettings> appSettings,
             ILogger<PDFSI> logger,
@@ -107,7 +106,7 @@ namespace Altinn.App.Services.Implementation
 
             try
             {
-                await StorePDF(pdfContent, instance);
+                await StorePDF(pdfContent, instance, application);
             }
             catch (Exception exception)
             {
@@ -148,15 +147,22 @@ namespace Altinn.App.Services.Implementation
             return pdfContent;
         }
 
-        private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance)
+        private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance, Application appMetadata)
         {
             string fileName = null;
+            string app = instance.AppId.Split("/")[1];
 
-            if (instance.Title?["nb"] != null && instance.Title?["nb"] != String.Empty)
+            if (!string.IsNullOrEmpty(appMetadata.Title?["nb"]))
             {
-                fileName = instance.Title["nb"] + ".pdf";
-                fileName = GetValidFileName(fileName);
+                fileName = appMetadata.Title["nb"] + ".pdf";
             }
+            else
+            {
+                fileName = app;
+            }
+
+            fileName = GetValidFileName(fileName);
+
 
             return await _dataService.InsertBinaryData(
                 instance.Id,

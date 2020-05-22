@@ -13,6 +13,7 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
       Actions.fetchFormLayoutFulfilled,
       data.layout,
     );
+    yield call(Actions.updateAutoSave, data.autoSave);
   } catch (err) {
     yield call(Actions.fetchFormLayoutRejected, err);
     yield call(QueueActions.dataTaskQueueError, err);

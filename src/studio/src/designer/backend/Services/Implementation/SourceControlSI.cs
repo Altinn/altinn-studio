@@ -490,16 +490,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The deploy app token</returns>
         public async Task<string> GetDeployToken()
         {
-            string deployToken = _httpContextAccessor.HttpContext.Request.Cookies[_settings.DeployCookieName];
-            if (deployToken == null)
-            {
-                KeyValuePair<string, string> deployKeyValuePair = await _gitea.GetSessionAppKey("AltinnDeployToken") ?? default(KeyValuePair<string, string>);
-                if (!deployKeyValuePair.Equals(default(KeyValuePair<string, string>)))
-                {
-                    deployToken = deployKeyValuePair.Value;
-                }
+            string deployToken = string.Empty;
 
-                _httpContextAccessor.HttpContext.Response.Cookies.Append(_settings.DeployCookieName, deployToken);
+            KeyValuePair<string, string> deployKeyValuePair = await _gitea.GetSessionAppKey("AltinnDeployToken") ?? default(KeyValuePair<string, string>);
+            if (!deployKeyValuePair.Equals(default(KeyValuePair<string, string>)))
+            {
+                deployToken = deployKeyValuePair.Value;
             }
 
             return deployToken;
@@ -534,6 +530,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return (envRepoLocation != null)
                 ? $"{envRepoLocation}{userName}/{org}/{repository}"
                 : $"{_settings.RepositoryLocation}{userName}/{org}/{repository}";
+        }
+
+        /// <inheritdoc />
+        public void VerifyCloneExists(string org, string repository)
+        {
+            string repoLocation = FindLocalRepoLocation(org, repository);
+            if (!Directory.Exists(repoLocation))
+            {
+                try
+                {
+                    CloneRemoteRepository(org, repository);
+                }
+                catch(Exception e)
+                {
+                    _logger.LogError($"Failed to clone repository {org}/{repository} with exception: {e}");
+                }
+            }
         }
 
         /// <summary>

@@ -4,10 +4,10 @@ import * as instances from "../../../api/storage/instances.js"
 import * as setUpData from "../../../setup.js";
 import * as sbl from "../../../api/storage/messageboxinstances.js"
 
-let userName = __ENV.username;
-let userPassword = __ENV.userpwd;
-let appOwner = __ENV.org;
-let level2App = __ENV.level2app;
+const userName = __ENV.username;
+const userPassword = __ENV.userpwd;
+const appOwner = __ENV.org;
+const level2App = __ENV.level2app;
 let instanceJson = open("../../../data/instance.json");
 
 export const options = {
@@ -55,7 +55,7 @@ export default function(data) {
     //Test to get all instances for a party from storage and validate the response to have 403 as code
     res = instances.getAllinstancesByPartyId(runtimeToken, partyId);
     success = check(res, {
-        "GET Instaces by instanceOwner status is 403:": (r) => r.status === 403        
+        "GET Instaces by instanceOwner status is 200:": (r) => r.status === 200        
         });  
     addErrorCount(success);       
 

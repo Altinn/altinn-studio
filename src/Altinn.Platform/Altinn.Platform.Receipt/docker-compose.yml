@@ -26,7 +26,6 @@ services:
       - GeneralSettings:OpenIdWellKnownEndpoint=http://localhost:5040/authentication/api/v1/openid/
       - GeneralSettings:Hostname=at22.altinn.cloud
       - GeneralSettings:RuntimeCookieName=AltinnStudioRuntime
-      - GeneralSettings:LanguageFilesLocation=Languages/
     ports:
       - "5060:5060"
     depends_on:

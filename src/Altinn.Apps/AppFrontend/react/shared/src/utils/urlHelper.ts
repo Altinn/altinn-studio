@@ -16,38 +16,59 @@ export const dataModelUploadPageUrl = `${origin}/designer/${org}/${app}#/datamod
 export const dataModelXsdUrl = `${origin}/designer/${org}/${app}/Model/GetXsd`;
 export const orgsListUrl: string = 'https://altinncdn.no/orgs/altinn-orgs.json';
 export const repositoryGitUrl = `${origin}/repos/${org}/${app}.git`;
-export const repositoryUrl =  `${origin}/repos/${org}/${app}`;
+export const repositoryUrl = `${origin}/repos/${org}/${app}`;
 export const baseHostnameAltinnProd = 'altinn.no';
 export const baseHostnameAltinnTest = 'altinn.cloud';
-export const baseHostnameAltinnStudio = 'altinn3.no';
+export const baseHostnameAltinnLocal = 'altinn3local.no';
 export const pathToMessageBox = 'ui/messagebox';
+export const pathToProfile = 'ui/profile';
+export const pathToAllSchemas = 'skjemaoversikt';
+const prodRegex = new RegExp(baseHostnameAltinnProd);
+const testRegex = new RegExp(baseHostnameAltinnTest);
+const localRegex = new RegExp(baseHostnameAltinnLocal);
 
 export const returnUrlToMessagebox = (url: string): string => {
-  const prodRegex = new RegExp(baseHostnameAltinnProd);
-  const testRegex = new RegExp(baseHostnameAltinnTest);
-  const studioRegex = new RegExp(baseHostnameAltinnStudio);
+  const baseUrl = returnBaseUrlToAltinn(url);
+  if (!baseUrl) {
+    return null;
+  }
+  return baseUrl + pathToMessageBox;
+};
+
+export const returnUrlToProfile = (url: string): string => {
+  const baseUrl = returnBaseUrlToAltinn(url);
+  if (!baseUrl) {
+    return null;
+  }
+  return baseUrl + pathToProfile;
+};
+
+export const returnUrlToAllSchemas = (url: string): string => {
+  const baseUrl = returnBaseUrlToAltinn(url);
+  if (!baseUrl) {
+    return null;
+  }
+  return baseUrl + pathToAllSchemas;
+};
+
+export const returnBaseUrlToAltinn = (url: string): string => {
   let result: string;
   if (url.search(prodRegex) >= 0) {
     const split = url.split('.');
     const env = split[split.length - 3];
     if (env === 'tt02') {
-      result = `https://${env}.${baseHostnameAltinnProd}/${pathToMessageBox}`;
+      result = `https://${env}.${baseHostnameAltinnProd}/`;
     } else {
-      result = `https://${baseHostnameAltinnProd}/${pathToMessageBox}`;
+      result = `https://${baseHostnameAltinnProd}/`;
     }
   } else if (url.search(testRegex) >= 0) {
-
     const split = url.split('.');
     const env = split[split.length - 3];
-    result = `https://${env}.${baseHostnameAltinnTest}/${pathToMessageBox}`;
-
-  } else if (url.search(studioRegex) >= 0) {
-
-    result = `http://${baseHostnameAltinnStudio}/designer/${org}/${app}#/test`;
-
+    result = `https://${env}.${baseHostnameAltinnTest}/`;
+  } else if (url.search(localRegex) >= 0) {
+    result = '/';
   } else {
     result = null;
   }
-
   return result;
 };

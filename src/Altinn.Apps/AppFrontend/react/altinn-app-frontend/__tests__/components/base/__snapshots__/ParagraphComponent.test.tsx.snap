@@ -9,7 +9,6 @@ exports[`>>> components/base/ParagraphComponent.tsx --- Snapshot +++ should matc
       "marginTop": "2.4rem",
     }
   }
-  tabIndex={0}
 >
   Here goes a paragraph
 </p>

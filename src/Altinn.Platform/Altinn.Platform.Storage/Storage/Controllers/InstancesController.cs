@@ -7,6 +7,8 @@ using System.Web;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
+
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -34,11 +36,15 @@ namespace Altinn.Platform.Storage.Controllers
     [ApiController]
     public class InstancesController : ControllerBase
     {
+        private const string InstanceReadScope = "altinn:instances.read";
+
         private readonly IInstanceRepository _instanceRepository;
         private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly IPartiesWithInstancesClient _partiesWithInstancesClient;
         private readonly ILogger _logger;
         private readonly IPDP _pdp;
+        private readonly AuthorizationHelper _authzHelper;
         private readonly string _storageBaseAndHost;
 
         /// <summary>
@@ -47,23 +53,29 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
+        /// <param name="partiesWithInstancesClient">An implementation of <see cref="IPartiesWithInstancesClient"/> that can be used to send information to SBL.</param>
         /// <param name="logger">the logger</param>
+        /// <param name="authzLogger">the logger for the authorization helper</param>
         /// <param name="pdp">the policy decision point.</param>
         /// <param name="settings">the general settings.</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
+            IPartiesWithInstancesClient partiesWithInstancesClient,
             ILogger<InstancesController> logger,
+            ILogger<AuthorizationHelper> authzLogger,
             IPDP pdp,
             IOptions<GeneralSettings> settings)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
+            _partiesWithInstancesClient = partiesWithInstancesClient;
             _pdp = pdp;
             _logger = logger;
             _storageBaseAndHost = $"{settings.Value.Hostname}/storage/api/v1/";
+            _authzHelper = new AuthorizationHelper(pdp, authzLogger);
         }
 
         /// <summary>
@@ -85,7 +97,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="size">The page size.</param>
         /// <returns>List of all instances for given instance owner.</returns>
         /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
-        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_INSTANCE_READ)]
+        [Authorize]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -109,18 +121,43 @@ namespace Altinn.Platform.Storage.Controllers
             int pageSize = size ?? 100;
             string selfContinuationToken = null;
 
-            if (string.IsNullOrEmpty(org) && string.IsNullOrEmpty(appId))
+            bool isOrgQuerying = false;
+
+            // if user is org
+            string orgClaim = User.GetOrg();
+            int? userId = User.GetUserIdAsInt();
+
+            if (orgClaim != null)
             {
-                return BadRequest("Org or AppId must be defined.");
+                isOrgQuerying = true;
+
+                if (!_authzHelper.ContainsRequiredScope(InstanceReadScope, User))
+                {
+                    return Forbid();
+                }
+
+                if (string.IsNullOrEmpty(org) && string.IsNullOrEmpty(appId))
+                {
+                    return BadRequest("Org or AppId must be defined.");
+                }
+
+                org = string.IsNullOrEmpty(org) ? appId.Split('/')[0] : org;
+
+                if (!orgClaim.Equals(org, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return Forbid();
+                }
             }
-
-            org = string.IsNullOrEmpty(org) ? appId.Split('/')[0] : org;
-
-            _logger.LogInformation($" // InstancesController // GetInstances // Tyring to get instances for org: {org}");
-
-            if (!AuthorizationHelper.VerifyOrgInClaimPrincipal(org, HttpContext.User))
+            else if (userId != null)
             {
-                return Forbid();
+                if (instanceOwnerPartyId == null)
+                {
+                    return BadRequest("InstanceOwnerPartyId must be defined.");
+                }
+            }
+            else
+            {
+                return BadRequest();
             }
 
             if (!string.IsNullOrEmpty(continuationToken))
@@ -139,11 +176,19 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                InstanceQueryResponse result = await _instanceRepository.GetInstancesOfApplication(queryParams, continuationToken, pageSize);
+                InstanceQueryResponse result = await _instanceRepository.GetInstancesFromQuery(queryParams, continuationToken, pageSize);
 
                 if (!string.IsNullOrEmpty(result.Exception))
                 {
                     return BadRequest(result.Exception);
+                }
+
+                if (!isOrgQuerying)
+                {
+                    int originalCount = result.Instances.Count;
+                    result.Instances = await _authzHelper.AuthorizeInstances(User, result.Instances);
+                    result.Count = result.Instances.Count;
+                    result.TotalHits = result.TotalHits - (originalCount - result.Instances.Count);
                 }
 
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
@@ -281,6 +326,8 @@ namespace Altinn.Platform.Storage.Controllers
                 _logger.LogInformation($"Created instance: {storedInstance.Id}");
                 storedInstance.SetPlatformSelflink(_storageBaseAndHost);
 
+                await _partiesWithInstancesClient.SetHasAltinn3Instances(instanceOwnerPartyId);
+
                 return Created(storedInstance.SelfLinks.Platform, storedInstance);
             }
             catch (Exception storageException)
@@ -300,7 +347,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance that should be deleted.</param>
-        /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribut set to todays date and time.</param>
+        /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribute set to current date and time.</param>
         /// <returns>Information from the deleted instance.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_DELETE)]
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
@@ -364,7 +411,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"Unexpeced exception when updating instance after soft delete: {e}");
+                    _logger.LogError($"Unexpected exception when updating instance after soft delete: {e}");
                     return StatusCode(500, $"Unexpected exception when updating instance after soft delete: {e.Message}");
                 }
             }
@@ -380,7 +427,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </remarks>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
-        /// <returns>Returns a list of the process events.</returns>        
+        /// <returns>Returns a list of the process events.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_COMPLETE)]
         [HttpPost("{instanceOwnerPartyId:int}/{instanceGuid:guid}/complete")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -435,7 +482,6 @@ namespace Altinn.Platform.Storage.Controllers
                 AppId = appInfo.Id,
                 Org = appInfo.Org,
                 VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleAfter),
-                Title = instanceTemplate.Title,
                 Status = instanceTemplate.Status,
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
                 AppOwner = new ApplicationOwnerState
@@ -443,19 +489,6 @@ namespace Altinn.Platform.Storage.Controllers
                     Labels = instanceTemplate.AppOwner?.Labels,
                 },
             };
-
-            // copy applications title to presentation field if not set by instance template
-            if (createdInstance.Title == null && appInfo.Title != null)
-            {
-                LanguageString presentation = new LanguageString();
-
-                foreach (KeyValuePair<string, string> title in appInfo.Title)
-                {
-                    presentation.Add(title.Key, title.Value);
-                }
-
-                createdInstance.Title = presentation;
-            }
 
             createdInstance.Data = new List<DataElement>();
 

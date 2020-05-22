@@ -1,5 +1,5 @@
 # base image
-FROM node:12.16.2-alpine3.11 AS generate-app-development
+FROM node:12.16.3-alpine3.11 AS generate-app-development
 
 # Copy and install Lerna
 COPY ./src/designer/frontend/lerna.json .

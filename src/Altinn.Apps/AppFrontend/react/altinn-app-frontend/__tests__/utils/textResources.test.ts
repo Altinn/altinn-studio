@@ -7,7 +7,7 @@ describe('>>> /utils/textResource.ts', () => {
   let mockKey: string;
   let mockInvalidKey: string;
   beforeEach(() => {
-    mockTextResources = [{id: 'mockId1', value: 'mock value 1'}, {id: 'mockId2', value: 'mock value 2'} ];
+    mockTextResources = [{id: 'mockId1', value: 'mock value 1', unparsedValue: 'mock value 1', variables: undefined}, {id: 'mockId2', value: 'mock value 2', unparsedValue: 'mock value 2', variables: undefined} ];
     mockKey = 'mockId1';
     mockInvalidKey = 'invalid';
   });

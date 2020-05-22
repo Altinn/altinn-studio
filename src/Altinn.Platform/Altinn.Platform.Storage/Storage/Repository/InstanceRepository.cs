@@ -91,7 +91,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<InstanceQueryResponse> GetInstancesOfApplication(
+        public async Task<InstanceQueryResponse> GetInstancesFromQuery(
             Dictionary<string, StringValues> queryParams,
             string continuationToken,
             int size)
@@ -461,32 +461,6 @@ namespace Altinn.Platform.Storage.Repository
             await PostProcess(instance);
 
             return instance;
-        }
-
-        /// <inheritdoc/>
-        public async Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerPartyId)
-        {
-            string instanceOwnerPartyIdString = instanceOwnerPartyId.ToString();
-
-            FeedOptions feedOptions = new FeedOptions
-            {
-                PartitionKey = new PartitionKey(instanceOwnerPartyIdString),
-                MaxItemCount = 100,
-            };
-
-            IQueryable<Instance> filter = _client
-                .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString);
-
-            IDocumentQuery<Instance> query = filter.AsDocumentQuery();
-
-            FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
-
-            List<Instance> instances = feedResponse.ToList();
-
-            await PostProcess(instances);
-
-            return instances;
         }
 
         /// <inheritdoc/>

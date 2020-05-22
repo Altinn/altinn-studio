@@ -1,5 +1,8 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable max-len */
 import * as React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
+import { getTextResourceByKey } from 'altinn-shared/utils';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
 import FormDataActions from '../features/form/data/formDataActions';
@@ -12,15 +15,12 @@ import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
 import Label from '../features/form/components/Label';
 import Legend from '../features/form/components/Legend';
-import HelpTextPopover from '../features/form/components/HelpTextPopover';
 import { renderValidationMessagesForComponent } from '../utils/render';
-import {
-  getFormDataForComponent,
+import { getFormDataForComponent,
   isSimpleComponent,
   componentHasValidationMessages,
   getTextResource,
-  isComponentValid,
-} from '../utils/formComponentUtils';
+  isComponentValid } from '../utils/formComponentUtils';
 import FormLayoutActions from '../features/form/layout/formLayoutActions';
 import Description from '../features/form/components/Description';
 
@@ -41,15 +41,12 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
-
-  const [helpIconRef, setHelpIconRef] = React.useState(!!props.textResourceBindings.help ? React.createRef() : null);
-  const [openPopover, setOpenPopover] = React.useState(false);
   const [isSimple, setIsSimple] = React.useState(true);
   const [hasValidationMessages, setHasValidationMessages] = React.useState(false);
 
   const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
   const formData: IFormData = useSelector((state: IRuntimeState) => getFormDataForComponent(state.formData.formData, props.dataModelBindings), shallowEqual);
-  const component: ILayoutComponent = useSelector((state: IRuntimeState) => state.formLayout.layout.find(element => element.id === props.id) as ILayoutComponent);
+  const component: ILayoutComponent = useSelector((state: IRuntimeState) => state.formLayout.layout.find((element) => element.id === props.id) as ILayoutComponent);
   const isValid: boolean = useSelector((state: IRuntimeState) => isComponentValid(state.formValidations.validations[props.id]));
   const language: ILanguageState = useSelector((state: IRuntimeState) => state.language.language);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
@@ -91,33 +88,16 @@ export function GenericComponent(props: IGenericComponentProps) {
     RuleActions.checkIfRuleShouldRun(props.id, dataModelElement, value);
   };
 
-  const handleFocusUpdate = (id: string, step?: number) => {
-    FormLayoutActions.updateFocus(id, step ? step : 0);
+  const handleFocusUpdate = (componentId: string, step?: number) => {
+    FormLayoutActions.updateFocus(componentId, step || 0);
   };
-
-  const toggleClickPopover = (event: React.MouseEvent): void => {
-    event.stopPropagation();
-    event.preventDefault();
-    setOpenPopover(!openPopover);
-  }
-
-  const toggleKeypressPopover = (event: React.KeyboardEvent): void => {
-    if ((event.key === ' ' || event.key === 'Enter') && !openPopover) {
-      setOpenPopover(true);
-    }
-  }
-
-  const closePopover = () => {
-    setOpenPopover(false);
-  }
 
   const getValidationsForInternalHandling = () => {
     if (props.type === 'AddressComponent' || props.type === 'Datepicker' || props.type === 'FileUpload') {
       return componentValidations;
-    } else {
-      return null;
     }
-  }
+    return null;
+  };
 
   // some compoenets handle their validations internally (i.e merge with internal validaiton state)
   const internalComponentValidations = getValidationsForInternalHandling();
@@ -129,14 +109,15 @@ export function GenericComponent(props: IGenericComponentProps) {
     return null;
   }
 
-  const RenderComponent = components.find((component: any) => component.name === props.type).Tag;
+  const RenderComponent = components.find((componentCandidate: any) => componentCandidate.name === props.type).Tag;
 
   const RenderLabel = () => {
-    const labelText = getTextResource(props.textResourceBindings.title, textResources);
+    const labelText = getTextResource(props?.textResourceBindings?.title, textResources);
+    const helpText = getTextResource(props?.textResourceBindings?.help, textResources);
     return (
       <Label
         labelText={labelText}
-        helpTextProps={helpTextProps}
+        helpText={helpText}
         language={language}
         textResourceBindings={textResources}
         {...props}
@@ -146,52 +127,55 @@ export function GenericComponent(props: IGenericComponentProps) {
   };
 
   const RenderDescription = () => {
-    if (!props.textResourceBindings.description){
+    if (!props.textResourceBindings.description) {
       return null;
     }
     const descriptionText = getTextResource(props.textResourceBindings.description, textResources);
     return (
       <Description
         description={descriptionText}
+        {...component}
       />
-    )
-  }
+    );
+  };
 
   const RenderLegend = () => {
     return (
       <Legend
-        labelText={getTextResource(props.textResourceBindings.title, textResources)}
-        helpTextProps={helpTextProps}
+        labelText={getTextResource(props?.textResourceBindings?.title, textResources)}
+        descriptionText={getTextResource(props?.textResourceBindings?.description, textResources)}
+        helpText={getTextResource(props?.textResourceBindings?.help, textResources)}
         language={language}
         textResourceBindings={textResources}
         {...props}
         {...component}
       />
     );
-  }
+  };
 
-  const helpTextProps = {
-    toggleClickPopover,
-    toggleKeypressPopover,
-    helpIconRef,
-    openPopover,
-    helpTextKey: props.textResourceBindings.help,
+  const getText = () => {
+    if (component.type === 'Header') {
+      // disabled markdown parsing
+      return getTextResourceByKey(props.textResourceBindings.title, textResources);
+    }
+
+    return getTextResource(props.textResourceBindings.title, textResources);
   };
 
   const componentProps = {
     handleDataChange: handleDataUpdate,
     handleFocusUpdate,
-    getTextResource: getTextResource,
-    formData: formData,
+    getTextResource,
+    formData,
     isValid,
     language,
     id,
     shouldFocus,
-    text: getTextResource(props.textResourceBindings.title, textResources),
+    text: getText(),
     label: RenderLabel,
     legend: RenderLegend,
     ...passThroughProps,
-  }
+  };
 
   const noLabelComponents: string[] = [
     'Header',
@@ -201,32 +185,32 @@ export function GenericComponent(props: IGenericComponentProps) {
     'AddressComponent',
     'Button',
     'Checkboxes',
-    'RadioButtons'
+    'RadioButtons',
   ];
 
   return (
     <>
-    {noLabelComponents.includes(props.type) ? null :
-      <RenderLabel />
-    }
-    {props.textResourceBindings.description ? <RenderDescription /> : null}
-    <RenderComponent
-      {...componentProps}
-    />
-    {/* { React.createElement(RenderComponent, componentProps) } */}
-    {isSimple && hasValidationMessages &&
-          renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
-    }
-    <HelpTextPopover
-        helpIconRef={helpIconRef}
-        openPopover={openPopover}
-        language={language}
-        helpText={getTextResource(props.textResourceBindings.help, textResources)}
-        closePopover={closePopover}
-        key={props.id}
+      {noLabelComponents.includes(props.type) ?
+        null
+        :
+        <RenderLabel />
+      }
+
+      {noLabelComponents.includes(props.type) ?
+        null
+        :
+        <RenderDescription/>
+      }
+
+      <RenderComponent
+        {...componentProps}
       />
-  </>
-  )
+
+      {isSimple && hasValidationMessages &&
+            renderValidationMessagesForComponent(componentValidations?.simpleBinding, props.id)
+      }
+    </>
+  );
 }
 
 export default GenericComponent;

@@ -61,6 +61,7 @@
       "warn",
       2
     ],
+    "react/jsx-props-no-spreading": "off",
     "max-len": [
       "warn",
       120,
@@ -136,6 +137,7 @@
       0
     ],
     "import/no-duplicates": "off",
+    "import/prefer-default-export": "off",
     "prefer-destructuring": "off",
     "react/destructuring-assignment": "off",
     "no-use-before-define":"off",
@@ -163,6 +165,7 @@
         "maximum": 2
       }
     ],
-    "react/jsx-boolean-value": "off"
+    "react/jsx-boolean-value": "off",
+    "linebreak-style": "off"
   }
 }

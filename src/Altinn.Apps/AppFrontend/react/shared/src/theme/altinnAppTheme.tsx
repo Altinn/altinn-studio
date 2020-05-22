@@ -51,7 +51,7 @@ const AltinnAppTheme = {
       blueDarker: '#022F51',
       blueDark: '#0062BA',
       blueMedium: '#008FD6',
-      blue: '#1EAEF7',
+      blue: '#1EADF7',
       blueLight: '#CFF0FF',
       blueLighter: '#E3F7FF',
       green: '#12AA64',

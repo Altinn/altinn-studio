@@ -24,5 +24,9 @@
     "kubernetes",
     "wrapper"
   ],
-  "java.configuration.updateBuildConfiguration": "interactive"
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "eslint.workingDirectories": [
+    { "directory": "./src/studio/src/designer/frontend", "changeProcessCWD": true },
+    { "directory": "./src/Altinn.Apps/AppFrontend/react", "changeProcessCWD": true}
+  ]
 }

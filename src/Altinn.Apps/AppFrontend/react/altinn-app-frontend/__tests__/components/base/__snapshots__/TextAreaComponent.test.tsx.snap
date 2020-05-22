@@ -5,6 +5,7 @@ exports[`>>> components/base/TextAreaComponent.tsx +++ should match snapshot 1`]
   className="a-form-group-items input-group p-0"
 >
   <textarea
+    aria-describedby="description-mock-id"
     className="form-control a-textarea "
     data-testid="mock-id"
     id="mock-id"

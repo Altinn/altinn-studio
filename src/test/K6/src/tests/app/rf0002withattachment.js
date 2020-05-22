@@ -1,3 +1,11 @@
+/*
+  This test script can only be run with virtual users and iterations count and not based on duration.
+  Create and archive instances of RF-0002 with attachments, where the distribution of attachments is based on 
+  parameter attachmentdistribution among small, medium and large attachment.
+  example: k6 run -i 20 -u 10 /src/tests/app/rf0002withattachment.js 
+  -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e attachmentdistribution="60;30;10"
+*/
+
 import { check } from "k6";
 import {addErrorCount, printResponseToConsole} from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
@@ -8,13 +16,15 @@ import * as apps from "../../api/storage/applications.js"
 import {deleteSblInstance} from "../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
-let instanceFormDataXml = open("../../data/rf-0002.xml");
-let appOwner = __ENV.org;
-let level2App = __ENV.level2app;
-let smallAttachment = open("../../data/50kb.txt");
-let mediumAttachment = open("../../data/1mb.txt");
-let bigAttachment = open("../../data/99mb.txt");
-let users = JSON.parse(open("../../data/users.json"));
+const instanceFormDataXml = open("../../data/rf-0002.xml");
+const appOwner = __ENV.org;
+const level2App = __ENV.level2app;
+var attachmentDistribution = __ENV.attachmentdistribution;
+const smallAttachment = open("../../data/50kb.txt");
+const mediumAttachment = open("../../data/1mb.txt");
+const largeAttachment = open("../../data/99mb.txt");
+const users = JSON.parse(open("../../data/users.json"));
+const usersCount = users.length;
 
 export const options = {
     thresholds:{
@@ -22,49 +32,84 @@ export const options = {
     }
 };
 
+//setup functions creates an array of attachment data based on the distribution percentage and total iteration count
+export function setup(){
+    var data = {};
+    var totalIterations = (options.iterations) ? options.iterations : 1;
+    var maxVus = (options.vus) ? options.vus : 1;
+    data.maxIter = Math.floor(totalIterations / maxVus); //maximum iteration per vu
+    attachmentDistribution = (attachmentDistribution) ? attachmentDistribution : "";
+    let attachmentTypes = setUpData.buildAttachmentTypeArray(attachmentDistribution, totalIterations);
+    data.attachmentTypes = attachmentTypes;
+    return data;
+}
+
 //Tests for App API: RF-0002
-export default function() {
-    var userNumber = (__VU - 1) % users.length;
-    var aspxauthCookie = setUpData.authenticateUser(users[userNumber].username, users[userNumber].password);  
+export default function(data) {
+    var userNumber = (__VU - 1) % usersCount;
+    var maxIter = data.maxIter
+    var attachmentTypes = (data.attachmentTypes[0]) ? data.attachmentTypes : ['s'];
+    var instanceId, dataId, res, success;
+
+    //Find a unique number for the type of attachment to upload
+    var uniqueNum = ((__VU * maxIter) - (maxIter) + (__ITER));
+    uniqueNum = (uniqueNum > attachmentTypes.length) ? Math.floor((uniqueNum % attachmentTypes.length)) : uniqueNum;
+
+    //Find a username and password from the users file
+    try {
+        var userSSN = users[userNumber].username;
+        var userPwd = users[userNumber].password;    
+    } catch (error) {
+        printResponseToConsole("Testdata missing", false, null);
+    };
+
+    var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
+
+    //Get App metadata and find attachchment data guid id
     var attachmentDataType = apps.getAppByName(runtimeToken, appOwner, level2App);
+    success = check(attachmentDataType, {
+        "GET App Metadata": (r) => r.status === 200        
+      });  
+    addErrorCount(success);
+    printResponseToConsole("GET App Metadata Failed", success, attachmentDataType);
+
     attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body);   
-    const partyId = users[userNumber].partyid;  
-    var instanceId = "";    
-    var dataId = "";  
+    const partyId = users[userNumber].partyid; 
 
     //Test to create an instance with App api and validate the response
-    instanceId = appInstances.postInstance(runtimeToken, partyId);
-    var success = check(instanceId, {
+    res = appInstances.postInstance(runtimeToken, partyId);
+    success = check(res, {
         "E2E App POST Create Instance status is 201:": (r) => r.status === 201        
       });  
     addErrorCount(success);
-    printResponseToConsole("E2E App POST Create Instance:", success, instanceId);
+    printResponseToConsole("E2E App POST Create Instance:", success, res);
     
-    dataId = appData.findDataId(instanceId.body);
-    instanceId = platformInstances.findInstanceId(instanceId.body);  
+    try {
+        dataId = appData.findDataId(res.body);
+        instanceId = platformInstances.findInstanceId(res.body); 
+    } catch (error) {
+        printResponseToConsole("Instance id and data id not retrieved:", false , null);
+    };
+     
     
     //Test to edit a form data in an instance with App APi and validate the response
-    var res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
+    res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
     success = check(res, {
         "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201        
     });  
     addErrorCount(success);
     printResponseToConsole("E2E PUT Edit Data by Id:", success, res);
 
-    //dynamically assign attachments - 60% VU gets small , 30% VU gets medium and 10% VU gets big attachment.
-    if (userNumber < (users.length)*0.60)
-        {var attachment = smallAttachment;}
-    else{
-        var attachment = (userNumber < (users.length)*0.90) ? mediumAttachment : bigAttachment;
-    };
+    //dynamically assign attachments - based on the value from the array holding the attachment type
+    var attachment = (attachmentTypes[uniqueNum] === 's') ? smallAttachment : ((attachmentTypes[uniqueNum] === 'm') ? mediumAttachment : largeAttachment);
     
     //upload a upload attachment to an instance with App API
     res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, attachment);
     success = check(res, {
         "E2E POST upload attachment Data status is 201:": (r) => r.status === 201        
-    });  
+    });
     addErrorCount(success);    
     printResponseToConsole("E2E POST upload attachment Data status:", success, res);
 

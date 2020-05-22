@@ -1,9 +1,10 @@
 import Immutable from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IFetchFormDataFulfilled, IFetchFormDataRejected } from './fetch/fetchFormDataActions';
-import { ISubmitFormDataRejected } from './submit/submitFormDataActions';
+import { ISubmitFormDataRejected, ISubmitDataAction } from './submit/submitFormDataActions';
 import * as actionTypes from './formDataActionTypes';
 import { IUpdateFormDataFulfilled, IUpdateFormDataRejected } from './update/updateFormDataActions';
+import * as ProcessActionTypes from './../../../shared/resources/process/processActionTypes';
 
 export interface IFormData {
   [dataFieldKey: string]: any;
@@ -14,6 +15,9 @@ export interface IFormDataState {
   error: Error;
   responseInstance: any;
   unsavedChanges: boolean;
+  isSubmitting: boolean;
+  isSaving: boolean;
+  hasSubmitted: boolean;
 }
 
 const initialState: IFormDataState = {
@@ -21,6 +25,9 @@ const initialState: IFormDataState = {
   error: null,
   responseInstance: null,
   unsavedChanges: false,
+  isSubmitting: false,
+  isSaving: false,
+  hasSubmitted: false,
 };
 
 Immutable.extend('$setField', (params: any, original: IFormData) => {
@@ -55,6 +62,13 @@ const FormDataReducer: Reducer<IFormDataState> = (
     }
     case actionTypes.UPDATE_FORM_DATA_FULFILLED: {
       const { field, data } = action as IUpdateFormDataFulfilled;
+      if (!data || data === '') {
+        return Immutable<IFormDataState>(state, {
+          formData: {
+            $unset: [field],
+          },
+        });
+      }
       return Immutable<IFormDataState>(state, {
         formData: {
           $setField: {
@@ -82,12 +96,45 @@ const FormDataReducer: Reducer<IFormDataState> = (
         error: {
           $set: error,
         },
+        isSubmitting: {
+          $set: false,
+        },
+        isSaving: {
+          $set: false,
+        },
       });
     }
 
     case actionTypes.SUBMIT_FORM_DATA_FULFILLED: {
       return Immutable<IFormDataState>(state, {
         unsavedChanges: {
+          $set: false,
+        },
+        isSaving: {
+          $set: false,
+        },
+      });
+    }
+
+    case actionTypes.SUBMIT_FORM_DATA: {
+      const { apiMode } = action as ISubmitDataAction;
+      return Immutable<IFormDataState>(state, {
+        isSubmitting: {
+          $set: (apiMode === 'Complete'),
+        },
+        hasSubmitted: {
+          $set: (apiMode === 'Complete'),
+        },
+        isSaving: {
+          $set: (apiMode !== 'Complete'),
+        },
+      });
+    }
+
+    case ProcessActionTypes.COMPLETE_PROCESS_FULFILLED:
+    case ProcessActionTypes.COMPLETE_PROCESS_REJECTED: {
+      return Immutable<IFormDataState>(state, {
+        isSubmitting: {
           $set: false,
         },
       });

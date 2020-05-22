@@ -204,7 +204,7 @@ namespace Altinn.App.Services.Implementation
             foreach (KeyValuePair<string, string> keyValuePair in dictionary)
             {
                 string source = keyValuePair.Key;
-                string target = keyValuePair.Value;
+                string target = keyValuePair.Value.Replace("-", "");
                 if (source == null || source == string.Empty)
                 {
                     string errorMessage = $"Could not prefill, a source value was not set for target: {target}";

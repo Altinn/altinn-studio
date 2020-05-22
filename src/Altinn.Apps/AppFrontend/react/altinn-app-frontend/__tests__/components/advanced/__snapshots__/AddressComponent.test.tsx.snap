@@ -6,7 +6,7 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
 >
   <label
     className="a-form-label title-label"
-    htmlFor="mock-id"
+    htmlFor="address_address_mock-id"
   >
     Adresse
     <span
@@ -19,6 +19,7 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
   </label>
   <input
     className="form-control"
+    id="address_address_mock-id"
     onBlur={[Function]}
     onChange={[Function]}
     readOnly={false}
@@ -33,7 +34,7 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
     >
       <label
         className="a-form-label title-label"
-        htmlFor="mock-id"
+        htmlFor="address_zip_code_mock-id"
       >
         Postnr
         <span
@@ -46,6 +47,7 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
       </label>
       <input
         className="address-component-small-inputs form-control"
+        id="address_zip_code_mock-id"
         onBlur={[Function]}
         onChange={[Function]}
         readOnly={false}
@@ -58,12 +60,13 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
     >
       <label
         className="a-form-label title-label"
-        htmlFor="mock-id"
+        htmlFor="address_post_place_mock-id"
       >
         Poststed
       </label>
       <input
         className="form-control disabled"
+        id="address_post_place_mock-id"
         readOnly={true}
         value=""
       />

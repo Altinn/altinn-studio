@@ -1,6 +1,7 @@
 import http from "k6/http";
 import * as config from "../../config.js";
 import * as header from "../../buildrequestheaders.js"
+import {printResponseToConsole} from "../../errorcounter.js";
 
 //Api call to Storage:Instances to create an app instance and returns response
 export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, level2App, instanceJson){
@@ -34,9 +35,14 @@ export function getAllinstancesByPartyId(altinnStudioRuntimeCookie, partyId){
 };
 
 //Api call to Storage:Instances to get all instances under a party id and return response
-export function getInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, isArchived){
-    var endpoint = config.platformStorage["instances"] + "?org=" + appOwner + "&appId=" + appOwner + "/" + appName + "&process.isComplete=" + isArchived;
+export function getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, isArchived){
+    var todayDate = new Date();
+    todayDate.setUTCHours(0,0,0,0);
+    todayDate = todayDate.toISOString();
+    //find archived instances of today
+    var endpoint = config.platformStorage["instances"] + "?created=gt:" + todayDate +"&org=" + appOwner + "&appId=" + appOwner + "/" + appName + "&process.isComplete=" + isArchived;
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");    
+    params.timeout = 120000;
     return http.get(endpoint, params);
 };
 
@@ -49,15 +55,22 @@ export function findInstanceId(responseBody){
 };
 
 //Function to find all the archived app instances for an appOwner for a specific app and returns instance id as an array
-export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, appName){
-    var allInstances = getInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, "true");
+export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, appName, count){
+    var allInstances = getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, "true");
     var params = header.buildHeaderWithRuntimeAsCookie(altinnStudioRuntimeCookie, "platform");
+    params.timeout = 120000;
     allInstances = JSON.parse(allInstances.body);
-    let archivedInstances = findArchivedNotDeltedInstances(allInstances.instances);
+    let archivedInstances = buildArrayWithInstanceIds(allInstances.instances);
     while(allInstances.next !== null){
+        if (archivedInstances.length >= count){
+            break; // exit loop if the archivedInstances array length is more than required count (total iterations)
+        };
         allInstances = http.get(allInstances.next, params);
+        if(allInstances.status != 200){
+            printResponseToConsole("Get all instances failed:", false, allInstances);
+        };
         allInstances = JSON.parse(allInstances.body);
-        var moreInstances = findArchivedNotDeltedInstances(allInstances.instances);
+        var moreInstances = buildArrayWithInstanceIds(allInstances.instances);
         archivedInstances = archivedInstances.concat(moreInstances);
     };
     return archivedInstances;
@@ -66,12 +79,21 @@ export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, ap
 //Function to build an array with instances that are not deleted from an json response
 function findArchivedNotDeltedInstances(instancesArray){
     var archivedInstances = [];
-    for(var i = 0; i < instancesArray.length ;  i++){
+    for(var i = 0; i < instancesArray.length; i++){
         if(!("softDeleted" in instancesArray[i].status)){
             archivedInstances.push(instancesArray[i].id);
         }
     };
     return archivedInstances;
+};
+
+//Function to build an array with instance id from instances json response
+function buildArrayWithInstanceIds(instancesArray){
+    var instanceIds = [];
+    for(var i = 0; i < instancesArray.length; i++){       
+        instanceIds.push(instancesArray[i].id);        
+    };
+    return instanceIds;
 };
 
 //API call to platform:storage to completeconfirmation on the instance by an appOwner

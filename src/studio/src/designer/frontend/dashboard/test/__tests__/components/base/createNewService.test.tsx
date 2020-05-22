@@ -125,10 +125,6 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.state.repoName = 'thisisavalidservicename';
     expect(instance.validateService()).toBe(true);
 
-    // Assert valid name with dash and number
-    instance.state.repoName = 'this-is-a-valid-servicename-2019';
-    expect(instance.validateService()).toBe(true);
-
     // Assert name with uppercase
     instance.state.repoName = 'ThisIsNotAValidServiceName';
     expect(instance.validateService()).toBe(false);

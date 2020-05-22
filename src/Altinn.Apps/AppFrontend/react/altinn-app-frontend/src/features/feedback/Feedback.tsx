@@ -31,7 +31,7 @@ export default function Feedback() {
     <React.Fragment>
       <MuiThemeProvider theme={theme}>
         <Typography variant={'h2'} className={classes.h2}>
-          {getTextFromAppOrDefault('feedback.title', textResouces, language)}
+          {getTextFromAppOrDefault('feedback.title', textResouces, language, null, true)}
         </Typography>
         <Typography variant={'body1'}>
           {getTextFromAppOrDefault('feedback.body', textResouces, language)}

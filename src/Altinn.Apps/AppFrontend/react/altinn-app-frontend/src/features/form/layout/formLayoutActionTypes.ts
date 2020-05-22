@@ -20,3 +20,7 @@ export const UPDATE_FOCUS_REJECTED: string = `${moduleName}.UPDATE_FOCUS_REJECTE
 export const UPDATE_HIDDEN_COMPONENTS: string = `${moduleName}.UPDATE_HIDDEN_COMPONENTS`;
 
 export const UPDATE_FORM_LAYOUT: string = `${moduleName}.UPDATE_FORM_LAYOUT`;
+
+export const UPDATE_AUTO_SAVE: string = `${moduleName}.UPDATE_AUTO_SAVE`;
+export const UPDATE_AUTO_SAVE_FULFILLED: string = `${moduleName}.UPDATE_AUTO_SAVE_FULFILLED`;
+export const UPDATE_AUTO_SAVE_REJECTED: string = `${moduleName}.UPDATE_AUTO_SAVE_REJECTED`;

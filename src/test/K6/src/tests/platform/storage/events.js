@@ -5,10 +5,10 @@ import * as sbl from "../../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../../setup.js";
 import {addErrorCount} from "../../../errorcounter.js";
 
-let userName = __ENV.username;
-let userPassword = __ENV.userpwd;
-let appOwner = __ENV.org;
-let level2App = __ENV.level2app;
+const userName = __ENV.username;
+const userPassword = __ENV.userpwd;
+const appOwner = __ENV.org;
+const level2App = __ENV.level2app;
 let eventsJson = open("../../../data/events.json");
 let instanceJson = open("../../../data/instance.json");
 

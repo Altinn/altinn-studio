@@ -7,11 +7,11 @@ const theme = createMuiTheme(AltinnAppTheme);
 
 const useStyle = makeStyles({
   helpTextIcon: {
-    'width': '44px',
-    'height': '44px',
-    'paddingTop': '2rem',
-    'fontSize': '3rem',
-    'color': theme.altinnPalette.primary.blue,
+    width: '44px',
+    height: '44px',
+    paddingTop: '2rem',
+    fontSize: '3rem',
+    color: theme.altinnPalette.primary.blue,
     '&:hover': {
       color: theme.altinnPalette.primary.blueDarker,
     },
@@ -22,11 +22,12 @@ export interface IHelpTextIconProps {
   helpIconRef: React.RefObject<any>;
   openPopover: boolean;
   language: any;
+  id: string;
   toggleClickPopover: (event: any) => void;
   toggleKeypressPopover: (event: any) => void;
 }
 
-export default function HelpTextIcon(props: IHelpTextIconProps){
+export default function HelpTextIcon(props: IHelpTextIconProps) {
   const classes = useStyle();
 
   if (props.helpIconRef) {

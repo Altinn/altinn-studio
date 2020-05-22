@@ -34,7 +34,7 @@ services:
       - altinncore_network
     volumes:
       - "C:/AltinnCore/Repos:/AltinnCore/Repos"
-      - "keys:/mnt/keys"   
+      - "keys:/mnt/keys"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
@@ -73,4 +73,4 @@ services:
       - "222:22"
     build:
       context: .
-      dockerfile: ./src/repositories/Dockerfile
+      dockerfile: ./src/repositories/Dockerfile.local

@@ -45,13 +45,13 @@ export function renderValidationMessages(messages: string[], id: string, message
     <MessageComponent
       messageType={messageType}
       style={{ display: 'block', width: 'fit-content' }}
-      key={'messageType'}
+      key={messageType}
       id={id}
     >
       <ol>
         {messages.map((message: string, idx: number) => {
           return (
-            <li key={idx}>{message}</li>
+            <li key={idx}><p role='alert'>{message}</p></li>
           );
         })}
       </ol>

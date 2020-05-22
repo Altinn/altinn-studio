@@ -6,6 +6,12 @@ export interface ISubmitDataAction extends Action {
   apiMode?: string;
 }
 
+export function saveFormdata(): Action {
+  return {
+    type: actionTypes.SAVE_FORM_DATA,
+  };
+}
+
 export function submitFormData(url: string, apiMode?: string): ISubmitDataAction {
   return {
     type: actionTypes.SUBMIT_FORM_DATA,

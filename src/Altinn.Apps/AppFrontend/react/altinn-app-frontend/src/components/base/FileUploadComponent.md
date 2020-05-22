@@ -1,7 +1,7 @@
 Simple `FileUploadComponent`
 
 ```tsx
-import {nb} from '../../shared/resources/language/languages';
+import { nb } from '../../shared/resources/language/languages';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 

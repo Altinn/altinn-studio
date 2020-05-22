@@ -7,8 +7,10 @@ using System.Text;
 
 using Altinn.Common.PEP.Interfaces;
 
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
+using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 using Altinn.Platform.Storage.UnitTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
@@ -27,7 +29,8 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
-    public partial class IntegrationTests {
+    public partial class IntegrationTests
+    {
 
         /// <summary>
         /// Test class for Process Controller. Focuses on authorization of requests.
@@ -54,11 +57,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void GetProcessHistory_UserHasToLowAuthLv_ReturnStatusForbidden()
             {
                 // Arrange
-                string requestUri = $"{BasePath}{InstanceId}/process/history";
+                string requestUri = $"storage/api/v1/instances/1337/ba577e7f-3dfd-4ff6-b659-350308a47348/process/history";
                 _repositoryMock.Setup(r => r.ListInstanceEvents(It.IsAny<string>(), It.IsAny<string[]>(), null, null)).ReturnsAsync(new List<InstanceEvent>());
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(1, 1);
+                string token = PrincipalUtil.GetToken(3, 1337, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -75,10 +78,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void GetProcessHistory_ReponseIsDeny_ReturnStatusForbidden()
             { // Arrange
-                string requestUri = $"{BasePath}{InstanceId}/process/history";
+                string requestUri = $"storage/api/v1/instances/1337/ba577e7f-3dfd-4ff6-b659-350308a47348/process/history";
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(-1);
+                string token = PrincipalUtil.GetToken(-1, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -95,12 +98,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void GetProcessHistory_UserIsAuthorized_ReturnsEmptyProcessHistoryReturnStatusForbidden()
             {
-                // Arrange
-                string requestUri = $"{BasePath}{InstanceId}/process/history";
-                _repositoryMock.Setup(r => r.ListInstanceEvents(It.IsAny<string>(), It.IsAny<string[]>(), null, null)).ReturnsAsync(new List<InstanceEvent>());
+                // Arrange 
+                string requestUri = $"storage/api/v1/instances/1337/17ad1851-f6cb-4573-bfcb-a17d145307b3/process/history";
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(1, 2);
+                string token = PrincipalUtil.GetToken(3, 1337, 2);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -121,12 +123,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void PutProcess_UserHasToLowAuthLv_ReturnStatusForbidden()
             {
                 // Arrange
-                string requestUri = $"{BasePath}{InstanceId}/process";
+                string requestUri = $"storage/api/v1/instances/1337/ae3fe2fa-1fcb-42b4-8e63-69a42d4e3502/process/";
+
                 ProcessState state = new ProcessState();
                 StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(1, 1);
+                string token = PrincipalUtil.GetToken(3, 1337, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -144,12 +147,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void PutProcess_PDPResponseIsDeny_ReturnStatusForbidden()
             {
                 // Arrange
-                string requestUri = $"{BasePath}{InstanceId}/process";
+                string requestUri = $"storage/api/v1/instances/1337/ae3fe2fa-1fcb-42b4-8e63-69a42d4e3502/process/";
+
                 ProcessState state = new ProcessState();
                 StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(-1);
+                string token = PrincipalUtil.GetToken(-1, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -166,13 +170,16 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void PutProcess_UserIsAuthorized_ReturnStatusOK()
             {
-                // Arrange
-                string requestUri = $"{BasePath}{InstanceId}/process";
+                TestDataUtil.DeleteInstanceAndData(1337, new Guid("20a1353e-91cf-44d6-8ff7-f68993638ffe"));
+                TestDataUtil.PrepareInstance(1337, new Guid("20a1353e-91cf-44d6-8ff7-f68993638ffe"));
+
+                // Arrange 
+                string requestUri = $"storage/api/v1/instances/1337/20a1353e-91cf-44d6-8ff7-f68993638ffe/process/";
                 ProcessState state = new ProcessState();
                 StringContent jsonString = new StringContent(JsonConvert.SerializeObject(state), Encoding.UTF8, "application/json");
 
                 HttpClient client = GetTestClient(_repositoryMock.Object);
-                string token = PrincipalUtil.GetToken(1);
+                string token = PrincipalUtil.GetToken(3, 1337, 3);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -180,6 +187,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+                TestDataUtil.DeleteInstanceAndData(1337, new Guid("20a1353e-91cf-44d6-8ff7-f68993638ffe"));
             }
 
             private HttpClient GetTestClient(IInstanceEventRepository instanceEventRepository)
@@ -187,35 +196,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // No setup required for these services. They are not in use by the ApplicationController
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
                 Mock<IDataRepository> dataRepository = new Mock<IDataRepository>();
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
                 Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();
                 Mock<IKeyVaultClientWrapper> keyVaultWrapper = new Mock<IKeyVaultClientWrapper>();
+                Mock<IPartiesWithInstancesClient> partiesWrapper = new Mock<IPartiesWithInstancesClient>();
 
-                instanceRepository.Setup(r => r.GetOne(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(
-                    new Instance
-                    {
-                        Id = InstanceId,
-                        InstanceOwner = new InstanceOwner
-                        {
-                            PartyId = "5000"
-                        },
-                        Org = "ttd",
-                        AppId = "ttd/testapp",
-                        Process = new ProcessState
-                        {
-                            StartEvent = "StartEvent_1",
-                            Started = DateTime.UtcNow.AddDays(-1),
-                            CurrentTask = new ProcessElementInfo
-                            {
-                                Flow = 2,
-                                ElementId = "Task_1",
-                                AltinnTaskType = "data",
-                                Name = "Utfylling",
-                                Started = DateTime.UtcNow
-                            }
-                        }
-                    });
-                instanceRepository.Setup(r => r.Update(It.IsAny<Instance>())).ReturnsAsync((Instance i) => { return i; });
                 Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
@@ -223,10 +207,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     {
                         services.AddSingleton(applicationRepository.Object);
                         services.AddSingleton(dataRepository.Object);
-                        services.AddSingleton(instanceEventRepository);
-                        services.AddSingleton(instanceRepository.Object);
+                        services.AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>();
+                        services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
+                        services.AddSingleton(partiesWrapper.Object);
                         services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                     });
