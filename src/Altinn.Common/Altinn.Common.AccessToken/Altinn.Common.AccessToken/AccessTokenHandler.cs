@@ -39,7 +39,7 @@ namespace Altinn.Common.AccessToken
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AccessTokenRequirement requirement)
         {
             StringValues tokens = GetAccessTokens();
-            if (tokens.Count != 1 & _accessTokenSettings.DisableAccesTokenVerification)
+            if (tokens.Count != 1 && _accessTokenSettings.DisableAccesTokenVerification)
             {
                 context.Succeed(requirement);
                 await Task.CompletedTask;
