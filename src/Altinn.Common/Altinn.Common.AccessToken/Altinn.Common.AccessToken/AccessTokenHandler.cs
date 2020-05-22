@@ -19,15 +19,15 @@ namespace Altinn.Common.AccessToken
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
         private readonly AccessTokenSettings _accessTokenSettings;
-        private readonly ISigningKeysResolver _signingKeysRetriever;
+        private readonly ISigningKeysResolver _signingKeysResolver;
 
         public AccessTokenHandler(IHttpContextAccessor httpContextAccessor,
-            ILogger<AccessTokenHandler> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningKeysResolver signingKeysRetriever)
+            ILogger<AccessTokenHandler> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningKeysResolver signingKeysResolver)
         {
                 _httpContextAccessor = httpContextAccessor;
                 _logger = logger;
                 _accessTokenSettings = accessTokenSettings.Value;
-                _signingKeysRetriever = signingKeysRetriever;
+                _signingKeysResolver = signingKeysResolver;
         }
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace Altinn.Common.AccessToken
                 ClockSkew = TimeSpan.Zero
             };
 
-            tokenValidationParameters.IssuerSigningKeys = await _signingKeysRetriever.GetSigningKeys(issuer);
+            tokenValidationParameters.IssuerSigningKeys = await _signingKeysResolver.GetSigningKeys(issuer);
             return tokenValidationParameters;
         }
 
