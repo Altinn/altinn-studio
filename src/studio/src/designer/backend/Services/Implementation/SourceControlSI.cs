@@ -220,8 +220,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
-        public async Task Push(string org, string repository)
+        public async Task<bool> Push(string org, string repository)
         {
+            bool pushSuccess = true;
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var watch = System.Diagnostics.Stopwatch.StartNew();
             using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
@@ -236,7 +237,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
                 }
 
-                PushOptions options = new PushOptions();
+                PushOptions options = new PushOptions 
+                {
+                    OnPushStatusError = pushError => 
+                    {
+                        _logger.Log(Microsoft.Extensions.Logging.LogLevel.Error,"Push error: {0}", pushError.Message);
+                        pushSuccess = false;
+                    }
+                };
                 options.CredentialsProvider = (_url, _user, _cred) =>
                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
@@ -245,6 +253,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             watch.Stop();
             _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Push - {0} ", watch.ElapsedMilliseconds);
+            return pushSuccess;
         }
 
         /// <summary>
