@@ -241,7 +241,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     OnPushStatusError = pushError => 
                     {
-                        _logger.Log(Microsoft.Extensions.Logging.LogLevel.Error,"Push error: {0}", pushError.Message);
+                        _logger.Log(Microsoft.Extensions.Logging.LogLevel.Error, "Push error: {0}", pushError.Message);
                         pushSuccess = false;
                     }
                 };
