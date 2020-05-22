@@ -13,6 +13,6 @@ namespace Altinn.Common.AccessToken.Configuration
 
         public string AccessTokenSigningKeysFolder { get; set; } = "clientsigningkeys/";
 
-        public int TokenExpirySeconds { get; set; } = 300;
+        public int CacheCertExpirerySeconds { get; set; } = 3600;
     }
 }
