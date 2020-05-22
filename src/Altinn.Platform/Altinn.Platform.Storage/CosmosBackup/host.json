@@ -1,11 +1,17 @@
 {
-    "version": "2.0",
-    "logging": {
-        "applicationInsights": {
-            "samplingExcludedTypes": "Request",
-            "samplingSettings": {
-                "isEnabled": true
-            }
-        }
+  "logging": {
+    "applicationInsights": {
+      "samplingExcludedTypes": "Request",
+      "samplingSettings": {
+        "isEnabled": true
+      }
+    },
+    "logLevel": {
+      "default": "Error",
+      "Host.Results": "Error",
+      "Function": "Error",
+      "Host.Aggregator": "Error"
     }
+  },
+  "version": "2.0"
 }
