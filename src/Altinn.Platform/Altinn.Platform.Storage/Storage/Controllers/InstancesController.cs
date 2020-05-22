@@ -46,6 +46,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IPDP _pdp;
         private readonly AuthorizationHelper _authzHelper;
         private readonly string _storageBaseAndHost;
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -76,6 +77,7 @@ namespace Altinn.Platform.Storage.Controllers
             _logger = logger;
             _storageBaseAndHost = $"{settings.Value.Hostname}/storage/api/v1/";
             _authzHelper = new AuthorizationHelper(pdp, authzLogger);
+            _generalSettings = settings.Value;
         }
 
         /// <summary>
@@ -168,11 +170,9 @@ namespace Altinn.Platform.Storage.Controllers
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
-            string host = $"{Request.Scheme}://{Request.Host.ToUriComponent()}";
+            string host = $"https://{_generalSettings.Hostname}/";
             string url = Request.Path;
             string query = Request.QueryString.Value;
-
-            _logger.LogInformation($"uri = {url}{query}");
 
             try
             {
