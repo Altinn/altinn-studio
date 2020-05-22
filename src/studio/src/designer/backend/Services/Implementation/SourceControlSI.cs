@@ -176,7 +176,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public void PushChangesForRepository(CommitInfo commitInfo)
         {
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            var watch = System.Diagnostics.Stopwatch.StartNew();
             using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
                 // Restrict users from empty commit
