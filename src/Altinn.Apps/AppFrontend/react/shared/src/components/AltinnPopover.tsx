@@ -47,6 +47,9 @@ const useStyles = makeStyles(() => createStyles({
     width: '445px',
     margin: '24px',
   },
+  textWrap: {
+    wordBreak: 'break-word',
+  },
   removeMargin: {
     marginBottom: '-18px',
   },
@@ -92,7 +95,7 @@ const AltinnPopoverComponent = (props: any) => {
           }
 
           {props.descriptionText &&
-            <div className={classNames({
+            <div className={classNames(classes.textWrap, {
               [classes.removeMargin]: (!(typeof props.descriptionText === 'string' || props.descriptionText instanceof String)),
             })}
             >

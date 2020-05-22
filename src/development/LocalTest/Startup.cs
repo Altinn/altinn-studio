@@ -1,37 +1,40 @@
 using System;
-using Altinn.Platform.Storage.Repository;
-using LocalTest.Services.Storage.Implementation;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using System.Security.Cryptography.X509Certificates;
+
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Constants;
+using Altinn.Authorization.ABAC.Interface;
 using Altinn.Common.PEP.Authorization;
-using Microsoft.IdentityModel.Tokens;
-using System.IO;
+using Altinn.Common.PEP.Interfaces;
+using Altinn.Common.PEP.Implementation;
+using Altinn.Common.PEP.Clients;
+using Altinn.Platform.Authorization.Services.Implementation;
+using Altinn.Platform.Authorization.Services.Interface;
+using Altinn.Platform.Authorization.Repositories;
+using Altinn.Platform.Authorization.Repositories.Interface;
+using Altinn.Platform.Authorization.ModelBinding;
+using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.Helpers;
+
 using LocalTest.Configuration;
-using Microsoft.IdentityModel.Logging;
-using Microsoft.AspNetCore.Http;
+using LocalTest.Services.Authentication.Interface;
+using LocalTest.Services.Authentication.Implementation;
+using LocalTest.Services.Authorization.Implementation;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Profile.Implementation;
 using LocalTest.Services.Register.Interface;
 using LocalTest.Services.Register.Implementation;
-using LocalTest.Services.Authorization.Implementation;
-using Altinn.Platform.Authorization.ModelBinding;
-using Altinn.Authorization.ABAC.Interface;
-using Altinn.Platform.Authorization.Services.Implementation;
-using Altinn.Platform.Authorization.Repositories.Interface;
-using Altinn.Platform.Authorization.Repositories;
-using Altinn.Platform.Authorization.Services.Interface;
-using Altinn.Platform.Storage.Helpers;
-using Altinn.Common.PEP.Interfaces;
-using Altinn.Common.PEP.Implementation;
-using Altinn.Common.PEP.Clients;
+using LocalTest.Services.Storage.Implementation;
+
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Logging;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 
 namespace LocalTest
 {
@@ -67,8 +70,9 @@ namespace LocalTest
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddHttpClient<AuthorizationApiClient>();
             services.AddSingleton<IPDP, PDPAppSI>();
-
+            services.AddSingleton<IAuthentication, AuthenticationService>();
             services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
             services.AddTransient<IAuthorizationHandler, ScopeAccessHandler>();
 
@@ -84,7 +88,6 @@ namespace LocalTest
                 .AddJwtCookie(options =>
                 {
                     var generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
@@ -95,10 +98,6 @@ namespace LocalTest
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.Zero
                     };
-                    options.Cookie.Domain = "altinn3local.no";
-                    options.Cookie.Name = "AltinnStudioRuntime";
-                    options.Cookie.SameSite = SameSiteMode.None;
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
                 });
 
             services.AddAuthorization(options =>

@@ -3,7 +3,7 @@
   example: k6 run -i 20 --duration 1m /src/tests/app/rf0002portal.js -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=***
 */
 
-import { check } from "k6";
+import { check, sleep } from "k6";
 import {addErrorCount, printResponseToConsole} from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
@@ -26,6 +26,7 @@ export const options = {
 //Tests for App API: RF-0002
 export default function() {
     var userNumber = (__VU - 1) % usersCount;
+    var instanceId, dataId, res, success;
     
     try {
         var userSSN = users[userNumber].username;
@@ -38,10 +39,7 @@ export default function() {
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
     const partyId = users[userNumber].partyid;
-    var instanceId = "";
-    var dataId = "";
-    let res, success;
-
+    
     //Batch api calls before creating an app instance
     res = appInstantiation.beforeInstanceCreation(runtimeToken, partyId);
     for(var i = 0; i < res.length; i++){
@@ -60,8 +58,12 @@ export default function() {
     addErrorCount(success);    
     printResponseToConsole("E2E App POST Create Instance:", success, res);
     
-    dataId = appData.findDataId(res.body);
-    instanceId = platformInstances.findInstanceId(res.body);
+    try {
+        dataId = appData.findDataId(res.body);
+        instanceId = platformInstances.findInstanceId(res.body); 
+    } catch (error) {
+        printResponseToConsole("Instance id and data id not retrieved:", false , null);
+    };
 
     //Test to get the current process of an app instance
     res = appProcess.getCurrentProcess(runtimeToken, partyId, instanceId);
@@ -97,6 +99,7 @@ export default function() {
         });
         addErrorCount(success);    
         printResponseToConsole("E2E PUT Edit Data by Id:", success, res);
+        sleep(0.5);
     };
 
     //Test to get validate instance and verify that validation of instance is ok
@@ -105,7 +108,7 @@ export default function() {
         "E2E App GET Validate Instance validation OK:": (r) => r.body && (JSON.parse(r.body)).length === 0
     });
     addErrorCount(success);    
-    printResponseToConsole("E2E App GET Validate Instance is not OK:", success, res);
+    printResponseToConsole("E2E App GET Validate Instance is not OK:", success, res);x
 
     //Test to move the process of an app instance to the next process element and verify response code to be 200
     res = appProcess.putNextProcess(runtimeToken, partyId, instanceId, "EndEvent_1");

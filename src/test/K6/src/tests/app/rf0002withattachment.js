@@ -48,7 +48,8 @@ export function setup(){
 export default function(data) {
     var userNumber = (__VU - 1) % usersCount;
     var maxIter = data.maxIter
-    var attachmentTypes = (data.attachmentTypes[0]) ? data.attachmentTypes : ['s'];    
+    var attachmentTypes = (data.attachmentTypes[0]) ? data.attachmentTypes : ['s'];
+    var instanceId, dataId, res, success;
 
     //Find a unique number for the type of attachment to upload
     var uniqueNum = ((__VU * maxIter) - (maxIter) + (__ITER));
@@ -65,25 +66,36 @@ export default function(data) {
     var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
+
+    //Get App metadata and find attachchment data guid id
     var attachmentDataType = apps.getAppByName(runtimeToken, appOwner, level2App);
+    success = check(attachmentDataType, {
+        "GET App Metadata": (r) => r.status === 200        
+      });  
+    addErrorCount(success);
+    printResponseToConsole("GET App Metadata Failed", success, attachmentDataType);
+
     attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body);   
-    const partyId = users[userNumber].partyid;  
-    var instanceId = "";    
-    var dataId = "";  
+    const partyId = users[userNumber].partyid; 
 
     //Test to create an instance with App api and validate the response
-    instanceId = appInstances.postInstance(runtimeToken, partyId);
-    var success = check(instanceId, {
+    res = appInstances.postInstance(runtimeToken, partyId);
+    success = check(res, {
         "E2E App POST Create Instance status is 201:": (r) => r.status === 201        
       });  
     addErrorCount(success);
-    printResponseToConsole("E2E App POST Create Instance:", success, instanceId);
+    printResponseToConsole("E2E App POST Create Instance:", success, res);
     
-    dataId = appData.findDataId(instanceId.body);
-    instanceId = platformInstances.findInstanceId(instanceId.body);  
+    try {
+        dataId = appData.findDataId(res.body);
+        instanceId = platformInstances.findInstanceId(res.body); 
+    } catch (error) {
+        printResponseToConsole("Instance id and data id not retrieved:", false , null);
+    };
+     
     
     //Test to edit a form data in an instance with App APi and validate the response
-    var res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
+    res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
     success = check(res, {
         "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201        
     });  
