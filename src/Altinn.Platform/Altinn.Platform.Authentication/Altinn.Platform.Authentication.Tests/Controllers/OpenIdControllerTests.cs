@@ -1,21 +1,19 @@
-using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Authentication.Controllers;
-using Altinn.Platform.Authentication.IntegrationTests.Fakes;
 using Altinn.Platform.Authentication.Model;
-using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
+using Altinn.Platform.Authentication.Tests.Fakes;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using Xunit;
 
-namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
+namespace Altinn.Platform.Authentication.Tests.Controllers
 {
     /// <summary>
     /// Represents a collection of unit test with all integration tests of the <see cref="OpenIdController"/> class.
@@ -42,7 +40,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             // Arrange
             HttpClient client = GetTestClient();
 
-            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/OpenId/.well-known/openid-configuration");
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/openid/.well-known/openid-configuration");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(requestMessage);
@@ -84,16 +82,14 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
 
         private HttpClient GetTestClient()
         {
-            string projectDir = Directory.GetCurrentDirectory();
-            string configPath = Path.Combine(projectDir, "appsettings.json");
             Program.ConfigureSetupLogging();
+
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProviderStub>();
                 });
-                builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
             }).CreateClient();
 
             return client;

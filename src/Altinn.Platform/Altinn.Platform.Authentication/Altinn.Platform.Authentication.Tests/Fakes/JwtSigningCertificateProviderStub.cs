@@ -4,14 +4,13 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Authentication.Services.Interfaces;
 using AltinnCore.Authentication.Constants;
-using AltinnCore.Authentication.Utils;
 
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Platform.Authentication.IntegrationTests.Fakes
+namespace Altinn.Platform.Authentication.Tests.Fakes
 {
     /// <summary>
-    /// Represents a fake version of <see cref="SigningCredentialsProvider"/> to be used in testing.
+    /// Represents an implementation of <see cref="IJwtSigningCertificateProvider"/> to be used in unit tests.
     /// </summary>
     public class JwtSigningCertificateProviderStub : IJwtSigningCertificateProvider
     {

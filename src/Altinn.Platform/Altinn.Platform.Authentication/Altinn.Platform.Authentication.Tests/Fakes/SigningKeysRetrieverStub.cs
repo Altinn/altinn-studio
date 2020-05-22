@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Altinn.Platform.Authentication.IntegrationTests.Fakes
+namespace Altinn.Platform.Authentication.Tests.Fakes
 {
     /// <inheritdoc />
     public class SigningKeysRetrieverStub : ISigningKeysRetriever
