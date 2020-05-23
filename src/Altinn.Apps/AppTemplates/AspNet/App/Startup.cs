@@ -63,6 +63,7 @@ namespace Altinn.App
             services.AddTransient<IValidation, ValidationAppSI>();
             services.AddTransient<IPrefill, PrefillSI>();
             services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
+            services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
 
             // HttpClients for platform functionality. Registred as httpclients so default httpclientfactory is used
             services.AddHttpClient<AuthorizationApiClient>();
