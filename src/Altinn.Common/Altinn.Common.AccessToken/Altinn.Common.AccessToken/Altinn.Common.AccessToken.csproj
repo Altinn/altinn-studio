@@ -2,6 +2,8 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <OutputType>Library</OutputType>
+    <Version>0.5.0</Version>
+    <Description>Package to verify Access Tokens from client. Require public certificates stored in Azure KeyVault</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />

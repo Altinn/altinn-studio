@@ -6,6 +6,9 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Altinn.Common.AccessTokenClient.Services
 {
+    /// <summary>
+    /// Class to resolve certificate to sign JWT token uses as Access token
+    /// </summary>
     public class SigningCredentialsResolver : ISigningCredentialsResolver
     {
         private readonly AccessTokenSettings _accessTokenSettings;
@@ -15,12 +18,16 @@ namespace Altinn.Common.AccessTokenClient.Services
             _accessTokenSettings = accessTokenSettings.Value;
         }
 
+        /// <summary>
+        /// Find the configured 
+        /// </summary>
+        /// <returns></returns>
         public SigningCredentials GetSigningCredentials()
         {
             string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-            string certPath = basePath + $"accesstoken/signingcredentials.pfx";
-            X509Certificate2 cert = new X509Certificate2(certPath, "qwer1234");
+            string certPath = basePath + $"{_accessTokenSettings.AccessTokenSigningKeysFolder}{_accessTokenSettings.AccessTokenSigningCertificateFileName}";
+            X509Certificate2 cert = new X509Certificate2(certPath, _accessTokenSettings.AccessTokenSigningCertificatePassword);
             return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
         }
-}
+    }
 }

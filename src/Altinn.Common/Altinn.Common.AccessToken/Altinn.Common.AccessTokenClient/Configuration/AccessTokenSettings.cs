@@ -14,5 +14,9 @@ namespace Altinn.Common.AccessTokenClient.Configuration
         public string AccessTokenSigningKeysFolder { get; set; } = "clientsigningkeys/";
 
         public int TokenExpirySeconds { get; set; } = 300;
+
+        public string AccessTokenSigningCertificateFileName { get; set; } = "signingcredentials.pfx";
+
+        public string AccessTokenSigningCertificatePassword { get; set; }
     }
 }
