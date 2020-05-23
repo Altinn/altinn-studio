@@ -7,8 +7,8 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = createStyles({
   cloneButton: {
-    'textTransform': 'none',
-    'padding': 0,
+    textTransform: 'none',
+    padding: 0,
     '&:hover': {
       backgroundColor: 'transparent !Important',
     },
@@ -26,17 +26,20 @@ export interface ICloneButtonProps extends WithStyles<typeof styles> {
 function CloneButton(props: ICloneButtonProps) {
   return (
     <Button onClick={props.onClick} className={props.classes.cloneButton}>
-      <Grid container={true} alignItems={'center'}>
+      <Grid container={true} alignItems='center'>
         <Grid item={true}>
           <AltinnIcon
-                iconClass='fa fa-clone'
-                iconColor={theme.altinnPalette.primary.blueDark}
-                iconSize={24}
-                padding={'0px 0px 4px 0px'}
+            iconClass='fa fa-clone'
+            iconColor={theme.altinnPalette.primary.blueDark}
+            iconSize={24}
+            padding='0px 0px 4px 0px'
           />
         </Grid>
         <Grid item={true}>
-          <Typography style={{color: theme.altinnPalette.primary.blueDark}} variant={'body1'}>
+          <Typography
+            style={{ color: theme.altinnPalette.primary.blueDark }}
+            variant='body1'
+          >
             {props.buttonText}
           </Typography>
         </Grid>
