@@ -26,7 +26,7 @@ namespace Altinn.Platform.Storage.Repository
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         /// <summary>
-        /// Initialize a new instance of the <see cref="SasTokenProvider"/> with the given <see cref="KeyVaultSettings"/>.
+        /// Initializes a new instance of the <see cref="SasTokenProvider"/> class with the given <see cref="KeyVaultSettings"/>.
         /// </summary>
         /// <param name="keyVaultWrapper">
         /// An instance of <see cref="KeyVaultClientWrapper"/> with a principal with access to the application owner key vault(s).</param>

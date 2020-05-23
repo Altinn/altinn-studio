@@ -1,0 +1,4 @@
+{
+    "omnisharp.enableRoslynAnalyzers": true,
+    "omnisharp.defaultLaunchSolution": ""
+}
