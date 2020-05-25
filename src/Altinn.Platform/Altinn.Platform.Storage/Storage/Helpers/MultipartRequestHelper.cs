@@ -18,7 +18,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// </summary>
         /// <param name="contentType">The request content type</param>
         /// <param name="lengthLimit">The set length limit</param>
-        /// <returns></returns>
+        /// <returns>The boundary value from the content type.</returns>
         public static string GetBoundary(MediaTypeHeaderValue contentType, int lengthLimit)
         {
             string boundary = HeaderUtilities.RemoveQuotes(contentType.Boundary).Value;

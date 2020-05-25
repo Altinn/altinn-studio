@@ -20,7 +20,7 @@ namespace Altinn.Platform.Storage
         private static ILogger _logger;
 
         /// <summary>
-        /// Default protected constructor
+        /// Initializes a new instance of the <see cref="Program"/> class.
         /// </summary>
         protected Program()
         {
@@ -56,7 +56,7 @@ namespace Altinn.Platform.Storage
         /// Creates the WebHostBuilder.
         /// </summary>
         /// <param name="args">the arguments</param>
-        /// <returns></returns>
+        /// <returns>A new WebHostBuilder.</returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
            WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>

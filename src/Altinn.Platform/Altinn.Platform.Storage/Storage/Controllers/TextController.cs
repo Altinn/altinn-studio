@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Initalizes a new instance of the <see csref="TextController.cs"/> class
+        /// Initializes a new instance of the <see cref="TextController"/> class.
         /// </summary>
         /// <param name="textRepository">the text repository handler</param>
         /// <param name="logger">dependency injection of logger</param>
