@@ -50,7 +50,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             throw new NotImplementedException();
         }
 
-        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
+        public Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
         {
 
             List<Instance> instances = new List<Instance>();
@@ -81,7 +81,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 }
             }
 
-            return Filter(instanceState, instances);
+            return Task.FromResult(Filter(instanceState, instances));
         }
 
 
@@ -280,7 +280,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         /// Post-processes a list of instances.
         /// </summary>
         /// <param name="instances">the list of instances</param>
-        private async Task PostProcess(List<Instance> instances)
+        private void PostProcess(List<Instance> instances)
         {
             foreach (Instance item in instances)
             {
