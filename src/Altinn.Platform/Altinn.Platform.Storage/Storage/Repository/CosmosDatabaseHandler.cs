@@ -13,7 +13,7 @@ namespace Altinn.Platform.Storage.Repository
         private readonly AzureCosmosSettings cosmosSettings;
 
         /// <summary>
-        /// Cosmos database handler
+        /// Initializes a new instance of the <see cref="CosmosDatabaseHandler"/> class with the given <see cref="AzureCosmosSettings"/>.
         /// </summary>
         public CosmosDatabaseHandler(AzureCosmosSettings cosmosSettings)
         {
@@ -38,7 +38,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Create document client.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A <see cref="DocumentClient"/> for the given collection.</returns>
         public DocumentClient CreateDatabaseAndCollection(string collectionId)
         {
             string databaseId = cosmosSettings.Database;
@@ -63,7 +63,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Create document collection.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A <see cref="DocumentCollection"/> for the given collection.</returns>
         public DocumentCollection CreateDocumentCollection(string collectionId, string partitionKey)
         {
             DocumentCollection documentCollection = new DocumentCollection { Id = collectionId };
