@@ -1,11 +1,14 @@
+/* eslint-disable react/no-array-index-key */
 import { FormControlLabel, FormGroup, FormLabel } from '@material-ui/core';
 import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
 import { makeStyles } from '@material-ui/core/styles';
-import classNames = require('classnames');
 import * as React from 'react';
-import {AltinnAppTheme} from 'altinn-shared/theme';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 import { renderValidationMessagesForComponent } from '../../utils/render';
+
+
+import classNames = require('classnames');
 
 export interface ICheckboxContainerProps {
   id: string;
@@ -19,6 +22,8 @@ export interface ICheckboxContainerProps {
   readOnly: boolean;
   shouldFocus: boolean;
   legend: () => JSX.Element;
+  getTextResource: (key: string) => JSX.Element;
+  getTextResourceAsString: (key: string) => string;
 }
 
 export interface IStyledCheckboxProps extends CheckboxProps {
@@ -32,10 +37,10 @@ const useStyles = makeStyles({
     },
   },
   icon: {
-    'border': '2px solid #1EAEF7',
-    'width': 24,
-    'height': 24,
-    'backgroundColor': '#ffffff',
+    border: '2px solid #1EAEF7',
+    width: 24,
+    height: 24,
+    backgroundColor: '#ffffff',
     '$root.Mui-focusVisible &': {
       outline: '2px solid #ff0000',
       outlineOffset: 0,
@@ -50,7 +55,7 @@ const useStyles = makeStyles({
     },
   },
   checkedIcon: {
-    'backgroundColor': '#ffffff',
+    backgroundColor: '#ffffff',
     '&:before': {
       display: 'block',
       width: 20,
@@ -115,7 +120,6 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
     props.handleFocusUpdate(props.id);
     props.handleDataChange(selectedHasValues(newSelected) ? newSelected.join() : '');
-    
   };
 
   const selectedHasValues = (select: string[]): boolean => {
@@ -132,23 +136,23 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
       return false;
     }
     if (prevSelected.length === 0) {
-      changed = selected.findIndex(x => !!x && x !== '');
+      changed = selected.findIndex((x) => !!x && x !== '');
     } else {
-      changed = selected.findIndex(x => !prevSelected.includes(x));
+      changed = selected.findIndex((x) => !prevSelected.includes(x));
     }
     if (changed === -1) {
-      changed = prevSelected.findIndex(x => !selected.includes(x));
+      changed = prevSelected.findIndex((x) => !selected.includes(x));
     }
-    
+
     if (changed === -1) {
       return false;
     }
 
     return props.shouldFocus && changed === index;
-  }
+  };
 
   const StyledCheckbox = (styledCheckboxProps: IStyledCheckboxProps) => {
-    const {label, ...checkboxProps} = styledCheckboxProps;
+    const { label, ...checkboxProps } = styledCheckboxProps;
     return (
       <Checkbox
         className={classes.root}
@@ -164,9 +168,9 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
 
   const RenderLegend = props.legend;
 
-  return(
-    <FormControl key={'checkboxes_control_' + props.id} component='fieldset'>
-      <FormLabel component='legend' classes={{root: classNames(classes.legend)}}>
+  return (
+    <FormControl key={`checkboxes_control_${props.id}`} component='fieldset'>
+      <FormLabel component='legend' classes={{ root: classNames(classes.legend) }}>
         <RenderLegend />
       </FormLabel>
       <FormGroup row={checkBoxesIsRow} id={props.id}>
@@ -181,10 +185,10 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
                   value={index}
                   name={option.value}
                   autoFocus={inFocus(index)}
-                  label={option.label}
+                  label={props.getTextResourceAsString(option.label)}
                 />
               )}
-              label={option.label}
+              label={props.getTextResource(option.label)}
             />
             { props.validationMessages &&
               isOptionSelected(option.value) &&
@@ -194,5 +198,4 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
       </FormGroup>
     </FormControl>
   );
-
 };
