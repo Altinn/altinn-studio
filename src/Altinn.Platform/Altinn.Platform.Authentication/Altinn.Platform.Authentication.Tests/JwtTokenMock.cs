@@ -5,7 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 
 using Microsoft.IdentityModel.Tokens;
 
-namespace Altinn.Platform.Authentication.IntegrationTests
+namespace Altinn.Platform.Authentication.Tests
 {
     /// <summary>
     /// Represents a mechanism for creating JSON Web tokens for use in integration tests.
@@ -16,63 +16,63 @@ namespace Altinn.Platform.Authentication.IntegrationTests
         /// Generates a token with a self signed certificate included in the integration test project.
         /// </summary>
         /// <param name="principal">The claims principal to include in the token.</param>
-        /// <param name="tokenExipry">How long the token should be valid for.</param>
+        /// <param name="tokenExpiry">How long the token should be valid for.</param>
         /// <returns>A new token.</returns>
-        public static string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
+        public static string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExpiry)
         {
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(principal.Identity),
-                Expires = DateTime.UtcNow.AddSeconds(tokenExipry.TotalSeconds),
+                Expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds),
                 SigningCredentials = GetSigningCredentials(),
             };
 
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
-            string tokenstring = tokenHandler.WriteToken(token);
+            string serializedToken = tokenHandler.WriteToken(token);
 
-            return tokenstring;
+            return serializedToken;
         }
 
         /// <summary>
         /// Creates a encrypted token
         /// </summary>
         /// <param name="principal">The claims principal to include in the token.</param>
-        /// <param name="tokenExipry">How long the token should be valid for.</param>
+        /// <param name="tokenExpiry">How long the token should be valid for.</param>
         /// <returns>A new token.</returns>
-        public static string GenerateEncryptedToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
+        public static string GenerateEncryptedToken(ClaimsPrincipal principal, TimeSpan tokenExpiry)
         {
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(principal.Identity),
-                Expires = DateTime.UtcNow.AddSeconds(tokenExipry.TotalSeconds),
+                Expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds),
                 EncryptingCredentials = GetEncryptionCredentials(),
             };
 
-            string tokenstring = tokenHandler.CreateEncodedJwt(tokenDescriptor);
-            return tokenstring;
+            string token = tokenHandler.CreateEncodedJwt(tokenDescriptor);
+            return token;
         }
 
         /// <summary>
         /// Creates a encrypted and signed token
         /// </summary>
         /// <param name="principal">The claims principal to include in the token.</param>
-        /// <param name="tokenExipry">How long the token should be valid for.</param>
+        /// <param name="tokenExpiry">How long the token should be valid for.</param>
         /// <returns>A new token.</returns>
-        public static string GenerateEncryptedAndSignedToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
+        public static string GenerateEncryptedAndSignedToken(ClaimsPrincipal principal, TimeSpan tokenExpiry)
         {
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(principal.Identity),
-                Expires = DateTime.UtcNow.AddSeconds(tokenExipry.TotalSeconds),
+                Expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds),
                 EncryptingCredentials = GetEncryptionCredentials(),
                 SigningCredentials = GetSigningCredentials(),
             };
 
-            string tokenstring = tokenHandler.CreateEncodedJwt(tokenDescriptor);
-            return tokenstring;
+            string token = tokenHandler.CreateEncodedJwt(tokenDescriptor);
+            return token;
         }
 
         /// <summary>

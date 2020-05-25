@@ -16,7 +16,6 @@
     <DocumentationFile>bin\Debug\netcoreapp3.1\Altinn.Platform.Authentication.UnitTest.xml</DocumentationFile>
   </PropertyGroup>
 
-
   <ItemGroup>
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -52,10 +51,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Authentication\Altinn.Platform.Authentication.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Fixtures\" />
   </ItemGroup>
 
   <ItemGroup>

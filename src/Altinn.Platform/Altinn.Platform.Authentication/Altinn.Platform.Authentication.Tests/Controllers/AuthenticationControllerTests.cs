@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -9,15 +8,14 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Authentication.Controllers;
 using Altinn.Platform.Authentication.Enum;
-using Altinn.Platform.Authentication.IntegrationTests.Fakes;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services.Interfaces;
+using Altinn.Platform.Authentication.Tests.Fakes;
 using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
@@ -27,7 +25,7 @@ using Newtonsoft.Json;
 
 using Xunit;
 
-namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
+namespace Altinn.Platform.Authentication.Tests.Controllers
 {
     /// <summary>
     /// Represents a collection of unit test with all integration tests of the <see cref="AuthenticationController"/> class.
@@ -269,9 +267,11 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
         public async Task AuthenticateExternalSystemToken_InvalidTokenProvider_NotAuthorized()
         {
             // Arrange
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim("testClaim1", "testClaim1"));
-            claims.Add(new Claim("testClaim2", "testClaim2"));
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim("testClaim1", "testClaim1"),
+                new Claim("testClaim2", "testClaim2")
+            };
 
             ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
             identity.AddClaims(claims);
@@ -317,11 +317,12 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             identity.AddClaims(claims);
             ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
 
-            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
-            _userProfileService.Setup(u => u.GetUser(It.IsAny<string>())).ReturnsAsync(new UserProfile {UserId = 20000, PartyId = 50001, UserName = "steph" });
+            UserProfile userProfile = new UserProfile { UserId = 20000, PartyId = 50001, UserName = "steph" };
+            _userProfileService.Setup(u => u.GetUser(It.IsAny<string>())).ReturnsAsync(userProfile);
 
             HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
 
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
             string url = "/authentication/api/v1/exchange/id-porten";
 
@@ -406,12 +407,12 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
             // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
-
+        
         /// <summary>
         /// Test of mock method>.
         /// </summary>
         [Fact]
-        public async Task TokenMock_VerifyEncryptedAndSignedToken()
+        public void TokenMock_VerifyEncryptedAndSignedToken()
         {
             // Arrange
             List<Claim> claims = new List<Claim>();
@@ -433,9 +434,6 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
 
         private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService)
         {
-            string projectDir = Directory.GetCurrentDirectory();
-            string configPath = Path.Combine(projectDir, "appsettings.json");
-
             Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
@@ -447,7 +445,6 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
                     services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProviderStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 });
-                builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
             return client;
