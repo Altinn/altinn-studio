@@ -276,7 +276,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             instance.Id = instanceId;
         }
 
-            /// <summary>
+        /// <summary>
         /// Post-processes a list of instances.
         /// </summary>
         /// <param name="instances">the list of instances</param>
@@ -284,7 +284,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         {
             foreach (Instance item in instances)
             {
-                await PostProcess(item);
+                PostProcess(item);
             }
         }
 
