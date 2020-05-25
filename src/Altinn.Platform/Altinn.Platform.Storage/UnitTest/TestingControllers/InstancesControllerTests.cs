@@ -487,11 +487,10 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string org = "tdd";
                 int instanceOwnerPartyId = 1337;
                 string instanceGuid = "2f7fa5ce-e878-4e1f-a241-8c0eb1a83eab";
+                string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
                 TestDataUtil.DeleteInstanceAndData(instanceOwnerPartyId, new Guid(instanceGuid));
                 TestDataUtil.PrepareInstance(instanceOwnerPartyId, new Guid(instanceGuid));
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/complete";
-
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
 
                 HttpClient client = GetTestClient();
 
@@ -511,7 +510,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.NotNull(updatedInstance);
                 Assert.Equal(org, updatedInstance.CompleteConfirmations[0].StakeholderId);
                 Assert.Equal("111111111", updatedInstance.LastChangedBy);
-
+                Assert.Equal(instanceId, updatedInstance.Id);
                 TestDataUtil.DeleteInstanceAndData(instanceOwnerPartyId, new Guid(instanceGuid));
             }
 
