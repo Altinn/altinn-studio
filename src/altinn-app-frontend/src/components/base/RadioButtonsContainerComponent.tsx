@@ -1,13 +1,15 @@
+/* eslint-disable react/no-array-index-key */
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio, { RadioProps } from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import { makeStyles } from '@material-ui/core/styles';
-import classNames = require('classnames');
 import * as React from 'react';
-import {AltinnAppTheme} from 'altinn-shared/theme';
-import { renderValidationMessagesForComponent } from '../../utils/render';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 import { FormLabel } from '@material-ui/core';
+import { renderValidationMessagesForComponent } from '../../utils/render';
+
+import classNames = require('classnames');
 
 export interface IRadioButtonsContainerProps {
   id: string;
@@ -20,6 +22,7 @@ export interface IRadioButtonsContainerProps {
   shouldFocus: boolean;
   title: string;
   legend: () => JSX.Element;
+  getTextResource: (key: string) => string;
 }
 
 const useStyles = makeStyles({
@@ -29,11 +32,11 @@ const useStyles = makeStyles({
     },
   },
   icon: {
-    'borderRadius': '50%',
-    'border': '2px solid #1EAEF7',
-    'width': 24,
-    'height': 24,
-    'backgroundColor': '#ffffff',
+    borderRadius: '50%',
+    border: '2px solid #1EAEF7',
+    width: 24,
+    height: 24,
+    backgroundColor: '#ffffff',
     '$root.Mui-focusVisible &': {
       outline: '2px solid #ff0000',
       outlineOffset: 0,
@@ -48,7 +51,7 @@ const useStyles = makeStyles({
     },
   },
   checkedIcon: {
-    'backgroundColor': '#ffffff',
+    backgroundColor: '#ffffff',
     '&:before': {
       display: 'block',
       width: 20,
@@ -61,8 +64,8 @@ const useStyles = makeStyles({
     },
   },
   legend: {
-    'color': '#000000',
-  }
+    color: '#000000',
+  },
 });
 
 export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps) => {
@@ -110,10 +113,10 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
   const RenderLegend = props.legend;
 
   return (
-    <FormControl component={'fieldset'}>
+    <FormControl component='fieldset'>
       <FormLabel
-        component={'legend'}
-        classes={{root: classNames(classes.legend)}}  
+        component='legend'
+        classes={{ root: classNames(classes.legend) }}
       >
         <RenderLegend />
       </FormLabel>
@@ -129,7 +132,7 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
           <React.Fragment key={index}>
             <FormControlLabel
               control={<StyledRadio autoFocus={props.shouldFocus && selected === option.value}/>}
-              label={option.label}
+              label={props.getTextResource(option.label)}
               value={option.value}
             />
             {props.validationMessages && (selected === option.value) &&
