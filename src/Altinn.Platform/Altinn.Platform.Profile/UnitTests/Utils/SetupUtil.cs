@@ -12,6 +12,8 @@ using System.Linq;
 using Altinn.Platform.Profile.UnitTests.Mocks.Authentication;
 using Altinn.Platform.Profile.Services.Interfaces;
 using UnitTests.Mocks;
+using Altinn.Common.AccessToken.Services;
+using Altinn.Platform.Profile.Tests.Mocks;
 
 namespace Altinn.Platform.Profile.UnitTests.Utils
 {
@@ -27,6 +29,7 @@ namespace Altinn.Platform.Profile.UnitTests.Utils
                 {
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                     services.AddSingleton<IUserProfiles, UserProfilesWrapperMock>();
+                    services.AddSingleton<ISigningKeysResolver, SigningKeyResolverMock>();
                 });
             })
             .CreateClient();

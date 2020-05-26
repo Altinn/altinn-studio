@@ -26,7 +26,7 @@ namespace Altinn.Common.AccessTokenClient.Services
         {
             string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
             string certPath = basePath + $"{_accessTokenSettings.AccessTokenSigningKeysFolder}{_accessTokenSettings.AccessTokenSigningCertificateFileName}";
-            X509Certificate2 cert = new X509Certificate2(certPath, _accessTokenSettings.AccessTokenSigningCertificatePassword);
+            X509Certificate2 cert = new X509Certificate2(certPath);
             return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
         }
     }
