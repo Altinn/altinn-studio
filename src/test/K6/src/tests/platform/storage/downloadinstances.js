@@ -18,6 +18,7 @@ import * as setUpData from "../../../setup.js";
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
 const maskinPortenToken = __ENV.maskinporten;
+const createdDateTime = __ENV.createddate;
 
 export const options = {
     thresholds:{
@@ -33,7 +34,7 @@ export function setup(){
     var totalIterations = (options.iterations) ? options.iterations : 1;    
     data.maxIter = Math.floor(totalIterations / maxVus); //maximum iteration per vu
     data.runtimeToken = altinnStudioRuntimeToken;
-    var archivedAppInstances = storageInstances.findAllArchivedInstances(altinnStudioRuntimeToken, appOwner, level2App, totalIterations);
+    var archivedAppInstances = storageInstances.findAllArchivedInstances(altinnStudioRuntimeToken, appOwner, level2App, totalIterations, createdDateTime);
     archivedAppInstances = setUpData.shuffle(archivedAppInstances);
     data.instances = archivedAppInstances;    
     setUpData.clearCookies();
