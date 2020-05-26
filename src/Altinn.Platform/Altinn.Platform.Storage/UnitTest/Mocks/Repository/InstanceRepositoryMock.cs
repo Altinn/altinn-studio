@@ -1,12 +1,3 @@
-using Altinn.Platform.Storage.Configuration;
-using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Platform.Storage.Repository;
-using Altinn.Platform.Storage.UnitTest.Utils;
-using Microsoft.Azure.Documents;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,6 +5,14 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
+
+using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Utils;
+
+using Microsoft.Azure.Documents;
+using Microsoft.Extensions.Primitives;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 {
@@ -51,7 +50,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             throw new NotImplementedException();
         }
 
-        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
+        public Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
         {
 
             List<Instance> instances = new List<Instance>();
@@ -72,7 +71,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                             instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
                         }
 
-                        await PostProcess(instance);
+                        PostProcess(instance);
 
                         if (instance.InstanceOwner.PartyId == instanceOwnerPartyId.ToString())
                         {
@@ -82,8 +81,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 }
             }
 
-            return Filter(instanceState, instances);
-
+            return Task.FromResult(Filter(instanceState, instances));
         }
 
 
@@ -121,7 +119,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             return filter.ToList();
         }
 
-        public async Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
+        public Task<InstanceQueryResponse> GetInstancesFromQuery(Dictionary<string, StringValues> queryParams, string continuationToken, int size)
         {
             InstanceQueryResponse response = new InstanceQueryResponse();
             List<Instance> instances = new List<Instance>();
@@ -147,7 +145,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                             Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
                             if (instance.AppId.Equals(appId, StringComparison.InvariantCultureIgnoreCase))
                             {
-                                await PostProcess(instance);
+                                PostProcess(instance);
                                 instances.Add(instance);
                             }
                         }
@@ -164,7 +162,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                     {
                         string content = File.ReadAllText(file);
                         Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                        await PostProcess(instance);
+                        PostProcess(instance);
                         instances.Add(instance);
                     }
                 }
@@ -187,7 +185,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                             Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
                             if (instance.Org.Equals(org, StringComparison.InvariantCultureIgnoreCase))
                             {
-                                await PostProcess(instance);
+                                PostProcess(instance);
                                 instances.Add(instance);
                             }
                         }
@@ -198,18 +196,18 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             response.Instances = instances;
             response.Count = instances.Count();
             response.TotalHits = instances.Count();
-            return response;
+            return Task.FromResult(response);
         }
 
-        public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
+        public Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
             string instancePath = GetInstancePath(instanceOwnerPartyId.ToString(), new Guid(instanceId.Split("/")[1]));
             if (File.Exists(instancePath))
             {
                 string content = File.ReadAllText(instancePath);
                 Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                await PostProcess(instance);
-                return instance;
+                PostProcess(instance);
+                return Task.FromResult(instance);
             }
 
             throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));
@@ -229,6 +227,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             if (File.Exists(instancePath))
             {
                 File.WriteAllText(instancePath, JsonConvert.SerializeObject(instance));
+                PostProcess(instance);
                 return Task.FromResult(instance);
             }
 
@@ -269,24 +268,23 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerPartyId}/{instanceGuid} to be used outside cosmos.
         /// </summary>
         /// <param name="instance">the instance to preprocess</param>
-        private async Task PostProcess(Instance instance)
+        private void PostProcess(Instance instance)
         {
             Guid instanceGuid = Guid.Parse(instance.Id);
             string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
             instance.Id = instanceId;
-            // instance.Data = await _dataRepository.ReadAll(instanceGuid);
         }
 
         /// <summary>
-        /// Preprosesses a list of instances.
+        /// Post-processes a list of instances.
         /// </summary>
         /// <param name="instances">the list of instances</param>
-        private async Task PostProcess(List<Instance> instances)
+        private void PostProcess(List<Instance> instances)
         {
             foreach (Instance item in instances)
             {
-                await PostProcess(item);
+                PostProcess(item);
             }
         }
 

@@ -95,9 +95,8 @@ const AltinnPopoverComponent = (props: any) => {
           }
 
           {props.descriptionText &&
-            <div className={classNames(classes.textWrap, {
-              [classes.removeMargin]: (!(typeof props.descriptionText === 'string' || props.descriptionText instanceof String)),
-            })}
+            <div
+              className={classNames(classes.textWrap)}
             >
               {props.descriptionText}
             </div>

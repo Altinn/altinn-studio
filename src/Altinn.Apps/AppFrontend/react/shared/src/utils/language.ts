@@ -1,5 +1,8 @@
 import * as DOMPurify from 'dompurify';
-import ReactHtmlParser from 'react-html-parser';
+import ReactHtmlParser, { convertNodeToElement } from 'react-html-parser';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { DomElement } from 'htmlparser2';
+import * as React from 'react';
 import { ITextResource, IDataSources } from '../types';
 
 const marked = require('marked');
@@ -11,14 +14,12 @@ export function getLanguageFromKey(key: string, language: any) {
   const name = getNestedObject(language, key.split('.'));
   if (!name) {
     return key;
-  } else {
-    return name;
   }
+  return name;
 }
 
 export function getNestedObject(nestedObj: any, pathArr: string[]) {
-  return pathArr.reduce((obj, key) =>
-    (obj && obj[key] !== 'undefined') ? obj[key] : undefined, nestedObj);
+  return pathArr.reduce((obj, key) => ((obj && obj[key] !== 'undefined') ? obj[key] : undefined), nestedObj);
 }
 
 export function getUserLanguage() {
@@ -32,9 +33,8 @@ export const getParsedLanguageFromKey = (key: string, language: any, params?: an
 
   if (stringOutput) {
     return paramParsed;
-  } else {
-    return getParsedLanguageFromText(paramParsed);
   }
+  return getParsedLanguageFromText(paramParsed);
 };
 
 export const getParsedLanguageFromText = (text: string, allowedTags?: string[], allowedAttr?: string[]) => {
@@ -47,13 +47,28 @@ export const getParsedLanguageFromText = (text: string, allowedTags?: string[], 
   if (allowedAttr) {
     options.ALLOWED_ATTR = allowedAttr;
   }
-  const clean =  DOMPurify.sanitize(dirty, options);
-  return ReactHtmlParser(clean.toString());
-}
+  const clean = DOMPurify.sanitize(dirty, options);
+  const parsedText = ReactHtmlParser(clean.toString(), { transform: removeStyling });
+  return parsedText;
+};
+
+// eslint-disable-next-line consistent-return
+const removeStyling = (node: DomElement): React.ReactElement | void | null => {
+  // all this does is remove the default styling of the <p> element, which is causing styling issues
+  if (node.name === 'p') {
+    return React.createElement(
+      'p',
+      { style: { marginBottom: '0px' } },
+      node.children?.map((child: DomElement, index: number) => convertNodeToElement(child, index, removeStyling)),
+    );
+  }
+};
 
 const replaceParameters = (nameString: any, params: any[]) => {
   let index = 0;
+  // eslint-disable-next-line no-restricted-syntax
   for (const param of params) {
+    // eslint-disable-next-line no-param-reassign
     nameString = nameString.replace(`{${index}}`, param);
     index += 1;
   }
@@ -69,19 +84,20 @@ export function getTextResourceByKey(key: string, textResources: ITextResource[]
 }
 
 export function replaceTextResourceParams(textResources: ITextResource[], dataSources: IDataSources): void {
-  var replaceValues: string[];
+  let replaceValues: string[];
 
   textResources.forEach((resource) => {
-    if (resource.variables){
+    if (resource.variables) {
       replaceValues = [];
       resource.variables.forEach((variable) => {
-        if (variable.dataSource.startsWith('dataModel')){
-          replaceValues.push(dataSources['dataModel'][variable.key] ? dataSources['dataModel'][variable.key] : variable.key);
+        if (variable.dataSource.startsWith('dataModel')) {
+          replaceValues.push(dataSources.dataModel[variable.key] ? dataSources.dataModel[variable.key] : variable.key);
         }
       });
 
       const newValue = replaceParameters(resource.unparsedValue, replaceValues);
-      if (resource.value != newValue){
+      if (resource.value !== newValue) {
+        // eslint-disable-next-line no-param-reassign
         resource.value = newValue;
       }
     }
