@@ -104,7 +104,7 @@ function* saveFormDataSaga(): SagaIterator {
 
     const validationResult: IValidationResult = {
       validations,
-      invalidDataTypes: state.formValidations.invalidDataTypes,
+      invalidDataTypes: state.formValidations.invalidDataTypes.length === 0,
     };
 
     if (canFormBeSaved(validationResult, null)) {
