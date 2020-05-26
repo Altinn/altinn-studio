@@ -20,7 +20,7 @@ namespace Altinn.Platform.Register.Tests.Mocks
         {
             List<SecurityKey> signingKeys = new List<SecurityKey>();
 
-            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
+            X509Certificate2 cert = new X509Certificate2($"{issuer}-org.pem");
             SecurityKey key = new X509SecurityKey(cert);
 
             signingKeys.Add(key);

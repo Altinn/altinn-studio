@@ -50,7 +50,7 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/organizations/" + orgNo);
-            httpRequestMessage.Headers.Add("PlatformAccessToken", token);
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -79,7 +79,7 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/organizations/" + orgNo);
-            httpRequestMessage.Headers.Add("PlatformAccessToken", token);
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -103,7 +103,7 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/organizations/" + orgNo);
-            httpRequestMessage.Headers.Add("PlatformAccessToken", token);
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
