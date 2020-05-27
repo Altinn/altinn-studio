@@ -38,6 +38,11 @@ function* updateFormDataSaga({
     );
 
     const componentValidations = validationResult?.validations[componentId];
+    const invalidDataComponents = state.formValidations.invalidDataTypes;
+    const updatedInvalidDataComponents = invalidDataComponents.filter((item) => item !== field);
+    if (validationResult?.invalidDataTypes) {
+      updatedInvalidDataComponents.push(field);
+    }
 
     if (shouldUpdateFormData(state.formData.formData[field], data)) {
       yield call(FormDataActions.updateFormDataFulfilled, field, data);
@@ -48,7 +53,7 @@ function* updateFormDataSaga({
         FormValidationActions.updateComponentValidations,
         componentValidations,
         componentId,
-        validationResult.invalidDataTypes,
+        updatedInvalidDataComponents,
       );
     }
     if (state.formDynamics.conditionalRendering) {

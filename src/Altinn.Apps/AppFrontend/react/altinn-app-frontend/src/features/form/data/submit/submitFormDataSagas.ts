@@ -3,8 +3,8 @@ import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
 import { getCurrentTaskDataTypeId, get, put } from 'altinn-shared/utils';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
-import { IRuntimeStore, IUiConfig, IValidationResult } from '../../../../types/global';
-import { convertDataBindingToModel } from '../../../../utils/databindings';
+import { IRuntimeStore, IUiConfig } from '../../../../types/global';
+import { convertDataBindingToModel, filterOutInvalidData } from '../../../../utils/databindings';
 import { dataElementUrl, getValidationUrl } from '../../../../utils/urlHelper';
 import {
   canFormBeSaved,
@@ -95,38 +95,27 @@ function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
 function* saveFormDataSaga(): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
-    const model = convertDataBindingToModel(state.formData.formData);
-    let validations = { ...state.formValidations.validations };
-    const componentSpecificValidations =
-      validateFormComponents(state.attachments.attachments, state.formLayout.layout, state.formData.formData,
-        state.language.language, state.formLayout.uiConfig.hiddenFields);
-    validations = Object.assign(validations, componentSpecificValidations);
+    // updates the default data element
+    const defaultDataElementGuid = getCurrentTaskDataTypeId(
+      state.applicationMetadata.applicationMetadata,
+      state.instanceData.instance,
+    );
 
-    const validationResult: IValidationResult = {
-      validations,
-      invalidDataTypes: state.formValidations.invalidDataTypes,
-    };
+    const model = convertDataBindingToModel(
+      filterOutInvalidData(state.formData.formData, state.formValidations.invalidDataTypes),
+    );
 
-    if (canFormBeSaved(validationResult, null)) {
-      // updates the default data element
-      const defaultDataElementGuid = getCurrentTaskDataTypeId(
-        state.applicationMetadata.applicationMetadata,
-        state.instanceData.instance,
-      );
-      try {
-        yield call(put, dataElementUrl(defaultDataElementGuid), model);
-      } catch (err) {
-        if (err.response && err.response.status === 303) {
-          yield call(FormDataActions.fetchFormData, dataElementUrl(err.response.data.id));
-        } else {
-          throw err;
-        }
+    try {
+      yield call(put, dataElementUrl(defaultDataElementGuid), model);
+    } catch (err) {
+      if (err.response && err.response.status === 303) {
+        yield call(FormDataActions.fetchFormData, dataElementUrl(err.response.data.id));
+      } else {
+        throw err;
       }
-
-      yield call(FormDataActions.submitFormDataFulfilled);
-    } else {
-      return yield call(FormDataActions.submitFormDataRejected, null);
     }
+
+    yield call(FormDataActions.submitFormDataFulfilled);
   } catch (err) {
     console.error(err);
     yield call(FormDataActions.submitFormDataRejected, err);

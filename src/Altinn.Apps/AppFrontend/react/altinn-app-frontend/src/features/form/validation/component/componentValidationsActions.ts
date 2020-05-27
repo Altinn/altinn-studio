@@ -5,7 +5,7 @@ import * as ActionTypes from '../validationActionTypes';
 export interface IUpdateComponentValidations extends Action {
   validations: IComponentValidations;
   componentId: string;
-  invalidDataTypes?: boolean;
+  invalidDataTypes?: string[];
 }
 
 export interface IUpdateComponentValidationsRejected extends Action {
@@ -15,7 +15,7 @@ export interface IUpdateComponentValidationsRejected extends Action {
 export function updateComponentValidations(
   validations: IComponentValidations,
   componentId: string,
-  invalidDataTypes?: boolean,
+  invalidDataTypes?: string[],
 ): IUpdateComponentValidations {
   return {
     type: ActionTypes.UPDATE_COMPONENT_VALIDATIONS,

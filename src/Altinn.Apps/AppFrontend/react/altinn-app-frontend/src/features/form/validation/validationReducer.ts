@@ -8,14 +8,14 @@ import { IUpdateValidations } from './update/updateValidationsActions';
 
 export interface IValidationState {
   validations: IValidations;
-  invalidDataTypes: boolean;
+  invalidDataTypes: string[];
   error: Error;
 }
 
 const initialValidationState: IValidationState = {
   validations: {},
   error: null,
-  invalidDataTypes: false,
+  invalidDataTypes: [],
 };
 
 const ValidationReducer: Reducer<IValidationState> = (
@@ -39,7 +39,7 @@ const ValidationReducer: Reducer<IValidationState> = (
           },
         },
         invalidDataTypes: {
-          $set: !!invalidDataTypes,
+          $set: invalidDataTypes,
         },
       });
     }
