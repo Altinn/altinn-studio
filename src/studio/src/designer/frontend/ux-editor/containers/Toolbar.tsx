@@ -387,9 +387,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           </Collapse>
         </List >
 
-        <div className='d-block'>
-          <ExternalApiModalComponent />
-        </div>
         <Modal
           isOpen={this.state.modalOpen}
           onRequestClose={this.handleCloseModal}
