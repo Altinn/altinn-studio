@@ -157,7 +157,7 @@ namespace Altinn.Common.PEP.Helpers
         private static bool IsValidUrn(string value)
         {
             Regex regex = new Regex("^urn*");
-            return regex.Match(value).Success ? true : false;
+            return regex.Match(value).Success;
         }
 
         public static bool ValidatePdpDecision(List<XacmlJsonResult> results, ClaimsPrincipal user)
