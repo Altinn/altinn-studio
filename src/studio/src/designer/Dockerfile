@@ -36,10 +36,10 @@ RUN npm run build --prefix /dashboard
 FROM alpine as altinn-studio-frontend
 WORKDIR /dist/
 COPY --from=generate-studio-frontend /dist/app-development/app-development.js .
-COPY --from=generate-studio-frontend /dist/app-development/0.app-development.js .
 COPY --from=generate-studio-frontend /dist/app-development/1.app-development.js .
 COPY --from=generate-studio-frontend /dist/app-development/2.app-development.js .
 COPY --from=generate-studio-frontend /dist/app-development/3.app-development.js .
+COPY --from=generate-studio-frontend /dist/app-development/4.app-development.js .
 COPY --from=generate-studio-frontend /dist/app-development/js/react/editor.worker.js .
 COPY --from=generate-studio-frontend /dist/app-development/js/react/typescript.worker.js .
 COPY --from=generate-studio-frontend /dist/app-development/app-development.css .
@@ -65,10 +65,10 @@ EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .
 COPY --from=altinn-studio-frontend /dist/app-development.js ./wwwroot/designer/js/react/app-development.js
-COPY --from=altinn-studio-frontend /dist/0.app-development.js ./wwwroot/designer/js/react/0.app-development.js
 COPY --from=altinn-studio-frontend /dist/1.app-development.js ./wwwroot/designer/js/react/1.app-development.js
 COPY --from=altinn-studio-frontend /dist/2.app-development.js ./wwwroot/designer/js/react/2.app-development.js
 COPY --from=altinn-studio-frontend /dist/3.app-development.js ./wwwroot/designer/js/react/3.app-development.js
+COPY --from=altinn-studio-frontend /dist/0.app-development.js ./wwwroot/designer/js/react/4.app-development.js
 COPY --from=altinn-studio-frontend /dist/editor.worker.js ./wwwroot/designer/js/react/editor.worker.js
 COPY --from=altinn-studio-frontend /dist/typescript.worker.js ./wwwroot/designer/js/react/typescript.worker.js
 COPY --from=altinn-studio-frontend /dist/app-development.css ./wwwroot/designer/css/react/app-development.css
