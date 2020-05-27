@@ -7,20 +7,27 @@ namespace Altinn.Common.PEP.Configuration
     /// </summary>
     public class PlatformSettings
     {
+        private string _subscriptionKey;
+        private string _apiAuthorizationEndpoint;
+
         /// <summary>
         /// Gets or sets the url for the API Authorization endpoint
         /// </summary>
-        public string ApiAuthorizationEndpoint { get; set; }
+        public string ApiAuthorizationEndpoint
+        {
+            get => Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthorizationEndpoint") ?? _apiAuthorizationEndpoint;
+            set => _apiAuthorizationEndpoint = value;
+        }
 
         /// <summary>
-        /// Gets the url for the API Authorization endpoint by looking into environment variables
+        /// Gets or sets the subscription key value to use in requests against the platform.
         /// </summary>
-        public string GetApiAuthorizationEndpoint
+        public string SubscriptionKey
         {
-            get
-            {
-                return Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthorizationEndpoint") ?? ApiAuthorizationEndpoint;
-            }
+            get => Environment.GetEnvironmentVariable("PlatformSettings__SubscriptionKey") ?? _subscriptionKey;
+            set => _subscriptionKey = value;
         }
+
+
     }
 }

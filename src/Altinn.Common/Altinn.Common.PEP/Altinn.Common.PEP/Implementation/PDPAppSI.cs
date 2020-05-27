@@ -25,10 +25,8 @@ namespace Altinn.Common.PEP.Implementation
         /// </summary>
         /// <param name="httpClientAccessor">The Http client accessor</param>
         /// <param name="logger">the handler for logger service</param>
-        /// /// <param name="pepSettings">The settings for pep</param>
         public PDPAppSI(
                 ILogger<PDPAppSI> logger,
-                IOptions<PepSettings> pepSettings,
                 AuthorizationApiClient authorizationApiClient)
         {
             _logger = logger;
