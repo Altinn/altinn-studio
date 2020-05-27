@@ -1,34 +1,34 @@
 import http from "k6/http";
 import * as config from "../../config.js";
+import * as header from "../../buildrequestheaders.js"
 
 //Request to get parties that an user can represent and return response
 export function getParties(userId){    
-    var endpoint =   config.platformAuthorization["parties"] + "?userId=" + userId;    
-    return http.get(endpoint);
+    var endpoint = config.platformAuthorization["parties"] + "?userId=" + userId;
+    var params = header.buildHeaderWithSubsKey("platform");
+    return http.get(endpoint, params);
 };
 
 //Request to get roles of an user 
 export function getRoles(userId, partyId){    
-    var endpoint =   config.platformAuthorization["roles"] + "?coveredbyuserid=" + userId + "&offeredbypartyid=" + partyId;    
-    return http.get(endpoint);
+    var endpoint = config.platformAuthorization["roles"] + "?coveredbyuserid=" + userId + "&offeredbypartyid=" + partyId;    
+    var params = header.buildHeaderWithSubsKey("platform");
+    return http.get(endpoint, params);
 };
 
 //Request to upload app policy to storage
 export function postPolicy(data, appOwner, appName){    
-    var endpoint =   config.platformAuthorization["policy"] + "?org=" + appOwner + "&app=" + appName;    
-    return http.post(endpoint,data);
+    var endpoint = config.platformAuthorization["policy"] + "?org=" + appOwner + "&app=" + appName;
+    var params = header.buildHeaderWithSubsKey("platform"); 
+    return http.post(endpoint, data, params);
 };
 
 //Request to get decision from PDP and return response
 export function postGetDecision(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask){    
-    var endpoint =   config.platformAuthorization["decision"];    
+    var endpoint = config.platformAuthorization["decision"];    
     var pdpJson = buildPdpJson(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask);
     var requestBody = JSON.stringify(pdpJson);       
-    var params = {
-        headers: {            
-            "Content-Type": "application/json"        
-        }
-    };   
+    var params = header.buildHeaderWithJson("platform");
     return http.post(endpoint, requestBody, params);
 };
 
