@@ -100,11 +100,10 @@ namespace Altinn.Common.AccessToken
             JwtSecurityToken jwt = validator.ReadJwtToken(token);
             TokenValidationParameters validationParameters = await GetTokenValidationParameters(jwt.Issuer);
 
-            ClaimsPrincipal principal;
             SecurityToken validatedToken;
             try
             {
-                principal = validator.ValidateToken(token, validationParameters, out validatedToken);
+                validator.ValidateToken(token, validationParameters, out validatedToken);
                 return true;
             }
             catch (Exception ex)
