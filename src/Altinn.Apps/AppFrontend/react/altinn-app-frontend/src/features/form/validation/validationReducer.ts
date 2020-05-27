@@ -39,7 +39,7 @@ const ValidationReducer: Reducer<IValidationState> = (
           },
         },
         invalidDataTypes: {
-          $set: !!invalidDataTypes,
+          $set: invalidDataTypes,
         },
       });
     }

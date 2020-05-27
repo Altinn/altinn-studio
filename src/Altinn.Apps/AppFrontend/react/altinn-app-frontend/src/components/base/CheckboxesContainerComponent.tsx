@@ -105,7 +105,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
       preSelected[props.preselectedOptionIndex] = props.options[props.preselectedOptionIndex].value;
       setSelected(preSelected);
     } else {
-      setSelected(props.formData ? props.formData.split(',') : []);
+      setSelected(props.formData ? props.formData.toString().split(',') : []);
     }
   };
 
