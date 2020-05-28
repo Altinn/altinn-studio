@@ -75,6 +75,7 @@ namespace Altinn.Common.AccessToken
                 if (!_accessTokenSettings.DisableAccessTokenVerification)
                 {
                     context.Fail();
+                    return;
                 }
                 else
                 {
