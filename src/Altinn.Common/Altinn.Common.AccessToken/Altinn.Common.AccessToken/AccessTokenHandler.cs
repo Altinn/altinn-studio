@@ -59,7 +59,9 @@ namespace Altinn.Common.AccessToken
             // It should only be one accesss token
             if (tokens.Count != 1)
             {
+                _logger.LogWarning("Missing Access token");
                 context.Fail();
+                return;
             }
 
             bool isValid = false;
