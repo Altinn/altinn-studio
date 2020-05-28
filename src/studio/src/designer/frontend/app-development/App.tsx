@@ -73,13 +73,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     };
   }
 
-  public checkForMergeConflict = () => {
-    const { org, app } = window as Window as IAltinnWindow;
-    const repoStatusUrl = getRepoStatusUrl();
-
-    HandleMergeConflictDispatchers.fetchRepoStatus(repoStatusUrl, org, app);
-  }
-
   public componentDidMount() {
     const { org, app } = window as Window as IAltinnWindow;
     fetchLanguageDispatcher.fetchLanguage(
@@ -94,6 +87,13 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public componentWillUnmount() {
     window.removeEventListener('message', this.windowEventReceived);
+  }
+
+  public checkForMergeConflict = () => {
+    const { org, app } = window as Window as IAltinnWindow;
+    const repoStatusUrl = getRepoStatusUrl();
+
+    HandleMergeConflictDispatchers.fetchRepoStatus(repoStatusUrl, org, app);
   }
 
   public windowEventReceived = (event: any) => {
@@ -137,6 +137,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                       path={route.path}
                       exact={route.exact}
                       render={(props) => <AppBarComponent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                         activeLeftMenuSelection={route.activeLeftMenuSelection}
                         activeSubHeaderSelection={route.activeSubHeaderSelection}
@@ -144,7 +145,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                         org={org}
                         app={app}
                         showBreadcrumbOnTablet={true}
-                        showSubHeader={repoStatus.hasMergeConflict ? false : true}
+                        showSubHeader={!repoStatus.hasMergeConflict}
                       />}
                     />
                   ))}

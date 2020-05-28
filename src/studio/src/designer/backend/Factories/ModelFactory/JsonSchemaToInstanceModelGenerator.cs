@@ -97,7 +97,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     firstPropertyName = def.Key;
                 }
 
-                TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema), new HashSet<string>(), jsonSchema);
+                TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema), new HashSet<string>(), jsonSchema, string.Empty);
             }
 
             return instanceModel;
@@ -135,7 +135,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Properties())
                 {
-                    TraverseModell(path, typeName, def.Key, def.Value, false, new HashSet<string>(), jsonSchema);
+                    TraverseModell(path, typeName, def.Key, def.Value, false, new HashSet<string>(), jsonSchema, string.Empty);
                 }
             }
             catch (Exception e)
@@ -203,17 +203,20 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return XsdToJsonSchema.SanitizeName(name);
         }
 
-        private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired, ISet<string> alreadyVisitedTypes, JsonSchema parentType)
+        private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired, ISet<string> alreadyVisitedTypes, JsonSchema parentType, string parentXpath)
         {
             string sanitizedPropertyName = SanitizeName(propertyName);
+            string xPath;
             string path;
             int index = 0;
             do
             {
                 path = (string.IsNullOrEmpty(parentPath) ? string.Empty : parentPath + ".") + sanitizedPropertyName;
+                xPath = (string.IsNullOrEmpty(parentXpath) ? "/" : parentXpath + "/") + propertyName;
                 if (++index >= 2)
                 {
                     path += index.ToString();
+                    xPath += index.ToString();
                 }
             }
             while (elements.ContainsKey(path));
@@ -233,7 +236,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 List<JsonSchema> items = propertyType.Items();
                 path += multiplicityString;
-                FollowRef(path, items[0], alreadyVisitedTypes); // TODO fix multiple item types. It now uses only the first
+                FollowRef(path, items[0], alreadyVisitedTypes, xPath); // TODO fix multiple item types. It now uses only the first
 
                 double? minItemsValue = propertyType.MinItems();
                 double? maxItemsValue = propertyType.MaxItems();
@@ -251,7 +254,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
             else
             {
-                FollowRef(path, propertyType, alreadyVisitedTypes);
+                FollowRef(path, propertyType, alreadyVisitedTypes, xPath);
                 if (isRequired)
                 {
                     minItems = "1";
@@ -299,13 +302,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             if (!inputType.Equals("Group") && string.IsNullOrEmpty(fixedValue))
             {
-                string databindingNameWithoutFirstPropertyName = RemoveStarsFromPath(path).Replace(firstPropertyName + ".", string.Empty);
-                string[] lowerCamelCaseSegments = databindingNameWithoutFirstPropertyName.Split(".").Select(s => char.ToLowerInvariant(s[0]) + s.Substring(1)).ToArray();
-                string dataBindingName = string.Join(".", lowerCamelCaseSegments);
+                string databindingNameWithoutFirstPropertyName = $"{parentXpath}/{propertyName}".Replace("/" + firstPropertyName + "/", string.Empty);
+                string dataBindingName = databindingNameWithoutFirstPropertyName.Replace("/", ".");
                 result.Add("DataBindingName", dataBindingName);
             }
 
-            result.Add("XPath", "/" + RemoveStarsFromPath(path).Replace(".", "/"));
+            result.Add("XPath", xPath);
 
             result.Add("Restrictions", ExtractRestrictions(xsdValueType, propertyType));
 
@@ -643,7 +645,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             return path;
         }
 
-        private void FollowRef(string path, JsonSchema jSchema, ISet<string> alreadyVisitedTypes)
+        private void FollowRef(string path, JsonSchema jSchema, ISet<string> alreadyVisitedTypes, string parentXpath)
         {
             string reference = jSchema.Ref();
             if (reference != null)
@@ -664,7 +666,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     {
                         foreach (KeyValuePair<string, JsonSchema> def in schema.Properties())
                         {
-                            TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, schema), currentlyVisitedTypes, jSchema);
+                            TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, schema), currentlyVisitedTypes, jSchema, parentXpath);
                         }
                     }
                     else if (schema.OneOf() != null)
@@ -673,13 +675,13 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                         {
                             if (oneOfSchema.Ref() != null)
                             {
-                                FollowRef(path, oneOfSchema, currentlyVisitedTypes);
+                                FollowRef(path, oneOfSchema, currentlyVisitedTypes, parentXpath);
                             }
                             else if (oneOfSchema.Properties() != null)
                             {
                                 foreach (KeyValuePair<string, JsonSchema> def in oneOfSchema.Properties())
                                 {
-                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, oneOfSchema), currentlyVisitedTypes, jSchema);
+                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, oneOfSchema), currentlyVisitedTypes, jSchema, parentXpath);
                                 }
                             }
                         }
@@ -690,13 +692,13 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                         {
                             if (allOfSchema.Ref() != null)
                             {
-                                FollowRef(path, allOfSchema, currentlyVisitedTypes);
+                                FollowRef(path, allOfSchema, currentlyVisitedTypes, parentXpath);
                             }
                             else if (allOfSchema.Properties() != null)
                             {
                                 foreach (KeyValuePair<string, JsonSchema> def in allOfSchema.Properties())
                                 {
-                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, allOfSchema), currentlyVisitedTypes, jSchema);
+                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, allOfSchema), currentlyVisitedTypes, jSchema, parentXpath);
                                 }
                             }
                         }

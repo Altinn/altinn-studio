@@ -25,7 +25,6 @@ namespace Altinn.App.Services.Implementation
         private readonly IData _dataService;
         private readonly IRegister _registerService;
         private readonly IAppResources _appResourcesService;
-        private readonly IApplication _applicationService;
         private readonly JsonSerializer _camelCaseSerializer;
         private readonly string pdfElementType = "ref-data-as-pdf";
         private readonly string defaultFileName = "kvittering.pdf";
@@ -44,14 +43,12 @@ namespace Altinn.App.Services.Implementation
             HttpClient httpClient,
             IData dataService,
             IRegister registerService,
-            IAppResources appResourcesService,
-            IApplication applicationSerice)
+            IAppResources appResourcesService)
         {
             _logger = logger;
             _dataService = dataService;
             _registerService = registerService;
             _appResourcesService = appResourcesService;
-            _applicationService = applicationSerice;
             _appSettings = appSettings.Value;
             _camelCaseSerializer = JsonSerializer.Create(
                 new JsonSerializerSettings
@@ -109,7 +106,7 @@ namespace Altinn.App.Services.Implementation
 
             try
             {
-                await StorePDF(pdfContent, instance);
+                await StorePDF(pdfContent, instance, application);
             }
             catch (Exception exception)
             {
@@ -150,12 +147,10 @@ namespace Altinn.App.Services.Implementation
             return pdfContent;
         }
 
-        private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance)
+        private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance, Application appMetadata)
         {
             string fileName = null;
             string app = instance.AppId.Split("/")[1];
-
-            Application appMetadata = await _applicationService.GetApplication(instance.Org, app);
 
             if (!string.IsNullOrEmpty(appMetadata.Title?["nb"]))
             {

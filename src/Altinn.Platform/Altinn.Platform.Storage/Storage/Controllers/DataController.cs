@@ -555,7 +555,7 @@ namespace Altinn.Platform.Storage.Controllers
                 contentType = request.ContentType;
             }
 
-            string user = null;
+            string user = User.GetUserOrOrgId();
 
             DataElement newData = DataElementHelper.CreateDataElement(elementType, refs, instance, creationTime, contentType, contentFileName, fileSize, user);
 

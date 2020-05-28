@@ -24,7 +24,8 @@ export const options = {
 
 //Tests for App API: RF-0002
 export default function() {
-    var userNumber = (__VU - 1) % usersCount;  
+    var userNumber = (__VU - 1) % usersCount;
+    var instanceId, dataId, res, success; 
 
     try {
         var userSSN = users[userNumber].username;
@@ -37,22 +38,24 @@ export default function() {
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
     const partyId = users[userNumber].partyid;
-    var instanceId = "";
-    var dataId = "";
 
     //Test to create an instance with App api and validate the response
-    instanceId = appInstances.postInstance(runtimeToken, partyId);
-    var success = check(instanceId, {
+    res = appInstances.postInstance(runtimeToken, partyId);
+    success = check(res, {
         "E2E App POST Create Instance status is 201:": (r) => r.status === 201
       });
     addErrorCount(success);    
-    printResponseToConsole("E2E App POST Create Instance:", success, instanceId);
+    printResponseToConsole("E2E App POST Create Instance:", success, res);
     
-    dataId = appData.findDataId(instanceId.body);
-    instanceId = platformInstances.findInstanceId(instanceId.body);
+    try {
+        dataId = appData.findDataId(res.body);
+        instanceId = platformInstances.findInstanceId(res.body); 
+    } catch (error) {
+        printResponseToConsole("Instance id and data id not retrieved:", false , null);
+    };
 
     //Test to edit a form data in an instance with App APi and validate the response
-    var res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
+    res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
     success = check(res, {
         "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201
     });

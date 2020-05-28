@@ -1,5 +1,5 @@
 # studio frontend
-FROM node:12.16.2-alpine3.11 AS generate-studio-frontend
+FROM node:12.16.3-alpine3.11 AS generate-studio-frontend
 
 # Copy and install Lerna
 COPY ./src/designer/frontend/lerna.json .
@@ -36,41 +36,41 @@ RUN npm run build --prefix /dashboard
 FROM alpine as altinn-studio-frontend
 WORKDIR /dist/
 COPY --from=generate-studio-frontend /dist/app-development/app-development.js .
-COPY --from=generate-studio-frontend /dist/app-development/0.app-development.js .
 COPY --from=generate-studio-frontend /dist/app-development/1.app-development.js .
 COPY --from=generate-studio-frontend /dist/app-development/2.app-development.js .
 COPY --from=generate-studio-frontend /dist/app-development/3.app-development.js .
-COPY --from=generate-studio-frontend /dist/app-development/js/react/editor.worker.js .
-COPY --from=generate-studio-frontend /dist/app-development/js/react/typescript.worker.js .
+COPY --from=generate-studio-frontend /dist/app-development/4.app-development.js .
+COPY --from=generate-studio-frontend /dist/app-development/editor.worker.js .
+COPY --from=generate-studio-frontend /dist/app-development/ts.worker.js .
 COPY --from=generate-studio-frontend /dist/app-development/app-development.css .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.js .
 COPY --from=generate-studio-frontend /dist/dashboard/dashboard.css .
 
-FROM node:12.16.2-alpine3.11 AS generate-designer-js
+FROM node:12.16.3-alpine3.11 AS generate-designer-js
 COPY src/designer/backend/package.json .
 COPY src/designer/backend/package-lock.json .
 RUN npm ci
 COPY src/designer/backend .
 RUN npm run gulp build
 
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-alpine AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.300-alpine AS build
 COPY src/designer/backend ./designer/
 COPY --from=generate-designer-js /wwwroot ./designer/wwwroot
 
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.3-alpine AS final
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.4-alpine AS final
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .
 COPY --from=altinn-studio-frontend /dist/app-development.js ./wwwroot/designer/js/react/app-development.js
-COPY --from=altinn-studio-frontend /dist/0.app-development.js ./wwwroot/designer/js/react/0.app-development.js
 COPY --from=altinn-studio-frontend /dist/1.app-development.js ./wwwroot/designer/js/react/1.app-development.js
 COPY --from=altinn-studio-frontend /dist/2.app-development.js ./wwwroot/designer/js/react/2.app-development.js
 COPY --from=altinn-studio-frontend /dist/3.app-development.js ./wwwroot/designer/js/react/3.app-development.js
+COPY --from=altinn-studio-frontend /dist/4.app-development.js ./wwwroot/designer/js/react/4.app-development.js
 COPY --from=altinn-studio-frontend /dist/editor.worker.js ./wwwroot/designer/js/react/editor.worker.js
-COPY --from=altinn-studio-frontend /dist/typescript.worker.js ./wwwroot/designer/js/react/typescript.worker.js
+COPY --from=altinn-studio-frontend /dist/ts.worker.js ./wwwroot/designer/js/react/ts.worker.js
 COPY --from=altinn-studio-frontend /dist/app-development.css ./wwwroot/designer/css/react/app-development.css
 COPY --from=altinn-studio-frontend /dist/dashboard.js ./wwwroot/designer/js/react/dashboard.js
 COPY --from=altinn-studio-frontend /dist/dashboard.css ./wwwroot/designer/css/dashboard.css

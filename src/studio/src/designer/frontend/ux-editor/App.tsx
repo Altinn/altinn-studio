@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { hot } from 'react-hot-loader';
 import postMessages from 'app-shared/utils/postMessages';
+import { Route } from 'react-router-dom';
 import appDataActionDispatcher from './actions/appDataActions/appDataActionDispatcher';
 import formDesignerActionDispatchers from './actions/formDesignerActions/formDesignerActionDispatcher';
 import manageServiceConfigurationActionDispatcher from './actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
@@ -8,8 +9,6 @@ import ThirdPartyComponentsActionDispatcher from './actions/thirdPartyComponents
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import FormDesigner from './containers/FormDesigner';
 
-// tslint:disable-next-line:no-implicit-dependencies
-import { Route } from 'react-router-dom';
 export interface IAppComponentProps { }
 
 export interface IAppCompoentState { }
@@ -25,6 +24,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     window.addEventListener('message', this.shouldRefetchFiles);
     this.fetchFiles();
   }
+
   public componentWillUnmount() {
     window.removeEventListener('message', this.shouldRefetchFiles);
   }
@@ -35,7 +35,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     }
   }
 
-  public fetchFiles() {
+  public fetchFiles = () => {
     const { org, app } = window as Window as IAltinnWindow;
     const appId = `${org}/${app}`;
 
@@ -70,7 +70,6 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     // Fetch language
     appDataActionDispatcher.fetchLanguage(
       `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
-
   }
 
   public renderFormDesigner = (): JSX.Element => {

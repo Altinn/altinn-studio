@@ -50,20 +50,20 @@ namespace Altinn.Platform.Storage.Helpers
         }
 
         /// <summary>
-        /// parses a date and converts it to Utc.
+        /// Parses a date and converts it to UTC.
         /// </summary>
-        /// <param name="dateTimeString">the date expressed in a string</param>
-        /// <returns></returns>
-        public static DateTime ParseAndConvertToUniversalTime(string dateTimeString)
+        /// <param name="serializedDateTime">The date expressed in a string</param>
+        /// <returns>The parsed DateTime value.</returns>
+        public static DateTime ParseAndConvertToUniversalTime(string serializedDateTime)
         {
-            return DateTime.Parse(dateTimeString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+            return DateTime.Parse(serializedDateTime, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
         }
 
         /// <summary>
         /// Formats date time to string according to Iso8691 utc.
         /// </summary>
         /// <param name="date">the date to format</param>
-        /// <returns></returns>
+        /// <returns>The input serialized to ISO 8691 UTC format.</returns>
         public static string RepresentAsIso8601Utc(DateTime date)
         {
             return date.ToString(Iso8601UtcFormat, CultureInfo.InvariantCulture);

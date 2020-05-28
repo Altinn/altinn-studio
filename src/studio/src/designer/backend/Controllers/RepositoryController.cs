@@ -160,9 +160,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The repo name</param>
         [HttpPost]
-        public void Push(string org, string repository)
+        public async Task<ActionResult<HttpResponseMessage>> Push(string org, string repository)
         {
-            _sourceControl.Push(org, repository);
+            bool pushSuccess = await _sourceControl.Push(org, repository);
+            if (pushSuccess)
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            else 
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            }
         }
 
         /// <summary>

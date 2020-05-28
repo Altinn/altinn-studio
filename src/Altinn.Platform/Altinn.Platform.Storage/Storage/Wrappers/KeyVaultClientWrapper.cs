@@ -20,7 +20,7 @@ namespace Altinn.Platform.Storage.Wrappers
         private readonly string _connectionString;
 
         /// <summary>
-        /// Initializes an instance of <see cref="KeyVaultClientWrapper"/> with a client using the credentials from the key vault settings.
+        /// Initializes a new instance of the <see cref="KeyVaultClientWrapper"/> class with a client using the credentials from the key vault settings.
         /// </summary>
         /// <param name="keyVaultSettings">
         /// The <see cref="KeyVaultSettings"/> with information about the principal to use when getting secrets from a key vault.

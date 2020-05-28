@@ -1,24 +1,31 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using LocalTest.Models;
-using Microsoft.AspNetCore.Authorization;
-using AltinnCore.Authentication.Constants;
 using System.Security.Claims;
+
 using Microsoft.AspNetCore.Authentication;
-using AltinnCore.Authentication.JwtCookie;
-using LocalTest.Configuration;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
+using AltinnCore.Authentication.Constants;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.Interface.Models;
-using System.IO;
+
+using LocalTest.Configuration;
+using LocalTest.Models;
+using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Profile.Interface;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Altinn.Platform.Profile.Models;
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authentication.Cookies;
+
 
 namespace LocalTest.Controllers
 {
@@ -29,7 +36,7 @@ namespace LocalTest.Controllers
         private readonly LocalPlatformSettings _localPlatformSettings;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserProfiles _userProfileService;
-        private readonly JwtCookieHandler jwtHandler;
+        private readonly IAuthentication _authenticationService;
 
         public HomeController(
             ILogger<HomeController> logger,
@@ -37,14 +44,14 @@ namespace LocalTest.Controllers
             IOptions<LocalPlatformSettings> localPlatformSettings,
             IApplicationRepository applicationRepository,
             IUserProfiles userProfileService,
-            JwtCookieHandler jwtHandler)
+            IAuthentication authenticationService)
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;
-            this._localPlatformSettings = localPlatformSettings.Value;
-            this._applicationRepository = applicationRepository;
-            this._userProfileService = userProfileService;
-            this.jwtHandler = jwtHandler;
+            _localPlatformSettings = localPlatformSettings.Value;
+            _applicationRepository = applicationRepository;
+            _userProfileService = userProfileService;
+            _authenticationService = authenticationService;
         }
 
         [AllowAnonymous]
@@ -70,7 +77,7 @@ namespace LocalTest.Controllers
             {
                 model.Org = app.Org;
                 model.App = app.Id.Split("/")[1];
-               
+
             }
             return View(model);
         }
@@ -113,15 +120,8 @@ namespace LocalTest.Controllers
 
             DateTime later = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime));
 
-            await HttpContext.SignInAsync(
-                JwtCookieDefaults.AuthenticationScheme,
-                principal,
-                new AuthenticationProperties
-                {
-                    ExpiresUtc = later,
-                    IsPersistent = false,
-                    AllowRefresh = false,
-                });
+            string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
+            CreateJwtCookieAndAppendToResponse(token);
 
             Application app = await _applicationRepository.FindOne("", "");
 
@@ -155,7 +155,7 @@ namespace LocalTest.Controllers
 
             DateTime later = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime));
             // Create a test token with long duration
-            string token = await jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(1337), 0));
+            string token = _authenticationService.GenerateToken(principal, 1337);
             return Ok(token);
         }
 
@@ -177,7 +177,7 @@ namespace LocalTest.Controllers
 
             DateTime later = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime));
             // Create a test token with long duration
-            string token = await jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(1337), 0));
+            string token = _authenticationService.GenerateToken(principal, 1337);
 
             return Ok(token);
         }
@@ -194,12 +194,12 @@ namespace LocalTest.Controllers
 
             string[] files = Directory.GetFiles(path, "*.json");
 
-            foreach(string file in files)
+            foreach (string file in files)
             {
                 int userId = 0;
 
-                if(int.TryParse(Path.GetFileNameWithoutExtension(file), out userId))
-                 {
+                if (int.TryParse(Path.GetFileNameWithoutExtension(file), out userId))
+                {
                     users.Add(await _userProfileService.GetUser(userId));
                 }
             }
@@ -214,7 +214,7 @@ namespace LocalTest.Controllers
 
             List<SelectListItem> userItems = new List<SelectListItem>();
 
-            foreach(UserProfile profile in users)
+            foreach (UserProfile profile in users)
             {
                 SelectListItem item = new SelectListItem()
                 {
@@ -226,6 +226,33 @@ namespace LocalTest.Controllers
             }
 
             return userItems;
+        }
+
+        /// <summary>
+        /// Creates a session cookie meant to be used to hold the generated JSON Web Token and appends it to the response.
+        /// </summary>
+        /// <param name="cookieValue">The cookie value.</param>
+        private void CreateJwtCookieAndAppendToResponse(string cookieValue)
+        {
+            CookieBuilder cookieBuilder = new RequestPathBaseCookieBuilder
+            {
+                Name = "AltinnStudioRuntime",
+                SameSite = SameSiteMode.None,
+                HttpOnly = true,
+                SecurePolicy = CookieSecurePolicy.None,
+                IsEssential = true,
+                Domain = _generalSettings.HostName,
+                Expiration = new TimeSpan(0, 1337, 0)
+            };
+
+            CookieOptions cookieOptions = cookieBuilder.Build(HttpContext);
+
+            ICookieManager cookieManager = new ChunkingCookieManager();
+            cookieManager.AppendResponseCookie(
+                HttpContext,
+                cookieBuilder.Name,
+                cookieValue,
+                cookieOptions);
         }
     }
 }

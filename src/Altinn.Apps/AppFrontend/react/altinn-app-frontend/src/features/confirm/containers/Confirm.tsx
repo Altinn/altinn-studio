@@ -29,21 +29,22 @@ const theme = createMuiTheme(AltinnAppTheme);
 
 const useStyles = makeStyles({
   button: {
-    'color': theme.altinnPalette.primary.black,
-    'background': theme.altinnPalette.primary.blueMedium,
-    'textTransform': 'none' as 'none',
-    'fontWeight': 400,
-    'height': 36,
-    'borderRadius': '0',
+    color: theme.altinnPalette.primary.black,
+    background: theme.altinnPalette.primary.blue,
+    textTransform: 'none' as 'none',
+    fontWeight: 400,
+    height: 36,
+    borderRadius: '0',
     '&:hover': {
-      background: theme.altinnPalette.primary.blueMedium,
-      color: theme.altinnPalette.primary.black,
+      background: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.white,
     },
     '&:focus': {
-      background: theme.altinnPalette.primary.blueMedium,
-      color: theme.altinnPalette.primary.black,
+      background: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.white,
+      outline: 'none',
     },
-    'marginTop': 28
+    marginTop: 28,
   },
 });
 
@@ -73,7 +74,6 @@ export const returnConfirmSummaryObject = (data: ISummaryData): {} => {
 };
 
 const Confirm = (props: IConfirmProps) => {
-
   const classes = useStyles();
 
   const [appName, setAppName] = React.useState('');
@@ -169,38 +169,41 @@ const Confirm = (props: IConfirmProps) => {
 
   return (
     <>
-    {isLoading() &&
+      {isLoading() &&
         <AltinnContentLoader width={705} height={561}>
           <AltinnContentIconReceipt/>
         </AltinnContentLoader>
-    }
-    {!isLoading() &&
-    <>
-      <AltinnReceipt
-        attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
-        body={getTextFromAppOrDefault('confirm.body', textResources, language, [appName])}
-        collapsibleTitle={getTextFromAppOrDefault('confirm.attachments', textResources, language, null, true)}
-        hideCollapsibleCount={true}
-        instanceMetaDataObject={instanceMetaObject}
-        title={getTextFromAppOrDefault('confirm.title', textResources, language, null, true)}
-        titleSubmitted={getTextFromAppOrDefault('confirm.answers', textResources, language, null, true)}
-      />
-      {isSubmitting ?
-        <AltinnLoader 
-          style={{
-          paddingTop: '30px',
-          marginLeft: '40px',
-          height: '64px'}} 
-          srContent={getLanguageFromKey('general.loading', language)}/> :
-        <AltinnButton
-        btnText={getTextFromAppOrDefault('confirm.button_text', textResources, language)}
-        onClickFunction={onClickConfirm}
-        className={classes.button}
-      />}
+      }
+      {!isLoading() &&
+      <>
+        <AltinnReceipt
+          attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
+          body={getTextFromAppOrDefault('confirm.body', textResources, language, [appName])}
+          collapsibleTitle={getTextFromAppOrDefault('confirm.attachments', textResources, language, null, true)}
+          hideCollapsibleCount={true}
+          instanceMetaDataObject={instanceMetaObject}
+          title={getTextFromAppOrDefault('confirm.title', textResources, language, null, true)}
+          titleSubmitted={getTextFromAppOrDefault('confirm.answers', textResources, language, null, true)}
+        />
+        {isSubmitting ?
+          <AltinnLoader
+            style={{
+              paddingTop: '30px',
+              marginLeft: '40px',
+              height: '64px',
+            }}
+            srContent={getLanguageFromKey('general.loading', language)}
+          /> :
+          <AltinnButton
+            btnText={getTextFromAppOrDefault('confirm.button_text', textResources, language)}
+            onClickFunction={onClickConfirm}
+            className={classes.button}
+          />
+        }
       </>
-    }
+      }
     </>
   );
-}
+};
 
 export default withRouter(Confirm);
