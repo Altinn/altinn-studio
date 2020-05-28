@@ -249,7 +249,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 }
 
                 string org = await _organisationRepository.LookupOrg(orgNumber);
-                if (org == "brg" && test)
+                if (org == "digdir" && test)
                 {
                     org = "ttd";
                 }
