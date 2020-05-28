@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>true</IsPackable>
     <OutputType>Library</OutputType>
-    <Version>0.5.0</Version>
+    <Version>0.5.1</Version>
     <Description>Package to verify Access Tokens from client. Require public certificates stored in Azure KeyVault</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl></PackageProjectUrl>
