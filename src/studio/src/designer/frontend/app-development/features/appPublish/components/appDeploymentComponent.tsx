@@ -386,7 +386,6 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
                     deployHistory[0].tagName,
                     moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
                     envName,
-                    deployHistory[0].createdBy,
                     getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
                   ],
                 )}
