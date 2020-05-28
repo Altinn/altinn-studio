@@ -1,3 +1,6 @@
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Common.AccessToken.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -5,15 +8,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace Altinn.Common.AccessToken
 {
+    /// <summary>
+    /// Authorization handler to verify that request contains access token
+    /// </summary>
     public class AccessTokenHandler : AuthorizationHandler<AccessTokenRequirement>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -21,8 +22,18 @@ namespace Altinn.Common.AccessToken
         private readonly AccessTokenSettings _accessTokenSettings;
         private readonly ISigningKeysResolver _signingKeysResolver;
 
-        public AccessTokenHandler(IHttpContextAccessor httpContextAccessor,
-            ILogger<AccessTokenHandler> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningKeysResolver signingKeysResolver)
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="httpContextAccessor">Default httpContext accessor</param>
+        /// <param name="logger">The logger</param>
+        /// <param name="accessTokenSettings">The access token settings</param>
+        /// <param name="signingKeysResolver">The resolver for signing keys</param>
+        public AccessTokenHandler(
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<AccessTokenHandler> logger,
+            IOptions<AccessTokenSettings> accessTokenSettings,
+            ISigningKeysResolver signingKeysResolver)
         {
                 _httpContextAccessor = httpContextAccessor;
                 _logger = logger;
@@ -39,7 +50,7 @@ namespace Altinn.Common.AccessToken
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AccessTokenRequirement requirement)
         {
             StringValues tokens = GetAccessTokens();
-            if (tokens.Count != 1 && _accessTokenSettings.DisableAccesTokenVerification)
+            if (tokens.Count != 1 && _accessTokenSettings.DisableAccessTokenVerification)
             {
                 context.Succeed(requirement);
                 await Task.CompletedTask;
@@ -60,7 +71,7 @@ namespace Altinn.Common.AccessToken
             catch(Exception ex)
             {
                 _logger.LogWarning(ex, "Validation of Access Token Failed");
-                if (!_accessTokenSettings.DisableAccesTokenVerification)
+                if (!_accessTokenSettings.DisableAccessTokenVerification)
                 {
                     context.Fail();
                 }
@@ -85,7 +96,7 @@ namespace Altinn.Common.AccessToken
         /// <summary>
         /// This validates the access token available in 
         /// </summary>
-        /// <param name="token"></param>
+        /// <param name="token">The access token</param>
         /// <returns></returns>
         private async Task<bool> ValidateAccessToken(string token)
         {
@@ -114,11 +125,6 @@ namespace Altinn.Common.AccessToken
             return false;
         }
 
-        /// <summary>
-        /// Gets 
-        /// </summary>
-        /// <param name="issuer"></param>
-        /// <returns></returns>
         private async Task<TokenValidationParameters> GetTokenValidationParameters(string issuer)
         {
             TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
@@ -134,7 +140,6 @@ namespace Altinn.Common.AccessToken
             tokenValidationParameters.IssuerSigningKeys = await _signingKeysResolver.GetSigningKeys(issuer);
             return tokenValidationParameters;
         }
-
 
         private StringValues GetAccessTokens()
         {

@@ -1,12 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Constants;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace Altinn.Common.AccessTokenClient.Services
 {
@@ -23,8 +23,8 @@ namespace Altinn.Common.AccessTokenClient.Services
         /// Default constructor. 
         /// </summary>
         /// <param name="logger">The logger</param>
-        /// <param name="accessTokenSettings"></param>
-        /// <param name="signingKeysResolver"></param>
+        /// <param name="accessTokenSettings">Settings for access token</param>
+        /// <param name="signingKeysResolver">The signingkeys resolver</param>
         public AccessTokenGenerator(ILogger<AccessTokenGenerator> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningCredentialsResolver signingKeysResolver)
         {
             _accessTokenSettings = accessTokenSettings.Value;
@@ -36,11 +36,11 @@ namespace Altinn.Common.AccessTokenClient.Services
         /// Generates a access token for apps in altinn apps or platform components needing to access other platform components.
         /// </summary>
         /// <param name="issuer">Can be a app or platform component</param>
-        /// <param name="app"></param>
+        /// <param name="app">The application creating token (app or component)</param>
         /// <returns></returns>
         public string GenerateAccessToken(string issuer, string app)
         {
-            if(_accessTokenSettings.DisableAccesTokenGeneration)
+            if(_accessTokenSettings.DisableAccessTokenGeneration)
             {
                 return null;
             }
@@ -61,7 +61,7 @@ namespace Altinn.Common.AccessTokenClient.Services
                 SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
                 {
                     Subject = new ClaimsIdentity(principal.Identity),
-                    Expires = DateTime.UtcNow.AddSeconds(_accessTokenSettings.TokenExpirySeconds),
+                    Expires = DateTime.UtcNow.AddSeconds(_accessTokenSettings.TokenLifetimeInSeconds),
                     SigningCredentials = _signingKeysResolver.GetSigningCredentials(),
                     Audience = "platform.altinn.no",
                     Issuer = issuer

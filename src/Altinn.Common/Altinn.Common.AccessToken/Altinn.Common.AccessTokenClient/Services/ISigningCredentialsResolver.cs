@@ -1,6 +1,6 @@
-using Microsoft.IdentityModel.Tokens;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Common.AccessTokenClient.Services
 {

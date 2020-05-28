@@ -5,16 +5,29 @@ using System.Threading.Tasks;
 
 namespace Altinn.Common.AccessTokenClient.Configuration
 {
+    /// <summary>
+    /// Confiugration for access token 
+    /// </summary>
     public class AccessTokenSettings
     {
-        public bool DisableAccesTokenGeneration { get; set;  }
+        /// <summary>
+        /// Disable generation of access token
+        /// </summary>
+        public bool DisableAccessTokenGeneration { get; set;  }
 
-        public string AccessTokenHeaderId { get; set; } = "PlatformAccessToken";
+        /// <summary>
+        /// The folder where the signing keys are stored. 
+        /// </summary>
+        public string AccessTokenSigningKeysFolder { get; set; } = "accesstoken/";
 
-        public string AccessTokenSigningKeysFolder { get; set; } = "clientsigningkeys/";
+        /// <summary>
+        /// The lifetime for a token
+        /// </summary>
+        public int TokenLifetimeInSeconds { get; set; } = 300;
 
-        public int TokenExpirySeconds { get; set; } = 300;
-
-        public string AccessTokenSigningCertificateFileName { get; set; } = "signingcredentials.pfx";
+        /// <summary>
+        /// The name of the cert for access token signing
+        /// </summary>
+        public string AccessTokenSigningCertificateFileName { get; set; } = "accesstokencredentials.pfx";
     }
 }

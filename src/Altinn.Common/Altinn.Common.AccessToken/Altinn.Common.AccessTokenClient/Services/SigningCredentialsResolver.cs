@@ -1,8 +1,8 @@
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
 using Altinn.Common.AccessTokenClient.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System.IO;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Altinn.Common.AccessTokenClient.Services
 {
@@ -13,6 +13,10 @@ namespace Altinn.Common.AccessTokenClient.Services
     {
         private readonly AccessTokenSettings _accessTokenSettings;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="accessTokenSettings">Access token settings</param>
         public SigningCredentialsResolver(IOptions<AccessTokenSettings> accessTokenSettings)
         {
             _accessTokenSettings = accessTokenSettings.Value;

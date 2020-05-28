@@ -5,14 +5,24 @@ using System.Threading.Tasks;
 
 namespace Altinn.Common.AccessToken.Configuration
 {
+    /// <summary>
+    /// Settings for access token
+    /// </summary>
     public class AccessTokenSettings
     {
-        public bool DisableAccesTokenVerification { get; set;  }
+        /// <summary>
+        /// Disable access token verification
+        /// </summary>
+        public bool DisableAccessTokenVerification { get; set;  }
 
+        /// <summary>
+        /// The Access token headerId
+        /// </summary>
         public string AccessTokenHeaderId { get; set; } = "PlatformAccessToken";
 
-        public string AccessTokenSigningKeysFolder { get; set; } = "clientsigningkeys/";
-
-        public int CacheCertExpirerySeconds { get; set; } = 3600;
+        /// <summary>
+        /// Cache lifetime for certs
+        /// </summary>
+        public int CacheCertLifetimeInSeconds { get; set; } = 3600;
     }
 }

@@ -1,24 +1,31 @@
+using System;
+using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Configuration;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
 
 namespace Altinn.Common.AccessToken.Services
 {
+    /// <summary>
+    /// Service for resolving keys
+    /// </summary>
     public class SigningKeysResolver : ISigningKeysResolver
     {
         private readonly AccessTokenSettings _accessTokenSettings;
         private readonly KeyVaultSettings _keyVaultSettings;
         private readonly IMemoryCache _memoryCache;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="keyVaultSettings">The keyvault settings</param>
+        /// <param name="accessTokenSettings">Settings for access token</param>
+        /// <param name="memoryCache">Memory cache</param>
         public SigningKeysResolver(IOptions<KeyVaultSettings> keyVaultSettings, IOptions<AccessTokenSettings> accessTokenSettings, IMemoryCache memoryCache)
         {
             _accessTokenSettings = accessTokenSettings.Value;
@@ -26,9 +33,13 @@ namespace Altinn.Common.AccessToken.Services
             _memoryCache = memoryCache;
         }
 
+        /// <summary>
+        /// Returns the signing keys for a issuer
+        /// </summary>
+        /// <param name="issuer">The issuer</param>
+        /// <returns></returns>
         public async Task<IEnumerable<SecurityKey>> GetSigningKeys(string issuer)
         {
-
             List<SecurityKey> signingKeys = new List<SecurityKey>();
             X509Certificate2 cert = await GetSigningCertFromKeyVault(issuer);
             SecurityKey key = new X509SecurityKey(cert);
@@ -58,10 +69,11 @@ namespace Altinn.Common.AccessToken.Services
                 // Set the cache options
                 MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
                .SetPriority(CacheItemPriority.High)
-               .SetAbsoluteExpiration(new TimeSpan(0, 0, _accessTokenSettings.CacheCertExpirerySeconds));
+               .SetAbsoluteExpiration(new TimeSpan(0, 0, _accessTokenSettings.CacheCertLifetimeInSeconds));
 
                 _memoryCache.Set(cacheKey, cert, cacheEntryOptions);
             }
+
             return cert;
         }
     }
