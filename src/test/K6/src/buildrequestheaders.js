@@ -3,7 +3,7 @@ let environment = __ENV.env;
 
 //Function to determine the headers for a POST/PUT data based on dataType
 export function buildHeadersForData(dataType, altinnStudioRuntimeCookie, api){
-    var params = "";
+    var params = {};
     if (isGuid(dataType)){
         params = {  headers: {"Authorization": "Bearer " + altinnStudioRuntimeCookie,
                                   "Content-Type": "application/octet-stream",
@@ -65,6 +65,13 @@ export function buildHeaderWithRuntimeAsCookie(altinnStudioRuntimeCookie, api){
             "AltinnStudioRuntime": altinnStudioRuntimeCookie
         }
     };
+    params = addSubscriptionKey(params, subscriptionKey, api);
+    return params;
+};
+
+//Function to build a request header only with subscription key
+export function buildHeaderWithSubsKey(api){
+    var params = {};  
     params = addSubscriptionKey(params, subscriptionKey, api);
     return params;
 };

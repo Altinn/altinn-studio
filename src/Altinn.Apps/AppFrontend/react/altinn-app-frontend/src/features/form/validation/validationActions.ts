@@ -7,7 +7,7 @@ import * as Validations from './update/updateValidationsActions';
 
 export interface IFormValidationActions extends ActionCreatorsMapObject {
   updateValidations: (validations: IValidations) => Validations.IUpdateValidations;
-  updateComponentValidations: (validations: IComponentValidations, componentId: string, invalidDataTypes?: boolean) =>
+  updateComponentValidations: (validations: IComponentValidations, componentId: string, invalidDataTypes?: string[]) =>
     ComponentValidation.IUpdateComponentValidations;
   updateComponentValidationsFulfilled: () => Action;
   updateComponentValidationsRejected: (error: Error) => ComponentValidation.IUpdateComponentValidationsRejected;

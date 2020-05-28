@@ -15,7 +15,7 @@
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.16" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.3.0-alpha" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.10.3" />
-    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.4.0" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.5.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.4">
       <PrivateAssets>all</PrivateAssets>
