@@ -53,7 +53,6 @@ namespace Altinn.Common.AccessToken
             if (tokens.Count != 1 && _accessTokenSettings.DisableAccessTokenVerification)
             {
                 context.Succeed(requirement);
-                await Task.CompletedTask;
                 return;
             }
 
@@ -68,7 +67,7 @@ namespace Altinn.Common.AccessToken
             {
                 isValid = await ValidateAccessToken(tokens[0]);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Validation of Access Token Failed");
                 if (!_accessTokenSettings.DisableAccessTokenVerification)
@@ -78,7 +77,6 @@ namespace Altinn.Common.AccessToken
                 else
                 {
                     context.Succeed(requirement);
-                    await Task.CompletedTask;
                     return;
                 }
             }
@@ -119,7 +117,7 @@ namespace Altinn.Common.AccessToken
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("Failed to validate token.", ex);
+                _logger.LogWarning("Failed to validate token.", ex);
             }
 
             return false;
@@ -143,7 +141,12 @@ namespace Altinn.Common.AccessToken
 
         private StringValues GetAccessTokens()
         {
-          return _httpContextAccessor.HttpContext.Request.Headers[_accessTokenSettings.AccessTokenHeaderId];
+            if (_httpContextAccessor.HttpContext.Request.Headers.ContainsKey(_accessTokenSettings.AccessTokenHeaderId))
+            {
+                return _httpContextAccessor.HttpContext.Request.Headers[_accessTokenSettings.AccessTokenHeaderId];
+            }
+
+            return StringValues.Empty;
         }
     }
 }
