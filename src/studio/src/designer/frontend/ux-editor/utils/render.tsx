@@ -1,9 +1,10 @@
 import { Typography } from '@material-ui/core';
-import React = require('react');
+import * as React from 'react';
 import Select from 'react-select';
-// import CreatableSelect from 'react-select/lib/Creatable';
+// eslint-disable-next-line import/no-cycle
 import { customInput } from '../components/config/EditModalContent';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
+// eslint-disable-next-line import/no-cycle
 import { getTextResource, truncate } from './language';
 
 export const styles = {
@@ -37,9 +38,9 @@ export function renderSelectDataModelBinding(
   uniqueKey?: any,
 ): JSX.Element {
   return (
-    <div key={uniqueKey ? uniqueKey : ''}>
+    <div key={uniqueKey || ''}>
       {renderPropertyLabel(label ?
-        language.ux_editor.modal_properties_data_model_helper + ' ' + language.general.for + ' ' + label :
+        `${language.ux_editor.modal_properties_data_model_helper}${language.general.for}${label}` :
         language.ux_editor.modal_properties_data_model_helper)
       }
       <SelectDataModelComponent
@@ -95,8 +96,6 @@ export function renderSelectTextFromResources(
         <Select
           styles={customInput}
           options={resources}
-          defaultValue={placeholder ?
-            { value: placeholder, label: truncate(getTextResource(placeholder, textResources), 40) } : ''}
           // tslint:disable-next-line:jsx-no-lambda
           onChange={(value) => onChangeFunction(value, returnValue)}
           isClearable={true}
