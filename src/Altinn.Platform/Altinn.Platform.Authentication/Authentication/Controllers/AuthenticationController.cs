@@ -206,15 +206,15 @@ namespace Altinn.Platform.Authentication.Controllers
                     return await AuthenticateIdPortenToken(originalToken);
                 case "maskinporten":
                     return await AuthenticateMaskinportenToken(originalToken, test);
-                case "altinnstudiodesigner":
-                    return await AuthenticateAltinnStudioDesignerToken(originalToken);
+                case "altinnstudio":
+                    return await AuthenticateAltinnStudioToken(originalToken);
                 default:
                     string msg = $"Invalid token provider: {tokenProvider}. Trusted token providers are 'Maskinporten', 'Id-porten', and 'AltinnStudioDesigner'.";
                     return BadRequest(msg);
             }
         }
 
-        private async Task<ActionResult> AuthenticateAltinnStudioDesignerToken(string originalToken)
+        private async Task<ActionResult> AuthenticateAltinnStudioToken(string originalToken)
         {
             IEnumerable<SecurityKey> signingKeys = await _signingKeysResolver.GetSigningKeys("studio");
 
