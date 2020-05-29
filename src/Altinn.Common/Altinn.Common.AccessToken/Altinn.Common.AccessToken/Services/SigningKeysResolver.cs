@@ -58,7 +58,7 @@ namespace Altinn.Common.AccessToken.Services
 
             if (!_memoryCache.TryGetValue(cacheKey, out X509Certificate2 cert))
             {
-                // Key not in cache, so get decisin from PDP.
+                // Key not in cache, set getting the secret from KeyVault
                 string secretName = $"{issuer}-access-token-public-cert";
                 KeyVaultClient client = KeyVaultSettings.GetClient(_keyVaultSettings.ClientId, _keyVaultSettings.ClientSecret);
                 SecretBundle secret = await client.GetSecretAsync(_keyVaultSettings.SecretUri, secretName);

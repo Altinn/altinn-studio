@@ -52,6 +52,7 @@ namespace Altinn.Common.AccessToken
             StringValues tokens = GetAccessTokens();
             if (tokens.Count != 1 && _accessTokenSettings.DisableAccessTokenVerification)
             {
+                _logger.LogWarning("Token is missing and function is turned of");
                 context.Succeed(requirement);
                 return;
             }
@@ -67,7 +68,9 @@ namespace Altinn.Common.AccessToken
             bool isValid = false;
             try
             {
+                _logger.LogWarning("Validating token");
                 isValid = await ValidateAccessToken(tokens[0]);
+                _logger.LogWarning("Token is validated");
             }
             catch (Exception ex)
             {
