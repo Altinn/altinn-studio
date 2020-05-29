@@ -6,7 +6,8 @@ using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using System.Web;
-
+using Altinn.Common.AccessToken.Constants;
+using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Enum;
 using Altinn.Platform.Authentication.Model;
@@ -53,6 +54,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private readonly ISigningKeysRetriever _signingKeysRetriever;
         private readonly IUserProfileService _userProfileService;
         private readonly JwtSecurityTokenHandler _validator;
+        private readonly ISigningKeysResolver _signingKeysResolver;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="AuthenticationController"/> class with the given dependencies.
@@ -64,6 +66,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <param name="certificateProvider">Service that can obtain a list of certificates that can be used to generate JSON Web Tokens.</param>
         /// <param name="userProfileService">Service that can retrieve user profiles.</param>
         /// <param name="signingKeysRetriever">The class to use to obtain the signing keys.</param>
+        /// <param name="signingKeysResolver">Signing keys resolver for Altinn Common AccessToken</param>
         public AuthenticationController(
             ILogger<AuthenticationController> logger,
             IOptions<GeneralSettings> generalSettings,
@@ -71,7 +74,8 @@ namespace Altinn.Platform.Authentication.Controllers
             IJwtSigningCertificateProvider certificateProvider,
             ISblCookieDecryptionService cookieDecryptionService,
             IUserProfileService userProfileService,
-            IOrganisationRepository organisationRepository)
+            IOrganisationRepository organisationRepository,
+            ISigningKeysResolver signingKeysResolver)
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;
@@ -80,6 +84,7 @@ namespace Altinn.Platform.Authentication.Controllers
             _cookieDecryptionService = cookieDecryptionService;
             _organisationRepository = organisationRepository;
             _userProfileService = userProfileService;
+            _signingKeysResolver = signingKeysResolver;
             _validator = new JwtSecurityTokenHandler();
         }
 
@@ -195,18 +200,42 @@ namespace Altinn.Platform.Authentication.Controllers
                 return Unauthorized();
             }
 
-            if (tokenProvider.Equals("id-porten", StringComparison.OrdinalIgnoreCase))
+            switch (originalToken.ToLower())
             {
-                return await AuthenticateIdPortenToken(originalToken);
+                case "id-porten":
+                    return await AuthenticateIdPortenToken(originalToken);
+                case "maskinporten":
+                    return await AuthenticateMaskinportenToken(originalToken, test);
+                case "altinnstudiodesigner":
+                    return await AuthenticateAltinnStudioDesignerToken(originalToken);
+                default:
+                    string msg = $"Invalid token provider: {tokenProvider}. Trusted token providers are 'Maskinporten', 'Id-porten', and 'AltinnStudioDesigner'.";
+                    return BadRequest(msg);
             }
-            else if (tokenProvider.Equals("maskinporten", StringComparison.OrdinalIgnoreCase))
+        }
+
+        private async Task<ActionResult> AuthenticateAltinnStudioDesignerToken(string originalToken)
+        {
+            IEnumerable<SecurityKey> signingKeys = await _signingKeysResolver.GetSigningKeys("studio");
+
+            TokenValidationParameters validationParameters = new TokenValidationParameters
             {
-                return await AuthenticateMaskinportenToken(originalToken, test);
-            }
-            else
-            {
-                return BadRequest($"Invalid token provider: {tokenProvider}. Trusted token providers are 'Maskinporten' and 'Id-porten'.");
-            }
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKeys = signingKeys,
+                ValidateIssuer = true,
+                ValidateAudience = false,
+                RequireExpirationTime = true,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            ClaimsPrincipal originalPrincipal = _validator.ValidateToken(originalToken, validationParameters, out _);
+            _logger.LogInformation("Token is valid");
+
+            string appClaim = originalPrincipal.FindFirstValue(AccessTokenClaimTypes.App);
+
+            //TODO: Create new claims + generate token.. 
+            throw new NotImplementedException();
         }
 
         /// <summary>

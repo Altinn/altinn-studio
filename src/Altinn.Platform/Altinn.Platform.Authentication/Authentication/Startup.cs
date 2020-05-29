@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
-
+using Altinn.Common.AccessToken.Configuration;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Repositories;
 using Altinn.Platform.Authentication.Services;
@@ -74,8 +74,11 @@ namespace Altinn.Platform.Authentication
 
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
-            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
-            services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
+            services.Configure<AltinnCore.Authentication.Constants.KeyVaultSettings>(Configuration.GetSection("kvSetting"));
+            services.Configure<AltinnCore.Authentication.Constants.CertificateSettings>(Configuration.GetSection("CertificateSettings"));
+            services.Configure<Common.AccessToken.Configuration.KeyVaultSettings>(Configuration.GetSection("kvSetting"));
+            services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
+
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                 {
