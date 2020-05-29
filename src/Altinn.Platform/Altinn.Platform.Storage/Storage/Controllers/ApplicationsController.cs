@@ -129,6 +129,7 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/json")]
         public async Task<ActionResult<Application>> Post(string appId, [FromBody] Application application)
         {
+            // TODO Validate only Designer can call this.
             if (!IsValidAppId(appId))
             {
                 return BadRequest("AppId is not valid.");
