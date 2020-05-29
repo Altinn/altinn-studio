@@ -49,5 +49,18 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
 
             return token;
         }
+
+        public static string GetDesignerToken()
+        {
+            List<Claim> claims = new List<Claim>();
+            string issuer = "studio";
+            claims.Add(new Claim("urn:altinn:app", "designer", ClaimValueTypes.String, issuer));
+            ClaimsIdentity identity = new ClaimsIdentity("mock-org");
+            identity.AddClaims(claims);
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            string token = JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1), issuer);
+
+            return token;
+        }
     }
 }

@@ -121,7 +121,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="appId">The unique identification of the application to be added. Format: '{org}/{app}'</param>
         /// <param name="application">The application metadata object to store.</param>
         /// <returns>The applicaiton metadata object.</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_APPDEPLOY)]
+        [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
