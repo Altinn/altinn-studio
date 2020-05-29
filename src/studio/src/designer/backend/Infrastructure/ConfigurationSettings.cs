@@ -1,3 +1,4 @@
+using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using AltinnCore.Authentication.Constants;
@@ -27,7 +28,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.Configure<Integrations>(configuration.GetSection("Integrations"));
             services.Configure<AzureDevOpsSettings>(configuration.GetSection("Integrations:AzureDevOpsSettings"));
             services.Configure<AzureCosmosDbSettings>(configuration.GetSection("Integrations:AzureCosmosDbSettings"));
-
+            services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));
             return services;
         }
     }
