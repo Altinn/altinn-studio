@@ -201,11 +201,6 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             // HttpResponseMessage response = await client.PostAsync("/register/api/v1/parties/lookup", requestBody);
 
-            if(!response.StatusCode.Equals(HttpStatusCode.OK))
-            {
-               string contentString = await response.Content.ReadAsStringAsync();
-            }
-
             // Assert
             partiesService.VerifyAll();
 
