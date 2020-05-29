@@ -37,7 +37,7 @@ ingressRoute:
 volumeMounts:
   - name: datakeys
     mountPath: /mnt/keys
-    - name: accesstoken
+  - name: accesstoken
     mountPath: "/accesstoken"
 
 volumes:
@@ -46,4 +46,4 @@ volumes:
       claimName: keys
   - name: accesstoken
     secret:
-      secretName: accesstokencredentials.pfx      
+      secretName: accesstoken
