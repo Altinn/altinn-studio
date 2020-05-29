@@ -18,6 +18,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
+using Altinn.Common.AccessToken.Services;
+using Altinn.Platform.Register.Tests.Mocks;
 
 namespace Altinn.Platform.Register.Tests.TestingControllers
 {
@@ -47,8 +49,11 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             HttpClient client = GetTestClient(organizationsService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/organizations/" + orgNo);
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
             // Act
-            HttpResponseMessage response = await client.GetAsync("/register/api/v1/organizations/" + orgNo);
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             // Assert
             organizationsService.VerifyAll();
@@ -73,8 +78,11 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             HttpClient client = GetTestClient(organizationsService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/organizations/" + orgNo);
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
             // Act
-            HttpResponseMessage response = await client.GetAsync("/register/api/v1/organizations/" + orgNo);
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             // Assert
             organizationsService.VerifyAll();
@@ -94,8 +102,11 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             HttpClient client = GetTestClient(organizationsService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/organizations/" + orgNo);
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
             // Act
-            HttpResponseMessage response = await client.GetAsync("/register/api/v1/organizations/" + orgNo);
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -116,6 +127,7 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
 
                     // Set up mock authentication so that not well known endpoint is used
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
+                    services.AddSingleton<ISigningKeysResolver, SigningKeyResolverMock>();
                 });
                 builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
             }).CreateClient();

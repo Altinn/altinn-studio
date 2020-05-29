@@ -58,6 +58,8 @@ namespace UnitTests
             {
             };
 
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string content = await response.Content.ReadAsStringAsync();
 
@@ -80,12 +82,12 @@ namespace UnitTests
             {
             };
 
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             Assert.Equal(expected, response.StatusCode);
         }
-
-
 
         [Fact]
         public async Task Profile_GetBySSN_OK()
@@ -99,8 +101,16 @@ namespace UnitTests
 
             int expectedUserId = 12345;
 
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/profile/api/v1/users/")
+            {
+                Content = requestBody
+            };
+
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
             // Act
-            HttpResponseMessage response = await client.PostAsync("/profile/api/v1/users/", requestBody);
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
             UserProfile actual = JsonConvert.DeserializeObject<UserProfile>(await response.Content.ReadAsStringAsync());
 
             // Assert
@@ -119,8 +129,15 @@ namespace UnitTests
 
             HttpStatusCode expected = HttpStatusCode.NotFound;
 
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/profile/api/v1/users/")
+            {
+                Content = requestBody
+            };
+
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
             // Act
-            HttpResponseMessage response = await client.PostAsync("/profile/api/v1/users/", requestBody);
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             HttpStatusCode actual = response.StatusCode;
 
             // Assert
