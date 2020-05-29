@@ -3,16 +3,16 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>1.0.84-alpha</Version>
+    <Version>1.0.85-alpha</Version>
     <Authors>Altinn</Authors>
     <Company>Altinn</Company>
     <Description>Common services with Altinn Platform functionality and Altinn Apps functionality</Description>
     <PackageProjectUrl>https://github.com/Altinn/altinn-studio</PackageProjectUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.84.0</AssemblyVersion>
+    <AssemblyVersion>1.0.85.0</AssemblyVersion>
     <IsPackable>true</IsPackable>
     <OutputType>Library</OutputType>
-    <FileVersion>1.0.84.0</FileVersion>
+    <FileVersion>1.0.85.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="0.5.1" />
+    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="0.5.2" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.0.2-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.16" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.23" />
