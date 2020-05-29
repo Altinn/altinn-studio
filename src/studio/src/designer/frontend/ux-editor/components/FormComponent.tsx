@@ -30,8 +30,6 @@ export interface IProvidedProps {
 export interface IFormElementProps extends IProvidedProps {
   component: FormComponentType;
   designMode: boolean;
-  connections: any;
-  externalApi: any;
   dataModelElement: IDataModelFieldElement;
   dataModel: IDataModelFieldElement[];
   validationErrors: any[];
@@ -182,8 +180,6 @@ const makeMapStateToProps = () => {
       (element) =>
         element.dataBindingName ===
         state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding),
-    connections: state.serviceConfigurations.APIs.connections,
-    externalApi: state.serviceConfigurations.APIs.externalApisById,
     validationErrors: null,
     textResources: state.appData.textResources.resources,
     thirdPartyComponents: state.thirdPartyComponents.components,

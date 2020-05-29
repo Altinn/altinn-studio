@@ -105,21 +105,15 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             List<Claim> claims = new List<Claim>();
 
             string orgNr = "974760223";
-            string brgOrgNr = "974760673";
+            string digdirOrgNo = "991825827";
 
-            object iso6523Consumer = new
+            object digdirConsumer = new
             {
                 authority = "iso6523-actorid-upis",
-                ID = $"9908:{orgNr}"
+                ID = $"9908:{digdirOrgNo}"
             };
 
-            object brgConsumer = new
-            {
-                authority = "iso6523-actorid-upis",
-                ID = $"9908:{brgOrgNr}"
-            };
-
-            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(brgConsumer)));
+            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(digdirConsumer)));
             claims.Add(new Claim("client_orgno", orgNr));
             claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
 

@@ -8,7 +8,6 @@ import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDe
 import { advancedComponents, ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuComponent';
-import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { getComponentTitleByComponentType } from '../utils/language';
@@ -387,9 +386,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           </Collapse>
         </List >
 
-        <div className='d-block'>
-          <ExternalApiModalComponent />
-        </div>
         <Modal
           isOpen={this.state.modalOpen}
           onRequestClose={this.handleCloseModal}
