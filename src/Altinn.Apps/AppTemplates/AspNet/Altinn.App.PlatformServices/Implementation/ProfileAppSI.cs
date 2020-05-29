@@ -6,6 +6,7 @@ using Altinn.App.PlatformServices.Extentions;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
@@ -23,6 +24,8 @@ namespace Altinn.App.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly HttpClient _client;
+        private readonly IAppResources _appResources;
+        private readonly IAccessTokenGenerator _accessTokenGenerator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileAppSI"/> class
@@ -37,7 +40,9 @@ namespace Altinn.App.Services.Implementation
             ILogger<ProfileAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
-            HttpClient httpClient)
+            HttpClient httpClient,
+            IAppResources appResources,
+            IAccessTokenGenerator accessTokenGenerator)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
@@ -46,6 +51,8 @@ namespace Altinn.App.Services.Implementation
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
+            _appResources = appResources;
+            _accessTokenGenerator = accessTokenGenerator;
         }
 
         /// <inheritdoc />
@@ -56,7 +63,7 @@ namespace Altinn.App.Services.Implementation
             string endpointUrl = $"users/{userId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id));
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 userProfile = await response.Content.ReadAsAsync<UserProfile>();
