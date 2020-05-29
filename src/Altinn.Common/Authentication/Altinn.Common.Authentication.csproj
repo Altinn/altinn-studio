@@ -12,20 +12,18 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.7" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="5.6.0" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="5.6.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.6.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.6.0" />
   </ItemGroup>
 
   <PropertyGroup>
-    <Version>2.3.0-alpha</Version>
+    <Version>2.4.0-alpha</Version>
     <Description>JWTCookieAuthentication is a package for usage of JWT token for authentication both as bearer token and inside cookie</Description>
     <PackageTags>altinn studio, authentication, jwt, JWTCookieAuthentication</PackageTags>
     <PackageId>JWTCookieAuthentication</PackageId>
     <Company>Altinn</Company>
     <Product>JWTCookieAuthentication</Product>
-    <AssemblyVersion>2.3.0.0</AssemblyVersion>
-    <FileVersion>2.3.0.0</FileVersion>
+    <AssemblyVersion>2.4.0.0</AssemblyVersion>
+    <FileVersion>2.4.0.0</FileVersion>
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject />
