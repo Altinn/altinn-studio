@@ -15,14 +15,16 @@ namespace Altinn.Common.PEP.Clients
 {
     public class AuthorizationApiClient
     {
+        private const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
 
-        public AuthorizationApiClient(HttpClient client, IOptions<PlatformSettings> platformSettings, IOptions<PepSettings> pepSettings, ILogger<AuthorizationApiClient> logger)
+        public AuthorizationApiClient(HttpClient client, IOptions<PlatformSettings> platformSettings, ILogger<AuthorizationApiClient> logger)
         {
             _httpClient = client;
             _logger = logger;
-            client.BaseAddress = new Uri($"{platformSettings.Value.GetApiAuthorizationEndpoint}");
+            client.BaseAddress = new Uri($"{platformSettings.Value.ApiAuthorizationEndpoint}");
+            client.DefaultRequestHeaders.Add(SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 

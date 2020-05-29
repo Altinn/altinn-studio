@@ -25,6 +25,10 @@ namespace Altinn.Studio.Designer.Helpers
             {
                 httpClient.DefaultRequestHeaders.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyYT01);
             }
+            else if (uri.Host.Equals("platform.altinn.no", StringComparison.InvariantCultureIgnoreCase))
+            {
+                httpClient.DefaultRequestHeaders.Add(platformSettings.SubscriptionKeyHeaderName, platformSettings.SubscriptionKeyProd);
+            }
         }
     }
 }

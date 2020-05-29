@@ -7,10 +7,8 @@
       }
     },
     "logLevel": {
-      "default": "Error",
-      "Host.Results": "Error",
-      "Function": "Error",
-      "Host.Aggregator": "Error"
+      "default": "Information",
+      "Function": "Error"
     }
   },
   "version": "2.0"

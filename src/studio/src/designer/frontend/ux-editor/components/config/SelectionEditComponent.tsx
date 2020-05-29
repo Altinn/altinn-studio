@@ -5,7 +5,7 @@ import Select from 'react-select';
 import AltinnRadio from 'app-shared/components/AltinnRadio';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import { getCodeListIndexByName } from '../../utils/apiConnection';
+import { getCodeListIndexByName } from '../../utils/codelist';
 import { noOptionsMessage, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 import { customInput } from './EditModalContent';
 
