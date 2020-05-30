@@ -54,7 +54,10 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
         {
             List<Claim> claims = new List<Claim>();
             string issuer = "www.altinn.no";
-            claims.Add(new Claim("urn:altinn:app", appId, ClaimValueTypes.String, issuer));
+            if (!string.IsNullOrEmpty(appId))
+            {
+                claims.Add(new Claim("urn:altinn:app", appId, ClaimValueTypes.String, issuer));
+            }
             ClaimsIdentity identity = new ClaimsIdentity("mock-org");
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);

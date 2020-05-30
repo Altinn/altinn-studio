@@ -243,7 +243,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="app">The name of the application.</param>
         /// <param name="application">The application metadata object to store.</param>
         /// <returns>The updated application metadata.</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_APPDEPLOY)]
+        [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         [HttpPut("{org}/{app}")]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -326,7 +326,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="hard">Controls whether the application should be deleted permanently.</param>
         /// <returns>The application metadata of the deleted application.</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_APPDEPLOY)]
+        [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         [HttpDelete("{org}/{app}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
