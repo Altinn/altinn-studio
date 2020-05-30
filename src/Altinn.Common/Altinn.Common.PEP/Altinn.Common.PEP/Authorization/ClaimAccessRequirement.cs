@@ -15,17 +15,11 @@ namespace Altinn.Common.PEP.Authorization
         /// <param name="issuer">The issuer of the claim</param>
         /// <param name="claimid">The claimid</param>
         /// <param name="value">The claim value</param>
-        public ClaimAccessRequirement(string issuer, string claimType, string claimValue)
+        public ClaimAccessRequirement(string claimType, string claimValue)
         {
-            this.Issuer = issuer;
             this.ClaimType = claimType;
             this.ClaimValue = claimValue;
         }
-
-        /// <summary>
-        /// Gets or sets the issuer for the required claim
-        /// </summary>
-        public string Issuer { get; set; }
 
         /// <summary>
         /// Gets or sets the claimdId for the required claim

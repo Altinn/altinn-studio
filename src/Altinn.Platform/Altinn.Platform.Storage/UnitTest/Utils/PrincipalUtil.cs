@@ -50,11 +50,11 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
             return token;
         }
 
-        public static string GetDesignerToken()
+        public static string GetAccessToken(string appId)
         {
             List<Claim> claims = new List<Claim>();
-            string issuer = "studio";
-            claims.Add(new Claim("urn:altinn:app", "designer", ClaimValueTypes.String, issuer));
+            string issuer = "www.altinn.no";
+            claims.Add(new Claim("urn:altinn:app", appId, ClaimValueTypes.String, issuer));
             ClaimsIdentity identity = new ClaimsIdentity("mock-org");
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);

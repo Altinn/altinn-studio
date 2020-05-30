@@ -93,7 +93,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 applicationRepository.Setup(s => s.Create(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
 
                 HttpClient client = GetTestClient(applicationRepository.Object);
-                string token = PrincipalUtil.GetDesignerToken();
+                string token = PrincipalUtil.GetAccessToken("studio.designer");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -202,7 +202,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
 
                 HttpClient client = GetTestClient(applicationRepository.Object);
-                string token = PrincipalUtil.GetDesignerToken();
+                string token = PrincipalUtil.GetAccessToken("studio.designer");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act

@@ -32,15 +32,7 @@ namespace Altinn.Common.PEP.Authorization
             {
                 foreach (Claim claim in context.User.Claims)
                 {
-                    if(claim.OriginalIssuer.Equals(requirement.Issuer)
-                        && claim.Type.Equals(requirement.ClaimType)
-                        && claim.Value.Equals(requirement.ClaimValue))
-                    {
-                        isAuthorized = true;
-                        break;
-                    }
-                    else if(claim.Issuer.Equals(requirement.Issuer)
-                        && claim.Type.Equals(requirement.ClaimType)
+                    if(claim.Type.Equals(requirement.ClaimType)
                         && claim.Value.Equals(requirement.ClaimValue))
                     {
                         isAuthorized = true;
