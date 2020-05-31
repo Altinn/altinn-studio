@@ -15,7 +15,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         private readonly IAltinnAuthenticationClient _altinnAuthenticationClient;
         private readonly IAccessTokenGenerator _accesTokenGenerator;
         private const string AccessTokenIssuer = "studio";
-        private const string AccessTokenApp = "designer";
+        private const string AccessTokenApp = "studio.designer";
 
         /// <summary>
         /// Constructor
