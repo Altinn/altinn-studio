@@ -18,7 +18,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
         /// <param name="principal">The claims principal to include in the token.</param>
         /// <param name="tokenExipry">How long the token should be valid for.</param>
         /// <returns>A new token.</returns>
-        public static string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
+        public static string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExipry, string issuer="UnitTest")
         {
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
@@ -26,7 +26,8 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
                 Subject = new ClaimsIdentity(principal.Identity),
                 Expires = DateTime.UtcNow.AddSeconds(tokenExipry.TotalSeconds),
                 SigningCredentials = GetSigningCredentials(),
-                Audience = "altinn.no"
+                Audience = "altinn.no",
+                Issuer = issuer
             };
 
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
