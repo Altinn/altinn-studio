@@ -14,10 +14,5 @@ namespace Altinn.Common.AccessToken.Constants
         /// The application
         /// </summary>
         public const string App = "urn:altinn:app";
-
-        /// <summary>
-        /// The component
-        /// </summary>
-        public const string Component = "urn:altinn:component";
     }
 }
