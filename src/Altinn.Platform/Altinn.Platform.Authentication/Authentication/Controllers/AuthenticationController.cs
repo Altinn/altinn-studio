@@ -43,6 +43,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private const string HeaderValueEpocDate = "Thu, 01 Jan 1970 00:00:00 GMT";
         private const string OrganisationIdentity = "OrganisationLogin";
         private const string EndUserSystemIdentity = "EndUserSystemLogin";
+        private const string AltinnStudioIdentity = "AltinnStudioDesignerLogin";
         private const string PidClaimName = "pid";
         private const string AuthLevelClaimName = "acr";
         private const string AuthMethodClaimName = "amr";
@@ -232,10 +233,18 @@ namespace Altinn.Platform.Authentication.Controllers
             ClaimsPrincipal originalPrincipal = _validator.ValidateToken(originalToken, validationParameters, out _);
             _logger.LogInformation("Token is valid");
 
-            string appClaim = originalPrincipal.FindFirstValue(AccessTokenClaimTypes.App);
+            List<Claim> claims = new List<Claim>();
+            foreach (Claim claim in originalPrincipal.Claims)
+            {
+                claims.Add(claim);
+            }
 
-            //TODO: Create new claims + generate token.. 
-            throw new NotImplementedException();
+            ClaimsIdentity identity = new ClaimsIdentity(AltinnStudioIdentity);
+            identity.AddClaims(claims);
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+            string serializedToken = await GenerateToken(principal);
+            return Ok(serializedToken);
         }
 
         /// <summary>
