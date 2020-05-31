@@ -454,6 +454,29 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             Assert.True(principal.HasClaim(c => c.Type == "urn:altinn:app"));
         }
 
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateStudioToken_InvalidToken_ReturnsUnauthorized()
+        {
+            // Arrange
+            string accessToken = JwtTokenMock.GenerateAccessToken("studio", "studio.designer", TimeSpan.FromMinutes(2));
+
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Substring(3));
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/exchange/altinnstudio");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        }
+
         private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService)
         {
             Program.ConfigureSetupLogging();
