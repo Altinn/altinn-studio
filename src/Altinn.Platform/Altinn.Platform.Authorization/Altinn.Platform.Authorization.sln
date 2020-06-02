@@ -7,7 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authorizati
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F2EB70E6-8AF2-43A7-AAAA-AE9F9BE5441D}"
 	ProjectSection(SolutionItems) = preProject
-		UnitTest\Altinn.Authorization.ABAC.UnitTest.csproj = UnitTest\Altinn.Authorization.ABAC.UnitTest.csproj
 		Altinn3.ruleset = Altinn3.ruleset
 	EndProjectSection
 EndProject
