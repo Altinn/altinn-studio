@@ -1,5 +1,7 @@
+/* eslint-disable import/prefer-default-export */
+/* eslint-disable no-restricted-syntax */
 import { SagaIterator } from 'redux-saga';
-import { delay } from 'redux-saga/effects';
+import { delay } from 'redux-saga';
 import { call, fork, race, select, take } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import * as AppClusterActionTypes from '../appClusterActionTypes';
