@@ -3,7 +3,9 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Common.AccessTokenClient.Services;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
 {
@@ -14,7 +16,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
     {
         private readonly IAltinnAuthenticationClient _altinnAuthenticationClient;
         private readonly IAccessTokenGenerator _accesTokenGenerator;
-        private const string AccessTokenIssuer = "studio";
+        private readonly GeneralSettings _generalSettings;
+        private const string AccessTokenIssuerProd = "studio";
+        private const string AccessTokenIssuerDev = "dev.studio";
         private const string AccessTokenApp = "studio.designer";
 
         /// <summary>
@@ -22,10 +26,12 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         /// </summary>
         public PlatformBearerTokenHandler(
             IAccessTokenGenerator accessTokenGenerator,
-            IAltinnAuthenticationClient altinnAuthenticationClient)
+            IAltinnAuthenticationClient altinnAuthenticationClient,
+            IOptions<GeneralSettings> generalSettings)
         {
             _altinnAuthenticationClient = altinnAuthenticationClient;
             _accesTokenGenerator = accessTokenGenerator;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <summary>
@@ -37,7 +43,8 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         /// <returns>HttpResponseMessage</returns>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            string designerToken = _accesTokenGenerator.GenerateAccessToken(AccessTokenIssuer, AccessTokenApp);
+            string issuer = _generalSettings.HostName.Contains("dev") ? AccessTokenIssuerDev : AccessTokenIssuerProd;
+            string designerToken = _accesTokenGenerator.GenerateAccessToken(issuer, AccessTokenApp);
             string altinnToken = await _altinnAuthenticationClient.ConvertTokenAsync(designerToken, request.RequestUri);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", altinnToken);
             return await base.SendAsync(request, cancellationToken);
