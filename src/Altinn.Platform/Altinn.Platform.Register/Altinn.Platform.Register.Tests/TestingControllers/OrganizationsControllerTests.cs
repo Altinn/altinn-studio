@@ -112,6 +112,28 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
+        [Fact]
+        public async Task GetOrganization_MissingPlatformAccessToken_ReturnsForbiden()
+        {
+            string token = PrincipalUtil.GetToken(1);
+            string orgNo = "836281763";
+
+            // Arrange
+            Mock<IOrganizations> organizationsService = new Mock<IOrganizations>();
+            organizationsService.Setup(s => s.GetOrganization(It.Is<string>(o => o == orgNo))).ReturnsAsync(new Organization());
+
+            HttpClient client = GetTestClient(organizationsService.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/organizations/" + orgNo);
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
         private HttpClient GetTestClient(IOrganizations organizationsService)
         {
             Program.ConfigureSetupLogging();
