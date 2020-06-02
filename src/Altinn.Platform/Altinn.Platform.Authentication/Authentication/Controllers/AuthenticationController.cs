@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
@@ -43,6 +44,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private const string HeaderValueEpocDate = "Thu, 01 Jan 1970 00:00:00 GMT";
         private const string OrganisationIdentity = "OrganisationLogin";
         private const string EndUserSystemIdentity = "EndUserSystemLogin";
+        private const string AltinnStudioIdentity = "AltinnStudioDesignerLogin";
         private const string PidClaimName = "pid";
         private const string AuthLevelClaimName = "acr";
         private const string AuthMethodClaimName = "amr";
@@ -200,7 +202,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 return Unauthorized();
             }
 
-            switch (originalToken.ToLower())
+            switch (tokenProvider.ToLower())
             {
                 case "id-porten":
                     return await AuthenticateIdPortenToken(originalToken);
@@ -209,33 +211,49 @@ namespace Altinn.Platform.Authentication.Controllers
                 case "altinnstudio":
                     return await AuthenticateAltinnStudioToken(originalToken);
                 default:
-                    string msg = $"Invalid token provider: {tokenProvider}. Trusted token providers are 'Maskinporten', 'Id-porten', and 'AltinnStudioDesigner'.";
+                    string msg = $"Invalid token provider: {tokenProvider}. Trusted token providers are 'Maskinporten', 'Id-porten' and 'AltinnStudio'.";
                     return BadRequest(msg);
             }
         }
 
         private async Task<ActionResult> AuthenticateAltinnStudioToken(string originalToken)
         {
-            IEnumerable<SecurityKey> signingKeys = await _signingKeysResolver.GetSigningKeys("studio");
-
-            TokenValidationParameters validationParameters = new TokenValidationParameters
+            try
             {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKeys = signingKeys,
-                ValidateIssuer = true,
-                ValidateAudience = false,
-                RequireExpirationTime = true,
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
-            };
+                IEnumerable<SecurityKey> signingKeys = await _signingKeysResolver.GetSigningKeys("studio");
 
-            ClaimsPrincipal originalPrincipal = _validator.ValidateToken(originalToken, validationParameters, out _);
-            _logger.LogInformation("Token is valid");
+                TokenValidationParameters validationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKeys = signingKeys,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    RequireExpirationTime = true,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
 
-            string appClaim = originalPrincipal.FindFirstValue(AccessTokenClaimTypes.App);
+                ClaimsPrincipal originalPrincipal = _validator.ValidateToken(originalToken, validationParameters, out _);
+                _logger.LogInformation("Token is valid");
 
-            //TODO: Create new claims + generate token.. 
-            throw new NotImplementedException();
+                List<Claim> claims = new List<Claim>();
+                foreach (Claim claim in originalPrincipal.Claims)
+                {
+                    claims.Add(claim);
+                }
+
+                ClaimsIdentity identity = new ClaimsIdentity(AltinnStudioIdentity);
+                identity.AddClaims(claims);
+                ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+                string serializedToken = await GenerateToken(principal);
+                return Ok(serializedToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Altinn Studio authentication failed. {ex.Message}");
+                return Unauthorized();
+            }
         }
 
         /// <summary>
