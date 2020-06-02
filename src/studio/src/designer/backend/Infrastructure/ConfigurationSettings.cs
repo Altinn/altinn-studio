@@ -1,4 +1,3 @@
-using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using AltinnCore.Authentication.Constants;
