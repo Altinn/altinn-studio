@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Reflection;
-
+using Altinn.Common.AccessToken;
+using Altinn.Common.AccessToken.Configuration;
+using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Services.Implementation;
 using Altinn.Platform.Register.Services.Interfaces;
@@ -10,8 +12,10 @@ using AltinnCore.Authentication.JwtCookie;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -81,9 +85,16 @@ namespace Altinn.Platform.Register
                 options.JsonSerializerOptions.WriteIndented = true;
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
+            services.AddMemoryCache();
 
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
+            services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
+
+            services.AddSingleton<IAuthorizationHandler, AccessTokenHandler>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<ISigningKeysResolver, SigningKeysResolver>();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                   .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
@@ -106,6 +117,11 @@ namespace Altinn.Platform.Register
                           options.RequireHttpsMetadata = false;
                       }
                   });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("PlatformAccess", policy => policy.Requirements.Add(new AccessTokenRequirement()));
+            });
 
             services.AddHttpClient<IOrganizations, OrganizationsWrapper>();
             services.AddHttpClient<IParties, PartiesWrapper>();

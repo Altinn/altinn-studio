@@ -1,6 +1,6 @@
 using System;
 using System.Net;
-
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Receipt.Configuration;
 using Altinn.Platform.Receipt.Services;
 using Altinn.Platform.Receipt.Services.Interfaces;
@@ -101,6 +101,8 @@ namespace Altinn.Platform.Receipt
             services.AddHttpClient<IStorage, StorageWrapper>();
             services.AddHttpClient<IProfile, ProfileWrapper>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
+            services.AddTransient<Common.AccessTokenClient.Services.ISigningCredentialsResolver, SigningCredentialsResolver>();
 
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 

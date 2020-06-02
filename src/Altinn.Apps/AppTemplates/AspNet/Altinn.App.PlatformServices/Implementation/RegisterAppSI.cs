@@ -8,6 +8,7 @@ using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Register.Models;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
@@ -29,6 +30,8 @@ namespace Altinn.App.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly HttpClient _client;
+        private readonly IAppResources _appResources;
+        private readonly IAccessTokenGenerator _accessTokenGenerator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterAppSI"/> class
@@ -46,7 +49,9 @@ namespace Altinn.App.Services.Implementation
             ILogger<RegisterAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
-            HttpClient httpClient)
+            HttpClient httpClient,
+            IAppResources appResources,
+            IAccessTokenGenerator accessTokenGenerator)
         {
             _dsf = dsf;
             _er = er;
@@ -57,6 +62,8 @@ namespace Altinn.App.Services.Implementation
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
+            _appResources = appResources;
+            _accessTokenGenerator = accessTokenGenerator;
         }
 
         /// <summary>
@@ -82,7 +89,7 @@ namespace Altinn.App.Services.Implementation
 
             string endpointUrl = $"parties/{partyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl);
+            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id));
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 party = await response.Content.ReadAsAsync<Party>();
@@ -114,6 +121,7 @@ namespace Altinn.App.Services.Implementation
             };
 
             request.Headers.Add("Authorization", "Bearer " + token);
+            request.Headers.Add("PlatformAccessToken", _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id));
 
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.OK)
