@@ -219,7 +219,13 @@ namespace Altinn.Platform.Authentication.Controllers
         {
             try
             {
-                IEnumerable<SecurityKey> signingKeys = await _signingKeysResolver.GetSigningKeys("studio");
+                if (!_validator.CanReadToken(originalToken))
+                {
+                    return Unauthorized();
+                }
+
+                JwtSecurityToken jwt = _validator.ReadJwtToken(originalToken);
+                IEnumerable<SecurityKey> signingKeys = await _signingKeysResolver.GetSigningKeys(jwt.Issuer);
 
                 TokenValidationParameters validationParameters = new TokenValidationParameters
                 {
