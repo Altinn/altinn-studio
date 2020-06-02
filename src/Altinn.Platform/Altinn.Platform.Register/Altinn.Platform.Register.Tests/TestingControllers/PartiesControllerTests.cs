@@ -235,6 +235,29 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
 
+
+        [Fact]
+        public async Task GetParty_MissingAccessToken_ReturnsForbidden()
+        {
+            string token = PrincipalUtil.GetToken(1);
+            int partyId = 6565;
+
+            // Arrange
+            Mock<IParties> partiesService = new Mock<IParties>();
+            partiesService.Setup(s => s.GetParty(It.Is<int>(o => o == partyId))).ReturnsAsync(new Party());
+
+            HttpClient client = GetTestClient(partiesService.Object);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/register/api/v1/parties/" + partyId);
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
         private HttpClient GetTestClient(IParties partiesService)
         {
             Program.ConfigureSetupLogging();
