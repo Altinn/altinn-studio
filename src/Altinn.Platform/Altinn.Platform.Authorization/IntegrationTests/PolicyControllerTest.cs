@@ -1,5 +1,6 @@
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
+using Altinn.Platform.Authorization.IntegrationTests.Utils;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -35,6 +36,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
 
+            string token = PrincipalUtil.GetAccessToken("studio.designer");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             // Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", content);
 
@@ -55,6 +59,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
+            string token = PrincipalUtil.GetAccessToken("studio.designer");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             // Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", content);
 
@@ -71,6 +78,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         [Fact]
         public async Task WritePolicy_TC03()
         {
+
+            string token = PrincipalUtil.GetAccessToken("studio.designer");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             // Arrange & Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", null);
             TestSetupUtil.DeleteAppBlobData("org", "app");
@@ -92,6 +103,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
 
+            string token = PrincipalUtil.GetAccessToken("studio.designer");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             // Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?app=app", content);
 
@@ -111,11 +125,38 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StreamContent content = new StreamContent(dataStream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
 
+            string token = PrincipalUtil.GetAccessToken("studio.designer");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             // Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org", content);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: Write a json file to storage with incorrect claims in designer token
+        /// Expected: WritePolicyAsync returns 401
+        /// </summary>
+        [Fact]
+        public async Task WritePolicy_TC06()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/AltinnApps0009Request.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            string token = PrincipalUtil.GetAccessToken("studio.desi2gner");
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", content);
+
+            TestSetupUtil.DeleteAppBlobData("org", "app");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
     }
 }
