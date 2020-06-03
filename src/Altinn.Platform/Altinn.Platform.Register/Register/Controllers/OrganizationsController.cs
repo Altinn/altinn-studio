@@ -11,6 +11,7 @@ namespace Altinn.Platform.Register.Controllers
     /// The organizations controller provides access to organization information in the SBL Register component.
     /// </summary>
     [Authorize]
+    [Authorize(Policy = "PlatformAccess")]
     [Route("register/api/v1/organizations")]
     public class OrganizationsController : Controller
     {
