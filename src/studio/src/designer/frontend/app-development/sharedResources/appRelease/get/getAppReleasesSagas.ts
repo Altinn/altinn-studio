@@ -31,7 +31,7 @@ function* getReleasesIntervalSaga(): SagaIterator {
   while (true) {
     try {
       yield call(getReleasesSaga);
-      yield call(delay, 5000);
+      yield delay(5000);
     } catch (err) {
       yield call(AppReleaseActionDispatcher.getAppReleasesRejected, 1);
     }
