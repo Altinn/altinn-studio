@@ -102,8 +102,6 @@ namespace Altinn.Studio.Designer
                         SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
                             keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
                         Startup.ApplicationInsightsKey = secretBundle.Value;
-
-                        AddMaskinportenCertificate(stageOneConfig, keyVaultClient, keyVaultEndpoint, config);
                     }
                     catch (Exception vaultException)
                     {
@@ -161,24 +159,6 @@ namespace Altinn.Studio.Designer
                     builder.AddConsole();
                 }
             }).UseStartup<Startup>()
-            .CaptureStartupErrors(true);
-
-        private static void AddMaskinportenCertificate(
-            IConfiguration stageOneConfig,
-            KeyVaultClient keyVaultClient,
-            string keyVaultEndpoint,
-            IConfigurationBuilder config)
-        {
-            SecretBundle maskinportenClientId = keyVaultClient.GetSecretAsync(
-                keyVaultEndpoint, "GeneralSettings--MaskinportenClientId").GetAwaiter().GetResult();
-            string maskinportenCertificateName = stageOneConfig.GetValue<string>("GeneralSettings:MaskinportenCertificateName");
-            SecretBundle secretCertificateBundle = keyVaultClient.GetSecretAsync(
-                keyVaultEndpoint, maskinportenCertificateName).GetAwaiter().GetResult();
-            config.AddInMemoryCollection(new List<KeyValuePair<string, string>>
-            {
-                new KeyValuePair<string, string>("GeneralSettings:MaskinportenCertificate", secretCertificateBundle.Value),
-                new KeyValuePair<string, string>("GeneralSettings:MaskinportenClientId", maskinportenClientId.Value)
-            });
-        }
+            .CaptureStartupErrors(true);        
     }
 }
