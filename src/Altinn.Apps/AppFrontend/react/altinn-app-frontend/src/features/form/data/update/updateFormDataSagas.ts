@@ -38,7 +38,7 @@ function* updateFormDataSaga({
     );
 
     const componentValidations = validationResult?.validations[componentId];
-    const invalidDataComponents = state.formValidations.invalidDataTypes;
+    const invalidDataComponents = state.formValidations.invalidDataTypes || [];
     const updatedInvalidDataComponents = invalidDataComponents.filter((item) => item !== field);
     if (validationResult?.invalidDataTypes) {
       updatedInvalidDataComponents.push(field);
