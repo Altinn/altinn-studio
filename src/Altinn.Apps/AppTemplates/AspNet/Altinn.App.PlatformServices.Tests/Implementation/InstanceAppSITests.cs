@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -37,11 +38,18 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         }
 
         [Fact]
-        public async Task AddCompleteConfirmation_SuccessfulCall()
+        public async Task AddCompleteConfirmation_SuccessfulCallToStorage()
         {
             // Arrange
             Instance instance = new Instance { CompleteConfirmations = new List<CompleteConfirmation> { new CompleteConfirmation { StakeholderId = "test" } } };
-            InitializeMocks(instance);
+
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"),
+            };
+
+            InitializeMocks(httpResponseMessage);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -54,7 +62,41 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             handlerMock.VerifyAll();
         }
 
-        private void InitializeMocks(Instance instance)
+        [Fact]
+        public async Task AddCompleteConfirmation_StorageReturnsNonSuccess_ThrowsPlatformHttpException()
+        {
+            // Arrange
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
+            };
+
+            InitializeMocks(httpResponseMessage);
+
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
+
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, null, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+
+            PlatformHttpException actualException = null;
+
+            // Act
+            try
+            {
+                await target.AddCompleteConfirmation(1337, Guid.NewGuid());
+            }
+            catch (PlatformHttpException e)
+            {
+                actualException = e;
+            }
+
+            // Assert
+            handlerMock.VerifyAll();
+
+            Assert.NotNull(actualException);
+        }
+
+        private void InitializeMocks(HttpResponseMessage httpResponseMessage)
         {
             PlatformSettings platformSettings = new PlatformSettings { ApiStorageEndpoint = "http://localhost", SubscriptionKey = "key"};
             platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
@@ -63,12 +105,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             appSettingsOptions.Setup(s => s.CurrentValue).Returns(appSettings);
 
             contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
-
-            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"),
-            };
 
             handlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().EndsWith("complete")),

@@ -364,8 +364,6 @@ namespace App.IntegrationTests
             Assert.NotNull(updatedInstance);
             Assert.Equal(org, updatedInstance.CompleteConfirmations[0].StakeholderId);
             Assert.Equal($"{instanceOwnerPartyId}/{instanceGuid}", updatedInstance.Id);
-
-            TestDataUtil.DeleteInstanceAndData(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
         }
 
         /// <summary>
