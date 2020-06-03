@@ -1,9 +1,8 @@
 using System;
-using System.Net;
-using System.Net.Http;
 using System.Security.Claims;
+
 using AltinnCore.Authentication.Constants;
-using Altinn.App.Services.Constants;
+
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.App.Services.Helpers
