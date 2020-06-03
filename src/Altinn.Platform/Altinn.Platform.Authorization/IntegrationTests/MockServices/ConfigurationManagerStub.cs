@@ -18,13 +18,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Authentication
         /// <summary>
         /// Initializes a new instance of <see cref="ConfigurationManagerStub" />
         /// </summary>
-        /// <param name="metadataAddress">The address to obtain configuration.</param>
-        /// <param name="configRetriever">The <see cref="IConfigurationRetriever{OpenIdConnectConfiguration}" /></param>
-        /// <param name="docRetriever">The <see cref="IDocumentRetriever" /> that reaches out to obtain the configuration.</param>
-        public ConfigurationManagerStub(
-            string metadataAddress,
-            IConfigurationRetriever<OpenIdConnectConfiguration> configRetriever,
-            IDocumentRetriever docRetriever)
+        public ConfigurationManagerStub()
         {
         }
 

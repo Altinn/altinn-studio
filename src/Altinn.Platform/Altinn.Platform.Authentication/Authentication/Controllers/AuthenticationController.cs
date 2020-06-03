@@ -55,7 +55,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private readonly ISigningKeysRetriever _signingKeysRetriever;
         private readonly IUserProfileService _userProfileService;
         private readonly JwtSecurityTokenHandler _validator;
-        private readonly ISigningKeysResolver _signingKeysResolver;
+        private readonly ISigningKeysResolver _designerSigningKeysResolver;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="AuthenticationController"/> class with the given dependencies.
@@ -85,7 +85,7 @@ namespace Altinn.Platform.Authentication.Controllers
             _cookieDecryptionService = cookieDecryptionService;
             _organisationRepository = organisationRepository;
             _userProfileService = userProfileService;
-            _signingKeysResolver = signingKeysResolver;
+            _designerSigningKeysResolver = signingKeysResolver;
             _validator = new JwtSecurityTokenHandler();
         }
 
@@ -225,7 +225,7 @@ namespace Altinn.Platform.Authentication.Controllers
                 }
 
                 JwtSecurityToken jwt = _validator.ReadJwtToken(originalToken);
-                IEnumerable<SecurityKey> signingKeys = await _signingKeysResolver.GetSigningKeys(jwt.Issuer);
+                IEnumerable<SecurityKey> signingKeys = await _designerSigningKeysResolver.GetSigningKeys(jwt.Issuer);
 
                 TokenValidationParameters validationParameters = new TokenValidationParameters
                 {
@@ -239,7 +239,6 @@ namespace Altinn.Platform.Authentication.Controllers
                 };
 
                 ClaimsPrincipal originalPrincipal = _validator.ValidateToken(originalToken, validationParameters, out _);
-                _logger.LogInformation("Token is valid");
 
                 List<Claim> claims = new List<Claim>();
                 foreach (Claim claim in originalPrincipal.Claims)

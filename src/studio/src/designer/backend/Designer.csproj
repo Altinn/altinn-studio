@@ -94,10 +94,6 @@
     </AdditionalFiles>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Infrastructure\Authentication\" />
-  </ItemGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
