@@ -1,6 +1,7 @@
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Altinn.Common.AccessTokenClient.Configuration;
+
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 

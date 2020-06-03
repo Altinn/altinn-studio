@@ -3,11 +3,12 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>true</IsPackable>
     <OutputType>Library</OutputType>
-    <Version>0.5.2</Version>
+    <Version>0.5.3</Version>
     <Description>Package to generate access tokens to use against Altinn Platform.  Can be used by applications and other components that need to access</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Company>Altinn</Company>
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
+    <PackageId>Altinn.Common.AccessTokenClient</PackageId>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
