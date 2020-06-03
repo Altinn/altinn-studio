@@ -51,18 +51,17 @@ export default function(data) {
     });  
     addErrorCount(success);
 
-
     //Test regiter party lookup indirectly by creating an instance with app api and ssn details
     res = appInstances.postCreateInstanceWithSsnOrOrg(runtimeToken, "ssn", ssn);
     success = check(res, {
-        "Instance created by looking up SSN in register": (r) => r.status === 201
+        "Instance created by looking up SSN in register:": (r) => r.status === 201
     });  
     addErrorCount(success);
 
     //Test regiter party lookup indirectly by creating an instance with app api and ssn details
     res = appInstances.postCreateInstanceWithSsnOrOrg(runtimeToken, "org", orgNr);
     success = check(res, {
-        "Instance created by looking up Org in register": (r) => r.status === 201
+        "Instance created by looking up Org in register:": (r) => r.status === 201
     });  
     addErrorCount(success);
 
