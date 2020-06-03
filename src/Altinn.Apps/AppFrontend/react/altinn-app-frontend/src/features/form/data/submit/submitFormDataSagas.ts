@@ -102,7 +102,7 @@ function* saveFormDataSaga(): SagaIterator {
     );
 
     const model = convertDataBindingToModel(
-      filterOutInvalidData(state.formData.formData, state.formValidations.invalidDataTypes),
+      filterOutInvalidData(state.formData.formData, state.formValidations.invalidDataTypes || []),
     );
 
     try {
