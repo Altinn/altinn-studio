@@ -107,6 +107,7 @@ namespace Altinn.Platform.Authentication
             services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProvider>();
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
             services.AddTransient<IOrganisationRepository, OrganisationRepository>();
+            services.AddSingleton<Common.AccessToken.Services.ISigningKeysResolver, Common.AccessToken.Services.SigningKeysResolver>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
