@@ -24,7 +24,7 @@ namespace Altinn.Common.PEP.Authorization
         /// </summary>
         /// <param name="context">The context</param>
         /// <param name="requirement">The requirement</param>
-        /// <returns>A Task</returns>
+        /// <returns>No object or value is returned by this method when it completes.</returns>
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ClaimAccessRequirement requirement)
         {
             bool isAuthorized = false;
@@ -55,4 +55,3 @@ namespace Altinn.Common.PEP.Authorization
         }
     }
 }
-
