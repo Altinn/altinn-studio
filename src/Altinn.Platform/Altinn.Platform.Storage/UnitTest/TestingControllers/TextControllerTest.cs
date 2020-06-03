@@ -302,7 +302,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                     });
                 }).CreateClient();
 
-                string token = PrincipalUtil.GetOrgToken("testOrg");
+                string token = PrincipalUtil.GetAccessToken("studio.designer");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 return client;
