@@ -164,9 +164,9 @@ namespace Altinn.App.Services.Implementation
         }
         
         /// <inheritdoc/>
-        public async Task<Instance> AddCompleteConfirmation(int instanceOwnerId, Guid instanceGuid)
+        public async Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string apiUrl = $"instances/{instanceOwnerId}/{instanceGuid}/complete";
+            string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/complete";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
             HttpResponseMessage response = await _client.PostAsync(token, apiUrl, new StringContent(string.Empty));
