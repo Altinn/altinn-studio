@@ -5,7 +5,7 @@ using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Altinn.Platform.Storage.UnitTest.Mocks
+namespace Altinn.Platform.Authorization.IntegrationTests.Utils
 {
     /// <summary>
     /// Represents a mechanism for creating JSON Web tokens for use in integration tests.

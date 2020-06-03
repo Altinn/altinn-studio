@@ -2,9 +2,10 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Infrastructure.Authentication;
+using Altinn.Common.AccessTokenClient.Services;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
-using Altinn.Studio.Designer.TypedHttpClients.Maskinporten;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
 {
@@ -14,17 +15,23 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
     public class PlatformBearerTokenHandler : DelegatingHandler
     {
         private readonly IAltinnAuthenticationClient _altinnAuthenticationClient;
-        private readonly IMaskinportenClient _maskinportenClient;
+        private readonly IAccessTokenGenerator _accesTokenGenerator;
+        private readonly GeneralSettings _generalSettings;
+        private const string AccessTokenIssuerProd = "studio";
+        private const string AccessTokenIssuerDev = "dev-studio";
+        private const string AccessTokenApp = "studio.designer";
 
         /// <summary>
         /// Constructor
         /// </summary>
         public PlatformBearerTokenHandler(
-            IMaskinportenClient maskinportenClient,
-            IAltinnAuthenticationClient altinnAuthenticationClient)
+            IAccessTokenGenerator accessTokenGenerator,
+            IAltinnAuthenticationClient altinnAuthenticationClient,
+            IOptions<GeneralSettings> generalSettings)
         {
-            _maskinportenClient = maskinportenClient;
             _altinnAuthenticationClient = altinnAuthenticationClient;
+            _accesTokenGenerator = accessTokenGenerator;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <summary>
@@ -36,8 +43,9 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
         /// <returns>HttpResponseMessage</returns>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            AccessTokenModel maskinportenToken = await _maskinportenClient.CreateToken();
-            string altinnToken = await _altinnAuthenticationClient.ConvertTokenAsync(maskinportenToken.AccessToken, request.RequestUri);
+            string issuer = _generalSettings.HostName.Contains("dev") ? AccessTokenIssuerDev : AccessTokenIssuerProd;
+            string designerToken = _accesTokenGenerator.GenerateAccessToken(issuer, AccessTokenApp);
+            string altinnToken = await _altinnAuthenticationClient.ConvertTokenAsync(designerToken, request.RequestUri);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", altinnToken);
             return await base.SendAsync(request, cancellationToken);
         }

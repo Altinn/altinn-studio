@@ -1,3 +1,4 @@
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -31,6 +32,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
             services.AddTransient<IPipelineService, PipelineService>();
             services.AddTransient<ITextResourceService, TextResourceService>();
+            services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
+            services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
 
             return services;
         }

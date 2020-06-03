@@ -12,7 +12,6 @@ using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
-using Altinn.Studio.Designer.TypedHttpClients.Maskinporten;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,7 +43,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 <IAltinnAuthorizationPolicyClient, AltinnAuthorizationPolicyClient>();
             services.AddAuthenticatedAltinnPlatformTypedHttpClient
                 <IAltinnStorageTextResourceClient, AltinnStorageTextResourceClient>();
-            services.AddMaskinportenTypedHttpClient(config);
 
             return services;
         }
@@ -94,15 +92,6 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 })
                 .AddHttpMessageHandler<PlatformBearerTokenHandler>()
-                .AddHttpMessageHandler<EnsureSuccessHandler>();
-
-        private static IHttpClientBuilder AddMaskinportenTypedHttpClient(this IServiceCollection services, IConfiguration config)
-            => services.AddHttpClient<IMaskinportenClient, MaskinportenClient>((sp, httpClient) =>
-                {
-                    GeneralSettings generalSettings = config.GetSection(nameof(GeneralSettings)).Get<GeneralSettings>();
-                    httpClient.BaseAddress = new Uri(generalSettings.MaskinportenBaseAddress);
-                    httpClient.Timeout = new TimeSpan(0, 0, 30); // Could use Polly for this
-                })
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
     }
 }

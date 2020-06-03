@@ -3,14 +3,14 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>true</IsPackable>
     <OutputType>Library</OutputType>
-    <Version>0.5.4</Version>
+    <Version>0.5.5</Version>
     <Description>Package to verify Access Tokens from client. Require public certificates stored in Azure KeyVault</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryType>https://github.com/Altinn/altinn-studio</RepositoryType>
     <PackageTags>Altinn AccessToken</PackageTags>
     <Company>Altinn</Company>
-    <AssemblyVersion>0.5.4.0</AssemblyVersion>
+    <AssemblyVersion>0.5.5.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />

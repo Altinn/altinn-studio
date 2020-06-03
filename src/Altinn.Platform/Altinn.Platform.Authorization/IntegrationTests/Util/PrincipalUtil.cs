@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using Altinn.Platform.Storage.UnitTest.Mocks;
 using AltinnCore.Authentication.Constants;
 
 #pragma warning disable 1591
 #pragma warning disable SA1600
 
-namespace Altinn.Platform.Storage.UnitTest.Utils
+namespace Altinn.Platform.Authorization.IntegrationTests.Utils
 {
     public static class PrincipalUtil
     {

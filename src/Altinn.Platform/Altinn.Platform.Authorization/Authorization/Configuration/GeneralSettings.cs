@@ -35,6 +35,16 @@ namespace Altinn.Platform.Authorization.Configuration
         /// Gets or sets the cache timeout
         /// </summary>
         public int RoleCacheTimeout { get; set; }
+        
+        /// <summary>
+        /// Name of the cookie for runtime
+        /// </summary>
+        public string RuntimeCookieName { get; set; }
+
+        /// <summary>
+        /// Open Id Connect Well known endpoint. Related to JSON WEB token validation.
+        /// </summary>
+        public string OpenIdWellKnownEndpoint { get; set; }
 
         /// <summary>
         /// Gets the SBL base adress from kubernetes environment variables and appsettings if environment variable is not set
