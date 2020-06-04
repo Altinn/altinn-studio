@@ -1,16 +1,21 @@
+using System;
 using System.Reflection;
 using Altinn.Authorization.ABAC.Interface;
+using Altinn.Common.PEP.Authorization;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Configuration;
+using Altinn.Platform.Authorization.Constants;
 using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Telemetry;
+using AltinnCore.Authentication.JwtCookie;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -20,6 +25,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 namespace Altinn.Platform.Authorization
@@ -34,6 +40,8 @@ namespace Altinn.Platform.Authorization
         /// </summary>
         internal static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey";
 
+        private readonly IWebHostEnvironment _env;
+
         /// <summary>
         /// The application insights key.
         /// </summary>
@@ -44,10 +52,11 @@ namespace Altinn.Platform.Authorization
         /// <summary>
         ///  Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
-        public Startup(ILogger<Startup> logger, IConfiguration configuration)
+        public Startup(ILogger<Startup> logger, IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
             _logger = logger;
+            _env = env;
         }
 
         /// <summary>
@@ -78,6 +87,35 @@ namespace Altinn.Platform.Authorization
             services.AddHttpClient<RolesClient>();
             services.AddHttpClient<SBLClient>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+            services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
+                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
+                {
+                    options.JwtCookieName = generalSettings.RuntimeCookieName;
+                    options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
+                    };
+
+                    if (_env.IsDevelopment())
+                    {
+                        options.RequireHttpsMetadata = false;
+                    }
+                });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(AuthzConstants.POLICY_STUDIO_DESIGNER, policy => policy.Requirements.Add(new ClaimAccessRequirement("urn:altinn:app", "studio.designer")));
+            });
+
+            services.AddTransient<IAuthorizationHandler, ClaimAccessHandler>();
 
             services.Configure<KestrelServerOptions>(options =>
             {
@@ -151,6 +189,9 @@ namespace Altinn.Platform.Authorization
             });
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

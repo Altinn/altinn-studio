@@ -22,7 +22,7 @@ function* createReleaseSaga({
       body,
       targetCommitish,
     });
-    yield call(delay, 2000);
+    yield delay(2000);
     yield call(AppReleaseActionDispatcher.createAppReleaseFulfilled, responseData);
   } catch (err) {
     if (checkIfAxiosError(err)) {

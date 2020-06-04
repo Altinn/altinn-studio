@@ -34,5 +34,10 @@ namespace Altinn.Platform.Storage.Helpers
         /// Policy tag for authorizing client scope.
         /// </summary>
         public const string POLICY_SCOPE_INSTANCE_READ = "ScopeInstanceRead";
+
+        /// <summary>
+        /// Policy tag for authorizing designer access
+        /// </summary>
+        public const string POLICY_STUDIO_DESIGNER = "StudioDesignerAccess";
     }
 }

@@ -3,6 +3,8 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Interface;
+using Altinn.Platform.Authorization.Constants;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -36,6 +38,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         [HttpPost]
         public async Task<ActionResult> WritePolicy([FromQuery] string org, [FromQuery] string app)
         {

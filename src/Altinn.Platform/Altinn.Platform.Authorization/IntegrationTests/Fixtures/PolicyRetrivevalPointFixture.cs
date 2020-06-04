@@ -6,10 +6,13 @@ using Altinn.Authorization.ABAC.Interface;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
+using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
+using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
 {
@@ -38,6 +41,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                     services.AddScoped<IRoles, MockServices.PolicyInformationPoint>();
                     services.AddScoped<IContextHandler, MockServices.ContextHandler>();
                     services.AddScoped<IPolicyRepository, MockServices.PolicyRepository>();
+                    services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {

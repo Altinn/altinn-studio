@@ -43,7 +43,7 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Produces("application/json")]
-        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_APPDEPLOY)]
+        [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         public async Task<ActionResult<TextResource>> Create(string org, string app, [FromBody] TextResource textResource)
         {
             try
@@ -119,7 +119,7 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Produces("application/json")]
-        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_APPDEPLOY)]
+        [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         public async Task<ActionResult<TextResource>> Update(string org, string app, string language, [FromBody] TextResource textResource)
         {
             try
@@ -154,7 +154,7 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Produces("application/json")]
-        [Authorize(Policy = AuthzConstants.POLICY_SCOPE_APPDEPLOY)]
+        [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         public async Task<ActionResult> Delete(string org, string app, string language)
         {
             try
