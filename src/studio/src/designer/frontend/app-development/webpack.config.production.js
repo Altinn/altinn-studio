@@ -1,6 +1,6 @@
 const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
 const MonacoPlugin = require('monaco-editor-webpack-plugin');
 const path = require('path');
@@ -27,6 +27,12 @@ module.exports = {
   },
   performance: {
     hints: false,
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin(),
+    ],
   },
   module: {
     rules: [{
@@ -73,9 +79,6 @@ module.exports = {
     }),
     new MiniCssExtractPlugin({
       filename: "app-development.css",
-    }),
-    new UglifyJsPlugin({
-      parallel: true,
     }),
     new MonacoPlugin({
       output: path.join('../app-development', 'js', 'react'),
