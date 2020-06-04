@@ -5,18 +5,20 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.App.PlatformServices.Extentions;
+
+using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
+using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Implementation
 {
@@ -36,8 +38,7 @@ namespace Altinn.App.Services.Implementation
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="logger">the logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
-        /// <param name="cookieOptions">The cookie options </param>
-        /// <param name="httpClientAccessor">The Http client accessor </param>
+        /// <param name="httpClient">A HttpClient that can be used to perform HTTP requests against the platform.</param>
         /// <param name="settings">The application settings.</param>
         public InstanceAppSI(
             IOptions<PlatformSettings> platformSettings,
@@ -65,7 +66,7 @@ namespace Altinn.App.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
             HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
                 Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
@@ -128,7 +129,7 @@ namespace Altinn.App.Services.Implementation
 
             StringContent httpContent = new StringContent(processStateString, Encoding.UTF8, "application/json");
             HttpResponseMessage response = await _client.PutAsync(token, apiUrl, httpContent);
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
                 Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(instanceData);
@@ -158,7 +159,25 @@ namespace Altinn.App.Services.Implementation
                 return createdInstance;
             }
 
-            _logger.LogError($"Unable to create instance {response.StatusCode} - {await response.Content?.ReadAsStringAsync()}");
+            _logger.LogError($"Unable to create instance {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+            throw await PlatformHttpException.CreateAsync(response);
+        }
+        
+        /// <inheritdoc/>
+        public async Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid)
+        {
+            string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/complete";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+
+            HttpResponseMessage response = await _client.PostAsync(token, apiUrl, new StringContent(string.Empty));
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string instanceData = await response.Content.ReadAsStringAsync();
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                return instance;
+            }
+
             throw await PlatformHttpException.CreateAsync(response);
         }
     }

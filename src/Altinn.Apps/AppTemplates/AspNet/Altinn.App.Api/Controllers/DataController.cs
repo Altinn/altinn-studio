@@ -9,7 +9,7 @@ using Altinn.App.Api.Filters;
 using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.Serialization;
-using Altinn.App.PlatformServices.Extentions;
+using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
