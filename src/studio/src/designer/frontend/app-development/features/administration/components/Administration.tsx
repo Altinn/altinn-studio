@@ -1,6 +1,5 @@
 
 import { createMuiTheme, createStyles, Grid, Typography, withStyles } from '@material-ui/core';
-import classNames = require('classnames');
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
@@ -11,8 +10,12 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
+import AltinnButton from 'app-shared/components/AltinnButton';
 import { ICommit, IRepository } from '../../../types/global';
 import handleServiceInformationActionDispatchers from '../handleServiceInformationDispatcher';
+import RepoStatusActionDispatchers from '../../../sharedResources/repoStatus/repoStatusDispatcher';
+
+import classNames = require('classnames');
 export interface IAdministrationComponentProvidedProps {
   classes: any;
 }
@@ -50,8 +53,12 @@ const styles = createStyles({
     fontSize: 20,
     fontWeight: 500,
   },
+  sidebarHeaderSecond: {
+    marginTop: 36,
+  },
   sidebarInfoText: {
     fontSize: 16,
+    marginBottom: 12,
   },
   iconStyling: {
     fontSize: 35,
@@ -141,6 +148,12 @@ export class AdministrationComponent extends
     this.setState({ editServiceName: true });
   }
 
+  public handleResetRepoClick = () => {
+    const altinnWindow: any = window;
+    const { org, app } = altinnWindow;
+    RepoStatusActionDispatchers.resetLocalRepo(org, app);
+  }
+
   public onBlurServiceName = () => {
     if (this.state.editServiceName && (!this.state.serviceName || this.state.serviceName === '')) {
       this.setState({
@@ -188,11 +201,12 @@ export class AdministrationComponent extends
   }
 
   public renderSideMenuContent = (): JSX.Element => {
-    const {classes} = this.props;
+    const { classes } = this.props;
     return (
       <>
+        {/* App owner info */}
         <Typography className={classes.sidebarHeader}>
-        {getLanguageFromKey('general.service_owner', this.props.language)}
+          {getLanguageFromKey('general.service_owner', this.props.language)}
         </Typography>
         <Typography className={classes.sidebarInfoText}>
           {getLanguageFromKey('administration.service_owner_is', this.props.language)}
@@ -210,7 +224,18 @@ export class AdministrationComponent extends
             {getLanguageFromKey('administration.created_by', this.props.language)} {formatNameAndDate(this.props.initialCommit.author.name, this.props.service.created_at)}
           </Typography>
         }
-    </>
+        {/* Reset local repository */}
+        <Typography className={classNames(classes.sidebarHeader, classes.sidebarHeaderSecond)}>
+          {getLanguageFromKey('Slett mine endringer', this.props.language)}
+        </Typography>
+        <Typography className={classes.sidebarInfoText}>
+          {getLanguageFromKey('Dette er skumle saker, vær forsiktig!', this.props.language)}
+        </Typography>
+        <AltinnButton
+          btnText={getLanguageFromKey('Slett mine endringer', this.props.language)}
+          onClickFunction={this.handleResetRepoClick}
+        />
+      </>
     );
   }
 
