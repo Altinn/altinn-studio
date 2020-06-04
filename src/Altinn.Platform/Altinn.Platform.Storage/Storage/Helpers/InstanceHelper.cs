@@ -27,15 +27,6 @@ namespace Altinn.Platform.Storage.Helpers
 
             DateTime createdDateTime = visibleAfter != null && visibleAfter > instance.Created ? (DateTime)visibleAfter : instance.Created.Value;
 
-            string lastChangedBy = FindLastChangedBy(instance);
-
-            // last changed by is set to null if instance has only been modified by an organisation
-            // to ensure correct rendering in messagebox.
-            if (instance.Created.Value == instance.LastChanged.Value && IsValidOrganizationNumber(lastChangedBy))
-            {
-                lastChangedBy = "0";
-            }
-
             MessageBoxInstance messageBoxInstance = new MessageBoxInstance
             {
                 CreatedDateTime = createdDateTime,

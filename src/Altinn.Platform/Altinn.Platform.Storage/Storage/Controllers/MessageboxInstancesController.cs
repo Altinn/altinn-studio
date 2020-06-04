@@ -136,7 +136,7 @@ namespace Altinn.Platform.Storage.Controllers
             messageBoxInstance.AuthorizedForWrite = true;
 
             Dictionary<string, Dictionary<string, string>> appTitle = await _applicationRepository.GetAppTitles(new List<string> { instance.AppId });
-            List<MessageBoxInstance> messageBoxInstances = InstanceHelper.AddTitleToInstances(new List<MessageBoxInstance> { messageBoxInstance }, appTitle, languageId);
+            InstanceHelper.AddTitleToInstances(new List<MessageBoxInstance> { messageBoxInstance }, appTitle, languageId);
 
             return Ok(messageBoxInstance);
         }
