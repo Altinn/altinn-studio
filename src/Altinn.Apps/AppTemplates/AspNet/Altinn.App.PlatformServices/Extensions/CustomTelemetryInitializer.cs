@@ -2,7 +2,7 @@ using System;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 
-namespace Altinn.App.PlatformServices.Extentions
+namespace Altinn.App.PlatformServices.Extensions
 {
     /// <summary>
     /// Set up custom telemetry for Application Insights

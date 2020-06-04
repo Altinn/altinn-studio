@@ -60,5 +60,10 @@ namespace App.IntegrationTests.Mocks.Services
         {
             throw new NotImplementedException();
         }
+
+        public Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -1,15 +1,12 @@
-using App.IntegrationTests.Mocks.Services;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
+
+using App.IntegrationTests.Mocks.Services;
 
 namespace App.IntegrationTests.Utils
 {
     public class TestDataUtil
     {
-
-
         public static void PrepareInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string instancePath = GetInstancePath(org, app, instanceOwnerId, instanceGuid);
