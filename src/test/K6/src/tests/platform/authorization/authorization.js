@@ -20,7 +20,8 @@ export const options = {
 export function setup(){
     var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
-    var data = setUpData.getUserData(altinnStudioRuntimeCookie);    
+    var data = setUpData.getUserData(altinnStudioRuntimeCookie); 
+    data.RuntimeToken = altinnStudioRuntimeCookie;   
     return data;
 };
 
@@ -28,6 +29,7 @@ export function setup(){
 export default function(data) {
     const userId = data["userId"];
     const partyId = data["partyId"];
+    const runtimeToken = data["RuntimeToken"];
     var altinnTask = "";     
 
     //Test Platform: Authorization: Get parties of an user and validate response
@@ -47,9 +49,9 @@ export default function(data) {
     addErrorCount(success);    
 
     //Test Platform: Authorization: Upload app policy to storage    
-    res = authz.postPolicy(policyFile, appOwner, testappName);    
+    res = authz.postPolicy(policyFile, appOwner, testappName, runtimeToken);    
     success = check(res, {
-      "POST Policy Status is 200:": (r) => r.status === 200,      
+      "POST Policy Status is 403:": (r) => r.status === 403,      
     });  
     addErrorCount(success);   
 
