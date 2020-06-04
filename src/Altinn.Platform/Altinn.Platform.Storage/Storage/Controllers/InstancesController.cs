@@ -188,7 +188,7 @@ namespace Altinn.Platform.Storage.Controllers
                     int originalCount = result.Instances.Count;
                     result.Instances = await _authzHelper.AuthorizeInstances(User, result.Instances);
                     result.Count = result.Instances.Count;
-                    result.TotalHits = result.TotalHits - (originalCount - result.Instances.Count);
+                    result.TotalHits -= originalCount - result.Instances.Count;
                 }
 
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
@@ -466,6 +466,48 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             await DispatchEvent(InstanceEventType.ConfirmedComplete, updatedInstance);
+
+            return Ok(updatedInstance);
+        }
+
+        /// <summary>
+        /// Update instance read status.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="status">The new read status.</param>
+        /// <returns>Returns the updated instance.</returns>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/readstatus")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> UpdateReadStatus(
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid,
+            [FromBody] string status)
+        {
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+
+            if (!Enum.TryParse(status, true, out ReadStatus newStatus))
+            {
+                return BadRequest($"Invalid read status: {status}. Accepted types include: {string.Join(", ", Enum.GetNames(typeof(ReadStatus)))}");
+            }
+
+            Instance updatedInstance;
+            try
+            {
+                instance.Status.ReadStatus = newStatus;
+
+                updatedInstance = await _instanceRepository.Update(instance);
+                updatedInstance.SetPlatformSelflink(_storageBaseAndHost);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Unable to update read status for instance {instanceId}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
 
             return Ok(updatedInstance);
         }
