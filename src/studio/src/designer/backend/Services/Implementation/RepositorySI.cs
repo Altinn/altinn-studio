@@ -1111,7 +1111,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string repoPath = _settings.GetServicePath(org, repositoryName, userName);
 
-            // 
             if (Directory.Exists(repoPath))
             {
                 // "Soft-delete" of local repo folder with same name to make room for clone of the new repo

@@ -194,7 +194,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repositoryName">the name of the local repository to reset</param>
         /// <returns>True if the reset was successful, otherwise false.</returns>
-        Task<bool> ResetLocalRepository(string org, string repositoryName);
+        bool ResetLocalRepository(string org, string repositoryName);
 
         /// <summary>
         ///  Deletes an app folder from disk

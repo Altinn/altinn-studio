@@ -126,6 +126,26 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Deletes the local repository for the user and makes a new clone of the repo
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">the name of the local repository to reset</param>
+        /// <returns>True if the reset was successful, otherwise false.</returns>
+        [HttpGet]
+        public ActionResult<HttpResponseMessage> ResetLocalRepository(string org, string repository)
+        {
+          try 
+          {
+            _repository.ResetLocalRepository(org, repository);
+            return new HttpResponseMessage(HttpStatusCode.OK);
+          }
+          catch (Exception)
+          {
+            return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+          }
+        }
+
+        /// <summary>
         /// Pushes changes for a given repo
         /// </summary>
         /// <param name="commitInfo">Info about the commit</param>
