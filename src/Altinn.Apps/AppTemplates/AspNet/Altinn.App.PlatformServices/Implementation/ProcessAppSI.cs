@@ -7,7 +7,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.App.Common.Process.Elements;
-using Altinn.App.PlatformServices.Extentions;
+using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;

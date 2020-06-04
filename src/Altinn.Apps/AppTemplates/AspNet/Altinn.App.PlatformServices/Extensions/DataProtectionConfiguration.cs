@@ -1,12 +1,9 @@
 using System.IO;
 using System.Runtime.InteropServices;
-using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
-namespace Altinn.App.PlatformServices.Extentions
+namespace Altinn.App.PlatformServices.Extensions
 {
     /// <summary>
     /// Configuration for DataProtection
@@ -16,14 +13,12 @@ namespace Altinn.App.PlatformServices.Extentions
         /// <summary>
         /// Configure data protection on the services collection.
         /// </summary>
-        /// <param name="services">The service collections</param>        
+        /// <param name="services">The service collections</param>
         public static void ConfigureDataProtection(this IServiceCollection services)
         {
             services
                 .AddDataProtection()
-                .PersistKeysToFileSystem(new System.IO.DirectoryInfo(GetKeysDirectory()));
-
-            return;
+                .PersistKeysToFileSystem(new DirectoryInfo(GetKeysDirectory()));
         }
 
         /// <summary>

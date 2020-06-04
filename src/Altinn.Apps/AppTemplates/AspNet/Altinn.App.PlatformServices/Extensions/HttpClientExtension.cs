@@ -2,18 +2,17 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Altinn.App.PlatformServices.Extentions
+namespace Altinn.App.PlatformServices.Extensions
 {
     /// <summary>
-    /// This extentsion is created to make it easy to add a bearer token to a httprequests. 
+    /// This extension is created to make it easy to add a bearer token to a HttpRequests. 
     /// </summary>
     public static class HttpClientExtension
     {
-
         /// <summary>
         /// Extension that add authorization header to request
         /// </summary>
-        /// <param name="httpClient">The httpclient</param>
+        /// <param name="httpClient">The HttpClient</param>
         /// <param name="authorizationToken">the authorization token (jwt)</param>
         /// <param name="requestUri">The request Uri</param>
         /// <param name="content">The http content</param>
@@ -35,7 +34,7 @@ namespace Altinn.App.PlatformServices.Extentions
         /// <summary>
         /// Extension that add authorization header to request
         /// </summary>
-        /// <param name="httpClient">The httpclient</param>
+        /// <param name="httpClient">The HttpClient</param>
         /// <param name="authorizationToken">the authorization token (jwt)</param>
         /// <param name="requestUri">The request Uri</param>
         /// <param name="content">The http content</param>
@@ -58,7 +57,7 @@ namespace Altinn.App.PlatformServices.Extentions
         /// <summary>
         /// Extension that add authorization header to request
         /// </summary>
-        /// <param name="httpClient">The httpclient</param>
+        /// <param name="httpClient">The HttpClient</param>
         /// <param name="authorizationToken">the authorization token (jwt)</param>
         /// <param name="requestUri">The request Uri</param>
         /// <param name="platformAccessToken">The platformAccess tokens</param>
@@ -79,7 +78,7 @@ namespace Altinn.App.PlatformServices.Extentions
         /// <summary>
         /// Extension that add authorization header to request
         /// </summary>
-        /// <param name="httpClient">The httpclient</param>
+        /// <param name="httpClient">The HttpClient</param>
         /// <param name="authorizationToken">the authorization token (jwt)</param>
         /// <param name="requestUri">The request Uri</param>
         /// <param name="platformAccessToken">The platformAccess tokens</param>

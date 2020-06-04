@@ -7,7 +7,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using Altinn.App.Services.Extensions;
+using Altinn.App.PlatformServices.Extensions;
 
 #endregion
 

@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using System.Xml.Linq;
 using Altinn.App.Services.ModelMetadata;
 
-namespace Altinn.App.Services.Extensions
+namespace Altinn.App.PlatformServices.Extensions
 {
     /// <summary>
     /// XML to LINQ helper extensions
@@ -64,17 +64,17 @@ namespace Altinn.App.Services.Extensions
         /// <param name="element">
         /// The element.
         /// </param>
-        /// <param name="experssions">
+        /// <param name="expressions">
         /// The expressions.
         /// </param>
         /// <returns>
         /// XML element
         /// </returns>
-        public static XElement AddPropertiesAsXElement<T>(this XElement element, params Expression<Func<T>>[] experssions)
+        public static XElement AddPropertiesAsXElement<T>(this XElement element, params Expression<Func<T>>[] expressions)
         {
-            foreach (Expression<Func<T>> experssion in experssions)
+            foreach (Expression<Func<T>> expression in expressions)
             {
-                element.AddPropertiesAsXElement(experssion);
+                element.AddPropertiesAsXElement(expression);
             }
 
             return element;
@@ -210,9 +210,9 @@ namespace Altinn.App.Services.Extensions
         /// <returns>
         /// XElement with language strings
         /// </returns>
-        public static XElement CreateCultreStringXElement(this CultureString cultureString, string elementName)
+        public static XElement CreateCultureStringXElement(this CultureString cultureString, string elementName)
         {
-            return CreateCultreStringXElement(cultureString, elementName, false);
+            return CreateCultureStringXElement(cultureString, elementName, false);
         }
 
         /// <summary>
@@ -230,7 +230,7 @@ namespace Altinn.App.Services.Extensions
         /// <returns>
         /// XElement with language strings
         /// </returns>
-        public static XElement CreateCultreStringXElement(this CultureString cultureString, string elementName, bool wrapInCData)
+        public static XElement CreateCultureStringXElement(this CultureString cultureString, string elementName, bool wrapInCData)
         {
             XElement element = new XElement(elementName);
             foreach (int lang in Enum.GetValues(typeof(Language)))

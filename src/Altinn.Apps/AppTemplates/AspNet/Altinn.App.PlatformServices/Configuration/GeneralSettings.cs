@@ -28,7 +28,7 @@ namespace Altinn.App.Services.Configuration
         public string AltinnPartyCookieName { get; set; }
 
         /// <summary>
-        /// Gets the altinnParty cookie from kubernetes environment variables and appsettings if environment variable is not set.
+        /// Gets the altinn party cookie from kubernetes environment variables or appSettings if environment variable is missing.
         /// </summary>
         public string GetAltinnPartyCookieName
         {
