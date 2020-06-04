@@ -152,5 +152,30 @@ namespace App.IntegrationTests.Mocks.Services
         {
             throw new NotImplementedException();
         }
+
+        public async Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid)
+        {
+            string org;
+            string app;
+            Instance instance;
+
+            switch ($"{instanceOwnerPartyId}/{instanceGuid}")
+            {
+                case "1337/66233fb5-a9f2-45d4-90b1-f6d93ad40713":
+                    org = "tdd";
+                    app = "endring-av-navn";
+                    instance = GetTestInstance(app, org, instanceOwnerPartyId, instanceGuid);
+                    break;
+                default:
+                    org = string.Empty;
+                    app = string.Empty;
+                    instance = new Instance();
+                    break;
+            }
+
+            instance.CompleteConfirmations = new List<CompleteConfirmation> { new CompleteConfirmation { StakeholderId = org } };
+
+            return await Task.FromResult(instance);
+        }
     }
 }

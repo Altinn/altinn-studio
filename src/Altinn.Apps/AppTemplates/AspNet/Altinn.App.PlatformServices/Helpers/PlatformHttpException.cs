@@ -18,7 +18,7 @@ namespace Altinn.App.PlatformServices.Helpers
 
         public static async Task<PlatformHttpException> CreateAsync(HttpResponseMessage response)
         {
-            string content = await response.Content?.ReadAsStringAsync();
+            string content = await response.Content.ReadAsStringAsync();
             string message = $"{(int)response.StatusCode} - {response.ReasonPhrase} - {content}";
 
             return new PlatformHttpException(response, message);

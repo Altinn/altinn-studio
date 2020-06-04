@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
-using Altinn.App.Services.Helpers.Extensions;
 using Altinn.App.Services.Models;
+
 using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Configuration
@@ -62,7 +61,7 @@ namespace Altinn.App.Services.Configuration
         public string ProcessFolder { get; set; } = "process/";
 
         /// <summary>
-        /// Gets or sets the BaseResourceFolderContainer that identifes where in the docker container the runtime can find files needed
+        /// Gets or sets the BaseResourceFolderContainer that identifies where in the docker container the runtime can find files needed
         /// </summary>
         public string BaseResourceFolderContainer { get; set; }
 
