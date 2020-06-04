@@ -97,7 +97,7 @@ namespace Altinn.App.Services.Helpers
             switch (partyType)
             {
                 case PartyType.Person:
-                    if (partyTypesAllowed.Person == true)
+                    if (partyTypesAllowed.Person)
                     {
                         isAllowed = true;
                     }
@@ -120,7 +120,7 @@ namespace Altinn.App.Services.Helpers
 
                     break;
                 case PartyType.SelfIdentified:
-                    if (partyTypesAllowed.Person == true)
+                    if (partyTypesAllowed.Person)
                     {
                         isAllowed = true;
                     }
