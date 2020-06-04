@@ -10,6 +10,12 @@
   "lastChanged": "2019-07-31T09:57:23.4729995Z",
   "dueBefore": "2019-07-05T00:00:00Z",
   "visibleAfter": "2019-06-05T00:00:00Z",
+  "process": {
+    "started": "2020-01-27T01:03:58.4239724Z",
+    "startEvent": "StartEvent_1",
+    "ended": "2020-01-27T01:04:05.4480496Z",
+    "endEvent": "EndEvent_1"
+  },
   "status": {
   }
 }

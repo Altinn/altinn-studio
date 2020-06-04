@@ -117,10 +117,6 @@ namespace Altinn.App.Api.Controllers
 
                 return Ok(instance);
             }
-            catch (PlatformHttpException e)
-            {
-                return HandlePlatformHttpException(e, $"Get instance {instanceOwnerPartyId}/{instanceGuid} failed");
-            }
             catch (Exception exception)
             {
                 return ExceptionResponse(exception, $"Get instance {instanceOwnerPartyId}/{instanceGuid} failed");
@@ -257,10 +253,6 @@ namespace Altinn.App.Api.Controllers
                 // create the instance
                 instance = await _instanceService.CreateInstance(org, app, instanceTemplate);
             }
-            catch (PlatformHttpException e)
-            {
-                return HandlePlatformHttpException(e, $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}");
-            }
             catch (Exception exception)
             {
                 return ExceptionResponse(exception, $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}");
@@ -276,10 +268,6 @@ namespace Altinn.App.Api.Controllers
                 // notify app and store events
                 await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events);
                 await _processService.DispatchProcessEventsToStorage(instance, processResult.Events);
-            }
-            catch (PlatformHttpException e)
-            {
-                HandlePlatformHttpException(e, $"instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
             catch (Exception exception)
             {
@@ -304,7 +292,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
-        /// <returns>Returns a list of the process events.</returns>
+        /// <returns>Returns the instance with updated list of confirmations.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_COMPLETE)]
         [HttpPost("{instanceOwnerPartyId:int}/{instanceGuid:guid}/complete")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -322,11 +310,6 @@ namespace Altinn.App.Api.Controllers
 
                 return Ok(instance);
             }
-            catch (PlatformHttpException platformHttpException)
-            {
-                string message = $"Adding complete confirmation to instance {instanceOwnerPartyId}/{instanceGuid} failed";
-                return HandlePlatformHttpException(platformHttpException, message);
-            }
             catch (Exception exception)
             {
                 return ExceptionResponse(exception, $"Adding complete confirmation to instance {instanceOwnerPartyId}/{instanceGuid} failed");
@@ -337,11 +320,22 @@ namespace Altinn.App.Api.Controllers
         {
             _logger.LogError($"{message}: {exception}");
 
-            if (exception is PlatformHttpException phe)
+            if (exception is PlatformHttpException platformHttpException)
             {
-                return StatusCode((int)phe.Response.StatusCode, phe.Message);
+                switch (platformHttpException.Response.StatusCode)
+                {
+                    case HttpStatusCode.Forbidden:
+                        return Forbid();
+                    case HttpStatusCode.NotFound:
+                        return NotFound();
+                    case HttpStatusCode.Conflict:
+                        return Conflict();
+                    default:
+                        return StatusCode((int)platformHttpException.Response.StatusCode, platformHttpException.Message);
+                }
             }
-            else if (exception is ServiceException se)
+
+            if (exception is ServiceException se)
             {
                 return StatusCode((int)se.StatusCode, se.Message);
             }
@@ -511,26 +505,6 @@ namespace Altinn.App.Api.Controllers
             }
 
             return instanceTemplate;
-        }
-
-        private ActionResult HandlePlatformHttpException(PlatformHttpException e, string defaultMessage)
-        {
-            if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                return Forbid();
-            }
-            else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return NotFound();
-            }
-            else if (e.Response.StatusCode == HttpStatusCode.Conflict)
-            {
-                return Conflict();
-            }
-            else
-            {
-                return ExceptionResponse(e, defaultMessage);
-            }
         }
     }
 }
