@@ -1,7 +1,8 @@
 const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
+const TerserPlugin = require('terser-webpack-plugin');
+
 
 module.exports = {
   mode: 'production',
@@ -20,6 +21,12 @@ module.exports = {
   },
   performance: {
     hints: false,
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin(),
+    ],
   },
   module: {
     rules: [{
@@ -67,6 +74,5 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: "receipt.css",
     }),
-    new UglifyJsPlugin(),
   ],
 }
