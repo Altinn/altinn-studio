@@ -9,7 +9,7 @@ export function getAppTexts(altinnStudioRuntimeCookie, appOwner, appName, langua
     return http.get(endpoint, params);
 };
 
-//Api call to Storage:Applications to get an app texts of a specific language and returns response
+//Api call to Storage:Applications to POST upload app texts of a specific language and returns response
 export function postAppTexts(altinnStudioRuntimeCookie, appOwner, appName, language){
     var endpoint = config.platformStorage["applications"] + "/" + appOwner + "/" + appName + "/texts";
     var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, "platform");
@@ -17,7 +17,7 @@ export function postAppTexts(altinnStudioRuntimeCookie, appOwner, appName, langu
     return http.post(endpoint, requestBody, params);
 };
 
-//Api call to Storage:Applications to Edit application texts and returns response code
+//Api call to Storage:Applications to PUT Edit application texts and returns response code
 export function putEditAppTexts(altinnStudioRuntimeCookie, appOwner, appName, language){
     var endpoint = config.platformStorage["applications"] + "/" + appOwner + "/" + appName + "/texts/" + language ;
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");
