@@ -100,22 +100,17 @@ namespace Altinn.Platform.Storage.Helpers
         {
             if (instance.Process != null)
             {
-                string currentTask = instance.Process.CurrentTask?.ElementId;
-                if (currentTask != null)
-                {
-                    return "FormFilling";
-                }
-                else if (string.IsNullOrEmpty(currentTask) && instance.Process.Ended != null && instance.Status?.Archived == null)
+                if (instance.Process.Ended != null && instance.Status?.Archived == null)
                 {
                     return "Submit";
                 }
-                else if (string.IsNullOrEmpty(currentTask) && instance.Process.Ended != null && instance.Status?.Archived != null)
+                else if (instance.Process.Ended != null && instance.Status?.Archived != null)
                 {
                     return "Archived";
                 }
                 else
                 {
-                    return instance.Process.CurrentTask?.ElementId;
+                    return "FormFilling";
                 }
             }
             else
