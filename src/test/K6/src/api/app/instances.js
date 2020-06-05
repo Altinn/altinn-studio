@@ -25,3 +25,19 @@ export function getValidateInstance(altinnStudioRuntimeCookie, partyId, instance
     params.timeout = 120000;   
     return http.get(endpoint, params);
 };
+
+export function postCreateInstanceWithSsnOrOrg(altinnStudioRuntimeCookie, userType, value){
+    var requestBody = '{"instanceOwner":{}}';
+    requestBody = JSON.parse(requestBody);
+    var endpoint = config.appApiBaseUrl + "/instances";
+    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, "app"); 
+    if(userType == "ssn"){
+        requestBody.instanceOwner.personNumber =  value ;
+    }
+    else if(userType == "org"){
+        requestBody.instanceOwner.organisationNumber =  value ;
+    };
+    requestBody = JSON.stringify(requestBody);
+    params.timeout = 120000;
+    return http.post(endpoint, requestBody, params);
+};

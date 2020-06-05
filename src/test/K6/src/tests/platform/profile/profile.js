@@ -16,31 +16,28 @@ export const options = {
 export function setup(){
     var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
-    setUpData.clearCookies();
-    var data = setUpData.getUserData(altinnStudioRuntimeCookie);   
-    data.RuntimeToken = altinnStudioRuntimeCookie; 
-    return data;
+    return altinnStudioRuntimeCookie;
 };
 
 //Test for platform profile and validate response
 export default function(data) {
-    const userId = data["userId"];
-    const ssn = data["ssn"];
-    const runtimeToken = data["RuntimeToken"];
+    const runtimeToken = data;
+
+    var userData = setUpData.getUserData(runtimeToken);
+    const userId = userData["userId"];
+    const ssn = userData["ssn"];
 
     //Test to fetch userprofile by userid
     var res = profile.getProfile(userId, runtimeToken);    
     var success = check(res, {
-      "GET Profile status is 200:": (r) => r.status === 200,
-      "GET Profile response contains userId:": (r) => (JSON.parse(r.body)).userId === userId
+      "GET Profile status is 403:": (r) => r.status === 403
     });  
     addErrorCount(success);  
 
     //Test to fetch userprofile by SSN
     res = profile.postFetchProfileBySSN(ssn, runtimeToken);
     success = check(res, {
-        "POST Fetch profile by SSN:": (r) => r.status = 200,
-        "POST Fetch profile by SSN contains userId:": (r) => (JSON.parse(r.body)).userId === userId
+        "POST Fetch profile by SSN is 403:": (r) => r.status = 403
     });
     addErrorCount(success);
 };
