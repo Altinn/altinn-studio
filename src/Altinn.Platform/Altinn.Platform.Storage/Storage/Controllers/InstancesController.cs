@@ -483,9 +483,9 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> UpdateReadStatus(
-      [FromRoute] int instanceOwnerPartyId,
-      [FromRoute] Guid instanceGuid,
-      [FromQuery] string status)
+          [FromRoute] int instanceOwnerPartyId,
+          [FromRoute] Guid instanceGuid,
+          [FromQuery] string status)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
