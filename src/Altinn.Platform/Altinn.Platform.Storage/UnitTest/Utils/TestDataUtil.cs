@@ -47,7 +47,7 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
                 string dataBlob = GetBlobPathForApp(instance.Org, instance.AppId.Split("/")[1], instanceGuid.ToString());
 
                 // Copy blobs
-                DirectoryCopy(dataBlob.Replace(instanceGuid.ToString(), "pretest" + instanceGuid), dataBlob, true);
+                DirectoryCopy(dataBlob.Replace(instanceGuid.ToString(), instanceGuid + "pretest" ), dataBlob, true);
 
                string dataElementsPath = GetDataElementsPath();
 

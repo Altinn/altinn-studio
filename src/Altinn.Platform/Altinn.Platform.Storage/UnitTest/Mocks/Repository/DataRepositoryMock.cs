@@ -30,12 +30,24 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<bool> Delete(DataElement dataElement)
         {
-            throw new NotImplementedException();
+            string dataElementPath = GetDataElementsPath() + dataElement.Id + @".json";
+            if (File.Exists(dataElementPath))
+            {
+                File.Delete(dataElementPath);
+            }
+
+            return Task.FromResult(true);
         }
 
         public Task<bool> DeleteDataInStorage(string org, string blobStoragePath)
         {
-            throw new NotImplementedException();
+            string blobpath = GetDataBlobPath() + blobStoragePath;
+            if (File.Exists(blobpath))
+            {
+                File.Delete(blobpath);
+            }
+
+            return Task.FromResult(true);
         }
 
         public Task<DataElement> Read(Guid instanceGuid, Guid dataElementId)
@@ -107,5 +119,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DataRepositoryMock).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\blob\");
         }
+
+     
     }
 }

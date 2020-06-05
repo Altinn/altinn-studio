@@ -25,7 +25,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
+namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
     /// <summary>
     /// Represents a collection of integration tests of the <see cref="DataController"/>.
@@ -140,6 +140,23 @@ namespace Altinn.Platform.Storage.IntegrationTest.TestingControllers
             HttpClient client = GetTestClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
             HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}?dataType=default", content);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
+        }
+
+
+        [Fact]
+        public async void Delete_DataElement_Ok()
+        {
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
+            TestDataUtil.PrepareInstance(1337, new Guid("649388f0-a2c0-4774-bd11-c870223ed819"), "tdd", "endring-av-navn");
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/649388f0-a2c0-4774-bd11-c870223ed819/data/11f7c994-6681-47a1-9626-fcf6c27308a5";
+            HttpContent content = new StringContent("This is a blob file with updated data");
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
+            HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
