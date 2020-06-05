@@ -101,7 +101,7 @@ namespace Altinn.Platform.Storage.Helpers
             if (instance.Process != null)
             {
                 string currentTask = instance.Process.CurrentTask?.ElementId;
-                if (currentTask != null && currentTask.Equals(Task1))
+                if (currentTask != null)
                 {
                     return "FormFilling";
                 }
