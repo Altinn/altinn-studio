@@ -113,7 +113,6 @@ export function AltinnAttachment(props: IAltinnAttachmentProps) {
       </List>
     </>
   );
-
 }
 
 export default withStyles(styles)(AltinnAttachment);
