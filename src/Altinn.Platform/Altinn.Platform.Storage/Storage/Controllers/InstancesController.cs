@@ -475,16 +475,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
-        /// <param name="status">The new read status.</param>
-        /// <returns>Returns the updated instance.</returns>
+        /// <param name="status">The updated read status.</param>
+        /// <returns>Returns the updated instance.</returns>        
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/readstatus")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> UpdateReadStatus(
-            [FromRoute] int instanceOwnerPartyId,
-            [FromRoute] Guid instanceGuid,
-            [FromBody] string status)
+      [FromRoute] int instanceOwnerPartyId,
+      [FromRoute] Guid instanceGuid,
+      [FromQuery] string status)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
@@ -498,6 +499,11 @@ namespace Altinn.Platform.Storage.Controllers
             Instance updatedInstance;
             try
             {
+                if (instance.Status == null)
+                {
+                    instance.Status = new InstanceStatus();
+                }
+
                 instance.Status.ReadStatus = newStatus;
 
                 updatedInstance = await _instanceRepository.Update(instance);

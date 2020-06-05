@@ -25,7 +25,7 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
 
                 string preInstancePath = instancePath.Replace(".json", ".pretest.json");
 
-                File.Copy(preInstancePath, instancePath);
+                File.Copy(preInstancePath, instancePath, true);
 
                 if (org != null && app != null)
                 {

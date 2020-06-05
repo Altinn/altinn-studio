@@ -124,40 +124,6 @@ namespace Altinn.Platform.Storage.Helpers
             }
         }
 
-        private static bool IsValidOrganizationNumber(string orgNo)
-        {
-            int[] weight = { 3, 2, 7, 6, 5, 4, 3, 2 };
-
-            // Validation only done for 9 digit numbers
-            if (orgNo.Length == 9)
-            {
-                try
-                {
-                    int currentDigit = 0;
-                    int sum = 0;
-                    for (int i = 0; i < orgNo.Length - 1; i++)
-                    {
-                        currentDigit = int.Parse(orgNo.Substring(i, 1));
-                        sum += currentDigit * weight[i];
-                    }
-
-                    int ctrlDigit = 11 - (sum % 11);
-                    if (ctrlDigit == 11)
-                    {
-                        ctrlDigit = 0;
-                    }
-
-                    return int.Parse(orgNo.Substring(orgNo.Length - 1)) == ctrlDigit;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-
-            return false;
-        }
-
         private static string FindLastChangedBy(Instance instance)
         {
             string result = instance.LastChangedBy;
