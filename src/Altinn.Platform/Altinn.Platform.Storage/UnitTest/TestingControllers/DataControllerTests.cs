@@ -62,7 +62,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpContent content = new StringContent("This is a blob file");
 
             HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
             HttpResponseMessage response = await client.PostAsync($"{dataPathWithData}?dataType=default", content);
 
             if (response.StatusCode.Equals(HttpStatusCode.InternalServerError))
@@ -138,7 +138,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpContent content = new StringContent("This is a blob file with updated data");
 
             HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
             HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}?dataType=default", content);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -162,7 +162,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpContent content = new StringContent("This is a blob file with updated data");
 
             HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
             HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}?dataType=default", content);
 
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
@@ -178,10 +178,25 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string dataPathWithData = $"{_versionPrefix}/instances/1337/649388f0-a2c0-4774-bd11-c870223ed819/data/11f7c994-6681-47a1-9626-fcf6c27308a5";
            
             HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
             HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
+        }
+
+        [Fact]
+        public async void Delete_DataElement_NotAuthorized()
+        {
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
+            TestDataUtil.PrepareInstance(1337, new Guid("649388f0-a2c0-4774-bd11-c870223ed819"), "tdd", "endring-av-navn");
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/649388f0-a2c0-4774-bd11-c870223ed819/data/11f7c994-6681-47a1-9626-fcf6c27308a5";
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1, 3));
+            HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
         }
 
@@ -194,7 +209,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/data/f4feb26c-8eed-4d1d-9d75-9239c40724e9";
 
             HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
             HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -246,7 +261,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpContent content = new StringContent("");
 
             HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
             HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}/confirmDownload", content);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
