@@ -63,12 +63,32 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<List<DataElement>> ReadAll(Guid instanceGuid)
         {
-            throw new NotImplementedException();
+            List<DataElement> dataElements = new List<DataElement>();
+            string dataElementsPath = GetDataElementsPath();
+
+            string[] dataElementPaths = Directory.GetFiles(dataElementsPath);
+            foreach (string elementPath in dataElementPaths)
+            {
+                if (!elementPath.Contains("pretest"))
+                {
+                    string content = System.IO.File.ReadAllText(elementPath);
+                    DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                    if (dataElement.InstanceGuid.Contains(instanceGuid.ToString()))
+                    {
+                        dataElements.Add(dataElement);
+                    }
+                }
+            }
+
+            return Task.FromResult(dataElements);
         }
 
         public Task<Stream> ReadDataFromStorage(string org, string blobStoragePath)
         {
-            throw new NotImplementedException();
+            string dataPath = GetDataBlobPath() + blobStoragePath;
+            Stream fs = File.OpenRead(dataPath);
+
+            return Task.FromResult(fs);
         }
 
         public Task<DataElement> Update(DataElement dataElement)

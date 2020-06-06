@@ -137,41 +137,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Assert.Single(actualDataElement.AppOwner.Downloaded);
         }
-
-        /// <summary>
-        /// Delete data element.
-        /// </summary>
-        [Fact]
-        public async void Delete_DataElement_Ok()
-        {
-            if (!blobSetup)
-            {
-                await EnsureValidStorage();
-            }
-
-            DataElement dataElement = (await CreateInstanceWithData(1))[0];
-
-            Assert.NotNull(dataElement);
-
-            string dataPathWithDataGuid = $"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.InstanceGuid}/data/{dataElement.Id}";
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _validToken);
-            HttpResponseMessage getResponse = await client.DeleteAsync($"{dataPathWithDataGuid}");
-
-            getResponse.EnsureSuccessStatusCode();
-
-            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(await getResponse.Content.ReadAsStringAsync());
-
-            Assert.NotNull(updatedInstance);
-
-            getResponse = await client.GetAsync($"{versionPrefix}/instances/{testInstanceOwnerId}/{dataElement.InstanceGuid}");
-            getResponse.EnsureSuccessStatusCode();
-
-            Instance instance = JsonConvert.DeserializeObject<Instance>(await getResponse.Content.ReadAsStringAsync());
-
-            Assert.Empty(instance.Data);
-        }
-  
+     
         /// <summary>
         /// Scenario:
         ///   Request to add confirm download to data element.
