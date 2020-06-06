@@ -145,6 +145,30 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
         }
 
+        /// <summary>
+        /// Scenario:
+        ///   Add data element to created instances.
+        /// Expected:
+        ///   Request is authorized
+        /// Success:
+        /// Created 
+        /// </summary>
+        [Fact]
+        public async void Put_UpdateData_Conflict()
+        {
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "6aa47207-f089-4c11-9cb2-f00af6f66a47", "tdd", "endring-av-navn");
+            TestDataUtil.PrepareInstance(1337, new Guid("6aa47207-f089-4c11-9cb2-f00af6f66a47"), "tdd", "endring-av-navn");
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/6aa47207-f089-4c11-9cb2-f00af6f66a47/data/24bfec2e-c4ce-4e82-8fa9-aa39da329fd5";
+            HttpContent content = new StringContent("This is a blob file with updated data");
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
+            HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}?dataType=default", content);
+
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "6aa47207-f089-4c11-9cb2-f00af6f66a47", "tdd", "endring-av-navn");
+        }
+
 
         [Fact]
         public async void Delete_DataElement_Ok()
