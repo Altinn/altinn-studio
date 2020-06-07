@@ -75,7 +75,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "bc19107c-508f-48d9-bcd7-54ffec905306", "tdd", "endring-av-navn");
         }
 
-
         /// <summary>
         /// Scenario:
         ///   Add data element to created instances. Authenticated users is not authorized to perform this operation.
@@ -217,6 +216,81 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         }
 
         [Fact]
+        public async void Get_DataElements_Ok()
+        {
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
+            TestDataUtil.PrepareInstance(1337, new Guid("d91fd644-1028-4efd-924f-4ca187354514"), "tdd", "endring-av-navn");
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/dataelements/";
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
+            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
+        }
+
+        [Fact]
+        public async void Get_DataElements_To_Low_Auth_Level()
+        {
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
+            TestDataUtil.PrepareInstance(1337, new Guid("d91fd644-1028-4efd-924f-4ca187354514"), "tdd", "endring-av-navn");
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/dataelements/";
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 1));
+            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
+        }
+
+        [Fact]
+        public async void Get_DataElements_NotAuthorized()
+        {
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
+            TestDataUtil.PrepareInstance(1337, new Guid("d91fd644-1028-4efd-924f-4ca187354514"), "tdd", "endring-av-navn");
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/dataelements/";
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1, 3));
+            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
+        }
+
+        [Fact]
+        public async void Get_DataElement_NotAuthoried()
+        {
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
+            TestDataUtil.PrepareInstance(1337, new Guid("d91fd644-1028-4efd-924f-4ca187354514"), "tdd", "endring-av-navn");
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/data/f4feb26c-8eed-4d1d-9d75-9239c40724e9";
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1, 3));
+            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
+        }
+
+        [Fact]
+        public async void Get_DataElement_ToLowAuthenticationLevel()
+        {
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
+            TestDataUtil.PrepareInstance(1337, new Guid("d91fd644-1028-4efd-924f-4ca187354514"), "tdd", "endring-av-navn");
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/data/f4feb26c-8eed-4d1d-9d75-9239c40724e9";
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 1));
+            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
+        }
+
+        [Fact]
         public async void Get_DataElement_Org_Ok()
         {
             TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "ca9da17c-904a-44d2-9771-a5420acfbcf3", "tdd", "endring-av-navn");
@@ -251,6 +325,22 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "dd84cfe9-f875-42ea-8a96-eb725a6a8a95", "tdd", "endring-av-navn");
         }
 
+        [Fact]
+        public async void Put_ConfirmDownload_OnADataGuid_NotAuthoirzed()
+        {
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "dd84cfe9-f875-42ea-8a96-eb725a6a8a95", "tdd", "endring-av-navn");
+            TestDataUtil.PrepareInstance(1337, new Guid("dd84cfe9-f875-42ea-8a96-eb725a6a8a95"), "tdd", "endring-av-navn");
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/dd84cfe9-f875-42ea-8a96-eb725a6a8a95/dataelements/7b475791-ce2c-45a5-be2f-195f37c2646d";
+            HttpContent content = new StringContent("");
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
+            HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}/confirmDownload", content);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "dd84cfe9-f875-42ea-8a96-eb725a6a8a95", "tdd", "endring-av-navn");
+        }
+
 
         [Fact]
         public async void Put_ConfirmDownload_OnAllData_Ok()
@@ -261,10 +351,26 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpContent content = new StringContent("");
 
             HttpClient client = GetTestClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("tdd"));
             HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}/confirmDownload", content);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "1e14b6cd-e310-4aff-aa83-720b2ec195e0", "tdd", "endring-av-navn");
+        }
+
+        [Fact]
+        public async void Put_ConfirmDownload_OnAllData_NotAuthorized()
+        {
+            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "1e14b6cd-e310-4aff-aa83-720b2ec195e0", "tdd", "endring-av-navn");
+            TestDataUtil.PrepareInstance(1337, new Guid("1e14b6cd-e310-4aff-aa83-720b2ec195e0"), "tdd", "endring-av-navn");
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/1e14b6cd-e310-4aff-aa83-720b2ec195e0/dataelements";
+            HttpContent content = new StringContent("");
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
+            HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}/confirmDownload", content);
+
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "1e14b6cd-e310-4aff-aa83-720b2ec195e0", "tdd", "endring-av-navn");
         }
 
