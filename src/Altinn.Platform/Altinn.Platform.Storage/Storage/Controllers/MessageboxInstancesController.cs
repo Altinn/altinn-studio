@@ -129,9 +129,14 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound($"Could not find instance {instanceId}");
             }
 
-            Dictionary<string, Dictionary<string, string>> appTitle = await _applicationRepository.GetAppTitles(new List<string> { instance.AppId });
+            MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(instance);
 
-            MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstanceList(new List<Instance> { instance }, appTitle, languageId).First();
+            // Setting these two properties could be handled by custom PEP. 
+            messageBoxInstance.AllowDelete = true;
+            messageBoxInstance.AuthorizedForWrite = true;
+
+            Dictionary<string, Dictionary<string, string>> appTitle = await _applicationRepository.GetAppTitles(new List<string> { instance.AppId });
+            InstanceHelper.AddTitleToInstances(new List<MessageBoxInstance> { messageBoxInstance }, appTitle, languageId);
 
             return Ok(messageBoxInstance);
         }
