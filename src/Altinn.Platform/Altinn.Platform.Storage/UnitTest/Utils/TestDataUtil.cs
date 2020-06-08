@@ -47,11 +47,9 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
                 string dataBlob = GetBlobPathForApp(instance.Org, instance.AppId.Split("/")[1], instanceGuid.ToString());
 
                 // Copy blobs
-                DirectoryCopy(dataBlob.Replace(instanceGuid.ToString(), "pretest" + instanceGuid), dataBlob, true);
+                DirectoryCopy(dataBlob.Replace(instanceGuid.ToString(), instanceGuid + "pretest" ), dataBlob, true);
 
-               string dataElementsPath = GetDataElementsPath();
-
-
+                string dataElementsPath = GetDataElementsPath();
     
                 string[] dataElementPaths = Directory.GetFiles(dataElementsPath);
                 foreach (string elementPath in dataElementPaths)
@@ -181,16 +179,25 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
             return instance;
         }
 
+        public static DataElement GetDataElement(string dataGuid)
+        {
+            string dataElementPath = GetDataPath() + "/" + dataGuid + ".json";
+
+            string content = System.IO.File.ReadAllText(dataElementPath);
+            DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+            return dataElement;
+        }
+
         private static string GetInstancePath(int instanceOwnerId, Guid instanceGuid)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\instances\", instanceOwnerId.ToString() ,instanceGuid.ToString() + @".json");
         }
 
-        private static string GetDataPath(int instanceOwnerId, Guid instanceGuid)
+        private static string GetDataPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(TestDataUtil).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\dataelements", instanceOwnerId + @"\", instanceGuid.ToString());
+            return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\dataelements");
         }
 
         private static string GetBlobPathForApp(string org, string app, string instanceGuid)
@@ -222,7 +229,7 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
             foreach (FileInfo file in files)
             {
                 string temppath = Path.Combine(destDirName, file.Name);
-                file.CopyTo(temppath, false);
+                file.CopyTo(temppath, true);
             }
 
             // If copying subdirectories, copy them and their contents to new location.
