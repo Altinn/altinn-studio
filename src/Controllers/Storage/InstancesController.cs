@@ -422,6 +422,53 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(updatedInstance);
         }
 
+        /// <summary>
+        /// Update instance read status.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="status">The updated read status.</param>
+        /// <returns>Returns the updated instance.</returns>        
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/readstatus")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> UpdateReadStatus(
+          [FromRoute] int instanceOwnerPartyId,
+          [FromRoute] Guid instanceGuid,
+          [FromQuery] string status)
+        {
+            if (!Enum.TryParse(status, true, out ReadStatus newStatus))
+            {
+                return BadRequest($"Invalid read status: {status}. Accepted types include: {string.Join(", ", Enum.GetNames(typeof(ReadStatus)))}");
+            }
+
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+
+            Instance updatedInstance;
+            try
+            {
+                if (instance.Status == null)
+                {
+                    instance.Status = new InstanceStatus();
+                }
+
+                instance.Status.ReadStatus = newStatus;
+
+                updatedInstance = await _instanceRepository.Update(instance);
+                updatedInstance.SetPlatformSelflink(_storageBaseAndHost);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Unable to update read status for instance {instanceId}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            return Ok(updatedInstance);
+        }
+
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
         {
             Instance createdInstance = new Instance()
