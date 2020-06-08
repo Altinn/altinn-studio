@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/interactive-supports-focus */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable react/prop-types */
 import * as React from 'react';
 import DropZone, { FileRejection } from 'react-dropzone';
@@ -77,7 +79,9 @@ export function FileUploadComponent(props: IFileUploadProps) {
     return [];
   }
 
-  const currentAttachments: IAttachment[] = useSelector((state: IRuntimeState) => state.attachments.attachments[props.id] || emptyArray);
+  const currentAttachments: IAttachment[] = useSelector(
+    (state: IRuntimeState) => state.attachments.attachments[props.id] || emptyArray,
+  );
 
   React.useEffect(() => {
     dispatch({ type: 'replace', value: currentAttachments });
@@ -323,6 +327,10 @@ export function FileUploadComponent(props: IFileUploadProps) {
     );
   };
 
+  const onClick = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    event.preventDefault();
+  };
+
   const validationMessages = getComponentValidations();
   const hasValidationMessages: boolean = validationMessages.simpleBinding.errors.length > 0;
   return (
@@ -358,7 +366,9 @@ export function FileUploadComponent(props: IFileUploadProps) {
 
             return (
               <div
-                {...getRootProps()}
+                {...getRootProps({
+                  onClick,
+                })}
                 style={styles}
                 id={`altinn-drop-zone-${props.id}`}
                 className={`file-upload${hasValidationMessages ? ' file-upload-invalid' : ''}`}
