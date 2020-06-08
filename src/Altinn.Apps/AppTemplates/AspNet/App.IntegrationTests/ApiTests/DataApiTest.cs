@@ -184,7 +184,7 @@ namespace App.IntegrationTests.ApiTests
         public async Task Data_Post_With_DataCreation()
         {
             Guid guid = new Guid("609efc9d-4496-4f0b-9d20-808dc2c1876d");
-            TestDataUtil.DeleteDataForInstance("tdd", "custom-validation", 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", "custom-validation", 1337, guid);
 
             string token = PrincipalUtil.GetToken(1337);
 
@@ -210,7 +210,7 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Contains("\"enhetNavnEndringdatadef31\":{\"orid\":31,\"value\":\"Test Test 123\"}", responseContent);
 
-            TestDataUtil.DeleteDataForInstance("tdd", "custom-validation", 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", "custom-validation", 1337, guid);
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace App.IntegrationTests.ApiTests
         public async Task Data_Post_With_Prefill_OK()
         {
             Guid guid = new Guid("36133fb5-a9f2-45d4-90b1-f6d93ad40713");
-            TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1337, guid);
+            TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1337, guid);
 
             string token = PrincipalUtil.GetToken(1337);
 
@@ -246,7 +246,7 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal("Oslo", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value);
             Assert.Equal("Grev Wedels Plass", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value);
 
-            TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1337, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, guid);
         }
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace App.IntegrationTests.ApiTests
         public async Task Data_Post_With_Prefill_Org_OK()
         {
             Guid guid = new Guid("37133fb5-a9f2-45d4-90b1-f6d93ad40713");
-            TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 500600, guid);
+            TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 500600, guid);
 
             string token = PrincipalUtil.GetToken(1337);
 
@@ -282,7 +282,7 @@ namespace App.IntegrationTests.ApiTests
             Assert.Equal("EAS Health Consulting", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknyttetPersonsEtternavndatadef34930.value);
             Assert.Equal("http://setrabrl.no", skjema.Tilknytninggrp9315.TilknytningTilNavnetgrp9316.TilknytningMellomnavn2grp9353.PersonMellomnavnAndreTilknytningBeskrivelsedatadef34928.value);
 
-            TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 500600, guid);
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 500600, guid);
         }
 
         /// <summary>
