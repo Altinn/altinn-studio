@@ -206,6 +206,7 @@ namespace App.IntegrationTests.Mocks.Services
         private string GetInstancePath(int instanceOwnerPartyId, Guid instanceGuid)
         {
             string[] paths = Directory.GetFiles(GetInstancesPath(), instanceGuid + ".json", SearchOption.AllDirectories);
+            paths = paths.Where(p => p.Contains($"{instanceOwnerPartyId}")).ToArray();
             if (paths.Length == 1)
             {
                 return paths.First();
