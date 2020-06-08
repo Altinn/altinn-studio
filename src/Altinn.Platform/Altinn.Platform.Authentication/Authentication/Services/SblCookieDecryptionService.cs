@@ -29,9 +29,9 @@ namespace Altinn.Platform.Authentication.Services
         /// <summary>
         /// Initialize a new instance of <see cref="SblCookieDecryptionService"/>  with settings for SBL Bridge endpoints.
         /// </summary>
-        /// <param name="httpClient">Http client from clientfactory</param>
-        /// <param name="generalSettings">General settings for the authentication application</param>
-        /// <param name="logger">A generic logger</param>
+        /// <param name="httpClient">The <see cref="HttpClient"/> to use when performing requests against SblBridge.</param>
+        /// <param name="generalSettings">General settings for the authentication application.</param>
+        /// <param name="logger">A generic logger.</param>
         public SblCookieDecryptionService(HttpClient httpClient, IOptions<GeneralSettings> generalSettings, ILogger<SblCookieDecryptionService> logger)
         {
             _client = httpClient;
@@ -43,7 +43,7 @@ namespace Altinn.Platform.Authentication.Services
         public async Task<UserAuthenticationModel> DecryptTicket(string encryptedTicket)
         {
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserAuthenticationModel));
-            Uri endpointUrl = new Uri($"{_generalSettings.BridgeAuthnApiEndpoint}tickets");
+            Uri endpointUrl = new Uri($"{_generalSettings.BridgeAuthnApiEndpoint}");
 
             _logger.LogInformation($"Authentication - Before getting userdata");
 
@@ -62,6 +62,11 @@ namespace Altinn.Platform.Authentication.Services
                 UserAuthenticationModel userAuthentication = serializer.ReadObject(stream) as UserAuthenticationModel;
 
                 return userAuthentication;
+            }
+
+            if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+            {
+                throw new SblBridgeResponseException(response, "SBL Bridge replied with status: ServiceUnavailable.");
             }
 
             // If user is not authenticated redirect to login
