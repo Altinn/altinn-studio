@@ -35,6 +35,8 @@ namespace App.IntegrationTests
         [Fact]
         public async Task Instance_Get_OK()
         {
+            TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1337, new Guid("26133fb5-a9f2-45d4-90b1-f6d93ad40713"));
+
             string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
@@ -43,6 +45,7 @@ namespace App.IntegrationTests
                 new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1337/26133fb5-a9f2-45d4-90b1-f6d93ad40713");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            TestDataUtil.DeleteInstance("tdd", "endring-av-navn", 1337, new Guid("26133fb5-a9f2-45d4-90b1-f6d93ad40713"));
             string responseContent = await response.Content.ReadAsStringAsync();
 
             Instance instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
