@@ -51,5 +51,14 @@ namespace Altinn.App.Services.Interface
         /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
         /// <returns>Returns the updated instance.</returns>
         Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid);
+
+        /// <summary>
+        /// Update read status-
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="readStatus">The new instance read status.</param>
+        /// <returns>Returns the updated instance.</returns>
+        Task<Instance> UpdateReadStatus(int instanceOwnerPartyId, Guid instanceGuid, string readStatus);
     }
 }

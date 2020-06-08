@@ -492,7 +492,7 @@ namespace Altinn.App.Api.Controllers
 
             // Trigger application business logic
             await _altinnApp.RunCalculation(appModel);
-
+            await _instanceService.UpdateReadStatus(instanceOwnerId, instanceGuid, "read");
             return Ok(appModel);
         }
 

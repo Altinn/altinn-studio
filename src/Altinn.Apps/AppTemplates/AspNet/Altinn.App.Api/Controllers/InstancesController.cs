@@ -114,6 +114,7 @@ namespace Altinn.App.Api.Controllers
             {
                 Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+                await _instanceService.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
 
                 return Ok(instance);
             }

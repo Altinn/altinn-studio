@@ -180,5 +180,22 @@ namespace Altinn.App.Services.Implementation
 
             throw await PlatformHttpException.CreateAsync(response);
         }
+
+        public async Task<Instance> UpdateReadStatus(int instanceOwnerPartyId, Guid instanceGuid, string readStatus)
+        {
+            string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/readstatus?status={readStatus}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, new StringContent(string.Empty));
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string instanceData = await response.Content.ReadAsStringAsync();
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                return instance;
+            }
+
+            throw await PlatformHttpException.CreateAsync(response);
+        }
     }
 }
