@@ -487,14 +487,13 @@ namespace Altinn.Platform.Storage.Controllers
           [FromRoute] Guid instanceGuid,
           [FromQuery] string status)
         {
-            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-
             if (!Enum.TryParse(status, true, out ReadStatus newStatus))
             {
                 return BadRequest($"Invalid read status: {status}. Accepted types include: {string.Join(", ", Enum.GetNames(typeof(ReadStatus)))}");
             }
+
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
             Instance updatedInstance;
             try
