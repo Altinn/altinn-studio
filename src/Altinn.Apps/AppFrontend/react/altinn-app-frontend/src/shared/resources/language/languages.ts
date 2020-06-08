@@ -89,7 +89,7 @@ export function nb() {
       control_submit: 'Kontroller og send inn',
       create_new: 'Opprett ny',
       create: 'Opprett',
-      customer_service_phone_number: '+47 67 00 60 00',
+      customer_service_phone_number: '+47 75 00 60 00',
       delete: 'Slett',
       disabled: 'Deaktivert',
       edit: 'Endre',
