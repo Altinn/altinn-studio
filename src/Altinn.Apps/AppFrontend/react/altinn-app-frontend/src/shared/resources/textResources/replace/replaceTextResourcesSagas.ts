@@ -3,6 +3,7 @@ import { takeLatest, select, call } from 'redux-saga/effects';
 import { IFormData } from 'src/features/form/data/formDataReducer';
 import { IRuntimeState } from 'src/types';
 import { replaceTextResourceParams } from 'altinn-shared/utils/language';
+import { ITextResource } from 'altinn-shared/types';
 import * as FormDataActionTypes from '../../../../features/form/data/formDataActionTypes';
 import TextResourceActions from '../textResourcesActions';
 import { ITextResourcesState } from '../textResourcesReducer';
@@ -16,7 +17,7 @@ export function* parseText(): SagaIterator {
   try {
     const formData: IFormData = yield select(FormDataSelector);
     const textResources: ITextResourcesState = yield select(TextResourcesSelector);
-    const updatedTextsResources = replaceTextResourceParams([...textResources.resources], { dataModel: formData });
+    const updatedTextsResources: ITextResource[] = replaceTextResourceParams([...textResources.resources], { dataModel: formData });
     yield call(TextResourceActions.replaceTextResourcesFulfilled, textResources.language, updatedTextsResources);
   } catch (error) {
     yield call(TextResourceActions.replaceTextResourcesRejected, error);
