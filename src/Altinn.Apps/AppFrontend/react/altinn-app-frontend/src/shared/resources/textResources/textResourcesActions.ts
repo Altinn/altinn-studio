@@ -7,10 +7,12 @@ import { store } from '../../../store';
 
 export interface ITextResourcesActions extends ActionCreatorsMapObject {
   fetchTextResources: () => Action;
-  fetchTextResourcesFulfilled: (language: string, resources: ITextResource[]) => FetchActions.IFetchTextResourcesFulfilled;
+  fetchTextResourcesFulfilled:
+    (language: string, resources: ITextResource[]) => FetchActions.IFetchTextResourcesFulfilled;
   fetchTextResourcesRejected: (error: Error) => FetchActions.IFetchTextResourcesRejected;
   replaceTextResources: () => Action;
-  replaceTextResourcesFulfilled: (language: string, resources: ITextResource[]) => ReplaceActions.IReplaceTextResourcesFulfilled;
+  replaceTextResourcesFulfilled:
+    (language: string, resources: ITextResource[]) => ReplaceActions.IReplaceTextResourcesFulfilled;
   replaceTextResourcesRejected: (error: Error) => ReplaceActions.IReplaceTextResourcesRejected;
 }
 
