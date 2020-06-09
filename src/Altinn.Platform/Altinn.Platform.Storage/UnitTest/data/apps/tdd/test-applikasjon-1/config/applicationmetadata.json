@@ -1,0 +1,24 @@
+{
+  "id": "tdd/test-applikasjon-1",
+  "org": "tdd",
+  "created": "2019-09-24T10:02:41.0839253Z",
+  "createdBy": "Steph",
+  "lastChanged": "2019-09-24T10:02:41.0839254Z",
+  "lastChangedBy": "Steph",
+  "title": {
+    "nb": "Test applikasjon",
+    "en": "Test app"
+  },
+  "dataTypes": [
+    {
+      "id": "default",
+      "allowedContentTypes": [ "application/xml" ],
+      "maxCount": 1,
+      "appLogic": {
+        "autoCreate": true,
+        "ClassRef": "Form"
+      },
+      "taskId": "Task_1"
+    }
+  ]
+}
