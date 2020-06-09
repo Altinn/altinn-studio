@@ -1,8 +1,10 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { ITextResource } from '../../../types/global';
-import { IFetchTextResourcesFulfilled, IFetchTextResourcesRejected} from './fetch/fetchTextResourcesActions';
+import { IFetchTextResourcesFulfilled, IFetchTextResourcesRejected } from './fetch/fetchTextResourcesActions';
+import { IReplaceTextResourcesFulfilled } from './replace/replaceTextResoucesActions';
 import * as ActionTypes from './fetch/fetchTextResourcesActionTypes';
+import * as ReplaceActionTypes from './replace/replaceTextResourcesActionTypes';
 
 export interface ITextResourcesState {
   language: string;
@@ -36,11 +38,23 @@ const TextResourcesReducer: Reducer<ITextResourcesState> = (
         },
       });
     }
-    case ActionTypes.FETCH_TEXT_RESOURCES_REJECTED: {
+    case ActionTypes.FETCH_TEXT_RESOURCES_REJECTED:
+    case ReplaceActionTypes.REPLACE_TEXT_RESOURCES_REJECTED: {
       const { error } = action as IFetchTextResourcesRejected;
       return update<ITextResourcesState>(state, {
         error: {
           $set: error,
+        },
+      });
+    }
+    case ReplaceActionTypes.REPLACE_TEXT_RESOURCES_FULFILLED: {
+      const { language, resources } = action as IReplaceTextResourcesFulfilled;
+      return update<ITextResourcesState>(state, {
+        language: {
+          $set: language,
+        },
+        resources: {
+          $set: resources,
         },
       });
     }

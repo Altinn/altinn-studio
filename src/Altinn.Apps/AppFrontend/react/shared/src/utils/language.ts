@@ -83,7 +83,7 @@ export function getTextResourceByKey(key: string, textResources: ITextResource[]
   return textResource ? textResource.value : key;
 }
 
-export function replaceTextResourceParams(textResources: ITextResource[], dataSources: IDataSources): void {
+export function replaceTextResourceParams(textResources: ITextResource[], dataSources: IDataSources): ITextResource[] {
   let replaceValues: string[];
 
   textResources.forEach((resource) => {
@@ -102,4 +102,5 @@ export function replaceTextResourceParams(textResources: ITextResource[], dataSo
       }
     }
   });
+  return textResources;
 }
