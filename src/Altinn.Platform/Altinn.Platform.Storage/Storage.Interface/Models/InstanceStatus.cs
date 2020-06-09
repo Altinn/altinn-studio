@@ -1,6 +1,7 @@
 using System;
-
+using System.Runtime.Serialization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Altinn.Platform.Storage.Interface.Models
 {
@@ -33,7 +34,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Gets or sets the read status of the instance.
         /// </summary>
         [JsonProperty(PropertyName = "readStatus")]
-
+        [JsonConverter(typeof(StringEnumConverter))]
         public ReadStatus ReadStatus{get; set;}
     }
 
