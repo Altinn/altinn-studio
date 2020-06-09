@@ -176,7 +176,7 @@ namespace App.IntegrationTests.Mocks.Services
             return await Task.FromResult(instance);
         }
 
-        public Task<Instance> UpdateReadStatus(int instanceOwnerPartyId, Guid instanceGuid, string readStatus)
+        public async Task<Instance> UpdateReadStatus(int instanceOwnerPartyId, Guid instanceGuid, string readStatus)
         {
             if (!Enum.TryParse(readStatus, true, out ReadStatus newStatus))
             {
@@ -195,9 +195,10 @@ namespace App.IntegrationTests.Mocks.Services
                 storedInstance.Status.ReadStatus = newStatus;
 
                 File.WriteAllText(instancePath, JsonConvert.SerializeObject(storedInstance));
-                return Task.FromResult(storedInstance);
+                return await Task.FromResult(storedInstance);
             }
 
+          
             return null;
 
         }

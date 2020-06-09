@@ -35,7 +35,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
             appSettingsOptions = new Mock<IOptionsMonitor<AppSettings>>();
             handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-            readStatushandlerMock = new Mock<HttpMessageHandler>(MockBehavior.Loose);
+            readStatushandlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             contextAccessor = new Mock<IHttpContextAccessor>();
         }
 
@@ -51,7 +51,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(httpResponseMessage);
+            InitializeMocks(httpResponseMessage, "complete");
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -74,7 +74,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(httpResponseMessage);
+            InitializeMocks(httpResponseMessage, "complete");
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -108,7 +108,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(httpResponseMessage);
+            InitializeMocks(httpResponseMessage, "read");
 
             HttpClient httpClient = new HttpClient(readStatushandlerMock.Object);
 
@@ -144,7 +144,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent(JsonConvert.SerializeObject(expected), Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(httpResponseMessage);
+            InitializeMocks(httpResponseMessage, "read");
 
             HttpClient httpClient = new HttpClient(readStatushandlerMock.Object);
 
@@ -155,11 +155,11 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
 
             // Assert
-            Assert.Equal(expected.Status.ReadStatus, actual.Status.ReadStatus);            
+            Assert.Equal(expected.Status.ReadStatus, actual.Status.ReadStatus);
             readStatushandlerMock.VerifyAll();
         }
 
-        private void InitializeMocks(HttpResponseMessage httpResponseMessage)
+        private void InitializeMocks(HttpResponseMessage httpResponseMessage, string urlPart)
         {
             PlatformSettings platformSettings = new PlatformSettings { ApiStorageEndpoint = "http://localhost", SubscriptionKey = "key" };
             platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
@@ -170,14 +170,14 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
 
             handlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().EndsWith("complete")),
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart)),
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponseMessage)
                 .Verifiable();
 
 
             readStatushandlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains("readstatus?status=")),
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart)),
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponseMessage)
                 .Verifiable();
