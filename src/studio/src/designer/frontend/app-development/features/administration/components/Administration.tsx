@@ -1,6 +1,6 @@
+/* eslint-disable max-len */
 
 import { createMuiTheme, createStyles, Grid, Typography, withStyles } from '@material-ui/core';
-import classNames = require('classnames');
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
@@ -13,6 +13,8 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ICommit, IRepository } from '../../../types/global';
 import handleServiceInformationActionDispatchers from '../handleServiceInformationDispatcher';
+
+import classNames = require('classnames');
 export interface IAdministrationComponentProvidedProps {
   classes: any;
 }
@@ -111,6 +113,7 @@ export class AdministrationComponent extends
     };
   }
 
+  // eslint-disable-next-line react/state-in-constructor
   public state: IAdministrationComponentState = {
     editServiceDescription: false,
     editServiceId: false,
@@ -126,11 +129,14 @@ export class AdministrationComponent extends
     const { org, app } = altinnWindow;
 
     handleServiceInformationActionDispatchers.fetchService(
-      `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`);
+      `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`,
+    );
     handleServiceInformationActionDispatchers.fetchInitialCommit(
-      `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?org=${org}&repository=${app}`);
+      `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?org=${org}&repository=${app}`,
+    );
     handleServiceInformationActionDispatchers.fetchServiceConfig(
-      `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`);
+      `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
+    );
   }
 
   public onServiceNameChanged = (event: any) => {
@@ -152,7 +158,8 @@ export class AdministrationComponent extends
       handleServiceInformationActionDispatchers.saveServiceName(`${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`, this.state.serviceName);
       handleServiceInformationActionDispatchers.saveServiceConfig(
         `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
-        this.state.serviceDescription, this.state.serviceId, this.state.serviceName);
+        this.state.serviceDescription, this.state.serviceId, this.state.serviceName,
+      );
       this.setState({ editServiceName: false });
     }
   }
@@ -167,7 +174,8 @@ export class AdministrationComponent extends
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceConfig(
         `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
-        this.state.serviceDescription, this.state.serviceId, this.state.serviceName);
+        this.state.serviceDescription, this.state.serviceId, this.state.serviceName,
+      );
       this.setState({ editServiceDescription: false });
     }
   }
@@ -182,17 +190,18 @@ export class AdministrationComponent extends
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceConfig(
         `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
-        this.state.serviceDescription, this.state.serviceId, this.state.serviceName);
+        this.state.serviceDescription, this.state.serviceId, this.state.serviceName,
+      );
       this.setState({ editServiceId: false });
     }
   }
 
   public renderSideMenuContent = (): JSX.Element => {
-    const {classes} = this.props;
+    const { classes } = this.props;
     return (
       <>
         <Typography className={classes.sidebarHeader}>
-        {getLanguageFromKey('general.service_owner', this.props.language)}
+          {getLanguageFromKey('general.service_owner', this.props.language)}
         </Typography>
         <Typography className={classes.sidebarInfoText}>
           {getLanguageFromKey('administration.service_owner_is', this.props.language)}
@@ -210,7 +219,7 @@ export class AdministrationComponent extends
             {getLanguageFromKey('administration.created_by', this.props.language)} {formatNameAndDate(this.props.initialCommit.author.name, this.props.service.created_at)}
           </Typography>
         }
-    </>
+      </>
     );
   }
 
@@ -294,10 +303,11 @@ export class AdministrationComponent extends
               <div className={this.props.classes.versionControlHeaderMargin}>
                 <VersionControlHeader language={this.props.language} />
               </div>}
-            children={this.renderMainContent()}
             sideMenuChildren={this.renderSideMenuContent()}
             header={getLanguageFromKey('administration.administration', this.props.language)}
-          />
+          >
+            {this.renderMainContent()}
+          </AltinnColumnLayout>
           :
           <Grid container={true}>
             <AltinnSpinner spinnerText='Laster siden' styleObj={classes.spinnerLocation} />
@@ -316,14 +326,11 @@ const mapStateToProps = (
     initialCommit: state.serviceInformation.initialCommit,
     language: state.language,
     service: state.serviceInformation.repositoryInfo,
-    // tslint:disable-next-line:max-line-length
     serviceDescription: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.description : '',
-    // tslint:disable-next-line:max-line-length
     serviceDescriptionIsSaving: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.saving : false,
     serviceId: state.serviceInformation.serviceIdObj ? state.serviceInformation.serviceIdObj.serviceId : '',
     serviceIdIsSaving: state.serviceInformation.serviceIdObj ? state.serviceInformation.serviceIdObj.saving : false,
     serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
-    // tslint:disable-next-line:max-line-length
     serviceNameIsSaving: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.saving : false,
   };
 };

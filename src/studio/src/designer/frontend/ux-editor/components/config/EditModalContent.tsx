@@ -1,3 +1,6 @@
+/* eslint-disable react/no-array-index-key */
+/* eslint-disable jsx-a11y/label-has-associated-control */
+/* eslint-disable import/no-cycle */
 import { Grid, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -9,8 +12,8 @@ import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
-import { AddressKeys, getTextResourceByAddressKey } from '../advanced/AddressComponent';
 import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
+import { getTextResourceByAddressKey, AddressKeys } from '../../utils/component';
 
 export const customInput = {
   control: (base: any) => ({
@@ -166,7 +169,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
 
   public handleUpdateOptionValue = (
     index: number,
-    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
   ) => {
     event.persist();
     this.setState((prevState: IEditModalContentState) => {
@@ -365,7 +368,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
             {renderSelectDataModelBinding(
               this.props.component.dataModelBindings,
               this.handleDataModelChange,
-              this.props.language)}
+              this.props.language,
+            )}
             {renderSelectTextFromResources('modal_properties_label_helper',
               this.handleTitleChange,
               this.props.textResources,
@@ -386,12 +390,12 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings.title,
-            )}
+              this.props.component.textResourceBindings.title)}
             {false && renderPropertyLabel(this.props.language.ux_editor.modal_properties_paragraph_edit_helper)}
             {false && <textarea
               value={getTextResource(
-                this.state.component.textResourceBindings.title, this.props.textResources)}
+                this.state.component.textResourceBindings.title, this.props.textResources,
+              )}
               style={{ width: '100%' }}
               rows={4}
               className='form-control'
@@ -458,11 +462,11 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
             {component.options.map((option, index) => (
               <div key={index} className='row align-items-center'>
                 <div className='col-5'>
-                  <label htmlFor={'editModal_dropdownlabel-' + index} className='a-form-label sr-only'>
+                  <label htmlFor={`editModal_dropdownlabel-${index}`} className='a-form-label sr-only'>
                     {this.props.language.ux_editor.modal_text}
                   </label>
                   <select
-                    id={'editModal_dropdownlabel-' + index}
+                    id={`editModal_dropdownlabel-${index}`}
                     className='custom-select a-custom-select'
                     onChange={this.handleUpdateOptionLabel.bind(this, index)}
                     value={option.label}
@@ -634,7 +638,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 />
                 <AltinnRadio
                   label={getLanguageFromKey(
-                    'ux_editor.modal_properties_valid_file_endings_custom', this.props.language)}
+                    'ux_editor.modal_properties_valid_file_endings_custom', this.props.language,
+                  )}
                   value='true'
                 />
               </AltinnRadioGroup>
@@ -647,7 +652,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                   onChangeFunction={this.handleValidFileEndingsChange}
                   inputValue={component.validFileEndings}
                   inputDescription={getLanguageFromKey(
-                    'ux_editor.modal_properties_valid_file_endings_helper', this.props.language)}
+                    'ux_editor.modal_properties_valid_file_endings_helper', this.props.language,
+                  )}
                   inputFieldStyling={{ width: '100%' }}
                   inputDescriptionStyling={{ marginTop: '24px' }}
                 />
@@ -681,7 +687,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 onChangeFunction={this.handleMaxFileSizeInMBChange}
                 inputValue={component.maxFileSizeInMB || 0}
                 inputDescription={getLanguageFromKey(
-                  'ux_editor.modal_properties_maximum_file_size', this.props.language)}
+                  'ux_editor.modal_properties_maximum_file_size', this.props.language,
+                )}
                 inputFieldStyling={{ width: '60px' }}
                 inputDescriptionStyling={{ marginTop: '24px' }}
                 type='number'
@@ -695,7 +702,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 }}
               >
                 {getLanguageFromKey(
-                  'ux_editor.modal_properties_maximum_file_size_helper', this.props.language)}
+                  'ux_editor.modal_properties_maximum_file_size_helper', this.props.language,
+                )}
               </Typography>
             </Grid>
           </Grid>
@@ -707,7 +715,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
             {renderSelectDataModelBinding(
               this.props.component.dataModelBindings,
               this.handleDataModelChange,
-              this.props.language)}
+              this.props.language,
+            )}
             {renderSelectTextFromResources('modal_properties_label_helper',
               this.handleTitleChange,
               this.props.textResources,
@@ -738,6 +747,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
         const option = truncate(resource.value, 60);
         return (
           <option
+            // eslint-disable-next-line react/no-array-index-key
             key={index}
             value={resource.id}
             title={resource.value}
