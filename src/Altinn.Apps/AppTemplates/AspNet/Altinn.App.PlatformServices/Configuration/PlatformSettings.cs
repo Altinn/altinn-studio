@@ -9,15 +9,10 @@ namespace Altinn.App.Services.Configuration
     public class PlatformSettings
     {
         private string _apiPdfEndpoint;
-        private string _apiAuthorizationEndpointHost;
         private string _apiAuthorizationEndpoint;
-        private string _apiAuthenticationEndpointHost;
         private string _apiAuthenticationEndpoint;
-        private string _apiProfileEndpointHost;
         private string _apiProfileEndpoint;
-        private string _apiRegisterEndpointHost;
         private string _apiRegisterEndpoint;
-        private string _apiStorageEndpointHost;
         private string _apiStorageEndpoint;
         private string _subscriptionKey;
 

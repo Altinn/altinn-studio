@@ -7,7 +7,7 @@ import withStyles, { WithStyles } from '@material-ui/core/styles/withStyles';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
-import { IAttachment } from '../../types/index.d';
+import { IAttachment } from '../../types';
 import { AltinnIcon } from '../AltinnIcon';
 
 const styles = createStyles({

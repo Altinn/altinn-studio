@@ -1,0 +1,18 @@
+{
+  "appOwner": {
+    "downloaded": [
+      "2020-06-06T12:28:14.4852108Z"
+    ]
+  },
+  "id": "7b475791-ce2c-45a5-be2f-195f37c2646d",
+  "instanceGuid": "dd84cfe9-f875-42ea-8a96-eb725a6a8a95",
+  "dataType": "default",
+  "contentType": "text/plain; charset=utf-8",
+  "blobStoragePath": "tdd/endring-av-navn/dd84cfe9-f875-42ea-8a96-eb725a6a8a95/data/7b475791-ce2c-45a5-be2f-195f37c2646d",
+  "size": 19,
+  "locked": false,
+  "refs": [
+  ],
+  "created": "2020-05-11T17:09:28.4621953Z",
+  "lastChanged": "2020-05-11T17:09:28.4621953Z"
+}
