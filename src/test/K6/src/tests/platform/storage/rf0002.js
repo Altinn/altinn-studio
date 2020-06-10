@@ -32,11 +32,12 @@ export default function(data) {
     var orgPartyId = postPartieslookup(runtimeToken, "OrgNo", data["orgNumber"])
     data.orgPartyId = JSON.parse(orgPartyId.body).partyId;    
     const partyId = data["orgPartyId"];  
-    var instanceId = "";     
+    var instanceId = "";
+    var res, success;    
 
     //Test to create an instance with storage api and validate the response
-    var res = instances.postInstance(runtimeToken, partyId, appOwner, level2App, instanceJson);    
-    var success = check(res, {
+    res = instances.postInstance(runtimeToken, partyId, appOwner, level2App, instanceJson);    
+    success = check(res, {
       "POST Create Instance status is 201:": (r) => r.status === 201,
       "POST Create Instance Instance Id is not null:": (r) => JSON.parse(r.body).id != null
     });  

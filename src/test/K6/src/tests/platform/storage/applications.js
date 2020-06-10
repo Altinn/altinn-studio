@@ -27,10 +27,11 @@ export function setup(){
 //Tests for platform Storage: Applications
 export default function(data) {
     const runtimeToken = data;
+    var res, success;
 
     //Test Platform: Storage: Get All applicaions under an appOwner
-    var res = application.getAllApplications(runtimeToken, appOwner);    
-    var success = check(res, {
+    res = application.getAllApplications(runtimeToken, appOwner);    
+    success = check(res, {
       "GET All Apps under an Org status is 200:": (r) => r.status === 200,
       "GET All Apps under an Org List is not empty:": (r) => (JSON.parse(r.body)).applications.length != 0
     });  

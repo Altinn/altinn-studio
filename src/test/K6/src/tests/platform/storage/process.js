@@ -35,13 +35,14 @@ export default function (data){
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];    
     const instanceId = data["instanceId"];
+    var res, success;
 
     var instanceProcess = instances.getInstanceById(runtimeToken, partyId, instanceId);
     instanceProcess = (JSON.parse(instanceProcess.body)).process;
 
     //Test to edit the process of an instance and validate the response
-    var res = process.putProcess(runtimeToken, partyId, instanceId, instanceProcess);    
-    var success = check(res, {
+    res = process.putProcess(runtimeToken, partyId, instanceId, instanceProcess);    
+    success = check(res, {
        "PUT Edit Process status is 200:": (r) => r.status === 200       
     });  
     addErrorCount(success);    

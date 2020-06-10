@@ -37,11 +37,12 @@ export default function(data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
     const instanceId = data["instanceId"];
-    var eventId = ""; 
+    var eventId = "";
+    var res, success;
     
     //Test to add an instance event to an instance with storage api and validate the response
-    var res = events.postAddEvent(runtimeToken, partyId, instanceId, eventsJson);    
-    var success = check(res, {
+    res = events.postAddEvent(runtimeToken, partyId, instanceId, eventsJson);    
+    success = check(res, {
       "POST Add Event status is 201:": (r) => r.status === 201,
       "POST Add Event Event Id is not null:": (r) => (JSON.parse(r.body)).id != null
     });  

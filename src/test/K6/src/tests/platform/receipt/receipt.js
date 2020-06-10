@@ -33,10 +33,11 @@ export function setup(){
 export default function(data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
-    const instanceId = data["instanceId"]; 
+    const instanceId = data["instanceId"];
+    var res, success;
     
-    var res = receipt.getReceipt(partyId, instanceId, runtimeToken);   
-    var success = check(res, {
+    res = receipt.getReceipt(partyId, instanceId, runtimeToken);   
+    success = check(res, {
       "Get receipt Status is 200:": (r) => r.status === 200,
       "Get receipt includes party info:": (r) => (JSON.parse(r.body)).party.partyId == partyId
     });

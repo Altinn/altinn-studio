@@ -29,10 +29,11 @@ export default function(data) {
     const partyId = data["partyId"];
     const ssn = data["ssn"];
     const orgNr = data["orgNumber"];
+    var res, success;
 
     //Test Platform: Register: Get organization by orgno and validate response
-    var res = register.getOrganizations(runtimeToken, orgNr);    
-    var success = check(res, {
+    res = register.getOrganizations(runtimeToken, orgNr);    
+    success = check(res, {
       "GET Org status is 403:": (r) => r.status === 403
     });  
     addErrorCount(success);    

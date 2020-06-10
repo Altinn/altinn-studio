@@ -30,16 +30,16 @@ export function setup(){
     return data;
 };
 
-
 //Tests for platform Storage: MessageBoxInstances
 export default function(data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];  
     const instanceId = data["instanceId"];
+    var res, success;
     
     //Test to get an instance by id from storage: SBL and validate the response
-    var res = sbl.getSblInstanceById(runtimeToken, partyId, instanceId);    
-    var success = check(res, {
+    res = sbl.getSblInstanceById(runtimeToken, partyId, instanceId);    
+    success = check(res, {
       "GET SBL Instance by Id status is 200:": (r) => r.status === 200,
       "GET SBL Instance by Id Instance Id matches:": (r) => (JSON.parse(r.body)).id === instanceId
     });  
@@ -69,8 +69,8 @@ export default function(data) {
     addErrorCount(success);    
 
     //Test to get an instance events from storage: SBL and validate the response
-    var res = sbl.getSblInstanceEvents(runtimeToken, partyId, instanceId);    
-    var success = check(res, {
+    res = sbl.getSblInstanceEvents(runtimeToken, partyId, instanceId);    
+    success = check(res, {
       "GET SBL Instance Events status is 200:": (r) => r.status === 200,
       "GET SBL Instance Events Events Counts matches:": (r) => (JSON.parse(r.body)).length === 3
     });  
