@@ -7,6 +7,7 @@ const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const testappName = __ENV.testapp;
+const level2App = __ENV.level2app;
 let policyFile = open("../../../data/policy.xml","b");
 let pdpInputJson = open("../../../data/pdpinput.json");
 
@@ -20,7 +21,7 @@ export const options = {
 export function setup(){
     var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
-    var data = setUpData.getUserData(altinnStudioRuntimeCookie); 
+    var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App); 
     data.RuntimeToken = altinnStudioRuntimeCookie;   
     return data;
 };

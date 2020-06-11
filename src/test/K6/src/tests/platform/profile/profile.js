@@ -5,6 +5,8 @@ import * as setUpData from "../../../setup.js";
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
+const appOwner = __ENV.org;
+const level2App = __ENV.level2app;
 
 export const options = {    
     thresholds:{
@@ -23,7 +25,7 @@ export function setup(){
 export default function(data) {
     const runtimeToken = data;
     
-    var userData = setUpData.getUserData(runtimeToken);
+    var userData = setUpData.getUserData(runtimeToken, appOwner, level2App);
     const userId = userData["userId"];
     const ssn = userData["ssn"];
     var res, success;

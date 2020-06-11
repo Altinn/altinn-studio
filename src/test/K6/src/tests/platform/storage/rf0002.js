@@ -26,7 +26,7 @@ export default function(data) {
     var aspxauthCookie = setUpData.authenticateUser(users[__VU - 1].username, users[__VU - 1].password);    
     var runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie); 
     setUpData.clearCookies();   
-    var data = setUpData.getUserData(runtimeToken);    
+    var data = setUpData.getUserData(runtimeToken, appOwner, level2App);    
     var attachmentDataType = apps.getAppByName(runtimeToken, appOwner, level2App);
     attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body); 
     var orgPartyId = postPartieslookup(runtimeToken, "OrgNo", data["orgNumber"])
