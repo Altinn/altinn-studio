@@ -55,6 +55,11 @@ export var platformPdf = {
     "generate": "https://platform." + baseUrl + "/pdf/api/v1/generate"    
 };
 
+//Receipt
+export var platformReceipt = {
+    "receipt": "https://platform." + baseUrl + "/receipt/api/v1/instances" 
+};
+
 //Platform Storage
 export var platformStorage = {
     "applications": "https://platform." + baseUrl + "/storage/api/v1/applications",

@@ -127,8 +127,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void GetMessageBoxInstanceList_RequestArchivedInstancesForGivenOwner_ReturnsCorrectListOfInstances()
             {
                 // Arrange
-                MessageBoxTestData testData = new MessageBoxTestData();
-
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
@@ -144,6 +142,62 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 int actualCount = messageBoxInstances.Count;
                 int expectedCount = 4;
                 Assert.Equal(expectedCount, actualCount);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Request an existing instance.
+            /// Expected:
+            ///  A converted instance is returned.
+            /// Success:
+            ///  The instance has the expected properties.
+            /// </summary>
+            [Fact]
+            public async void GetMessageBoxInstance_RequestsExistingInstance_InstanceIsSuccessfullyMappedAndReturned()
+            {
+                // Arrange
+                string instanceId = "1337/6323a337-26e7-4d40-89e8-f5bb3d80be3a";
+                string expectedTitle = "Name change";
+
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
+
+                // Act
+                HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/{instanceId}?language=en");
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+
+                string responseContent = await responseMessage.Content.ReadAsStringAsync();
+                MessageBoxInstance actual = JsonConvert.DeserializeObject<MessageBoxInstance>(responseContent);
+
+                Assert.Equal(expectedTitle, actual.Title);
+                Assert.True(actual.AllowDelete);
+                Assert.True(actual.AuthorizedForWrite);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Request an instance the user is not authorized to see
+            /// Expected:
+            ///   Authorization stops the request
+            /// Success:
+            ///   Forbidden response.
+            /// </summary>
+            [Fact]
+            public async void GetMessageBoxInstance_RequestsInstanceUserIsNotAuthorized_ForbiddenReturned()
+            {
+                // Arrange
+                string instanceId = "1337/6323a337-26e7-4d40-89e8-f5bb3d80be3a";
+
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1, 1606, 3));
+
+                // Act
+                HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/{instanceId}?language=en");
+
+                // Assert     
+                Assert.Equal(HttpStatusCode.Forbidden, responseMessage.StatusCode);
             }
 
             /// <summary>

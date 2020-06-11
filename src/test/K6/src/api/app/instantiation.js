@@ -31,4 +31,4 @@ export function beforeInstanceCreation(altinnStudioRuntimeCookie, partyId){
         }];
     res = http.batch(req);
     return res; 
-}
+};
