@@ -125,7 +125,7 @@ namespace Altinn.Platform.Storage.Authorization
         /// Get the instance from database based on request
         /// </summary>
         /// <param name="request">The request</param>
-        /// <returns></returns>
+        /// <returns>The instance identified by information in the request.</returns>
         private async Task<Instance> GetInstance(XacmlJsonRequestRoot request)
         {
             string instanceId = string.Empty;

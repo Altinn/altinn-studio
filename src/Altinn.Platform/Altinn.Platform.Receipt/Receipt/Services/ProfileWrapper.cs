@@ -2,7 +2,7 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Receipt.Clients;
 using Altinn.Platform.Receipt.Configuration;
@@ -22,11 +22,12 @@ namespace Altinn.Platform.Receipt.Services.Interfaces
         private readonly HttpClient _client;
         private readonly IHttpContextAccessor _contextaccessor;
         private readonly PlatformSettings _platformSettings;
+        private readonly IAccessTokenGenerator _accessTokenGenerator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileWrapper"/> class
         /// </summary>
-        public ProfileWrapper(HttpClient httpClient, IHttpContextAccessor httpContextAccessor, IOptions<PlatformSettings> platformSettings)
+        public ProfileWrapper(HttpClient httpClient, IHttpContextAccessor httpContextAccessor, IOptions<PlatformSettings> platformSettings, IAccessTokenGenerator accessTokenGenerator)
         {
             _platformSettings = platformSettings.Value;
             httpClient.BaseAddress = new Uri(_platformSettings.ApiProfileEndpoint);
@@ -34,6 +35,7 @@ namespace Altinn.Platform.Receipt.Services.Interfaces
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
             _contextaccessor = httpContextAccessor;
+            _accessTokenGenerator = accessTokenGenerator;
         }
 
         /// <inheritdoc/>
@@ -42,7 +44,7 @@ namespace Altinn.Platform.Receipt.Services.Interfaces
             string token = JwtTokenUtil.GetTokenFromContext(_contextaccessor.HttpContext, "AltinnStudioRuntime");
             string url = $"users/{userId}";
 
-            HttpResponseMessage response = await _client.GetAsync(token, url);
+            HttpResponseMessage response = await _client.GetAsync(token, url, _accessTokenGenerator.GenerateAccessToken("platform", "receipt"));
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {

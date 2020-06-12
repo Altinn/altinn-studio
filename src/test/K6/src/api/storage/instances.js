@@ -35,12 +35,15 @@ export function getAllinstancesByPartyId(altinnStudioRuntimeCookie, partyId){
 };
 
 //Api call to Storage:Instances to get all instances under a party id and return response
-export function getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, isArchived){
-    var todayDate = new Date();
-    todayDate.setUTCHours(0,0,0,0);
-    todayDate = todayDate.toISOString();
+export function getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, isArchived, createdDateTime){
+    if(!(createdDateTime)){
+        var todayDateTime = new Date();
+        todayDateTime.setUTCHours(0,0,0,0);
+        createdDateTime = todayDateTime.toISOString();
+    };
+
     //find archived instances of today
-    var endpoint = config.platformStorage["instances"] + "?created=gt:" + todayDate +"&org=" + appOwner + "&appId=" + appOwner + "/" + appName + "&process.isComplete=" + isArchived;
+    var endpoint = config.platformStorage["instances"] + "?created=gt:" + createdDateTime +"&org=" + appOwner + "&appId=" + appOwner + "/" + appName + "&process.isComplete=" + isArchived;
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");    
     params.timeout = 120000;
     return http.get(endpoint, params);
@@ -54,9 +57,9 @@ export function findInstanceId(responseBody){
     return instanceId;
 };
 
-//Function to find all the archived app instances for an appOwner for a specific app and returns instance id as an array
-export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, appName, count){
-    var allInstances = getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, "true");
+//Function to find all the archived app instances created after specific created date time for an appOwner for a specific app and returns instance id as an array
+export function findAllArchivedInstances(altinnStudioRuntimeCookie, appOwner, appName, count, createdDateTime){
+    var allInstances = getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, "true", createdDateTime);
     var params = header.buildHeaderWithRuntimeAsCookie(altinnStudioRuntimeCookie, "platform");
     params.timeout = 120000;
     allInstances = JSON.parse(allInstances.body);

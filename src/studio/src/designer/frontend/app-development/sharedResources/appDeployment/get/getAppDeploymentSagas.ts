@@ -1,6 +1,6 @@
 // import * as moment from 'moment';
 import { SagaIterator } from 'redux-saga';
-import { delay } from 'redux-saga';
+import { delay } from 'redux-saga/effects';
 import { call, fork, race, take } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import { getAppDeploymentsUrl } from '../../../utils/urlHelper';
@@ -14,10 +14,10 @@ function* getAppDeploymentIntervalSaga(): SagaIterator {
       const deployments = yield call(get, `${getAppDeploymentsUrl()}?sortDirection=descending&sortBy=created`);
 
       yield call(AppDeploymentActionDispatcher.getAppDeploymentsFulfilled, deployments);
-      yield call(delay, 10000);
+      yield delay(10000);
     } catch (err) {
       yield call(AppDeploymentActionDispatcher.getAppDeploymentsRejected, err);
-      yield call(delay, 10000);
+      yield delay(10000);
     }
   }
 }

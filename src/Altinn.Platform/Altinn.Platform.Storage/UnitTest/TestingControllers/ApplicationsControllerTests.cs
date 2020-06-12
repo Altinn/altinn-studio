@@ -93,7 +93,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 applicationRepository.Setup(s => s.Create(It.IsAny<Application>())).ReturnsAsync((Application app) => app);
 
                 HttpClient client = GetTestClient(applicationRepository.Object);
-                string token = PrincipalUtil.GetOrgToken("testorg");
+                string token = PrincipalUtil.GetAccessToken("studio.designer");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -202,7 +202,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
 
                 HttpClient client = GetTestClient(applicationRepository.Object);
-                string token = PrincipalUtil.GetOrgToken("testorg");
+                string token = PrincipalUtil.GetAccessToken("studio.designer");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -218,12 +218,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             /// <summary>
             /// Scenario:
-            ///   Soft delete an existing application but empty scope claim in context.
+            ///   Soft delete an existing application but empty appId claim in context.
             /// Expected result:
             ///   Returns HttpStatus Forbidden and application will not be updated
             /// </summary>
             [Fact]
-            public async void Delete_ClientWithEmptyScope_ReturnsStatusForbidden()
+            public async void Delete_ClientWithEmptyAppId_ReturnsStatusForbidden()
             {
                 // Arrange
                 string org = "test";
@@ -238,7 +238,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 HttpClient client = GetTestClient(applicationRepository.Object);
 
-                string token = PrincipalUtil.GetOrgToken("testorg", scope: string.Empty);
+                string token = PrincipalUtil.GetAccessToken(string.Empty);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -252,12 +252,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             /// <summary>
             /// Scenario:
-            ///   Soft delete an existing application but inccorrect scope claim in context.
+            ///   Soft delete an existing application but inccorrect appId claim in context.
             /// Expected result:
             ///   Returns HttpStatus Forbidden and application will not be updated
             /// </summary>
             [Fact]
-            public async void Delete_ClientWithIncorrectScope_ReturnsStatusForbidden()
+            public async void Delete_ClientWithIncorrectAppId_ReturnsStatusForbidden()
             {
                 // Arrange
                 string org = "test";
@@ -272,7 +272,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 HttpClient client = GetTestClient(applicationRepository.Object);
 
-                string token = PrincipalUtil.GetOrgToken("testorg", scope: "altinn:invalidScope");
+                string token = PrincipalUtil.GetAccessToken("studddio.designer");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -308,7 +308,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 HttpClient client = GetTestClient(applicationRepository.Object);
 
-                string token = PrincipalUtil.GetOrgToken("testorg");
+                string token = PrincipalUtil.GetAccessToken("studio.designer");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 // Act
@@ -343,7 +343,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 HttpClient client = GetTestClient(applicationRepository.Object);
 
-                string token = PrincipalUtil.GetOrgToken("testorg");
+                string token = PrincipalUtil.GetAccessToken("studio.designer");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 Application updatedApp = CreateApplication(org, appName);

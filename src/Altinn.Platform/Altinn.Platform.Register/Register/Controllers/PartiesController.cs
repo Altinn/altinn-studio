@@ -12,6 +12,7 @@ namespace Altinn.Platform.Register.Controllers
     /// The parties controller provides access to party information in the SBL Register component.
     /// </summary>
     [Authorize]
+    [Authorize(Policy = "PlatformAccess")]
     [Route("register/api/v1/parties")]
     public class PartiesController : Controller
     {

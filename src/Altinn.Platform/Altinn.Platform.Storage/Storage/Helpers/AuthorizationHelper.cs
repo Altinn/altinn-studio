@@ -123,7 +123,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// Authorizes a given action on an instance.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>true if the user is authorized.</returns>
         public async Task<bool> AuthorizeInstanceAction(ClaimsPrincipal user, Instance instance, string action)
         {
             string org = instance.Org;
@@ -265,7 +265,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// </summary>
         /// <param name="org">Organisation to match in claims.</param>
         /// <param name="user">Claim principal from http context.</param>
-        /// <returns></returns>
+        /// <returns>true if the given ClaimsPrincipal contains the given org.</returns>
         public static bool VerifyOrgInClaimPrincipal(string org, ClaimsPrincipal user)
         {
             Console.WriteLine($"AuthzHelper // VerifyOrg // Trying to verify org in claims.");
@@ -287,7 +287,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// </summary>
         /// <param name="requiredScope">Requiered scope.</param>
         /// <param name="user">Claim principal from http context.</param>
-        /// <returns></returns>
+        /// <returns>true if the given ClaimsPrincipal or on of its identities have contains the given scope.</returns>
         public bool ContainsRequiredScope(string requiredScope, ClaimsPrincipal user)
         {
             string contextScope = user.Identities?

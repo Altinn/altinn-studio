@@ -1,19 +1,28 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import * as Actions from './fetch/fetchTextResourcesActions';
-
 import { ITextResource } from 'src/types/global';
+import * as FetchActions from './fetch/fetchTextResourcesActions';
+import * as ReplaceActions from './replace/replaceTextResoucesActions';
+
 import { store } from '../../../store';
 
 export interface ITextResourcesActions extends ActionCreatorsMapObject {
   fetchTextResources: () => Action;
-  fetchTextResourcesFulfilled: (language: string, resources: ITextResource[]) => Actions.IFetchTextResourcesFulfilled;
-  fetchTextResourcesRejected: (error: Error) => Actions.IFetchTextResourcesRejected;
+  fetchTextResourcesFulfilled:
+    (language: string, resources: ITextResource[]) => FetchActions.IFetchTextResourcesFulfilled;
+  fetchTextResourcesRejected: (error: Error) => FetchActions.IFetchTextResourcesRejected;
+  replaceTextResources: () => Action;
+  replaceTextResourcesFulfilled:
+    (language: string, resources: ITextResource[]) => ReplaceActions.IReplaceTextResourcesFulfilled;
+  replaceTextResourcesRejected: (error: Error) => ReplaceActions.IReplaceTextResourcesRejected;
 }
 
 const actions: ITextResourcesActions = {
-  fetchTextResources: Actions.fetchTextResources,
-  fetchTextResourcesFulfilled: Actions.fetchFormResourceFulfilled,
-  fetchTextResourcesRejected: Actions.fetchFormResourceRejected,
+  fetchTextResources: FetchActions.fetchTextResources,
+  fetchTextResourcesFulfilled: FetchActions.fetchFormResourceFulfilled,
+  fetchTextResourcesRejected: FetchActions.fetchFormResourceRejected,
+  replaceTextResources: ReplaceActions.replaceTextResources,
+  replaceTextResourcesFulfilled: ReplaceActions.replaceFormResourceFulfilled,
+  replaceTextResourcesRejected: ReplaceActions.replaceFormResourceRejected,
 };
 
 const TextResourcesActions = bindActionCreators(actions, store.dispatch);

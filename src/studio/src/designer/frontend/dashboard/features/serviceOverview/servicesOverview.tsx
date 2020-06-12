@@ -3,16 +3,16 @@ import { createStyles, withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 import classNames from 'classnames';
-import * as DOMPurify from 'dompurify';
-import * as marked from 'marked';
+// import * as DOMPurify from 'dompurify';
+// import * as marked from 'marked';
 import * as React from 'react';
-import ReactHtmlParser from 'react-html-parser';
+// import ReactHtmlParser from 'react-html-parser';
 import { connect } from 'react-redux';
-import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
-import AltinnLink from 'app-shared/components/AltinnLink';
+// import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
+// import AltinnLink from 'app-shared/components/AltinnLink';
 import AltinnSearchInput from 'app-shared/components/AltinnSearchInput';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { get } from 'app-shared/utils/networking';
+// import { get } from 'app-shared/utils/networking';
 import { CreateNewService } from '../createService/createNewService';
 import { ServicesCategory } from './servicesCategory';
 
@@ -31,7 +31,7 @@ export interface IServicesOverviewComponentProps extends IServicesOverviewCompon
 export interface IServicesOverviewComponentState {
   selectedOwners: string[];
   searchString: string;
-  majorIssues: JSX.Element[];
+  // majorIssues: JSX.Element[];
 }
 
 const styles = createStyles({
@@ -120,12 +120,12 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
   public state: IServicesOverviewComponentState = {
     selectedOwners: [],
     searchString: '',
-    majorIssues: null,
+    // majorIssues: null,
   };
 
   public componentDidMount() {
     this._isMounted = true;
-    get('https://raw.githubusercontent.com/Altinn/altinn-studio/master/KNOWNISSUES.md')
+    /* get('https://raw.githubusercontent.com/Altinn/altinn-studio/master/KNOWNISSUES.md')
     .then((res) => {
       if (this._isMounted) {
         marked.setOptions({
@@ -148,7 +148,7 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
           });
         }
       }
-    });
+    }); */
   }
 
   public componentWillUnmount() {
@@ -186,8 +186,8 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
 
   public render() {
     const { classes, services, currentUserName } = this.props;
-    const altinnWindow: Window = window;
-    const knownIssuesUrl = `${altinnWindow.location.origin}#/known-issues`;
+    // const altinnWindow: Window = window;
+    // const knownIssuesUrl = `${altinnWindow.location.origin}#/known-issues`;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
@@ -210,7 +210,7 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
             </Grid>
           }
         </Grid>
-        {this.state.majorIssues &&
+        {/* this.state.majorIssues &&
           <div className={classes.mar_top_13}>
             <AltinnInformationPaper>
               <Typography className={classes.font_16}>
@@ -225,14 +225,14 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
                 shouldShowIcon={true}
               />
             </AltinnInformationPaper>
-          </div>
+          </div> */
         }
-        {/*<Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
+        {/* <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
           {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
-        </Typography>*/}
+        </Typography> */}
         {services &&
           <>
-            <Grid container={true} direction='row' className={classes.mar_top_50}>
+            <Grid container={true} direction='row' className={classes.mar_top_13}>
               <Grid
                 item={true}
                 xl={12}
@@ -255,13 +255,13 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
             <ServicesCategory
               header={getLanguageFromKey('dashboard.category_service_write', this.props.language)}
               noServicesMessage={getLanguageFromKey('dashboard.no_category_service_write', this.props.language)}
-              className={classNames(classes.mar_top_50)}
+              className={classNames(classes.mar_top_13)}
               categoryRepos={this.searchAndFilterServicesIntoCategoriesCategory(true)}
             />
             <ServicesCategory
               header={getLanguageFromKey('dashboard.category_service_read', this.props.language)}
               noServicesMessage={getLanguageFromKey('dashboard.no_category_service_read', this.props.language)}
-              className={classNames(classes.mar_top_100)}
+              className={classNames(classes.mar_top_50)}
               categoryRepos={this.searchAndFilterServicesIntoCategoriesCategory(false)}
             />
           </>

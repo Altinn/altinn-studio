@@ -11,15 +11,15 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// Gets the userId or the orgNumber or null if neither claims are present.
         /// </summary>
-        public static string GetUserOrOrgId(this ClaimsPrincipal User)
+        public static string GetUserOrOrgId(this ClaimsPrincipal user)
         {
-            int? userId = GetUserIdAsInt(User);
+            int? userId = GetUserIdAsInt(user);
             if (userId.HasValue)
             {
                 return userId.Value.ToString();
             }
 
-            int? orgId = GetOrgNumber(User);
+            int? orgId = GetOrgNumber(user);
             if (orgId.HasValue)
             {
                 return orgId.Value.ToString();
@@ -31,11 +31,11 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// Get the org identifier string or null if it is not an org.
         /// </summary>        
-        public static string GetOrg(this ClaimsPrincipal User)
+        public static string GetOrg(this ClaimsPrincipal user)
         {
-            if (User.HasClaim(c => c.Type == AltinnCoreClaimTypes.Org))
+            if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.Org))
             {
-                Claim orgClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypes.Org);
+                Claim orgClaim = user.FindFirst(c => c.Type == AltinnCoreClaimTypes.Org);
                 if (orgClaim != null)
                 {
                     return orgClaim.Value;
@@ -48,11 +48,11 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// Returns the organisation number of an org user or null if claim does not exist.
         /// </summary>
-        public static int? GetOrgNumber(this ClaimsPrincipal User)
+        public static int? GetOrgNumber(this ClaimsPrincipal user)
         {
-            if (User.HasClaim(c => c.Type == AltinnCoreClaimTypes.OrgNumber))
+            if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.OrgNumber))
             {
-                Claim orgClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypes.OrgNumber);
+                Claim orgClaim = user.FindFirst(c => c.Type == AltinnCoreClaimTypes.OrgNumber);
                 if (orgClaim != null && int.TryParse(orgClaim.Value, out int orgNumber))
                 {
                     return orgNumber;
@@ -65,11 +65,11 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// Return the userId as an int or null if UserId claim is not set
         /// </summary>
-        public static int? GetUserIdAsInt(this ClaimsPrincipal User)
+        public static int? GetUserIdAsInt(this ClaimsPrincipal user)
         {
-            if (User.HasClaim(c => c.Type == AltinnCoreClaimTypes.UserId))
+            if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.UserId))
             {
-                Claim userIdClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypes.UserId);
+                Claim userIdClaim = user.FindFirst(c => c.Type == AltinnCoreClaimTypes.UserId);
                 if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
                 {
                     return userId;
@@ -82,11 +82,11 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// Returns the authentication level of the user.
         /// </summary>
-        public static int GetAuthenticationLevel(this ClaimsPrincipal User)
+        public static int GetAuthenticationLevel(this ClaimsPrincipal user)
         {
-            if (User.HasClaim(c => c.Type == AltinnCoreClaimTypes.AuthenticationLevel))
+            if (user.HasClaim(c => c.Type == AltinnCoreClaimTypes.AuthenticationLevel))
             {
-                Claim userIdClaim = User.FindFirst(c => c.Type == AltinnCoreClaimTypes.AuthenticationLevel);
+                Claim userIdClaim = user.FindFirst(c => c.Type == AltinnCoreClaimTypes.AuthenticationLevel);
                 if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int authenticationLevel))
                 {
                     return authenticationLevel;

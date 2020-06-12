@@ -35,7 +35,7 @@ namespace Altinn.App.Api.Controllers
 {
     /// <summary>
     /// Controller for application instances for app-backend.
-    /// You can create a new instance (POST), update it (PUT) and retreive a specific instance (GET).
+    /// You can create a new instance (POST), update it (PUT) and retrieve a specific instance (GET).
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryTokenIfAuthCookie]
@@ -53,7 +53,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IProcess _processService;
         private readonly IPDP _pdp;
 
-        private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
+        private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -117,10 +117,6 @@ namespace Altinn.App.Api.Controllers
 
                 return Ok(instance);
             }
-            catch (PlatformHttpException e)
-            {
-                return HandlePlatformHttpException(e, $"Get instance {instanceOwnerPartyId}/{instanceGuid} failed");
-            }
             catch (Exception exception)
             {
                 return ExceptionResponse(exception, $"Get instance {instanceOwnerPartyId}/{instanceGuid} failed");
@@ -142,13 +138,12 @@ namespace Altinn.App.Api.Controllers
         [Produces("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
+        [RequestSizeLimit(RequestSizeLimit)]
         public async Task<ActionResult<Instance>> Post(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromQuery] int? instanceOwnerPartyId)
         {
-
             if (string.IsNullOrEmpty(org))
             {
                 return BadRequest("The path parameter 'org' cannot be empty");
@@ -194,14 +189,13 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Error when comparing content to application metadata: {multipartError}");
             }
 
-            // extract or create instance template
             if (instanceTemplate != null)
             {
                 InstanceOwner lookup = instanceTemplate.InstanceOwner;
 
-                if (string.IsNullOrEmpty(instanceTemplate.InstanceOwner.PartyId) && (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null)))
+                if (lookup == null || lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null)
                 {
-                    return BadRequest($"Error: instanceOwnerPartyId query parameter is empty and InstanceOwner is missing from instance template. You must populate instanceOwnerPartyId or InstanceOwner");
+                    return BadRequest("Error: instanceOwnerPartyId query parameter is empty and InstanceOwner is missing from instance template. You must populate instanceOwnerPartyId or InstanceOwner");
                 }
             }
             else
@@ -237,15 +231,13 @@ namespace Altinn.App.Api.Controllers
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
-                return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}");
+                return StatusCode((int)HttpStatusCode.Forbidden, $"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
             }
 
             // Run custom app logic to validate instantiation
             InstantiationValidationResult validationResult = await _altinnApp.RunInstantiationValidation(instanceTemplate);
             if (validationResult != null && !validationResult.Valid)
             {
-                // Todo. Figure out where to get this from
-                Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
                 return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
             }
 
@@ -260,10 +252,6 @@ namespace Altinn.App.Api.Controllers
 
                 // create the instance
                 instance = await _instanceService.CreateInstance(org, app, instanceTemplate);
-            }
-            catch (PlatformHttpException e)
-            {
-                return HandlePlatformHttpException(e, $"Instantiation of appId {org}/{app} failed for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
             catch (Exception exception)
             {
@@ -281,13 +269,9 @@ namespace Altinn.App.Api.Controllers
                 await ProcessController.NotifyAppAboutEvents(_altinnApp, instance, processResult.Events);
                 await _processService.DispatchProcessEventsToStorage(instance, processResult.Events);
             }
-            catch (PlatformHttpException e)
-            {
-                HandlePlatformHttpException(e, $"Instatiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
-            }
             catch (Exception exception)
             {
-                return ExceptionResponse(exception, $"Instatiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
+                return ExceptionResponse(exception, $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
 
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
@@ -296,18 +280,63 @@ namespace Altinn.App.Api.Controllers
             return Created(url, instance);
         }
 
+        /// <summary>
+        /// Add complete confirmation.
+        /// </summary>
+        /// <remarks>
+        /// Add to an instance that a given stakeholder considers the instance as no longer needed by them. The stakeholder has
+        /// collected all the data and information they needed from the instance and expect no additional data to be added to it.
+        /// The body of the request isn't used for anything despite this being a POST operation.
+        /// </remarks>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <returns>Returns the instance with updated list of confirmations.</returns>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_COMPLETE)]
+        [HttpPost("{instanceOwnerPartyId:int}/{instanceGuid:guid}/complete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> AddCompleteConfirmation(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid)
+        {
+            try
+            {
+                Instance instance = await _instanceService.AddCompleteConfirmation(instanceOwnerPartyId, instanceGuid);
+                SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+
+                return Ok(instance);
+            }
+            catch (Exception exception)
+            {
+                return ExceptionResponse(exception, $"Adding complete confirmation to instance {instanceOwnerPartyId}/{instanceGuid} failed");
+            }
+        }
+
         private ActionResult ExceptionResponse(Exception exception, string message)
         {
             _logger.LogError($"{message}: {exception}");
 
-            if (exception is PlatformHttpException)
+            if (exception is PlatformHttpException platformHttpException)
             {
-                PlatformHttpException phe = exception as PlatformHttpException;
-                return StatusCode((int)phe.Response.StatusCode, phe.Message);
+                switch (platformHttpException.Response.StatusCode)
+                {
+                    case HttpStatusCode.Forbidden:
+                        return Forbid();
+                    case HttpStatusCode.NotFound:
+                        return NotFound();
+                    case HttpStatusCode.Conflict:
+                        return Conflict();
+                    default:
+                        return StatusCode((int)platformHttpException.Response.StatusCode, platformHttpException.Message);
+                }
             }
-            else if (exception is ServiceException)
+
+            if (exception is ServiceException se)
             {
-                ServiceException se = exception as ServiceException;
                 return StatusCode((int)se.StatusCode, se.Message);
             }
 
@@ -394,7 +423,6 @@ namespace Altinn.App.Api.Controllers
         {
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             int instanceOwnerIdAsInt = int.Parse(instance.InstanceOwner.PartyId);
-            DataElement dataElement = null;
             string org = instance.Org;
             string app = instance.AppId.Split("/")[1];
 
@@ -402,6 +430,7 @@ namespace Altinn.App.Api.Controllers
             {
                 DataType dataType = appInfo.DataTypes.Find(d => d.Id == part.Name);
 
+                DataElement dataElement;
                 if (dataType.AppLogic != null)
                 {
                     _logger.LogInformation($"Storing part {part.Name}");
@@ -440,7 +469,7 @@ namespace Altinn.App.Api.Controllers
 
                 if (dataElement == null)
                 {
-                    throw new ServiceException(HttpStatusCode.InternalServerError, $"Dataservice did not return a valid instance metadata when attempt to store data element {part.Name}");
+                    throw new ServiceException(HttpStatusCode.InternalServerError, $"Data service did not return a valid instance metadata when attempt to store data element {part.Name}");
                 }
             }
         }
@@ -476,26 +505,6 @@ namespace Altinn.App.Api.Controllers
             }
 
             return instanceTemplate;
-        }
-
-        private ActionResult HandlePlatformHttpException(PlatformHttpException e, string defaultMessage)
-        {
-            if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                return Forbid();
-            }
-            else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return NotFound();
-            }
-            else if (e.Response.StatusCode == HttpStatusCode.Conflict)
-            {
-                return Conflict();
-            }
-            else
-            {
-                return ExceptionResponse(e, defaultMessage);
-            }
         }
     }
 }

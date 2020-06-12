@@ -1,6 +1,8 @@
+/* eslint-disable jsx-a11y/interactive-supports-focus */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable react/prop-types */
 import * as React from 'react';
-import DropZone from 'react-dropzone';
+import DropZone, { FileRejection } from 'react-dropzone';
 import { useSelector } from 'react-redux';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
@@ -77,7 +79,9 @@ export function FileUploadComponent(props: IFileUploadProps) {
     return [];
   }
 
-  const currentAttachments: IAttachment[] = useSelector((state: IRuntimeState) => state.attachments.attachments[props.id] || emptyArray);
+  const currentAttachments: IAttachment[] = useSelector(
+    (state: IRuntimeState) => state.attachments.attachments[props.id] || emptyArray,
+  );
 
   React.useEffect(() => {
     dispatch({ type: 'replace', value: currentAttachments });
@@ -103,7 +107,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
     return validationMessages;
   };
 
-  const onDrop = (acceptedFiles: File[], rejectedFiles: File[]) => {
+  const onDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     const newFiles: IAttachment[] = [];
     const fileType = props.id; // component id used as filetype identifier for now, see issue #1364
     const tmpValidations: string[] = [];
@@ -134,16 +138,16 @@ export function FileUploadComponent(props: IFileUploadProps) {
       }
 
       if (rejectedFiles.length > 0) {
-        rejectedFiles.forEach((file) => {
-          if (file.size > (props.maxFileSizeInMB * bytesInOneMB)) {
+        rejectedFiles.forEach((fileRejection) => {
+          if (fileRejection.file.size > (props.maxFileSizeInMB * bytesInOneMB)) {
             tmpValidations.push(
-              `${file.name} ${
+              `${fileRejection.file.name} ${
                 getLanguageFromKey('form_filler.file_uploader_validation_error_file_size', props.language)}`,
             );
           } else {
             tmpValidations.push(
               `${getLanguageFromKey('form_filler.file_uploader_validation_error_general_1', props.language)} ${
-                file.name} ${
+                fileRejection.file.name} ${
                 getLanguageFromKey('form_filler.file_uploader_validation_error_general_2', props.language)}`,
             );
           }
@@ -323,6 +327,10 @@ export function FileUploadComponent(props: IFileUploadProps) {
     );
   };
 
+  const onClick = (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    event.preventDefault();
+  };
+
   const validationMessages = getComponentValidations();
   const hasValidationMessages: boolean = validationMessages.simpleBinding.errors.length > 0;
   return (
@@ -358,7 +366,9 @@ export function FileUploadComponent(props: IFileUploadProps) {
 
             return (
               <div
-                {...getRootProps()}
+                {...getRootProps({
+                  onClick,
+                })}
                 style={styles}
                 id={`altinn-drop-zone-${props.id}`}
                 className={`file-upload${hasValidationMessages ? ' file-upload-invalid' : ''}`}

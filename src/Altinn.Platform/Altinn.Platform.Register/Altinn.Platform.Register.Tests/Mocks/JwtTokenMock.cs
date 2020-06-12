@@ -18,15 +18,16 @@ namespace Altinn.Platform.Register.Tests.Mocks
         /// <param name="principal">The claims principal to include in the token.</param>
         /// <param name="tokenExipry">How long the token should be valid for.</param>
         /// <returns>A new token.</returns>
-        public static string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
+        public static string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExipry, string issuer = "UnitTest")
         {
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(principal.Identity),
                 Expires = DateTime.UtcNow.AddSeconds(tokenExipry.TotalSeconds),
-                SigningCredentials = GetSigningCredentials(),
-                Audience = "altinn.no"
+                SigningCredentials = GetSigningCredentials(issuer),
+                Audience = "altinn.no",
+                Issuer = issuer
             };
 
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
@@ -35,11 +36,19 @@ namespace Altinn.Platform.Register.Tests.Mocks
             return tokenstring;
         }
 
-        private static SigningCredentials GetSigningCredentials()
+        private static SigningCredentials GetSigningCredentials(string issuer)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.CodeBase).LocalPath);
 
             string certPath = "jwtselfsignedcert.pfx";
+            if (!issuer.Equals("UnitTest"))
+            {
+                certPath = $"{issuer}-org.pfx";
+
+                X509Certificate2 certIssuer = new X509Certificate2(certPath);
+                return new X509SigningCredentials(certIssuer, SecurityAlgorithms.RsaSha256);
+            }
+
             X509Certificate2 cert = new X509Certificate2(certPath, "qwer1234");
             return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
         }

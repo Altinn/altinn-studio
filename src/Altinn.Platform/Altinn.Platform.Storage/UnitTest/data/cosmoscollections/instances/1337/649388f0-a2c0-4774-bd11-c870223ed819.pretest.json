@@ -1,5 +1,5 @@
 {
-  "id": "bc19107c-508f-48d9-bcd7-54ffec905306",
+  "id": "649388f0-a2c0-4774-bd11-c870223ed819",
   "instanceOwner": {
     "partyId": "1337",
     "organisationNumber": "725736800"
@@ -19,7 +19,7 @@
   },
   "appOwner": {},
   "data": [
-   ],
+  ],
   "created": "2020-04-29T13:53:02.2836971Z",
   "createdBy": "1337",
   "lastChanged": "2020-04-29T13:53:09.1122622Z",

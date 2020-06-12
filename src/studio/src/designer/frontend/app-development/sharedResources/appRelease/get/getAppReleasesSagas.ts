@@ -1,5 +1,6 @@
 import { AxiosError } from 'axios';
-import { delay, SagaIterator } from 'redux-saga';
+import { SagaIterator } from 'redux-saga';
+import { delay } from 'redux-saga/effects';
 import { call, fork, race, take, takeLatest } from 'redux-saga/effects';
 import { checkIfAxiosError } from 'app-shared/utils/networking';
 import { get } from '../../../utils/networking';
@@ -30,7 +31,7 @@ function* getReleasesIntervalSaga(): SagaIterator {
   while (true) {
     try {
       yield call(getReleasesSaga);
-      yield call(delay, 5000);
+      yield delay(5000);
     } catch (err) {
       yield call(AppReleaseActionDispatcher.getAppReleasesRejected, 1);
     }

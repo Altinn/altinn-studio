@@ -162,10 +162,19 @@ export function GenericComponent(props: IGenericComponentProps) {
     return getTextResource(props.textResourceBindings.title, textResources);
   };
 
+  const getTextResourceWrapper = (key: string) => {
+    return getTextResource(key, textResources);
+  };
+
+  const getTextResourceAsString = (key: string) => {
+    return getTextResourceByKey(key, textResources);
+  };
+
   const componentProps = {
     handleDataChange: handleDataUpdate,
     handleFocusUpdate,
-    getTextResource,
+    getTextResource: getTextResourceWrapper,
+    getTextResourceAsString,
     formData,
     isValid,
     language,

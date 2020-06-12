@@ -57,6 +57,9 @@ exports[`>>> AltinnFilterChip--- Snapshot +++ Should match snapshot with sort ic
     className="AltinnFilterChip-down-3 MuiChip-deleteIcon MuiChip-deleteIconOutlinedColorPrimary"
     onClick={[Function]}
   />
+  <span
+    className="MuiTouchRipple-root"
+  />
 </div>
 `;
 

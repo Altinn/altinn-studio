@@ -144,7 +144,7 @@ namespace Altinn.App.Services.Implementation
             {
                 string contentTypeWithoutEncoding = dataElement.ContentType.Split(";")[0];
 
-                if (dataType.AllowedContentTypes != null && dataType.AllowedContentTypes.All(ct => !ct.Equals(contentTypeWithoutEncoding, StringComparison.OrdinalIgnoreCase)))
+                if (dataType.AllowedContentTypes != null && dataType.AllowedContentTypes.Count > 0 && dataType.AllowedContentTypes.All(ct => !ct.Equals(contentTypeWithoutEncoding, StringComparison.OrdinalIgnoreCase)))
                 {
                     ValidationIssue message = new ValidationIssue
                     {

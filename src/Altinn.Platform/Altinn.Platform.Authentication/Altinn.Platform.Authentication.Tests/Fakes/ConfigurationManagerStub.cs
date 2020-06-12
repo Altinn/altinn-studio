@@ -32,7 +32,6 @@ namespace Altinn.Platform.Authentication.Tests.Fakes
         /// <inheritdoc />
         public void RequestRefresh()
         {
-            throw new NotImplementedException();
         }
     }
 }

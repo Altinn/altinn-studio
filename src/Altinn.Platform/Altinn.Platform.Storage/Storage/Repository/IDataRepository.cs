@@ -56,7 +56,7 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="instanceGuid">the instance guid as partitionKey</param>
         /// <param name="dataElementId">The data element guid</param>
-        /// <returns></returns>
+        /// <returns>The identified data element.</returns>
         Task<DataElement> Read(Guid instanceGuid, Guid dataElementId);
 
         /// <summary>

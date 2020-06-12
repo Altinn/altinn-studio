@@ -1,4 +1,5 @@
 using Altinn.App.IntegrationTests;
+using Altinn.Common.AccessToken.Constants;
 using AltinnCore.Authentication.Constants;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,18 @@ namespace Altinn.Platform.Profile.UnitTests.Utils
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
             string token = JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1));
+
+            return token;
+        }
+
+        public static string GetAccessToken(string issuer, string app)
+        {
+            List<Claim> claims = new List<Claim>();
+            claims.Add(new Claim(AccessTokenClaimTypes.App, app, ClaimValueTypes.String, issuer));
+            ClaimsIdentity identity = new ClaimsIdentity("mock");
+            identity.AddClaims(claims);
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            string token = JwtTokenMock.GenerateToken(principal, new TimeSpan(0, 1, 5), issuer);
 
             return token;
         }

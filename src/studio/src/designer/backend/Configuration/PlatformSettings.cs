@@ -28,11 +28,19 @@ namespace Altinn.Studio.Designer.Configuration
 
         /// <summary>
         /// API Management subscription key for platform in YT01.
+        /// Value is stored as an environment variable in the AKS cluster.
         /// </summary>
         public string SubscriptionKeyYT01 { get; set; }
 
         /// <summary>
+        /// API Management subscription key for platform in production.
+        /// Value is stored as an environment variable in the AKS cluster.
+        /// </summary>
+        public string SubscriptionKeyProd { get; set; }
+
+        /// <summary>
         /// API management subscription key header name.
+        /// Value is stored as an environment variable in the AKS cluster.
         /// </summary>
         public string SubscriptionKeyHeaderName { get; set; }
     }

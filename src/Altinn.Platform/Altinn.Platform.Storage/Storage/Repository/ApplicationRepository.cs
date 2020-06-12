@@ -28,7 +28,7 @@ namespace Altinn.Platform.Storage.Repository
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InstanceRepository"/> class
+        /// Initializes a new instance of the <see cref="ApplicationRepository"/> class.
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
         /// <param name="logger">dependency injection of logger</param>

@@ -2,7 +2,7 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Altinn.App.PlatformServices.Extentions;
+using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
 using Altinn.App.Services.Interface;

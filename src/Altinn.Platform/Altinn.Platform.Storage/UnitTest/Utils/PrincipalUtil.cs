@@ -49,5 +49,21 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
 
             return token;
         }
+
+        public static string GetAccessToken(string appId)
+        {
+            List<Claim> claims = new List<Claim>();
+            string issuer = "www.altinn.no";
+            if (!string.IsNullOrEmpty(appId))
+            {
+                claims.Add(new Claim("urn:altinn:app", appId, ClaimValueTypes.String, issuer));
+            }
+            ClaimsIdentity identity = new ClaimsIdentity("mock-org");
+            identity.AddClaims(claims);
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            string token = JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1), issuer);
+
+            return token;
+        }
     }
 }

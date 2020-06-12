@@ -206,15 +206,17 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired, ISet<string> alreadyVisitedTypes, JsonSchema parentType, string parentXpath)
         {
             string sanitizedPropertyName = SanitizeName(propertyName);
-            string xPath = $"{parentXpath}";
+            string xPath;
             string path;
             int index = 0;
             do
             {
                 path = (string.IsNullOrEmpty(parentPath) ? string.Empty : parentPath + ".") + sanitizedPropertyName;
+                xPath = (string.IsNullOrEmpty(parentXpath) ? "/" : parentXpath + "/") + propertyName;
                 if (++index >= 2)
                 {
                     path += index.ToString();
+                    xPath += index.ToString();
                 }
             }
             while (elements.ContainsKey(path));
@@ -305,7 +307,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 result.Add("DataBindingName", dataBindingName);
             }
 
-            result.Add("XPath", xPath + "/" + propertyName);
+            result.Add("XPath", xPath);
 
             result.Add("Restrictions", ExtractRestrictions(xsdValueType, propertyType));
 
@@ -649,7 +651,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             if (reference != null)
             {
                 string typeName = ExtractTypeNameFromDefinitionReference(reference);
-                string xPath = $"{parentXpath}/{typeName}";
                 JsonSchema schema = definitions.GetValueOrDefault(typeName);
                 if (schema != null)
                 {
@@ -665,7 +666,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     {
                         foreach (KeyValuePair<string, JsonSchema> def in schema.Properties())
                         {
-                            TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, schema), currentlyVisitedTypes, jSchema, xPath);
+                            TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, schema), currentlyVisitedTypes, jSchema, parentXpath);
                         }
                     }
                     else if (schema.OneOf() != null)
@@ -674,13 +675,13 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                         {
                             if (oneOfSchema.Ref() != null)
                             {
-                                FollowRef(path, oneOfSchema, currentlyVisitedTypes, xPath);
+                                FollowRef(path, oneOfSchema, currentlyVisitedTypes, parentXpath);
                             }
                             else if (oneOfSchema.Properties() != null)
                             {
                                 foreach (KeyValuePair<string, JsonSchema> def in oneOfSchema.Properties())
                                 {
-                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, oneOfSchema), currentlyVisitedTypes, jSchema, xPath);
+                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, oneOfSchema), currentlyVisitedTypes, jSchema, parentXpath);
                                 }
                             }
                         }
@@ -691,13 +692,13 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                         {
                             if (allOfSchema.Ref() != null)
                             {
-                                FollowRef(path, allOfSchema, currentlyVisitedTypes, xPath);
+                                FollowRef(path, allOfSchema, currentlyVisitedTypes, parentXpath);
                             }
                             else if (allOfSchema.Properties() != null)
                             {
                                 foreach (KeyValuePair<string, JsonSchema> def in allOfSchema.Properties())
                                 {
-                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, allOfSchema), currentlyVisitedTypes, jSchema, xPath);
+                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, allOfSchema), currentlyVisitedTypes, jSchema, parentXpath);
                                 }
                             }
                         }

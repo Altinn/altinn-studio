@@ -25,9 +25,8 @@ namespace Altinn.Common.PEP.Authorization
             _logger.LogInformation(($"// ScopeAccessHandler // HandleRequirementAsync // Verifying scope: {requirement.Scope}"));
 
             // get scope parameter from  user claims
-            string contextScope = context?.User?.Identities?
-                .Where(i => i.AuthenticationType != null && i.AuthenticationType.Equals("AuthenticationTypes.Federation"))
-                .FirstOrDefault()?.Claims
+            string contextScope = context?.User?.Identities? 
+                .FirstOrDefault(i => i.AuthenticationType != null && i.AuthenticationType.Equals("AuthenticationTypes.Federation"))?.Claims
                 .Where(c => c.Type.Equals("urn:altinn:scope"))?
                 .Select(c => c.Value).FirstOrDefault();
 

@@ -5,7 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading.Tasks;
-
+using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Authentication.Controllers;
 using Altinn.Platform.Authentication.Enum;
 using Altinn.Platform.Authentication.Model;
@@ -105,21 +105,15 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             List<Claim> claims = new List<Claim>();
 
             string orgNr = "974760223";
-            string brgOrgNr = "974760673";
+            string digdirOrgNo = "991825827";
 
-            object iso6523Consumer = new
+            object digdirConsumer = new
             {
                 authority = "iso6523-actorid-upis",
-                ID = $"9908:{orgNr}"
+                ID = $"9908:{digdirOrgNo}"
             };
 
-            object brgConsumer = new
-            {
-                authority = "iso6523-actorid-upis",
-                ID = $"9908:{brgOrgNr}"
-            };
-
-            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(brgConsumer)));
+            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(digdirConsumer)));
             claims.Add(new Claim("client_orgno", orgNr));
             claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
 
@@ -283,7 +277,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             string tokenProvider = "google";
             string url = $"/authentication/api/v1/exchange/{tokenProvider}";
 
-            string expectedMessage = $"Invalid token provider: {tokenProvider}. Trusted token providers are 'Maskinporten' and 'Id-porten'.";
+            string expectedMessage = $"Invalid token provider: {tokenProvider}. Trusted token providers are 'Maskinporten', 'Id-porten' and 'AltinnStudio'.";
 
             // Act
             HttpResponseMessage response = await client.GetAsync(url);
@@ -345,7 +339,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
         /// </summary>
         [Fact]
-        public async Task AuthenticateEndUser_RequestTokenMissingClaim_ReturnsNewToken()
+        public async Task AuthenticateEndUser_RequestTokenMissingClaim_ReturnsUnauthorized()
         {
             // Arrange
             List<Claim> claims = new List<Claim>();
@@ -407,7 +401,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
-        
+
         /// <summary>
         /// Test of mock method>.
         /// </summary>
@@ -432,6 +426,57 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             Assert.Equal(externalPrincipal.Identity.Name, claimsPrincipal.Identity.Name);
         }
 
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateStudioToken_ValidToken_ReturnsNewToken()
+        {
+            // Arrange
+            string accessToken = JwtTokenMock.GenerateAccessToken("studio", "studio.designer", TimeSpan.FromMinutes(2));
+
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/exchange/altinnstudio");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            string token = await response.Content.ReadAsStringAsync();
+
+            ClaimsPrincipal principal = JwtTokenMock.ValidateToken(token);
+
+            Assert.NotNull(principal);
+
+            Assert.True(principal.HasClaim(c => c.Type == "urn:altinn:app"));
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.ExchangeExternalSystemToken"/>.
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateStudioToken_InvalidToken_ReturnsUnauthorized()
+        {
+            // Arrange
+            string accessToken = JwtTokenMock.GenerateAccessToken("studio", "studio.designer", TimeSpan.FromMinutes(2));
+
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Substring(3));
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/exchange/altinnstudio");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        }
+
         private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService)
         {
             Program.ConfigureSetupLogging();
@@ -444,6 +489,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IJwtSigningCertificateProvider, JwtSigningCertificateProviderStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
+                    services.AddSingleton<ISigningKeysResolver, SigningKeyResolverStub>();
                 });
             }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 

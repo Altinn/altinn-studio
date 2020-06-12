@@ -126,7 +126,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository.</param>
-        Task Push(string org, string repository);
+        /// <returns>boolean indicatng success</returns>
+        Task<bool> Push(string org, string repository);
 
         /// <summary>
         /// Commit changes for repository

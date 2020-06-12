@@ -12,6 +12,18 @@ export function convertDataBindingToModel(formData: any): any {
   return object({ ...formData });
 }
 
+export function filterOutInvalidData(data: any, invalidKeys: string[]) {
+  const result = {};
+  Object.keys(data).forEach((key) => {
+    // eslint-disable-next-line no-prototype-builtins
+    if (data.hasOwnProperty(key) && !invalidKeys.includes(key)) {
+      result[key] = data[key];
+    }
+  });
+
+  return result;
+}
+
 export interface IData {
   [key: string]: any;
 }
