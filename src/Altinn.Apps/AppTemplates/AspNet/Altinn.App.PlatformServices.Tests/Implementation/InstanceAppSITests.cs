@@ -49,7 +49,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(httpResponseMessage);
+            InitializeMocks(httpResponseMessage, "complete");
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -72,7 +72,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
             };
 
-            InitializeMocks(httpResponseMessage);
+            InitializeMocks(httpResponseMessage, "complete");
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -96,18 +96,79 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Assert.NotNull(actualException);
         }
 
-        private void InitializeMocks(HttpResponseMessage httpResponseMessage)
+        [Fact]
+        public async Task UpdateReadStatus_StorageReturnsNonSuccess_ThrowsPlatformHttpException()
         {
-            PlatformSettings platformSettings = new PlatformSettings { ApiStorageEndpoint = "http://localhost", SubscriptionKey = "key"};
+            // Arrange
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
+            };
+
+            InitializeMocks(httpResponseMessage, "read");
+
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
+
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, null, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+
+            PlatformHttpException actualException = null;
+
+            // Act
+            try
+            {
+                await target.UpdateReadStatus(1337, Guid.NewGuid(), "read");
+            }
+            catch (PlatformHttpException e)
+            {
+                actualException = e;
+            }
+
+            // Assert
+            handlerMock.VerifyAll();
+
+            Assert.NotNull(actualException);
+        }
+
+        [Fact]
+        public async Task UpdateReadStatus_StorageReturnsSuccess()
+        {
+            // Arrange
+            Instance expected = new Instance { Status = new InstanceStatus { ReadStatus = ReadStatus.Read } };
+
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonConvert.SerializeObject(expected), Encoding.UTF8, "application/json"),
+            };
+
+            InitializeMocks(httpResponseMessage, "read");
+
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
+
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, null, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+
+            // Act       
+            Instance actual = await target.UpdateReadStatus(1337, Guid.NewGuid(), "read");
+
+
+            // Assert
+            Assert.Equal(expected.Status.ReadStatus, actual.Status.ReadStatus);
+            handlerMock.VerifyAll();
+        }
+
+        private void InitializeMocks(HttpResponseMessage httpResponseMessage, string urlPart)
+        {
+            PlatformSettings platformSettings = new PlatformSettings { ApiStorageEndpoint = "http://localhost", SubscriptionKey = "key" };
             platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
 
-            AppSettings appSettings = new AppSettings{RuntimeCookieName = "AltinnStudioRuntime"};
+            AppSettings appSettings = new AppSettings { RuntimeCookieName = "AltinnStudioRuntime" };
             appSettingsOptions.Setup(s => s.CurrentValue).Returns(appSettings);
 
             contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
 
             handlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().EndsWith("complete")),
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart)),
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponseMessage)
                 .Verifiable();

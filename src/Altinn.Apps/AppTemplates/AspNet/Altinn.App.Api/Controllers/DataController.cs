@@ -419,6 +419,12 @@ namespace Altinn.App.Api.Controllers
 
             if (dataStream != null)
             {
+                string userOrgClaim = User.GetOrg();
+                if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    await _instanceService.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
+                }
+
                 return File(dataStream, dataElement.ContentType, dataElement.Filename);
             }
             else
@@ -492,6 +498,12 @@ namespace Altinn.App.Api.Controllers
 
             // Trigger application business logic
             await _altinnApp.RunCalculation(appModel);
+
+            string userOrgClaim = User.GetOrg();
+            if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
+            {
+                await _instanceService.UpdateReadStatus(instanceOwnerId, instanceGuid, "read");
+            }
 
             return Ok(appModel);
         }
