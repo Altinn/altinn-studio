@@ -364,7 +364,7 @@ namespace Altinn.Platform.Storage.Controllers
                 DateTime changedTime = DateTime.UtcNow;
 
                 dataElement.ContentType = updatedData.ContentType;
-                dataElement.Filename = updatedData.Filename;
+                dataElement.Filename = HttpUtility.UrlDecode(updatedData.Filename);
                 dataElement.LastChangedBy = User.GetUserOrOrgId();
                 dataElement.LastChanged = changedTime;
                 dataElement.Refs = updatedData.Refs;
