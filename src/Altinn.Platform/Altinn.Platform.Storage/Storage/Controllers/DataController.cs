@@ -285,6 +285,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
+                newData.Filename = HttpUtility.UrlDecode(newData.Filename);
                 newData.Size = await _dataRepository.WriteDataToStorage(instance.Org, theStream, newData.BlobStoragePath);
 
                 DataElement dataElement = await _dataRepository.Create(newData);

@@ -14,6 +14,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Altinn.App.Services.Implementation
 {
@@ -56,7 +57,7 @@ namespace Altinn.App.Services.Implementation
                     ContractResolver = new CamelCasePropertyNamesContractResolver()
                 });
 
-            httpClient.BaseAddress = new Uri(platformSettings.Value.ApiPdfEndpoint);
+            httpClient.BaseAddress = new Uri("https://platform.at23.altinn.cloud/pdf/api/v1/");
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             _pdfClient = httpClient;
         }
@@ -178,7 +179,8 @@ namespace Altinn.App.Services.Implementation
             {
                 fileName = fileName.Replace(c, '_');
             }
-            fileName = fileName.Replace(' ', '_');
+            fileName = HttpUtility.UrlEncode(fileName.Replace(' ', '_'));
+
             return fileName;
         }
     }
