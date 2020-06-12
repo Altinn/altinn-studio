@@ -182,7 +182,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected:
             ///  A converted instance is returned.
             /// Success:
-            ///  The instance has the expected properties.
+            ///  The instance does not have allowed to delete permissions.
             /// </summary>
             [Fact]
             public async void GetMessageBoxInstance_RequestsExistingInstanceUserCannotDelete_InstanceIsSuccessfullyMappedAndReturned()

@@ -53,7 +53,7 @@ namespace Altinn.Platform.Storage.Helpers
                 return new List<MessageBoxInstance>();
             }
 
-            List<MessageBoxInstance> authorizedInstanceeList = new List<MessageBoxInstance>();
+            List<MessageBoxInstance> authorizedInstanceList = new List<MessageBoxInstance>();
             List<string> actionTypes = new List<string> { "read", "write", "delete" };
 
             XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
@@ -88,18 +88,18 @@ namespace Altinn.Platform.Storage.Helpers
                     }
 
                     // Find the instance that has been validated to add it to the list of authorized instances.
-                    Instance authorizedInstance = instances.FirstOrDefault(i => i.Id == instanceId);
+                    Instance authorizedInstance = instances.First(i => i.Id == instanceId);
 
                     // Checks if the instance has already been authorized
-                    if (authorizedInstanceeList.Any(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])))
+                    if (authorizedInstanceList.Any(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])))
                     {
                         switch (actiontype)
                         {
                             case "write":
-                                authorizedInstanceeList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = true);
+                                authorizedInstanceList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = true);
                                 break;
                             case "delete":
-                                authorizedInstanceeList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AllowDelete = true);
+                                authorizedInstanceList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AllowDelete = true);
                                 break;
                             case "read":
                                 break;
@@ -121,12 +121,12 @@ namespace Altinn.Platform.Storage.Helpers
                                 break;
                         }
 
-                        authorizedInstanceeList.Add(messageBoxInstance);
+                        authorizedInstanceList.Add(messageBoxInstance);
                     }
                 }
             }
 
-            return authorizedInstanceeList;
+            return authorizedInstanceList;
         }
 
         /// <summary>
