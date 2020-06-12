@@ -27,7 +27,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         private readonly Mock<IOptions<PlatformSettings>> platformSettingsOptions;
         private readonly Mock<IOptionsMonitor<AppSettings>> appSettingsOptions;
         private readonly Mock<HttpMessageHandler> handlerMock;
-        private readonly Mock<HttpMessageHandler> readStatushandlerMock;
         private readonly Mock<IHttpContextAccessor> contextAccessor;
 
         public InstanceAppSITests()
@@ -35,7 +34,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
             appSettingsOptions = new Mock<IOptionsMonitor<AppSettings>>();
             handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-            readStatushandlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             contextAccessor = new Mock<IHttpContextAccessor>();
         }
 
@@ -110,7 +108,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             InitializeMocks(httpResponseMessage, "read");
 
-            HttpClient httpClient = new HttpClient(readStatushandlerMock.Object);
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
 
             InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, null, contextAccessor.Object, httpClient, appSettingsOptions.Object);
 
@@ -127,7 +125,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             }
 
             // Assert
-            readStatushandlerMock.VerifyAll();
+            handlerMock.VerifyAll();
 
             Assert.NotNull(actualException);
         }
@@ -146,7 +144,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             InitializeMocks(httpResponseMessage, "read");
 
-            HttpClient httpClient = new HttpClient(readStatushandlerMock.Object);
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
 
             InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, null, contextAccessor.Object, httpClient, appSettingsOptions.Object);
 
@@ -156,7 +154,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             // Assert
             Assert.Equal(expected.Status.ReadStatus, actual.Status.ReadStatus);
-            readStatushandlerMock.VerifyAll();
+            handlerMock.VerifyAll();
         }
 
         private void InitializeMocks(HttpResponseMessage httpResponseMessage, string urlPart)
@@ -170,13 +168,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
 
             handlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart)),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(httpResponseMessage)
-                .Verifiable();
-
-
-            readStatushandlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart)),
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponseMessage)

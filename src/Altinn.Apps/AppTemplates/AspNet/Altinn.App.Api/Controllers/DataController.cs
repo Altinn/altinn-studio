@@ -420,7 +420,7 @@ namespace Altinn.App.Api.Controllers
             if (dataStream != null)
             {
                 string userOrgClaim = User.GetOrg();
-                if (userOrgClaim == null || !app.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
+                if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
                 {
                     await _instanceService.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
                 }
@@ -500,7 +500,7 @@ namespace Altinn.App.Api.Controllers
             await _altinnApp.RunCalculation(appModel);
 
             string userOrgClaim = User.GetOrg();
-            if (userOrgClaim == null || !app.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
+            if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
             {
                 await _instanceService.UpdateReadStatus(instanceOwnerId, instanceGuid, "read");
             }

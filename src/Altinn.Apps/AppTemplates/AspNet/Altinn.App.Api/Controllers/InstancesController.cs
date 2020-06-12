@@ -118,7 +118,7 @@ namespace Altinn.App.Api.Controllers
 
                 string userOrgClaim = User.GetOrg();
 
-                if (userOrgClaim == null || !app.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
+                if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
                 {
                     await _instanceService.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
                 }

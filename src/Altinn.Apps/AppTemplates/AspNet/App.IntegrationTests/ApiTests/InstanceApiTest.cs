@@ -31,6 +31,10 @@ namespace App.IntegrationTests
         /// <summary>
         /// Test that verifies Get for a existing instance
         /// </summary>
+        /// <remarks>
+        /// Test also verifies that read status is unread first time
+        /// a new instance is retrieved.
+        /// </remarks>
         /// <returns></returns>
         [Fact]
         public async Task Instance_Get_OK()
@@ -52,6 +56,7 @@ namespace App.IntegrationTests
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("1337", instance.InstanceOwner.PartyId);
+            Assert.Equal(ReadStatus.Unread, instance.Status.ReadStatus);
         }
 
         /// <summary>
