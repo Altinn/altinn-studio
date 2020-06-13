@@ -13,7 +13,7 @@ namespace App.IntegrationTests.Utils
 
             string preInstancePath = instancePath.Replace(".json", ".pretest.json");
 
-            File.Copy(preInstancePath, instancePath);
+            File.Copy(preInstancePath, instancePath, true);
         }
 
         public static void DeleteInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)

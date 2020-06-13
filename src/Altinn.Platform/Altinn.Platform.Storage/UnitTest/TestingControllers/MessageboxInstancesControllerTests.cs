@@ -178,6 +178,36 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             /// <summary>
             /// Scenario:
+            ///   Request an existing instance.
+            /// Expected:
+            ///  A converted instance is returned.
+            /// Success:
+            ///  The instance does not have allowed to delete permissions.
+            /// </summary>
+            [Fact]
+            public async void GetMessageBoxInstance_RequestsExistingInstanceUserCannotDelete_InstanceIsSuccessfullyMappedAndReturned()
+            {
+                // Arrange
+                string instanceId = "1606/6323a337-26e7-4d40-89e8-f5bb3d80be3a";
+
+                HttpClient client = GetTestClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1606, 3));
+
+                // Act
+                HttpResponseMessage responseMessage = await client.GetAsync($"{BasePath}/sbl/instances/{instanceId}?language=en");
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, responseMessage.StatusCode);
+
+                string responseContent = await responseMessage.Content.ReadAsStringAsync();
+                MessageBoxInstance actual = JsonConvert.DeserializeObject<MessageBoxInstance>(responseContent);
+
+                Assert.False(actual.AllowDelete);
+                Assert.True(actual.AuthorizedForWrite);
+            }
+
+            /// <summary>
+            /// Scenario:
             ///   Request an instance the user is not authorized to see
             /// Expected:
             ///   Authorization stops the request
