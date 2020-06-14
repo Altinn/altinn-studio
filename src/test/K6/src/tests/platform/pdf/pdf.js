@@ -1,3 +1,6 @@
+/* 
+    Command: docker-compose run k6 run src/tests/platform/pdf/pdf.js -e env=***
+*/
 import { check } from "k6";
 import {addErrorCount} from "../../../errorcounter.js";
 import * as pdf from "../../../api/platform/pdf.js"

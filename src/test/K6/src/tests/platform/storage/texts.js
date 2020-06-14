@@ -1,3 +1,8 @@
+/* 
+    Test data required: username and password, an app (reference app: ttd/apps-test)
+    Command: docker-compose run k6 run src/tests/platform/storage/texts.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+*/
+
 import { check } from "k6";
 import {addErrorCount} from "../../../errorcounter.js";
 import * as texts from "../../../api/storage/texts.js"

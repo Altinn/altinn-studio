@@ -1,3 +1,8 @@
+/* 
+    Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
+    Command: docker-compose run k6 run src/tests/platform/storage/data.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+*/
+
 import { check } from "k6";
 import * as apps from "../../../api/storage/applications.js"
 import * as instances from "../../../api/storage/instances.js"

@@ -1,3 +1,7 @@
+/* 
+  Test data required: test app with uploaded policy in blob, username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
+  Command: docker-compose run k6 run src/tests/platform/authorization/authorization.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e testapp=*** -e level2app=***
+*/
 import { check } from "k6";
 import {addErrorCount} from "../../../errorcounter.js";
 import * as authz from "../../../api/platform/authorization.js";

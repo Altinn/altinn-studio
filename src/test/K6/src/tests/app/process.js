@@ -1,3 +1,8 @@
+/* 
+  Test data required: username, password, app requiring level 2 login (reference app: ttd/apps-test)
+  command to run the test: docker-compose run k6 run src/tests/app/process.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+*/
+
 import { check } from "k6";
 import {addErrorCount} from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
