@@ -79,7 +79,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, null, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, new Mock<ILogger<InstanceAppSI>>().Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
 
             // Act
             await target.AddCompleteConfirmation(1337, Guid.NewGuid());
@@ -103,7 +103,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, null, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, new Mock<ILogger<InstanceAppSI>>().Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
 
             PlatformHttpException actualException = null;
 
