@@ -42,7 +42,7 @@ namespace Altinn.App.Services.Implementation
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
-           IAppResources appResources,
+            IAppResources appResources,
             IAccessTokenGenerator accessTokenGenerator)
 
         {
