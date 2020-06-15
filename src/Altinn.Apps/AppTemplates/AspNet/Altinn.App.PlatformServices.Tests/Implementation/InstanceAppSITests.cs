@@ -12,6 +12,7 @@ using Altinn.App.Services.Implementation;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Moq;
@@ -28,9 +29,11 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         private readonly Mock<IOptionsMonitor<AppSettings>> appSettingsOptions;
         private readonly Mock<HttpMessageHandler> handlerMock;
         private readonly Mock<IHttpContextAccessor> contextAccessor;
+        //  Mock<ILogger> logger = new Mock<ILogger>();
 
         public InstanceAppSITests()
         {
+
             platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
             appSettingsOptions = new Mock<IOptionsMonitor<AppSettings>>();
             handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
@@ -63,7 +66,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         }
 
         [Fact]
-        public async Task AddCompleteConfirmation_StorageReturnsNonSuccess_ThrowsPlatformHttpException()
+        public async Task AddCompleteConfirmation_StorageReturnsNonSuccess_ErrorIsLoggedApp()
         {
             // Arrange
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
@@ -78,26 +81,16 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, null, contextAccessor.Object, httpClient, appSettingsOptions.Object);
 
-            PlatformHttpException actualException = null;
-
             // Act
-            try
-            {
-                await target.AddCompleteConfirmation(1337, Guid.NewGuid());
-            }
-            catch (PlatformHttpException e)
-            {
-                actualException = e;
-            }
+            await target.AddCompleteConfirmation(1337, Guid.NewGuid());
 
             // Assert
             handlerMock.VerifyAll();
 
-            Assert.NotNull(actualException);
         }
 
         [Fact]
-        public async Task UpdateReadStatus_StorageReturnsNonSuccess_ThrowsPlatformHttpException()
+        public async Task UpdateReadStatus_StorageReturnsNonSuccess_LogError()
         {
             // Arrange
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
@@ -115,14 +108,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             PlatformHttpException actualException = null;
 
             // Act
-            try
-            {
-                await target.UpdateReadStatus(1337, Guid.NewGuid(), "read");
-            }
-            catch (PlatformHttpException e)
-            {
-                actualException = e;
-            }
+            await target.UpdateReadStatus(1337, Guid.NewGuid(), "read");
 
             // Assert
             handlerMock.VerifyAll();
