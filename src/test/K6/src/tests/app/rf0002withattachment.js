@@ -1,5 +1,13 @@
 /*
   This test script can only be run with virtual users and iterations count and not based on duration.
+   Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and deployed RF-0002 app and test attachment files
+  [
+	{
+		"username": "",
+		"password": "",
+		"partyid": ""
+    }
+  ]
   Create and archive instances of RF-0002 with attachments, where the distribution of attachments is based on 
   parameter attachmentdistribution among small, medium and large attachment.
   example: k6 run -i 20 -u 10 /src/tests/app/rf0002withattachment.js 

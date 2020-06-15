@@ -9,21 +9,34 @@ import {postPartieslookup} from "../../../api/platform/register.js"
 
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
+const environment = (__ENV.env).toLowerCase();
+const fileName = "users_"+ environment +".json";
+
 let instanceFormDataXml = open("../../../data/rf-0002.xml");
 let instanceJson = open("../../../data/instance.json");
-let users = JSON.parse(open("../../../data/users.json"));
+let users = JSON.parse(open("../../data/" + fileName));
+const usersCount = users.length;
 
 export const options = {
     thresholds:{
         "errors": ["count<1"]
-    },
-    vus: users.length
+    }
 };
 
 
 //Tests for platform Storage: RF-0002
-export default function(data) {
-    var aspxauthCookie = setUpData.authenticateUser(users[__VU - 1].username, users[__VU - 1].password);    
+export default function() {
+    var userNumber = (__VU - 1) % usersCount;
+    var instanceId, res, success; 
+
+    try {
+        var userSSN = users[userNumber].username;
+        var userPwd = users[userNumber].password;    
+    } catch (error) {
+        printResponseToConsole("Testdata missing", false, null)
+    };
+
+    var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);    
     var runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie); 
     setUpData.clearCookies();   
     var data = setUpData.getUserData(runtimeToken, appOwner, level2App);    
@@ -32,8 +45,7 @@ export default function(data) {
     var orgPartyId = postPartieslookup(runtimeToken, "OrgNo", data["orgNumber"])
     data.orgPartyId = JSON.parse(orgPartyId.body).partyId;    
     const partyId = data["orgPartyId"];  
-    var instanceId = "";
-    var res, success;    
+    instanceId = "";   
 
     //Test to create an instance with storage api and validate the response
     res = instances.postInstance(runtimeToken, partyId, appOwner, level2App, instanceJson);    

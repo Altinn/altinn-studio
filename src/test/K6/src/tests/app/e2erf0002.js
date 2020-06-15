@@ -1,5 +1,13 @@
 /*
   Create and archive instances of RF-0002 without attachments
+  Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and deployed RF-0002 app
+  [
+	{
+		"username": "",
+		"password": "",
+		"partyid": ""
+    }
+  ]
   example: k6 run -i 20 --duration 1m /src/tests/app/e2erf0002.js -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=***
 */
 

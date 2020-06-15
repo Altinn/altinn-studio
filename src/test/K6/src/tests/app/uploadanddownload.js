@@ -5,6 +5,14 @@
   example: k6 run -i 20 -u 10 /src/tests/app/rf0002withattachment.js 
   -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e attachmentdistribution="60;30;10"
 
+   Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and deployed RF-0002 app
+  [
+	{
+		"username": "",
+		"password": "",
+		"partyid": ""
+    }
+  ]
   After archiving the instance download the instance data as instanceOwner
 */
 
