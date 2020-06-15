@@ -1,3 +1,8 @@
+/* 
+  Test data required: A test app, username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
+  Command: docker-compose run k6 run src/tests/platform/storage/applications.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e testapp=*** -e level2app=***
+*/
+
 import { check } from "k6";
 import {addErrorCount} from "../../../errorcounter.js";
 import * as application from "../../../api/storage/applications.js"
@@ -27,10 +32,11 @@ export function setup(){
 //Tests for platform Storage: Applications
 export default function(data) {
     const runtimeToken = data;
+    var res, success;
 
     //Test Platform: Storage: Get All applicaions under an appOwner
-    var res = application.getAllApplications(runtimeToken, appOwner);    
-    var success = check(res, {
+    res = application.getAllApplications(runtimeToken, appOwner);    
+    success = check(res, {
       "GET All Apps under an Org status is 200:": (r) => r.status === 200,
       "GET All Apps under an Org List is not empty:": (r) => (JSON.parse(r.body)).applications.length != 0
     });  

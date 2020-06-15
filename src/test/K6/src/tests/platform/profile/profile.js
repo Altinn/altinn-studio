@@ -1,3 +1,7 @@
+/* 
+    Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
+    Command: docker-compose run k6 run src/tests/platform/profile/profile.js -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=***
+*/
 import { check } from "k6";
 import {addErrorCount} from "../../../errorcounter.js";
 import * as profile from "../../../api/platform/profile.js"
@@ -5,6 +9,8 @@ import * as setUpData from "../../../setup.js";
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
+const appOwner = __ENV.org;
+const level2App = __ENV.level2app;
 
 export const options = {    
     thresholds:{
@@ -22,14 +28,15 @@ export function setup(){
 //Test for platform profile and validate response
 export default function(data) {
     const runtimeToken = data;
-
-    var userData = setUpData.getUserData(runtimeToken);
+    
+    var userData = setUpData.getUserData(runtimeToken, appOwner, level2App);
     const userId = userData["userId"];
     const ssn = userData["ssn"];
+    var res, success;
 
     //Test to fetch userprofile by userid
-    var res = profile.getProfile(userId, runtimeToken);    
-    var success = check(res, {
+    res = profile.getProfile(userId, runtimeToken);    
+    success = check(res, {
       "GET Profile status is 403:": (r) => r.status === 403
     });  
     addErrorCount(success);  
@@ -37,7 +44,7 @@ export default function(data) {
     //Test to fetch userprofile by SSN
     res = profile.postFetchProfileBySSN(ssn, runtimeToken);
     success = check(res, {
-        "POST Fetch profile by SSN is 403:": (r) => r.status = 403
+        "POST Fetch profile by SSN is 403:": (r) => r.status === 403
     });
     addErrorCount(success);
 };

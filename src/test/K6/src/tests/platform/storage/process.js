@@ -1,3 +1,8 @@
+/* 
+    Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
+    Command: docker-compose run k6 run src/tests/platform/storage/process.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+*/
+
 import { check } from "k6";
 import * as instances from "../../../api/storage/instances.js"
 import * as process from "../../../api/storage/process.js"
@@ -21,7 +26,7 @@ export const options = {
 export function setup(){
     var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
-    var data = setUpData.getUserData(altinnStudioRuntimeCookie);
+    var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
     data.RuntimeToken = altinnStudioRuntimeCookie; 
     setUpData.clearCookies();   
     var instanceId = instances.postInstance(altinnStudioRuntimeCookie,  data["partyId"], appOwner, level2App, instanceJson);
@@ -35,13 +40,14 @@ export default function (data){
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];    
     const instanceId = data["instanceId"];
+    var res, success;
 
     var instanceProcess = instances.getInstanceById(runtimeToken, partyId, instanceId);
     instanceProcess = (JSON.parse(instanceProcess.body)).process;
 
     //Test to edit the process of an instance and validate the response
-    var res = process.putProcess(runtimeToken, partyId, instanceId, instanceProcess);    
-    var success = check(res, {
+    res = process.putProcess(runtimeToken, partyId, instanceId, instanceProcess);    
+    success = check(res, {
        "PUT Edit Process status is 200:": (r) => r.status === 200       
     });  
     addErrorCount(success);    

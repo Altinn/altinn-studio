@@ -1,3 +1,8 @@
+/* 
+    Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
+    Command: docker-compose run k6 run src/tests/platform/storage/instances.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+*/
+
 import { check } from "k6";
 import {addErrorCount} from "../../../errorcounter.js";
 import * as instances from "../../../api/storage/instances.js"
@@ -21,7 +26,7 @@ export function setup(){
     var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie); 
     setUpData.clearCookies();   
-    var data = setUpData.getUserData(altinnStudioRuntimeCookie);
+    var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
     data.RuntimeToken = altinnStudioRuntimeCookie;
     return data;
 };
@@ -31,11 +36,12 @@ export function setup(){
 export default function(data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
-    var instanceId = "";    
+    var instanceId = "";
+    var res, success;   
 
     //Test to create an instance with storage api and validate the response
-    var res = instances.postInstance(runtimeToken, partyId, appOwner, level2App, instanceJson);    
-    var success = check(res, {
+    res = instances.postInstance(runtimeToken, partyId, appOwner, level2App, instanceJson);    
+    success = check(res, {
       "POST Create Instance status is 201:": (r) => r.status === 201,
       "POST Create Instance Instance Id is not null:": (r) => JSON.parse(r.body).id != null
     });  

@@ -1,3 +1,8 @@
+/* 
+    Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
+    Command: docker-compose run k6 run src/tests/platform/storage/events.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+*/
+
 import { check } from "k6";
 import * as instances from "../../../api/storage/instances.js"
 import * as events from "../../../api/storage/events.js"
@@ -22,7 +27,7 @@ export const options = {
 export function setup(){
     var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
-    var data = setUpData.getUserData(altinnStudioRuntimeCookie);
+    var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
     data.RuntimeToken = altinnStudioRuntimeCookie;
     setUpData.clearCookies();  
     var instanceId = instances.postInstance(altinnStudioRuntimeCookie,  data["partyId"], appOwner, level2App, instanceJson);
@@ -37,11 +42,12 @@ export default function(data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
     const instanceId = data["instanceId"];
-    var eventId = ""; 
+    var eventId = "";
+    var res, success;
     
     //Test to add an instance event to an instance with storage api and validate the response
-    var res = events.postAddEvent(runtimeToken, partyId, instanceId, eventsJson);    
-    var success = check(res, {
+    res = events.postAddEvent(runtimeToken, partyId, instanceId, eventsJson);    
+    success = check(res, {
       "POST Add Event status is 201:": (r) => r.status === 201,
       "POST Add Event Event Id is not null:": (r) => (JSON.parse(r.body)).id != null
     });  
