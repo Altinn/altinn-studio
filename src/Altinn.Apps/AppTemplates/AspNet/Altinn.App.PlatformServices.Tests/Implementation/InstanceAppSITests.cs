@@ -100,20 +100,14 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             };
 
             InitializeMocks(httpResponseMessage, "read");
-
             HttpClient httpClient = new HttpClient(handlerMock.Object);
-
             InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, new Mock<ILogger<InstanceAppSI>>().Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
-
-            PlatformHttpException actualException = null;
 
             // Act
             await target.UpdateReadStatus(1337, Guid.NewGuid(), "read");
 
             // Assert
             handlerMock.VerifyAll();
-
-            Assert.NotNull(actualException);
         }
 
         [Fact]
