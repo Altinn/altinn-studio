@@ -31,7 +31,9 @@ namespace Altinn.App.Services.Implementation
         /// <param name="logger">the logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="settings">The application settings.</param>
-        /// <param name="httpClientAccessor">The http client accessor </param>
+        ///<param name="httpClient">The http client</param>
+        ///<param name="appResource">The app resources service</param>
+        ///<param name="accessTokenGenerator">The platform access token generator</param>
         public RegisterDSFAppSI(
             IOptions<PlatformSettings> platformSettings,
             ILogger<RegisterDSFAppSI> logger,
