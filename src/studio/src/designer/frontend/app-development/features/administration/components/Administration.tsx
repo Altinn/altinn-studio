@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 
 import { createMuiTheme, createStyles, Grid, withStyles } from '@material-ui/core';
 import * as React from 'react';
@@ -269,17 +270,12 @@ const mapStateToProps = (
     initialCommit: state.serviceInformation.initialCommit,
     language: state.language,
     service: state.serviceInformation.repositoryInfo,
-    // tslint:disable-next-line:max-line-length
     serviceDescription: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.description : '',
-    // tslint:disable-next-line:max-line-length
-    serviceDescriptionIsSaving: state.serviceInformation.serviceDescriptionObj ?
-      state.serviceInformation.serviceDescriptionObj.saving : false,
+    serviceDescriptionIsSaving: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.saving : false,
     serviceId: state.serviceInformation.serviceIdObj ? state.serviceInformation.serviceIdObj.serviceId : '',
     serviceIdIsSaving: state.serviceInformation.serviceIdObj ? state.serviceInformation.serviceIdObj.saving : false,
     serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
-    // tslint:disable-next-line:max-line-length
-    serviceNameIsSaving: state.serviceInformation.serviceNameObj ?
-      state.serviceInformation.serviceNameObj.saving : false,
+    serviceNameIsSaving: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.saving : false,
   };
 };
 

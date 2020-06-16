@@ -1,14 +1,3 @@
-import { AddressComponent } from './advanced/AddressComponent';
-import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
-import { DatepickerComponent } from './base/DatepickerComponent';
-// import { DropdownComponent } from './base/DropdownComponent';
-import { FileUploadComponent } from './base/FileUploadComponent';
-import { HeaderComponent } from './base/HeaderComponent';
-import { InputComponent } from './base/InputComponent';
-import { ParagraphComponent } from './base/ParagraphComponent';
-import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
-import { TextAreaComponent } from './base/TextAreaComponent';
-import { ButtonComponent } from './widget/ButtonComponent';
 
 export interface IComponentIcon {
   [key: string]: string;
@@ -16,7 +5,6 @@ export interface IComponentIcon {
 
 export interface IComponent {
   name: string;
-  Tag: any;
   Type: ComponentTypes;
   customProperties?: any;
   Icon: string;
@@ -56,13 +44,11 @@ export const componentIcons: IComponentIcon = {
 export const textComponents: IComponent[] = [
   {
     name: 'Header',
-    Tag: HeaderComponent,
     Type: ComponentTypes.Header,
     Icon: componentIcons.Header,
   },
   {
     name: 'Paragraph',
-    Tag: ParagraphComponent,
     Type: ComponentTypes.Paragraph,
     Icon: componentIcons.Paragraph,
   },
@@ -71,7 +57,6 @@ export const textComponents: IComponent[] = [
 export const schemaComponents: IComponent[] = [
   {
     name: 'Input',
-    Tag: InputComponent,
     Type: ComponentTypes.Input,
     customProperties: {
       required: true,
@@ -81,7 +66,6 @@ export const schemaComponents: IComponent[] = [
   },
   {
     name: 'TextArea',
-    Tag: TextAreaComponent,
     Type: ComponentTypes.TextArea,
     customProperties: {
       required: true,
@@ -91,7 +75,6 @@ export const schemaComponents: IComponent[] = [
   },
   {
     name: 'Checkboxes',
-    Tag: CheckboxContainerComponent,
     Type: ComponentTypes.CheckBox,
     Icon: componentIcons.Checkboxes,
     customProperties: {
@@ -101,7 +84,6 @@ export const schemaComponents: IComponent[] = [
   },
   {
     name: 'RadioButtons',
-    Tag: RadioButtonContainerComponent,
     Type: ComponentTypes.RadioButton,
     Icon: componentIcons.RadioButtons,
     customProperties: {
@@ -109,7 +91,7 @@ export const schemaComponents: IComponent[] = [
       required: true,
     },
   },
-    /* removed for now
+  /* removed for now
     {
       name: 'Dropdown',
       Tag: DropdownComponent,
@@ -122,7 +104,6 @@ export const schemaComponents: IComponent[] = [
     */
   {
     name: 'FileUpload',
-    Tag: FileUploadComponent,
     Type: ComponentTypes.FileUpload,
     Icon: componentIcons.FileUpload,
     customProperties: {
@@ -135,19 +116,17 @@ export const schemaComponents: IComponent[] = [
   },
   {
     name: 'Datepicker',
-    Tag: DatepickerComponent,
     Type: ComponentTypes.Datepicker,
     customProperties: {
       readOnly: false,
-      format: "DD/MM/YYYY",
-      minDate: "1900-01-01T12:00:00.000Z",
-      maxDate: "2100-01-01T12:00:00.000Z"
+      format: 'DD/MM/YYYY',
+      minDate: '1900-01-01T12:00:00.000Z',
+      maxDate: '2100-01-01T12:00:00.000Z',
     },
     Icon: componentIcons.Datepicker,
   },
   {
     name: 'Button',
-    Tag: ButtonComponent,
     Type: ComponentTypes.Button,
     Icon: componentIcons.Button,
     customProperties: {
@@ -160,7 +139,6 @@ export const schemaComponents: IComponent[] = [
 export const advancedComponents: IComponent[] = [
   {
     name: 'AddressComponent',
-    Tag: AddressComponent,
     Type: ComponentTypes.AddressComponent,
     Icon: componentIcons.AddressComponent,
     customProperties: {

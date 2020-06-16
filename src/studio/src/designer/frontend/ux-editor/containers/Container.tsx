@@ -1,18 +1,18 @@
+/* eslint-disable global-require */
+/* eslint-disable react/button-has-type */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable no-nested-ternary */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 import * as React from 'react';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { SwitchComponent } from '../components/widget/SwitchComponent';
-import { makeGetDesignModeSelector } from '../selectors/getAppData';
-import {
-  makeGetActiveFormContainer,
+import { makeGetActiveFormContainer,
   makeGetLayoutComponentsSelector,
   makeGetLayoutContainerOrder,
-  makeGetLayoutContainersSelector,
-} from '../selectors/getLayoutData';
+  makeGetLayoutContainersSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
-// import DroppableDraggableComponent from './DroppableDraggableComponent';
-// import DroppableDraggableContainer from './DroppableDraggableContainer';
 
 export interface IProvidedContainerProps {
   id: string;
@@ -31,7 +31,6 @@ export interface IContainerProps extends IProvidedContainerProps {
   components: any;
   containers: any;
   repeating: boolean;
-  designMode: boolean;
   index?: number;
   formContainerActive?: boolean;
   activeList: any[];
@@ -86,7 +85,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         ref={ref}
       >
         {
-          this.props.designMode && !this.props.baseContainer &&
+          !this.props.baseContainer &&
           <div className='row'>
             <div className='col-1'>
               {this.renderDeleteGroupButton()}
@@ -101,7 +100,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         }
 
         {!this.props.itemOrder.length ?
-          this.props.designMode ? this.renderContainerPlaceholder() : null :
+          this.renderContainerPlaceholder() :
           this.props.itemOrder.map((id: string, index: number) => (
             this.props.components[id] ?
               this.renderFormComponent(id, index) :
@@ -110,24 +109,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
                 : null
           ))
         }
-        {
-          !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
-          <button
-            className={'a-btn a-btn-action offset-10'}
-            onClick={this.handleContainerDelete}
-          >
-            <span>{this.props.language.ux_editor.repeating_group_delete}</span>
-          </button>
-        }
-      </div>
-    );
-  }
-
-  public render() {
-    return (
-      <div className={'col-12'}>
-        {this.renderContent()}
-        {this.renderNewGroupButton()}
       </div>
     );
   }
@@ -141,7 +122,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         onDropContainer={this.props.onDropContainer}
         onMoveContainer={this.props.onMoveContainer}
         canDrag={false}
-        id={'placeholder'}
+        id='placeholder'
         index={0}
         containerId={this.props.id}
       >
@@ -225,10 +206,10 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
 
     return (
       <button
-        className={'a-btn a-btn-action'}
+        className='a-btn a-btn-action'
         onClick={this.handleAddNewGroup}
       >
-        <i className={'fa fa-plus'} />
+        <i className='fa fa-plus' />
         <span>
           {this.props.language.ux_editor.repeating_group_add}
         </span>
@@ -243,52 +224,37 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   }
 
   public renderFormComponent = (id: string, index: number): JSX.Element => {
-    if (this.props.components[id].hidden && !this.props.designMode) {
-      return null;
-    }
     const activeListIndex = this.props.activeList.findIndex((listItem: any) => listItem.id === id);
-    if (this.props.designMode) {
-      const DroppableDraggableComponent = require('./DroppableDraggableComponent').default;
-      let canDrag: boolean = true;
-      for (const activeItem of this.state.activeList) {
-        if (activeItem.id === id) {
-          canDrag = false;
-        }
+    const DroppableDraggableComponent = require('./DroppableDraggableComponent').default;
+    let canDrag: boolean = true;
+    // eslint-disable-next-line no-restricted-syntax
+    for (const activeItem of this.state.activeList) {
+      if (activeItem.id === id) {
+        canDrag = false;
       }
-      return (
-        <DroppableDraggableComponent
-          canDrag={canDrag}
-          id={id}
-          index={index}
-          key={index}
-          containerId={this.props.id}
-          onDropComponent={this.props.onDropContainer}
-          onMoveComponent={this.props.onMoveComponent}
-          onDropContainer={this.props.onDropContainer}
-          onMoveContainer={this.props.onMoveContainer}
-        >
-          <FormComponentWrapper
-            key={index}
-            id={id}
-            activeList={this.props.activeList}
-            firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
-            lastInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true}
-            sendListToParent={this.handleActiveListChange}
-            singleSelected={this.props.activeList.length === 1}
-          />
-        </DroppableDraggableComponent>
-      );
     }
     return (
-      <FormComponentWrapper
-        key={index}
+      <DroppableDraggableComponent
+        canDrag={canDrag}
         id={id}
-        activeList={this.props.activeList}
-        firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
-        lastInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true}
-        sendListToParent={this.handleActiveListChange}
-        singleSelected={this.props.activeList.length === 1}
-      />
+        index={index}
+        key={index}
+        containerId={this.props.id}
+        onDropComponent={this.props.onDropContainer}
+        onMoveComponent={this.props.onMoveComponent}
+        onDropContainer={this.props.onDropContainer}
+        onMoveContainer={this.props.onMoveContainer}
+      >
+        <FormComponentWrapper
+          key={index}
+          id={id}
+          activeList={this.props.activeList}
+          firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
+          lastInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true}
+          sendListToParent={this.handleActiveListChange}
+          singleSelected={this.props.activeList.length === 1}
+        />
+      </DroppableDraggableComponent>
     );
   }
 
@@ -299,15 +265,24 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   public changeActiveFormContainer = (e: any) => {
     e.stopPropagation();
   }
+
   public toggleChange = () => {
     FormDesignerActionDispatchers.toggleFormContainerRepeat(this.props.id);
+  }
+
+  public render() {
+    return (
+      <div className='col-12'>
+        {this.renderContent()}
+        {this.renderNewGroupButton()}
+      </div>
+    );
   }
 }
 
 const makeMapStateToProps = () => {
   const GetLayoutContainersSelector = makeGetLayoutContainersSelector();
   const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
-  const GetDesignModeSelector = makeGetDesignModeSelector();
   const GetActiveFormContainer = makeGetActiveFormContainer();
   const GetContainersSelector = makeGetLayoutContainersSelector();
   const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
@@ -320,7 +295,6 @@ const makeMapStateToProps = () => {
       dataModelGroup: container.dataModelGroup,
       repeating: container.repeating,
       formContainerActive: GetActiveFormContainer(state, props),
-      designMode: GetDesignModeSelector(state),
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
       language: state.appData.language.language,

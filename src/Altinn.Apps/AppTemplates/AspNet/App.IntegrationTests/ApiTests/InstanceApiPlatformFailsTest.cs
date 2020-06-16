@@ -34,7 +34,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "platform-fails");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/platform-fails/instances/1337/26133fb5-a9f2-45d4-90b1-f6d93ad40713");
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/platform-fails/instances/1337/26133fb5-a9f2-45d4-90b1-f6d93ad40716");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             

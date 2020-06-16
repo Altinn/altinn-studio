@@ -5,8 +5,7 @@
     <organisasjonsnavn>Test Org</organisasjonsnavn>
   </skattepliktig>
   <meldingsopplysning>
-    <termintype>test</termintype>
-    <aar>0001-01-01T00:00:00</aar>
+    <termintype>200</termintype>
   </meldingsopplysning>
   <mvaAvgift>
     <innlandOmsetningUttakHoeySats>25</innlandOmsetningUttakHoeySats>

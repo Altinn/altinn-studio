@@ -11,6 +11,7 @@ using Altinn.App.Common.Constants;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.RequestHandling;
 using Altinn.App.Common.Serialization;
+using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Helpers;
@@ -114,6 +115,13 @@ namespace Altinn.App.Api.Controllers
             {
                 Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
                 SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+
+                string userOrgClaim = User.GetOrg();
+
+                if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    await _instanceService.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
+                }
 
                 return Ok(instance);
             }

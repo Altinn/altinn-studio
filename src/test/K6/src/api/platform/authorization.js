@@ -17,9 +17,9 @@ export function getRoles(userId, partyId){
 };
 
 //Request to upload app policy to storage
-export function postPolicy(data, appOwner, appName){    
+export function postPolicy(data, appOwner, appName, altinnStudioRuntimeCookie){    
     var endpoint = config.platformAuthorization["policy"] + "?org=" + appOwner + "&app=" + appName;
-    var params = header.buildHeaderWithSubsKey("platform"); 
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform"); 
     return http.post(endpoint, data, params);
 };
 

@@ -10,6 +10,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Xunit;
 using System.Linq;
+using System;
 
 namespace App.IntegrationTests.ApiTests
 {
@@ -25,6 +26,8 @@ namespace App.IntegrationTests.ApiTests
         [Fact]
         public async Task Proceess_Get_OK()
         {
+            TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1337, new Guid("26133fb5-a9f2-45d4-90b1-f6d93ad40713"));
+
             string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
@@ -34,8 +37,9 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
+            TestDataUtil.DeleteInstance("tdd", "endring-av-navn", 1337, new Guid("26133fb5-a9f2-45d4-90b1-f6d93ad40713"));
 
+            string responseContent = await response.Content.ReadAsStringAsync();
             ProcessState processState= (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
 
 
@@ -46,6 +50,8 @@ namespace App.IntegrationTests.ApiTests
         [Fact]
         public async Task Proceess_GetNext_OK()
         {
+            TestDataUtil.PrepareInstance("tdd", "endring-av-navn", 1337, new Guid("26133fb5-a9f2-45d4-90b1-f6d93ad40713"));
+
             string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
@@ -55,6 +61,8 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            TestDataUtil.DeleteInstance("tdd", "endring-av-navn", 1337, new Guid("26133fb5-a9f2-45d4-90b1-f6d93ad40713"));
+
             string responseContent = await response.Content.ReadAsStringAsync();
 
             List<string> events = (List<string>)JsonConvert.DeserializeObject(responseContent, typeof(List<string>));

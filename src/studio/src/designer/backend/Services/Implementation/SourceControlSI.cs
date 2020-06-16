@@ -397,7 +397,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
-                LibGit2Sharp.Commit firstCommit = repo.Commits.First();
+                LibGit2Sharp.Commit firstCommit = repo.Commits.Last();
                 Designer.Models.Commit commit = new Designer.Models.Commit();
                 commit.Message = firstCommit.Message;
                 commit.MessageShort = firstCommit.MessageShort;

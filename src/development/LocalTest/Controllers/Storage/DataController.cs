@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-
+using System.Web;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
@@ -284,6 +284,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
+                newData.Filename = HttpUtility.UrlDecode(newData.Filename);
                 newData.Size = await _dataRepository.WriteDataToStorage(instance.Org, theStream, newData.BlobStoragePath);
 
                 DataElement dataElement = await _dataRepository.Create(newData);
@@ -363,7 +364,7 @@ namespace Altinn.Platform.Storage.Controllers
                 DateTime changedTime = DateTime.UtcNow;
 
                 dataElement.ContentType = updatedData.ContentType;
-                dataElement.Filename = updatedData.Filename;
+                dataElement.Filename = HttpUtility.UrlDecode(updatedData.Filename);
                 dataElement.LastChangedBy = User.GetUserOrOrgId();
                 dataElement.LastChanged = changedTime;
                 dataElement.Refs = updatedData.Refs;

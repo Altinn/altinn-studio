@@ -2,7 +2,7 @@ using System;
 
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
-using Altinn.App.PlatformServices.Extentions;
+using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -125,6 +125,7 @@ namespace Altinn.App
                 options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new AppAccessRequirement("read")));
                 options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new AppAccessRequirement("write")));
                 options.AddPolicy("InstanceInstantiate", policy => policy.Requirements.Add(new AppAccessRequirement("instantiate")));
+                options.AddPolicy("InstanceComplete", policy => policy.Requirements.Add(new AppAccessRequirement("complete")));
             });
 
             services.AddAntiforgery(options =>

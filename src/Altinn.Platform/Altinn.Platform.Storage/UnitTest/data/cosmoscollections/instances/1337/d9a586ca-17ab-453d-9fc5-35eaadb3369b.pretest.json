@@ -15,6 +15,7 @@
     "currentTask": { "elementId": "Task_1" }
   },
   "status": {
+    "readStatus": "read"
   },
   "appOwner": {},
   "data": [

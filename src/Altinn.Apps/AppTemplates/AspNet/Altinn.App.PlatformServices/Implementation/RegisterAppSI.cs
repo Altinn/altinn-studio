@@ -41,7 +41,9 @@ namespace Altinn.App.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="settings">The application settings.</param>
-        /// <param name="httpClientAccessor">The http client accessor </param>
+        ///<param name="httpClient">The http client</param>
+        ///<param name="appResources">The app resources service</param>
+        ///<param name="accessTokenGenerator">The platform access token generator</param>
         public RegisterAppSI(
             IOptions<PlatformSettings> platformSettings,
             IDSF dsf,
@@ -117,7 +119,7 @@ namespace Altinn.App.Services.Implementation
                 RequestUri = new System.Uri(endpointUrl, System.UriKind.Relative),
                 Method = HttpMethod.Post,
                 Content = content,
-               
+
             };
 
             request.Headers.Add("Authorization", "Bearer " + token);
@@ -126,7 +128,7 @@ namespace Altinn.App.Services.Implementation
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                party = await response.Content.ReadAsAsync<Party>();               
+                party = await response.Content.ReadAsAsync<Party>();
             }
             else
             {
@@ -136,7 +138,7 @@ namespace Altinn.App.Services.Implementation
                 throw await PlatformHttpException.CreateAsync(response);
             }
 
-            return party;            
+            return party;
         }
     }
 }

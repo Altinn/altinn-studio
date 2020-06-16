@@ -1,6 +1,6 @@
 const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
 const webpack = require('webpack');
 const GitRevisionPlugin = require('git-revision-webpack-plugin');
@@ -46,6 +46,12 @@ module.exports = {
   },
   performance: {
     hints: false,
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin(),
+    ],
   },
   module: {
     rules: [{
@@ -93,7 +99,6 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: "altinn-app-frontend.css",
     }),
-    new UglifyJsPlugin(),
     new webpack.BannerPlugin({
       banner: package.name + ', v' + package.version + ', https://github.com/Altinn/altinn-studio/tree/' + gitRevisionPlugin.commithash() + '/src/react-apps/applications/altinn-app-frontend'
     })

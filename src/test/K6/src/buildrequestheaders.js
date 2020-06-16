@@ -1,5 +1,6 @@
 let subscriptionKey = __ENV.subskey;
 let environment = __ENV.env;
+let sblAccessSubscriptionKey = __ENV.sblaccesskey;
 
 //Function to determine the headers for a POST/PUT data based on dataType
 export function buildHeadersForData(dataType, altinnStudioRuntimeCookie, api){
@@ -25,6 +26,15 @@ export function buildHearderWithRuntime(altinnStudioRuntimeCookie, api){
         headers: {"Authorization": "Bearer " + altinnStudioRuntimeCookie}
         };
     params = addSubscriptionKey(params, subscriptionKey, api);    
+    return params;
+};
+
+//Function to build headers with altinnStudioRuntimeCookie for storage/sbl api endpoints and returns a json object
+export function buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, api){
+    var params = {
+        headers: {"Authorization": "Bearer " + altinnStudioRuntimeCookie}
+        };
+    params = addSubscriptionKey(params, sblAccessSubscriptionKey, api);    
     return params;
 };
 

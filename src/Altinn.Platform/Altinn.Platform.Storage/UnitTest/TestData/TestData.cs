@@ -218,10 +218,6 @@ namespace Altinn.Platform.Storage.UnitTest
             Org = Org_1,
             Process = new ProcessState
             {
-                CurrentTask = new ProcessElementInfo
-                {
-                    ElementId = ""
-                },
                 Ended = Convert.ToDateTime("2019-08-20T19:20:22.2135489Z")
             }
         };
@@ -243,10 +239,6 @@ namespace Altinn.Platform.Storage.UnitTest
             Org = Org_1,
             Process = new ProcessState
             {
-                CurrentTask = new ProcessElementInfo
-                {
-                    ElementId = ""
-                },
                 Ended = Convert.ToDateTime("2019-08-20T19:20:22.2135489Z")
             }
         };

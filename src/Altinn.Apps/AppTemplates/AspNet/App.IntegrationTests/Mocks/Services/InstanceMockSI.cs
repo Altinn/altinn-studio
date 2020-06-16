@@ -1,14 +1,12 @@
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Dependency;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace App.IntegrationTests.Mocks.Services
@@ -79,7 +77,7 @@ namespace App.IntegrationTests.Mocks.Services
             {
                 string content = File.ReadAllText(instancePath);
                 Instance storedInstance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-               
+
 
                 // Archiving instance if process was ended
                 if (storedInstance?.Process?.Ended == null && process.Ended != null)
@@ -176,6 +174,46 @@ namespace App.IntegrationTests.Mocks.Services
             instance.CompleteConfirmations = new List<CompleteConfirmation> { new CompleteConfirmation { StakeholderId = org } };
 
             return await Task.FromResult(instance);
+        }
+
+        public async Task<Instance> UpdateReadStatus(int instanceOwnerPartyId, Guid instanceGuid, string readStatus)
+        {
+            if (!Enum.TryParse(readStatus, true, out ReadStatus newStatus))
+            {
+                return null;
+            }
+
+            string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
+
+            if (File.Exists(instancePath))
+            {
+                string content = File.ReadAllText(instancePath);
+                Instance storedInstance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+
+                storedInstance.Status ??= new InstanceStatus();
+
+                storedInstance.Status.ReadStatus = newStatus;
+
+                File.WriteAllText(instancePath, JsonConvert.SerializeObject(storedInstance));
+                return await Task.FromResult(storedInstance);
+            }
+
+          
+            return null;
+
+        }
+
+        // Finds the path for the instance based on instanceId. Only works if guid is unique.
+        private string GetInstancePath(int instanceOwnerPartyId, Guid instanceGuid)
+        {
+            string[] paths = Directory.GetFiles(GetInstancesPath(), instanceGuid + ".json", SearchOption.AllDirectories);
+            paths = paths.Where(p => p.Contains($"{instanceOwnerPartyId}")).ToArray();
+            if (paths.Length == 1)
+            {
+                return paths.First();
+            }
+
+            return string.Empty;
         }
     }
 }

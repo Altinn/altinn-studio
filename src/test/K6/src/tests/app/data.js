@@ -1,3 +1,8 @@
+/* 
+  Test data required: username, password, app requiring level 2 login (reference app: ttd/apps-test)
+  command to run the test: docker-compose run k6 run src/tests/app/data.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+*/
+
 import { check } from "k6";
 import {addErrorCount} from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
@@ -25,13 +30,13 @@ export const options = {
 export function setup(){
     var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
-    var data = setUpData.getUserData(altinnStudioRuntimeCookie);
+    var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
     data.RuntimeToken = altinnStudioRuntimeCookie;
     setUpData.clearCookies();
     var attachmentDataType = apps.getAppByName(altinnStudioRuntimeCookie, appOwner, level2App);
     attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body);
     data.attachmentDataType = attachmentDataType;    
-    var instanceId = appInstances.postInstance(altinnStudioRuntimeCookie,  data["partyId"]);
+    var instanceId = appInstances.postInstance(altinnStudioRuntimeCookie,  data["partyId"], appOwner, level2App);
     var dataId = appData.findDataId(instanceId.body);
     instanceId = platformInstances.findInstanceId(instanceId.body);
     data.instanceId = instanceId;
@@ -49,28 +54,28 @@ export default function(data) {
     var dataId = data["dataId"];    
 
     //Test to Get instance data by id with App api and validate the response
-    var res = appData.getDataById(runtimeToken, partyId, instanceId, dataId);    
+    var res = appData.getDataById(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);    
     var success = check(res, {
       "App GET Data by Id status is 200:": (r) => r.status === 200      
     });  
     addErrorCount(success);    
     
     //Test to edit a form data in an instance with App APi and validate the response
-    res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
+    res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml, appOwner, level2App);
     success = check(res, {
         "PUT Edit Data by Id status is 201:": (r) => r.status === 201        
     });  
     addErrorCount(success);    
 
     //Test to delete a form data in an instance with App API and validate the response
-    res = appData.deleteDataById(runtimeToken, partyId, instanceId, dataId);
+    res = appData.deleteDataById(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
     success = check(res, {
         "DELETE Form Data by Id Not Allowed status is 400:": (r) => r.status === 400        
     });  
     addErrorCount(success);    
 
     //Test to upload an attachment to an instance with App API and validate the response
-    res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment);
+    res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
     success = check(res, {
         "POST Attachment is uploaded status is 201:": (r) => r.status === 201        
     });  
@@ -79,7 +84,7 @@ export default function(data) {
     dataId = (JSON.parse(res.body)).id;
 
     //Test to delete a an attachment from an instance with App API and validate the response
-    res = appData.deleteDataById(runtimeToken, partyId, instanceId, dataId);
+    res = appData.deleteDataById(runtimeToken, partyId, instanceId, dataId, appOwner, level2App);
     success = check(res, {
         "DELETE Attachment Allowed status is 200:": (r) => r.status === 200        
     });  

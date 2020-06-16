@@ -108,7 +108,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">the instance guid</param>
         /// <param name="language"> language id en, nb, nn-NO"</param>
         /// <returns>list of instances</returns>
-        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
+        [Authorize]
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> GetMessageBoxInstance(int instanceOwnerPartyId, Guid instanceGuid, [FromQuery] string language)
         {
@@ -129,11 +129,19 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound($"Could not find instance {instanceId}");
             }
 
+            List<MessageBoxInstance> authorizedInstanceList = await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, new List<Instance> { instance });
+            if (authorizedInstanceList.Count <= 0)
+            {
+                return Forbid();
+            }
+
+            MessageBoxInstance authorizedInstance = authorizedInstanceList.First();
+
             Dictionary<string, Dictionary<string, string>> appTitle = await _applicationRepository.GetAppTitles(new List<string> { instance.AppId });
+            InstanceHelper.AddTitleToInstances(new List<MessageBoxInstance> { authorizedInstance }, appTitle, languageId);
 
-            MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstanceList(new List<Instance> { instance }, appTitle, languageId).First();
+            return Ok(authorizedInstance);
 
-            return Ok(messageBoxInstance);
         }
 
         /// <summary>

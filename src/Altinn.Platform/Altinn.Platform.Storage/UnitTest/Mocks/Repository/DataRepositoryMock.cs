@@ -30,12 +30,24 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<bool> Delete(DataElement dataElement)
         {
-            throw new NotImplementedException();
+            string dataElementPath = GetDataElementsPath() + dataElement.Id + @".json";
+            if (File.Exists(dataElementPath))
+            {
+                File.Delete(dataElementPath);
+            }
+
+            return Task.FromResult(true);
         }
 
         public Task<bool> DeleteDataInStorage(string org, string blobStoragePath)
         {
-            throw new NotImplementedException();
+            string blobpath = GetDataBlobPath() + blobStoragePath;
+            if (File.Exists(blobpath))
+            {
+                File.Delete(blobpath);
+            }
+
+            return Task.FromResult(true);
         }
 
         public Task<DataElement> Read(Guid instanceGuid, Guid dataElementId)
@@ -51,12 +63,32 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<List<DataElement>> ReadAll(Guid instanceGuid)
         {
-            throw new NotImplementedException();
+            List<DataElement> dataElements = new List<DataElement>();
+            string dataElementsPath = GetDataElementsPath();
+
+            string[] dataElementPaths = Directory.GetFiles(dataElementsPath);
+            foreach (string elementPath in dataElementPaths)
+            {
+                if (!elementPath.Contains("pretest"))
+                {
+                    string content = System.IO.File.ReadAllText(elementPath);
+                    DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                    if (dataElement.InstanceGuid.Contains(instanceGuid.ToString()))
+                    {
+                        dataElements.Add(dataElement);
+                    }
+                }
+            }
+
+            return Task.FromResult(dataElements);
         }
 
         public Task<Stream> ReadDataFromStorage(string org, string blobStoragePath)
         {
-            throw new NotImplementedException();
+            string dataPath = GetDataBlobPath() + blobStoragePath;
+            Stream fs = File.OpenRead(dataPath);
+
+            return Task.FromResult(fs);
         }
 
         public Task<DataElement> Update(DataElement dataElement)
@@ -107,5 +139,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DataRepositoryMock).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\blob\");
         }
+
+     
     }
 }

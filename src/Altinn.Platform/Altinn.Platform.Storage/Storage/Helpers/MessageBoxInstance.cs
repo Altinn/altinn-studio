@@ -1,6 +1,8 @@
 using System;
 using System.Runtime.Serialization;
 
+using Altinn.Platform.Storage.Interface.Models;
+
 namespace Altinn.Platform.Storage.Helpers
 {
     /// <summary>
@@ -57,6 +59,11 @@ namespace Altinn.Platform.Storage.Helpers
         /// Delete status of instance; default or softDeleted.
         /// </summary>
         public DeleteStatusType DeleteStatus { get; set; }
+
+        /// <summary>
+        /// Read status of instance.
+        /// </summary>
+        public ReadStatus ReadStatus { get; set; }
 
         /// <summary>
         /// Boolean indicating if user is allowed to delete instance.

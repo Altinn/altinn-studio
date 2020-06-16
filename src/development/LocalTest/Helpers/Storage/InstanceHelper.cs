@@ -18,54 +18,6 @@ namespace Altinn.Platform.Storage.Helpers
         /// <summary>
         /// Converts to a simpler instance object that includes some application metadata
         /// </summary>
-        /// <param name="instances">List of instances to convert.</param>
-        /// <param name="appTitles">Dictionary for application titles by language.</param>
-        /// <param name="language">Desired language.</param>
-        public static List<MessageBoxInstance> ConvertToMessageBoxInstanceList(List<Instance> instances, Dictionary<string, Dictionary<string, string>> appTitles, string language)
-        {
-            List<MessageBoxInstance> messageBoxInstances = new List<MessageBoxInstance>();
-            if (instances == null || instances.Count == 0)
-            {
-                return messageBoxInstances;
-            }
-
-            foreach (Instance instance in instances)
-            {
-                InstanceStatus status = instance.Status ?? new InstanceStatus();
-                DateTime? visibleAfter = instance.VisibleAfter;
-
-                string title = appTitles[instance.AppId].ContainsKey(language) ? appTitles[instance.AppId][language] : appTitles[instance.AppId]["nb"];
-
-                string instanceId = instance.Id.Contains("/") ? instance.Id.Split("/")[1] : instance.Id;
-
-                DateTime createdDateTime = visibleAfter != null && visibleAfter > instance.Created ? (DateTime)visibleAfter : instance.Created.Value;
-
-                messageBoxInstances.Add(new MessageBoxInstance
-                {
-                    CreatedDateTime = createdDateTime,
-                    DueDateTime = instance.DueBefore,
-                    Id = instanceId,
-                    InstanceOwnerId = instance.InstanceOwner.PartyId,
-                    LastChangedBy = FindLastChangedBy(instance),
-                    Org = instance.Org,
-                    AppName = instance.AppId.Split('/')[1],
-                    Title = title,
-                    ProcessCurrentTask = GetSBLStatusForCurrentTask(instance),
-                    AuthorizedForWrite = true,
-                    AllowDelete = true,
-                    AllowNewCopy = false,
-                    DeletedDateTime = status.SoftDeleted,
-                    ArchivedDateTime = status.Archived,
-                    DeleteStatus = status.SoftDeleted.HasValue ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
-                });
-            }
-
-            return messageBoxInstances;
-        }
-
-        /// <summary>
-        /// Converts to a simpler instance object that includes some application metadata
-        /// </summary>
         public static MessageBoxInstance ConvertToMessageBoxInstance(Instance instance)
         {
             InstanceStatus status = instance.Status ?? new InstanceStatus();
@@ -75,22 +27,13 @@ namespace Altinn.Platform.Storage.Helpers
 
             DateTime createdDateTime = visibleAfter != null && visibleAfter > instance.Created ? (DateTime)visibleAfter : instance.Created.Value;
 
-            string lastChangedBy = FindLastChangedBy(instance);
-
-            // last changed by is set to null if instance has only been modified by an organisation
-            // to ensure correct rendering in messagebox.
-            if (instance.Created.Value == instance.LastChanged.Value && IsValidOrganizationNumber(lastChangedBy))
-            {
-                lastChangedBy = "0";
-            }
-
             MessageBoxInstance messageBoxInstance = new MessageBoxInstance
             {
                 CreatedDateTime = createdDateTime,
                 DueDateTime = instance.DueBefore,
                 Id = instanceGuid,
                 InstanceOwnerId = instance.InstanceOwner.PartyId,
-                LastChangedBy = lastChangedBy,
+                LastChangedBy = FindLastChangedBy(instance),
                 Org = instance.Org,
                 AppName = instance.AppId.Split('/')[1],
                 ProcessCurrentTask = GetSBLStatusForCurrentTask(instance),
@@ -98,6 +41,7 @@ namespace Altinn.Platform.Storage.Helpers
                 DeletedDateTime = status.SoftDeleted,
                 ArchivedDateTime = status.Archived,
                 DeleteStatus = status.SoftDeleted.HasValue ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
+                ReadStatus = status.ReadStatus
             };
 
             return messageBoxInstance;
@@ -157,7 +101,7 @@ namespace Altinn.Platform.Storage.Helpers
             if (instance.Process != null)
             {
                 string currentTask = instance.Process.CurrentTask?.ElementId;
-                if (currentTask != null && currentTask.Equals(Task1))
+                if (currentTask != null)
                 {
                     return "FormFilling";
                 }
@@ -178,40 +122,6 @@ namespace Altinn.Platform.Storage.Helpers
             {
                 return "default";
             }
-        }
-
-        private static bool IsValidOrganizationNumber(string orgNo)
-        {
-            int[] weight = { 3, 2, 7, 6, 5, 4, 3, 2 };
-
-            // Validation only done for 9 digit numbers
-            if (orgNo.Length == 9)
-            {
-                try
-                {
-                    int currentDigit = 0;
-                    int sum = 0;
-                    for (int i = 0; i < orgNo.Length - 1; i++)
-                    {
-                        currentDigit = int.Parse(orgNo.Substring(i, 1));
-                        sum += currentDigit * weight[i];
-                    }
-
-                    int ctrlDigit = 11 - (sum % 11);
-                    if (ctrlDigit == 11)
-                    {
-                        ctrlDigit = 0;
-                    }
-
-                    return int.Parse(orgNo.Substring(orgNo.Length - 1)) == ctrlDigit;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-
-            return false;
         }
 
         private static string FindLastChangedBy(Instance instance)

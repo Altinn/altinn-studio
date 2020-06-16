@@ -20,139 +20,43 @@ namespace Altinn.Platform.Storage.UnitTest
         }
 
         /// <summary>
-        /// Scenario: Converting list of four instances to messagebox instances with "nb" as language preference. 
-        /// Expected: Application titles are all available in "nb"
-        /// Success: All instances are converted and the titles are listed in "nb"
-        /// </summary>
-        [Fact]
-        public void ConvertToMessageBoxInstance_TC01()
-        {
-            // Arrange
-            string language = "nb";
-            string app1 = TestData.App_1;
-            string app2 = TestData.App_2;
-            string app3 = TestData.App_3;
-
-            string expected_title_app1 = "Test applikasjon 1 bokmål";
-            string expected_title_app2 = "Test applikasjon 2 bokmål";
-            string expected_title_app3 = "Test applikasjon 3 bokmål";
-
-            // Act
-            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(TestData.InstanceList_InstanceOwner1, TestData.AppTitles_InstanceList_InstanceOwner1, language);
-            string actual_title_app1 = actual.Where(i => i.AppName.Equals(app1)).Select(i => i.Title).FirstOrDefault();
-            string actual_title_app2 = actual.Where(i => i.AppName.Equals(app2)).Select(i => i.Title).FirstOrDefault();
-            string actual_title_app3 = actual.Where(i => i.AppName.Equals(app3)).Select(i => i.Title).FirstOrDefault();
-
-            // Assert
-            Assert.Equal(expected_title_app1, actual_title_app1);
-            Assert.Equal(expected_title_app2, actual_title_app2);
-            Assert.Equal(expected_title_app3, actual_title_app3);
-
-        }
-
-        /// <summary> 
-        /// Scenario: Converting list containing a single instance with "en" as language preference
-        /// Expected: Application title is only available in "nn-NO" and "nb"
-        /// Success:  Instance is converted but title is set to "nb"
-        /// </summary>
-        [Fact]
-        public void ConvertToMessageBoxInstance_TC02()
-        {
-            // Arrange
-            string language = "en";
-            string app = TestData.App_3;
-            string expected_title = "Test applikasjon 3 bokmål";
-
-            // Act
-            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(new List<Instance>() { TestData.Instance_3_2 }, TestData.AppTitles_Dict_App3, language);
-            string actual_title = actual.Where(i => i.AppName.Equals(app)).Select(i => i.Title).FirstOrDefault();
-
-            // Assert
-            Assert.Equal(expected_title, actual_title);
-        }
-
-
-        /// <summary>
-        /// Scenario: Converting list containing two instances with "nn-NO" as language preference
-        /// Expected: Application title is available in "nn-NO" for only one of the instances
-        /// Success: Default language "nb" is returned for 
-        /// </summary>
-        [Fact]
-        public void ConvertToMessageBoxInstance_TC03()
-        {
-            // Arrange
-            string language = "nn-NO";
-            string app2 = TestData.App_2;
-            string app3 = TestData.App_3;
-
-            List<Instance> instances = new List<Instance>() { TestData.Instance_2_1, TestData.Instance_3_1 };
-            Dictionary<string, Dictionary<string, string>> apptitles = new Dictionary<string, Dictionary<string, string>>()
-            {
-                { TestData.Application_2.Id, TestData.AppTitles_App2 },
-                { TestData.Application_3.Id, TestData.AppTitles_App3 }
-            };
-
-            string expected_title_app2 = "Test applikasjon 2 bokmål";
-            string expected_title_app3 = "Test applikasjon 3 nynorsk";
-
-            // Act
-            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(instances, TestData.AppTitles_InstanceList_InstanceOwner1, language);
-            string actual_title_app2 = actual.Where(i => i.AppName.Equals(app2)).Select(i => i.Title).FirstOrDefault();
-            string actual_title_app3 = actual.Where(i => i.AppName.Equals(app3)).Select(i => i.Title).FirstOrDefault();
-
-            // Assert
-            Assert.Equal(expected_title_app2, actual_title_app2);
-            Assert.Equal(expected_title_app3, actual_title_app3);
-        }
-
-
-        /// <summary>
         /// Scenario: Converting list containing a single instance whith id {instanceOwner}/{instanceGuid}
         /// Expected: The instance is converted to a message box instance
         /// Success: MessageBoxInstance Id equals {instanceGuid}
         /// </summary>
         [Fact]
-        public void ConvertToMessageBoxInstance_TC04()
+        public void ConvertToMessageBoxInstance_TC01()
         {
             // Arrange
             string instanceOwner = "instanceOwner";
             string instanceGuid = "instanceGuid";
             Instance instance = TestData.Instance_1_1;
-            instance.Id = $"{instanceOwner}/{instanceGuid}";        
-        
+            instance.Id = $"{instanceOwner}/{instanceGuid}";
+
             // Act
-            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(new List<Instance>() { instance }, TestData.AppTitles_Dict_App1, "nb");
-            string actualId = actual.FirstOrDefault().Id;
+            MessageBoxInstance actual = InstanceHelper.ConvertToMessageBoxInstance(instance);
 
             // Assert
-            Assert.Equal(instanceGuid, actualId);     
+            Assert.Equal(instanceGuid, actual.Id);
         }
 
         /// <summary>
-        /// Scenario: Converting list containing a single instance with data element, where LastChanged for data element is newer than LastChanged for instance.
-        /// Expected: The LastChangedBy in MessageBoxInstance comes from data element
+        /// Scenario: Convert instance
+        /// Expected: The LastChangedBy in MessageBoxInstance comes from the instance itself
         /// Success: MessageBoxInstance LastChangedBy equals {lastChangedBy}
         /// </summary>
         [Fact]
-        public void ConvertToMessageBoxInstance_TC05()
+        public void ConvertToMessageBoxInstance_TC02()
         {
             // Arrange
-            string lastChangedBy = "lastChangedBy";
-            Instance instance = TestData.Instance_1_1;
-            instance.Data = new List<DataElement>() {
-                new DataElement()
-                {
-                    LastChanged = Convert.ToDateTime("2019-08-21T19:19:22.2135489Z"),
-                    LastChangedBy = lastChangedBy
-                }
-            };
+            string lastChangedBy = "20000000";
+            Instance instance = TestData.Instance_1_1;         
 
             // Act
-            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(new List<Instance>() { instance }, TestData.AppTitles_Dict_App1, "nb");
-            string actualLastChangedBy = actual.FirstOrDefault().LastChangedBy;
+            MessageBoxInstance actual = InstanceHelper.ConvertToMessageBoxInstance( instance );
 
             // Assert
-            Assert.Equal(lastChangedBy, actualLastChangedBy);
+            Assert.Equal(lastChangedBy, actual.LastChangedBy);
         }
 
         /// <summary>
@@ -161,34 +65,7 @@ namespace Altinn.Platform.Storage.UnitTest
         /// Success: MessageBoxInstance LastChangedBy equals {lastChangedBy}
         /// </summary>
         [Fact]
-        public void ConvertToMessageBoxInstance_TC06()
-        {
-            // Arrange
-            string lastChangedBy = TestData.UserId_1;
-            Instance instance = TestData.Instance_1_1;
-            instance.Data = new List<DataElement>() {
-                new DataElement()
-                {
-                    LastChanged = Convert.ToDateTime("2019-08-21T19:19:22.2135489Z"),
-                    LastChangedBy = lastChangedBy
-                }
-            };
-
-            // Act
-            List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstanceList(new List<Instance>() { instance }, TestData.AppTitles_Dict_App1, "nb");
-            string actualLastChangedBy = actual.FirstOrDefault().LastChangedBy;
-
-            // Assert
-            Assert.Equal(lastChangedBy, actualLastChangedBy);
-        }
-
-        /// <summary>
-        /// Scenario: Converting list containing a single instance with data element, where LastChanged for data element is older than LastChanged for instance.
-        /// Expected: The LastChangedBy in MessageBoxInstance comes from data element
-        /// Success: MessageBoxInstance LastChangedBy equals {lastChangedBy}
-        /// </summary>
-        [Fact]
-        public void ConvertToMessageBoxSingleInstance_TC01()
+        public void ConvertToMessageBoxSingleInstance_TC03()
         {
             // Arrange
             string lastChangedBy = TestData.UserId_1;
@@ -207,28 +84,6 @@ namespace Altinn.Platform.Storage.UnitTest
 
             // Assert
             Assert.Equal(lastChangedBy, actualLastChangedBy);
-        }
-
-        /// <summary>
-        /// Scenario: Converting list containing a single instance whith id {instanceOwner}/{instanceGuid}
-        /// Expected: The instance is converted to a message box instance
-        /// Success: MessageBoxInstance Id equals {instanceGuid}
-        /// </summary>
-        [Fact]
-        public void ConvertToMessageBoxSingleInstance_TC02()
-        {
-            // Arrange
-            string instanceOwner = "instanceOwner";
-            string instanceGuid = "instanceGuid";
-            Instance instance = TestData.Instance_1_1;
-            instance.Id = $"{instanceOwner}/{instanceGuid}";
-
-            // Act
-            MessageBoxInstance actual = InstanceHelper.ConvertToMessageBoxInstance(instance);
-            string actualId = actual.Id;
-
-            // Assert
-            Assert.Equal(instanceGuid, actualId);
         }
 
         /// <summary>

@@ -53,12 +53,9 @@ namespace Altinn.Platform.Storage.Helpers
                 return new List<MessageBoxInstance>();
             }
 
-            List<MessageBoxInstance> authorizedInstanceeList = new List<MessageBoxInstance>();
-            List<string> actionTypes = new List<string> { "read", "write" };
+            List<MessageBoxInstance> authorizedInstanceList = new List<MessageBoxInstance>();
+            List<string> actionTypes = new List<string> { "read", "write", "delete" };
 
-            _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // User: {user}");
-            _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // Instances count: {instances.Count()}");
-            _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // Action types: {actionTypes}");
             XacmlJsonRequestRoot xacmlJsonRequest = CreateMultiDecisionRequest(user, instances, actionTypes);
 
             _logger.LogInformation($"// AuthorizationHelper // AuthorizeMsgBoxInstances // xacmlJsonRequest: {JsonConvert.SerializeObject(xacmlJsonRequest)}");
@@ -91,33 +88,45 @@ namespace Altinn.Platform.Storage.Helpers
                     }
 
                     // Find the instance that has been validated to add it to the list of authorized instances.
-                    Instance authorizedInstance = instances.FirstOrDefault(i => i.Id == instanceId);
+                    Instance authorizedInstance = instances.First(i => i.Id == instanceId);
 
                     // Checks if the instance has already been authorized
-                    if (authorizedInstanceeList.Any(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])))
+                    if (authorizedInstanceList.Any(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])))
                     {
-                        // Only need to check if the action type is write, because read do not add any special rights to the MessageBoxInstane.
-                        if (actiontype.Equals("write"))
+                        switch (actiontype)
                         {
-                            authorizedInstanceeList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = i.AllowDelete = true);
+                            case "write":
+                                authorizedInstanceList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AuthorizedForWrite = true);
+                                break;
+                            case "delete":
+                                authorizedInstanceList.Where(i => i.Id.Equals(authorizedInstance.Id.Split("/")[1])).ToList().ForEach(i => i.AllowDelete = true);
+                                break;
+                            case "read":
+                                break;
                         }
                     }
                     else
                     {
                         MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(authorizedInstance);
 
-                        if (actiontype.Equals("write"))
+                        switch (actiontype)
                         {
-                            messageBoxInstance.AuthorizedForWrite = true;
-                            messageBoxInstance.AllowDelete = true;
+                            case "write":
+                                messageBoxInstance.AuthorizedForWrite = true;
+                                break;
+                            case "delete":
+                                messageBoxInstance.AllowDelete = true;
+                                break;
+                            case "read":
+                                break;
                         }
 
-                        authorizedInstanceeList.Add(messageBoxInstance);
+                        authorizedInstanceList.Add(messageBoxInstance);
                     }
                 }
             }
 
-            return authorizedInstanceeList;
+            return authorizedInstanceList;
         }
 
         /// <summary>

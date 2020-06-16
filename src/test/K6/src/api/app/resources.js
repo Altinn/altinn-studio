@@ -4,25 +4,25 @@ import * as header from "../../buildrequestheaders.js"
 
 
 //Batch Api calls after instance creation to get app resources like Appmetadata, Formlayoust.json, rulehandler.js, ruleconfiguration.json
-export function batchGetAppResources(altinnStudioRuntimeCookie){
+export function batchGetAppResources(altinnStudioRuntimeCookie, appOwner, appName){
     let req, res;
     var requestParams = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app")
     req = [
         {
             "method": "get",
-            "url": config.appResources["servicemetadata"],
+            "url": config.appApiBaseUrl(appOwner, appName) + config.appResources["servicemetadata"],
             "params": requestParams        
         },{
             "method": "get",
-            "url": config.appResources["formlayout"],
+            "url": config.appApiBaseUrl(appOwner, appName) + config.appResources["formlayout"],
             "params": requestParams
         },{
             "method": "get",
-            "url": config.appResources["rulehandler"],
+            "url": config.appApiBaseUrl(appOwner, appName) + config.appResources["rulehandler"],
             "params": requestParams        
         },{
             "method": "get",
-            "url": config.appResources["ruleconfiguration"],
+            "url": config.appApiBaseUrl(appOwner, appName) + config.appResources["ruleconfiguration"],
             "params": requestParams
         }];
     res = http.batch(req);

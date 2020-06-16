@@ -648,6 +648,112 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             }
 
+            /// <summary>
+            /// Scenario:
+            /// Update read status for an instance where the status has not been initialized yet. 
+            /// Result:
+            /// Read status is successfuly updated and the updated instance returned.
+            /// </summary>
+            [Fact]
+            public async void UpdateReadStatus_SetInitialReadStatus_ReturnsUpdatedInstance()
+            {
+                // Arrange
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "824E8304-AD9E-4D79-AC75-BCFA7213223B";
+
+                ReadStatus expectedReadStus = ReadStatus.Read;
+
+                TestDataUtil.PrepareInstance(instanceOwnerPartyId, instanceGuid);
+
+                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/readstatus?status=read";
+
+                HttpClient client = GetTestClient();
+
+                string token = PrincipalUtil.GetToken(3, 1337, 2);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                TestDataUtil.DeleteInstance(instanceOwnerPartyId, new Guid(instanceGuid));
+                string json = await response.Content.ReadAsStringAsync();
+                Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedReadStus, updatedInstance.Status.ReadStatus);
+            }
+
+            /// <summary>
+            /// Scenario:
+            /// Update read status for an instance with current status 'read'. 
+            /// Result:
+            /// Read status is successfuly updated and the updated instance returned.
+            /// </summary>
+            [Fact]
+            public async void UpdateReadStatus_FromReadToUnread_ReturnsUpdatedInstance()
+            {
+                // Arrange
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "d9a586ca-17ab-453d-9fc5-35eaadb3369b";
+                ReadStatus expectedReadStus = ReadStatus.Unread;
+
+                TestDataUtil.PrepareInstance(instanceOwnerPartyId, instanceGuid);
+
+                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/readstatus?status=unread";
+                HttpClient client = GetTestClient();
+
+                string token = PrincipalUtil.GetToken(3, 1337, 2);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                TestDataUtil.DeleteInstance(instanceOwnerPartyId, new Guid(instanceGuid));
+                string json = await response.Content.ReadAsStringAsync();
+                Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedReadStus, updatedInstance.Status.ReadStatus);
+            }
+
+            /// <summary>
+            /// Scenario:
+            /// Trying to update an instance with an invalid read status.
+            /// Result:
+            /// Response code is bad request.
+            /// </summary>
+            [Fact]
+            public async void UpdateReadStatus_InvalidStatus_ReturnsBadRequest()
+            {
+                // Arrange
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "d9a586ca-17ab-453d-9fc5-35eaadb3369b";
+                string expectedMessage = $"Invalid read status: invalid. Accepted types include: {string.Join(", ", Enum.GetNames(typeof(ReadStatus)))}";
+
+                TestDataUtil.PrepareInstance(instanceOwnerPartyId, instanceGuid);
+
+                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/readstatus?status=invalid";
+                HttpClient client = GetTestClient();
+
+                string token = PrincipalUtil.GetToken(3, 1337, 2);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                TestDataUtil.DeleteInstance(instanceOwnerPartyId, new Guid(instanceGuid));
+                string json = await response.Content.ReadAsStringAsync();
+                string actualMessage = JsonConvert.DeserializeObject<string>(json);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                Assert.Equal(expectedMessage, actualMessage);
+            }
+
             private HttpClient GetTestClient()
             {
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();

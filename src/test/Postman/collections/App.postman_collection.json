@@ -416,7 +416,10 @@
 						"header": [],
 						"body": {
 							"mode": "formdata",
-							"formdata": []
+							"formdata": [],
+							"options": {
+								"formdata": {}
+							}
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
@@ -478,7 +481,10 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "",
+							"options": {
+								"raw": {}
+							}
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
@@ -541,7 +547,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>"
+							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1472\" spesifikasjonsnummer=\"9812\" blankettnummer=\"AFP-01\" tittel=\"Arbeidsgiverskjema AFP\" gruppeid=\"8818\">\r\n  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid=\"8819\">\r\n    <Skjemainstans-grp-8854 gruppeid=\"8854\">\r\n      <Journalnummer-datadef-33316 orid=\"33316\">9827</Journalnummer-datadef-33316>\r\n    </Skjemainstans-grp-8854>\r\n  </OpplysningerOmArbeidstakeren-grp-8819>\r\n</Skjema>",
+							"options": {
+								"raw": {}
+							}
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
@@ -601,7 +610,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "<?xml version=\"1.0\"?>\r\n<Enkeltpersonforetakregistrering xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <UserFirstName>45678</UserFirstName>\r\n</Enkeltpersonforetakregistrering>"
+							"raw": "<?xml version=\"1.0\"?>\r\n<Enkeltpersonforetakregistrering xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <UserFirstName>45678</UserFirstName>\r\n</Enkeltpersonforetakregistrering>",
+							"options": {
+								"raw": {}
+							}
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
@@ -687,9 +699,7 @@
 								"src": "test_file_pdf.pdf"
 							},
 							"options": {
-								"raw": {
-									"language": "text"
-								}
+								"file": {}
 							}
 						},
 						"url": {
@@ -756,7 +766,10 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "",
+							"options": {
+								"raw": {}
+							}
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
@@ -826,6 +839,9 @@
 							"mode": "file",
 							"file": {
 								"src": "test_file_pdf.pdf"
+							},
+							"options": {
+								"file": {}
 							}
 						},
 						"url": {
@@ -1447,7 +1463,10 @@
 						"header": [],
 						"body": {
 							"mode": "formdata",
-							"formdata": []
+							"formdata": [],
+							"options": {
+								"formdata": {}
+							}
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
@@ -1503,7 +1522,10 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "",
+							"options": {
+								"raw": {}
+							}
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
@@ -1715,7 +1737,10 @@
 						"header": [],
 						"body": {
 							"mode": "formdata",
-							"formdata": []
+							"formdata": [],
+							"options": {
+								"formdata": {}
+							}
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/validate",
@@ -1869,9 +1894,7 @@
 								"src": "test_file_morethan_1mb.txt"
 							},
 							"options": {
-								"raw": {
-									"language": "text"
-								}
+								"file": {}
 							}
 						},
 						"url": {
@@ -2071,9 +2094,7 @@
 								"src": "test_file_pdf.pdf"
 							},
 							"options": {
-								"raw": {
-									"language": "text"
-								}
+								"file": {}
 							}
 						},
 						"url": {
@@ -2140,7 +2161,10 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": ""
+							"raw": "",
+							"options": {
+								"raw": {}
+							}
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}/validate",
@@ -2202,7 +2226,10 @@
 						"header": [],
 						"body": {
 							"mode": "formdata",
-							"formdata": []
+							"formdata": [],
+							"options": {
+								"formdata": {}
+							}
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/validate",
@@ -2405,7 +2432,10 @@
 						"header": [],
 						"body": {
 							"mode": "formdata",
-							"formdata": []
+							"formdata": [],
+							"options": {
+								"formdata": {}
+							}
 						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",

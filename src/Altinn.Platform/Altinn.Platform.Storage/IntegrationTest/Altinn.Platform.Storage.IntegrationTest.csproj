@@ -119,6 +119,7 @@
 
   <ItemGroup>
     <Folder Include="Properties\" />
+    <Folder Include="TestingControllers\" />
   </ItemGroup>
 
 </Project>

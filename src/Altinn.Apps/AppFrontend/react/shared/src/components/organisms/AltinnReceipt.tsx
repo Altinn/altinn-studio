@@ -3,7 +3,7 @@ import { createMuiTheme, createStyles, MuiThemeProvider, WithStyles, withStyles 
 import * as React from 'react';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import altinnTheme from '../../theme/altinnAppTheme';
-import { IAttachment, IAttachmentGrouping } from '../../types/index.d';
+import { IAttachment, IAttachmentGrouping } from '../../types';
 import AltinnAttachment from '../atoms/AltinnAttachment';
 import AltinnCollapsibleAttachments from '../molecules/AltinnCollapsibleAttachments';
 import AltinnSummaryTable from '../molecules/AltinnSummaryTable';
