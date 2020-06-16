@@ -40,8 +40,8 @@ export function getAltinnStudioRuntimeToken(aspxauthCookie){
 };
 
 //Request to get user data and returns partyId, ssn, userId, orgNr
-export function getUserData(altinnStudioRuntimeCookie){
-    var endpoint =   config.appProfile["user"];
+export function getUserData(altinnStudioRuntimeCookie, appOwner, appName){
+    var endpoint =   config.appApiBaseUrl(appOwner, appName) + config.appProfile["user"];
     var params = headers.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");    
     var res = http.get(endpoint,params);
     var success = check(res, {

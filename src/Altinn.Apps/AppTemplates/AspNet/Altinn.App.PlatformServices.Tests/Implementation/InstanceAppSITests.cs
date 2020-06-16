@@ -10,8 +10,10 @@ using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.Platform.Storage.Interface.Models;
-
+using Castle.Core.Logging;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Options;
 
 using Moq;
@@ -28,13 +30,14 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         private readonly Mock<IOptionsMonitor<AppSettings>> appSettingsOptions;
         private readonly Mock<HttpMessageHandler> handlerMock;
         private readonly Mock<IHttpContextAccessor> contextAccessor;
-
+        private readonly Mock<ILogger<InstanceAppSI>> logger;
         public InstanceAppSITests()
         {
             platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
             appSettingsOptions = new Mock<IOptionsMonitor<AppSettings>>();
             handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             contextAccessor = new Mock<IHttpContextAccessor>();
+            logger = new Mock<ILogger<InstanceAppSI>>();
         }
 
         [Fact]
@@ -53,7 +56,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, null, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
 
             // Act
             await target.AddCompleteConfirmation(1337, Guid.NewGuid());
@@ -76,7 +79,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, null, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
 
             PlatformHttpException actualException = null;
 
@@ -97,7 +100,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         }
 
         [Fact]
-        public async Task UpdateReadStatus_StorageReturnsNonSuccess_ThrowsPlatformHttpException()
+        public async Task UpdateReadStatus_StorageReturnsNonSuccess_LogsErrorAppContinues()
         {
             // Arrange
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
@@ -110,7 +113,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, null, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
 
             PlatformHttpException actualException = null;
 
@@ -127,7 +130,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             // Assert
             handlerMock.VerifyAll();
 
-            Assert.NotNull(actualException);
+            Assert.Null(actualException);
         }
 
         [Fact]
@@ -146,7 +149,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
-            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, null, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
 
             // Act       
             Instance actual = await target.UpdateReadStatus(1337, Guid.NewGuid(), "read");

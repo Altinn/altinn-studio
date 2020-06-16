@@ -195,7 +195,9 @@ namespace Altinn.App.Services.Implementation
                 return instance;
             }
 
-            throw await PlatformHttpException.CreateAsync(response);
+            _logger.LogError($"Could not update read status for instance {instanceOwnerPartyId}/{instanceGuid}. Request failed with status code {response.StatusCode}");
+            return null;
+
         }
     }
 }

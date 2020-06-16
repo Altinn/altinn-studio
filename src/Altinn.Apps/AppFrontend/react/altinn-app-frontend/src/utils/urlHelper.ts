@@ -63,7 +63,9 @@ export function getCompleteProcessUrl() {
 }
 
 export function getUpgradeAuthLevelUrl(reqAuthLevel: string) {
-  return `https://${getHostname()}/ui/authentication/upgrade?goTo=${encodeURIComponent(appPath)}&reqAuthLevel=${reqAuthLevel}`;
+  const redirect: string = `https://platform.${getHostname()}` +
+  `/authentication/api/v1/authentication?goto=${appPath}`;
+  return `https://${getHostname()}/ui/authentication/upgrade?goTo=${encodeURIComponent(redirect)}&reqAuthLevel=${reqAuthLevel}`;
 }
 
 export const getEnvironmentLoginUrl: () => string = () => {

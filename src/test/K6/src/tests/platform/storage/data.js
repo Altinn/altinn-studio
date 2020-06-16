@@ -1,3 +1,8 @@
+/* 
+    Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
+    Command: docker-compose run k6 run src/tests/platform/storage/data.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+*/
+
 import { check } from "k6";
 import * as apps from "../../../api/storage/applications.js"
 import * as instances from "../../../api/storage/instances.js"
@@ -24,7 +29,7 @@ export const options = {
 export function setup(){
     var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
-    var data = setUpData.getUserData(altinnStudioRuntimeCookie);
+    var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
     data.RuntimeToken = altinnStudioRuntimeCookie;
     setUpData.clearCookies();
     var attachmentDataType = apps.getAppByName(altinnStudioRuntimeCookie, appOwner, level2App);
@@ -43,11 +48,12 @@ export default function(data) {
     const partyId = data["partyId"];
     const attachmentDataType = data["attachmentDataType"];
     const instanceId = data["instanceId"];  
-    var dataId = "";    
+    var dataId = "";
+    var res, success; 
 
     //Test to add an form data to an instance with storage api and validate the response
-    var res = instanceData.postData(runtimeToken, partyId, instanceId, "default", instanceFormDataXml);    
-    var success = check(res, {
+    res = instanceData.postData(runtimeToken, partyId, instanceId, "default", instanceFormDataXml);    
+    success = check(res, {
       "POST Create Data status is 201:": (r) => r.status === 201,
       "POST Create Instance Data Id is not null:": (r) => (JSON.parse(r.body)).id != null
     });  
@@ -70,8 +76,8 @@ export default function(data) {
     addErrorCount(success);    
 
     //Test to add a pdf attachment to an instance with storage api and validate the response
-    var res = instanceData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment);    
-    var success = check(res, {
+    res = instanceData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment);    
+    success = check(res, {
       "POST Add Attachment status is 201:": (r) => r.status === 201,
       "POST Add Attachment Data Id is not null:": (r) => (JSON.parse(r.body)).id != null
     });  

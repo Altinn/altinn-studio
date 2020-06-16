@@ -1,5 +1,13 @@
 /*
   This test script can only be run with virtual users and iterations count and not based on duration.
+   Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and deployed RF-0002 app and test attachment files
+  [
+	{
+		"username": "",
+		"password": "",
+		"partyid": ""
+    }
+  ]
   Create and archive instances of RF-0002 with attachments, where the distribution of attachments is based on 
   parameter attachmentdistribution among small, medium and large attachment.
   example: k6 run -i 20 -u 10 /src/tests/app/rf0002withattachment.js 
@@ -19,11 +27,14 @@ import * as setUpData from "../../setup.js";
 const instanceFormDataXml = open("../../data/rf-0002.xml");
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
+const environment = (__ENV.env).toLowerCase();
+const fileName = "users_"+ environment +".json";
+
 var attachmentDistribution = __ENV.attachmentdistribution;
 const smallAttachment = open("../../data/50kb.txt");
 const mediumAttachment = open("../../data/1mb.txt");
 const largeAttachment = open("../../data/99mb.txt");
-const users = JSON.parse(open("../../data/users.json"));
+let users = JSON.parse(open("../../data/" + fileName));
 const usersCount = users.length;
 
 export const options = {
@@ -79,7 +90,7 @@ export default function(data) {
     const partyId = users[userNumber].partyid; 
 
     //Test to create an instance with App api and validate the response
-    res = appInstances.postInstance(runtimeToken, partyId);
+    res = appInstances.postInstance(runtimeToken, partyId, appOwner, level2App);
     success = check(res, {
         "E2E App POST Create Instance status is 201:": (r) => r.status === 201        
       });  
@@ -95,7 +106,7 @@ export default function(data) {
      
     
     //Test to edit a form data in an instance with App APi and validate the response
-    res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml);
+    res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml, appOwner, level2App);
     success = check(res, {
         "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201        
     });  
@@ -106,7 +117,7 @@ export default function(data) {
     var attachment = (attachmentTypes[uniqueNum] === 's') ? smallAttachment : ((attachmentTypes[uniqueNum] === 'm') ? mediumAttachment : largeAttachment);
     
     //upload a upload attachment to an instance with App API
-    res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, attachment);
+    res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, attachment, appOwner, level2App);
     success = check(res, {
         "E2E POST upload attachment Data status is 201:": (r) => r.status === 201        
     });
@@ -114,7 +125,7 @@ export default function(data) {
     printResponseToConsole("E2E POST upload attachment Data status:", success, res);
 
     //Test to get validate instance and verify that validation of instance is ok
-    res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId);
+    res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App);
     success = check(res, {
         "E2E App GET Validate Instance validation OK:": (r) => r.body && (JSON.parse(r.body)).length === 0     
     });  
@@ -122,7 +133,7 @@ export default function(data) {
     printResponseToConsole("E2E App GET Validate Instance is not OK:", success, res);
 
     //Test to get next process of an app instance again and verify response code  to be 200
-    res = appProcess.getNextProcess(runtimeToken, partyId, instanceId);
+    res = appProcess.getNextProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
     success = check(res, {
         "E2E App GET Next process element id:": (r) => r.status === 200
     });
@@ -131,7 +142,7 @@ export default function(data) {
     var nextElement = (JSON.parse(res.body))[0];
 
     //Test to move the process of an app instance to the next process element and verify response code to be 200
-    res = appProcess.putNextProcess(runtimeToken, partyId, instanceId, nextElement);
+    res = appProcess.putNextProcess(runtimeToken, partyId, instanceId, nextElement, appOwner, level2App);
     success = check(res, {
         "E2E App PUT Move process to Next element status is 200:": (r) => r.status === 200      
     });  
@@ -139,7 +150,7 @@ export default function(data) {
     printResponseToConsole("E2E App PUT Move process to Next element:", success, res);
 
     //Test to call get instance details and verify the presence of archived date
-    res = appInstances.getInstanceById(runtimeToken, partyId, instanceId);    
+    res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);    
     success = check(res, {
         "E2E App Instance is archived:": (r) => (JSON.parse(r.body)).status.archived != null
     });

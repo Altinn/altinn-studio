@@ -1,3 +1,7 @@
+/* 
+  Test data required: test app with uploaded policy in blob, username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
+  Command: docker-compose run k6 run src/tests/platform/authorization/authorization.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e testapp=*** -e level2app=***
+*/
 import { check } from "k6";
 import {addErrorCount} from "../../../errorcounter.js";
 import * as authz from "../../../api/platform/authorization.js";
@@ -7,6 +11,7 @@ const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const testappName = __ENV.testapp;
+const level2App = __ENV.level2app;
 let policyFile = open("../../../data/policy.xml","b");
 let pdpInputJson = open("../../../data/pdpinput.json");
 
@@ -20,7 +25,7 @@ export const options = {
 export function setup(){
     var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
-    var data = setUpData.getUserData(altinnStudioRuntimeCookie); 
+    var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App); 
     data.RuntimeToken = altinnStudioRuntimeCookie;   
     return data;
 };
@@ -30,11 +35,12 @@ export default function(data) {
     const userId = data["userId"];
     const partyId = data["partyId"];
     const runtimeToken = data["RuntimeToken"];
-    var altinnTask = "";     
+    var altinnTask = "";   
+    var res, success;  
 
     //Test Platform: Authorization: Get parties of an user and validate response
-    var res = authz.getParties(userId);    
-    var success = check(res, {
+    res = authz.getParties(userId);    
+    success = check(res, {
       "GET Parties Status is 200:": (r) => r.status === 200,
       "GET Parties Parties list is not empty:": (r) => (JSON.parse(r.body)).length != null
     });  
@@ -51,7 +57,7 @@ export default function(data) {
     //Test Platform: Authorization: Upload app policy to storage    
     res = authz.postPolicy(policyFile, appOwner, testappName, runtimeToken);    
     success = check(res, {
-      "POST Policy Status is 403:": (r) => r.status === 403,      
+      "POST Policy Status is 403:": (r) => r.status === 403    
     });  
     addErrorCount(success);   
 
@@ -70,7 +76,7 @@ export default function(data) {
 
     //Test Platform: Authorization: Get a decision from PDP with appOwner details
     //and validate response to have NotApplicable
-    var jsonPermitData = {
+    jsonPermitData = {
       "AccessSubject": ["urn:altinn:org"], 
       "Action": ["sign"], 
       "Resource": ["urn:altinn:app", "urn:altinn:org"]};
@@ -84,11 +90,11 @@ export default function(data) {
 
     //Test Platform: Authorization: Get a decision from PDP with user details
     //and validate response to have Permit
-    var jsonPermitData = {
+    jsonPermitData = {
       "AccessSubject": ["urn:altinn:userid"], 
       "Action": ["read"], 
       "Resource": ["urn:altinn:app", "urn:altinn:org", "urn:altinn:partyid", "urn:altinn:task"]};
-    var altinnTask = "Task_1"; 
+    altinnTask = "Task_1"; 
     res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask);    
     success = check(res, {
       "Get PDP Decision for User Status is 200:": (r) => r.status === 200,      

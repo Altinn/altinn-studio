@@ -1,3 +1,8 @@
+/* 
+    Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
+    Command: docker-compose run k6 run src/tests/platform/receipt/receipt.js -e env=*** -e org=*** -e level2app=*** -e username=*** -e userpwd=***
+*/
+
 import { check } from "k6";
 import {addErrorCount} from "../../../errorcounter.js";
 import * as setUpData from "../../../setup.js";
@@ -20,7 +25,7 @@ export const options = {
 export function setup(){
     var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
-    var data = setUpData.getUserData(altinnStudioRuntimeCookie);
+    var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
     data.RuntimeToken = altinnStudioRuntimeCookie;
     setUpData.clearCookies();    
     var instanceId = instances.postInstance(altinnStudioRuntimeCookie,  data["partyId"], appOwner, level2App, instanceJson);
@@ -33,10 +38,11 @@ export function setup(){
 export default function(data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
-    const instanceId = data["instanceId"]; 
+    const instanceId = data["instanceId"];
+    var res, success;
     
-    var res = receipt.getReceipt(partyId, instanceId, runtimeToken);   
-    var success = check(res, {
+    res = receipt.getReceipt(partyId, instanceId, runtimeToken);   
+    success = check(res, {
       "Get receipt Status is 200:": (r) => r.status === 200,
       "Get receipt includes party info:": (r) => (JSON.parse(r.body)).party.partyId == partyId
     });

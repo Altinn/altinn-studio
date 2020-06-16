@@ -61,7 +61,7 @@ public class FormDataUtils {
       if (nodeName == null) {
         continue;
       }
-      if (nodeName.equals(keys[keyIndex].toLowerCase())) {
+      if (nodeName.equals(keys[keyIndex].replace("-", "").toLowerCase())) {
         if ((keys.length - 1) == keyIndex) {
           // If no more partial keys we have reached bottom node, return value if present
           String value = null;
