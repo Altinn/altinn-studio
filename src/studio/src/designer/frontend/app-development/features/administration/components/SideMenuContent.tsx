@@ -3,8 +3,10 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { makeStyles, Typography } from '@material-ui/core';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import AltinnButton from 'app-shared/components/AltinnButton';
+import { useSelector } from 'react-redux';
 import { ICommit, IRepository } from '../../../types/global';
 import ResetRepoModal from './ResetRepoModal';
+import RepoStatusActionDispatchers from '../../../sharedResources/repoStatus/repoStatusDispatcher';
 
 import classNames = require('classnames');
 
@@ -24,6 +26,9 @@ const setupClasses = makeStyles({
     fontSize: 16,
     marginBottom: 12,
   },
+  sidebarInfoTextList: {
+    paddingLeft: 18,
+  },
   sidebarServiceOwner: {
     marginTop: 10,
   },
@@ -37,7 +42,6 @@ export interface ISideMenuContent {
   language: any;
   service: IRepository;
   initialCommit: ICommit;
-  handleResetRepoClick: () => void;
 }
 
 const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
@@ -45,6 +49,9 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
 
   const [resetRepoModalOpen, setResetRepoModalOpen] = React.useState<boolean>(false);
   const [resetRepoModalAnchorEl, setResetRepoModalAnchorEl] = React.useState<any>(null);
+  const [enableResetButton, setEnableResetButton] = React.useState<boolean>(false);
+
+  const repoStatus = useSelector((state: IServiceDevelopmentState) => state.handleMergeConflict.repoStatus);
 
   const onCloseModal = () => {
     setResetRepoModalOpen(false);
@@ -54,6 +61,29 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
     setResetRepoModalAnchorEl(document.getElementById('reset-repo-button'));
     setResetRepoModalOpen(true);
   };
+
+  const handleResetRepoClick = () => {
+    const altinnWindow: any = window;
+    const { org, app } = altinnWindow;
+    RepoStatusActionDispatchers.resetLocalRepo(org, app);
+  };
+
+  React.useEffect(() => {
+
+  })
+
+  React.useEffect(() => {
+    if (repoStatus && (
+      (repoStatus.behindBy && repoStatus.behindBy > 0)
+      || (repoStatus.aheadBy && repoStatus.aheadBy > 0)
+      || (repoStatus.contentStatus && repoStatus.contentStatus.length > 0))
+    ) {
+      setEnableResetButton(true);
+    } else {
+      setEnableResetButton(false);
+      setResetRepoModalOpen(false);
+    }
+  }, [repoStatus]);
 
   return (
     <>
@@ -79,19 +109,24 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
       }
       {/* Reset local repository */}
       <Typography className={classNames(classes.sidebarHeader, classes.sidebarHeaderSecond)}>
-        {getLanguageFromKey('Slett mine endringer', props.language)}
+        {getLanguageFromKey('administration.reset_repo_heading', props.language)}
       </Typography>
-      <Typography className={classes.sidebarInfoText}>
-        {getLanguageFromKey('Dette er skumle saker, vær forsiktig!', props.language)}
+      <Typography className={classNames(classes.sidebarInfoText, classes.sidebarInfoTextList)}>
+        <ul>
+          <li>{getLanguageFromKey('administration.reset_repo_info_i1', props.language)}</li>
+          <li>{getLanguageFromKey('administration.reset_repo_info_i2', props.language)}</li>
+          <li>{getLanguageFromKey('administration.reset_repo_info_i3', props.language)}</li>
+        </ul>
       </Typography>
       <AltinnButton
         id='reset-repo-button'
-        btnText={getLanguageFromKey('Slett mine endringer', props.language)}
+        btnText={getLanguageFromKey('administration.reset_repo_button', props.language)}
         onClickFunction={onClickResetRepo}
+        disabled={!enableResetButton}
       />
       <ResetRepoModal
         anchorEl={resetRepoModalAnchorEl}
-        handleClickResetRepo={props.handleResetRepoClick}
+        handleClickResetRepo={handleResetRepoClick}
         language={props.language}
         onClose={onCloseModal}
         open={resetRepoModalOpen}

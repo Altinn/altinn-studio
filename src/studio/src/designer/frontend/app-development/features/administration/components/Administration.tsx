@@ -9,9 +9,10 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ICommit, IRepository } from '../../../types/global';
 import handleServiceInformationActionDispatchers from '../handleServiceInformationDispatcher';
-import RepoStatusActionDispatchers from '../../../sharedResources/repoStatus/repoStatusDispatcher';
+import HandleMergeConflictDispatchers from '../../handleMergeConflict/handleMergeConflictDispatcher';
 import MainContent from './MainContent';
 import SideMenuContent from './SideMenuContent';
+import { getRepoStatusUrl } from '../../../utils/urlHelper';
 
 export interface IAdministrationComponentProvidedProps {
   classes: any;
@@ -37,8 +38,6 @@ export interface IAdministrationComponentState {
   serviceId: string;
   serviceName: string;
   serviceNameAnchorEl: any;
-  resetRepoModalOpen: boolean;
-  resetRepoModalAnchorEl: any;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -126,8 +125,6 @@ export class AdministrationComponent extends
     serviceId: '',
     serviceName: this.props.serviceName,
     serviceNameAnchorEl: null,
-    resetRepoModalAnchorEl: null,
-    resetRepoModalOpen: false,
   };
 
   public componentDidMount() {
@@ -143,6 +140,7 @@ export class AdministrationComponent extends
     handleServiceInformationActionDispatchers.fetchServiceConfig(
       `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
     );
+    HandleMergeConflictDispatchers.fetchRepoStatus(getRepoStatusUrl(), org, app);
   }
 
   public onServiceNameChanged = (event: any) => {
@@ -151,13 +149,6 @@ export class AdministrationComponent extends
 
   public handleEditServiceName = () => {
     this.setState({ editServiceName: true });
-  }
-
-  public handleResetRepoClick = () => {
-    console.log('RESET repo');
-    const altinnWindow: any = window;
-    const { org, app } = altinnWindow;
-    RepoStatusActionDispatchers.resetLocalRepo(org, app);
   }
 
   public onBlurServiceName = () => {
@@ -233,7 +224,6 @@ export class AdministrationComponent extends
   public RenderSideMenuContent = () => {
     return (
       <SideMenuContent
-        handleResetRepoClick={this.handleResetRepoClick}
         initialCommit={this.props.initialCommit}
         language={this.props.language}
         service={this.props.service}
