@@ -223,7 +223,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
         /// Test of method <see cref="AuthenticationController.AuthenticateUser"/>.
         /// </summary>
         [Fact]
-        public async Task AuthenticateUser_RequestTokenWithValidAltinnCookie_SblBridgeUnavailable_ReturnsRedirect()
+        public async Task AuthenticateUser_RequestTokenWithValidAltinnCookie_SblBridgeUnavailable_ReturnsServiceUnavailable()
         {
             // Arrange
             HttpResponseMessage bridgeResponse = new HttpResponseMessage
@@ -244,11 +244,7 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
             HttpResponseMessage response = await client.SendAsync(requestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
-
-            response.Headers.TryGetValues(HeaderNames.Location, out IEnumerable<string> locations);
-
-            Assert.NotNull(locations);
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         }
 
         /// <summary>

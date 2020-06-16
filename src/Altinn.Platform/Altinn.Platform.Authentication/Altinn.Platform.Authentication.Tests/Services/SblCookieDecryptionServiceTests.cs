@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,10 +11,10 @@ using Altinn.Platform.Authentication.Services;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Moq;
 using Moq.Protected;
 
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Altinn.Platform.Authentication.Tests.Services
@@ -48,7 +49,7 @@ namespace Altinn.Platform.Authentication.Tests.Services
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(JsonConvert.SerializeObject(userModel), Encoding.UTF8, "application/json"),
+                Content = new StringContent(JsonSerializer.Serialize(userModel), Encoding.UTF8, "application/json"),
             };
 
             InitializeMocks(httpResponseMessage);

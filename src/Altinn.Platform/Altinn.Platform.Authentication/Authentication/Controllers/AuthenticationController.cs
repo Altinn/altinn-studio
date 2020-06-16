@@ -119,7 +119,7 @@ namespace Altinn.Platform.Authentication.Controllers
             catch (SblBridgeResponseException sblBridgeException)
             {
                 _logger.LogWarning($"SBL Bridge replied with {sblBridgeException.Response.StatusCode} - {sblBridgeException.Response.ReasonPhrase}");
-                return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
             }
 
             if (userAuthentication != null && userAuthentication.IsAuthenticated)

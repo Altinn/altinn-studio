@@ -4,15 +4,15 @@ using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Services.Interfaces;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authentication.Services
 {
@@ -32,7 +32,8 @@ namespace Altinn.Platform.Authentication.Services
         /// <param name="httpClient">The <see cref="HttpClient"/> to use when performing requests against SblBridge.</param>
         /// <param name="generalSettings">General settings for the authentication application.</param>
         /// <param name="logger">A generic logger.</param>
-        public SblCookieDecryptionService(HttpClient httpClient, IOptions<GeneralSettings> generalSettings, ILogger<SblCookieDecryptionService> logger)
+        public SblCookieDecryptionService(
+            HttpClient httpClient, IOptions<GeneralSettings> generalSettings, ILogger<SblCookieDecryptionService> logger)
         {
             _client = httpClient;
             _logger = logger;
@@ -45,9 +46,9 @@ namespace Altinn.Platform.Authentication.Services
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserAuthenticationModel));
             Uri endpointUrl = new Uri($"{_generalSettings.BridgeAuthnApiEndpoint}");
 
-            _logger.LogInformation($"Authentication - Before getting userdata");
+            _logger.LogInformation("Authentication - Before getting user data");
 
-            string userData = JsonConvert.SerializeObject(new UserAuthenticationModel { EncryptedTicket = encryptedTicket });
+            string userData = JsonSerializer.Serialize(new UserAuthenticationModel { EncryptedTicket = encryptedTicket });
 
             _logger.LogInformation($"Authentication - endpoint {endpointUrl}");
 
@@ -70,8 +71,8 @@ namespace Altinn.Platform.Authentication.Services
             }
 
             // If user is not authenticated redirect to login
-            _logger.LogInformation($"UserNotAuthenticated");
-            _logger.LogError($"Getting the authenticated user failed with statuscode {response.StatusCode}");
+            _logger.LogInformation("UserNotAuthenticated");
+            _logger.LogError($"Getting the authenticated user failed with status code {response.StatusCode}");
 
             return null;
         }
