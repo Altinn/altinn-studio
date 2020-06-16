@@ -103,6 +103,33 @@ namespace Altinn.Platform.Authentication.Tests.Services
             Assert.Contains("ServiceUnavailable", actual.Message);
         }
 
+        /// <summary>
+        /// Testing the <see cref="SblCookieDecryptionService.DecryptTicket"/> method.
+        /// </summary>
+        [Fact]
+        public async Task DecryptTicket_SblBridgeResponseIsBadRequest_ReturnsNull()
+        {
+            // Arrange
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                ReasonPhrase = "Service Unavailable"
+            };
+
+            InitializeMocks(httpResponseMessage);
+
+            HttpClient httpClient = new HttpClient(_handlerMock.Object);
+            SblCookieDecryptionService target = new SblCookieDecryptionService(httpClient, _generalSettingsOptions.Object, _logger.Object);
+
+            // Act
+            UserAuthenticationModel actual = await target.DecryptTicket("random and irrelevant bytes");
+
+            // Assert
+            _handlerMock.VerifyAll();
+
+            Assert.Null(actual);
+        }
+
         private void InitializeMocks(HttpResponseMessage httpResponseMessage)
         {
             GeneralSettings generalSettings = new GeneralSettings { BridgeAuthnApiEndpoint = "http://localhost" };
