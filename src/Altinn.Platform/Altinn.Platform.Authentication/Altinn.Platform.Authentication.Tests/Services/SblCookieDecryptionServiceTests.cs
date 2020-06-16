@@ -136,7 +136,10 @@ namespace Altinn.Platform.Authentication.Tests.Services
             _generalSettingsOptions.Setup(s => s.Value).Returns(generalSettings);
 
             _handlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(r => r.RequestUri.ToString().Contains("tickets")),
+                    ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponseMessage)
                 .Verifiable();
         }

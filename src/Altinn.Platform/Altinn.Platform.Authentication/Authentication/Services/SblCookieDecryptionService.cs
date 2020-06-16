@@ -44,18 +44,12 @@ namespace Altinn.Platform.Authentication.Services
         public async Task<UserAuthenticationModel> DecryptTicket(string encryptedTicket)
         {
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserAuthenticationModel));
-            Uri endpointUrl = new Uri($"{_generalSettings.BridgeAuthnApiEndpoint}");
-
-            _logger.LogInformation("Authentication - Before getting user data");
+            Uri endpointUrl = new Uri($"{_generalSettings.BridgeAuthnApiEndpoint}tickets");
 
             string userData = JsonSerializer.Serialize(new UserAuthenticationModel { EncryptedTicket = encryptedTicket });
 
-            _logger.LogInformation($"Authentication - endpoint {endpointUrl}");
-
             HttpResponseMessage response =
                 await _client.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
-
-            _logger.LogInformation($"Authentication - response {response.StatusCode}");
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -70,8 +64,6 @@ namespace Altinn.Platform.Authentication.Services
                 throw new SblBridgeResponseException(response, "SBL Bridge replied with status: ServiceUnavailable.");
             }
 
-            // If user is not authenticated redirect to login
-            _logger.LogInformation("UserNotAuthenticated");
             _logger.LogError($"Getting the authenticated user failed with status code {response.StatusCode}");
 
             return null;
