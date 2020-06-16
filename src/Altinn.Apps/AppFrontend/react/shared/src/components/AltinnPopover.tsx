@@ -44,7 +44,8 @@ const useStyles = makeStyles(() => createStyles({
     fontSize: '16px',
   },
   popover: {
-    width: '445px',
+    width: 'auto',
+    maxWidth: '445px',
     margin: '24px',
   },
   textWrap: {
