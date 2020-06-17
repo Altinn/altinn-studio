@@ -46,6 +46,8 @@
     "@babel/core":"~7.9.6",
     "@babel/preset-env":"~7.9.6",
     "@babel/preset-react":"~7.9.4",
+    "@testing-library/react": "10.2.1",
+    "@testing-library/jest-dom": "5.10.1",
     "@types/classnames":"~2.2.10",
     "@types/enzyme":"~3.10.5",
     "@types/jest":"~25.2.3",

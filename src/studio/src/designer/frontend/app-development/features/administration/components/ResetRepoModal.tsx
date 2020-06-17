@@ -87,6 +87,7 @@ function ResetRepoModal(props: IResetRepoModalProps) {
         vertical: 'center',
         horizontal: 'center',
       }}
+      data-testid='reset-repo-popover'
     >
       <Grid
         container={true}
