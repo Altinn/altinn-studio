@@ -133,7 +133,7 @@ export function nb() {
     party_selection: {
       error_caption_prefix: 'Feil',
       invalid_selection_first_part: 'Du har startet tjenesten som',
-      invalid_selection_second_part: 'Denne tjenesten er kun for tilgjengelig for',
+      invalid_selection_second_part: 'Denne tjenesten er kun tilgjengelig for',
       invalid_selection_third_part: 'Velg ny aktør under.',
       no_valid_selection_first_part: 'Dette er en tjeneste for {0}',
       no_valid_selection_second_part: 'Det ser ut som du ikke har tilgang til en aktør som har lov til å starte <b>{0}</b>.',
