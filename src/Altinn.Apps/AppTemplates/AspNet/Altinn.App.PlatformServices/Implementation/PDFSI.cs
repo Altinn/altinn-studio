@@ -142,11 +142,11 @@ namespace Altinn.App.Services.Implementation
         private async Task<Stream> GeneratePDF(PDFContext pdfContext)
         {
             using HttpContent data = new StringContent(JObject.FromObject(pdfContext, _camelCaseSerializer).ToString(), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _pdfClient.PostAsync("generate", data);
-            response.EnsureSuccessStatusCode();
-            Stream pdfContent = await response.Content.ReadAsStreamAsync();
-            return pdfContent;
-        }
+                HttpResponseMessage response = await _pdfClient.PostAsync("generate", data);
+                response.EnsureSuccessStatusCode();
+                Stream pdfContent = await response.Content.ReadAsStreamAsync();
+                return pdfContent;
+            }
 
         private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance, Application appMetadata)
         {
@@ -179,7 +179,7 @@ namespace Altinn.App.Services.Implementation
             {
                 fileName = fileName.Replace(c, '_');
             }
-            fileName = HttpUtility.UrlEncode(fileName.Replace(' ', '_'));
+            fileName = Uri.EscapeDataString(fileName);
             return fileName;
         }
     }
