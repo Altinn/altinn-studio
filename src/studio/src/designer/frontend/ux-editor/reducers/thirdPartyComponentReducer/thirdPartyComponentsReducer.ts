@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IFetchThirdPartyComponentFulfilled, IFetchThirdPartyComponentRejected } from '../../actions/thirdPartyComponentsActions/actions';
@@ -28,6 +29,7 @@ const thirdPartyComponentsReducer: Reducer<IThirdPartyComponentsState> = (
       return update<IThirdPartyComponentsState>(state, {
         $set: {
           error: (action as IFetchThirdPartyComponentRejected).error,
+          components: state.components,
         },
       });
     }
