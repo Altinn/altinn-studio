@@ -2,6 +2,7 @@ import { createMuiTheme, createStyles, Grid, makeStyles, Popover, Typography } f
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnAppTheme';
+import { AltinnButton } from './AltinnButton';
 
 export interface IAltinnPopoverProvidedProps {
   anchorEl: any;
@@ -27,6 +28,8 @@ export interface IAltinnPopoverProvidedProps {
     horizontal: 'left' | 'center' | 'right' | number,
     vertical: 'top' | 'center' | 'bottom' | number,
   };
+  closeButton?: boolean;
+  closeButtonText?: string;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -53,6 +56,9 @@ const useStyles = makeStyles(() => createStyles({
   },
   removeMargin: {
     marginBottom: '-18px',
+  },
+  button: {
+    marginTop: '12px',
   },
 }));
 
@@ -103,6 +109,17 @@ const AltinnPopoverComponent = (props: any) => {
             </div>
           }
           {props.children}
+          {
+            props.closeButton &&
+            <div
+              className={classNames(classes.button)}
+            >
+              <AltinnButton
+                btnText={props.closeButtonText}
+                onClickFunction={handleClose}
+              />
+            </div>
+          }
         </Grid>
       </Popover>
     </>
