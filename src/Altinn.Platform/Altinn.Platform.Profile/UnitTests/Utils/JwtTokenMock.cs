@@ -6,7 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 
 using Microsoft.IdentityModel.Tokens;
 
-namespace Altinn.App.IntegrationTests
+namespace Altinn.Platform.Profile.Tests.Utils
 {
     /// <summary>
     /// Represents a mechanism for creating JSON Web tokens for use in integration tests.
@@ -45,8 +45,6 @@ namespace Altinn.App.IntegrationTests
         /// <returns>ClaimsPrincipal</returns>
         public static ClaimsPrincipal ValidateToken(string token)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.CodeBase).LocalPath);
-
             string certPath = "JWTValidationCert.cer";
 
             X509Certificate2 cert = new X509Certificate2(certPath);
@@ -64,13 +62,11 @@ namespace Altinn.App.IntegrationTests
             };
 
             JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
-            return validator.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+            return validator.ValidateToken(token, validationParameters, out SecurityToken _);
         }
 
         private static SigningCredentials GetSigningCredentials(string issuer)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.CodeBase).LocalPath);
-
             string certPath = "jwtselfsignedcert.pfx";
             if (!issuer.Equals("UnitTest"))
             {

@@ -2,7 +2,7 @@ using System;
 
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.Platform.Receipt.Test.Testdata
+namespace Altinn.Platform.Receipt.Tests.Testdata
 {
     public static class Instances
     {
