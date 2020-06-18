@@ -4,6 +4,7 @@
   "scripts": {
     "install-deps": "lerna bootstrap --hoist --ci",
     "no-ci-hoist": "lerna bootstrap --hoist --no-ci",
+    "install-deps-with-lock": "lerna bootstrap",
     "test": "lerna exec --concurrency 1 -- npm test",
     "install-all": "lerna exec -- npm ci",
     "clean-lock": "lerna exec -- rm ./package-lock.json",
@@ -14,15 +15,15 @@
     "start-app-development": "npm start --prefix dashboard"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "~2.34.0",
-    "@typescript-eslint/parser": "~2.34.0",
-    "eslint": "7.0.0",
+    "@typescript-eslint/eslint-plugin": "~3.3.0",
+    "@typescript-eslint/parser": "~3.3.0",
+    "eslint": "~7.2.0",
     "eslint-config-airbnb": "~18.1.0",
-    "eslint-plugin-import": "~2.20.2",
+    "eslint-plugin-import": "~2.21.2",
     "eslint-plugin-jsx-a11y": "~6.2.3",
     "eslint-plugin-react": "~7.20.0",
-    "eslint-plugin-react-hooks": "~4.0.2",
+    "eslint-plugin-react-hooks": "~4.0.4",
     "ini": "1.3.5",
-    "lerna": "~3.21.0"
+    "lerna": "~3.22.1"
   }
 }

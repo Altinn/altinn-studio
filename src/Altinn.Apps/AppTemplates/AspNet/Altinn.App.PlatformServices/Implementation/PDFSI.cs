@@ -14,7 +14,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace Altinn.App.Services.Implementation
 {
@@ -179,7 +178,7 @@ namespace Altinn.App.Services.Implementation
             {
                 fileName = fileName.Replace(c, '_');
             }
-            fileName = HttpUtility.UrlEncode(fileName.Replace(' ', '_'));
+            fileName = Uri.EscapeDataString(fileName);
             return fileName;
         }
     }

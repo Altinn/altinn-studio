@@ -12,6 +12,7 @@ using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Enum;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Repositories;
+using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Profile.Models;
 using AltinnCore.Authentication.Constants;
@@ -98,7 +99,7 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet("authentication")]
         public async Task<ActionResult> AuthenticateUser(string goTo)
         {
-            if (!IsValidRedirectUri(new Uri(goTo).Host))
+            if (!Uri.TryCreate(goTo, UriKind.Absolute, out Uri goToUri) || !IsValidRedirectUri(goToUri.Host))
             {
                 return Redirect($"{_generalSettings.GetBaseUrl}");
             }
@@ -109,8 +110,17 @@ namespace Altinn.Platform.Authentication.Controllers
                 return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
             }
 
-            string encryptedTicket = Request.Cookies[_generalSettings.SblAuthCookieName];
-            UserAuthenticationModel userAuthentication = await _cookieDecryptionService.DecryptTicket(encryptedTicket);
+            UserAuthenticationModel userAuthentication;
+            try
+            {
+                string encryptedTicket = Request.Cookies[_generalSettings.SblAuthCookieName];
+                userAuthentication = await _cookieDecryptionService.DecryptTicket(encryptedTicket);
+            }
+            catch (SblBridgeResponseException sblBridgeException)
+            {
+                _logger.LogWarning($"SBL Bridge replied with {sblBridgeException.Response.StatusCode} - {sblBridgeException.Response.ReasonPhrase}");
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
 
             if (userAuthentication != null && userAuthentication.IsAuthenticated)
             {
