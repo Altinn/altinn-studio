@@ -75,77 +75,82 @@ function ResetRepoModal(props: IResetRepoModalProps) {
   };
 
   return (
-    <Popover
-      open={props.open}
-      anchorEl={props.anchorEl}
-      onClose={props.onClose}
-      anchorOrigin={{
-        vertical: 'center',
-        horizontal: 'center',
-      }}
-      transformOrigin={{
-        vertical: 'center',
-        horizontal: 'center',
-      }}
-      data-testid='reset-repo-popover'
-    >
-      <Grid
-        container={true}
-        direction='column'
-        className={classes.modalContainer}
+    <div data-testid='reset-repo-container'>
+      <Popover
+        open={props.open}
+        anchorEl={props.anchorEl}
+        onClose={props.onClose}
+        anchorOrigin={{
+          vertical: 'center',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'center',
+          horizontal: 'center',
+        }}
+        data-testid='reset-repo-popover'
       >
-        <Grid item={true} className={classes.itemSeparator}>
-          <Typography className={classes.sidebarHeader}>
-            {getLanguageFromKey('administration.reset_repo_confirm_heading', props.language)}
-          </Typography>
-        </Grid>
-        <Grid item={true} className={classes.sectionSeparator}>
-          <Typography variant='body1'>
-            {getParsedLanguageFromKey('administration.reset_repo_confirm_info', props.language, [props.repositoryName], true)}
-          </Typography>
-        </Grid>
-        <Grid item={true}>
-          <Typography variant='body1' className={classes.blackText}>
-            {getLanguageFromKey('administration.reset_repo_confirm_repo_name', props.language)}
-          </Typography>
-        </Grid>
-        <Grid item={true} className={classes.itemSeparator}>
-          <AltinnInputField
-            id='delete-repo-name-input'
-            textFieldId='delete-repo-name'
-            fullWidth={true}
-            onChangeFunction={onDeleteRepoNameChange}
-          />
-        </Grid>
-        <Grid container={true}>
-          {resetting ?
-            <Grid item={true} xs={6}>
-              <AltinnSpinner />
-            </Grid>
-            :
-            <>
+        <Grid
+          container={true}
+          direction='column'
+          className={classes.modalContainer}
+        >
+          <Grid item={true} className={classes.itemSeparator}>
+            <Typography className={classes.sidebarHeader}>
+              {getLanguageFromKey('administration.reset_repo_confirm_heading', props.language)}
+            </Typography>
+          </Grid>
+          <Grid item={true} className={classes.sectionSeparator}>
+            <Typography variant='body1'>
+              {getParsedLanguageFromKey('administration.reset_repo_confirm_info', props.language, [props.repositoryName], true)}
+            </Typography>
+          </Grid>
+          <Grid item={true}>
+            <label htmlFor='delete-repo-name'>
+              <Typography variant='body1' className={classes.blackText}>
+                {getLanguageFromKey('administration.reset_repo_confirm_repo_name', props.language)}
+              </Typography>
+            </label>
+          </Grid>
+          <Grid item={true} className={classes.itemSeparator}>
+            <AltinnInputField
+              id='delete-repo-name-input'
+              textFieldId='delete-repo-name'
+              fullWidth={true}
+              onChangeFunction={onDeleteRepoNameChange}
+            />
+          </Grid>
+          <Grid container={true}>
+            {resetting ?
               <Grid item={true} xs={6}>
-                <AltinnButton
-                  onClickFunction={props.handleClickResetRepo}
-                  btnText={getLanguageFromKey('administration.reset_repo_button', props.language)}
-                  id='confirm-reset-repo-button'
-                  disabled={!canDelete}
-                  className={classes.confirmButton}
-                />
+                <AltinnSpinner />
               </Grid>
-              <Grid item={true} xs={6}>
-                <AltinnButton
-                  onClickFunction={props.onClose}
-                  btnText={getLanguageFromKey('general.cancel', props.language)}
-                  secondaryButton={true}
-                  className={classes.cancelButton}
-                />
-              </Grid>
-            </>
-          }
+              :
+              <>
+                <Grid item={true} xs={6}>
+                  <AltinnButton
+                    onClickFunction={props.handleClickResetRepo}
+                    btnText={getLanguageFromKey('administration.reset_repo_button', props.language)}
+                    id='confirm-reset-repo-button'
+                    disabled={!canDelete}
+                    className={classes.confirmButton}
+                    data-testid='confirm-reset-repo-button'
+                  />
+                </Grid>
+                <Grid item={true} xs={6}>
+                  <AltinnButton
+                    onClickFunction={props.onClose}
+                    btnText={getLanguageFromKey('general.cancel', props.language)}
+                    secondaryButton={true}
+                    className={classes.cancelButton}
+                  />
+                </Grid>
+              </>
+            }
+          </Grid>
         </Grid>
-      </Grid>
-    </Popover>
+      </Popover>
+    </div>
   );
 }
 

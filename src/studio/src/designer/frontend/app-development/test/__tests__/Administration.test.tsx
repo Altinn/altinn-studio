@@ -1,12 +1,12 @@
-import { mount } from 'enzyme';
+/* eslint-disable no-undef */
+/* eslint-disable react/jsx-props-no-spreading */
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-// import { render, fireEvent } from '@testing-library/react';
-// import handleServiceInformationActionDispatchers from '../../features/administration/handleServiceInformationDispatcher';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 
-import { AdministrationComponent } from '../../features/administration/components/Administration';
+import { AdministrationComponent, IAdministrationComponentProps } from '../../features/administration/components/Administration';
 import { ICommit, IRepository } from '../../types/global';
 
 describe('Administration', () => {
@@ -142,58 +142,30 @@ describe('Administration', () => {
     mockStore = createStore(initialState);
   });
 
-  // it('should handle sucessfully calling component did mount and mapping props to state', async () => {
-  //   const mockFetchService = jest.spyOn(handleServiceInformationActionDispatchers, 'fetchService');
-  //   const mockFetchInitialCommit = jest.spyOn(handleServiceInformationActionDispatchers, 'fetchInitialCommit');
-  //   // tslint:disable-next-line:max-line-length
-  //   const mockFetchServiceDescription = jest.spyOn(handleServiceInformationActionDispatchers, 'fetchServiceConfig');
-
-  //   const wrapper = mount(
-  //     <AdministrationComponent
-  //       classes={mockClasses}
-  //       language={mockLanguage}
-  //       service={mockService}
-  //       serviceName={mockServiceName}
-  //       serviceNameIsSaving={mockServiceNameIsSaving}
-  //       serviceDescription={mockServiceDescription}
-  //       serviceDescriptionIsSaving={mockServiceDescriptionIsSaving}
-  //       initialCommit={mockInitialCommit}
-  //       serviceId={mockServiceId}
-  //       serviceIdIsSaving={mockServiceIdIsSaving}
-  //     />
-  //     );
-
-  //   const instance = wrapper.instance() as AdministrationComponent;
-
-  //   expect(mockFetchService).toHaveBeenCalled();
-  //   expect(mockFetchInitialCommit).toHaveBeenCalled();
-  //   expect(mockFetchServiceDescription).toHaveBeenCalled();
-  //   expect(instance.state.serviceName).toEqual(mockServiceName);
-  //   expect(instance.state.serviceDescription).toEqual(mockServiceDescription);
-  //   expect(instance.state.serviceId).toEqual(mockServiceId);
-  // });
-
-
   // Todo: Refactor to test onBlurServiceDescription()
-  it('should handle sucessfully updating service description', async () => {
-    const wrapper = mount(
-      <Provider store={mockStore}>
-        <AdministrationComponent
-          classes={mockClasses}
-          language={mockLanguage}
-          service={mockService}
-          serviceName={mockServiceName}
-          serviceNameIsSaving={mockServiceNameIsSaving}
-          serviceDescription={mockServiceDescription}
-          serviceDescriptionIsSaving={mockServiceDescriptionIsSaving}
-          initialCommit={mockInitialCommit}
-          serviceId={mockServiceId}
-          serviceIdIsSaving={mockServiceIdIsSaving}
-        />
-      </Provider>,
-    );
+  it('Should match snapshot', () => {
+    const { container } = render(<RenderAdministrationComponent />);
+    expect(container.firstChild).toMatchSnapshot();
+  });
 
-    const instance = wrapper.instance() as AdministrationComponent;
+  it('should handle sucessfully updating service name', async () => {
+    const utils = render(<RenderAdministrationComponent />);
+
+    const mockEvent = {
+      target: {
+        value: 'New name',
+      },
+    };
+
+    const inputElement = utils.getByTestId('administration-container').querySelector('#administrationInputServicename_textField');
+    utils.debug(inputElement as HTMLInputElement);
+    expect((inputElement as HTMLInputElement).value).toEqual(mockServiceName);
+    fireEvent.change(inputElement, mockEvent);
+    waitFor(() => expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value));
+  });
+
+  it('should handle sucessfully updating service description', async () => {
+    const utils = render(<RenderAdministrationComponent />);
 
     const mockEvent = {
       target: {
@@ -201,112 +173,47 @@ describe('Administration', () => {
       },
     };
 
-    expect(instance.state.serviceDescription).toEqual(mockServiceDescription);
-    expect(instance.state.editServiceDescription).toEqual(false);
-    instance.onServiceDescriptionChanged(mockEvent);
-    expect(instance.state.editServiceDescription).toEqual(true);
-    expect(instance.state.serviceDescription).toEqual(mockEvent.target.value);
-    expect(instance.state.serviceDescription).not.toEqual(instance.props.serviceDescription);
-    expect(instance.state.serviceDescription).not.toEqual(mockServiceDescription);
-
-    // const spySaveServiceDescription = jest.spyOn(handleServiceInformationActionDispatchers, 'saveServiceConfig')
-    //   .mockImplementation(() => wrapper.setProps({ serviceDescription: mockEvent.target.value }));
-    // instance.onBlurServiceDescription();
-    // expect(spySaveServiceDescription).toBeCalled();
-    // expect(instance.state.editServiceDescription).toEqual(false);
-    // expect(instance.state.serviceDescription).toEqual(instance.props.serviceDescription);
-    // expect(instance.state.serviceDescription).not.toEqual(mockServiceDescription);
+    const inputElement = utils.getByTestId('administration-container').querySelector('#administrationInputDescription_textField');
+    utils.debug(inputElement as HTMLInputElement);
+    expect((inputElement as HTMLInputElement).value).toEqual(mockServiceDescription);
+    fireEvent.change(inputElement, mockEvent);
+    waitFor(() => expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value));
   });
 
-  // TODO: Refactor test to test onBlurServiceId()
-  // it('should handle sucessfully updating service id', async () => {
-  //   const wrapper = mount(
-  //     <AdministrationComponent
-  //       classes={mockClasses}
-  //       language={mockLanguage}
-  //       service={mockService}
-  //       serviceName={mockServiceName}
-  //       serviceNameIsSaving={mockServiceNameIsSaving}
-  //       serviceDescription={mockServiceDescription}
-  //       serviceDescriptionIsSaving={mockServiceDescriptionIsSaving}
-  //       initialCommit={mockInitialCommit}
-  //       serviceId={mockServiceId}
-  //       serviceIdIsSaving={mockServiceIdIsSaving}
-  //     />,
-  //   );
+  it('should handle sucessfully updating service id', async () => {
+    const utils = render(<RenderAdministrationComponent />);
 
-  //   const instance = wrapper.instance() as AdministrationComponent;
+    const mockEvent = {
+      target: {
+        value: 'New ID',
+      },
+    };
 
-  //   const mockEvent = {
-  //     target: {
-  //       value: 'New id',
-  //     },
-  //   };
+    const inputElement = utils.getByTestId('administration-container').querySelector('#administrationInputServiceid_textField');
+    utils.debug(inputElement as HTMLInputElement);
+    expect((inputElement as HTMLInputElement).value).toEqual(mockServiceId);
+    fireEvent.change(inputElement, mockEvent);
+    waitFor(() => expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value));
+  });
 
-  //   expect(instance.state.serviceId).toEqual(mockServiceId);
-  //   expect(instance.state.editServiceId).toEqual(false);
-  //   instance.onServiceIdChanged(mockEvent);
-  //   expect(instance.state.editServiceId).toEqual(true);
-  //   expect(instance.state.serviceId).toEqual(mockEvent.target.value);
-  //   expect(instance.state.serviceId).not.toEqual(instance.props.serviceId);
-  //   expect(instance.state.serviceId).not.toEqual(mockServiceId);
+  const RenderAdministrationComponent = (props: Partial<IAdministrationComponentProps>): JSX.Element => {
+    const defaultProps: IAdministrationComponentProps = {
+      classes: mockClasses,
+      language: mockLanguage,
+      service: mockService,
+      serviceName: mockServiceName,
+      serviceNameIsSaving: mockServiceNameIsSaving,
+      serviceDescription: mockServiceDescription,
+      serviceDescriptionIsSaving: mockServiceDescriptionIsSaving,
+      initialCommit: mockInitialCommit,
+      serviceId: mockServiceId,
+      serviceIdIsSaving: mockServiceIdIsSaving,
+    };
 
-  //   // const getStub = jest.fn();
-  //   // const spySaveServiceId = jest.spyOn(handleServiceInformationActionDispatchers, 'saveServiceConfig')
-  //   //   .mockImplementation(getStub);
-  //   // getStub.mockImplementation(() => wrapper.setProps({ serviceId: mockEvent.target.value }));
-
-  //   // instance.onBlurServiceId();
-  //   // expect(spySaveServiceId).toBeCalled();
-  //   // expect(instance.state.editServiceId).toEqual(false);
-  //   // expect(instance.state.serviceId).toEqual(instance.props.serviceId);
-  //   // expect(instance.state.serviceId).not.toEqual(mockServiceId);
-  // });
-
-  // // TODO: Refactor test to test onBlurServiceName()
-  // it('should handle sucessfully updating service name', async () => {
-  //   const mockStore = {
-
-  //   }
-  //   const wrapper = mount(
-  //     <AdministrationComponent
-  //       classes={mockClasses}
-  //       language={mockLanguage}
-  //       service={mockService}
-  //       serviceName={mockServiceName}
-  //       serviceNameIsSaving={mockServiceNameIsSaving}
-  //       serviceDescription={mockServiceDescription}
-  //       serviceDescriptionIsSaving={mockServiceDescriptionIsSaving}
-  //       initialCommit={mockInitialCommit}
-  //       serviceId={mockServiceId}
-  //       serviceIdIsSaving={mockServiceIdIsSaving}
-  //     />,
-  //   );
-
-  //   const instance = wrapper.instance() as AdministrationComponent;
-
-  //   const mockEvent = {
-  //     target: {
-  //       value: 'New service name',
-  //     },
-  //   };
-
-  //   expect(instance.state.serviceName).toEqual(mockServiceName);
-  //   expect(instance.state.editServiceName).toEqual(false);
-  //   instance.handleEditServiceName();
-  //   expect(instance.state.editServiceName).toEqual(true);
-
-  //   instance.onServiceNameChanged(mockEvent);
-  //   expect(instance.state.serviceName).toEqual(mockEvent.target.value);
-  //   expect(instance.state.serviceName).not.toEqual(instance.props.serviceName);
-  //   expect(instance.state.serviceName).not.toEqual(mockServiceName);
-
-  //   // const spySaveServiceName = jest.spyOn(handleServiceInformationActionDispatchers, 'saveServiceName')
-  //   //   .mockImplementation(() => wrapper.setProps({ serviceName: mockEvent.target.value }));
-  //   // instance.onBlurServiceName();
-  //   // expect(spySaveServiceName).toBeCalled();
-  //   // expect(instance.state.editServiceName).toEqual(false);
-  //   // expect(instance.state.serviceName).toEqual(instance.props.serviceName);
-  //   // expect(instance.state.serviceName).not.toEqual(mockServiceName);
-  // });
+    return (
+      <Provider store={mockStore}>
+        <AdministrationComponent {...defaultProps} {...props}/>
+      </Provider>
+    );
+  };
 });

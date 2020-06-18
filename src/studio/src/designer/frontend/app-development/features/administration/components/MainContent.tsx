@@ -5,7 +5,7 @@ import AltinnInputField from 'app-shared/components/AltinnInputField';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
 
-export interface IMainContent {
+export interface IMainContentProps {
   service: any;
   serviceName: string;
   serviceId: string;
@@ -30,13 +30,14 @@ const setupClasses = makeStyles({
   },
 });
 
-const MainContent = (props: IMainContent): JSX.Element => {
+const MainContent = (props: IMainContentProps): JSX.Element => {
   const classes = setupClasses();
   return (
     <>
       <div className={classes.marginBottom_24}>
         <AltinnInputField
           id='administrationInputServicename'
+          textFieldId='administrationInputServicename_textField'
           onChangeFunction={props.onServiceNameChanged}
           inputHeader={getLanguageFromKey('general.service_name', props.language)}
           // tslint:disable-next-line:max-line-length
@@ -59,6 +60,7 @@ const MainContent = (props: IMainContent): JSX.Element => {
       <div className={classes.marginBottom_24}>
         <AltinnInputField
           id='administrationInputServiceid'
+          textFieldId='administrationInputServiceid_textField'
           onChangeFunction={props.onServiceIdChanged}
           inputHeader={getLanguageFromKey('administration.service_id', props.language)}
           // tslint:disable-next-line:max-line-length
@@ -82,6 +84,7 @@ const MainContent = (props: IMainContent): JSX.Element => {
       <div className={classes.marginBottom_24}>
         <AltinnInputField
           id='administrationInputDescription'
+          textFieldId='administrationInputDescription_textField'
           onChangeFunction={props.onServiceDescriptionChanged}
           inputHeader={getLanguageFromKey('administration.service_comment', props.language)}
           // tslint:disable-next-line:max-line-length

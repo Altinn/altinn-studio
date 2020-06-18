@@ -236,7 +236,7 @@ export class AdministrationComponent extends
     const { classes } = this.props;
 
     return (
-      <div>
+      <div data-testid='administration-container'>
         {this.props.service &&
         this.props.serviceName !== null &&
         this.props.serviceDescription !== null &&
