@@ -15,7 +15,7 @@ namespace Altinn.Platform.Storage.Repository
 
     /// <summary>
     /// Handles applicationMetadata repository. Notice that the all methods should modify the Id attribute of the
-    /// Application, since cosmosDb fails if Id contains slashes '/'. 
+    /// Application, since cosmosDb fails if Id contains slashes '/'.
     /// </summary>
     public class ApplicationRepository : IApplicationRepository
     {
@@ -206,18 +206,27 @@ namespace Altinn.Platform.Storage.Repository
                 cosmosAppIds.Add(AppIdToCosmosId(appId));
             }
 
-            IQueryable<Application> filter = _client.CreateDocumentQuery<Application>(_collectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
+            Dictionary<string, Dictionary<string, string>> titleDictionary = new Dictionary<string, Dictionary<string, string>>();
+
+            foreach (string appId in appIds)
+            {
+                string org = appId.Split("/")[0];
+
+                IQueryable<Application> filter = _client.CreateDocumentQuery<Application>(_collectionUri, new FeedOptions { PartitionKey = new PartitionKey(org) })
                 .Where(a => cosmosAppIds.Contains(a.Id));
 
-            IDocumentQuery<Application> query = filter.AsDocumentQuery<Application>();
+                IDocumentQuery<Application> query = filter.AsDocumentQuery<Application>();
 
-            FeedResponse<Application> feedResponse = await query.ExecuteNextAsync<Application>();
+                FeedResponse<Application> feedResponse = await query.ExecuteNextAsync<Application>();
 
-            List<Application> applications = feedResponse.ToList<Application>();
-            Dictionary<string, Dictionary<string, string>> titleDictionary = new Dictionary<string, Dictionary<string, string>>();
-            foreach (Application app in applications)
-            {
-                titleDictionary.Add(CosmosIdToAppId(app.Id), app.Title);
+                List<Application> applications = feedResponse.ToList<Application>();
+                foreach (Application app in applications)
+                {
+                    if (!titleDictionary.ContainsKey(CosmosIdToAppId(app.Id)))
+                    {
+                        titleDictionary.Add(CosmosIdToAppId(app.Id), app.Title);
+                    }
+                }
             }
 
             return titleDictionary;
