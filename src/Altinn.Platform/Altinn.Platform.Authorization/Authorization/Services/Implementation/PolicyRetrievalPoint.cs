@@ -35,8 +35,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         public async Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
         {
             string policyPath = GetPolicyPath(request);
-            Stream policyStream = await _repository.GetPolicyAsync(policyPath);
-            return (policyStream.Length > 0) ? ParsePolicy(policyStream) : null;
+            using (Stream policyStream = await _repository.GetPolicyAsync(policyPath))
+            {
+                return (policyStream.Length > 0) ? ParsePolicy(policyStream) : null;
+            }
         }
 
         /// <inheritdoc/>
