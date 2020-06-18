@@ -2,14 +2,14 @@ import { Action } from 'redux';
 import * as ActionTypes from '../../formDesignerActionTypes';
 
 export interface IAddFormComponentAction extends Action {
-  component: ICreateFormComponent;
+  component: IFormComponent;
   position: number;
   containerId?: string;
   callback?: (...args: any[]) => any;
 }
 
 export interface IAddFormComponentActionFulfilled extends Action {
-  component: ICreateFormComponent;
+  component: IFormComponent;
   position: number;
   containerId?: string;
   id: string;
@@ -21,7 +21,7 @@ export interface IAddFormComponentActionRejected extends Action {
 }
 
 export function addFormComponentAction(
-  component: ICreateFormComponent,
+  component: IFormComponent,
   position: number,
   containerId?: string,
   callback?: (...args: any[]) => any): IAddFormComponentAction {
@@ -35,7 +35,7 @@ export function addFormComponentAction(
 }
 
 export function addFormComponentActionFulfilled(
-  component: ICreateFormComponent,
+  component: IFormComponent,
   id: string,
   position: number,
   containerId?: string,
