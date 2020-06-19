@@ -1,6 +1,6 @@
 using Altinn.Platform.Profile.Models;
 
-namespace Altinn.Platform.Receipt.Test.Testdata
+namespace Altinn.Platform.Receipt.Tests.Testdata
 {
     public static class UserProfiles
     {
@@ -11,7 +11,7 @@ namespace Altinn.Platform.Receipt.Test.Testdata
             Email = "test@test.no",
             PartyId = Parties.Party1.PartyId,
             PhoneNumber = "98765432",
-            UserType = Altinn.Platform.Profile.Enums.UserType.SelfIdentified,
+            UserType = Profile.Enums.UserType.SelfIdentified,
             Party = Parties.Party1
         };
     }

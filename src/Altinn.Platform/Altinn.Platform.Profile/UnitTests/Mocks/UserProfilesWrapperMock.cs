@@ -1,15 +1,13 @@
-using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Profile.Services.Interfaces;
-using Altinn.Platform.Register.Enums;
-using Altinn.Platform.Register.Models;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace UnitTests.Mocks
+using Altinn.Platform.Profile.Models;
+using Altinn.Platform.Profile.Services.Interfaces;
+using Altinn.Platform.Register.Models;
+
+using Newtonsoft.Json;
+
+namespace Altinn.Platform.Profile.Tests.Mocks
 {
     public class UserProfilesWrapperMock : IUserProfiles
     {
@@ -79,7 +77,7 @@ namespace UnitTests.Mocks
                 person = (Person)JsonConvert.DeserializeObject(content, typeof(Person));
             }
 
-            return person;
+            return await Task.FromResult(person);
         }
     }
 }

@@ -7,12 +7,14 @@ using System.Security.Claims;
 
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Receipt.Helpers;
-using Altinn.Platform.Receipt.IntegrationTest.Mocks;
 using Altinn.Platform.Receipt.Model;
 using Altinn.Platform.Receipt.Services.Interfaces;
-using Altinn.Platform.Receipt.Test.Testdata;
+using Altinn.Platform.Receipt.Tests.Mocks;
+using Altinn.Platform.Receipt.Tests.Testdata;
+
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -21,12 +23,11 @@ using Microsoft.Extensions.Options;
 
 using Moq;
 using Newtonsoft.Json;
-using Tests.Mocks;
 using Xunit;
 
-namespace Altinn.Platform.Receipt.Test
+namespace Altinn.Platform.Receipt.Tests
 {
-    public partial class IntegrationTests
+    public class IntegrationTests
     {
         public class ReceiptController : IClassFixture<WebApplicationFactory<Startup>>
         {

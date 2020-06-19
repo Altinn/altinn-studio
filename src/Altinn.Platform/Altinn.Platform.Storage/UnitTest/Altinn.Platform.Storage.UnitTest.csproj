@@ -71,9 +71,9 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.3-alpha" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.1.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.1.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
-    <PackageReference Include="Moq" Version="4.14.1" />
+    <PackageReference Include="Moq" Version="4.14.2" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2">
       <PrivateAssets>all</PrivateAssets>
