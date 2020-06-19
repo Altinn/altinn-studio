@@ -13,7 +13,7 @@ exports[`Administration Should match snapshot 1`] = `
         style="margin-right: 24px;"
       >
         <button
-          class="MuiButtonBase-root MuiButton-root MuiButton-text CloneButton-cloneButton-117"
+          class="MuiButtonBase-root MuiButton-root MuiButton-text CloneButton-cloneButton-14"
           tabindex="0"
           type="button"
         >
@@ -53,7 +53,7 @@ exports[`Administration Should match snapshot 1`] = `
         style="margin-right: 24px;"
       >
         <button
-          class="MuiButtonBase-root MuiButton-root MuiButton-text FetchChangesComponent-clickable-183 FetchChangesComponent-btn-182"
+          class="MuiButtonBase-root MuiButton-root MuiButton-text FetchChangesComponent-clickable-18 FetchChangesComponent-btn-17"
           tabindex="0"
           type="button"
         >
@@ -75,7 +75,7 @@ exports[`Administration Should match snapshot 1`] = `
                 class="MuiGrid-root MuiGrid-item"
               >
                 <p
-                  class="MuiTypography-root FetchChangesComponent-color_blueDark-184 MuiTypography-body1"
+                  class="MuiTypography-root FetchChangesComponent-color_blueDark-19 MuiTypography-body1"
                   id="fetch_changes_btn"
                 >
                   sync_header.fetch_changes
@@ -92,7 +92,7 @@ exports[`Administration Should match snapshot 1`] = `
         class="MuiGrid-root MuiGrid-item"
       >
         <button
-          class="MuiButtonBase-root MuiButton-root MuiButton-text ShareChangesComponent-color_blueDark-189 ShareChangesComponent-btn-186 ShareChangesComponent-clickable-188"
+          class="MuiButtonBase-root MuiButton-root MuiButton-text ShareChangesComponent-color_blueDark-24 ShareChangesComponent-btn-21 ShareChangesComponent-clickable-23"
           id="share_changes_button"
           tabindex="0"
           type="button"
@@ -115,7 +115,7 @@ exports[`Administration Should match snapshot 1`] = `
                 class="MuiGrid-root MuiGrid-item"
               >
                 <p
-                  class="MuiTypography-root ShareChangesComponent-color_blueDark-189 MuiTypography-body1"
+                  class="MuiTypography-root ShareChangesComponent-color_blueDark-24 MuiTypography-body1"
                   id="no_changes_to_share_btn"
                 >
                   sync_header.no_changes_to_share
@@ -155,28 +155,28 @@ exports[`Administration Should match snapshot 1`] = `
           id="altinn-column-layout-main-content"
         >
           <div
-            class="makeStyles-marginBottom_24-203"
+            class="makeStyles-marginBottom_24-36"
           >
             <h2
-              class="MuiTypography-root AltinnInputField-inputHeader-204 MuiTypography-h2"
+              class="MuiTypography-root AltinnInputField-inputHeader-37 MuiTypography-h2"
               style="font-size: 20px; font-weight: 500;"
             >
               general.service_name
             </h2>
             <p
-              class="MuiTypography-root AltinnInputField-descriptionInput-206 AltinnInputField-marginTop_10-205 MuiTypography-body1"
+              class="MuiTypography-root AltinnInputField-descriptionInput-39 AltinnInputField-marginTop_10-38 MuiTypography-body1"
             >
               administration.service_name_administration_description
             </p>
             <div
-              class="MuiFormControl-root AltinnInputField-inputField-207 AltinnInputField-disabled-209 AltinnInputField-marginTop_10-205 MuiFormControl-fullWidth"
+              class="MuiFormControl-root AltinnInputField-inputField-40 AltinnInputField-disabled-42 AltinnInputField-marginTop_10-38 MuiFormControl-fullWidth"
               id="administrationInputServicename"
             >
               <div
                 class="MuiFormControl-root MuiTextField-root"
               >
                 <div
-                  class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-208 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"
+                  class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-41 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"
                 >
                   <input
                     aria-invalid="false"
@@ -190,7 +190,7 @@ exports[`Administration Should match snapshot 1`] = `
               </div>
             </div>
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text AltinnInputField-btn-210 makeStyles-secondaryButton-252 MuiButton-textPrimary"
+              class="MuiButtonBase-root MuiButton-root MuiButton-text AltinnInputField-btn-43 makeStyles-secondaryButton-48 MuiButton-textPrimary"
               style="font-size: 16px;"
               tabindex="0"
               type="button"
@@ -199,7 +199,7 @@ exports[`Administration Should match snapshot 1`] = `
                 class="MuiButton-label"
               >
                 <span
-                  class="makeStyles-borderBottom-249"
+                  class="makeStyles-borderBottom-45"
                 >
                   general.edit
                 </span>
@@ -210,28 +210,28 @@ exports[`Administration Should match snapshot 1`] = `
             </button>
           </div>
           <div
-            class="makeStyles-marginBottom_24-203"
+            class="makeStyles-marginBottom_24-36"
           >
             <h2
-              class="MuiTypography-root AltinnInputField-inputHeader-204 MuiTypography-h2"
+              class="MuiTypography-root AltinnInputField-inputHeader-37 MuiTypography-h2"
               style="font-size: 20px; font-weight: 500;"
             >
               administration.service_id
             </h2>
             <p
-              class="MuiTypography-root AltinnInputField-descriptionInput-206 AltinnInputField-marginTop_10-205 MuiTypography-body1"
+              class="MuiTypography-root AltinnInputField-descriptionInput-39 AltinnInputField-marginTop_10-38 MuiTypography-body1"
             >
               administration.service_id_description
             </p>
             <div
-              class="MuiFormControl-root AltinnInputField-inputField-207 AltinnInputField-marginTop_10-205 MuiFormControl-fullWidth"
+              class="MuiFormControl-root AltinnInputField-inputField-40 AltinnInputField-marginTop_10-38 MuiFormControl-fullWidth"
               id="administrationInputServiceid"
             >
               <div
                 class="MuiFormControl-root MuiTextField-root"
               >
                 <div
-                  class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-208 MuiInputBase-formControl MuiInput-formControl"
+                  class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-41 MuiInputBase-formControl MuiInput-formControl"
                 >
                   <input
                     aria-invalid="false"
@@ -245,28 +245,28 @@ exports[`Administration Should match snapshot 1`] = `
             </div>
           </div>
           <div
-            class="makeStyles-marginBottom_24-203"
+            class="makeStyles-marginBottom_24-36"
           >
             <h2
-              class="MuiTypography-root AltinnInputField-inputHeader-204 MuiTypography-h2"
+              class="MuiTypography-root AltinnInputField-inputHeader-37 MuiTypography-h2"
               style="font-size: 20px; font-weight: 500;"
             >
               general.service_saved_name
             </h2>
             <p
-              class="MuiTypography-root AltinnInputField-descriptionInput-206 AltinnInputField-marginTop_10-205 MuiTypography-body1"
+              class="MuiTypography-root AltinnInputField-descriptionInput-39 AltinnInputField-marginTop_10-38 MuiTypography-body1"
             >
               administration.service_saved_name_administration_description
             </p>
             <div
-              class="MuiFormControl-root AltinnInputField-inputField-207 AltinnInputField-disabled-209 AltinnInputField-marginTop_10-205 MuiFormControl-fullWidth"
+              class="MuiFormControl-root AltinnInputField-inputField-40 AltinnInputField-disabled-42 AltinnInputField-marginTop_10-38 MuiFormControl-fullWidth"
               id="administrationInputReponame"
             >
               <div
                 class="MuiFormControl-root MuiTextField-root"
               >
                 <div
-                  class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-208 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"
+                  class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-41 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"
                 >
                   <input
                     aria-invalid="false"
@@ -280,28 +280,28 @@ exports[`Administration Should match snapshot 1`] = `
             </div>
           </div>
           <div
-            class="makeStyles-marginBottom_24-203"
+            class="makeStyles-marginBottom_24-36"
           >
             <h2
-              class="MuiTypography-root AltinnInputField-inputHeader-204 MuiTypography-h2"
+              class="MuiTypography-root AltinnInputField-inputHeader-37 MuiTypography-h2"
               style="font-size: 20px; font-weight: 500;"
             >
               administration.service_comment
             </h2>
             <p
-              class="MuiTypography-root AltinnInputField-descriptionInput-206 AltinnInputField-marginTop_10-205 MuiTypography-body1"
+              class="MuiTypography-root AltinnInputField-descriptionInput-39 AltinnInputField-marginTop_10-38 MuiTypography-body1"
             >
               administration.service_comment_description
             </p>
             <div
-              class="MuiFormControl-root AltinnInputField-inputField-207 AltinnInputField-marginTop_10-205 MuiFormControl-fullWidth"
+              class="MuiFormControl-root AltinnInputField-inputField-40 AltinnInputField-marginTop_10-38 MuiFormControl-fullWidth"
               id="administrationInputDescription"
             >
               <div
                 class="MuiFormControl-root MuiTextField-root"
               >
                 <div
-                  class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-208 MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
+                  class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-41 MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
                 >
                   <textarea
                     aria-invalid="false"
@@ -320,40 +320,40 @@ exports[`Administration Should match snapshot 1`] = `
         id="altinn-column-layout-side-menu"
       >
         <p
-          class="MuiTypography-root makeStyles-sidebarHeader-255 MuiTypography-body1"
+          class="MuiTypography-root makeStyles-sidebarHeader-51 MuiTypography-body1"
         >
           general.service_owner
         </p>
         <p
-          class="MuiTypography-root makeStyles-sidebarInfoText-257 MuiTypography-body1"
+          class="MuiTypography-root makeStyles-sidebarInfoText-53 MuiTypography-body1"
         >
           administration.service_owner_is
         </p>
         <p
-          class="MuiTypography-root makeStyles-sidebarServiceOwner-259 makeStyles-sidebarInfoText-257 MuiTypography-body1"
+          class="MuiTypography-root makeStyles-sidebarServiceOwner-55 makeStyles-sidebarInfoText-53 MuiTypography-body1"
         >
           <img
             alt=""
-            class="makeStyles-avatar-254"
+            class="makeStyles-avatar-50"
             src=""
           />
            
           Mons Monsen
         </p>
         <p
-          class="MuiTypography-root makeStyles-sidebarCreatedBy-260 MuiTypography-body1"
+          class="MuiTypography-root makeStyles-sidebarCreatedBy-56 MuiTypography-body1"
         >
           administration.created_by
            
           Per 
         </p>
         <p
-          class="MuiTypography-root makeStyles-sidebarHeader-255 makeStyles-sidebarHeaderSecond-256 MuiTypography-body1"
+          class="MuiTypography-root makeStyles-sidebarHeader-51 makeStyles-sidebarHeaderSecond-52 MuiTypography-body1"
         >
           administration.reset_repo_heading
         </p>
         <p
-          class="MuiTypography-root makeStyles-sidebarInfoText-257 makeStyles-sidebarInfoTextList-258 MuiTypography-body1"
+          class="MuiTypography-root makeStyles-sidebarInfoText-53 makeStyles-sidebarInfoTextList-54 MuiTypography-body1"
         >
           <ul>
             <li>
@@ -368,7 +368,7 @@ exports[`Administration Should match snapshot 1`] = `
           </ul>
         </p>
         <button
-          class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-251 MuiButton-containedPrimary Mui-disabled Mui-disabled"
+          class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-47 MuiButton-containedPrimary Mui-disabled Mui-disabled"
           disabled=""
           id="reset-repo-button"
           style="font-size: 16px;"
