@@ -75,13 +75,15 @@ export const getEnvironmentLoginUrl: () => string = () => {
   if (domainSplitted.length === 5) {
     return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
       `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`;
-  } else if (domainSplitted.length === 4) {
-    return `https://platform${domainSplitted[2]}.${domainSplitted[3]}` +
-      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`;
-  } else {
-    // TODO: what if altinn3?
-    throw new Error('Unknown domain');
   }
+
+  if (domainSplitted.length === 4) {
+    return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}` +
+      `/authentication/api/v1/authentication?goto=${encodedGoToUrl}`;
+  }
+
+  // TODO: what if altinn3?
+  throw new Error('Unknown domain');
 };
 
 export const getHostname: () => string = () => {
