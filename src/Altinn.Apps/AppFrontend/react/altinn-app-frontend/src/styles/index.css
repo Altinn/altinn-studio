@@ -1,5 +1,13 @@
 @import '~altinn-designsystem/dist/css/style.dist.tjenester3.min';
 
+/* Custom CSS for all app */
+
+/* Workaround to avoid (PDF) postfix from Altinn designsystem */
+a[href$=".pdf"]::after {
+  content: none!important;
+  display: inline!important;
+}
+
 body {
   margin: 0;
   background-color: #1eaef7;
