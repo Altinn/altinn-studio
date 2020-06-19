@@ -9,6 +9,7 @@ using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Authentication.Controllers;
 using Altinn.Platform.Authentication.Enum;
 using Altinn.Platform.Authentication.Model;
+using Altinn.Platform.Authentication.Services;
 using Altinn.Platform.Authentication.Services.Interfaces;
 using Altinn.Platform.Authentication.Tests.Fakes;
 using Altinn.Platform.Profile.Models;
@@ -216,6 +217,34 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
             Assert.True(httpOnly);
             Assert.True(sessionCookie);
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.AuthenticateUser"/>.
+        /// </summary>
+        [Fact]
+        public async Task AuthenticateUser_RequestTokenWithValidAltinnCookie_SblBridgeUnavailable_ReturnsServiceUnavailable()
+        {
+            // Arrange
+            HttpResponseMessage bridgeResponse = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.ServiceUnavailable,
+                ReasonPhrase = "Service Unavailable"
+            };
+            SblBridgeResponseException sblBridgeResponseException = new SblBridgeResponseException(bridgeResponse);
+            _cookieDecryptionService.Setup(s => s.DecryptTicket(It.IsAny<string>())).ThrowsAsync(sblBridgeResponseException);
+
+            HttpClient client = GetTestClient(_cookieDecryptionService.Object, _userProfileService.Object);
+
+            string url = "/authentication/api/v1/authentication?goto=http%3A%2F%2Flocalhost";
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            requestMessage.Headers.Add("Cookie", ".ASPXAUTH=asdasdasd");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         }
 
         /// <summary>
@@ -474,7 +503,6 @@ namespace Altinn.Platform.Authentication.Tests.Controllers
 
             // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-
         }
 
         private HttpClient GetTestClient(ISblCookieDecryptionService cookieDecryptionService, IUserProfileService userProfileService)

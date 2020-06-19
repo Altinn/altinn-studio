@@ -170,7 +170,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
-            string host = $"https://{_generalSettings.Hostname}";
+            string host = $"https://platform.{_generalSettings.Hostname}";
             string url = Request.Path;
             string query = Request.QueryString.Value;
 

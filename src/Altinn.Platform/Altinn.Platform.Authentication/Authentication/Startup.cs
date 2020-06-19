@@ -157,7 +157,7 @@ namespace Altinn.Platform.Authentication
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                app.UseExceptionHandler("/authentication/api/v1/error");
             }
 
             app.UseSwagger(o => o.RouteTemplate = "authentication/swagger/{documentName}/swagger.json");

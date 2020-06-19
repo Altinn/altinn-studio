@@ -2,7 +2,7 @@ import { createStyles, Drawer, Grid, IconButton, Theme, withStyles } from '@mate
 import classNames from 'classnames';
 import * as React from 'react';
 import { DndProvider } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { connect } from 'react-redux';
 import FileEditor from 'app-shared/file-editor/FileEditor';
 import ServiceLogicMenu from 'app-shared/navigation/drawer/rightDrawerMenu';
