@@ -174,7 +174,6 @@ exports[`Administration Should match snapshot 1`] = `
             >
               <div
                 class="MuiFormControl-root MuiTextField-root"
-                data-testid="thisisatest"
               >
                 <div
                   class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-208 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"
@@ -230,7 +229,6 @@ exports[`Administration Should match snapshot 1`] = `
             >
               <div
                 class="MuiFormControl-root MuiTextField-root"
-                data-testid="thisisatest"
               >
                 <div
                   class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-208 MuiInputBase-formControl MuiInput-formControl"
@@ -266,7 +264,6 @@ exports[`Administration Should match snapshot 1`] = `
             >
               <div
                 class="MuiFormControl-root MuiTextField-root"
-                data-testid="thisisatest"
               >
                 <div
                   class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-208 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"
@@ -302,7 +299,6 @@ exports[`Administration Should match snapshot 1`] = `
             >
               <div
                 class="MuiFormControl-root MuiTextField-root"
-                data-testid="thisisatest"
               >
                 <div
                   class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-208 MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
