@@ -2,7 +2,6 @@
 
 /* Custom CSS for all app */
 
-
 /* Workaround to avoid (PDF) postfix from Altinn designsystem */
 a[href$=".pdf"]::after {
   content: none!important;
