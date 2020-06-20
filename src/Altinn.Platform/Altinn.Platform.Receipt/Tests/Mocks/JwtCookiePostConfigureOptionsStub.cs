@@ -1,13 +1,11 @@
+using System;
+
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Tests.Mocks
+namespace Altinn.Platform.Receipt.Tests.Mocks
 {
     public class JwtCookiePostConfigureOptionsStub : IPostConfigureOptions<JwtCookieOptions>
     {
@@ -33,10 +31,7 @@ namespace Tests.Mocks
             }
 
             options.MetadataAddress += ".well-known/openid-configuration";
-            options.ConfigurationManager = new ConfigurationManagerStub(
-                options.MetadataAddress,
-                new OpenIdConnectConfigurationRetriever(),
-                new HttpDocumentRetriever());
+            options.ConfigurationManager = new ConfigurationManagerStub();
         }
     }
 }

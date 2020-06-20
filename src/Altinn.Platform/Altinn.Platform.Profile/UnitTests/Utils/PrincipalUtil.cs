@@ -1,12 +1,11 @@
-using Altinn.App.IntegrationTests;
-using Altinn.Common.AccessToken.Constants;
-using AltinnCore.Authentication.Constants;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using System.Text;
 
-namespace Altinn.Platform.Profile.UnitTests.Utils
+using Altinn.Common.AccessToken.Constants;
+using AltinnCore.Authentication.Constants;
+
+namespace Altinn.Platform.Profile.Tests.Utils
 {
     public static class PrincipalUtil
     {
@@ -30,8 +29,7 @@ namespace Altinn.Platform.Profile.UnitTests.Utils
 
         public static string GetAccessToken(string issuer, string app)
         {
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim(AccessTokenClaimTypes.App, app, ClaimValueTypes.String, issuer));
+            List<Claim> claims = new List<Claim> { new Claim(AccessTokenClaimTypes.App, app, ClaimValueTypes.String, issuer) };
             ClaimsIdentity identity = new ClaimsIdentity("mock");
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);

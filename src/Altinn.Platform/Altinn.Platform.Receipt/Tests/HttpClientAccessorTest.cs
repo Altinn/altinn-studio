@@ -1,5 +1,4 @@
 using System.Net.Http;
-
 using Altinn.Platform.Receipt.Clients;
 using Altinn.Platform.Receipt.Configuration;
 
@@ -7,9 +6,9 @@ using Microsoft.Extensions.Options;
 
 using Xunit;
 
-namespace Altinn.Platform.Receipt.Test
+namespace Altinn.Platform.Receipt.Tests
 {
-    public partial class UnitTests
+    public class UnitTests
     {
         public class HttpClientAccessorTest
         {

@@ -5,20 +5,21 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 
-using Altinn.App.IntegrationTests;
-using Altinn.Platform.Profile;
 using Altinn.Platform.Profile.Models;
-using Altinn.Platform.Profile.UnitTests.Utils;
+using Altinn.Platform.Profile.Tests.Utils;
+using Microsoft.AspNetCore.Mvc.Testing;
+
 using Newtonsoft.Json;
+
 using Xunit;
 
-namespace UnitTests
+namespace Altinn.Platform.Profile.Tests
 {
-    public class UserProfileTests : IClassFixture<CustomWebApplicationFactory<Startup>>
+    public class UserProfileTests : IClassFixture<WebApplicationFactory<Startup>>
     {
-        private readonly CustomWebApplicationFactory<Startup> _factory;
+        private readonly WebApplicationFactory<Startup> _factory;
 
-        public UserProfileTests(CustomWebApplicationFactory<Startup> factory)
+        public UserProfileTests(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
         }
@@ -26,8 +27,6 @@ namespace UnitTests
         [Fact]
         public async Task Profile_GetCurrent_OK()
         {
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
-
             string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory);
@@ -37,7 +36,6 @@ namespace UnitTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string content = await response.Content.ReadAsStringAsync();
 
             UserProfile user = JsonConvert.DeserializeObject<UserProfile>(await response.Content.ReadAsStringAsync());
             Assert.Equal(1337, user.UserId);
@@ -48,8 +46,6 @@ namespace UnitTests
         [Fact]
         public async Task Profile_GetById_OK()
         {
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
-
             string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory);
@@ -61,17 +57,14 @@ namespace UnitTests
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string content = await response.Content.ReadAsStringAsync();
 
             UserProfile user = JsonConvert.DeserializeObject<UserProfile>(await response.Content.ReadAsStringAsync());
             Assert.Equal(1337, user.UserId);
         }
 
-                [Fact]
+        [Fact]
         public async Task Profile_GetById_NotFound()
         {
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
-
             string token = PrincipalUtil.GetToken(1337);
 
             HttpClient client = SetupUtil.GetTestClient(_factory);
