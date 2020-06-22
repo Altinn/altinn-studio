@@ -3,6 +3,7 @@ import { createMuiTheme, makeStyles } from '@material-ui/core';
 import { AltinnPopover } from 'altinn-shared/components';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import { isMobile } from 'react-device-detect';
 
 const theme = createMuiTheme(AltinnAppTheme);
 
@@ -55,6 +56,8 @@ export default function HelpTextPopover(props: IHelpTextPopoverProps) {
           },
         }}
         descriptionText={helpText}
+        closeButton={isMobile} // tmp fix until material-ui fixes https://github.com/mui-org/material-ui/issues/19965
+        closeButtonText={getLanguageFromKey('general.close', props.language)}
       />
       }
     </>

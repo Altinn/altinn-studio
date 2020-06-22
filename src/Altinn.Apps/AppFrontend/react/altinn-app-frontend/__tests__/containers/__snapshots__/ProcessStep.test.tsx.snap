@@ -282,7 +282,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
           className="a-modal-navbar"
         >
           <button
-            aria-label="general.close"
+            aria-label="general.close_schema"
             className="a-modal-close a-js-tabable-popover"
             onClick={[Function]}
             type="button"
@@ -302,7 +302,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
             <span
               className="hidden-button-text"
             >
-              general.close
+              general.close_schema
             </span>
           </button>
         </div>
