@@ -10,7 +10,6 @@ using Altinn.Platform.Storage.Authorization;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Health;
-using Altinn.Platform.Storage.HealthCheck;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.Wrappers;

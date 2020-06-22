@@ -5,13 +5,13 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 namespace Altinn.Platform.Storage.Health
 {
     /// <summary>
-    /// Health check service configured in startup
+    /// Health check service configured in startup https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks
     /// Listen to 
     /// </summary>
     public class HealthCheck : IHealthCheck
     {
         /// <summary>
-        /// Verifies the healht status
+        /// Verifies the health status
         /// </summary>
         /// <param name="context">The healtcheck context</param>
         /// <param name="cancellationToken">The cancellationtoken</param>

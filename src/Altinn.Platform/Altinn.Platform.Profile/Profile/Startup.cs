@@ -63,7 +63,7 @@ namespace Altinn.Platform.Profile
         /// <summary>
         /// Configure profile setttings for the service
         /// </summary>
-        /// <param name="services">the service configuration</param>
+        /// <param name="services">the service configuration</param>    
         public void ConfigureServices(IServiceCollection services)
         {
             _logger.LogInformation("Startup // ConfigureServices");

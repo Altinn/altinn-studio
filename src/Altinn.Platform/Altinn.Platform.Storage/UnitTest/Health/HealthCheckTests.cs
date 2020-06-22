@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Altinn.Platform.Profile.UnitTests
+namespace Altinn.Platform.Storage.UnitTest
 {
     public class HealtCheckTests : IClassFixture<WebApplicationFactory<Startup>>
     {
