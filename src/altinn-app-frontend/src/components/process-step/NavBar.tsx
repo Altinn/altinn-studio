@@ -29,7 +29,7 @@ const NavBar = (props: INavBarProps) => {
       <button
         type='button'
         className='a-modal-close a-js-tabable-popover'
-        aria-label={getLanguageFromKey('general.close', props.language)}
+        aria-label={getLanguageFromKey('general.close_schema', props.language)}
         onClick={props.handleClose}
       >
         <span className='ai-stack'>
@@ -37,7 +37,7 @@ const NavBar = (props: INavBarProps) => {
           <i className='ai-stack-1x ai ai-exit  a-modal-close-icon' aria-hidden='true' />
         </span>
         <span className='hidden-button-text'>
-          {getLanguageFromKey('general.close', props.language)}
+          {getLanguageFromKey('general.close_schema', props.language)}
         </span>
       </button>
     </div>
