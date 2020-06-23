@@ -35,7 +35,7 @@ export default function HelpTextIcon(props: IHelpTextIconProps) {
       <span
         tabIndex={0}
         onClick={props.toggleClickPopover}
-        onKeyUp={props.toggleKeypressPopover}
+        onKeyPress={props.toggleKeypressPopover}
         ref={props.helpIconRef}
         role='button'
         aria-label={getLanguageFromKey('popover.popover_button_helptext', props.language)}

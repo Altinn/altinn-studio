@@ -82,6 +82,7 @@ export const AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvi
       onClick={props.onClickFunction}
       style={{ fontSize: 16 }}
       ref={ref}
+      aria-label={props.btnText}
     >
       <span
         className={classNames({
