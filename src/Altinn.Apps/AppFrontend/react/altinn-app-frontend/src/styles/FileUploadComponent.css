@@ -94,9 +94,3 @@
   padding: 0;
   margin-top: 2.4rem;
 }
-
-.text-overflow {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}

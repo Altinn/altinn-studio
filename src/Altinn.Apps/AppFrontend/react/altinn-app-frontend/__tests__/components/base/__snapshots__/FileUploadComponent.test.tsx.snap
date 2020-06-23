@@ -53,9 +53,14 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
           >
             <td>
               <div
-                class="text-overflow"
+                style="display: flex;"
               >
-                attachment-name-1
+                <div
+                  style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"
+                >
+                  attachment-name-1
+                </div>
+                <div />
               </div>
             </td>
             <td>
@@ -91,9 +96,14 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
           >
             <td>
               <div
-                class="text-overflow"
+                style="display: flex;"
               >
-                attachment-name-2
+                <div
+                  style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"
+                >
+                  attachment-name-2
+                </div>
+                <div />
               </div>
             </td>
             <td>
@@ -137,9 +147,14 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
           >
             <td>
               <div
-                class="text-overflow"
+                style="display: flex;"
               >
-                attachment-name-3
+                <div
+                  style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"
+                >
+                  attachment-name-3
+                </div>
+                <div />
               </div>
             </td>
             <td>

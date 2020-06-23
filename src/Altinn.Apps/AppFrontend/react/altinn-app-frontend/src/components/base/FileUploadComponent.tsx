@@ -8,6 +8,8 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnLoader } from 'altinn-shared/components';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { isMobile } from 'react-device-detect';
+import { removeFileEnding, getFileEnding } from '../../utils/attachment';
 import { IAttachment } from '../../shared/resources/attachments';
 import AttachmentDispatcher from '../../shared/resources/attachments/attachmentActions';
 import '../../styles/FileUploadComponent.css';
@@ -53,17 +55,6 @@ const validationErrorStyle = {
 
 export const bytesInOneMB = 1048576;
 export const emptyArray = [];
-
-function getFileEnding(filename: string): string {
-  if (!filename) {
-    return '';
-  }
-  const split: string[] = filename.split('.');
-  if (split.length === 1) {
-    return '';
-  }
-  return split[split.length - 1];
-}
 
 export function FileUploadComponent(props: IFileUploadProps) {
   const [attachments, dispatch] = React.useReducer(reducer, []);
@@ -218,15 +209,28 @@ export function FileUploadComponent(props: IFileUploadProps) {
                 >
                   <td>
                     <div
-                      className='text-overflow'
+                      style={{
+                        display: 'flex',
+                      }}
                     >
-                      {attachment.name}
-                      {getFileEnding(attachment.name)}
+                      <div
+                        style={{
+                          textOverflow: 'ellipsis',
+                          overflow: 'hidden',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {removeFileEnding(attachment.name)}
+                      </div>
+                      <div
+                        style={{
+                        }}
+                      >
+                        {getFileEnding(attachment.name)}
+                      </div>
                     </div>
                     {mobileView ?
-                      <div
-                        className='text-overflow'
-                      >
+                      <div>
                         {`${(attachment.size / bytesInOneMB).toFixed(2)} ${
                           getLanguageFromKey('form_filler.file_uploader_mb', props.language)}`
                         }
@@ -309,7 +313,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
             className='file-upload-text-bold'
             id='file-upload-description'
           >
-            {mobileView ?
+            {isMobile ?
               <>
                 {getLanguageFromKey('form_filler.file_uploader_upload', props.language)}
               </>
