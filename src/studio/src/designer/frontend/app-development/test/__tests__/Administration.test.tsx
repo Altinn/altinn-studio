@@ -4,7 +4,7 @@ import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import { cleanup, render, fireEvent, waitFor } from '@testing-library/react';
 
 import { AdministrationComponent, IAdministrationComponentProps } from '../../features/administration/components/Administration';
 import { ICommit, IRepository } from '../../types/global';
@@ -21,6 +21,8 @@ describe('Administration', () => {
   let mockServiceIdIsSaving: boolean;
   let mockServiceId: string;
   let mockStore: any;
+
+  afterEach(cleanup);
 
   beforeEach(() => {
     const createStore = configureStore();
