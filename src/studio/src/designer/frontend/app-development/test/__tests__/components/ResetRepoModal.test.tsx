@@ -31,12 +31,7 @@ describe('<ResetRepoModal /> spec', () => {
         reset_repo_confirm_repo_name: 'Skriv inn repo-navn',
       },
     };
-
-    document.body.innerHTML = `
-    <div id="TestID">
-      <span>Test</span>
-    </div`;
-    mockAnchorEl = document.getElementById('TestID');
+    mockAnchorEl = document.getElementsByTagName('body');
   });
 
   it('renders the component', () => {
