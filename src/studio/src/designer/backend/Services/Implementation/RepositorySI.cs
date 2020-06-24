@@ -1101,6 +1101,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
+        /// Deletes the local repository for the user and makes a new clone of the repo
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repositoryName">the name of the local repository to reset</param>
+        /// <returns>True if the reset was successful, otherwise false.</returns>
+        public bool ResetLocalRepository(string org, string repositoryName)
+        {
+            string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string repoPath = _settings.GetServicePath(org, repositoryName, userName);
+
+            if (Directory.Exists(repoPath))
+            {
+                // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
+                string backupPath = _settings.GetServicePath(org, $"{repositoryName}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", userName);
+                Directory.Move(repoPath, backupPath);
+                _sourceControl.CloneRemoteRepository(org, repositoryName);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Delete an app folder from disk.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

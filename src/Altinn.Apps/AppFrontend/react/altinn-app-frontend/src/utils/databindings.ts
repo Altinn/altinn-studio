@@ -94,7 +94,7 @@ export function flattenObject(data: any, index: boolean = false): any {
         }
       }
     } else {
-      toReturn[i] = data[i];
+      toReturn[i] = data[i].toString();
     }
 
   }

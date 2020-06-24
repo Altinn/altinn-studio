@@ -12,11 +12,23 @@
     "childParties": null
   },
   {
+    "partyId": "500600",
+    "partyTypeName": 2,
+    "OrgNumber": "897069631",
+    "unitType": "AS",
+    "name": "EAS Health Consulting",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+  },
+  {
     "partyId": "500000",
     "partyTypeName": 2,
     "OrgNumber": "897069650",
     "unitType": "AS",
-    "name": "DDG Fitness AS",
+    "name": "MDDG Fitness AS",
     "isDeleted": false,
     "onlyHierarchyElementWithNoAccess": false,
     "person": null,
@@ -60,18 +72,6 @@
       }
 
     ]
-  },
-  {
-    "partyId": "500600",
-    "partyTypeName": 2,
-    "OrgNumber": "897069631",
-    "unitType": "AS",
-    "name": "EAS Health Consulting",
-    "isDeleted": false,
-    "onlyHierarchyElementWithNoAccess": false,
-    "person": null,
-    "organisation": null,
-    "childParties": null
   },
   {
     "partyId": "500700",
