@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Altinn.Platform.Authorization.ModelBinding
@@ -36,15 +37,17 @@ namespace Altinn.Platform.Authorization.ModelBinding
                 modelBindingKey = bindingContext.ModelName;
             }
 
-            var httpContext = bindingContext.HttpContext;
+            HttpContext httpContext = bindingContext.HttpContext;
 
             try
             {
-                var input = await new StreamReader(httpContext.Request.Body).ReadToEndAsync();
-                bindingContext.Model = new XacmlRequestApiModel() { BodyContent = input };
-                bindingContext.Result = ModelBindingResult.Success(bindingContext.Model);
-
-                return;
+                using (StreamReader reader = new StreamReader(httpContext.Request.Body))
+                {
+                    string input = await reader.ReadToEndAsync();
+                    bindingContext.Model = new XacmlRequestApiModel() { BodyContent = input };
+                    bindingContext.Result = ModelBindingResult.Success(bindingContext.Model);
+                    return;
+                }
             }
             catch (Exception ex)
             {
