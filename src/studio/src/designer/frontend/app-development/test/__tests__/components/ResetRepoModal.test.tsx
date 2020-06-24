@@ -8,14 +8,14 @@ import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import ResetRepoModal, { IResetRepoModalProps } from '../../../features/administration/components/ResetRepoModal';
 
-afterEach(cleanup);
-
 describe('<ResetRepoModal /> spec', () => {
   let mockLanguage: any;
   let mockStore: any;
   let mockAnchorEl: any;
   let mockFunc: () => {};
   let mockRepoName: 'TestRepo';
+
+  afterEach(cleanup);
 
   beforeEach(() => {
     const createStore = configureStore();
