@@ -77,7 +77,8 @@ module.exports = {
       use: [{
         loader: MiniCssExtractPlugin.loader,
         options: {
-          url: false
+          url: false,
+        
         }
       },
       {
@@ -106,6 +107,7 @@ module.exports = {
     }),
     new MiniCssExtractPlugin({
       filename: "altinn-app-frontend.css",
+      ignoreOrder: false,
     }),
     new CheckerPlugin(),
   ],

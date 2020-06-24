@@ -6,7 +6,7 @@
     "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --hot",
     "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
     "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development --progress --watch",
-    "test": "cross-env RTL_SKIP_AUTO_CLEANUP=false jest",
+    "test": "jest",
     "compile-ts": "tsc",
     "lint": "tslint -c ./../tslint.json src/**/*.{ts,tsx} __tests__/**/*.{ts,tsx}",
     "clean": "rimraf dist compiled",

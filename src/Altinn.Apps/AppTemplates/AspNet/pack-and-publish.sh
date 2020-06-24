@@ -1,8 +1,8 @@
 #!/bin/bash
 
-version=1.0.10-alpha
+version=1.0.93-alpha
 
-key=<key-here>
+key=oy2plioasdcybgars6kq3afdd7jhjnluzfa4vpb63c47ki
 
 pwd=`pwd`
 

@@ -8,6 +8,7 @@ import { ICommit, IRepository } from '../../../types/global';
 import ResetRepoModal from './ResetRepoModal';
 import RepoStatusActionDispatchers from '../../../sharedResources/repoStatus/repoStatusDispatcher';
 
+// eslint-disable-next-line import/order
 import classNames = require('classnames');
 
 const setupClasses = makeStyles({
@@ -67,10 +68,6 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
     const { org, app } = altinnWindow;
     RepoStatusActionDispatchers.resetLocalRepo(org, app);
   };
-
-  React.useEffect(() => {
-
-  })
 
   React.useEffect(() => {
     if (repoStatus && (
