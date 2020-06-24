@@ -1,4 +1,8 @@
 [
+  {	
+    "Type": "altinn",	
+    "value": "DAGL"	
+  },
   {
     "Type": "altinn",
     "value": "LOPER"
@@ -6,6 +10,10 @@
   {
     "Type": "altinn",
     "value": "ADMAI"
+  },
+  {	
+    "Type": "altinn",	
+    "value": "REGNA"	
   },
   {
     "Type": "altinn",
