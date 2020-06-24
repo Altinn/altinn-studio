@@ -5,7 +5,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 namespace Altinn.Platform.Authentication.Health
 {
     /// <summary>
-    /// Health check service configured in startup https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks
+    /// Health check service configured in startup. See https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks
     /// Listen to 
     /// </summary>
     public class HealthCheck : IHealthCheck

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
@@ -30,7 +31,7 @@ namespace Altinn.Platform.Profile.UnitTests
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string content = await response.Content.ReadAsStringAsync();
-
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         private HttpClient GetTestClient()

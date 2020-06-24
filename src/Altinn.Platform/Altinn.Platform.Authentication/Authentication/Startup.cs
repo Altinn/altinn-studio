@@ -176,6 +176,7 @@ namespace Altinn.Platform.Authentication
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health");
             });
         }
 

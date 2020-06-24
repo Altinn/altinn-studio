@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
@@ -41,7 +42,7 @@ namespace Altinn.Platform.Authorization.UnitTest
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string content = await response.Content.ReadAsStringAsync();
-
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         private HttpClient GetTestClient()

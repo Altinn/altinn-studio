@@ -232,6 +232,7 @@ namespace Altinn.Platform.Storage
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health");
             });
         }
 

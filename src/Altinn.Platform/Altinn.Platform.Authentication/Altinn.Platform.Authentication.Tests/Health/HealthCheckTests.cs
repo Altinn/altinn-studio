@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -37,7 +38,7 @@ namespace Altinn.Platform.Authentication.UnitTest
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string content = await response.Content.ReadAsStringAsync();
-
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         private HttpClient GetTestClient()

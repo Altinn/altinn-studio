@@ -175,6 +175,7 @@ namespace Altinn.Platform.Receipt
                       {
                           controller = "Language",
                       });
+                  endpoints.MapHealthChecks("/health");
               });
         }
     }
