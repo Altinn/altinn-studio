@@ -6,76 +6,127 @@ exports[`Administration Should match snapshot 1`] = `
 >
   <div>
     <div
-      class="MuiGrid-root VersionControlHeader-headerStyling-13 MuiGrid-container"
+      className="MuiGrid-root VersionControlHeader-headerStyling-13 MuiGrid-container"
     >
       <div
-        class="MuiGrid-root MuiGrid-item"
-        style="margin-right: 24px;"
+        className="MuiGrid-root MuiGrid-item"
+        style={
+          Object {
+            "marginRight": "24px",
+          }
+        }
       >
         <button
-          class="MuiButtonBase-root MuiButton-root MuiButton-text CloneButton-cloneButton-14"
-          tabindex="0"
+          className="MuiButtonBase-root MuiButton-root MuiButton-text CloneButton-cloneButton-14"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={0}
           type="button"
         >
           <span
-            class="MuiButton-label"
+            className="MuiButton-label"
           >
             <div
-              class="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
+              className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
             >
               <div
-                class="MuiGrid-root MuiGrid-item"
+                className="MuiGrid-root MuiGrid-item"
               >
                 <i
-                  class="fa fa-clone"
-                  style="color: rgb(0, 98, 186); font-size: 24px; padding: 0px 0px 4px 0px;"
+                  className="fa fa-clone"
+                  style={
+                    Object {
+                      "color": "#0062BA",
+                      "fontSize": 24,
+                      "fontWeight": null,
+                      "margin": null,
+                      "padding": "0px 0px 4px 0px",
+                    }
+                  }
                 />
               </div>
               <div
-                class="MuiGrid-root MuiGrid-item"
+                className="MuiGrid-root MuiGrid-item"
               >
                 <p
-                  class="MuiTypography-root MuiTypography-body1"
-                  style="color: rgb(0, 98, 186);"
+                  className="MuiTypography-root MuiTypography-body1"
+                  style={
+                    Object {
+                      "color": "#0062BA",
+                    }
+                  }
                 >
                   sync_header.clone
                 </p>
               </div>
             </div>
           </span>
-          <span
-            class="MuiTouchRipple-root"
-          />
         </button>
       </div>
       <div
-        class="MuiGrid-root MuiGrid-item"
-        style="margin-right: 24px;"
+        className="MuiGrid-root MuiGrid-item"
+        style={
+          Object {
+            "marginRight": "24px",
+          }
+        }
       >
         <button
-          class="MuiButtonBase-root MuiButton-root MuiButton-text FetchChangesComponent-clickable-18 FetchChangesComponent-btn-17"
-          tabindex="0"
+          className="MuiButtonBase-root MuiButton-root MuiButton-text FetchChangesComponent-clickable-18 FetchChangesComponent-btn-17"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={0}
           type="button"
         >
           <span
-            class="MuiButton-label"
+            className="MuiButton-label"
           >
             <div
-              class="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
+              className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
             >
               <div
-                class="MuiGrid-root MuiGrid-item"
+                className="MuiGrid-root MuiGrid-item"
               >
                 <i
-                  class="fa fa-download"
-                  style="color: rgb(0, 98, 186); font-size: 36px; margin: 0px -5px 0px -5px;"
+                  className="fa fa-download"
+                  style={
+                    Object {
+                      "color": "#0062BA",
+                      "fontSize": 36,
+                      "fontWeight": null,
+                      "margin": "0px -5px 0px -5px",
+                      "padding": null,
+                    }
+                  }
                 />
               </div>
               <div
-                class="MuiGrid-root MuiGrid-item"
+                className="MuiGrid-root MuiGrid-item"
               >
                 <p
-                  class="MuiTypography-root FetchChangesComponent-color_blueDark-19 MuiTypography-body1"
+                  className="MuiTypography-root FetchChangesComponent-color_blueDark-19 MuiTypography-body1"
                   id="fetch_changes_btn"
                 >
                   sync_header.fetch_changes
@@ -83,39 +134,57 @@ exports[`Administration Should match snapshot 1`] = `
               </div>
             </div>
           </span>
-          <span
-            class="MuiTouchRipple-root"
-          />
         </button>
       </div>
       <div
-        class="MuiGrid-root MuiGrid-item"
+        className="MuiGrid-root MuiGrid-item"
       >
         <button
-          class="MuiButtonBase-root MuiButton-root MuiButton-text ShareChangesComponent-color_blueDark-24 ShareChangesComponent-btn-21 ShareChangesComponent-clickable-23"
+          className="MuiButtonBase-root MuiButton-root MuiButton-text ShareChangesComponent-color_blueDark-24 ShareChangesComponent-btn-21 ShareChangesComponent-clickable-23"
+          disabled={false}
           id="share_changes_button"
-          tabindex="0"
+          onBlur={[Function]}
+          onClick={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={0}
           type="button"
         >
           <span
-            class="MuiButton-label"
+            className="MuiButton-label"
           >
             <div
-              class="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
+              className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
             >
               <div
-                class="MuiGrid-root MuiGrid-item"
+                className="MuiGrid-root MuiGrid-item"
               >
                 <i
-                  class="fa fa-upload"
-                  style="color: rgb(0, 98, 186); font-size: 36px; margin: 0px -5px 0px -5px;"
+                  className="fa fa-upload"
+                  style={
+                    Object {
+                      "color": "#0062BA",
+                      "fontSize": 36,
+                      "fontWeight": null,
+                      "margin": "0px -5px 0px -5px",
+                      "padding": null,
+                    }
+                  }
                 />
               </div>
               <div
-                class="MuiGrid-root MuiGrid-item"
+                className="MuiGrid-root MuiGrid-item"
               >
                 <p
-                  class="MuiTypography-root ShareChangesComponent-color_blueDark-24 MuiTypography-body1"
+                  className="MuiTypography-root ShareChangesComponent-color_blueDark-24 MuiTypography-body1"
                   id="no_changes_to_share_btn"
                 >
                   sync_header.no_changes_to_share
@@ -123,66 +192,77 @@ exports[`Administration Should match snapshot 1`] = `
               </div>
             </div>
           </span>
-          <span
-            class="MuiTouchRipple-root"
-          />
         </button>
       </div>
     </div>
   </div>
   <div
-    class="AltinnColumnLayout-mainLayout-11"
+    className="AltinnColumnLayout-mainLayout-11"
     id="altinn-column-layout-container"
   >
     <div
-      class="MuiGrid-root AltinnColumnLayout-layout-10 MuiGrid-container"
+      className="MuiGrid-root AltinnColumnLayout-layout-10 MuiGrid-container"
     >
       <div
-        class="MuiGrid-root MuiGrid-item MuiGrid-grid-md-8"
+        className="MuiGrid-root MuiGrid-item MuiGrid-grid-md-8"
       >
         <div
-          class="MuiGrid-root AltinnColumnLayout-mainStyle-1 MuiGrid-item MuiGrid-grid-md-12"
+          className="MuiGrid-root AltinnColumnLayout-mainStyle-1 MuiGrid-item MuiGrid-grid-md-12"
         >
           <p
-            class="MuiTypography-root AltinnColumnLayout-headerStyle-2 MuiTypography-body1"
+            className="MuiTypography-root AltinnColumnLayout-headerStyle-2 MuiTypography-body1"
             id="altinn-column-layout-header"
           >
             administration.administration
           </p>
         </div>
         <div
-          class="MuiGrid-root AltinnColumnLayout-mainStyle-1 MuiGrid-item MuiGrid-grid-md-12"
+          className="MuiGrid-root AltinnColumnLayout-mainStyle-1 MuiGrid-item MuiGrid-grid-md-12"
           id="altinn-column-layout-main-content"
         >
           <div
-            class="makeStyles-marginBottom_24-36"
+            className="makeStyles-marginBottom_24-36"
           >
             <h2
-              class="MuiTypography-root AltinnInputField-inputHeader-37 MuiTypography-h2"
-              style="font-size: 20px; font-weight: 500;"
+              className="MuiTypography-root AltinnInputField-inputHeader-37 MuiTypography-h2"
+              style={
+                Object {
+                  "fontSize": 20,
+                  "fontWeight": 500,
+                }
+              }
             >
               general.service_name
             </h2>
             <p
-              class="MuiTypography-root AltinnInputField-descriptionInput-39 AltinnInputField-marginTop_10-38 MuiTypography-body1"
+              className="MuiTypography-root AltinnInputField-descriptionInput-39 AltinnInputField-marginTop_10-38 MuiTypography-body1"
             >
               administration.service_name_administration_description
             </p>
             <div
-              class="MuiFormControl-root AltinnInputField-inputField-40 AltinnInputField-disabled-42 AltinnInputField-marginTop_10-38 MuiFormControl-fullWidth"
+              className="MuiFormControl-root AltinnInputField-inputField-40 AltinnInputField-disabled-42 AltinnInputField-marginTop_10-38 MuiFormControl-fullWidth"
               id="administrationInputServicename"
+              style={null}
             >
               <div
-                class="MuiFormControl-root MuiTextField-root"
+                className="MuiFormControl-root MuiTextField-root"
               >
                 <div
-                  class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-41 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"
+                  className="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-41 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"
+                  onClick={[Function]}
                 >
                   <input
-                    aria-invalid="false"
-                    class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled"
-                    disabled=""
+                    aria-invalid={false}
+                    autoFocus={false}
+                    className="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled"
+                    disabled={true}
                     id="administrationInputServicename_textField"
+                    onAnimationStart={[Function]}
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    required={false}
+                    rows={null}
                     type="text"
                     value="Service name"
                   />
@@ -190,53 +270,81 @@ exports[`Administration Should match snapshot 1`] = `
               </div>
             </div>
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-text AltinnInputField-btn-43 makeStyles-secondaryButton-48 MuiButton-textPrimary"
-              style="font-size: 16px;"
-              tabindex="0"
+              className="MuiButtonBase-root MuiButton-root MuiButton-text AltinnInputField-btn-43 makeStyles-secondaryButton-48 MuiButton-textPrimary"
+              disabled={false}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onDragLeave={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              style={
+                Object {
+                  "fontSize": 16,
+                }
+              }
+              tabIndex={0}
               type="button"
             >
               <span
-                class="MuiButton-label"
+                className="MuiButton-label"
               >
                 <span
-                  class="makeStyles-borderBottom-45"
+                  className="makeStyles-borderBottom-45"
                 >
                   general.edit
                 </span>
               </span>
-              <span
-                class="MuiTouchRipple-root"
-              />
             </button>
           </div>
           <div
-            class="makeStyles-marginBottom_24-36"
+            className="makeStyles-marginBottom_24-36"
           >
             <h2
-              class="MuiTypography-root AltinnInputField-inputHeader-37 MuiTypography-h2"
-              style="font-size: 20px; font-weight: 500;"
+              className="MuiTypography-root AltinnInputField-inputHeader-37 MuiTypography-h2"
+              style={
+                Object {
+                  "fontSize": 20,
+                  "fontWeight": 500,
+                }
+              }
             >
               administration.service_id
             </h2>
             <p
-              class="MuiTypography-root AltinnInputField-descriptionInput-39 AltinnInputField-marginTop_10-38 MuiTypography-body1"
+              className="MuiTypography-root AltinnInputField-descriptionInput-39 AltinnInputField-marginTop_10-38 MuiTypography-body1"
             >
               administration.service_id_description
             </p>
             <div
-              class="MuiFormControl-root AltinnInputField-inputField-40 AltinnInputField-marginTop_10-38 MuiFormControl-fullWidth"
+              className="MuiFormControl-root AltinnInputField-inputField-40 AltinnInputField-marginTop_10-38 MuiFormControl-fullWidth"
               id="administrationInputServiceid"
             >
               <div
-                class="MuiFormControl-root MuiTextField-root"
+                className="MuiFormControl-root MuiTextField-root"
               >
                 <div
-                  class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-41 MuiInputBase-formControl MuiInput-formControl"
+                  className="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-41 MuiInputBase-formControl MuiInput-formControl"
+                  onClick={[Function]}
                 >
                   <input
-                    aria-invalid="false"
-                    class="MuiInputBase-input MuiInput-input"
+                    aria-invalid={false}
+                    autoFocus={false}
+                    className="MuiInputBase-input MuiInput-input"
+                    disabled={false}
                     id="administrationInputServiceid_textField"
+                    onAnimationStart={[Function]}
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    required={false}
+                    rows={null}
                     type="text"
                     value="service id"
                   />
@@ -245,33 +353,46 @@ exports[`Administration Should match snapshot 1`] = `
             </div>
           </div>
           <div
-            class="makeStyles-marginBottom_24-36"
+            className="makeStyles-marginBottom_24-36"
           >
             <h2
-              class="MuiTypography-root AltinnInputField-inputHeader-37 MuiTypography-h2"
-              style="font-size: 20px; font-weight: 500;"
+              className="MuiTypography-root AltinnInputField-inputHeader-37 MuiTypography-h2"
+              style={
+                Object {
+                  "fontSize": 20,
+                  "fontWeight": 500,
+                }
+              }
             >
               general.service_saved_name
             </h2>
             <p
-              class="MuiTypography-root AltinnInputField-descriptionInput-39 AltinnInputField-marginTop_10-38 MuiTypography-body1"
+              className="MuiTypography-root AltinnInputField-descriptionInput-39 AltinnInputField-marginTop_10-38 MuiTypography-body1"
             >
               administration.service_saved_name_administration_description
             </p>
             <div
-              class="MuiFormControl-root AltinnInputField-inputField-40 AltinnInputField-disabled-42 AltinnInputField-marginTop_10-38 MuiFormControl-fullWidth"
+              className="MuiFormControl-root AltinnInputField-inputField-40 AltinnInputField-disabled-42 AltinnInputField-marginTop_10-38 MuiFormControl-fullWidth"
               id="administrationInputReponame"
             >
               <div
-                class="MuiFormControl-root MuiTextField-root"
+                className="MuiFormControl-root MuiTextField-root"
               >
                 <div
-                  class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-41 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"
+                  className="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-41 Mui-disabled Mui-disabled MuiInputBase-formControl MuiInput-formControl"
+                  onClick={[Function]}
                 >
                   <input
-                    aria-invalid="false"
-                    class="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled"
-                    disabled=""
+                    aria-invalid={false}
+                    autoFocus={false}
+                    className="MuiInputBase-input MuiInput-input Mui-disabled Mui-disabled"
+                    disabled={true}
+                    onAnimationStart={[Function]}
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    required={false}
+                    rows={null}
                     type="text"
                     value="CoolService"
                   />
@@ -280,34 +401,48 @@ exports[`Administration Should match snapshot 1`] = `
             </div>
           </div>
           <div
-            class="makeStyles-marginBottom_24-36"
+            className="makeStyles-marginBottom_24-36"
           >
             <h2
-              class="MuiTypography-root AltinnInputField-inputHeader-37 MuiTypography-h2"
-              style="font-size: 20px; font-weight: 500;"
+              className="MuiTypography-root AltinnInputField-inputHeader-37 MuiTypography-h2"
+              style={
+                Object {
+                  "fontSize": 20,
+                  "fontWeight": 500,
+                }
+              }
             >
               administration.service_comment
             </h2>
             <p
-              class="MuiTypography-root AltinnInputField-descriptionInput-39 AltinnInputField-marginTop_10-38 MuiTypography-body1"
+              className="MuiTypography-root AltinnInputField-descriptionInput-39 AltinnInputField-marginTop_10-38 MuiTypography-body1"
             >
               administration.service_comment_description
             </p>
             <div
-              class="MuiFormControl-root AltinnInputField-inputField-40 AltinnInputField-marginTop_10-38 MuiFormControl-fullWidth"
+              className="MuiFormControl-root AltinnInputField-inputField-40 AltinnInputField-marginTop_10-38 MuiFormControl-fullWidth"
               id="administrationInputDescription"
             >
               <div
-                class="MuiFormControl-root MuiTextField-root"
+                className="MuiFormControl-root MuiTextField-root"
               >
                 <div
-                  class="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-41 MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
+                  className="MuiInputBase-root MuiInput-root AltinnInputField-inputFieldText-41 MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
+                  onClick={[Function]}
                 >
                   <textarea
-                    aria-invalid="false"
-                    class="MuiInputBase-input MuiInput-input MuiInputBase-inputMultiline MuiInput-inputMultiline"
+                    aria-invalid={false}
+                    autoFocus={false}
+                    className="MuiInputBase-input MuiInput-input MuiInputBase-inputMultiline MuiInput-inputMultiline"
+                    disabled={false}
                     id="administrationInputDescription_textField"
-                    rows="7"
+                    onAnimationStart={[Function]}
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    required={false}
+                    rows={7}
+                    value=""
                   />
                 </div>
               </div>
@@ -316,44 +451,44 @@ exports[`Administration Should match snapshot 1`] = `
         </div>
       </div>
       <div
-        class="MuiGrid-root AltinnColumnLayout-sidebar-3 MuiGrid-item MuiGrid-grid-md-4"
+        className="MuiGrid-root AltinnColumnLayout-sidebar-3 MuiGrid-item MuiGrid-grid-md-4"
         id="altinn-column-layout-side-menu"
       >
         <p
-          class="MuiTypography-root makeStyles-sidebarHeader-51 MuiTypography-body1"
+          className="MuiTypography-root makeStyles-sidebarHeader-51 MuiTypography-body1"
         >
           general.service_owner
         </p>
         <p
-          class="MuiTypography-root makeStyles-sidebarInfoText-53 MuiTypography-body1"
+          className="MuiTypography-root makeStyles-sidebarInfoText-53 MuiTypography-body1"
         >
           administration.service_owner_is
         </p>
         <p
-          class="MuiTypography-root makeStyles-sidebarServiceOwner-55 makeStyles-sidebarInfoText-53 MuiTypography-body1"
+          className="MuiTypography-root makeStyles-sidebarServiceOwner-55 makeStyles-sidebarInfoText-53 MuiTypography-body1"
         >
           <img
             alt=""
-            class="makeStyles-avatar-50"
+            className="makeStyles-avatar-50"
             src=""
           />
            
           Mons Monsen
         </p>
         <p
-          class="MuiTypography-root makeStyles-sidebarCreatedBy-56 MuiTypography-body1"
+          className="MuiTypography-root makeStyles-sidebarCreatedBy-56 MuiTypography-body1"
         >
           administration.created_by
            
           Per 
         </p>
         <p
-          class="MuiTypography-root makeStyles-sidebarHeader-51 makeStyles-sidebarHeaderSecond-52 MuiTypography-body1"
+          className="MuiTypography-root makeStyles-sidebarHeader-51 makeStyles-sidebarHeaderSecond-52 MuiTypography-body1"
         >
           administration.reset_repo_heading
         </p>
         <p
-          class="MuiTypography-root makeStyles-sidebarInfoText-53 makeStyles-sidebarInfoTextList-54 MuiTypography-body1"
+          className="MuiTypography-root makeStyles-sidebarInfoText-53 makeStyles-sidebarInfoTextList-54 MuiTypography-body1"
         >
           <ul>
             <li>
@@ -368,18 +503,34 @@ exports[`Administration Should match snapshot 1`] = `
           </ul>
         </p>
         <button
-          class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-47 MuiButton-containedPrimary Mui-disabled Mui-disabled"
-          disabled=""
+          className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-47 MuiButton-containedPrimary Mui-disabled Mui-disabled"
+          disabled={true}
           id="reset-repo-button"
-          style="font-size: 16px;"
-          tabindex="-1"
+          onBlur={[Function]}
+          onClick={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          style={
+            Object {
+              "fontSize": 16,
+            }
+          }
+          tabIndex={-1}
           type="button"
         >
           <span
-            class="MuiButton-label"
+            className="MuiButton-label"
           >
             <span
-              class=""
+              className=""
             >
               administration.reset_repo_button
             </span>
