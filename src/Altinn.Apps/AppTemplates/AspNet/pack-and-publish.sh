@@ -2,7 +2,7 @@
 
 version=1.0.93-alpha
 
-key=oy2plioasdcybgars6kq3afdd7jhjnluzfa4vpb63c47ki
+key=<key-here>
 
 pwd=`pwd`
 
