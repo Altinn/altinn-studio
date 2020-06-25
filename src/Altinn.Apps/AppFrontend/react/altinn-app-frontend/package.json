@@ -115,8 +115,8 @@
     "setupFilesAfterEnv": [
       "<rootDir>/setupTests.js"
     ],
-    "collectCoverageFrom": [
-      "src/**"
+    "coveragePathIgnorePatterns": [
+      "__tests__"
     ]
   }
 }
