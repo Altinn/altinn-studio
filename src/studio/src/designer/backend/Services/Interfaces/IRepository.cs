@@ -189,6 +189,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig);
 
         /// <summary>
+        /// Deletes the local repository for the user and makes a new clone of the repo
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repositoryName">the name of the local repository to reset</param>
+        /// <returns>True if the reset was successful, otherwise false.</returns>
+        bool ResetLocalRepository(string org, string repositoryName);
+
+        /// <summary>
         ///  Deletes an app folder from disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

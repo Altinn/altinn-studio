@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.0.10-alpha
+version=1.0.93-alpha
 
 key=<key-here>
 
