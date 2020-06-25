@@ -1,20 +1,20 @@
 /* eslint-disable max-len */
 
-import { createMuiTheme, createStyles, Grid, Typography, withStyles } from '@material-ui/core';
+import { createMuiTheme, createStyles, Grid, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
-import AltinnInputField from 'app-shared/components/AltinnInputField';
-import AltinnPopper from 'app-shared/components/AltinnPopper';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ICommit, IRepository } from '../../../types/global';
 import handleServiceInformationActionDispatchers from '../handleServiceInformationDispatcher';
+import HandleMergeConflictDispatchers from '../../handleMergeConflict/handleMergeConflictDispatcher';
+import MainContent from './MainContent';
+import SideMenuContent from './SideMenuContent';
+import { getRepoStatusUrl } from '../../../utils/urlHelper';
 
-import classNames = require('classnames');
 export interface IAdministrationComponentProvidedProps {
   classes: any;
 }
@@ -52,8 +52,12 @@ const styles = createStyles({
     fontSize: 20,
     fontWeight: 500,
   },
+  sidebarHeaderSecond: {
+    marginTop: 36,
+  },
   sidebarInfoText: {
     fontSize: 16,
+    marginBottom: 12,
   },
   iconStyling: {
     fontSize: 35,
@@ -137,6 +141,7 @@ export class AdministrationComponent extends
     handleServiceInformationActionDispatchers.fetchServiceConfig(
       `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
     );
+    HandleMergeConflictDispatchers.fetchRepoStatus(getRepoStatusUrl(), org, app);
   }
 
   public onServiceNameChanged = (event: any) => {
@@ -196,96 +201,34 @@ export class AdministrationComponent extends
     }
   }
 
-  public renderSideMenuContent = (): JSX.Element => {
-    const { classes } = this.props;
+  public RenderMainContent = () => {
     return (
-      <>
-        <Typography className={classes.sidebarHeader}>
-          {getLanguageFromKey('general.service_owner', this.props.language)}
-        </Typography>
-        <Typography className={classes.sidebarInfoText}>
-          {getLanguageFromKey('administration.service_owner_is', this.props.language)}
-        </Typography>
-        <Typography className={classNames(classes.sidebarServiceOwner, classes.sidebarInfoText)}>
-          <img
-            src={this.props.service.owner.avatar_url}
-            className={classNames(classes.avatar)}
-            alt=''
-          /> {this.props.service.owner.full_name || this.props.service.owner.login}
-        </Typography>
-        {this.props.initialCommit &&
-          <Typography className={classNames(classes.sidebarCreatedBy)}>
-            {/* tslint:disable-next-line:max-line-length */}
-            {getLanguageFromKey('administration.created_by', this.props.language)} {formatNameAndDate(this.props.initialCommit.author.name, this.props.service.created_at)}
-          </Typography>
-        }
-      </>
+      <MainContent
+        editServiceName={this.state.editServiceName}
+        handleEditServiceName={this.handleEditServiceName}
+        language={this.props.language}
+        onBlurServiceDescription={this.onBlurServiceDescription}
+        onBlurServiceId={this.onBlurServiceId}
+        onBlurServiceName={this.onBlurServiceName}
+        onServiceDescriptionChanged={this.onServiceDescriptionChanged}
+        onServiceIdChanged={this.onServiceIdChanged}
+        onServiceNameChanged={this.onServiceNameChanged}
+        service={this.props.service}
+        serviceDescription={this.state.serviceDescription}
+        serviceId={this.state.serviceId}
+        serviceName={this.state.serviceName}
+        serviceNameAnchorEl={this.state.serviceNameAnchorEl}
+      />
     );
   }
 
-  public renderMainContent = (): JSX.Element => {
-    const { classes } = this.props;
+  public RenderSideMenuContent = () => {
     return (
-      <>
-        <div className={classes.marginBottom_24}>
-          <AltinnInputField
-            id='administrationInputServicename'
-            onChangeFunction={this.onServiceNameChanged}
-            inputHeader={getLanguageFromKey('general.service_name', this.props.language)}
-            // tslint:disable-next-line:max-line-length
-            inputDescription={getLanguageFromKey('administration.service_name_administration_description', this.props.language)}
-            inputValue={this.state.serviceName}
-            onBlurFunction={this.onBlurServiceName}
-            btnText={getLanguageFromKey('general.edit', this.props.language)}
-            onBtnClickFunction={this.handleEditServiceName}
-            isDisabled={!this.state.editServiceName}
-            focusOnComponentDidUpdate={this.state.editServiceName}
-            inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-            inputFieldStyling={this.state.editServiceName ?
-              { background: theme.altinnPalette.primary.white } : null}
-          />
-        </div>
-        <AltinnPopper
-          anchorEl={this.state.serviceNameAnchorEl}
-          message={getLanguageFromKey('administration.service_name_empty_message', this.props.language)}
-        />
-        <div className={classes.marginBottom_24}>
-          <AltinnInputField
-            id='administrationInputServiceid'
-            onChangeFunction={this.onServiceIdChanged}
-            inputHeader={getLanguageFromKey('administration.service_id', this.props.language)}
-            // tslint:disable-next-line:max-line-length
-            inputDescription={getLanguageFromKey('administration.service_id_description', this.props.language)}
-            inputValue={this.state.serviceId}
-            onBlurFunction={this.onBlurServiceId}
-            inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-          />
-        </div>
-        <div className={classes.marginBottom_24}>
-          <AltinnInputField
-            id='administrationInputReponame'
-            inputHeader={getLanguageFromKey('general.service_saved_name', this.props.language)}
-            // tslint:disable-next-line:max-line-length
-            inputDescription={getLanguageFromKey('administration.service_saved_name_administration_description', this.props.language)}
-            inputValue={this.props.service ? this.props.service.name : ''}
-            isDisabled={true}
-            inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-          />
-        </div>
-        <div className={classes.marginBottom_24}>
-          <AltinnInputField
-            id='administrationInputDescription'
-            onChangeFunction={this.onServiceDescriptionChanged}
-            inputHeader={getLanguageFromKey('administration.service_comment', this.props.language)}
-            // tslint:disable-next-line:max-line-length
-            inputDescription={getLanguageFromKey('administration.service_comment_description', this.props.language)}
-            textAreaRows={7}
-            inputValue={this.state.serviceDescription}
-            onBlurFunction={this.onBlurServiceDescription}
-            inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-          />
-        </div>
-      </>
+      <SideMenuContent
+        initialCommit={this.props.initialCommit}
+        language={this.props.language}
+        service={this.props.service}
+      />
     );
   }
 
@@ -293,7 +236,7 @@ export class AdministrationComponent extends
     const { classes } = this.props;
 
     return (
-      <div>
+      <div data-testid='administration-container'>
         {this.props.service &&
         this.props.serviceName !== null &&
         this.props.serviceDescription !== null &&
@@ -303,10 +246,10 @@ export class AdministrationComponent extends
               <div className={this.props.classes.versionControlHeaderMargin}>
                 <VersionControlHeader language={this.props.language} />
               </div>}
-            sideMenuChildren={this.renderSideMenuContent()}
+            sideMenuChildren={<this.RenderSideMenuContent />}
             header={getLanguageFromKey('administration.administration', this.props.language)}
           >
-            {this.renderMainContent()}
+            <this.RenderMainContent />
           </AltinnColumnLayout>
           :
           <Grid container={true}>
@@ -317,6 +260,7 @@ export class AdministrationComponent extends
     );
   }
 }
+
 const mapStateToProps = (
   state: IServiceDevelopmentState,
   props: IAdministrationComponentProvidedProps,

@@ -5,6 +5,7 @@ import * as RepoStatusActionTypes from './repoStatusActionTypes';
 
 export interface IRepoStatusState {
   branch: IBranch;
+  resettingLocalRepo: boolean;
 }
 
 export interface IBranch {
@@ -15,6 +16,7 @@ const initialState: IRepoStatusState = {
   branch: {
     master: null,
   },
+  resettingLocalRepo: false,
 };
 
 const repoStatusReducer: Reducer<IRepoStatusState> = (
@@ -25,7 +27,6 @@ const repoStatusReducer: Reducer<IRepoStatusState> = (
     return state;
   }
   switch (action.type) {
-
     case RepoStatusActionTypes.GET_MASTER_REPO_STATUS_FULFILLED: {
       const { result } = action as GetRepoStatusActions.IGetMasterRepoStatusFulfilled;
       return update<IRepoStatusState>(state, {
@@ -33,6 +34,23 @@ const repoStatusReducer: Reducer<IRepoStatusState> = (
           master: {
             $set: result,
           },
+        },
+      });
+    }
+
+    case RepoStatusActionTypes.RESET_LOCAL_REPO: {
+      return update<IRepoStatusState>(state, {
+        resettingLocalRepo: {
+          $set: true,
+        },
+      });
+    }
+
+    case RepoStatusActionTypes.RESET_LOCAL_REPO_FULFILLED:
+    case RepoStatusActionTypes.RESET_LOCAL_REPO_REJECTED: {
+      return update<IRepoStatusState>(state, {
+        resettingLocalRepo: {
+          $set: false,
         },
       });
     }

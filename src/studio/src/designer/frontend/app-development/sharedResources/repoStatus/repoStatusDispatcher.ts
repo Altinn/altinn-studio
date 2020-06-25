@@ -1,16 +1,20 @@
 /* tslint:disable:max-line-length */
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
-import * as RepoStatusActions from './get/getMasterRepoStatusActions';
+import * as GetRepoStatusActions from './get/getMasterRepoStatusActions';
+import * as ResetLocalRepoActions from './reset/resetLocalRepoActions';
 
 /**
  * Define a interface describing the the different Actions available
  * and which datamodel those actions expect.
  */
 export interface IRepoStatusDispatchers extends ActionCreatorsMapObject {
-  getMasterRepoStatus: (org: string, repo: string) => RepoStatusActions.IGetMasterRepoStatus;
-  getMasterRepoStatusFulfilled: (result: any) => RepoStatusActions.IGetMasterRepoStatusFulfilled;
-  getMasterRepoStatusRejected: (result: Error) => RepoStatusActions.IGetMasterRepoStatusRejected;
+  getMasterRepoStatus: (org: string, repo: string) => GetRepoStatusActions.IGetMasterRepoStatus;
+  getMasterRepoStatusFulfilled: (result: any) => GetRepoStatusActions.IGetMasterRepoStatusFulfilled;
+  getMasterRepoStatusRejected: (result: Error) => GetRepoStatusActions.IGetMasterRepoStatusRejected;
+  resetLocalRepo: (org: string, repo: string) => ResetLocalRepoActions.IResetLocalRepo;
+  resetLocalRepoFulfilled: (result: any) => ResetLocalRepoActions.IResetLocalRepoFulfilled;
+  resetLocalRepoRejected: (result: Error) => ResetLocalRepoActions.IResetLocalRepoRejected;
 }
 
 /**
@@ -18,9 +22,12 @@ export interface IRepoStatusDispatchers extends ActionCreatorsMapObject {
  */
 
 const actions: IRepoStatusDispatchers = {
-  getMasterRepoStatus: RepoStatusActions.getMasterRepoStatusAction,
-  getMasterRepoStatusFulfilled: RepoStatusActions.getMasterRepoStatusFulfilledAction,
-  getMasterRepoStatusRejected: RepoStatusActions.getMasterRepoStatusRejectedAction,
+  getMasterRepoStatus: GetRepoStatusActions.getMasterRepoStatusAction,
+  getMasterRepoStatusFulfilled: GetRepoStatusActions.getMasterRepoStatusFulfilledAction,
+  getMasterRepoStatusRejected: GetRepoStatusActions.getMasterRepoStatusRejectedAction,
+  resetLocalRepo: ResetLocalRepoActions.resetLocalRepoAction,
+  resetLocalRepoFulfilled: ResetLocalRepoActions.resetLocalRepoFulfilledAction,
+  resetLocalRepoRejected: ResetLocalRepoActions.resetLocalRepoRejectedAction,
 };
 
 /**
