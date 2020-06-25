@@ -17,7 +17,8 @@ const level2App = __ENV.level2app;
 export const options = {
     thresholds:{
         "errors": ["count<1"]
-    }
+    },
+    setupTimeout: '1m'
 };
 
 //Function to setup data and return userData

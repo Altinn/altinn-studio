@@ -40,7 +40,8 @@ const usersCount = users.length;
 export const options = {
     thresholds:{
         "errors": ["count<1"]
-    }
+    },
+    setupTimeout: '1m'
 };
 
 //setup functions creates an array of attachment data based on the distribution percentage and total iteration count
