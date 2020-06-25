@@ -7,8 +7,11 @@ using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Helpers.Extensions;
 using Altinn.Platform.Authorization.Repositories.Interface;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
 {
@@ -21,24 +24,42 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private readonly string orgAttributeId = "urn:altinn:org";
         private readonly string appAttributeId = "urn:altinn:app";
         private readonly IPolicyRepository _repository;
+        private readonly IMemoryCache _memoryCache;
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyRetrievalPoint"/> class.
         /// </summary>
         /// <param name="policyRepository">The policy Repository..</param>
-        public PolicyRetrievalPoint(IPolicyRepository policyRepository)
+        /// <param name="memoryCache">The cache handler </param>
+        /// <param name="settings">The app settings</param>
+        public PolicyRetrievalPoint(IPolicyRepository policyRepository, IMemoryCache memoryCache, IOptions<GeneralSettings> settings)
         {
             _repository = policyRepository;
+            _memoryCache = memoryCache;
+            _generalSettings = settings.Value;
         }
 
         /// <inheritdoc/>
         public async Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
         {
             string policyPath = GetPolicyPath(request);
-            using (Stream policyStream = await _repository.GetPolicyAsync(policyPath))
+            if (!_memoryCache.TryGetValue(policyPath, out XacmlPolicy policy))
             {
-                return (policyStream.Length > 0) ? ParsePolicy(policyStream) : null;
+                // Key not in cache, so get data.
+                using (Stream policyStream = await _repository.GetPolicyAsync(policyPath))
+                {
+                    policy = (policyStream.Length > 0) ? ParsePolicy(policyStream) : null;
+                }
+
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+               .SetPriority(CacheItemPriority.High)
+               .SetAbsoluteExpiration(new TimeSpan(0, _generalSettings.PolicyCacheTimeout, 0));
+
+                _memoryCache.Set(policyPath, policy, cacheEntryOptions);
             }
+
+            return policy;
         }
 
         /// <inheritdoc/>
