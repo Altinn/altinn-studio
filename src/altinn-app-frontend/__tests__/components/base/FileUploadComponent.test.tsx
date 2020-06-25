@@ -1,13 +1,16 @@
+/* eslint-disable no-undef */
+/* eslint-disable indent */
 // /* tslint:disable:jsx-wrap-multiline */
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { bytesInOneMB, FileUploadComponent, IFileUploadProps } from '../../../src/components/base/FileUploadComponent';
 import { render } from '@testing-library/react';
-// import { mapAttachmentListToAttachments } from '../../../src/utils/attachment';
+import { bytesInOneMB, FileUploadComponent, IFileUploadProps } from '../../../src/components/base/FileUploadComponent';
+import { getFileEnding, removeFileEnding } from '../../../src/utils/attachment';
 import { getFileUploadComponentValidations } from '../../../src/utils/formComponentUtils';
+
 
 describe('>>> components/base/FileUploadComponent.tsx', () => {
   let mockDisplayMode: string;
@@ -209,7 +212,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         />
       </Provider>
     );
-    expect(wrapper.find('#altinn-drop-zone-' + mockId)).toHaveLength(0);
+    expect(wrapper.find(`#altinn-drop-zone-${mockId}`)).toHaveLength(0);
   });
 
   it('+++ getFileUploadComponentValidations should return correct validation', () => {
@@ -223,12 +226,24 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
       },
     };
     let validation = getFileUploadComponentValidations('upload', mockLanguage.language);
-    expect(validation).toEqual
-      ({ simpleBinding: { errors: ['Noe gikk galt under opplastingen av filen, prøv igjen senere'], warnings: [] } });
+    expect(validation).toEqual({ simpleBinding: { errors: ['Noe gikk galt under opplastingen av filen, prøv igjen senere'], warnings: [] } });
 
     validation = getFileUploadComponentValidations('delete', mockLanguage.language);
-    expect(validation).toEqual
-      ({ simpleBinding: { errors: ['Noe gikk galt under slettingen av filen, prøv igjen senere.'], warnings: [] } });
+    expect(validation).toEqual({ simpleBinding: { errors: ['Noe gikk galt under slettingen av filen, prøv igjen senere.'], warnings: [] } });
+  });
+
+  it('+++ should get file ending correctly', () => {
+    expect(getFileEnding('test.jpg')).toEqual('.jpg');
+    expect(getFileEnding('navn.med.punktum.xml')).toEqual('.xml');
+    expect(getFileEnding('navnutenfilendelse')).toEqual('');
+    expect(getFileEnding(null)).toEqual('');
+  });
+
+  it('+++ should remove file ending correctly', () => {
+    expect(removeFileEnding('test.jpg')).toEqual('test');
+    expect(removeFileEnding('navn.med.punktum.xml')).toEqual('navn.med.punktum');
+    expect(removeFileEnding('navnutenfilendelse')).toEqual('navnutenfilendelse');
+    expect(removeFileEnding(null)).toEqual('');
   });
 
 //   it('+++ should not show file upload when max files is reached', () => {
@@ -268,5 +283,3 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
     );
   }
 });
-
-
