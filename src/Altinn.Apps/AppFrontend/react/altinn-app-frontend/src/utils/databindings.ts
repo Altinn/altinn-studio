@@ -29,8 +29,8 @@ export interface IData {
 }
 
 /**
- * Convertes JSON to the flat datamodel used in Redux data store
- * @param data The formdata as JSON
+ * Converts JSON to the flat datamodel used in Redux data store
+ * @param data The form data as JSON
  */
 export function convertModelToDataBinding(data: any): any {
   return flattenObject(data);
@@ -63,8 +63,8 @@ export function getKeyWithoutIndex(keyWithIndex: string): string {
 }
 
 /**
- * Convertes JSON to the flat datamodel used in Redux data store
- * @param data The formdata as JSON
+ * Converts JSON to the flat datamodel used in Redux data store
+ * @param data The form data as JSON
  */
 export function flattenObject(data: any, index: boolean = false): any {
   const toReturn: IData = {};
@@ -94,9 +94,8 @@ export function flattenObject(data: any, index: boolean = false): any {
         }
       }
     } else {
-      toReturn[i] = data[i];
+      toReturn[i] = data[i].toString();
     }
-
   }
   return toReturn;
 }
