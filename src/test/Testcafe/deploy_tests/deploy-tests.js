@@ -6,7 +6,7 @@ import DesignerPage from '../page-objects/designerPage';
 
 let app = new App();
 let designer = new DesignerPage();
-let environment = process.env.ENV;
+let environment = (process.env.ENV).toLowerCase();
 
 fixture('Deploy of app to a test environment tests')
   .page(app.baseUrl)
@@ -61,12 +61,12 @@ fixture('Deploy of app to a test environment tests')
       .expect(designer.deployVersionDropDown.child(0).innerText).contains(newBuildVersion.toString(),"Fail",{timeout: 300000})
       .expect(designer.deployVersionOptions.child().count).eql(nAvailableVersions + 1)
       .click (designer.deployVersionOptions.child(0))
-      .click(designer.deployButtonAt22)
+      .click(designer.deployButton)
       .expect(designer.deployConfirm.visible).ok()
       .click(designer.deployConfirm)
       .expect(designer.deployStatus.visible).ok({timeout: 300000})
-      .expect(designer.at22DeployTable.visible).ok({timeout: 300000})
-      .expect(designer.at22DeployTable.innerText).contains(newBuildVersion.toString(),"Fail",{timeout: 400000}); //deploy succeeded
+      .expect(designer.deployTable.visible).ok({timeout: 300000})
+      .expect(designer.deployTable.innerText).contains(newBuildVersion.toString(),"Fail",{timeout: 400000}); //deploy succeeded
 });
 
 //Tests that an app build shall fail when there is a fail in an app file
@@ -124,7 +124,7 @@ test('User does not have write access to app, and cannot deploy', async () => {
     .expect(designer.deployVersionDropDown.visible).ok()
     .click(designer.deployVersionDropDown)
     .click(designer.deployVersionOptions.child(0))
-    .click(designer.deployButtonAt22)
+    .click(designer.deployButton)
     .expect(designer.deployConfirm.visible).ok()
     .click(designer.deployConfirm)
     .expect(Selector('div').withText('Teknisk feilkode 403').visible).ok({timeout: 60000});

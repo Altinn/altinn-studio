@@ -6,7 +6,7 @@ import config from '../config.json';
 
 let app = new App();
 let designer = new DesignerPage();
-let environment = process.env.ENV;
+let environment = (process.env.ENV).toLowerCase();
 
 fixture('GUI service designer tests')
   .page(app.baseUrl)

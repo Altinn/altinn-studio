@@ -6,7 +6,7 @@ import config from '../config.json'
 
 let app = new App();
 let dash = new DashBoard();
-let environment = process.env.ENV;
+let environment = (process.env.ENV).toLowerCase();
 
 fixture('Creating/Reading/Updating/Deleting App')
   .page(app.baseUrl)  

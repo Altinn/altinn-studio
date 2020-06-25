@@ -1,4 +1,5 @@
 import { Selector } from 'testcafe';
+const environment = (process.env.ENV).toLowerCase();
 
 export default class DesignerPage {
   constructor() {    
@@ -71,11 +72,11 @@ export default class DesignerPage {
     this.versionDescription = Selector('div > textarea');
     this.buildButton = Selector('button').withExactText('Bygg versjon');
     this.latestBuilds = Selector('.MuiGrid-root').withText('Tidligere bygg av applikasjonen').parent(0).sibling(3);
-    this.deployButtonAt22 = Selector('#deploy-button-at22');
-    this.deployVersionDropDown = Selector('#deploy-select-at22');
+    this.deployButton = (environment == 'prod') ? Selector('#deploy-button-production'): Selector('#deploy-button-at22');
+    this.deployVersionDropDown = (environment == 'prod') ? Selector('#deploy-select-production') : Selector('#deploy-select-at22');
     this.noDeployVersionAvailable = Selector('div').withText('Du har ingen versjoner å deploye');
     this.deployVersionOptions = Selector('.select__menu-list');
-    this.at22DeployTable = Selector('#deploy-history-table-at22');
+    this.deployTable = (environment == 'prod') ? Selector('#deploy-history-table-production') : Selector('#deploy-history-table-at22');
     this.deployConfirm = Selector("#deployPopover");
     this.deployStatus = Selector('p').withText('deployer versjon');
 
