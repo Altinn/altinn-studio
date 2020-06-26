@@ -17,7 +17,7 @@ fixture.skip('Regression tests of apps in runtime')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Testdata and other testing context
-    t.ctx.serviceName = "runtime";
+    t.ctx.appName = "runtime";
     t.ctx.tjenesteOppdatert = "Tjenesten din er oppdatert til siste versjon";
     t.ctx.instanceID = "44b3b0f2-b630-4c65-9a63-3cc5f50053c6";
     t.ctx.formFillComplete = "Skjemaet er nå fullført og sendt inn.";
@@ -151,10 +151,10 @@ test('Attachment dropdown and download on receipt page', async () => {
     .clearUpload(runtime.fileDropComponent)    
     .setFilesToUpload(runtime.fileDropComponent, [
       '../testdata/ServiceModel.xsd',
-      '../testdata/ServiceModel2.xsd',
-      '../testdata/ServiceModel3.xsd',
-      '../testdata/ServiceModel4.xsd',
-      '../testdata/ServiceModel5.xsd'
+      '../testdata/ServiceModel.xsd',
+      '../testdata/ServiceModel.xsd',
+      '../testdata/ServiceModel.xsd',
+      '../testdata/ServiceModel.xsd'
     ])
   
   var files = await runtime.fileUploadChecks;

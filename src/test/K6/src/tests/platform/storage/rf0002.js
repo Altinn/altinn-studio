@@ -20,7 +20,8 @@ const usersCount = users.length;
 export const options = {
     thresholds:{
         "errors": ["count<1"]
-    }
+    },
+    setupTimeout: '1m'
 };
 
 

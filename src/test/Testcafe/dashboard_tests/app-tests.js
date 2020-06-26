@@ -6,13 +6,13 @@ import config from '../config.json'
 
 let app = new App();
 let dash = new DashBoard();
-let environment = process.env.ENV;
+let environment = (process.env.ENV).toLowerCase();
 
 fixture('Creating/Reading/Updating/Deleting App')
   .page(app.baseUrl)  
   .beforeEach(async t => {
-    t.ctx.newServiceName = "testcafe04";
-    t.ctx.existingService = "autotestdeploy";
+    t.ctx.newAppName = "testcafe04";
+    t.ctx.existingApp = "autotestdeploy";
     t.ctx.deltMessage = "Du har delt dine endringer";
     t.ctx.syncMessage = "Endringene er validert";
     t.ctx.ingenSkriveApper = "Vi fant ingen apper som du har skriverettigheter til";
@@ -24,14 +24,14 @@ fixture('Creating/Reading/Updating/Deleting App')
 
 test('Cannot create new app, as app name already exists', async () => {
   await t
-    .click(dash.newServiceButton)
+    .click(dash.newAppButton)
     .click(dash.tjenesteEier)        
-    .expect(dash.serviceOwnerList.withExactText('Testdepartementet').exists).ok()
-    .click(dash.serviceOwnerList.withExactText('Testdepartementet'))
+    .expect(dash.appOwnerList.withExactText('Testdepartementet').exists).ok()
+    .click(dash.appOwnerList.withExactText('Testdepartementet'))
     .click(dash.appName)
-    .typeText(dash.appName, t.ctx.existingService)    
+    .typeText(dash.appName, t.ctx.existingApp)    
     .click(dash.opprettButton)
-    .expect(dash.serviceExistsDialogue.exists).ok()
+    .expect(dash.appExistsDialogue.exists).ok()
 });
 
 test('Error messages when app does not exist', async () => {
@@ -39,9 +39,9 @@ test('Error messages when app does not exist', async () => {
   appName = appName.split("/");
   appName = appName[1];
   await t
-    .click(dash.serviceSearch)
+    .click(dash.appSearch)
     .expect(Selector('h3').withExactText(appName).exists).ok({ timeout:120000 }) //To wait until the apps are loaded
-    .typeText(dash.serviceSearch, "cannotfindapp")
+    .typeText(dash.appSearch, "cannotfindapp")
     .pressKey("enter")
     .expect(Selector('p').withText(t.ctx.ingenSkriveApper)).ok({ timeout:120000 })
     .expect(Selector('p').withText(t.ctx.ingenLeseApper)).ok({ timeout:120000 })
