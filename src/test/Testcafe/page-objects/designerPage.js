@@ -103,9 +103,9 @@ export default class DesignerPage {
     this.readMoreAltinnDocs = Selector('a').withExactText('Lær mer på Altinn Studio docs');
     this.dataModellLink = Selector('a').withExactText('Gå til datamodell side');
 
-    //serviceLogicmenu
-    this.openserviceLogicmenu = Selector('#serviceLogicmenu').find('button');
-    this.serviceLogicmenu = Selector('#serviceLogicmenu');
+    //App Logic menu
+    this.openAppLogicmenu = Selector('#serviceLogicmenu').find('button');
+    this.appLogicmenu = Selector('#serviceLogicmenu');
     this.connectRulesButton = Selector('p').withExactText('Regler').nextSibling('button');
     this.connectConditionalRendering = Selector('p').withExactText('Betingede renderingstilkoblinger').nextSibling('button');
     this.addedRules = Selector('.a-topTasks').find('button');
@@ -127,6 +127,12 @@ export default class DesignerPage {
     this.renderingConnectionModal = Selector('span').withExactText('Konfigurer betingede renderingsregler');
     this.conditionalRulesDropDown = Selector('select').withAttribute('name', 'selectConditionalRule');
     this.conditionalRulesList = this.conditionalRulesDropDown.find('option');
+
+    //Delete local app changes 
+    this.deleteLocalChanges = Selector('#reset-repo-button');
+    this.deleteAppRepoName = Selector('#delete-repo-name');
+    this.confirmDeleteLocalChanges = Selector('#confirm-reset-repo-button');
+
   };   
 
   //Function to delete all the selected components in the designer page of an app
@@ -150,7 +156,7 @@ async pushAndCommitChanges (t) {
     .click(this.delEndringer)
     .expect(this.commitMessageBox.exists).ok({ timeout: 60000 })
     .click(this.commitMessageBox)
-    .typeText(this.commitMessageBox, "Sync service automated test", { replace: true })
+    .typeText(this.commitMessageBox, "Sync app automated test", { replace: true })
     .expect(this.validerEndringer.exists).ok({ timeout: 60000 })
     .click(this.validerEndringer)
     .expect(this.delEndringerBlueButton.exists).ok({ timeout: 180000 })
