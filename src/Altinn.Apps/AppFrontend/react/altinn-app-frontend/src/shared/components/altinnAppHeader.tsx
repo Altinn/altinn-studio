@@ -7,10 +7,12 @@ import { getLanguageFromKey, returnUrlToMessagebox } from 'altinn-shared/utils';
 import { IProfile } from 'altinn-shared/types';
 import { returnUrlToAllSchemas, returnUrlToProfile } from 'altinn-shared/utils/urlHelper';
 import { renderParty } from '../resources/utils/party';
+import { IPartyState } from '../resources/party/partyReducers';
 
 export interface IHeaderProps {
   classes: any;
   language: any;
+  partyState: IPartyState
   profile: IProfile;
   type?: string;
 }
@@ -124,7 +126,7 @@ const AltinnAppHeader = (props: IHeaderProps) => {
                 <li
                   className={classes.headerLink}
                 >
-                  <a href={returnUrlToMessagebox(window.location.origin)}>
+                  <a href={returnUrlToMessagebox(window.location.origin, party.partyId, props.partyState.hasBeenChanged)}>
                     {getLanguageFromKey('instantiate.inbox', props.language)}
                   </a>
                 </li>
@@ -138,7 +140,7 @@ const AltinnAppHeader = (props: IHeaderProps) => {
                 <li
                   className={classes.headerLink}
                 >
-                  <a href={returnUrlToProfile(window.location.origin)}>
+                  <a href={returnUrlToProfile(window.location.origin, party.partyId, props.partyState.hasBeenChanged)}>
                     {getLanguageFromKey('instantiate.profile', props.language)}
                   </a>
                 </li>

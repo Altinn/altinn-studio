@@ -27,20 +27,32 @@ const prodRegex = new RegExp(baseHostnameAltinnProd);
 const testRegex = new RegExp(baseHostnameAltinnTest);
 const localRegex = new RegExp(baseHostnameAltinnLocal);
 
-export const returnUrlToMessagebox = (url: string): string => {
+// eslint-disable-next-line max-len
+export const returnUrlToMessagebox = (url: string, partyId?: string | undefined, partyHasChanged?: boolean | false) : string => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
   }
-  return baseUrl + pathToMessageBox;
+
+  if (partyId === undefined || !partyHasChanged) {
+    return baseUrl + pathToMessageBox;
+  }
+
+  return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${pathToMessageBox}&R=${partyId}`;
 };
 
-export const returnUrlToProfile = (url: string): string => {
+// eslint-disable-next-line max-len
+export const returnUrlToProfile = (url: string, partyId?: string | undefined, partyHasChanged?: boolean | false): string => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
   }
-  return baseUrl + pathToProfile;
+
+  if (partyId === undefined || !partyHasChanged) {
+    return baseUrl + pathToProfile;
+  }
+
+  return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${pathToProfile}&R=${partyId}`;
 };
 
 export const returnUrlToAllSchemas = (url: string): string => {
