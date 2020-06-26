@@ -143,15 +143,15 @@ namespace Altinn.Platform.Storage.Helpers
                 return (lastChangedBy, lastChanged);
             }
 
-            DateTime lastChanged = (DateTime)instance.LastChanged;
-            newerDataElements.ForEach((Action<DataElement>)((DataElement dataElement) =>
+            lastChanged = (DateTime)instance.LastChanged;
+            newerDataElements.ForEach((DataElement dataElement) =>
             {
                 if (dataElement.LastChanged > lastChanged)
                 {
                     lastChangedBy = dataElement.LastChangedBy;
                     lastChanged = (DateTime)dataElement.LastChanged;
                 }
-            }));
+            });
 
             return (lastChangedBy, lastChanged);
         }
