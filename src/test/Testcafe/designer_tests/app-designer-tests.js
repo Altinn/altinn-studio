@@ -215,7 +215,7 @@ test('Validation of missing datamodel in clone modal', async () => {
 });
 
 //Test to delete the local changes in stuido and reset the repo to the latest version from the repo
-test.only('Delete local app changes', async () => {
+test('Delete local app changes', async () => {
   var appName = config[environment].designerApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
