@@ -1,3 +1,5 @@
+/* eslint-disable import/no-named-as-default */
+/* eslint-disable react/prop-types */
 import { Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, MuiThemeProvider, WithStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
@@ -34,13 +36,15 @@ const styles = createStyles({
   tableRow: {
     height: 'auto',
   },
-    paddingTop24: {
+  paddingTop24: {
     paddingTop: '2.4rem',
+  },
+  wordBreak: {
+    wordBreak: 'break-word',
   },
 });
 
 export function ReceiptComponent(props: IReceiptComponentProps) {
-
   // renders attachment groups. Always shows default group first
   function RenderAttachmentGroupings(): JSX.Element {
     const groupings = props.attachmentGroupings;
@@ -50,9 +54,9 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
       return null;
     }
 
-    if (groupings['null']) {
+    if (groupings.null) {
       // we have attachments that does not have a grouping. Render them first with default title
-      groups.push(getAltinnCollapsibleAttachments(groupings['null'], props.collapsibleTitle))
+      groups.push(getAltinnCollapsibleAttachments(groupings.null, props.collapsibleTitle));
     }
 
     Object.keys(groupings || {}).forEach((title: string) => {
@@ -63,14 +67,14 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
 
     return (
       <>
-        {groups.map((element: JSX.Element) => {return element})}
+        {groups.map((element: JSX.Element) => { return element; })}
       </>
     );
   }
 
   function getAltinnCollapsibleAttachments(attachments: IAttachment[], title: string) {
     return (
-        <AltinnCollapsibleAttachments
+      <AltinnCollapsibleAttachments
         attachments={attachments}
         collapsible={useMediaQuery('print') ? false : Boolean(attachments.length > 4)}
         title={title}
@@ -81,7 +85,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
   }
 
   return (
-    <React.Fragment>
+    <div className={props.classes.wordBreak}>
       <MuiThemeProvider theme={theme}>
         <Typography variant='h2'>
           {props.title}
@@ -114,7 +118,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         {props.attachmentGroupings && <RenderAttachmentGroupings/>}
 
       </MuiThemeProvider>
-    </React.Fragment>
+    </div>
   );
 }
 
