@@ -1,3 +1,4 @@
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
@@ -100,6 +101,10 @@ namespace LocalTest.Services.Storage.Implementation
 
             instance.Id = instanceId;
             instance.Data = await _dataRepository.ReadAll(instanceGuid);
+
+            (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
+            instance.LastChanged = lastChanged;
+            instance.LastChangedBy = lastChangedBy;
         }
 
         /// <summary>

@@ -61,6 +61,9 @@ namespace App.IntegrationTests.Mocks.Services
             {
                 instance.Data = GetDataElements(org, app, instanceOwnerId, instanceId);
             }
+
+            (instance.LastChangedBy, instance.LastChanged) = FindLastChanged(instance);
+
             return Task.FromResult(instance);
         }
 
@@ -214,6 +217,38 @@ namespace App.IntegrationTests.Mocks.Services
             }
 
             return string.Empty;
+        }
+
+        private static (string LastChangedBy, DateTime? LastChanged) FindLastChanged(Instance instance)
+        {
+            string lastChangedBy = instance.LastChangedBy;
+            DateTime? lastChanged = instance.LastChanged;
+            if (instance.Data == null || instance.Data.Count == 0)
+            {
+                return (lastChangedBy, lastChanged);
+            }
+
+            List<DataElement> newerDataElements = instance.Data.FindAll(dataElement =>
+                dataElement.LastChanged != null
+                && dataElement.LastChangedBy != null
+                && dataElement.LastChanged > instance.LastChanged);
+
+            if (newerDataElements.Count == 0)
+            {
+                return (lastChangedBy, lastChanged);
+            }
+
+            lastChanged = (DateTime)instance.LastChanged;
+            newerDataElements.ForEach((DataElement dataElement) =>
+            {
+                if (dataElement.LastChanged > lastChanged)
+                {
+                    lastChangedBy = dataElement.LastChangedBy;
+                    lastChanged = (DateTime)dataElement.LastChanged;
+                }
+            });
+
+            return (lastChangedBy, lastChanged);
         }
     }
 }
