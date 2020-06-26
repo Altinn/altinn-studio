@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.Repository
     /// Repository operations for application instances.
     /// </summary>
     public class InstanceRepository : IInstanceRepository
-    {        
+    {
         private const string CollectionId = "instances";
         private const string PartitionKey = "/instanceOwner/partyId";
 
@@ -59,7 +59,7 @@ namespace Altinn.Platform.Storage.Repository
                 databaseUri,
                 documentCollection).GetAwaiter().GetResult();
 
-            _client.OpenAsync();                    
+            _client.OpenAsync();
         }
 
         /// <inheritdoc/>
@@ -553,7 +553,7 @@ namespace Altinn.Platform.Storage.Repository
         private async Task PostProcess(Instance instance)
         {
             Guid instanceGuid = Guid.Parse(instance.Id);
-            string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";            
+            string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
             instance.Id = instanceId;
             instance.Data = await _dataRepository.ReadAll(instanceGuid);
@@ -572,7 +572,7 @@ namespace Altinn.Platform.Storage.Repository
             foreach (Instance item in instances)
             {
                 await PostProcess(item);
-            }            
+            }
         }
 
         /// <summary>
