@@ -19,7 +19,8 @@ let instanceJson = open("../../../data/instance.json");
 export const options = {
     thresholds:{
       "errors": ["count<1"]
-    }
+    },
+    setupTimeout: '1m'
 };
 
 //Function to setup data and return AltinnstudioRuntime Token, instance and user details

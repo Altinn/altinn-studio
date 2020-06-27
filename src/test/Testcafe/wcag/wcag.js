@@ -84,7 +84,7 @@ test('Accessibility testing for dashboard page', async t => {
 test('Accessibility testing for new app modal', async t => {
 	await t
     .navigateTo(app.baseUrl)
-    .click(dashboard.newServiceButton)
+    .click(dashboard.newAppButton)
     .expect(dashboard.opprettButton.visible).ok({timeout: 60000});
 
   const axeContext = { exclude: [['img']] };
