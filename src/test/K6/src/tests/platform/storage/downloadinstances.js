@@ -23,7 +23,8 @@ const createdDateTime = __ENV.createddate;
 export const options = {
     thresholds:{
         "errors": ["count<1"]
-    }
+    },
+    setupTimeout: '3m'
 };
 
 //Function to authenticate a app owner, get all archived instances of an app and return data for the test

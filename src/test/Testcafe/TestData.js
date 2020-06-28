@@ -5,7 +5,7 @@ import config from './config';
 
 let app = new App();
 let loginPage = new LoginPage();
-let environment = process.env.ENV;
+let environment = (process.env.ENV).toLowerCase();
 
 //Role for an user who has rights to deploy an app to a test environment
 export const AutoTestUser = Role(app.baseUrl, async t => {

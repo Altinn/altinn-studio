@@ -114,6 +114,9 @@
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/setupTests.js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "__tests__"
     ]
   }
 }

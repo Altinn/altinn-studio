@@ -19,7 +19,7 @@ export const options = {
     thresholds:{
         "errors": ["count<1"]
     },
-    setupTimeout: '30s'
+    setupTimeout: '1m'
 };
 
 //Function to setup Login to user 1 and create an instance and login to user 2 to get the cookie values

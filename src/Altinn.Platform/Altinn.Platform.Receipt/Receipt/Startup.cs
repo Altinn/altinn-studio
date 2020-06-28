@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Receipt.Configuration;
+using Altinn.Platform.Receipt.Health;
 using Altinn.Platform.Receipt.Services;
 using Altinn.Platform.Receipt.Services.Interfaces;
 using Altinn.Platform.Telemetry;
@@ -73,6 +74,7 @@ namespace Altinn.Platform.Receipt
             _logger.LogInformation("Startup // ConfigureServices");
 
             services.AddControllersWithViews();
+            services.AddHealthChecks().AddCheck<HealthCheck>("receipt_health_check");
             GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
@@ -173,6 +175,7 @@ namespace Altinn.Platform.Receipt
                       {
                           controller = "Language",
                       });
+                  endpoints.MapHealthChecks("/health");
               });
         }
     }

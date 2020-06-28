@@ -5,6 +5,7 @@ using Altinn.Common.PEP.Authorization;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Constants;
+using Altinn.Platform.Authorization.Health;
 using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Repositories.Interface;
@@ -72,7 +73,8 @@ namespace Altinn.Platform.Authorization
         {
             _logger.LogInformation("Startup // ConfigureServices");
 
-            services.AddControllers().AddXmlSerializerFormatters(); 
+            services.AddControllers().AddXmlSerializerFormatters();
+            services.AddHealthChecks().AddCheck<HealthCheck>("authorization_health_check");
             services.AddSingleton(Configuration);
             services.AddSingleton<IParties, PartiesWrapper>();
             services.AddSingleton<IRoles, RolesWrapper>();
@@ -195,6 +197,7 @@ namespace Altinn.Platform.Authorization
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health");
             });
         }
     }

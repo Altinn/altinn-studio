@@ -1,4 +1,5 @@
 import { Selector } from 'testcafe';
+const environment = (process.env.ENV).toLowerCase();
 
 export default class DesignerPage {
   constructor() {    
@@ -71,11 +72,11 @@ export default class DesignerPage {
     this.versionDescription = Selector('div > textarea');
     this.buildButton = Selector('button').withExactText('Bygg versjon');
     this.latestBuilds = Selector('.MuiGrid-root').withText('Tidligere bygg av applikasjonen').parent(0).sibling(3);
-    this.deployButtonAt22 = Selector('#deploy-button-at22');
-    this.deployVersionDropDown = Selector('#deploy-select-at22');
+    this.deployButton = (environment == 'prod') ? Selector('#deploy-button-production'): Selector('#deploy-button-at22');
+    this.deployVersionDropDown = (environment == 'prod') ? Selector('#deploy-select-production') : Selector('#deploy-select-at22');
     this.noDeployVersionAvailable = Selector('div').withText('Du har ingen versjoner å deploye');
     this.deployVersionOptions = Selector('.select__menu-list');
-    this.at22DeployTable = Selector('#deploy-history-table-at22');
+    this.deployTable = (environment == 'prod') ? Selector('#deploy-history-table-production') : Selector('#deploy-history-table-at22');
     this.deployConfirm = Selector("#deployPopover");
     this.deployStatus = Selector('p').withText('deployer versjon');
 
@@ -102,9 +103,9 @@ export default class DesignerPage {
     this.readMoreAltinnDocs = Selector('a').withExactText('Lær mer på Altinn Studio docs');
     this.dataModellLink = Selector('a').withExactText('Gå til datamodell side');
 
-    //serviceLogicmenu
-    this.openserviceLogicmenu = Selector('#serviceLogicmenu').find('button');
-    this.serviceLogicmenu = Selector('#serviceLogicmenu');
+    //App Logic menu
+    this.openAppLogicmenu = Selector('#serviceLogicmenu').find('button');
+    this.appLogicmenu = Selector('#serviceLogicmenu');
     this.connectRulesButton = Selector('p').withExactText('Regler').nextSibling('button');
     this.connectConditionalRendering = Selector('p').withExactText('Betingede renderingstilkoblinger').nextSibling('button');
     this.addedRules = Selector('.a-topTasks').find('button');
@@ -126,6 +127,12 @@ export default class DesignerPage {
     this.renderingConnectionModal = Selector('span').withExactText('Konfigurer betingede renderingsregler');
     this.conditionalRulesDropDown = Selector('select').withAttribute('name', 'selectConditionalRule');
     this.conditionalRulesList = this.conditionalRulesDropDown.find('option');
+
+    //Delete local app changes 
+    this.deleteLocalChanges = Selector('#reset-repo-button');
+    this.deleteAppRepoName = Selector('#delete-repo-name');
+    this.confirmDeleteLocalChanges = Selector('#confirm-reset-repo-button');
+
   };   
 
   //Function to delete all the selected components in the designer page of an app
@@ -149,7 +156,7 @@ async pushAndCommitChanges (t) {
     .click(this.delEndringer)
     .expect(this.commitMessageBox.exists).ok({ timeout: 60000 })
     .click(this.commitMessageBox)
-    .typeText(this.commitMessageBox, "Sync service automated test", { replace: true })
+    .typeText(this.commitMessageBox, "Sync app automated test", { replace: true })
     .expect(this.validerEndringer.exists).ok({ timeout: 60000 })
     .click(this.validerEndringer)
     .expect(this.delEndringerBlueButton.exists).ok({ timeout: 180000 })
