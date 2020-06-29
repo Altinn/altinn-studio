@@ -27,6 +27,7 @@ describe('>>> features/altinnAppHeader.tsx', () => {
             middleName: null,
             lastName: 'Privatperson',
           },
+          partyId: '123456',
           organisation: null,
         },
       },
