@@ -3,7 +3,7 @@ Simple checkbox with 3 options
 ```tsx
 import {CheckboxContainerComponent} from './CheckboxesContainerComponent';
 import Legend from '../../features/form/components/Legend';
-import {nb} from '../../shared/resources/language/languages';
+import {nb} from '../../shared/resources/language/texts/nb';
 const dummyFunc = () => {return;}
 
 const legend = () => {
