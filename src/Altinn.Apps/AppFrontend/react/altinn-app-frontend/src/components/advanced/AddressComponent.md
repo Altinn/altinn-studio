@@ -1,7 +1,7 @@
 Address component: `simplified = true`
 
 ```tsx
-import {nb} from '../../shared/resources/language/languages';
+import {nb} from '../../shared/resources/language/texts/nb';
 import {getTextResource} from '../../utils/formComponentUtils';
 const dummyFunc = () => {return;}
 
