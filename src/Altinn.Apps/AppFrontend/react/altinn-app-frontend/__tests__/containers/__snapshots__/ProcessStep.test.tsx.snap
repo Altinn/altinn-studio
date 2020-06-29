@@ -330,6 +330,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
                       <i
                         aria-hidden="true"
                         className="fa fa-corp a-icon"
+                        style={null}
                       />
                     </div>
                     <h1
