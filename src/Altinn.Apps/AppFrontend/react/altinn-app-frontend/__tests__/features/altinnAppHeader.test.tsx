@@ -36,11 +36,11 @@ describe('>>> features/altinnAppHeader.tsx', () => {
 
   it('+++ should match snapshot', () => {
     const rendered = renderer.create(
-        <Header
-          type='partyChoice'
-          language={mockLanguage}
-          profile={mockProfile}
-        />,
+      <Header
+        type='partyChoice'
+        language={mockLanguage}
+        profile={mockProfile.profile}
+      />,
     );
     expect(rendered).toMatchSnapshot();
   });
