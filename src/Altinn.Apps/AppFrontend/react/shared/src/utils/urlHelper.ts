@@ -27,28 +27,26 @@ const prodRegex = new RegExp(baseHostnameAltinnProd);
 const testRegex = new RegExp(baseHostnameAltinnTest);
 const localRegex = new RegExp(baseHostnameAltinnLocal);
 
-// eslint-disable-next-line max-len
-export const returnUrlToMessagebox = (url: string, partyId?: string | undefined, partyHasChanged?: boolean | false) : string => {
+export const returnUrlToMessagebox = (url: string, partyId?: string | undefined) : string => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
   }
 
-  if (partyId === undefined || !partyHasChanged) {
+  if (partyId === undefined ) {
     return baseUrl + pathToMessageBox;
   }
 
   return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${pathToMessageBox}&R=${partyId}`;
 };
 
-// eslint-disable-next-line max-len
-export const returnUrlToProfile = (url: string, partyId?: string | undefined, partyHasChanged?: boolean | false): string => {
+export const returnUrlToProfile = (url: string, partyId?: string | undefined): string => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
   }
 
-  if (partyId === undefined || !partyHasChanged) {
+  if (partyId === undefined) {
     return baseUrl + pathToProfile;
   }
 

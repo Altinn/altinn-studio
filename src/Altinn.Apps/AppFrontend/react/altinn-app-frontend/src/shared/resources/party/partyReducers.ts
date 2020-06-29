@@ -9,14 +9,12 @@ import * as SelectPartyActionTypes from './selectParty/selectPartyActionTypes';
 export interface IPartyState {
   parties: IParty[];
   selectedParty: IParty;
-  hasBeenChanged: boolean;
   error: Error;
 }
 
 const initialState: IPartyState = {
   parties: null,
   selectedParty: null,
-  hasBeenChanged: false,
   error: null,
 };
 
@@ -47,9 +45,6 @@ const partyReducer: Reducer<IPartyState> = (
     case SelectPartyActionTypes.SELECT_PARTY_FULFILLED: {
       const { party } = action as ISelectPartyFulfilled;
       return update<IPartyState>(state, {
-        hasBeenChanged: {
-          $set: true,
-        },
         selectedParty: {
           $set: party,
         },
