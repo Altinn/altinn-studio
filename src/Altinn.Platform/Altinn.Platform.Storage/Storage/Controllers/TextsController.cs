@@ -15,17 +15,17 @@ namespace Altinn.Platform.Storage.Controllers
     /// </summary>
     [ApiController]
     [Route("storage/api/v1/applications/{org}/{app}/texts")]
-    public class TextController : ControllerBase
+    public class TextsController : ControllerBase
     {
         private readonly ITextRepository _textRepository;
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TextController"/> class.
+        /// Initializes a new instance of the <see cref="TextsController"/> class.
         /// </summary>
         /// <param name="textRepository">the text repository handler</param>
         /// <param name="logger">dependency injection of logger</param>
-        public TextController(ITextRepository textRepository, ILogger<TextController> logger)
+        public TextsController(ITextRepository textRepository, ILogger<TextsController> logger)
         {
             _textRepository = textRepository;
             _logger = logger;
