@@ -1,3 +1,4 @@
+/* eslint-disable import/first */
 /* eslint-disable react/no-array-index-key */
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -7,9 +8,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { FormLabel } from '@material-ui/core';
-import { renderValidationMessagesForComponent } from '../../utils/render';
-
 import classNames = require('classnames');
+import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IRadioButtonsContainerProps {
   id: string;
@@ -65,6 +65,9 @@ const useStyles = makeStyles({
   },
   legend: {
     color: '#000000',
+  },
+  margin: {
+    marginBottom: '1.2rem',
   },
 });
 
@@ -134,6 +137,7 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
               control={<StyledRadio autoFocus={props.shouldFocus && selected === option.value}/>}
               label={props.getTextResource(option.label)}
               value={option.value}
+              classes={{ root: classNames(classes.margin) }}
             />
             {props.validationMessages && (selected === option.value) &&
               renderValidationMessagesForComponent(props.validationMessages.simpleBinding, props.id)}
