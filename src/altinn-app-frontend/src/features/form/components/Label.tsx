@@ -29,7 +29,7 @@ export default function Label(props: IFormLabelProps) {
           {(props.required || props.readOnly) ?
             null :
             <span className='label-optional'>
-              ({getLanguageFromKey('general.optional', props.language)})
+              {` (${getLanguageFromKey('general.optional', props.language)})`}
             </span>
           }
         </label>
