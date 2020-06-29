@@ -230,7 +230,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
                       </div>
                     </div>
                     {mobileView ?
-                      <div>
+                      <div style={{ color: AltinnAppTheme.altinnPalette.primary.grey }}>
                         {`${(attachment.size / bytesInOneMB).toFixed(2)} ${
                           getLanguageFromKey('form_filler.file_uploader_mb', props.language)}`
                         }

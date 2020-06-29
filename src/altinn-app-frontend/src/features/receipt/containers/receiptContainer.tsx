@@ -30,7 +30,6 @@ export const returnInstanceMetaDataObject = (
 ): {} => {
   const obj: any = {};
 
-
   obj[getLanguageFromKey('receipt.date_sent', languageData)] = lastChangedDateTime;
 
   let sender: string = '';
@@ -80,7 +79,6 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
     !lastChangedDateTime ||
     !parties
   );
-
 
   React.useEffect(() => {
     setUserLanguage(getUserLanguage());
