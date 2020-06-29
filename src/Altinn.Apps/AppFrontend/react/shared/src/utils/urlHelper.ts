@@ -33,7 +33,7 @@ export const returnUrlToMessagebox = (url: string, partyId?: string | undefined)
     return null;
   }
 
-  if (partyId === undefined ) {
+  if (partyId === undefined) {
     return baseUrl + pathToMessageBox;
   }
 
