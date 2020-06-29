@@ -4,6 +4,7 @@
     "ms-azuretools.vscode-docker",
     "msjsdiag.debugger-for-chrome",
     "github.vscode-pull-request-github",
+    "ms-vsliveshare.vsliveshare-pack",
     "dbaeumer.vscode-eslint"
   ]
 }
