@@ -60,9 +60,8 @@ namespace App.IntegrationTests.Mocks.Services
             if (instance != null)
             {
                 instance.Data = GetDataElements(org, app, instanceOwnerId, instanceId);
+                (instance.LastChangedBy, instance.LastChanged) = FindLastChanged(instance);
             }
-
-            (instance.LastChangedBy, instance.LastChanged) = FindLastChanged(instance);
 
             return Task.FromResult(instance);
         }
@@ -201,7 +200,7 @@ namespace App.IntegrationTests.Mocks.Services
                 return await Task.FromResult(storedInstance);
             }
 
-          
+
             return null;
 
         }
