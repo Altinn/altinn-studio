@@ -83,7 +83,7 @@ namespace Altinn.Platform.Storage.UnitTest
             string actualLastChangedBy = actual.LastChangedBy;
 
             // Assert
-            Assert.Equal(lastChangedBy, actualLastChangedBy);
+            Assert.Equal(lastChangedBy, actualLastChangedBy);            
         }
 
         /// <summary>
@@ -140,5 +140,69 @@ namespace Altinn.Platform.Storage.UnitTest
             string sblStatus = InstanceHelper.GetSBLStatusForCurrentTask(instance);
             Assert.Equal("default", sblStatus);
         }
+
+        /// <summary>
+        /// Scenario: Find last changed by from the instance and date elements
+        /// Expected: lastChangedBy is an user id is from the instance without dateelements
+        /// Success: lastChangedBy equals {expectedlastChangedBy} and lastchanged equals {expectedlastChanged}
+        /// </summary>
+        [Fact]
+        public void FindLastChangedBy_TC01()
+        {
+            // Arrange
+            Instance instance = TestData.Instance_2_2;
+            string expectedlastChangedBy = "20000000";
+            DateTime expectedlastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z");
+
+            // Act
+            (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
+
+            // Assert
+            Assert.Equal(expectedlastChangedBy, lastChangedBy);
+            Assert.Equal(expectedlastChanged, lastChanged);
+        }
+
+        /// <summary>
+        /// Scenario: Find last changed by from the instance and date elements
+        /// Expected: lastChangedBy is an user id from one dataelement
+        /// Success: lastChangedBy equals {expectedlastChangedBy} and lastchanged equals {expectedlastChanged}
+        /// </summary>
+        [Fact]
+        public void FindLastChangedBy_TC02()
+        {
+            // Arrange
+            Instance instance = TestData.Instance_1_2;
+            string expectedlastChangedBy = "20000001";
+            DateTime expectedlastChanged = Convert.ToDateTime("2019-09-20T21:19:22.2135489Z");
+
+            // Act
+            (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
+
+            // Assert
+            Assert.Equal(expectedlastChangedBy, lastChangedBy);
+            Assert.Equal(expectedlastChanged, lastChanged);
+        }
+
+        /// <summary>
+        /// Scenario: Find last changed by from the instance and date elements
+        /// Expected: lastChangedBy is an user id from the dataelements list that has the latest lastChanged datetime
+        /// Success: lastChangedBy equals {expectedlastChangedBy} and lastchanged equals {expectedlastChanged}
+        /// </summary>
+        [Fact]
+        public void FindLastChangedBy_TC03()
+        {
+            // Arrange
+            Instance instance = TestData.Instance_2_1;
+            string expectedlastChangedBy = "20000001";
+            DateTime expectedlastChanged = Convert.ToDateTime("2019-10-20T21:19:22.2135489Z");
+
+            // Act
+            (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
+
+            // Assert
+            Assert.Equal(expectedlastChangedBy, lastChangedBy);
+            Assert.Equal(expectedlastChanged, lastChanged);
+        }
     }
 }
+

@@ -9,6 +9,7 @@ namespace Altinn.Platform.Storage.UnitTest
     {
         public static string InstanceOwnerPartyId_1 = "50000000";
         public static string UserId_1 = "20000000";
+        public static string UserId_2 = "20000001";
 
         public static string Org_1 = "TDD";
         public static string Org_2 = "SPF";
@@ -102,7 +103,10 @@ namespace Altinn.Platform.Storage.UnitTest
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Status = new InstanceStatus
-            { 
+            {
+            },
+            Data = new List<DataElement>() {
+                new DataElement() { LastChangedBy= UserId_2, LastChanged = Convert.ToDateTime("2019-09-20T21:19:22.2135489Z") }
             },
             LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
@@ -120,6 +124,10 @@ namespace Altinn.Platform.Storage.UnitTest
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Status = new InstanceStatus
             {
+            },
+            Data = new List<DataElement>() {
+                new DataElement() { LastChangedBy = UserId_2, LastChanged = Convert.ToDateTime("2019-09-20T21:19:22.2135489Z") },
+                new DataElement() { LastChangedBy = UserId_2, LastChanged = Convert.ToDateTime("2019-10-20T21:19:22.2135489Z") }
             },
             LastChangedBy = UserId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
