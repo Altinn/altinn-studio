@@ -11,8 +11,10 @@ using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
 
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 namespace Altinn.App.Services.Implementation
 {
     public class TextAppSI : IText
@@ -21,6 +23,8 @@ namespace Altinn.App.Services.Implementation
         private readonly AppSettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly HttpClient _client;
+        private readonly IMemoryCache _memoryCache;
+        private readonly MemoryCacheEntryOptions cacheEntryOptions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextAppSI"/> class.
@@ -31,7 +35,8 @@ namespace Altinn.App.Services.Implementation
               IOptions<PlatformSettings> platformSettings,
             ILogger<TextAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
-            HttpClient httpClient)
+            HttpClient httpClient,
+            IMemoryCache memoryCache)
         {
             _settings = settings.Value;
             _logger = logger;
@@ -40,24 +45,36 @@ namespace Altinn.App.Services.Implementation
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
+
+            _memoryCache = memoryCache;
+            cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetPriority(CacheItemPriority.High)
+                .SetAbsoluteExpiration(new TimeSpan(0, 0, settings.Value.CacheResourceLifeTimeInSeconds));
+
         }
 
         /// <inheritdoc />
         public async Task<TextResource> GetText(string org, string app, string language)
         {
             TextResource textResource = null;
+            string cacheKey = $"{org}-{app}-{language.ToLower()}";
 
-            string url = $"applications/{org}/{app}/texts/{language}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            if (!_memoryCache.TryGetValue(cacheKey, out textResource))
+            {
+                // Key not in cache, so get text from Platform Storage     
+                string url = $"applications/{org}/{app}/texts/{language}";
+                string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            HttpResponseMessage response = await _client.GetAsync(token, url);
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                textResource = await response.Content.ReadAsAsync<TextResource>();
-            }
-            else
-            {
-                _logger.LogError($"Getting text resource for {org}/{app} with language code: {language} failed with statuscode {response.StatusCode}");
+                HttpResponseMessage response = await _client.GetAsync(token, url);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    textResource = await response.Content.ReadAsAsync<TextResource>();
+                    _memoryCache.Set(cacheKey, textResource, cacheEntryOptions);
+                }
+                else
+                {
+                    _logger.LogError($"Getting text resource for {org}/{app} with language code: {language} failed with statuscode {response.StatusCode}");
+                }
             }
 
             return textResource;

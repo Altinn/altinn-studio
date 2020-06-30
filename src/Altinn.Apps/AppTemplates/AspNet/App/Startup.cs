@@ -50,6 +50,7 @@ namespace Altinn.App
                 // Use camel casing.
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             });
+            services.AddMemoryCache();
 
             // Dot net services
             services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
