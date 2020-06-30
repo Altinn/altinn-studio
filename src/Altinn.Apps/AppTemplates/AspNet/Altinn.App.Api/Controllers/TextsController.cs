@@ -1,11 +1,8 @@
-using System.IO;
-
-using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
+using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -13,14 +10,11 @@ namespace Altinn.App.Api.Controllers
     [Authorize]
     public class TextsController : ControllerBase
     {
-        private readonly IAppResources _appResourceService;
-        private readonly IMemoryCache _memoryCache;
+        private readonly IText _text;
 
-
-        public TextsController(IAppResources appResourcesService, IMemoryCache memoryCache)
+        public TextsController(IText text)
         {
-            _appResourceService = appResourcesService;
-            _memoryCache = memoryCache;
+            _text = text;
         }
 
         /// <summary>
@@ -30,11 +24,11 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The text resource file content or 404</returns>
         [HttpGet]
-        public IActionResult Get(string org, string app, [FromRoute] string language)
+        public ActionResult<TextResource> Get(string org, string app, [FromRoute] string language)
         {
             string defaultLang = "nb";
             string id;
-            byte[] fileContent;
+            TextResource textResource;
 
             if (!string.IsNullOrEmpty(language) && language.Length != 2)
             {
@@ -44,29 +38,20 @@ namespace Altinn.App.Api.Controllers
             if (!string.IsNullOrEmpty(language))
             {
                 id = $"resource.{language}.json";
+                textResource = _text.GetText(org, app, id);
 
-                if (!_memoryCache.TryGetValue(id, out fileContent))
+                if (textResource != null)
                 {
-                    // Id not in cache, getting the text resource from Storage
-                    fileContent = _appResourceService.GetText(org, app, id);
-                }
-
-                if (fileContent != null)
-                {
-                    return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
+                    return textResource;
                 }
             }
 
             id = $"resource.{defaultLang}.json";
-            if (!_memoryCache.TryGetValue(id, out fileContent))
-            {
-                // Id not in cache, getting the text resource from Storage
-                fileContent = _appResourceService.GetText(org, app, id);
-            }
+            textResource = _text.GetText(org, app, id);
 
-            if (fileContent != null)
+            if (textResource != null)
             {
-                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
+                return textResource;
             }
 
             return StatusCode(404);

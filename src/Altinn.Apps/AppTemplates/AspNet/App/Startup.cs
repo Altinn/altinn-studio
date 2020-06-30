@@ -57,6 +57,7 @@ namespace Altinn.App
 
             // Internal Application services
             services.AddSingleton<IAppResources, AppResourcesSI>();
+            services.AddSingleton<IText, TextSI>();
 
             // Services for Altinn Platform components
             services.AddTransient<IPDP, PDPAppSI>();
