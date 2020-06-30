@@ -99,7 +99,6 @@ export function AddressComponent(props: IAddressComponentProps) {
     };
   }, [props.formData.zipCode]);
 
-
   const onBlurField: (key: AddressKeys, value: any) => void = (key: AddressKeys, value: any) => {
     const validationErrors: IAddressValidationErrors = validate();
     props.handleDataChange(value, key);
@@ -270,6 +269,7 @@ export function AddressComponent(props: IAddressComponentProps) {
             onBlur={onBlurField.bind(null, AddressKeys.zipCode, zipCode)}
             readOnly={props.readOnly}
             required={props.required}
+            type='number'
           />
           {allValidations ?
             renderValidationMessagesForComponent(allValidations[AddressKeys.zipCode],
