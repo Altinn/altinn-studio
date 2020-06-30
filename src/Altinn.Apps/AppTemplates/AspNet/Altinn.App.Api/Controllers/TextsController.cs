@@ -26,8 +26,6 @@ namespace Altinn.App.Api.Controllers
         [HttpGet]
         public ActionResult<TextResource> Get(string org, string app, [FromRoute] string language)
         {
-            string defaultLang = "nb";
-            string id;
             TextResource textResource;
 
             if (!string.IsNullOrEmpty(language) && language.Length != 2)
@@ -37,25 +35,21 @@ namespace Altinn.App.Api.Controllers
 
             if (!string.IsNullOrEmpty(language))
             {
-                id = $"resource.{language}.json";
-                textResource = _text.GetText(org, app, id);
-
+                textResource = _text.GetText(org, app, language);
                 if (textResource != null)
                 {
                     return textResource;
                 }
             }
 
-            id = $"resource.{defaultLang}.json";
-            textResource = _text.GetText(org, app, id);
-
+            // using default language if requested language doesn't exist
+            textResource = _text.GetText(org, app, "nb");
             if (textResource != null)
             {
                 return textResource;
             }
 
-            return StatusCode(404);
+            return NotFound();
         }
-
     }
 }

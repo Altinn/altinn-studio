@@ -1,5 +1,5 @@
 using System.IO;
-
+using System.Linq;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
@@ -23,14 +23,22 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc />
-        public TextResource GetText(string org, string app, string id)
+        public TextResource GetText(string org, string app, string language)
         {
             TextResource textResource = null;
+            string id = $"resource.{language}.json";
 
             if (File.Exists(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder + id))
             {
-                var fileContent = File.ReadAllText(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder + id);
+                string fileContent = File.ReadAllText(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder + id);
                 textResource = (TextResource)JsonConvert.DeserializeObject(fileContent, typeof(TextResource));
+            }
+
+            if (textResource != null)
+            {
+                textResource.Id = id;
+                textResource.Org = org;
+                textResource.Language = language;
             }
 
             return textResource;
