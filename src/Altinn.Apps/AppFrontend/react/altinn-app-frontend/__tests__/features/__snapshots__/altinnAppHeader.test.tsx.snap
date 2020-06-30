@@ -183,7 +183,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
       </ul>
       <div
         className="a-personSwitcher"
-        title={null}
+        title="OLA PRIVATPERSON"
       >
         <span
           className="a-personSwitcher-name"
