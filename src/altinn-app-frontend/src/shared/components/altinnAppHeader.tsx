@@ -124,7 +124,7 @@ const AltinnAppHeader = (props: IHeaderProps) => {
                 <li
                   className={classes.headerLink}
                 >
-                  <a href={returnUrlToMessagebox(window.location.origin)}>
+                  <a href={returnUrlToMessagebox(window.location.origin, party?.partyId)}>
                     {getLanguageFromKey('instantiate.inbox', props.language)}
                   </a>
                 </li>
@@ -138,7 +138,7 @@ const AltinnAppHeader = (props: IHeaderProps) => {
                 <li
                   className={classes.headerLink}
                 >
-                  <a href={returnUrlToProfile(window.location.origin)}>
+                  <a href={returnUrlToProfile(window.location.origin, party?.partyId)}>
                     {getLanguageFromKey('instantiate.profile', props.language)}
                   </a>
                 </li>
