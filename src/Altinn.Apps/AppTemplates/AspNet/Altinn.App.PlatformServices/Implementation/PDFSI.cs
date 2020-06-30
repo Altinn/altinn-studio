@@ -25,6 +25,7 @@ namespace Altinn.App.Services.Implementation
         private readonly IData _dataService;
         private readonly IRegister _registerService;
         private readonly IAppResources _appResourcesService;
+        private readonly IText _textService;
         private readonly JsonSerializer _camelCaseSerializer;
         private readonly string pdfElementType = "ref-data-as-pdf";
         private readonly string defaultFileName = "kvittering.pdf";
@@ -34,21 +35,25 @@ namespace Altinn.App.Services.Implementation
         /// </summary>
         /// <param name="appSettings">The app settings</param>
         /// <param name="logger">The logger</param>
+        /// <param name="httpClient">The http client</param>
         /// <param name="dataService">The data service</param>
         /// <param name="registerService">The register service</param>
-        /// <param name="applicationSerice">The application service</param>
+        /// <param name="appResourcesService">The app resource service</param>
+        /// <param name="textService">The text service</param>
         public PDFSI(IOptions<PlatformSettings> platformSettings,
             IOptions<AppSettings> appSettings,
             ILogger<PDFSI> logger,
             HttpClient httpClient,
             IData dataService,
             IRegister registerService,
-            IAppResources appResourcesService)
+            IAppResources appResourcesService,
+            IText textService)
         {
             _logger = logger;
             _dataService = dataService;
             _registerService = registerService;
             _appResourcesService = appResourcesService;
+            _textService = textService;
             _appSettings = appSettings.Value;
             _camelCaseSerializer = JsonSerializer.Create(
                 new JsonSerializerSettings
@@ -79,10 +84,10 @@ namespace Altinn.App.Services.Implementation
             string encodedXml = System.Convert.ToBase64String(dataAsBytes);
 
             byte[] formLayout = _appResourcesService.GetAppResource(org, app, _appSettings.FormLayoutJSONFileName);
-            byte[] textResources = _appResourcesService.GetText(org, app, "resource.nb.json");
+            TextResource textResource = await _textService.GetText(org, app, "nb");
 
             string formLayoutString = GetUTF8String(formLayout);
-            string textResourcesString = GetUTF8String(textResources);
+            string textResourcesString = JsonConvert.SerializeObject(textResource);
 
             PDFContext pdfContext = new PDFContext
             {
