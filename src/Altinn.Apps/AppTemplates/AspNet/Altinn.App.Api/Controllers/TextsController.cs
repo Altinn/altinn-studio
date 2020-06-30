@@ -3,6 +3,7 @@ using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -24,7 +25,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The text resource file content or 404</returns>
         [HttpGet]
-        public ActionResult<TextResource> Get(string org, string app, [FromRoute] string language)
+        public async Task<ActionResult<TextResource>> Get(string org, string app, [FromRoute] string language)
         {
             TextResource textResource;
 
@@ -33,14 +34,14 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Provided language {language} is invalid. Language code should consists of two characters.");
             }
 
-            textResource = _text.GetText(org, app, language);
+            textResource = await _text.GetText(org, app, language);
             if (textResource != null)
             {
                 return textResource;
             }
 
             // using default language if requested language doesn't exist
-            textResource = _text.GetText(org, app, "nb");
+            textResource = await  _text.GetText(org, app, "nb");
             if (textResource != null)
             {
                 return textResource;

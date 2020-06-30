@@ -57,7 +57,6 @@ namespace Altinn.App
 
             // Internal Application services
             services.AddSingleton<IAppResources, AppResourcesSI>();
-            services.AddSingleton<IText, TextSI>();
 
             // Services for Altinn Platform components
             services.AddTransient<IPDP, PDPAppSI>();
@@ -80,6 +79,7 @@ namespace Altinn.App
             services.AddHttpClient<IProcess, ProcessAppSI>();
             services.AddHttpClient<IProfile, ProfileAppSI>();
             services.AddHttpClient<IRegister, RegisterAppSI>();
+            services.AddHttpClient<IText, TextAppSI>();
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
             services.AddTransient<IAltinnApp, AppLogic.App>();
