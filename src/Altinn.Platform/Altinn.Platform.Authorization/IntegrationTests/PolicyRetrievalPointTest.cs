@@ -12,6 +12,8 @@ using Altinn.Platform.Authorization.IntegrationTests.MockServices;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Implementation;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 
@@ -41,8 +43,15 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 BlobEndpoint = "http://127.0.0.1:10000/devstoreaccount1"
             });
 
+            var services = new ServiceCollection();
+            services.AddMemoryCache();
+            var serviceProvider = services.BuildServiceProvider();
+
+            var memoryCache = serviceProvider.GetService<IMemoryCache>();
+            IOptions<GeneralSettings> options = Options.Create<GeneralSettings>(new GeneralSettings() { PolicyCacheTimeout = 1 });
+
             _pr = new PolicyRepository();
-            _prp = new Services.Implementation.PolicyRetrievalPoint(_pr);
+            _prp = new Services.Implementation.PolicyRetrievalPoint(_pr, memoryCache, options);
         }
 
         /// <summary>

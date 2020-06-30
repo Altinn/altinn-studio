@@ -6,9 +6,9 @@ import config from '../config.json';
 
 let app = new App();
 let designer = new DesignerPage();
-let environment = process.env.ENV;
+let environment = (process.env.ENV).toLowerCase();
 
-fixture('GUI service designer tests')
+fixture('GUI app designer tests')
   .page(app.baseUrl)
   .beforeEach(async t => {
     t.ctx.deltMessage = "Du har delt dine endringer";
@@ -55,7 +55,7 @@ test('Add one of each component to the designer using keyboard', async () => {
 });
 
 //Tests to commit and push changes to the gitea repo
-test('Sync a service with master', async () => {
+test('Sync an app with master', async () => {
   var appName = config[environment].designerApp; 
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
@@ -70,7 +70,7 @@ test('Sync a service with master', async () => {
     .click(designer.delEndringer)
     .expect(designer.commitMessageBox.exists).ok({timeout: 120000})
     .click(designer.commitMessageBox)
-    .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
+    .typeText(designer.commitMessageBox, "Sync app automated test", { replace: true })
     .expect(designer.validerEndringer.exists).ok({timeout: 120000})
     .click(designer.validerEndringer)
     .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 120000 })
@@ -127,11 +127,11 @@ test('Configure and delete rules', async () => {
   var appName = config[environment].rulesApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
-    if (!await designer.serviceLogicmenu.exists) {
-      await t.click(designer.openserviceLogicmenu)
+    if (!await designer.appLogicmenu.exists) {
+      await t.click(designer.openAppLogicmenu)
     }   
   await t
-    .expect(designer.serviceLogicmenu.exists).ok({ timeout: 5000 })
+    .expect(designer.appLogicmenu.exists).ok({ timeout: 5000 })
     .click(designer.dynamicsGroup)
     .expect(designer.connectRulesButton.exists).ok()
     .click(designer.connectRulesButton)
@@ -151,11 +151,11 @@ test('Links in App Logic menu', async () => {
   var appName = config[environment].rulesApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
-   if (!await designer.serviceLogicmenu.exists) {
-      await t.click(designer.openserviceLogicmenu)
+   if (!await designer.appLogicmenu.exists) {
+      await t.click(designer.openAppLogicmenu)
    }   
    await t
-    .expect(designer.serviceLogicmenu.exists).ok({ timeout: 5000 })
+    .expect(designer.appLogicmenu.exists).ok({ timeout: 5000 })
     .expect(designer.validationsGroup.exists).ok({ timeout: 5000 })    
     .expect(designer.validationsGroup.visible).ok()
     .click(designer.validationsGroup)
@@ -170,11 +170,11 @@ test('Add and delete conditional rendering connections', async () => {
   var appName = config[environment].rulesApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
-    if (!await designer.serviceLogicmenu.exists) {
-      await t.click(designer.openserviceLogicmenu)
+    if (!await designer.appLogicmenu.exists) {
+      await t.click(designer.openAppLogicmenu)
    }   
    await t
-    .expect(designer.serviceLogicmenu.exists).ok({ timeout: 5000 })
+    .expect(designer.appLogicmenu.exists).ok({ timeout: 5000 })
     .click(designer.dynamicsGroup)
     .expect(designer.connectConditionalRendering.exists).ok()
     .click(designer.connectConditionalRendering)
@@ -202,7 +202,6 @@ test('Clone modal functionality', async () => {
     .click(designer.copyUrlRepoButton)
 });
 
-
 test('Validation of missing datamodel in clone modal', async () => {
   var appName = config[environment].withoutDataModelApp; 
   await t
@@ -213,4 +212,28 @@ test('Validation of missing datamodel in clone modal', async () => {
     .click(designer.cloneButton)
     .expect(designer.dataModellLink.exists).ok()
     .click(designer.dataModellLink)
+});
+
+//Test to delete the local changes in stuido and reset the repo to the latest version from the repo
+test('Delete local app changes', async () => {
+  var appName = config[environment].designerApp;
+  await t
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
+    .click(designer.lageNavigationTab)
+    .click(designer.hentEndringer)
+  await t.eval(() => location.reload(true));
+  appName = (appName.split('/'))[1];
+  await t
+    .dragToElement(designer.inputComponent, designer.dragToArea)
+    .click(designer.omNavigationTab)
+    .expect(designer.deleteLocalChanges.exists).ok({timeout: 120000})
+    .expect(designer.deleteLocalChanges.hasAttribute('disabled')).notOk('continue testing',{timeout: 120000})
+    .click(designer.deleteLocalChanges)
+    .expect(designer.deleteAppRepoName.exists).ok({timeout: 120000})
+    .typeText(designer.deleteAppRepoName, appName, { replace: true })
+    .wait(4000)
+    .expect(designer.confirmDeleteLocalChanges.exists).ok({timeout: 120000})
+    .expect(designer.confirmDeleteLocalChanges.hasAttribute('disabled')).notOk('continue testing',{timeout: 120000})
+    .click(designer.confirmDeleteLocalChanges)
+    .expect(designer.deleteLocalChanges.hasAttribute('disabled')).ok('continue testing',{timeout: 120000})
 });

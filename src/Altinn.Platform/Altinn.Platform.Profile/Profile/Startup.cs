@@ -5,6 +5,7 @@ using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Profile.Configuration;
+using Altinn.Platform.Profile.Services;
 using Altinn.Platform.Profile.Services.Implementation;
 using Altinn.Platform.Profile.Services.Interfaces;
 using Altinn.Platform.Telemetry;
@@ -62,13 +63,14 @@ namespace Altinn.Platform.Profile
         /// <summary>
         /// Configure profile setttings for the service
         /// </summary>
-        /// <param name="services">the service configuration</param>
+        /// <param name="services">the service configuration</param>    
         public void ConfigureServices(IServiceCollection services)
         {
             _logger.LogInformation("Startup // ConfigureServices");
 
             services.AddControllers();
             services.AddMemoryCache();
+            services.AddHealthChecks().AddCheck<HealthCheck>("profile_health_check");
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
@@ -173,6 +175,7 @@ namespace Altinn.Platform.Profile
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health");
             });
         }
     }

@@ -58,7 +58,7 @@ const removeStyling = (node: DomElement): React.ReactElement | void | null => {
   if (node.name === 'p') {
     return React.createElement(
       'p',
-      { style: { marginBottom: '0px' } },
+      { style: { marginBottom: '0px', display: 'inline' } },
       node.children?.map((child: DomElement, index: number) => convertNodeToElement(child, index, removeStyling)),
     );
   }

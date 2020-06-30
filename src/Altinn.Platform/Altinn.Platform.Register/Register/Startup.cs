@@ -5,6 +5,7 @@ using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Configuration;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Register.Configuration;
+using Altinn.Platform.Register.Health;
 using Altinn.Platform.Register.Services.Implementation;
 using Altinn.Platform.Register.Services.Interfaces;
 using Altinn.Platform.Telemetry;
@@ -86,6 +87,7 @@ namespace Altinn.Platform.Register
                 options.JsonSerializerOptions.IgnoreNullValues = true;
             });
             services.AddMemoryCache();
+            services.AddHealthChecks().AddCheck<HealthCheck>("register_health_check");
 
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
@@ -190,6 +192,7 @@ namespace Altinn.Platform.Register
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health");
             });
         }
     }
