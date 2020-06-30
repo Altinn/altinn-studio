@@ -214,7 +214,7 @@ export function AddressComponent(props: IAddressComponentProps) {
 
   return (
     <div className='address-component' key={`address_component_${props.id}`}>
-      {renderLabel('ux_editor.modal_configure_address_component_address', `address_address_${props.id}`)}
+      {renderLabel('address_component.address', `address_address_${props.id}`)}
       <input
         id={`address_address_${props.id}`}
         className={classNames('form-control',
@@ -235,7 +235,7 @@ export function AddressComponent(props: IAddressComponentProps) {
       {
         !props.simplified &&
         <>
-          {renderLabel('ux_editor.modal_configure_address_component_care_of', `address_care_of_${props.id}`)}
+          {renderLabel('address_component.care_of', `address_care_of_${props.id}`)}
           <input
             id={`address_care_of_${props.id}`}
             className={classNames('form-control',
@@ -257,7 +257,7 @@ export function AddressComponent(props: IAddressComponentProps) {
 
       <div className='address-component-postplace-zipCode'>
         <div className='address-component-zipCode'>
-          {renderLabel('ux_editor.modal_configure_address_component_zip_code', `address_zip_code_${props.id}`)}
+          {renderLabel('address_component.zip_code', `address_zip_code_${props.id}`)}
           <input
             id={`address_zip_code_${props.id}`}
             className={classNames('address-component-small-inputs', 'form-control',
@@ -278,7 +278,7 @@ export function AddressComponent(props: IAddressComponentProps) {
         </div>
 
         <div className='address-component-postplace'>
-          {renderLabel('ux_editor.modal_configure_address_component_post_place', `address_post_place_${props.id}`, true)}
+          {renderLabel('address_component.post_place', `address_post_place_${props.id}`, true)}
           <input
             id={`address_post_place_${props.id}`}
             className={classNames('form-control disabled',
@@ -296,10 +296,10 @@ export function AddressComponent(props: IAddressComponentProps) {
       </div>
       { !props.simplified &&
       <>
-        {renderLabel('ux_editor.modal_configure_address_component_house_number', `address_house_number_${props.id}`)}
+        {renderLabel('address_component.house_number', `address_house_number_${props.id}`)}
         <p>
           {
-            getLanguageFromKey('ux_editor.modal_configure_address_component_house_number_helper',
+            getLanguageFromKey('address_component.house_number_helper',
               props.language)
           }
         </p>

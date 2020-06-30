@@ -93,7 +93,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
   return (
     <div className='container pl-0'>
       <div className='a-btn-group' style={{ marginTop: '3.6rem', marginBottom: '0' }}>
-        <div className='row'>
+        <div className='row' style={{ marginLeft: '0' }}>
           {autoSave === false && renderSaveButton()}
           {renderSubmitButton()}
         </div>

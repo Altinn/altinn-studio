@@ -1,3 +1,4 @@
+/* eslint-disable import/first */
 /* eslint-disable react/no-array-index-key */
 import { FormControlLabel, FormGroup, FormLabel } from '@material-ui/core';
 import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
@@ -5,10 +6,8 @@ import FormControl from '@material-ui/core/FormControl';
 import { makeStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { renderValidationMessagesForComponent } from '../../utils/render';
-
-
 import classNames = require('classnames');
+import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface ICheckboxContainerProps {
   id: string;
@@ -70,6 +69,9 @@ const useStyles = makeStyles({
   },
   legend: {
     color: '#000000',
+  },
+  margin: {
+    marginBottom: '1.2rem',
   },
 });
 
@@ -173,11 +175,15 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
       <FormLabel component='legend' classes={{ root: classNames(classes.legend) }}>
         <RenderLegend />
       </FormLabel>
-      <FormGroup row={checkBoxesIsRow} id={props.id}>
+      <FormGroup
+        row={checkBoxesIsRow}
+        id={props.id}
+      >
         {props.options.map((option, index) => (
           <React.Fragment key={index}>
             <FormControlLabel
               key={index}
+              classes={{ root: classNames(classes.margin) }}
               control={(
                 <StyledCheckbox
                   checked={isOptionSelected(option.value)}
