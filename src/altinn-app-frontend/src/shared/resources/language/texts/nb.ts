@@ -17,7 +17,7 @@ export function nb() {
     confirm: {
       answers: 'Dine svar',
       attachments: 'Vedlegg',
-      body: 'Du er nå  klar for å sende inn {0}. Før du sender inn vil vi abefale å se over svarene dine. Du kan ikke endre svarene etter at du har sendt inn.',
+      body: 'Du er nå  klar for å sende inn {0}. Før du sender inn vil vi anbefale å se over svarene dine. Du kan ikke endre svarene etter at du har sendt inn.',
       button_text: 'Send inn',
       deadline: 'Frist innsending',
       sender: 'Person',
@@ -56,7 +56,7 @@ export function nb() {
       file_uploader_mb: 'MB.',
       file_uploader_upload: 'Last opp fil',
       file_uploader_number_of_files: 'Antall filer',
-      file_uploader_valid_file_format: 'Tillate filformater er:',
+      file_uploader_valid_file_format: 'Tillatte filformater er:',
       file_uploader_validation_error_delete: 'Noe gikk galt under slettingen av filen, prøv igjen senere.',
       file_uploader_validation_error_exceeds_max_files_1: 'Du kan ikke laste opp flere enn',
       file_uploader_validation_error_exceeds_max_files_2: 'filer. Ingen filer ble lastet opp.',
