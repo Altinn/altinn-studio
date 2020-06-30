@@ -32,10 +32,6 @@ namespace Altinn.App.Services.Implementation
             {
                 string fileContent = File.ReadAllText(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder + id);
                 textResource = (TextResource)JsonConvert.DeserializeObject(fileContent, typeof(TextResource));
-            }
-
-            if (textResource != null)
-            {
                 textResource.Id = id;
                 textResource.Org = org;
                 textResource.Language = language;
