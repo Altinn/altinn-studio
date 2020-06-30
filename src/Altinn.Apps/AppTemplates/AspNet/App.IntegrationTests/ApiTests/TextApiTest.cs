@@ -26,6 +26,7 @@ namespace App.IntegrationTestsRef.ApiTests
         public async Task GetText_NB_Ok()
         {
             string token = PrincipalUtil.GetToken(1337);
+
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/api/texts/nb")
