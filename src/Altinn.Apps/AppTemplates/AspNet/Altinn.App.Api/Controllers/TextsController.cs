@@ -33,13 +33,10 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Provided language {language} is invalid. Language code should consists of two characters.");
             }
 
-            if (!string.IsNullOrEmpty(language))
+            textResource = _text.GetText(org, app, language);
+            if (textResource != null)
             {
-                textResource = _text.GetText(org, app, language);
-                if (textResource != null)
-                {
-                    return textResource;
-                }
+                return textResource;
             }
 
             // using default language if requested language doesn't exist
