@@ -1,5 +1,4 @@
 using System.IO;
-using System.Linq;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
