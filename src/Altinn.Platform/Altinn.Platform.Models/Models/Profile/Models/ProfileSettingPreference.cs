@@ -8,7 +8,7 @@ namespace Altinn.Platform.Profile.Models
     public class ProfileSettingPreference
     {
         /// <summary>
-        /// Sets the user's language preference in Altinn
+        /// Sets the user's language preference in Altinn.
         /// </summary>
         public string LanguageType
         {
@@ -19,7 +19,7 @@ namespace Altinn.Platform.Profile.Models
         }
 
         /// <summary>
-        /// Gets or sets the user's language preference in Altinn
+        /// Gets or sets the user's language preference in Altinn.
         /// </summary>
         public string Language { get; set; }
 
