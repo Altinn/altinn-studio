@@ -4,8 +4,9 @@ import { IRuntimeState } from 'src/types';
 import { ILayoutComponent } from '..';
 import FormLayoutActions from '../formLayoutActions';
 import * as ActionTypes from '../formLayoutActionTypes';
-import { IUpdateFocus, IUpdateAutoSave } from './updateFormLayoutActions';
+import { IUpdateFocus, IUpdateAutoSave, IUpdateRepeatingGroups } from './updateFormLayoutActions';
 import { ILayoutState } from '../formLayoutReducer';
+import { createRef } from 'react';
 
 const selectFormLayoutConnection = (state: IRuntimeState): ILayoutState => state.formLayout;
 
@@ -34,10 +35,29 @@ function* updateAutoSaveSaga({ autoSave } : IUpdateAutoSave): SagaIterator {
   }
 }
 
+function* updateRepeatingGroupsSaga({ layoutElementId, remove }: IUpdateRepeatingGroups) {
+  try {
+    const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
+    const currentCount = formLayoutState.uiConfig.repeatingGroups[layoutElementId].count;
+    const updatedRepeatingGroups = {
+      ...formLayoutState.uiConfig.repeatingGroups,
+      [layoutElementId]: remove ? currentCount - 1 : currentCount + 1,
+    };
+
+    yield call(FormLayoutActions.updateRepeatingGroupsFulfilled, updatedRepeatingGroups);
+  } catch (err) {
+    yield call(FormLayoutActions.updateRepeatingGroupsRejected, err);
+  }
+}
+
 export function* watchUpdateFocusSaga(): SagaIterator {
   yield takeLatest(ActionTypes.UPDATE_FOCUS, updateFocus);
 }
 
 export function* watchUpdateAutoSave(): SagaIterator {
   yield takeLatest(ActionTypes.UPDATE_AUTO_SAVE, updateAutoSaveSaga);
+}
+
+export function* watchUpdateRepeatingGroupsSaga(): SagaIterator {
+  yield takeLatest(ActionTypes.UPDATE_REPEATING_GROUPS, updateRepeatingGroupsSaga);
 }

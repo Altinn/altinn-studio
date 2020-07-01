@@ -276,6 +276,10 @@ export function getSchemaPart(dataModelPath: string[], subSchema: any, mainSchem
       const childSchemaPtr = jsonPtr.create(localRootElement.$ref);
       return getSchemaPart(dataModelPath.slice(1), childSchemaPtr.get(mainSchema), mainSchema);
     }
+    if (localRootElement.items && localRootElement.items.$ref) {
+      const childSchemaPtr = jsonPtr.create(localRootElement.items.$ref);
+      return getSchemaPart(dataModelPath.slice(1), childSchemaPtr.get(mainSchema), mainSchema);
+    }
     return localRootElement;
   }
 

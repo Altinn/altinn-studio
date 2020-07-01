@@ -1,11 +1,16 @@
 export interface ILayoutEntry {
   id: string;
-  type: string;
-  hidden: boolean;
+  type?: string;
+  hidden?: boolean;
 }
 
 export interface ILayoutGroup extends ILayoutEntry {
-  children: [ILayoutGroup | ILayoutComponent];
+  children: [string];
+  dataModelBindings?: IDataModelBindings;
+  repeating?: boolean;
+  count?: number;
+  index?: number;
+  showAdd?: boolean;
 }
 
 export interface ILayoutComponent extends ILayoutEntry {

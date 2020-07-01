@@ -187,6 +187,15 @@ export interface IUiConfig {
   focus: string;
   hiddenFields: string[];
   autoSave: boolean;
+  repeatingGroups?: IRepeatingGroups;
+}
+
+export interface IRepeatingGroup {
+  count: number;
+}
+
+export interface IRepeatingGroups {
+  [id: string]: IRepeatingGroup;
 }
 
 export interface IValidations {

@@ -1,48 +1,57 @@
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import GenericComponent from '../../../components/GenericComponent';
 import { IRuntimeState } from '../../../types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
+import { Group } from './Group';
+import { renderGenericComponent } from '../../../utils/layout';
 
 export function Form() {
-  const [renderLayout, setRenderLayout] = React.useState<any[]>([]);
+  const [filteredLayout, setFilteredLayout] = React.useState<any[]>([]);
 
   const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layout);
   const hiddenComponents: string[] = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields);
 
   React.useEffect(() => {
     let componentsToRender: any[] = layout;
-    
+
     if (layout && hiddenComponents) {
       componentsToRender = layout.filter((component) => !hiddenComponents.includes(component.id));
     }
-    setRenderLayout(componentsToRender);
-  }, [layout, hiddenComponents])
+    setFilteredLayout(componentsToRender);
+  }, [layout, hiddenComponents]);
 
-  function renderLayoutComponent(component: ILayoutComponent | ILayoutGroup) {
-    if (component.type.toLowerCase() === 'group') {
+  function RenderGenericComponent(component: ILayoutComponent) {
+    return renderGenericComponent(component);
+  }
+
+  function renderLayoutComponent(layoutComponent: ILayoutComponent | ILayoutGroup) {
+    if (layoutComponent.type && layoutComponent.type.toLowerCase() === 'group') {
+      const groupComponents = (layoutComponent as ILayoutGroup).children.map((child) => {
+        const result = layout.find((c) => c.id === child) as ILayoutComponent;
+        return JSON.parse(JSON.stringify(result));
+      });
       return (
-        // TODO: Implement group features
-        <></>
+        <Group
+          id={layoutComponent.id}
+          components={groupComponents}
+          repeating={(layoutComponent as ILayoutGroup).repeating}
+          index={(layoutComponent as ILayoutGroup).index}
+          dataModelBinding={(layoutComponent as ILayoutGroup).dataModelBindings.group}
+          showAdd={(layoutComponent as ILayoutGroup).showAdd}
+        />
       );
     }
 
+    const component: ILayoutComponent = layout.find((c) => c.id === layoutComponent.id) as ILayoutComponent;
     return (
-      <Grid item={true} xs={12} key={'grid-' + component.id}>
-        <div key={'form-' + component.id} className='form-group a-form-group'>
-          <GenericComponent
-            key={component.id}
-            {...component as ILayoutComponent}
-          />
-        </div>
-      </Grid>
+      <RenderGenericComponent {...component} />
     );
   }
 
   return (
     <Grid container={true}>
-      {renderLayout && renderLayout.map(renderLayoutComponent)}
+      {filteredLayout && filteredLayout.map(renderLayoutComponent)}
     </Grid>
   );
 }
