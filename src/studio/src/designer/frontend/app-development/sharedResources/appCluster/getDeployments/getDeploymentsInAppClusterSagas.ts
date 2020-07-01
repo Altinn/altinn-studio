@@ -16,7 +16,7 @@ function* getDeploymentsIntervalSaga(): SagaIterator {
     const orgs: any = yield select(OrgsSelector);
 
     for (const env of environments) {
-      if (orgs && orgs[org]?.environments?.contains(env.name)) {
+      if (orgs && orgs[org]?.environments?.includes(env.name)) {
         yield fork(fetchEnvironmentDeployments, org, app, env);
       }
     }
