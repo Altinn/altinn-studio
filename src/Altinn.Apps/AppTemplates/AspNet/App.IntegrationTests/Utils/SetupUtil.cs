@@ -66,6 +66,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddTransient<IRegister, RegisterMockSI>();
                     services.AddTransient<IPDF, PDFMockSI>();
                     services.AddTransient<IProfile, ProfileMockSI>();
+                    services.AddTransient<IText, TextMockSI>();
 
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
