@@ -27,20 +27,30 @@ const prodRegex = new RegExp(baseHostnameAltinnProd);
 const testRegex = new RegExp(baseHostnameAltinnTest);
 const localRegex = new RegExp(baseHostnameAltinnLocal);
 
-export const returnUrlToMessagebox = (url: string): string => {
+export const returnUrlToMessagebox = (url: string, partyId?: string | undefined) : string => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
   }
-  return baseUrl + pathToMessageBox;
+
+  if (partyId === undefined) {
+    return baseUrl + pathToMessageBox;
+  }
+
+  return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${pathToMessageBox}&R=${partyId}`;
 };
 
-export const returnUrlToProfile = (url: string): string => {
+export const returnUrlToProfile = (url: string, partyId?: string | undefined): string => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
   }
-  return baseUrl + pathToProfile;
+
+  if (partyId === undefined) {
+    return baseUrl + pathToProfile;
+  }
+
+  return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${pathToProfile}&R=${partyId}`;
 };
 
 export const returnUrlToAllSchemas = (url: string): string => {

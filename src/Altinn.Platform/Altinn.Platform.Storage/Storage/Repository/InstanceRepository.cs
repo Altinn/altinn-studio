@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.Repository
     /// Repository operations for application instances.
     /// </summary>
     public class InstanceRepository : IInstanceRepository
-    {        
+    {
         private const string CollectionId = "instances";
         private const string PartitionKey = "/instanceOwner/partyId";
 
@@ -59,7 +59,7 @@ namespace Altinn.Platform.Storage.Repository
                 databaseUri,
                 documentCollection).GetAwaiter().GetResult();
 
-            _client.OpenAsync();                    
+            _client.OpenAsync();
         }
 
         /// <inheritdoc/>
@@ -542,8 +542,13 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerPartyId}/{instanceGuid} to be used outside cosmos.
+        /// Prepares the instance for exposure to end users and app owners.
         /// </summary>
+        /// <remarks>
+        /// - Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerPartyId}/{instanceGuid} to be used outside cosmos.
+        /// - Retrieves all dataelements from data repository
+        /// - Sets correct LastChanged/LastChangedBy by comparing instance and data elements
+        /// </remarks>
         /// <param name="instance">the instance to preprocess</param>
         private async Task PostProcess(Instance instance)
         {
@@ -552,6 +557,10 @@ namespace Altinn.Platform.Storage.Repository
 
             instance.Id = instanceId;
             instance.Data = await _dataRepository.ReadAll(instanceGuid);
+
+            (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
+            instance.LastChanged = lastChanged;
+            instance.LastChangedBy = lastChangedBy;
         }
 
         /// <summary>
@@ -563,7 +572,7 @@ namespace Altinn.Platform.Storage.Repository
             foreach (Instance item in instances)
             {
                 await PostProcess(item);
-            }            
+            }
         }
 
         /// <summary>

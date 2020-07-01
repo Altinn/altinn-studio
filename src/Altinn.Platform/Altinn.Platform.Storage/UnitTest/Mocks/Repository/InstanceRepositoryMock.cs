@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
-
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.UnitTest.Utils;
@@ -274,6 +274,11 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
             instance.Id = instanceId;
+            // Should instanceData be included here as well?
+
+            (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
+            instance.LastChanged = lastChanged;
+            instance.LastChangedBy = lastChangedBy;
         }
 
         /// <summary>

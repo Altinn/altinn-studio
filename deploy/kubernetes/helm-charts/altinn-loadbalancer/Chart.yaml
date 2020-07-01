@@ -1,6 +1,0 @@
-apiVersion: v1
-name: altinn-loadbalancer
-description: A Helm chart for Kubernetes
-version: 0.1.0
-sources:
-  - https://github.com/Altinn/altinn-studio
