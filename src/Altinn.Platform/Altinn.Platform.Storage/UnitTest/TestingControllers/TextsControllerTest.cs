@@ -29,7 +29,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
     public partial class IntegrationTests {
 
-        public class TextControllerTests : IClassFixture<WebApplicationFactory<Startup>>
+        public class TextsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
         {
             private readonly WebApplicationFactory<Startup> _factory;
             private readonly Mock<ITextRepository> _mockTextRepository;
@@ -37,7 +37,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             private const string BasePath = "/storage/api/v1/applications";
 
 
-            public TextControllerTests(WebApplicationFactory<Startup> factory)
+            public TextsControllerTests(WebApplicationFactory<Startup> factory)
             {
                 _factory = factory;
                 _mockTextRepository = CreateMockTextRepo();
