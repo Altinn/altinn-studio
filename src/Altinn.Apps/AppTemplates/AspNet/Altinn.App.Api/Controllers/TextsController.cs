@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Altinn.App.Api.Controllers
 {
-    [Route("{org}/{app}/api/texts/{language}")]
+    [Route("{org}/{app}/api/v1/texts/{language}")]
     [Authorize]
     public class TextsController : ControllerBase
     {
