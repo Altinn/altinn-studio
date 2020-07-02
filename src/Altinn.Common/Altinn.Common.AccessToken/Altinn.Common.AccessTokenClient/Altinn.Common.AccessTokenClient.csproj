@@ -9,6 +9,8 @@
     <Company>Altinn</Company>
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <PackageId>Altinn.Common.AccessTokenClient</PackageId>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{38C5B1A1-B7CF-4F46-B6E1-482168C8D548}</ProjectGuid>   
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />

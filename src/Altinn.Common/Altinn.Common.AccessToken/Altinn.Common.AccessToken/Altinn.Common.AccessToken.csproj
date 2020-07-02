@@ -11,6 +11,8 @@
     <PackageTags>Altinn AccessToken</PackageTags>
     <Company>Altinn</Company>
     <AssemblyVersion>0.5.5.0</AssemblyVersion>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{35821363-9246-40FF-8312-15AEA130D779}</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
