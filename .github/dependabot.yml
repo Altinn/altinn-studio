@@ -1,277 +1,277 @@
 version: 2
 updates:
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Apps/KubernetesWrapper"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Common/Authentication"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.ExampleClients/PrefillClient"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Common/Altinn.Common.AccessToken/Altinn.Common.AccessToken"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Common/Altinn.Common.AccessToken/Altinn.Common.AccessTokenClient"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Common/Altinn.Common.PEP/Altinn.Common.PEP"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Platform/Altinn.Platform.Authentication/Authentication"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Platform/Altinn.Platform.Authorization/Altinn.Authorization.ABAC"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Platform/Altinn.Platform.Authorization/Authorization"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Platform/Altinn.Platform.Models/Models"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Platform/Altinn.Platform.Profile/Profile"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Platform/Altinn.Platform.Receipt/Receipt"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Platform/Altinn.Platform.Register/Register"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Platform/Altinn.Platform.Storage/CosmosBackup"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Platform/Altinn.Platform.Storage/Storage"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Platform/Altinn.Platform.Storage/Storage.Interface"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.Api"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.Common"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.PlatformServices"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Apps/AppTemplates/AspNet/App"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/Altinn.Apps/AppTemplates/AspNet/App"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/studio/AppTemplates/AspNet/App"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  nuget
+- package-ecosystem: nuget
   directory: "/src/studio/src/designer/backend"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/Altinn.Apps/KubernetesWrapper"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/Altinn.Platform/Altinn.Platform.PDF"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/development/loadbalancer"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/Altinn.Platform/Altinn.Platform.Authentication/Authentication"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/Altinn.Platform/Altinn.Platform.Authorization/Authorization"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/Altinn.Platform/Altinn.Platform.Profile/Profile"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/Altinn.Platform/Altinn.Platform.Receipt/Receipt"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/Altinn.Platform/Altinn.Platform.Register/Register"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/Altinn.Platform/Altinn.Platform.Storage/Storage"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/studio/src/designer"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/studio/src/load-balancer"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/studio/src/repositories"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/Altinn.Apps/AppFrontend/react/altinn-app-frontend"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/Altinn.Apps/AppFrontend/react/receipt"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/Altinn.Apps/AppTemplates/AspNet/App"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/studio/AppTemplates/AspNet/App"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/studio/src/designer/backend"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/studio/src/designer/frontend/app-development"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/studio/src/designer/frontend/dashboard"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  docker
+- package-ecosystem: docker
   directory: "/src/studio/src/designer/frontend/ux-editor"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  npm
+- package-ecosystem: npm
   directory: "/src/Altinn.Platform/Altinn.Platform.Receipt"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  npm
+- package-ecosystem: npm
   directory: "/src/Altinn.Apps/AppFrontend/react"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  npm
+- package-ecosystem: npm
   directory: "/src/Altinn.Apps/AppFrontend/react/altinn-app-frontend"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  npm
+- package-ecosystem: npm
   directory: "/src/Altinn.Apps/AppFrontend/react/receipt"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  npm
+- package-ecosystem: npm
   directory: "/src/Altinn.Apps/AppFrontend/react/shared"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  npm
+- package-ecosystem: npm
   directory: "/src/studio/src/designer/backend"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  npm
+- package-ecosystem: npm
   directory: "/src/studio/src/designer/frontend"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  npm
+- package-ecosystem: npm
   directory: "/src/studio/src/designer/frontend/app-development"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  npm
+- package-ecosystem: npm
   directory: "/src/studio/src/designer/frontend/dashboard"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  npm
+- package-ecosystem: npm
   directory: "/src/studio/src/designer/frontend/shared"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  npm
+- package-ecosystem: npm
   directory: "/src/studio/src/designer/frontend/ux-editor"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
-- package-ecosystem:  maven
+- package-ecosystem: maven
   directory: "/src/Altinn.Platform/Altinn.Platform.PDF"
-  schedule:
+  schedule: 
     interval: daily
     time: "04:00"
