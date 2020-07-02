@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Typography, createMuiTheme, MuiThemeProvider, makeStyles } from '@material-ui/core';
+import { Typography, createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { useSelector } from 'react-redux';
 import { IRuntimeState } from 'src/types';
