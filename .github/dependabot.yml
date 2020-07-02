@@ -259,7 +259,7 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 40
     allow:
-      dependency-type: "production"
+      - dependency-type: "production"
   - package-ecosystem: npm
     directory: "/src/Altinn.Apps/AppFrontend/react"
     schedule: 
@@ -267,7 +267,7 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 40
     allow:
-      dependency-type: "production"
+      - dependency-type: "production"
   - package-ecosystem: npm
     directory: "/src/Altinn.Apps/AppFrontend/react/altinn-app-frontend"
     schedule: 
@@ -275,7 +275,7 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 40
     allow:
-      dependency-type: "production"
+      - dependency-type: "production"
   - package-ecosystem: npm
     directory: "/src/Altinn.Apps/AppFrontend/react/receipt"
     schedule: 
@@ -283,7 +283,7 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 40
     allow:
-      dependency-type: "production"
+      - dependency-type: "production"
   - package-ecosystem: npm
     directory: "/src/Altinn.Apps/AppFrontend/react/shared"
     schedule: 
@@ -291,7 +291,7 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 40
     allow:
-      dependency-type: "production"
+      - dependency-type: "production"
   - package-ecosystem: npm
     directory: "/src/studio/src/designer/backend"
     schedule: 
@@ -299,7 +299,7 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 40
     allow:
-      dependency-type: "production"
+      - dependency-type: "production"
   - package-ecosystem: npm
     directory: "/src/studio/src/designer/frontend"
     schedule: 
@@ -307,7 +307,7 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 40
     allow:
-      dependency-type: "production"
+      - dependency-type: "production"
   - package-ecosystem: npm
     directory: "/src/studio/src/designer/frontend/app-development"
     schedule: 
@@ -315,7 +315,7 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 40
     allow:
-      dependency-type: "production"
+      - dependency-type: "production"
   - package-ecosystem: npm
     directory: "/src/studio/src/designer/frontend/dashboard"
     schedule: 
@@ -323,7 +323,7 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 40
     allow:
-      dependency-type: "production"
+      - dependency-type: "production"
   - package-ecosystem: npm
     directory: "/src/studio/src/designer/frontend/shared"
     schedule: 
@@ -331,7 +331,7 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 40
     allow:
-      dependency-type: "production"
+      - dependency-type: "production"
   - package-ecosystem: npm
     directory: "/src/studio/src/designer/frontend/ux-editor"
     schedule: 
@@ -339,7 +339,7 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 40
     allow:
-      dependency-type: "production"
+      - dependency-type: "production"
   - package-ecosystem: maven
     directory: "/src/Altinn.Platform/Altinn.Platform.PDF"
     schedule: 
