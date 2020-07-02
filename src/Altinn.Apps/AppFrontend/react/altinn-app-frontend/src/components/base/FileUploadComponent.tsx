@@ -72,6 +72,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
     }
 
     if (action.type === 'delete') {
+      console.log('deleting');
       const attachmentToDelete = state[action.index];
       if (!attachmentToDelete.uploaded) {
         return state;
@@ -79,6 +80,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
       attachmentToDelete.deleting = true;
       const newList = state.slice();
       newList[action.index] = attachmentToDelete;
+      return newList;
     }
     return [];
   }
