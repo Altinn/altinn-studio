@@ -63,8 +63,6 @@ export function FileUploadComponent(props: IFileUploadProps) {
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
 
   function reducer(state, action) {
-    console.log('state', state);
-    console.log('action', action);
     if (action.type === 'replace') {
       return action.value;
     }
