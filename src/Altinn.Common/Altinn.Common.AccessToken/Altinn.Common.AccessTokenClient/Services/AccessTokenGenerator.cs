@@ -13,7 +13,7 @@ namespace Altinn.Common.AccessTokenClient.Services
     /// <summary>
     /// Access token generator creating access tokens for accessing platform components
     /// </summary>
-    public class AccessTokenGenerator: IAccessTokenGenerator
+    public class AccessTokenGenerator : IAccessTokenGenerator
     {
         private readonly AccessTokenSettings _accessTokenSettings;
         private readonly ISigningCredentialsResolver _signingKeysResolver;
@@ -40,7 +40,7 @@ namespace Altinn.Common.AccessTokenClient.Services
         /// <returns></returns>
         public string GenerateAccessToken(string issuer, string app)
         {
-            if(_accessTokenSettings.DisableAccessTokenGeneration)
+            if (_accessTokenSettings.DisableAccessTokenGeneration)
             {
                 return null;
             }

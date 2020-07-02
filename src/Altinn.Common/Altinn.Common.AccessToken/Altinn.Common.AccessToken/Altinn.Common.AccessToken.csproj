@@ -3,29 +3,35 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>true</IsPackable>
     <OutputType>Library</OutputType>
-    <Version>0.5.5</Version>
+    <Version>0.5.6</Version>
     <Description>Package to verify Access Tokens from client. Require public certificates stored in Azure KeyVault</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl></PackageProjectUrl>
     <RepositoryType>https://github.com/Altinn/altinn-studio</RepositoryType>
     <PackageTags>Altinn AccessToken</PackageTags>
     <Company>Altinn</Company>
-    <AssemblyVersion>0.5.5.0</AssemblyVersion>
+    <AssemblyVersion>0.5.6.0</AssemblyVersion>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{35821363-9246-40FF-8312-15AEA130D779}</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.5.0" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.6.0" />
-    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.7" />
-    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.6.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.8" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="6.7.1" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.6.0" />
   </ItemGroup>
-
+  
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+  
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 </Project>
