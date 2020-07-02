@@ -1,0 +1,146 @@
+version: 2
+updates:
+- package-ecosystem: nuget
+  directory: "/src/Altinn.Platform/Altinn.Platform.Storage"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: nuget
+  directory: "/src/studio/AppTemplates/AspNet/App"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: nuget
+  directory: "/src/Altinn.Platform/Altinn.Platform.Storage/Storage"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: nuget
+  directory: "/src/Altinn.Platform/Altinn.Platform.Register/Register"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: nuget
+  directory: "/src/Altinn.Platform/Altinn.Platform.Receipt/Receipt"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: nuget
+  directory: "/src/Altinn.Platform/Altinn.Platform.Profile/Profile"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: nuget
+  directory: "/src/Altinn.Platform/Altinn.Platform.Authorization/Authorization"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: nuget
+  directory: "/src/Altinn.Platform/Altinn.Platform.Authentication/Authentication"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: nuget
+  directory: "/src/Altinn.Common/Altinn.Common.AccessToken/Altinn.Common.AccessTokenClient"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: nuget
+  directory: "/src/Altinn.Common/Altinn.Common.AccessToken/Altinn.Common.AccessToken"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: npm
+  directory: "/src/studio/src/designer/frontend"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: nuget
+  directory: "/src/studio/src/designer/backend"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: docker
+  directory: "/src/Altinn.Platform/Altinn.Platform.Storage/Storage"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: docker
+  directory: "/src/studio/src/repositories"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: nuget
+  directory: "/src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.Api"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: docker
+  directory: "/src/Altinn.Platform/Altinn.Platform.Receipt/Receipt"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: docker
+  directory: "/src/studio/src/load-balancer"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: docker
+  directory: "/src/Altinn.Platform/Altinn.Platform.Register/Register"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: docker
+  directory: "/src/Altinn.Platform/Altinn.Platform.Profile/Profile"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: docker
+  directory: "/src/Altinn.Platform/Altinn.Platform.PDF"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: docker
+  directory: "/src/Altinn.Platform/Altinn.Platform.Authorization/Authorization"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: docker
+  directory: "/src/Altinn.Platform/Altinn.Platform.Authentication/Authentication"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: docker
+  directory: "/src/Altinn.Apps/KubernetesWrapper"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
+- package-ecosystem: maven
+  directory: "/src/Altinn.Platform/Altinn.Platform.PDF"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 40
