@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.IO;
 using Altinn.App.Services.Helpers;
@@ -67,6 +68,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The text resource file content or 404</returns>
         [Route("{org}/{app}/api/textresources")]
+        [Obsolete("TextResources endpoint is obsolete. Use endpoint in TextsController.")]
         public IActionResult TextResources(string org, string app)
         {
             string defaultLang = "nb";

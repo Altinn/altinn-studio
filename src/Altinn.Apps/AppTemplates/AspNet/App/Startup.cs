@@ -50,6 +50,7 @@ namespace Altinn.App
                 // Use camel casing.
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             });
+            services.AddMemoryCache();
 
             // Dot net services
             services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
@@ -79,6 +80,7 @@ namespace Altinn.App
             services.AddHttpClient<IProcess, ProcessAppSI>();
             services.AddHttpClient<IProfile, ProfileAppSI>();
             services.AddHttpClient<IRegister, RegisterAppSI>();
+            services.AddHttpClient<IText, TextAppSI>();
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
             services.AddTransient<IAltinnApp, AppLogic.App>();
