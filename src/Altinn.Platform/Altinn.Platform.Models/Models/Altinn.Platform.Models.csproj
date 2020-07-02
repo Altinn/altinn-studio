@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Altinn.Platform</RootNamespace>
-    <Version>1.0.2-alpha</Version>
+    <Version>1.0.4-alpha</Version>
     <Description>Shared models for Altinn Platform</Description>
   </PropertyGroup>
 
