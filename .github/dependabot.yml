@@ -121,12 +121,6 @@ updates:
       time: "04:00"
     open-pull-requests-limit: 40
   - package-ecosystem: nuget
-    directory: "/src/Altinn.Apps/AppTemplates/AspNet/App"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: nuget
     directory: "/src/studio/AppTemplates/AspNet/App"
     schedule: 
       interval: daily
