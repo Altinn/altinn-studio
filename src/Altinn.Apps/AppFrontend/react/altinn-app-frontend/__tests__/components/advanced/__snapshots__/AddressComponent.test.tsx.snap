@@ -52,6 +52,7 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
         onChange={[Function]}
         readOnly={false}
         required={false}
+        type="number"
         value=""
       />
     </div>
