@@ -63,6 +63,8 @@ export function FileUploadComponent(props: IFileUploadProps) {
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
 
   function reducer(state, action) {
+    console.log('state', state);
+    console.log('action', action);
     if (action.type === 'replace') {
       return action.value;
     }
@@ -72,7 +74,6 @@ export function FileUploadComponent(props: IFileUploadProps) {
     }
 
     if (action.type === 'delete') {
-      console.log('deleting');
       const attachmentToDelete = state[action.index];
       if (!attachmentToDelete.uploaded) {
         return state;
@@ -82,7 +83,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
       newList[action.index] = attachmentToDelete;
       return newList;
     }
-    return [];
+    return state;
   }
 
   const currentAttachments: IAttachment[] = useSelector(
@@ -160,7 +161,9 @@ export function FileUploadComponent(props: IFileUploadProps) {
         });
       }
     }
-    dispatch({ type: 'add', value: newFiles });
+    if (!(totalAttachments > props.maxNumberOfAttachments)) {
+      dispatch({ type: 'add', value: newFiles });
+    }
     setValidations(tmpValidations);
   };
 
