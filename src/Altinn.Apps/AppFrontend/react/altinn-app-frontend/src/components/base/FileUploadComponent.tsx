@@ -159,7 +159,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
         });
       }
     }
-    if (!(totalAttachments > props.maxNumberOfAttachments)) {
+    if (totalAttachments <= props.maxNumberOfAttachments) {
       dispatch({ type: 'add', value: newFiles });
     }
     setValidations(tmpValidations);
