@@ -86,7 +86,7 @@ function Receipt(props: WithStyles<typeof styles>) {
   const fetchTextResources = async () => {
     try {
       const app = instance.appId.split('/')[1];
-      const response = await Axios.get(getTextResourceUrl(instance.org, app, "nb"));
+      const response = await Axios.get(getTextResourceUrl(instance.org, app, user.profileSettingPreference.language));
       setTextResources(response.data.resources);
     } catch (error) {
       console.error(error);
@@ -115,10 +115,11 @@ function Receipt(props: WithStyles<typeof styles>) {
     if (!application && instance) {
       fetchApplication();
     }
-    if (!textResources && instance) {
+
+    if (!textResources && instance && user) {
       fetchTextResources();
     }
-  }, [instance, application]);
+  }, [instance, application, user]);
 
   React.useEffect(() => {
     fetchInstanceAndParty();
