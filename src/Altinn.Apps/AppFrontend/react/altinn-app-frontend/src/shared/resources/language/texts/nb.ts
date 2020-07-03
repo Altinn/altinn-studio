@@ -35,7 +35,7 @@ export function nb() {
       aria_label_right_arrow: 'Neste måned.',
     },
     feedback: {
-      title: 'Du blir snart videresendt',
+      title: '## Du blir snart videresendt',
       body: 'Vi venter på verifikasjon, når den er på plass blir du videresendt.',
     },
     form_filler: {

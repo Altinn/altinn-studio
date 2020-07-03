@@ -15,7 +15,7 @@
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.3-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.18" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.0-alpha" />
-    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.11.0" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.11.1" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.5.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.5">
@@ -28,7 +28,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

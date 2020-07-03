@@ -1,0 +1,61 @@
+# Labels for solutions
+
+solution/platform:
+  - 'src/Altinn.Platform/**/*'
+  
+solution/app-backend:
+  - 'src/Altinn.Apps/AppTemplates/**/*'
+  - 'src/studio/AppTemplates/**/*'
+
+solution/app-frontend:
+  - 'src/Altinn.Apps/AppFrontend/**/*'
+
+solution/apps:
+  - 'src/Altinn.Apps/KubernetesWrapper/**/*'
+
+solution/studio/designer:
+  - 'src/studio/src/designer/**/*'
+
+solution/studio/repos:
+  - 'src/studio/src/repositories/**/*'
+
+
+# Labels for areas
+
+area/authentication:
+  - 'src/Altinn.Platform/Altinn.Platform.Authentication/**/*'
+  - 'src/Altinn.Common/Authentication/**/*'
+
+area/authorization:
+  - 'src/Altinn.Platform/Altinn.Platform.Authorization/**/*'
+  - 'src/Altinn.Common/Altinn.Common.AccessToken/**/*'
+  - 'src/Altinn.Common/Altinn.Common.PEP/**/*'
+  - 'src/Altinn.Platform/Altinn.Platform.Models/Models/Authorization/**/*'
+
+area/app-deploy:
+  - 'src/studio/src/designer/frontend/app-development/features/appPublish/**/*'
+  - 'src/studio/src/designer/backend/Controllers/DeploymentsController.cs'
+
+area/dashboard:
+  - 'src/studio/src/designer/frontend/dashboard/**/*'
+
+area/data-storage:
+  - 'src/Altinn.Platform/Altinn.Platform.Storage/**/*'
+
+area/printout:
+  - 'src/Altinn.Platform/Altinn.Platform.PDF/**/*'
+  
+area/profile:
+  - 'src/Altinn.Platform/Altinn.Platform.Profile/**/*'
+  - 'src/Altinn.Platform/Altinn.Platform.Models/Models/Profile/**/*'
+
+area/receipt:
+  - 'src/Altinn.Platform/Altinn.Platform.Receipt/**/*'
+  - 'src/Altinn.Apps/AppFrontend/react/receipt/**/*'
+
+area/register:
+  - 'src/Altinn.Platform/Altinn.Platform.Register/**/*'
+  - 'src/Altinn.Platform/Altinn.Platform.Models/Models/Register/**/*'
+
+area/ui-editor:
+  - 'src/studio/src/designer/frontend/ux-editor/**/*'
