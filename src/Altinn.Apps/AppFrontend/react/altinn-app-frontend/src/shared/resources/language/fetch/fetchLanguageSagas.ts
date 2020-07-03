@@ -8,13 +8,14 @@ import * as LanguageActionTypes from './fetchLanguageActionTypes';
 import * as ProfileActionTypes from '../../profile/fetch/fetchProfileActionTypes';
 import QueueActions from '../../queue/queueActions';
 import { IRuntimeState } from '../../../../types';
+import { FETCH_PROFILE_FULFILLED } from '../../profile/fetch/fetchProfileActionTypes';
 
 const profileState = (state: IRuntimeState): IProfile => state.profile.profile;
 
 export function* fetchLanguageSaga(): SagaIterator {
   try {
     const profile: IProfile = yield select(profileState);
-    const language = getLanguageFromCode(profile.profileSettingPreference.language.toString());
+    const language = getLanguageFromCode(profile.profileSettingPreference.language);
     yield call(LanguageActions.fetchLanguageFulfilled, language);
   } catch (err) {
     yield call(LanguageActions.fetchLanguageRecjeted, err);
@@ -24,6 +25,7 @@ export function* fetchLanguageSaga(): SagaIterator {
 
 export function* watchFetchLanguageSaga(): SagaIterator {
   yield all([
+    take(FETCH_PROFILE_FULFILLED),
     take(LanguageActionTypes.FETCH_LANGUAGE),
     take(ProfileActionTypes.FETCH_PROFILE_FULFILLED),
   ]);
