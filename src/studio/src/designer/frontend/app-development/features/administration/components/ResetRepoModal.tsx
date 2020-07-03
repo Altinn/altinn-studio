@@ -74,12 +74,17 @@ function ResetRepoModal(props: IResetRepoModalProps) {
     setDeleteRepoName(event.target.value);
   };
 
+  const onCloseWrapper = () => {
+    setDeleteRepoName('');
+    props.onClose();
+  };
+
   return (
     <div data-testid='reset-repo-container'>
       <Popover
         open={props.open}
         anchorEl={props.anchorEl}
-        onClose={props.onClose}
+        onClose={onCloseWrapper}
         anchorOrigin={{
           vertical: 'center',
           horizontal: 'center',

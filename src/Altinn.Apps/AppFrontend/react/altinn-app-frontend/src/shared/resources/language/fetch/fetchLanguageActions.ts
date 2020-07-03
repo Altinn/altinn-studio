@@ -1,10 +1,6 @@
 import { Action } from 'redux';
 import * as ActionTypes from './fetchLanguageActionTypes';
 
-export interface IFetchLanguage extends Action {
-  url: string;
-  languageCode: string;
-}
 export interface IFetchLanguageFulfilled extends Action {
   language: any;
 }
@@ -12,11 +8,9 @@ export interface IFetchLanguageRejected extends Action {
   error: Error;
 }
 
-export function fetchLanguage(url: string, languageCode: string): IFetchLanguage {
+export function fetchLanguage(): Action {
   return {
     type: ActionTypes.FETCH_LANGUAGE,
-    url,
-    languageCode,
   };
 }
 

@@ -1,13 +1,10 @@
-import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../store';
 
 import * as FetchLanguage from './fetch/fetchLanguageActions';
 
 export interface ILanguageActions extends ActionCreatorsMapObject {
-  fetchLanguage: (
-    url: string,
-    languageCode: string,
-  ) => FetchLanguage.IFetchLanguage;
+  fetchLanguage: () => Action;
   fetchLanguageFulfilled: (
     language: any,
   ) => FetchLanguage.IFetchLanguageFulfilled;

@@ -79,8 +79,9 @@ export function FileUploadComponent(props: IFileUploadProps) {
       attachmentToDelete.deleting = true;
       const newList = state.slice();
       newList[action.index] = attachmentToDelete;
+      return newList;
     }
-    return [];
+    return state;
   }
 
   const currentAttachments: IAttachment[] = useSelector(
@@ -158,7 +159,9 @@ export function FileUploadComponent(props: IFileUploadProps) {
         });
       }
     }
-    dispatch({ type: 'add', value: newFiles });
+    if (totalAttachments <= props.maxNumberOfAttachments) {
+      dispatch({ type: 'add', value: newFiles });
+    }
     setValidations(tmpValidations);
   };
 
