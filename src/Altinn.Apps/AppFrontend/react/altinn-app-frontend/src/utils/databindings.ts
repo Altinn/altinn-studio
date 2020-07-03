@@ -1,4 +1,5 @@
 import { object } from 'dot-object';
+import { ILayout, ILayoutGroup } from 'src/features/form/layout';
 
 const jsonPtr = require('json-ptr');
 
@@ -98,4 +99,41 @@ export function flattenObject(data: any, index: boolean = false): any {
     }
   }
   return toReturn;
+}
+
+export function removeGroupData(
+  formData: any,
+  index: any,
+  layout: ILayout,
+  groupId: string,
+  repeatingGroupCount: number,
+): any {
+  const result = { ...formData };
+  const groupElement: ILayoutGroup = layout.find((element) => {
+    return element.id === groupId;
+  }) as ILayoutGroup;
+  const groupDataModelBinding = groupElement.dataModelBindings.group;
+  groupElement.children.forEach((childElementId: string) => {
+    const childElement = layout.find((element) => element.id === childElementId);
+    Object.keys(childElement.dataModelBindings).forEach((key) => {
+      const dataModelKey = childElement.dataModelBindings[key];
+      const keyWithIndex = dataModelKey.replace(groupDataModelBinding, `${groupDataModelBinding}[${index}]`);
+      // eslint-disable-next-line no-param-reassign
+      delete result[keyWithIndex];
+    });
+  });
+
+  if (index < repeatingGroupCount + 1) {
+    // eslint-disable-next-line no-plusplus
+    for (let i = index + 1; i <= repeatingGroupCount + 1; i++) {
+      const keysToReplace = Object.keys(result).filter((key) => key.startsWith(`${groupDataModelBinding}[${i}]`));
+      keysToReplace.forEach((key) => {
+        delete result[key];
+        const newKey = key.replace(`${groupDataModelBinding}[${i}]`, `${groupDataModelBinding}[${i - 1}]`);
+        result[newKey] = formData[key];
+      });
+    }
+  }
+
+  return result;
 }

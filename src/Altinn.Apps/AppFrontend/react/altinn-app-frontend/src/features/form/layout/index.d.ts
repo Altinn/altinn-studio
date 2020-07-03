@@ -5,12 +5,9 @@ export interface ILayoutEntry {
 }
 
 export interface ILayoutGroup extends ILayoutEntry {
-  children: [string];
+  children: string[];
   dataModelBindings?: IDataModelBindings;
-  repeating?: boolean;
-  count?: number;
-  index?: number;
-  showAdd?: boolean;
+  maxCount: number;
 }
 
 export interface ILayoutComponent extends ILayoutEntry {
@@ -31,7 +28,7 @@ export interface ITextResourceBindings {
   [id: string]: string;
 }
 
-export type ILayout = [ILayoutComponent | ILayoutGroup];
+export type ILayout = Array<ILayoutComponent | ILayoutGroup>;
 
 export interface IComponentOptions {
   label: string;

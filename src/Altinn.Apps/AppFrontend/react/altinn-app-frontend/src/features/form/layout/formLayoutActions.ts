@@ -13,7 +13,7 @@ export interface IFormLayoutActions extends ActionCreatorsMapObject {
   updateFocusRejected: (error: Error) => UpdateFormLayout.IUpdateFocusRejected;
   updateFormLayout: (formLayoutElement: ILayoutComponent | ILayoutGroup, index: number)
     => UpdateFormLayout.IUpdateFormLayout;
-  updateRepeatingGroups: (layoutElementId: string, remove?: boolean)
+  updateRepeatingGroups: (layoutElementId: string, remove?: boolean, index?: number)
     => UpdateFormLayout.IUpdateRepeatingGroups;
   updateRepeatingGroupsFulfilled: (repeatingGroup: any, remove?: boolean)
     => UpdateFormLayout.IUpdateRepeatingGroupsFulfilled;

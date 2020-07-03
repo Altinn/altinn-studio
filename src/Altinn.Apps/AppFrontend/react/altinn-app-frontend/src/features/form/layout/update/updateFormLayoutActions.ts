@@ -35,6 +35,7 @@ export interface IUpdateFormLayout extends Action {
 export interface IUpdateRepeatingGroups extends Action {
   layoutElementId: string;
   remove?: boolean;
+  index?: number;
 }
 
 export interface IUpdateRepeatingGroupsFulfilled extends Action {
@@ -106,11 +107,13 @@ export function updateFormLayout(layoutElement: ILayoutComponent | ILayoutGroup,
 export function updateRepeatingGroups(
   layoutElementId: string,
   remove?: boolean,
+  index?: number,
 ): IUpdateRepeatingGroups {
   return ({
     type: UPDATE_REPEATING_GROUPS,
     layoutElementId,
     remove,
+    index,
   });
 }
 

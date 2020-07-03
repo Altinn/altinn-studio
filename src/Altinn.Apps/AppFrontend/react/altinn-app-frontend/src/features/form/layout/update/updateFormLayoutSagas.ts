@@ -6,16 +6,19 @@ import FormLayoutActions from '../formLayoutActions';
 import * as ActionTypes from '../formLayoutActionTypes';
 import { IUpdateFocus, IUpdateAutoSave, IUpdateRepeatingGroups } from './updateFormLayoutActions';
 import { ILayoutState } from '../formLayoutReducer';
-import { createRef } from 'react';
+import { IFormDataState } from '../../data/formDataReducer';
+import FormDataActions from '../../data/formDataActions';
+import { removeGroupData } from '../../../../utils/databindings';
 
 const selectFormLayoutConnection = (state: IRuntimeState): ILayoutState => state.formLayout;
+const selectFormData = (state: IRuntimeState): IFormDataState => state.formData;
 
 function* updateFocus({ currentComponentId, step }: IUpdateFocus): SagaIterator {
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
     if (currentComponentId) {
       const currentComponentIndex = formLayoutState.layout
-          .findIndex((component: ILayoutComponent) => component.id === currentComponentId);
+        .findIndex((component: ILayoutComponent) => component.id === currentComponentId);
       const focusComponentIndex = step ? currentComponentIndex + step : currentComponentIndex;
       const focusComponentId = focusComponentIndex > 0 ? formLayoutState.layout[focusComponentIndex].id : null;
       yield call(FormLayoutActions.updateFocusFulfilled, focusComponentId);
@@ -35,16 +38,32 @@ function* updateAutoSaveSaga({ autoSave } : IUpdateAutoSave): SagaIterator {
   }
 }
 
-function* updateRepeatingGroupsSaga({ layoutElementId, remove }: IUpdateRepeatingGroups) {
+function* updateRepeatingGroupsSaga({
+  layoutElementId,
+  remove,
+  index,
+}: IUpdateRepeatingGroups) {
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
     const currentCount = formLayoutState.uiConfig.repeatingGroups[layoutElementId].count;
     const updatedRepeatingGroups = {
       ...formLayoutState.uiConfig.repeatingGroups,
-      [layoutElementId]: remove ? currentCount - 1 : currentCount + 1,
+      [layoutElementId]: {
+        count: remove ? currentCount - 1 : currentCount + 1,
+      },
     };
 
     yield call(FormLayoutActions.updateRepeatingGroupsFulfilled, updatedRepeatingGroups);
+
+    if (remove) {
+      // Remove the form data associated with the group
+      const formDataState: IFormDataState = yield select(selectFormData);
+      const updatedFormData = removeGroupData(formDataState.formData, index,
+        formLayoutState.layout, layoutElementId, formLayoutState.uiConfig.repeatingGroups[layoutElementId].count);
+
+      yield call(FormDataActions.fetchFormDataFulfilled, updatedFormData);
+      yield call(FormDataActions.saveFormData);
+    }
   } catch (err) {
     yield call(FormLayoutActions.updateRepeatingGroupsRejected, err);
   }

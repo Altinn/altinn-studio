@@ -13,6 +13,7 @@ export interface IGroupProps {
   index?: number;
   dataModelBinding?: string;
   showAdd?: boolean;
+  showDelete?: boolean;
 }
 
 const theme = createMuiTheme(altinnAppTheme);
@@ -25,6 +26,7 @@ const useStyles = makeStyles({
   },
   notLastGroup: {
     borderBottom: '0.5px solid #6A6A6A',
+    paddingBottom: 10,
   },
 });
 
@@ -35,23 +37,30 @@ export function Group({
   index,
   dataModelBinding,
   showAdd,
+  showDelete,
 }: IGroupProps): JSX.Element {
   const classes = useStyles();
 
-  const [ready, setReady] = React.useState<boolean>(false);
+  // const [ready, setReady] = React.useState<boolean>(false);
+  const renderComponents = JSON.parse(JSON.stringify(components));
 
-  if (repeating && !ready) {
-    components.forEach((component) => {
+  if (repeating) {
+    renderComponents.forEach((component) => {
       Object.keys(component.dataModelBindings).forEach((key) => {
-        // eslint-disable-next-line no-param-reassign
-        component.dataModelBindings[key] = component.dataModelBindings[key].replace(dataModelBinding, `${dataModelBinding}[${index}]`);
+        if (!component.dataModelBindings[key].startsWith(`${dataModelBinding}[${index}]`)) {
+          // eslint-disable-next-line no-param-reassign
+          component.dataModelBindings[key] = component.dataModelBindings[key].replace(dataModelBinding, `${dataModelBinding}[${index}]`);
+        }
       });
     });
-    setReady(true);
   }
 
   const onCLickAdd = () => {
-    FormLayoutActions.updateRenderLayout(id, index);
+    FormLayoutActions.updateRepeatingGroups(id);
+  };
+
+  const onClickRemove = () => {
+    FormLayoutActions.updateRepeatingGroups(id, true, index);
   };
 
   return (
@@ -59,15 +68,16 @@ export function Group({
       <Grid
         container={true}
         xs={12}
+        data-testid={`group-${id}-${index}`}
       >
-        { components.map(renderGenericComponent) }
+        { renderComponents.map(renderGenericComponent) }
       </Grid>
       <Grid
         container={true}
         justify='flex-end'
         className={showAdd ? null : classes.notLastGroup}
       >
-        {repeating &&
+        {repeating && showDelete &&
         <Grid
           item={true}
           xs={2}
@@ -78,7 +88,7 @@ export function Group({
           />
           <AltinnButton
             btnText='Slett'
-            onClickFunction={onCLickAdd}
+            onClickFunction={onClickRemove}
             secondaryButton={true}
           />
         </Grid>
