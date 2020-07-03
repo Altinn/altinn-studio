@@ -3,7 +3,6 @@ import { all, call, select, take, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from '../../../../types';
 import { IValidations, IUiConfig } from '../../../../types/global';
 import { runConditionalRenderingRules } from '../../../../utils/conditionalRendering';
-import * as FormConfigActionTypes from '../../config/fetch/fetchFormConfigActionTypes';
 import * as FormDataActionTypes from '../../data/formDataActionTypes';
 import { IFormData } from '../../data/formDataReducer';
 import { ILayout } from '../../layout';
@@ -43,7 +42,6 @@ function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
         }
       });
     }
-    
   } catch (err) {
     yield call(console.error, err);
   }
@@ -56,7 +54,6 @@ export function* watchCheckIfConditionalRulesShouldRunSaga(): SagaIterator {
 export function* waitForAppSetupBeforeRunningConditionalRulesSaga(): SagaIterator {
   yield all([
     take(FormLayoutActionTypes.FETCH_FORM_LAYOUT_FULFILLED),
-    take(FormConfigActionTypes.FETCH_FORM_CONFIG_FULFILLED),
     take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
     take(FormDynamicsActionTypes.FETCH_SERVICE_CONFIG_FULFILLED),
     take(RulesActionTypes.FETCH_RULE_MODEL_FULFILLED)

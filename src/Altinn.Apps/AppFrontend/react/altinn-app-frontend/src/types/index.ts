@@ -1,5 +1,4 @@
 import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducers';
-import { IFormConfigState } from '../features/form/config/formConfigReducer';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
@@ -21,7 +20,6 @@ import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
 export interface IRuntimeState {
   applicationMetadata: IApplicationMetadataState;
   attachments: IAttachmentState;
-  formConfig: IFormConfigState;
   formData: IFormDataState;
   formDataModel: IDataModelState;
   formDynamics: IFormDynamicState;

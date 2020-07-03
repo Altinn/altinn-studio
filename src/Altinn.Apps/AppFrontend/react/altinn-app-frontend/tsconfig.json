@@ -25,10 +25,12 @@
     "moduleResolution": "node",
     "rootDir": "./../",
     "strictNullChecks": false,
+    "resolveJsonModule": true,
     "esModuleInterop": true
   },
   "include": [
     "./src/**/*",
+    "./__mocks__/**/*",
   ],
   "exclude": [
     "node_modules",
