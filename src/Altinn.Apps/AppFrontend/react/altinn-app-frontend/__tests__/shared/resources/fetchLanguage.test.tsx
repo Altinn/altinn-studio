@@ -3,17 +3,12 @@ import { call, take, all } from 'redux-saga/effects';
 import { fetchLanguageSaga, watchFetchLanguageSaga } from '../../../src/shared/resources/language/fetch/fetchLanguageSagas';
 import LanguageActions from '../../../src/shared/resources/language/languageActions';
 
-const mockUrl: string = 'http://altinn3.no/api/Language/GetLanguageAsJSON';
-const mockLanguageCode: string = 'nb';
-
 describe('>>> features/language action', () => {
   it('+++ should create an action with correct type: FETCH_LANGUAGE', () => {
     const expectedAction = {
       type: 'LANGUAGE_DATA.FETCH_LANGUAGE',
-      languageCode: mockLanguageCode,
-      url: mockUrl,
     };
-    expect(LanguageActions.fetchLanguage(mockUrl, mockLanguageCode)).toEqual(expectedAction);
+    expect(LanguageActions.fetchLanguage()).toEqual(expectedAction);
   });
   it('+++ should create an action with correct type: FETCH_LANGUAGE_FULFILLED', () => {
     const expectedAction = {
