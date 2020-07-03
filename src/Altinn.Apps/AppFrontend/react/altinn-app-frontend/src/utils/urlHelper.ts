@@ -8,8 +8,8 @@ export const appPath = `${origin}/${org}/${app}`;
 export const verifySubscriptionUrl = `${origin}/api/v1/${org}/${app}/verifySubscription?partyId=${reportee}`;
 export const languageUrl = `${appPath}/api/Language/GetLanguageAsJSON`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
+export const oldTextResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
-export const textResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const updateCookieUrl: (partyId: string) => string = (partyId: string) => `
   ${appPath}/api/v1/parties/${partyId}
 `;
@@ -25,6 +25,10 @@ export const instancesControllerUrl: string = `${appPath}/instances`;
 export const partySelectionUrl: string = `${appPath}/#/partyselection`;
 export const refreshJwtTokenUrl: string = `${appPath}/api/authentication/keepAlive`;
 export const reactErrorPage: string = `${appPath}/#/error`;
+
+export function textResourcesUrl(language: string) {
+  return `${origin}/${org}/${app}/api/v1/texts/${language}`;
+}
 
 export function fileUploadUrl(attachmentType: string, attachmentName: string) {
   return `${appPath}/instances/` +

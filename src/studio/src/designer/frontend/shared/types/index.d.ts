@@ -65,7 +65,7 @@ export interface IPerson {
 }
 
 export interface IProfileSettingPreference {
-  language: number;
+  language: string;
   preSelectedPartyId: number;
   doNotPromptForParty: boolean;
 }
