@@ -33,7 +33,7 @@ namespace Altinn.Platform.Storage.Helpers
                 DueDateTime = instance.DueBefore,
                 Id = instanceGuid,
                 InstanceOwnerId = instance.InstanceOwner.PartyId,
-                LastChangedBy = FindLastChangedBy(instance),
+                LastChangedBy = FindLastChanged(instance).LastChangedBy,
                 Org = instance.Org,
                 AppName = instance.AppId.Split('/')[1],
                 ProcessCurrentTask = GetSBLStatusForCurrentTask(instance),
@@ -100,22 +100,17 @@ namespace Altinn.Platform.Storage.Helpers
         {
             if (instance.Process != null)
             {
-                string currentTask = instance.Process.CurrentTask?.ElementId;
-                if (currentTask != null)
-                {
-                    return "FormFilling";
-                }
-                else if (string.IsNullOrEmpty(currentTask) && instance.Process.Ended != null && instance.Status?.Archived == null)
+                if (instance.Process.Ended != null && instance.Status?.Archived == null)
                 {
                     return "Submit";
                 }
-                else if (string.IsNullOrEmpty(currentTask) && instance.Process.Ended != null && instance.Status?.Archived != null)
+                else if (instance.Process.Ended != null && instance.Status?.Archived != null)
                 {
                     return "Archived";
                 }
                 else
                 {
-                    return instance.Process.CurrentTask?.ElementId;
+                    return "FormFilling";
                 }
             }
             else
@@ -124,12 +119,18 @@ namespace Altinn.Platform.Storage.Helpers
             }
         }
 
-        private static string FindLastChangedBy(Instance instance)
+        /// <summary>
+        /// Finds last changed by for an instance and its listed data elements
+        /// </summary>
+        /// <param name="instance">The instance</param>
+        /// <returns>Last changed by</returns>
+        public static (string LastChangedBy, DateTime? LastChanged) FindLastChanged(Instance instance)
         {
-            string result = instance.LastChangedBy;
+            string lastChangedBy = instance.LastChangedBy;
+            DateTime? lastChanged = instance.LastChanged;
             if (instance.Data == null || instance.Data.Count == 0)
             {
-                return result;
+                return (lastChangedBy, lastChanged);
             }
 
             List<DataElement> newerDataElements = instance.Data.FindAll(dataElement =>
@@ -139,20 +140,20 @@ namespace Altinn.Platform.Storage.Helpers
 
             if (newerDataElements.Count == 0)
             {
-                return result;
+                return (lastChangedBy, lastChanged);
             }
 
-            DateTime lastChanged = (DateTime)instance.LastChanged;
+            lastChanged = (DateTime)instance.LastChanged;
             newerDataElements.ForEach((DataElement dataElement) =>
             {
                 if (dataElement.LastChanged > lastChanged)
                 {
-                    result = dataElement.LastChangedBy;
+                    lastChangedBy = dataElement.LastChangedBy;
                     lastChanged = (DateTime)dataElement.LastChanged;
                 }
             });
 
-            return result;
+            return (lastChangedBy, lastChanged);
         }
     }
 }

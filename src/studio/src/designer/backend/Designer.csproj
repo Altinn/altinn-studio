@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="0.5.3" />
+    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="0.5.4" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.18" />
     <PackageReference Include="CompilerAttributes" Version="1.1.2" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
@@ -38,7 +38,7 @@
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.5" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.11.0" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.11.1" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.5.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.0.0">
@@ -52,7 +52,7 @@
     <PackageReference Include="Markdig" Version="0.20.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.3" />
     <PackageReference Include="RestSharp" Version="106.11.4" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
   </ItemGroup>
 
   <ItemGroup>

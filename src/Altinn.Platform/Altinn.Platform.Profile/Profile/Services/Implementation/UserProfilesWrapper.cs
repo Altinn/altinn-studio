@@ -33,21 +33,21 @@ namespace Altinn.Platform.Profile.Services.Implementation
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;
-            _client = httpClient;            
+            _client = httpClient;
         }
 
         /// <inheritdoc />
         public async Task<UserProfile> GetUser(int userId)
         {
             UserProfile user = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
             Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}users/{userId}");
 
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                Stream stream = await response.Content.ReadAsStreamAsync();
-                user = serializer.ReadObject(stream) as UserProfile;
+                string content = await response.Content.ReadAsStringAsync();
+                user = Newtonsoft.Json.JsonConvert.DeserializeObject<UserProfile>(content);
+                user.ProfileSettingPreference.Language = MapLanguageString(user.ProfileSettingPreference.Language);
             }
             else
             {
@@ -61,7 +61,6 @@ namespace Altinn.Platform.Profile.Services.Implementation
         public async Task<UserProfile> GetUser(string ssn)
         {
             UserProfile user = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
             Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}users");
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(ssn), Encoding.UTF8, "application/json");
@@ -69,8 +68,9 @@ namespace Altinn.Platform.Profile.Services.Implementation
             HttpResponseMessage response = await _client.PostAsync(endpointUrl, requestBody);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                Stream stream = await response.Content.ReadAsStreamAsync();
-                user = serializer.ReadObject(stream) as UserProfile;
+                string content = await response.Content.ReadAsStringAsync();
+                user = Newtonsoft.Json.JsonConvert.DeserializeObject<UserProfile>(content);
+                user.ProfileSettingPreference.Language = MapLanguageString(user.ProfileSettingPreference.Language);
             }
             else
             {
@@ -78,6 +78,19 @@ namespace Altinn.Platform.Profile.Services.Implementation
             }
 
             return user;
+        }
+
+        // Obsolete when TFS43729 is in production
+        private string MapLanguageString(string languageType)
+        {
+            return languageType switch
+            {
+                "1044" => "nb",
+                "1033" => "en",
+                "2068" => "nn",
+                "1083" => "se",
+                _ => languageType,
+            };
         }
     }
 }

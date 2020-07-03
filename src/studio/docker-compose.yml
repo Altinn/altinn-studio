@@ -72,5 +72,5 @@ services:
       - "3000:3000"
       - "222:22"
     build:
-      context: .
-      dockerfile: ./src/repositories/Dockerfile.local
+      context: ./src/repositories/
+      dockerfile: Dockerfile.local
