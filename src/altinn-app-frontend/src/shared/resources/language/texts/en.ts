@@ -35,7 +35,7 @@ export function en() {
       aria_label_right_arrow: 'Next month.',
     },
     feedback: {
-      title: 'You Du blir snart videresendt',
+      title: '## You will soon be forwarded',
       body: 'Waiting for verification. When this is complete you will be forwarded to the next step or receipt automatically.',
     },
     form_filler: {
