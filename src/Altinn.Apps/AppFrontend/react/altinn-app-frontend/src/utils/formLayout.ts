@@ -44,7 +44,7 @@ export function getRepeatingGroups(formLayout: [ILayoutComponent | ILayoutGroup]
   const repeatingGroups: IRepeatingGroups = {};
   formLayout.filter((layoutElement) => layoutElement.type === 'group')
     .forEach((groupElement: ILayoutGroup) => {
-      if (groupElement.repeating) {
+      if (groupElement.maxCount > 1) {
         const groupFormData = Object.keys(formData).filter((key) => {
           return key.startsWith(groupElement.dataModelBindings.group);
         });
@@ -61,7 +61,6 @@ export function getRepeatingGroups(formLayout: [ILayoutComponent | ILayoutGroup]
         }
       }
     });
-    console.log('repeating groups:: ', repeatingGroups);
   return repeatingGroups;
 }
 
@@ -73,7 +72,7 @@ export function getRenderLayout(formLayout: [ILayoutComponent | ILayoutGroup], f
   formLayout.forEach((layoutElement) => {
     if (layoutElement.type === 'group') {
       renderedAsGroup = renderedAsGroup.concat((layoutElement as ILayoutGroup).children);
-      if ((layoutElement as ILayoutGroup).repeating) {
+      if ((layoutElement as ILayoutGroup).maxCount > 1) {
         const groupFormData = Object.keys(formData).filter((key) => {
           return key.startsWith((layoutElement as ILayoutGroup).dataModelBindings.group);
         });
