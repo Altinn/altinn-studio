@@ -22,6 +22,15 @@ solution/studio/repos:
 
 # Labels for areas
 
+area/api-expose:
+  - 'src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.Api/**/*'
+
+area/api-use:
+  - 'src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.PlatformServices/**/*'
+
+area/attachments:
+  - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/shared/resources/attachments/**/*'
+
 area/authentication:
   - 'src/Altinn.Platform/Altinn.Platform.Authentication/**/*'
   - 'src/Altinn.Common/Authentication/**/*'
@@ -34,7 +43,10 @@ area/authorization:
 
 area/app-deploy:
   - 'src/studio/src/designer/frontend/app-development/features/appPublish/**/*'
+  - 'src/studio/src/designer/frontend/app-development/sharedResources/appDeployment/**/*'
   - 'src/studio/src/designer/backend/Controllers/DeploymentsController.cs'
+  - 'src/Altinn.Apps/AppTemplates/AspNet/deployment/**/*'
+  - 'src/studio/AppTemplates/AspNet/deployment/**/*'
 
 area/dashboard:
   - 'src/studio/src/designer/frontend/dashboard/**/*'
@@ -42,9 +54,20 @@ area/dashboard:
 area/data-storage:
   - 'src/Altinn.Platform/Altinn.Platform.Storage/**/*'
 
+area/instantiation:
+  - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/features/instantiate/**/*'
+
+area/language:
+  - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/shared/resources/language/**/*'
+  - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/shared/resources/textResources/**/*'
+
 area/printout:
   - 'src/Altinn.Platform/Altinn.Platform.PDF/**/*'
-  
+
+area/process:
+  - 'src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.Common/Process/**/*'
+  - 'src/Altinn.Apps/AppTemplates/AspNet/App/config/process/**/*'
+
 area/profile:
   - 'src/Altinn.Platform/Altinn.Platform.Profile/**/*'
   - 'src/Altinn.Platform/Altinn.Platform.Models/Models/Profile/**/*'
@@ -52,6 +75,7 @@ area/profile:
 area/receipt:
   - 'src/Altinn.Platform/Altinn.Platform.Receipt/**/*'
   - 'src/Altinn.Apps/AppFrontend/react/receipt/**/*'
+  - 'src/Altinn.Apps/AppFrontend/react/altinn-app-frontend/src/features/receipt/**/*'
 
 area/register:
   - 'src/Altinn.Platform/Altinn.Platform.Register/**/*'
