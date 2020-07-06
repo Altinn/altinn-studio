@@ -7,7 +7,7 @@ import { ILanguageState } from '../shared/resources/language/languageReducers';
 import components from '.';
 import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
-import { IDataModelBindings, ITextResourceBindings, ILayoutComponent } from '../features/form/layout';
+import { IDataModelBindings, ITextResourceBindings } from '../features/form/layout';
 import RuleActions from '../features/form/rules/rulesActions';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
@@ -30,7 +30,8 @@ export interface IGenericComponentProps {
   textResourceBindings: ITextResourceBindings;
   dataModelBindings: IDataModelBindings;
   componentValidations?: IComponentValidations;
-  readOnly?: boolean;
+  readOnly: boolean;
+  required: boolean;
 }
 
 export function GenericComponent(props: IGenericComponentProps) {
@@ -46,7 +47,6 @@ export function GenericComponent(props: IGenericComponentProps) {
 
   const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
   const formData: IFormData = useSelector((state: IRuntimeState) => getFormDataForComponent(state.formData.formData, props.dataModelBindings), shallowEqual);
-  const component: ILayoutComponent = useSelector((state: IRuntimeState) => state.formLayout.layout.find((element) => element.id === props.id) as ILayoutComponent);
   const isValid: boolean = useSelector((state: IRuntimeState) => isComponentValid(state.formValidations.validations[props.id]));
   const language: ILanguageState = useSelector((state: IRuntimeState) => state.language.language);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
@@ -55,10 +55,10 @@ export function GenericComponent(props: IGenericComponentProps) {
   const componentValidations: IComponentValidations = useSelector((state: IRuntimeState) => state.formValidations.validations[props.id], shallowEqual);
 
   React.useEffect(() => {
-    if (component) {
-      setIsSimple(isSimpleComponent(component));
+    if (props.dataModelBindings && props.type) {
+      setIsSimple(isSimpleComponent(props.dataModelBindings, props.type));
     }
-  }, [component]);
+  }, []);
 
   React.useEffect(() => {
     setHasValidationMessages(componentHasValidationMessages(componentValidations));
@@ -121,7 +121,7 @@ export function GenericComponent(props: IGenericComponentProps) {
         language={language}
         textResourceBindings={textResources}
         {...props}
-        {...component}
+        {...passThroughProps}
       />
     );
   };
@@ -134,7 +134,8 @@ export function GenericComponent(props: IGenericComponentProps) {
     return (
       <Description
         description={descriptionText}
-        {...component}
+        id={id}
+        {...passThroughProps}
       />
     );
   };
@@ -148,13 +149,13 @@ export function GenericComponent(props: IGenericComponentProps) {
         language={language}
         textResourceBindings={textResources}
         {...props}
-        {...component}
+        {...passThroughProps}
       />
     );
   };
 
   const getText = () => {
-    if (component.type === 'Header') {
+    if (props.type === 'Header') {
       // disabled markdown parsing
       return getTextResourceByKey(props.textResourceBindings.title, textResources);
     }

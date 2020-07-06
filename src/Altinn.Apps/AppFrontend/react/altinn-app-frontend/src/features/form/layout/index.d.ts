@@ -1,11 +1,13 @@
 export interface ILayoutEntry {
   id: string;
-  type: string;
-  hidden: boolean;
+  type?: string;
+  hidden?: boolean;
 }
 
 export interface ILayoutGroup extends ILayoutEntry {
-  children: [ILayoutGroup | ILayoutComponent];
+  children: string[];
+  dataModelBindings?: IDataModelBindings;
+  maxCount: number;
 }
 
 export interface ILayoutComponent extends ILayoutEntry {
@@ -26,7 +28,7 @@ export interface ITextResourceBindings {
   [id: string]: string;
 }
 
-export type ILayout = [ILayoutComponent | ILayoutGroup];
+export type ILayout = Array<ILayoutComponent | ILayoutGroup>;
 
 export interface IComponentOptions {
   label: string;

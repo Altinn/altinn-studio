@@ -3,7 +3,6 @@ import {
   Reducer,
   ReducersMapObject,
 } from 'redux';
-import FormConfigState, { IFormConfigState } from '../features/form/config/formConfigReducer';
 import FormDataReducer, { IFormDataState } from '../features/form/data/formDataReducer';
 import FormDataModel, { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
@@ -24,32 +23,30 @@ import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/t
 import IsLoadingReducer, { IIsLoadingState } from './../shared/resources/isLoading/isLoadingReducers';
 import QueueReducer, { IQueueState } from './../shared/resources/queue/queueReducer';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> {
   formLayout: T1;
   formData: T2;
-  formConfig: T3;
-  formDataModel: T4;
-  attachments: T5;
-  formDynamics: T6;
-  formRules?: T7;
-  language: T8;
-  textResources: T9;
-  profile: T10;
-  formValidations: T11;
-  party: T12;
-  applicationMetadata: T13;
-  instantiation: T14;
-  organisationMetaData: T15;
-  instanceData: T16;
-  process: T17;
-  isLoading: T18;
-  queue: T19;
+  formDataModel: T3;
+  attachments: T4;
+  formDynamics: T5;
+  formRules?: T6;
+  language: T7;
+  textResources: T8;
+  profile: T9;
+  formValidations: T10;
+  party: T11;
+  applicationMetadata: T12;
+  instantiation: T13;
+  organisationMetaData: T14;
+  instanceData: T15;
+  process: T16;
+  isLoading: T17;
+  queue: T18;
 }
 
 export interface IRuntimeReducers extends IReducers<
   Reducer<ILayoutState>,
   Reducer<IFormDataState>,
-  Reducer<IFormConfigState>,
   Reducer<IDataModelState>,
   Reducer<IAttachmentState>,
   Reducer<IFormDynamicState>,
@@ -73,7 +70,6 @@ export interface IRuntimeReducers extends IReducers<
 const reducers: IRuntimeReducers = {
   applicationMetadata: ApplicationMetadataReducer,
   attachments: AttachmentReducer,
-  formConfig: FormConfigState,
   formData: FormDataReducer,
   formDataModel: FormDataModel,
   formDynamics: FormDynamicsReducer,

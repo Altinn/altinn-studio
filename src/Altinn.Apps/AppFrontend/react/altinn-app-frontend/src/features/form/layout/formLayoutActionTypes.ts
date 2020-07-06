@@ -21,6 +21,10 @@ export const UPDATE_HIDDEN_COMPONENTS: string = `${moduleName}.UPDATE_HIDDEN_COM
 
 export const UPDATE_FORM_LAYOUT: string = `${moduleName}.UPDATE_FORM_LAYOUT`;
 
+export const UPDATE_REPEATING_GROUPS: string = `${moduleName}.UPDATE_REPEATING_GROUPS`;
+export const UPDATE_REPEATING_GROUPS_FULFILLED: string = `${moduleName}.UPDATE_REPEATING_GROUPS_FULFILLED`;
+export const UPDATE_REPEATING_GROUPS_REJECTED: string = `${moduleName}.UPDATE_REPEATING_GROUPS_REJECTED`;
+
 export const UPDATE_AUTO_SAVE: string = `${moduleName}.UPDATE_AUTO_SAVE`;
 export const UPDATE_AUTO_SAVE_FULFILLED: string = `${moduleName}.UPDATE_AUTO_SAVE_FULFILLED`;
 export const UPDATE_AUTO_SAVE_REJECTED: string = `${moduleName}.UPDATE_AUTO_SAVE_REJECTED`;

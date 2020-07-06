@@ -1,14 +1,10 @@
-import { IDataModelBindings, IComponentValidations, ITextResource } from "../types/global";
-import { getLanguageFromKey, getParsedLanguageFromText } from "altinn-shared/utils";
+import { getLanguageFromKey, getParsedLanguageFromText } from 'altinn-shared/utils';
+import { IDataModelBindings, IComponentValidations, ITextResource } from '../types/global';
 
-export const isSimpleComponent = (component: any): boolean => {
-  if (!component || !component.dataModelBindings) {
-    return false;
-  }
-  const simpleBinding = component.dataModelBindings.simpleBinding;
-  const type = component.type;
+export const isSimpleComponent = (dataModelBindings: any, type: string): boolean => {
+  const simpleBinding = dataModelBindings.simpleBinding;
   return simpleBinding && type !== 'FileUpload' && type !== 'Datepicker';
-}
+};
 
 export const componentHasValidationMessages = (componentValidations) => {
   if (!componentValidations) {
@@ -19,11 +15,10 @@ export const componentHasValidationMessages = (componentValidations) => {
     if (componentValidations[key].errors.length > 0
       || componentValidations[key].warnings.length > 0) {
       hasMessages = true;
-      return;
     }
   });
   return hasMessages;
-}
+};
 
 export const getFormDataForComponent = (formData: any, dataModelBindings: IDataModelBindings) => {
   if (dataModelBindings.simpleBinding) {
@@ -41,7 +36,7 @@ export const getFormDataForComponent = (formData: any, dataModelBindings: IDataM
     }
   });
   return formDataObj;
-}
+};
 
 export const isComponentValid = (validations: IComponentValidations): boolean => {
   if (!validations) {
@@ -52,7 +47,6 @@ export const isComponentValid = (validations: IComponentValidations): boolean =>
   Object.keys(validations).forEach((key: string) => {
     if (validations[key].errors.length > 0) {
       isValid = false;
-      return;
     }
   });
   return isValid;
@@ -65,7 +59,7 @@ export const getTextResource = (resourceKey: string, textResources: ITextResourc
 
 export function getFileUploadComponentValidations(validationError: string, language: any): IComponentValidations {
   const componentValidations: any = {
-    ['simpleBinding']: {
+    simpleBinding: {
       errors: [],
       warnings: [],
     },

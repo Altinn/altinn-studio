@@ -5,6 +5,9 @@ import {
   UPDATE_FOCUS_FULFUILLED,
   UPDATE_FOCUS_REJECTED,
   UPDATE_FORM_LAYOUT,
+  UPDATE_REPEATING_GROUPS,
+  UPDATE_REPEATING_GROUPS_FULFILLED,
+  UPDATE_REPEATING_GROUPS_REJECTED,
   UPDATE_HIDDEN_COMPONENTS,
   UPDATE_AUTO_SAVE,
   UPDATE_AUTO_SAVE_FULFILLED,
@@ -27,6 +30,20 @@ export interface IUpdateFocusRejected extends Action {
 export interface IUpdateFormLayout extends Action {
   layoutElement: ILayoutGroup | ILayoutComponent;
   index: number;
+}
+
+export interface IUpdateRepeatingGroups extends Action {
+  layoutElementId: string;
+  remove?: boolean;
+  index?: number;
+}
+
+export interface IUpdateRepeatingGroupsFulfilled extends Action {
+  repeatingGroups: any;
+}
+
+export interface IUpdateRepeatingGroupsRejected extends Action {
+  error: Error;
 }
 
 export interface IUpdateHiddenComponents extends Action {
@@ -83,6 +100,35 @@ export function updateFormLayout(layoutElement: ILayoutComponent | ILayoutGroup,
     type: UPDATE_FORM_LAYOUT,
     layoutElement,
     index,
+  });
+}
+
+export function updateRepeatingGroups(
+  layoutElementId: string,
+  remove?: boolean,
+  index?: number,
+): IUpdateRepeatingGroups {
+  return ({
+    type: UPDATE_REPEATING_GROUPS,
+    layoutElementId,
+    remove,
+    index,
+  });
+}
+
+export function updateRepeatingGroupsFulfilled(
+  repeatingGroups: any,
+): IUpdateRepeatingGroupsFulfilled {
+  return ({
+    type: UPDATE_REPEATING_GROUPS_FULFILLED,
+    repeatingGroups,
+  });
+}
+
+export function updateRepeatingGroupsRejected(error: Error): IUpdateRepeatingGroupsRejected {
+  return ({
+    type: UPDATE_REPEATING_GROUPS_REJECTED,
+    error,
   });
 }
 

@@ -1,4 +1,5 @@
 import { object } from 'dot-object';
+import { ILayout, ILayoutGroup } from 'src/features/form/layout';
 
 const jsonPtr = require('json-ptr');
 
@@ -98,4 +99,42 @@ export function flattenObject(data: any, index: boolean = false): any {
     }
   }
   return toReturn;
+}
+
+export function removeGroupData(
+  formData: any,
+  index: any,
+  layout: ILayout,
+  groupId: string,
+  repeatingGroupCount: number,
+): any {
+  const result = { ...formData };
+  const groupElement: ILayoutGroup = layout.find((element) => {
+    return element.id === groupId;
+  }) as ILayoutGroup;
+  const groupDataModelBinding = groupElement.dataModelBindings.group;
+  deleteGroupData(result, groupDataModelBinding, index);
+
+  if (index < repeatingGroupCount + 1) {
+    // eslint-disable-next-line no-plusplus
+    for (let i = index + 1; i <= repeatingGroupCount + 1; i++) {
+      deleteGroupData(result, groupDataModelBinding, i, true);
+    }
+  }
+
+  return result;
+}
+
+function deleteGroupData(formData: any, groupDataModelBinding: string, index: number, shiftData?: boolean) {
+  const prevData = { ...formData };
+  Object.keys(formData).filter((key) => key.startsWith(`${groupDataModelBinding}[${index}]`))
+    .forEach((key) => {
+      // eslint-disable-next-line no-param-reassign
+      delete formData[key];
+      if (shiftData) {
+        const newKey = key.replace(`${groupDataModelBinding}[${index}]`, `${groupDataModelBinding}[${index - 1}]`);
+        // eslint-disable-next-line no-param-reassign
+        formData[newKey] = prevData[key];
+      }
+    });
 }
