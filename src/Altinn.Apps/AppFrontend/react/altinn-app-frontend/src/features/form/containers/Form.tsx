@@ -11,7 +11,8 @@ export function Form() {
   const [filteredLayout, setFilteredLayout] = React.useState<any[]>([]);
 
   const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layout);
-  const repeatingGroups: IRepeatingGroups = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
+  const repeatingGroups: IRepeatingGroups =
+    useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
   const hiddenComponents: string[] = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields);
 
   React.useEffect(() => {
