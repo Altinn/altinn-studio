@@ -1,6 +1,6 @@
 {
   "name": "receipt-react-app",
-  "version": "0.1.2",
+  "version": "0.2.2",
   "private": true,
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --open",
