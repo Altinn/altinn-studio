@@ -1,10 +1,11 @@
 {
   "recommendations": [
-    "ms-dotnettools.csharp",
-    "ms-azuretools.vscode-docker",
-    "msjsdiag.debugger-for-chrome",
+    "dbaeumer.vscode-eslint",
     "github.vscode-pull-request-github",
-    "ms-vsliveshare.vsliveshare-pack",
-    "dbaeumer.vscode-eslint"
+    "msjsdiag.debugger-for-chrome",
+    "ms-azuretools.vscode-docker",
+    "ms-dotnettools.csharp",
+    "ms-vscode-remote.remote-containers",
+    "ms-vsliveshare.vsliveshare"
   ]
 }
