@@ -3,7 +3,7 @@ import { Action, Reducer } from 'redux';
 import { ILayout } from './index';
 import { IFetchFormLayoutFulfilled, IFetchFormLayoutRejected } from './fetch/fetchFormLayoutActions';
 import * as ActionTypes from './formLayoutActionTypes';
-import { IUpdateFocusFulfilled, IUpdateFormLayout, IUpdateHiddenComponents, IUpdateAutoSave, IUpdateRepeatingGroups, IUpdateRepeatingGroupsFulfilled } from './update/updateFormLayoutActions';
+import { IUpdateFocusFulfilled, IUpdateFormLayout, IUpdateHiddenComponents, IUpdateAutoSave, IUpdateRepeatingGroupsFulfilled } from './update/updateFormLayoutActions';
 // eslint-disable-next-line import/no-cycle
 import { IUiConfig } from '../../../types/global';
 
@@ -74,8 +74,7 @@ const LayoutReducer: Reducer<ILayoutState> = (
     }
     case ActionTypes.UPDATE_REPEATING_GROUPS_FULFILLED: {
       const {
-        repeatingGroup,
-        remove,
+        repeatingGroups: repeatingGroup,
       } = action as IUpdateRepeatingGroupsFulfilled;
       return update<ILayoutState>(state, {
         uiConfig: {

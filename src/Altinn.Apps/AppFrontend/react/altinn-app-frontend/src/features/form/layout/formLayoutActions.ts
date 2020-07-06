@@ -15,7 +15,7 @@ export interface IFormLayoutActions extends ActionCreatorsMapObject {
     => UpdateFormLayout.IUpdateFormLayout;
   updateRepeatingGroups: (layoutElementId: string, remove?: boolean, index?: number)
     => UpdateFormLayout.IUpdateRepeatingGroups;
-  updateRepeatingGroupsFulfilled: (repeatingGroup: any, remove?: boolean)
+  updateRepeatingGroupsFulfilled: (repeatingGroups: any)
     => UpdateFormLayout.IUpdateRepeatingGroupsFulfilled;
   updateRepeatingGroupsRejected: (error: Error)
     => UpdateFormLayout.IUpdateRepeatingGroupsRejected;

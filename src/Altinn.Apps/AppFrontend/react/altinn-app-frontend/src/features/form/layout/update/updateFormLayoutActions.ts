@@ -39,8 +39,7 @@ export interface IUpdateRepeatingGroups extends Action {
 }
 
 export interface IUpdateRepeatingGroupsFulfilled extends Action {
-  repeatingGroup: any;
-  remove?: boolean;
+  repeatingGroups: any;
 }
 
 export interface IUpdateRepeatingGroupsRejected extends Action {
@@ -118,13 +117,11 @@ export function updateRepeatingGroups(
 }
 
 export function updateRepeatingGroupsFulfilled(
-  repeatingGroup: any,
-  remove?: boolean,
+  repeatingGroups: any,
 ): IUpdateRepeatingGroupsFulfilled {
   return ({
     type: UPDATE_REPEATING_GROUPS_FULFILLED,
-    repeatingGroup,
-    remove,
+    repeatingGroups,
   });
 }
 
