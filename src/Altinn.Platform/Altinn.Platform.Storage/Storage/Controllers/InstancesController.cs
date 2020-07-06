@@ -90,7 +90,6 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="processEndEvent">Process end state.</param>
         /// <param name="processEnded">Process ended value.</param>
         /// <param name="instanceOwnerPartyId">Instance owner id.</param>
-        /// <param name="labels">Labels.</param>
         /// <param name="lastChanged">Last changed date.</param>
         /// <param name="created">Created time.</param>
         /// <param name="visibleAfter">The visible after date time.</param>
@@ -112,7 +111,6 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery(Name = "process.endEvent")] string processEndEvent,
             [FromQuery(Name = "process.ended")] string processEnded,
             [FromQuery(Name = "instanceOwner.partyId")] int? instanceOwnerPartyId,
-            [FromQuery(Name = "appOwner.labels")] string labels,
             [FromQuery] string lastChanged,
             [FromQuery] string created,
             [FromQuery(Name = "visibleAfter")] string visibleAfter,
