@@ -35,6 +35,7 @@ describe('>>> utils/databindings.ts', () => {
           'field2',
           'field3',
         ],
+        maxCount: 3,
       },
       {
         id: 'field1',

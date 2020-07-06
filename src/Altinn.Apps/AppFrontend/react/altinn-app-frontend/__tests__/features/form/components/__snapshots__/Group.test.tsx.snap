@@ -3,8 +3,9 @@
 exports[`>>> features/form/components/Group.tsx +++ should match snapshot 1`] = `
 Array [
   <div
-    className="MuiGrid-root MuiGrid-container MuiGrid-grid-xs-12"
+    className="MuiGrid-root MuiGrid-container"
     data-testid="group-testGroupId-0"
+    id="group-testGroupId-0"
   >
     <div
       className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
@@ -149,6 +150,7 @@ Array [
         aria-label="Legg til"
         className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-addButton-1 makeStyles-button-5 MuiButton-containedPrimary"
         disabled={false}
+        id="add-button-grp-testGroupId"
         onBlur={[Function]}
         onClick={[Function]}
         onDragLeave={[Function]}
