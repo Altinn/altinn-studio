@@ -66,13 +66,14 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 string content = await response.Content.ReadAsStringAsync();
-                List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject(content, typeof(List<MessageBoxInstance>)) as List<MessageBoxInstance>;
+                List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
 
                 int expectedCount = 10;
                 string expectedTitle = "Endring av navn (RF-1453)";
-
-                Assert.Equal(expectedCount, messageBoxInstances?.Count);
-                Assert.Equal(expectedTitle, messageBoxInstances?.First().Title);
+                int actualCount = messageBoxInstances.Count;
+                string actualTitle = messageBoxInstances.First().Title;
+                Assert.Equal(expectedCount, actualCount);
+                Assert.Equal(expectedTitle, actualTitle);
             }
 
             /// <summary>
