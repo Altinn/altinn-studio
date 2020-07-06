@@ -2,9 +2,12 @@ import React from 'react';
 import { Grid, makeStyles, createMuiTheme } from '@material-ui/core';
 import { AltinnButton } from 'altinn-shared/components';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
+import { useSelector } from 'react-redux';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 import { ILayoutComponent } from '../layout';
 import { renderGenericComponent } from '../../../utils/layout';
 import FormLayoutActions from '../layout/formLayoutActions';
+import { IRuntimeState } from '../../../types';
 
 export interface IGroupProps {
   id: string;
@@ -42,9 +45,8 @@ export function Group({
   showSeparator,
 }: IGroupProps): JSX.Element {
   const classes = useStyles();
-
-  // const [ready, setReady] = React.useState<boolean>(false);
   const renderComponents = JSON.parse(JSON.stringify(components));
+  const language: any = useSelector((state: IRuntimeState) => state.language.language);
 
   if (repeating) {
     renderComponents.forEach((component) => {
@@ -86,10 +88,10 @@ export function Group({
         >
           <i
             className='ai ai-trash'
-            aria-label='delete' /* {getLanguageFromKey('general.delete', props.language) } */
+            aria-label={getLanguageFromKey('general.delete', language)}
           />
           <AltinnButton
-            btnText='Slett'
+            btnText={getLanguageFromKey('general.delete', language)}
             onClickFunction={onClickRemove}
             secondaryButton={true}
             id={`delete-button-grp-${id}`}
@@ -103,7 +105,7 @@ export function Group({
       >
         <Grid item={true} xs={12}>
           <AltinnButton
-            btnText='Legg til'
+            btnText={getLanguageFromKey('general.add', language)}
             onClickFunction={onCLickAdd}
             className={classes.addButton}
             id={`add-button-grp-${id}`}

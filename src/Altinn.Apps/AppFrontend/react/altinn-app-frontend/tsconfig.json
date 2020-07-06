@@ -29,8 +29,7 @@
     "esModuleInterop": true
   },
   "include": [
-    "./src/**/*",
-    "./__mocks__/**/*",
+    "./src/**/*"
   ],
   "exclude": [
     "node_modules",
