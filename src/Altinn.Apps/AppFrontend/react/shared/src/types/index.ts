@@ -1,5 +1,3 @@
-import { IPartyTypesAllowed } from '../../../altinn-app-frontend/src/shared/resources/applicationMetadata';
-
 export interface IAltinnWindow extends Window {
   org: string;
   app: string;
@@ -123,6 +121,13 @@ export interface IParty {
   person?: IPerson;
   organisation?: IOrganisation;
   childParties: IParty[];
+}
+
+export interface IPartyTypesAllowed {
+  bankruptcyEstate: boolean;
+  organisation: boolean;
+  person: boolean;
+  subUnit: boolean;
 }
 
 export interface IPerson {
