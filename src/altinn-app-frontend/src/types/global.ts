@@ -1,5 +1,4 @@
 import ajv from 'ajv';
-import { IFormConfigState } from '../features/form/config/formConfigReducer';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
@@ -158,7 +157,6 @@ export interface IRules {
 export interface IRuntimeStore {
   formLayout: ILayoutState;
   formData: IFormDataState;
-  formConfig: IFormConfigState;
   formDataModel: IDataModelState;
   attachments: IAttachmentState;
   formDynamics: IFormDynamicState;
@@ -187,6 +185,15 @@ export interface IUiConfig {
   focus: string;
   hiddenFields: string[];
   autoSave: boolean;
+  repeatingGroups?: IRepeatingGroups;
+}
+
+export interface IRepeatingGroup {
+  count: number;
+}
+
+export interface IRepeatingGroups {
+  [id: string]: IRepeatingGroup;
 }
 
 export interface IValidations {

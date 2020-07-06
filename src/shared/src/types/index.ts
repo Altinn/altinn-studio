@@ -5,18 +5,15 @@ export interface IAltinnWindow extends Window {
 
 export interface IApplication {
   createdBy: string;
-  createdDateTime: string;
+  created: string;
   dataTypes: IDataType[];
   id: string;
   lastChangedBy: string;
-  lastChangedDateTime: string;
-  maxSize: string;
+  lastChanged: string;
   org: string;
+  partyTypesAllowed: IPartyTypesAllowed;
   title: ITitle;
-  validFrom: string;
-  validTo: string;
-  versionId: string;
-  WorkflowId: string;
+  presentationFields?: IPresentationField[];
 }
 
 export interface IAppOwner {
@@ -50,15 +47,15 @@ export interface IData {
 
 export interface IDataType {
   id: string;
-  description: string;
+  description?: string;
   allowedContentTypes: string[];
-  allowedContributers: string[];
-  appLogic: any;
-  taskId: string;
-  maxSize: number;
+  allowedContributers?: string[];
+  appLogic?: any;
+  taskId?: string;
+  maxSize?: number;
   maxCount: number;
-  mincount: number;
-  grouping: string;
+  minCount: number;
+  grouping?: string;
 }
 
 export interface IExtendedInstance {
@@ -124,6 +121,13 @@ export interface IParty {
   person?: IPerson;
   organisation?: IOrganisation;
   childParties: IParty[];
+}
+
+export interface IPartyTypesAllowed {
+  bankruptcyEstate: boolean;
+  organisation: boolean;
+  person: boolean;
+  subUnit: boolean;
 }
 
 export interface IPerson {

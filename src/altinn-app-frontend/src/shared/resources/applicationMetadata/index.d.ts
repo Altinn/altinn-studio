@@ -2,19 +2,14 @@ import { ITitle, IDataType, IPresentationFields, IPresentationField } from "../.
 
 export interface IApplicationMetadata {
   createdBy: string;
-  createdDateTime: string;
+  created: string;
   dataTypes: IDataType[];
   id: string;
   lastChangedBy: string;
-  lastChangedDateTime: string;
-  maxSize: string;
+  lastChanged: string;
   org: string;
   partyTypesAllowed: IPartyTypesAllowed;
   title: ITitle;
-  validFrom: string;
-  validTo: string;
-  versionId: string;
-  WorkflowId: string;
   presentationFields?: IPresentationField[];
 }
 
