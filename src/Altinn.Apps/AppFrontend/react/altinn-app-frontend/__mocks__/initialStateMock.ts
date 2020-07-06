@@ -2,9 +2,7 @@ import { IRuntimeState } from '../src/types';
 import { getFormLayoutStateMock } from './formLayoutStateMock';
 import { getLanguageFromCode } from '../src/shared/resources/language/languages';
 import { getFormDataStateMock } from './formDataStateMock';
-// import applicationMetadataMock from './applicationMetadataMock.json';
-
-const applicationMetadataMock = require('./applicationMetadataMock.json');
+import { applicationMetadataMock } from './applicationMetadataMock';
 
 export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRuntimeState {
   const initialState: IRuntimeState = {

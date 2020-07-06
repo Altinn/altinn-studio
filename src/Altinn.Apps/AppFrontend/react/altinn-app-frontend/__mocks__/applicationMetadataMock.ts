@@ -1,4 +1,4 @@
-{
+const applicationMetadataJSON = `{
   "id": "ttd/test-app",
   "org": "ttd",
   "title": {
@@ -37,4 +37,6 @@
   "createdBy": "test testesen",
   "lastChanged": "2020-06-29T08:47:12.4255537Z",
   "lastChangedBy": "test testesen"
-}
+}`;
+
+export const applicationMetadataMock = JSON.parse(applicationMetadataJSON);
