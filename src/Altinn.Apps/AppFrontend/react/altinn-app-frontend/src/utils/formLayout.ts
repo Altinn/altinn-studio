@@ -25,6 +25,7 @@ export function getLayoutElementIndexById(elementId: string, formLayout: [ILayou
 
 export function getRepeatingGroups(formLayout: [ILayoutComponent | ILayoutGroup], formData: any) {
   const repeatingGroups: IRepeatingGroups = {};
+  const regex = new RegExp(/\[([0-9]+)\]/);
   formLayout.filter((layoutElement) => layoutElement.type === 'group')
     .forEach((groupElement: ILayoutGroup) => {
       if (groupElement.maxCount > 1) {
@@ -33,7 +34,6 @@ export function getRepeatingGroups(formLayout: [ILayoutComponent | ILayoutGroup]
         });
         if (groupFormData && groupFormData.length > 0) {
           const lastItem = groupFormData[groupFormData.length - 1];
-          const regex = new RegExp(/\[([0-9]+)\]/);
           const match = lastItem.match(regex);
           if (match && match[1]) {
             const count = parseInt(match[1], 10);

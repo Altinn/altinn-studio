@@ -59,7 +59,7 @@ export function Group({
     });
   }
 
-  const onCLickAdd = () => {
+  const onClickAdd = () => {
     FormLayoutActions.updateRepeatingGroups(id);
   };
 
@@ -106,7 +106,7 @@ export function Group({
         <Grid item={true} xs={12}>
           <AltinnButton
             btnText={getLanguageFromKey('general.add', language)}
-            onClickFunction={onCLickAdd}
+            onClickFunction={onClickAdd}
             className={classes.addButton}
             id={`add-button-grp-${id}`}
           />
