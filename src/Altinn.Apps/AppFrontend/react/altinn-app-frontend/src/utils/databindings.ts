@@ -113,27 +113,28 @@ export function removeGroupData(
     return element.id === groupId;
   }) as ILayoutGroup;
   const groupDataModelBinding = groupElement.dataModelBindings.group;
-  groupElement.children.forEach((childElementId: string) => {
-    const childElement = layout.find((element) => element.id === childElementId);
-    Object.keys(childElement.dataModelBindings).forEach((key) => {
-      const dataModelKey = childElement.dataModelBindings[key];
-      const keyWithIndex = dataModelKey.replace(groupDataModelBinding, `${groupDataModelBinding}[${index}]`);
-      // eslint-disable-next-line no-param-reassign
-      delete result[keyWithIndex];
-    });
-  });
+  deleteGroupData(result, groupDataModelBinding, index);
 
   if (index < repeatingGroupCount + 1) {
     // eslint-disable-next-line no-plusplus
     for (let i = index + 1; i <= repeatingGroupCount + 1; i++) {
-      const keysToReplace = Object.keys(result).filter((key) => key.startsWith(`${groupDataModelBinding}[${i}]`));
-      keysToReplace.forEach((key) => {
-        delete result[key];
-        const newKey = key.replace(`${groupDataModelBinding}[${i}]`, `${groupDataModelBinding}[${i - 1}]`);
-        result[newKey] = formData[key];
-      });
+      deleteGroupData(result, groupDataModelBinding, i, true);
     }
   }
 
   return result;
+}
+
+function deleteGroupData(formData: any, groupDataModelBinding: string, index: number, shiftData?: boolean) {
+  const prevData = { ...formData };
+  Object.keys(formData).filter((key) => key.startsWith(`${groupDataModelBinding}[${index}]`))
+    .forEach((key) => {
+      // eslint-disable-next-line no-param-reassign
+      delete formData[key];
+      if (shiftData) {
+        const newKey = key.replace(`${groupDataModelBinding}[${index}]`, `${groupDataModelBinding}[${index - 1}]`);
+        // eslint-disable-next-line no-param-reassign
+        formData[newKey] = prevData[key];
+      }
+    });
 }
