@@ -39,6 +39,32 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             }
 
             /// <summary>
+            /// Add a new event to an instance.
+            /// </summary>
+            [Fact]
+            public async void Post_CreateNewEvent_ReturnsCreated()
+            {
+                // Arrange
+                string requestUri = "storage/api/v1/instances/1337/3c42ee2a-9464-42a8-a976-16eb926bd20a/events/";
+
+                HttpClient client = GetTestClient();
+                string token = PrincipalUtil.GetToken(3, 1337);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                InstanceEvent instance = new InstanceEvent
+                {
+                    InstanceId = "3c42ee2a-9464-42a8-a976-16eb926bd20a"
+                };
+
+                // Act
+                StringContent content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await client.PostAsync(requestUri, content);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            }
+
+            /// <summary>
             /// Test case: User has to low authentication level. 
             /// Expected: Returns status forbidden.
             /// </summary>
@@ -65,7 +91,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-  
             }
 
             /// <summary>
