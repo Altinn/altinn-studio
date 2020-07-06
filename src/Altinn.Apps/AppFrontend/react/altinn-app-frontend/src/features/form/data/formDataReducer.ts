@@ -48,7 +48,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
       const { formData } = action as IFetchFormDataFulfilled;
       return Immutable<IFormDataState>(state, {
         formData: {
-          $merge: formData,
+          $set: formData,
         },
       });
     }

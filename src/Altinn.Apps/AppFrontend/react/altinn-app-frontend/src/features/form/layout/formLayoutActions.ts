@@ -13,6 +13,12 @@ export interface IFormLayoutActions extends ActionCreatorsMapObject {
   updateFocusRejected: (error: Error) => UpdateFormLayout.IUpdateFocusRejected;
   updateFormLayout: (formLayoutElement: ILayoutComponent | ILayoutGroup, index: number)
     => UpdateFormLayout.IUpdateFormLayout;
+  updateRepeatingGroups: (layoutElementId: string, remove?: boolean, index?: number)
+    => UpdateFormLayout.IUpdateRepeatingGroups;
+  updateRepeatingGroupsFulfilled: (repeatingGroups: any)
+    => UpdateFormLayout.IUpdateRepeatingGroupsFulfilled;
+  updateRepeatingGroupsRejected: (error: Error)
+    => UpdateFormLayout.IUpdateRepeatingGroupsRejected;
   updateHiddenComponents: (componentsToHide: string[]) => UpdateFormLayout.IUpdateHiddenComponents;
   updateAutoSave: (autoSave: boolean) => UpdateFormLayout.IUpdateAutoSave;
   updateAutoSaveFulfilled: (autoSave: boolean) => UpdateFormLayout.IUpdateAutoSaveFulfilled;
@@ -27,6 +33,9 @@ const actions: IFormLayoutActions = {
   updateFocusFulfilled: UpdateFormLayout.updateFocusFulfilled,
   updateFocusRejected: UpdateFormLayout.updateFocusRejected,
   updateFormLayout: UpdateFormLayout.updateFormLayout,
+  updateRepeatingGroups: UpdateFormLayout.updateRepeatingGroups,
+  updateRepeatingGroupsFulfilled: UpdateFormLayout.updateRepeatingGroupsFulfilled,
+  updateRepeatingGroupsRejected: UpdateFormLayout.updateRepeatingGroupsRejected,
   updateHiddenComponents: UpdateFormLayout.updateHiddenComponents,
   updateAutoSave: UpdateFormLayout.updateAutoSave,
   updateAutoSaveFulfilled: UpdateFormLayout.updateAutoSaveFulfilled,
