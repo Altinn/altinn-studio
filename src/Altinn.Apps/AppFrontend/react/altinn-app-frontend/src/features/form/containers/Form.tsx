@@ -36,6 +36,13 @@ export function Form() {
     return renderGenericComponent(component);
   }
 
+  const getRepeatingGroupCount = (id: string) => {
+    if (repeatingGroups && repeatingGroups[id] && repeatingGroups[id].count) {
+      return repeatingGroups[id].count;
+    }
+    return 0;
+  };
+
   function renderLayoutComponent(layoutComponent: ILayoutComponent | ILayoutGroup) {
     if (layoutComponent.type && layoutComponent.type.toLowerCase() === 'group') {
       const groupComponents = (layoutComponent as ILayoutGroup).children.map((child) => {
@@ -43,7 +50,7 @@ export function Form() {
         return JSON.parse(JSON.stringify(result));
       });
       const repeating = (layoutComponent as ILayoutGroup).maxCount > 1;
-      const repeatingGroupCount = repeatingGroups ? repeatingGroups[layoutComponent.id]?.count : 0;
+      const repeatingGroupCount = getRepeatingGroupCount(layoutComponent.id);
       return (
         <>
           {Array.from(Array(repeatingGroupCount + 1).keys()).map((index) => {
@@ -54,13 +61,14 @@ export function Form() {
                 components={groupComponents}
                 repeating={repeating}
                 index={index}
-                dataModelBinding={(layoutComponent as ILayoutGroup).dataModelBindings.group}
+                dataModelBinding={(layoutComponent as ILayoutGroup).dataModelBindings?.group}
                 showAdd={
                   repeating
                   && repeatingGroupCount === index
                   && repeatingGroupCount < (layoutComponent as ILayoutGroup).maxCount - 1
                 }
                 showDelete={repeatingGroupCount > 0}
+                showSeparator={repeatingGroupCount > index}
               />
             );
           })}

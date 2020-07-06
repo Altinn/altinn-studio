@@ -14,6 +14,7 @@ export interface IGroupProps {
   dataModelBinding?: string;
   showAdd?: boolean;
   showDelete?: boolean;
+  showSeparator?: boolean;
 }
 
 const theme = createMuiTheme(altinnAppTheme);
@@ -38,6 +39,7 @@ export function Group({
   dataModelBinding,
   showAdd,
   showDelete,
+  showSeparator,
 }: IGroupProps): JSX.Element {
   const classes = useStyles();
 
@@ -67,15 +69,15 @@ export function Group({
     <>
       <Grid
         container={true}
-        xs={12}
         data-testid={`group-${id}-${index}`}
+        id={`group-${id}-${index}`}
       >
         { renderComponents.map(renderGenericComponent) }
       </Grid>
       <Grid
         container={true}
         justify='flex-end'
-        className={showAdd ? null : classes.notLastGroup}
+        className={showSeparator ? classes.notLastGroup : null}
       >
         {repeating && showDelete &&
         <Grid
@@ -90,6 +92,7 @@ export function Group({
             btnText='Slett'
             onClickFunction={onClickRemove}
             secondaryButton={true}
+            id={`delete-button-grp-${id}`}
           />
         </Grid>
         }
@@ -103,6 +106,7 @@ export function Group({
             btnText='Legg til'
             onClickFunction={onCLickAdd}
             className={classes.addButton}
+            id={`add-button-grp-${id}`}
           />
         </Grid>
       </Grid>
