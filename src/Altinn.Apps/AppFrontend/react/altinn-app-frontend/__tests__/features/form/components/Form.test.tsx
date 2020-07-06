@@ -145,14 +145,6 @@ describe('>>> features/form/components/Form.tsx', () => {
 
     fireEvent.click(addButton);
 
-    utils.debug(addButton);
-    let group;
-    waitFor(() => {
-      expect(utils.getByTestId(`something`)).toBeInTheDocument();
-    });
-
-    utils.debug(group);
-
     waitFor(() => {
       expect(utils.getByTestId(`group-${mockGroupId}-2`)).toBeTruthy();
       expect(addButton).toBeTruthy();
