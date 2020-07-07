@@ -33,11 +33,3 @@ export function getEvent(altinnStudioRuntimeCookie, partyId, instanceId, eventId
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");    
     return http.get(endpoint, params);
 };
-
-
-//Api call to Platform:Storage to Delete all events from an instance
-export function deleteEvent(altinnStudioRuntimeCookie, partyId, instanceId){
-    var endpoint = config.buildStorageUrls(partyId, instanceId, "", "events");    
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");    
-    return http.del(endpoint, null, params);
-};

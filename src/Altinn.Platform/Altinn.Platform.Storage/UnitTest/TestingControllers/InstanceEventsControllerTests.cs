@@ -8,6 +8,7 @@ using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.UnitTest.Mocks;
 using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
+using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 using Altinn.Platform.Storage.UnitTest.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
@@ -23,7 +24,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
-using Altinn.Platform.Storage.UnitTest.Mocks.Repository;
 
 namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 {
@@ -31,15 +31,37 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
         public class InstanceEventsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
         {
-            private const string BasePath = "storage/api/v1/instances/1/cbdb00b1-4134-490d-b02b-3e33f7d8da33/events";
-
-            private readonly Mock<IInstanceEventRepository> _instanceEventRepository;
             private readonly WebApplicationFactory<Startup> _factory;
 
             public InstanceEventsControllerTests(WebApplicationFactory<Startup> factory)
             {
                 _factory = factory;
-                _instanceEventRepository = new Mock<IInstanceEventRepository>();
+            }
+
+            /// <summary>
+            /// Add a new event to an instance.
+            /// </summary>
+            [Fact]
+            public async void Post_CreateNewEvent_ReturnsCreated()
+            {
+                // Arrange
+                string requestUri = "storage/api/v1/instances/1337/3c42ee2a-9464-42a8-a976-16eb926bd20a/events/";
+
+                HttpClient client = GetTestClient();
+                string token = PrincipalUtil.GetToken(3, 1337);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                InstanceEvent instance = new InstanceEvent
+                {
+                    InstanceId = "3c42ee2a-9464-42a8-a976-16eb926bd20a"
+                };
+
+                // Act
+                StringContent content = new StringContent(JsonConvert.SerializeObject(instance), Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await client.PostAsync(requestUri, content);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             }
 
             /// <summary>
@@ -52,7 +74,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Arrange
                 string requestUri = $"storage/api/v1/instances/1337/3c42ee2a-9464-42a8-a976-16eb926bd20a/events/";
 
-                HttpClient client = GetTestClient(_instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(3, 1337, 0);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -69,7 +91,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-  
             }
 
             /// <summary>
@@ -77,12 +98,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected: Returns status forbidden.
             /// </summary>
             [Fact]
-            public async void Post_ReponseIsDeny_ReturnStatusForbidden()
+            public async void Post_ResponseIsDeny_ReturnStatusForbidden()
             {
                 // Arrange
                 string requestUri = $"storage/api/v1/instances/1337/3c42ee2a-9464-42a8-a976-16eb926bd20a/events/";
 
-                HttpClient client = GetTestClient(_instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(-1, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -106,7 +127,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string eventGuid = "c8a44353-114a-48fc-af8f-b85392793cb2";
                 string requestUri = $"storage/api/v1/instances/1337/3c42ee2a-9464-42a8-a976-16eb926bd20a/events/{eventGuid}";
 
-                HttpClient client = GetTestClient(_instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(3, 1337, 0);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -122,12 +143,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected: Returns status forbidden.
             /// </summary>
             [Fact]
-            public async void GetOne_ReponseIsDeny_ReturnStatusForbidden()
+            public async void GetOne_ResponseIsDeny_ReturnStatusForbidden()
             {
                 string eventGuid = "9f07c256-a344-490b-b42b-1c855a83f6fc";
                 string requestUri = $"storage/api/v1/instances/1337/a6020470-2200-4448-bed9-ef46b679bdb8/events/{eventGuid}";
 
-                HttpClient client = GetTestClient(_instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(-1, 1337);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -146,9 +167,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void Get_UserHasToLowAuthLv_ReturnStatusForbidden()
             {
                 // Arrange
-                string requestUri = $"storage/api/v1/instances/1337/3c42ee2a-9464-42a8-a976-16eb926bd20a/events/";
+                string requestUri = "storage/api/v1/instances/1337/3c42ee2a-9464-42a8-a976-16eb926bd20a/events/";
 
-                HttpClient client = GetTestClient(_instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(3, 1337, 0);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -164,12 +185,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected: Returns status forbidden.
             /// </summary>
             [Fact]
-            public async void Get_ReponseIsDeny_ReturnStatusForbidden()
+            public async void Get_ResponseIsDeny_ReturnStatusForbidden()
             {
                 // Arrange
-                string requestUri = $"storage/api/v1/instances/1337/3c42ee2a-9464-42a8-a976-16eb926bd20a/events/";
+                string requestUri = "storage/api/v1/instances/1337/3c42ee2a-9464-42a8-a976-16eb926bd20a/events/";
 
-                HttpClient client = GetTestClient(_instanceEventRepository.Object);
+                HttpClient client = GetTestClient();
                 string token = PrincipalUtil.GetToken(-1, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -180,7 +201,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             }
 
-            private HttpClient GetTestClient(IInstanceEventRepository instanceEventRepository)
+            private HttpClient GetTestClient()
             {
                 Program.ConfigureSetupLogging();
                 // No setup required for these services. They are not in use by the InstanceEventController

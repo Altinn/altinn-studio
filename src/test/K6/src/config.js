@@ -87,10 +87,7 @@ export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type){
             break;
         case "process":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/process";
-            break;
-        case "confirmdownloadall":
-            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/dataelements/confirmDownload";
-            break;
+            break;        
         case "completeconfirmation":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/complete";
             break;
@@ -138,7 +135,8 @@ export var appResources = {
     "servicemetadata": "/api/metadata/ServiceMetaData",
     "formlayout": "/api/resource/FormLayout.json",
     "rulehandler": "/api/resource/RuleHandler.js",
-    "ruleconfiguration": "/api/resource/RuleConfiguration.json"
+    "ruleconfiguration": "/api/resource/RuleConfiguration.json",
+    "texts": "/api/v1/texts/"
 };
 
 //App Authorization

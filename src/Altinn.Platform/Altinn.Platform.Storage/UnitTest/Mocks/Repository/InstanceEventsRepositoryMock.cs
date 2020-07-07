@@ -24,28 +24,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<InstanceEvent> InsertInstanceEvent(InstanceEvent instanceEvent)
         {
-            lock (TestDataUtil.dataLock)
-            {
-                string instanceId = instanceEvent.InstanceId;
-
-                if (instanceId.Contains("/"))
-                {
-                    instanceId = instanceEvent.InstanceId.Split("/")[1];
-                }
-
-                if (!Directory.Exists(GetInstanceEventsPath(instanceId, instanceEvent.InstanceOwnerPartyId)))
-                {
-                    Directory.CreateDirectory(GetInstanceEventsPath(instanceId, instanceEvent.InstanceOwnerPartyId));
-                }
-
-                instanceEvent.Id = Guid.NewGuid();
-
-
-                string instancePath = GetInstanceEventPath(instanceId, instanceEvent.InstanceOwnerPartyId, instanceEvent.Id.Value);
-                File.WriteAllText(instancePath, instanceEvent.ToString());
-
-                return Task.FromResult(instanceEvent);
-            }
+            return Task.FromResult(instanceEvent);
         }
 
         public Task<List<InstanceEvent>> ListInstanceEvents(string instanceId, string[] eventTypes, DateTime? fromDateTime, DateTime? toDateTime)
@@ -90,6 +69,5 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceRepositoryMock).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\instances");
         }
-
     }
 }

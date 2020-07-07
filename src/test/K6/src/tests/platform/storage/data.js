@@ -16,7 +16,7 @@ const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
 let instanceJson = open("../../../data/instance.json");
-let instanceFormDataXml = open("../../../data/instanceformdata.xml");
+let instanceFormDataXml = open("../../../data/"+ level2App +".xml");
 let pdfAttachment = open("../../../data/test_file_pdf.pdf", "b");
 
 export const options = {
