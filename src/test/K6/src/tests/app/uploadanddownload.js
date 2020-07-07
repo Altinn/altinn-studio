@@ -27,7 +27,7 @@ import * as storageData from "../../api/storage/data.js"
 import {deleteSblInstance} from "../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
-const instanceFormDataXml = open("../../data/rf-0002.xml");
+const instanceFormDataXml = open("../../data/"+ level2App +".xml");
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
 const environment = (__ENV.env).toLowerCase();

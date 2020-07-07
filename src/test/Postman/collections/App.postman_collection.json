@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "c89b1bed-599e-47be-97a0-6604a38fad23",
+		"_postman_id": "a9f66131-838c-43f6-9d62-38d7e2770a6c",
 		"name": "App",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -14,7 +14,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "405f0af9-b1dd-42cb-acad-8835c9f15dd3",
+								"id": "23b471a5-fcac-4c95-b095-bb3ce2de545f",
 								"exec": [
 									"var current_timestamp = new Date();\r",
 									"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
@@ -25,7 +25,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "b4c59095-e73f-4b65-9290-a748b25c7357",
+								"id": "99bcd88b-ee8c-4974-9713-13e502360074",
 								"exec": [
 									"const jar = pm.cookies.jar();",
 									"var domain = pm.environment.get(\"envUrl\");",
@@ -80,7 +80,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "3642e91a-7bdc-486a-ab19-86d68fb3acee",
+								"id": "b4d6640e-658e-4e51-bf8d-790f1698fc1b",
 								"exec": [
 									"var responseAltinnStudioCookie = postman.getResponseCookie(\"AltinnStudioRuntime\");",
 									"responseAltinnStudioCookie = responseAltinnStudioCookie.value.toString();",
@@ -108,7 +108,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "e2e69b4a-b07a-48bb-b8a7-736a954aa30d",
+								"id": "bf515784-db3a-4f7d-a91a-063c67aa4cf5",
 								"exec": [
 									"pm.environment.set(\"AltinnStudioRuntime\",\"\");"
 								],
@@ -148,7 +148,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6505cb59-4588-4d0c-af60-b5faa7dcb8c1",
+								"id": "31358ee1-d5fa-41b1-8557-bf51828572d1",
 								"exec": [
 									"if(pm.response.code == 200)",
 									"{",
@@ -165,7 +165,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "247bde40-1e7d-4473-a1bb-ed62cba7ea18",
+								"id": "383f5b55-a14f-477f-ad02-8deff1eb88b0",
 								"exec": [
 									"const cookieJar = pm.cookies.jar();",
 									"var domain = pm.environment.get(\"envUrl\");",
@@ -219,7 +219,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ce37f250-8e44-4034-9ec3-b9ee5feac332",
+								"id": "dc5934b3-7615-45a4-b8d9-a5d8d5c9f199",
 								"exec": [
 									"if (pm.response.code == 200) {\r",
 									"    var jsonData = pm.response.json();\r",
@@ -278,6 +278,61 @@
 			"protocolProfileBehavior": {}
 		},
 		{
+			"name": "Texts",
+			"item": [
+				{
+					"name": "GET NB text",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "124cf815-580a-4f59-932d-0fae2c574642",
+								"exec": [
+									"pm.test(\"App Api - Texts - Get app NB texts - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AltinnStudioRuntime}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/api/v1/texts/nb",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"api",
+								"v1",
+								"texts",
+								"nb"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
 			"name": "Instances",
 			"item": [
 				{
@@ -286,7 +341,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
+								"id": "97c0777d-9ff6-41af-b0a0-b2e6dd86c7aa",
 								"exec": [
 									"pm.test(\"App Api - Instances - Add app instance - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -313,7 +368,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "f6eb3baa-0d7d-4224-b967-4fa09e1e8570",
+								"id": "53b0fe36-408b-4c80-b8aa-957aff01d2f1",
 								"exec": [
 									"pm.environment.set(\"instanceId\",\"\");",
 									"pm.environment.set(\"dataGuid\",\"\");",
@@ -376,7 +431,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
+								"id": "483105a6-e728-4052-a6af-e5f36896c1b5",
 								"exec": [
 									"pm.test(\"App Api - Instances - Get app instance by ID - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -452,7 +507,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
+								"id": "cd0a6081-0996-478c-b1ad-62512a5933a7",
 								"exec": [
 									"pm.test(\"App Api - Data - Get Form Data by id - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -513,7 +568,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "68318696-e879-4d73-ac94-439390675fac",
+								"id": "12854844-38fe-4714-843e-4a55abadc497",
 								"exec": [
 									"pm.test(\"App Api - Data - Edit Form Data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -579,7 +634,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e2d79115-5c93-41c9-b60f-8fc17eaa1f2d",
+								"id": "10906233-2caa-4be4-a9d7-2c2884c31c5d",
 								"exec": [
 									"pm.test(\"App Api - Data - Delete Form Data - Status - 400\", function () {\r",
 									"    pm.response.to.have.status(400);\r",
@@ -642,7 +697,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8c637fd5-88b9-4aec-9bdc-d6a566a131e1",
+								"id": "b76c5f0e-0c21-4c53-813f-d540d0658ff6",
 								"exec": [
 									"pm.test(\"App Api - Data - Add attachment - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -660,7 +715,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "f85f4f38-bb39-474e-be7c-e1e8c490c222",
+								"id": "5dfc416a-462b-4ab7-b10d-11da491a93a8",
 								"exec": [
 									"pm.environment.set(\"dataGuid\",\"\");"
 								],
@@ -734,7 +789,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
+								"id": "2c6f2b2d-e627-48dc-8513-e914252bfac5",
 								"exec": [
 									"pm.test(\"App Api - Data - Get Attachment Data - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -798,7 +853,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "68318696-e879-4d73-ac94-439390675fac",
+								"id": "2dc23eee-6f04-473a-9b7e-49d2be4cb010",
 								"exec": [
 									"pm.test(\"App Api - Data - Edit Attachment Data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -877,7 +932,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "709bf4db-92f0-4803-b802-cd5605187d00",
+								"id": "f1d09c14-d920-484f-b521-07f17692a1eb",
 								"exec": [
 									"pm.test(\"App Api - Process - Start Process again - negative test - Status - 409\", function () {\r",
 									"    pm.response.to.have.status(409);\r",
@@ -945,7 +1000,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
+								"id": "2c3d72a0-d135-4021-bf34-40d12537d6c5",
 								"exec": [
 									"pm.test(\"App Api - Process - Get Current Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -997,7 +1052,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a4bf7083-3188-447c-aafe-64b383b1693a",
+								"id": "2f535d4c-e4c7-4f27-b690-c5a6a34fe9fb",
 								"exec": [
 									"pm.test(\"App Api - Process - Start Process again - negative test - Status - 409\", function () {\r",
 									"    pm.response.to.have.status(409);\r",
@@ -1071,7 +1126,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ebe6fdbe-764b-4809-93f3-7869055f3f52",
+								"id": "a0774fab-c2b3-4f49-a6d2-08223b724777",
 								"exec": [
 									"pm.test(\"App Api - Process - Get Next Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1144,7 +1199,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
+								"id": "a5a85e3b-db5a-4fe8-a9e9-9f1abd734f5b",
 								"exec": [
 									"pm.test(\"App Api - Instances - Complete process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1210,7 +1265,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
+								"id": "cc672d38-ea4c-404f-8634-9527c4762370",
 								"exec": [
 									"pm.test(\"App Api - Instances - Complete process again - negative test - Status - 409\", function () {\r",
 									"    pm.response.to.have.status(409);\r",
@@ -1277,7 +1332,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
+								"id": "de3c4fac-ea35-40c0-adb8-cb05d192b242",
 								"exec": [
 									"pm.test(\"App Api - Process - Get Process History - Status - 200\", function () {",
 									"    pm.response.to.have.status(200);",
@@ -1333,7 +1388,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a3815326-b103-4737-9025-ee4f947dd1c0",
+								"id": "aa9567fa-7d99-4a0c-ab09-95c7361e76f3",
 								"exec": [
 									"pm.test(\"App Api - Instances - Create app instance with multipart data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -1363,7 +1418,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "988e199b-4635-4921-9809-0be0197b3d4b",
+								"id": "6472e7c1-2f71-4430-8ee2-91d9369b6fcd",
 								"exec": [
 									"pm.environment.set(\"instanceId\",\"\");",
 									"pm.environment.set(\"dataGuid\",\"\");"
@@ -1425,7 +1480,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
+								"id": "3d07add0-7408-4d53-b50c-1bd1454841c9",
 								"exec": [
 									"pm.test(\"App Api - Instances - Get multipart app instance by ID - Status - 200\", function() {",
 									"    pm.response.to.have.status(200);",
@@ -1493,7 +1548,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
+								"id": "10132ca2-a4c5-4da3-98d6-47bdae2b8103",
 								"exec": [
 									"pm.test(\"App Api - Data - GET Form Data created by mulipart - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1560,7 +1615,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
+								"id": "9326ee61-9dde-4fc9-b074-3000f7a07f3d",
 								"exec": [
 									"if(pm.response.code == 201)\r",
 									"{\r",
@@ -1584,7 +1639,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "9c84f949-10f6-4b99-a342-b7cb58641ee2",
+								"id": "0a5bce03-6447-4f7a-986c-23583333fbe5",
 								"exec": [
 									"pm.environment.set(\"instanceId\",\"\");",
 									"pm.environment.set(\"dataGuid\",\"\");",
@@ -1614,15 +1669,6 @@
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
 						"url": {
 							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances?instanceOwnerPartyId={{instanceOwnerId}}",
 							"protocol": "https",
@@ -1652,7 +1698,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
+								"id": "690fdee5-9b3c-41c7-8c13-9d5103bdf74a",
 								"exec": [
 									"pm.test(\"App Api - Process - Get Current Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1705,7 +1751,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
+								"id": "9973d484-6332-4c3b-ab9e-50a70a3c6b90",
 								"exec": [
 									"pm.test(\"App Api - Instances - Get Validate Instance - Not OK - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1768,7 +1814,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "dd484dcc-cd50-417c-9601-7b971fe28e68",
+								"id": "97822682-8720-4914-85fa-ea2f4251af92",
 								"exec": [
 									"if (pm.response.code == 201)\r",
 									"{\r",
@@ -1838,7 +1884,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8c637fd5-88b9-4aec-9bdc-d6a566a131e1",
+								"id": "bfc50707-4dc7-4019-90fc-ed0ff4945914",
 								"exec": [
 									"if (pm.response.code == 201)\r",
 									"{\r",
@@ -1855,7 +1901,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "8b357a9c-1e75-4e16-9a00-8bf5a8654005",
+								"id": "7dabb5e9-c7a6-4ff6-a3af-89502034f2f0",
 								"exec": [
 									"pm.environment.set(\"dataGuid\",\"\");"
 								],
@@ -1929,7 +1975,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
+								"id": "3aeecc6e-7c06-401d-9e78-0e8924745167",
 								"exec": [
 									"pm.test(\"App Api - Instances - Get Validate Instance Data - Not OK - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1984,7 +2030,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "68318696-e879-4d73-ac94-439390675fac",
+								"id": "2f2597b2-fdad-4abb-8c2b-55948c0185fc",
 								"exec": [
 									""
 								],
@@ -2038,7 +2084,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8c637fd5-88b9-4aec-9bdc-d6a566a131e1",
+								"id": "681b5234-46ec-4361-b700-0d655c3164a8",
 								"exec": [
 									"if (pm.response.code == 201)\r",
 									"{\r",
@@ -2055,7 +2101,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "138fbc85-0369-4b13-8336-4f307a053e19",
+								"id": "a32c1e38-d2c8-4b7a-8a39-bf109da51ccf",
 								"exec": [
 									"pm.environment.set(\"dataGuid\",\"\");"
 								],
@@ -2129,7 +2175,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
+								"id": "283f1640-54c3-4a23-9089-6eec54280282",
 								"exec": [
 									"pm.test(\"App Api - Instances - Get Validate Instance Data - OK - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2194,7 +2240,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
+								"id": "30cb1016-6d66-438e-8d23-4225df08afbf",
 								"exec": [
 									"pm.test(\"App Api - Instances - Get Validate Instance - OK - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2257,7 +2303,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ebe6fdbe-764b-4809-93f3-7869055f3f52",
+								"id": "9040fbff-c4bf-465a-83f5-ec02f30a3604",
 								"exec": [
 									"pm.test(\"App Api - E2E Test - Get Next Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2273,7 +2319,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "54d89139-1280-4e3f-9918-2a7437d77c0e",
+								"id": "1ad36c89-dc18-4a87-9827-d0a914c41447",
 								"exec": [
 									"pm.environment.set(\"processElementId\",\"\");"
 								],
@@ -2340,7 +2386,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
+								"id": "b2a7cff6-164d-4a86-ae23-48bc22c70a12",
 								"exec": [
 									"pm.test(\"App Api - Process - next process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2406,7 +2452,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
+								"id": "9f06b63c-4c34-40c8-9132-9b37270098d4",
 								"exec": [
 									""
 								],
@@ -2468,7 +2514,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"id": "cae6f057-ed18-4a90-9fda-025156c3d07e",
 								"exec": [
 									"if (pm.response.code == 200)",
 									"{",
@@ -2543,7 +2589,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"id": "e0d16fa7-6021-4c74-b70a-d10c8f1a5015",
 								"exec": [
 									""
 								],
@@ -2602,7 +2648,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"id": "538281ee-a99b-48dd-bd79-957289d3dcba",
 								"exec": [
 									"if (pm.response.code == 200)",
 									"    {",
@@ -2673,7 +2719,7 @@
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "45ab2130-e9f6-418a-a4a5-cc2d29771c5e",
+						"id": "7602db7a-9d97-4ebc-ad46-16a284e19a25",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -2683,7 +2729,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "6d0848a4-075b-44d1-9be4-91036fbee672",
+						"id": "25d66bf3-8997-4b69-88f5-4dbd76665e82",
 						"type": "text/javascript",
 						"exec": [
 							""
@@ -2698,7 +2744,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "6f76088f-7b42-44ae-9cf4-d2d22fbcb1f0",
+				"id": "02bf89d9-c107-4e04-9f21-e19f82ee09df",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -2708,7 +2754,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "9d9aca45-4d0e-49f2-a49b-28b54c018901",
+				"id": "7d22006f-9dc7-41e1-9f35-9bd98acc3f1b",
 				"type": "text/javascript",
 				"exec": [
 					""

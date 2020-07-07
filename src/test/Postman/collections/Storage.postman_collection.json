@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "cb9e79b1-cede-497a-9567-262efefef28e",
+		"_postman_id": "1de225d2-04b9-4fab-a2eb-69388da4cd2a",
 		"name": "Storage",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -14,7 +14,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "405f0af9-b1dd-42cb-acad-8835c9f15dd3",
+								"id": "46495365-2417-416f-a522-c3d0f2c6cde6",
 								"exec": [
 									"var current_timestamp = new Date();\r",
 									"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
@@ -25,7 +25,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "b4c59095-e73f-4b65-9290-a748b25c7357",
+								"id": "a510ccaf-fe77-4be0-bd57-8e66df3f5948",
 								"exec": [
 									"const jar = pm.cookies.jar();",
 									"var domain = pm.environment.get(\"envUrl\");",
@@ -79,7 +79,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "50e6a7a8-e66c-46a3-9564-9e7e1e9c8b93",
+								"id": "394a9bd7-8d62-4e75-9704-800c38b96a29",
 								"exec": [
 									"var responseAltinnStudioCookie = postman.getResponseCookie(\"AltinnStudioRuntime\");",
 									"responseAltinnStudioCookie = responseAltinnStudioCookie.value.toString();",
@@ -107,7 +107,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "b6e023e3-63ba-48f4-b562-e21f88d28996",
+								"id": "5450391e-3c33-434b-a223-8a17ad2c8f5a",
 								"exec": [
 									"pm.environment.set(\"AltinnStudioRuntime\",\"\");"
 								],
@@ -147,7 +147,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6505cb59-4588-4d0c-af60-b5faa7dcb8c1",
+								"id": "e602f08d-bb11-4233-bf83-d7f2280d1297",
 								"exec": [
 									"if (pm.response.code == 200) {",
 									"    var jsonData = pm.response.json();",
@@ -163,7 +163,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "9b004a19-571a-46ce-8398-6f0901d4f310",
+								"id": "0b39d980-2941-4358-a34a-4c37601ab12b",
 								"exec": [
 									"const cookieJar = pm.cookies.jar();",
 									"var domain = pm.environment.get(\"envUrl\");",
@@ -223,7 +223,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "c41aa913-9f1a-4cc8-87dc-d896ef72317c",
+								"id": "7b7d87c1-ed09-483a-900b-dbe1190932c5",
 								"exec": [
 									""
 								],
@@ -233,7 +233,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "1b3da8e9-45b9-477f-aef7-0e2ede88ed12",
+								"id": "f351b905-5144-4bf9-bab5-97a953f469d6",
 								"exec": [
 									"pm.test(\"Platform - Storage - Application - Create App - Not possible for a person - Status - 403\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -299,7 +299,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ce37f250-8e44-4034-9ec3-b9ee5feac332",
+								"id": "532ca54c-4898-4c0d-972a-71ead479dc00",
 								"exec": [
 									"pm.test(\"Platform - Storage - Applications - GET All Apps - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -346,7 +346,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ce37f250-8e44-4034-9ec3-b9ee5feac332",
+								"id": "dcb34526-1291-48cf-a8a4-310e38e1ea81",
 								"exec": [
 									"pm.test(\"Platform - Storage - Applications - Get App by name - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -379,7 +379,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "8d8e1d9b-b806-4e08-9253-38e5c2b62658",
+								"id": "f35b6139-ac26-4be9-8fa3-32b1c1dde75d",
 								"exec": [
 									"pm.environment.set(\"attachmentElementType\",\"\");"
 								],
@@ -425,7 +425,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "7762b309-0916-44bc-bb7c-5fb2dc8e639b",
+								"id": "8c2bb31b-cf4d-401e-9731-85fbe9c08b4e",
 								"exec": [
 									"pm.test(\"Platform - Storage - Application - Edit  App - Not possible for a person - Status - 403\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -490,7 +490,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ce37f250-8e44-4034-9ec3-b9ee5feac332",
+								"id": "a46136ed-0e83-481e-900d-2fb6de204e7f",
 								"exec": [
 									"pm.test(\"Platform - Storage - Applications - Get App texts - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -502,7 +502,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "8d8e1d9b-b806-4e08-9253-38e5c2b62658",
+								"id": "04629225-c223-4940-802f-c5fd3faa93aa",
 								"exec": [
 									""
 								],
@@ -550,7 +550,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a2413d3e-8083-4e5c-97f9-4e38cecc0299",
+								"id": "93f6fc20-8ec8-401a-843d-888ae8921baf",
 								"exec": [
 									"pm.test(\"Platform - Storage - Applications - POST Upload App texts - Status - 403\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -562,7 +562,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "ec68a4ed-6e43-4fe2-9eee-c5b12935e838",
+								"id": "a8dd63e4-0184-44e7-98c9-ff0dd0d64ef4",
 								"exec": [
 									""
 								],
@@ -618,7 +618,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6dbf50d8-d5e7-452c-8eb2-5fbae9797c5c",
+								"id": "61b33644-26f0-418c-b2e1-51f34905a27d",
 								"exec": [
 									"pm.test(\"Platform - Storage - Applications - PUT Edit App texts - Status - 403\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -630,7 +630,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "66eeec08-53c9-4567-b0c6-466b993dc8c8",
+								"id": "49d26310-3fa7-4bfd-a656-90b1f7dcd9b1",
 								"exec": [
 									""
 								],
@@ -687,7 +687,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "62554466-a108-40fc-aaf7-c3a84d6822af",
+								"id": "5c516b38-10b1-47c7-89ee-ec2d766fc277",
 								"exec": [
 									"pm.test(\"Platform - Storage - Applications - DELETE App texts - Status - 403\", function () {\r",
 									"    pm.response.to.have.status(403);\r",
@@ -699,7 +699,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "dff0987b-d9e5-481a-bf78-5053f64a5ab5",
+								"id": "02623ec8-316d-4489-907b-d579c02ba0a9",
 								"exec": [
 									""
 								],
@@ -753,7 +753,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"id": "31e44934-dcf2-4fc0-a49c-02f09eb47e16",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instances - Add app instance - Status - 201 \", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -774,7 +774,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "d7b24a19-9093-462e-9b6f-a6fd1d7df287",
+								"id": "9a82e8b1-e687-4521-8463-b8338d0309ef",
 								"exec": [
 									"pm.environment.set(\"instanceId\",\"\");"
 								],
@@ -835,7 +835,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"id": "17eaf37c-ecc2-4ce4-91cc-b52e139d7b67",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instances - Get All instances - Missing Request parameter - Status - 400\", function () {\r",
 									"    pm.response.to.have.status(400);\r",
@@ -894,7 +894,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"id": "e68e0b6b-bcd1-461d-9a36-1c05f7acc51d",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instances - Get Instance by onwerId - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -952,7 +952,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"id": "070bceb1-efae-4025-8c34-647a73b4fe39",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instances - Get Instances with Date filter - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -964,7 +964,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "1515b68b-dddd-4d4a-bbdf-6fa1b5514197",
+								"id": "b1247263-a642-468e-bccf-7ed6e9b657da",
 								"exec": [
 									""
 								],
@@ -1032,7 +1032,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"id": "c5a09780-6ee8-4859-890d-8906342b1200",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instances - Get Instances with Process filter  - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1098,7 +1098,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "77ce3421-c0a3-469a-9973-c232b55e67e4",
+								"id": "83fd401b-a3f1-4b6d-b42d-9b12655b3b01",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instances - Edit Process - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1159,7 +1159,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"id": "ea9e5563-ddab-45ee-879b-6fff19fce69e",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instances - Get Instance by Id - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1228,7 +1228,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4e0a8157-5f87-46a5-8df1-f3097c021797",
+								"id": "fdacb491-b74c-46f6-b780-da89a0d01e5b",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Data - Add Instance Data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -1241,7 +1241,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "864b3eba-7a74-4650-9406-35b0797e1b4a",
+								"id": "338b57ec-b789-45b7-a2f6-0d98c96024cf",
 								"exec": [
 									"pm.environment.set(\"dataGuid\",\"\");"
 								],
@@ -1305,7 +1305,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b7a4e821-33f0-4c30-b93b-d8b0b0a2b53a",
+								"id": "d9a7bcce-99ab-415b-aa34-89618df94a80",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Data - Get Instance Data - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1354,7 +1354,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "62cd01a6-9c8c-4d36-8134-f51512efb018",
+								"id": "8e45154d-3403-4b08-b0b5-c96714696f60",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Data - Edit Instance Data - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1415,7 +1415,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "62cd01a6-9c8c-4d36-8134-f51512efb018",
+								"id": "56bc83ae-d120-4fbe-b1df-6a478199f58c",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Data - Get Instance Data by ID - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1465,7 +1465,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "cc714784-7a38-4224-aad8-11d36fe6c540",
+								"id": "c9d9e966-5d78-45c6-8b13-8238151efa89",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Data - Delete Instance Data - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1515,7 +1515,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4e0a8157-5f87-46a5-8df1-f3097c021797",
+								"id": "6363c19f-fcfc-432a-af70-1163a1239512",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Data - Add attachment - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
@@ -1533,7 +1533,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "74e5cd5e-6bcf-41be-98dd-6c142716bcdf",
+								"id": "9cff461a-3c85-4be0-aca2-7d317445a66e",
 								"exec": [
 									""
 								],
@@ -1608,7 +1608,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "62cd01a6-9c8c-4d36-8134-f51512efb018",
+								"id": "7a8ed8b1-cebd-47cb-8423-3b6a6b0db272",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Data - Get Attachment Data - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1658,7 +1658,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "5e3ef949-3acd-4bbf-a3ba-692dee34079a",
+								"id": "0c8b5c42-3bb1-40c2-ae41-ae5d6d775894",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Data - Edit Data id - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1719,7 +1719,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "cc714784-7a38-4224-aad8-11d36fe6c540",
+								"id": "97ffeaf6-e421-437d-892f-293a1985fc96",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Data - Delete Attachment Data - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -1775,7 +1775,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "59eb307d-9e00-43b3-a209-0b3b02ead6a8",
+								"id": "263612e2-2d64-4323-8991-ea0392bdc408",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Event - Add Instance Event - Status - 201\", function () {",
 									"    pm.response.to.have.status(201);",
@@ -1794,7 +1794,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "86d4fdf9-388d-4841-bbeb-3ad6cecf94a1",
+								"id": "7269a769-1587-422b-a95a-2b5ac7c69a48",
 								"exec": [
 									"pm.environment.set(\"EventId\",\"\");"
 								],
@@ -1852,7 +1852,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9c778a29-2034-48fc-96be-4d6696d51085",
+								"id": "4be75274-2cb1-4e02-9667-58811735459b",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Event - Get Process History - Status - 200\", function () {",
 									"    pm.response.to.have.status(200);",
@@ -1902,7 +1902,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "357288ce-372f-4b00-9b7a-42dc94990430",
+								"id": "8d56233d-7e0f-4720-bceb-b2e731d49d39",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Event - Get Instance Event by ID- Status - 200\", function () {",
 									"    pm.response.to.have.status(200);",
@@ -1952,7 +1952,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "357288ce-372f-4b00-9b7a-42dc94990430",
+								"id": "a3d275fb-6722-4a34-8a63-f6dabcdf8f7f",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Event - Get Instance Events - Status - 200\", function () {",
 									"    pm.response.to.have.status(200);",
@@ -2016,7 +2016,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "04584cdf-bdf6-45e3-85f2-e5768b49208a",
+								"id": "58acb9fb-45da-44e7-b2c4-38ca99a56445",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Event - Get Instance Events by type - Content - Created type events found\", function () {",
 									"    pm.response.to.have.status(200);",
@@ -2087,7 +2087,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "546d0678-0ca9-44bd-a160-ebfc385882e7",
+								"id": "e675ae2a-b3ef-4fbf-86a5-90534d783811",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance Event - No Instance Events - Status - 200\", function () {",
 									"    pm.response.to.have.status(200);",
@@ -2104,7 +2104,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "8aa76d9e-95b4-4db6-a5d0-4b13afe1339d",
+								"id": "929009d0-fe03-48c6-9aba-2bf912fd4f23",
 								"exec": [
 									"var currentDate = new Date();",
 									"var hoursToMinus = currentDate.getHours() - 1;",
@@ -2162,62 +2162,6 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "DELETE events",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "686160fc-c6de-4c3f-904a-fe9528f346a7",
-								"exec": [
-									"pm.test(\"Platform - Storage - Instance Event - Delete Instance Events - Status - 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Platform - Storage - Instance Event - Delete Instance Events - Content - Matches\", function () {",
-									"    pm.expect(pm.response.text()).to.include(\"succesfully deleted\");",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{AltinnStudioRuntime}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
-							"protocol": "https",
-							"host": [
-								"platform",
-								"{{envUrl}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"events"
-							]
-						}
-					},
-					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
@@ -2231,7 +2175,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "73bb7aa7-5269-42fc-ae97-b51511a8d97e",
+								"id": "d928e12e-3b9f-4e6d-b9d3-23c72404b8e7",
 								"exec": [
 									"if(pm.response.code == 201)\r",
 									"{\r",
@@ -2249,7 +2193,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "e1f629f2-d9d1-4cc5-9698-9c83bf385f43",
+								"id": "add8883e-8728-4b84-b451-f1da6fff1c96",
 								"exec": [
 									"pm.environment.set(\"instanceId\",\"\");"
 								],
@@ -2310,7 +2254,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4081c1b5-a9a1-4b52-95b3-6b89964d2fb6",
+								"id": "262666b4-2fec-4f9f-8f0a-2c80c92bf9b6",
 								"exec": [
 									"var jsonData = pm.response.json();\r",
 									"if(pm.response.code == 201)\r",
@@ -2328,7 +2272,7 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "4ead76e4-8ea2-4551-81ed-2dc459e8f380",
+								"id": "b4d813eb-c31b-4bde-8f23-6ad3c40293d1",
 								"exec": [
 									"pm.environment.set(\"FutureDateinstanceId\",\"\");"
 								],
@@ -2390,7 +2334,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "86592b19-cde0-42f1-8b7c-297eaee24071",
+								"id": "65368e33-0f1c-4746-9a15-1fbf98b962d0",
 								"exec": [
 									"pm.test(\"Platform - Storage - SBL - Get Instances for SBL - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2464,7 +2408,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"id": "a9e0f8a6-fe9f-44d5-bc31-380d0bd3e634",
 								"exec": [
 									"pm.test(\"Platform - Storage - SBL - Soft Delete Instance - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2533,7 +2477,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "72cf897c-1a3c-46e3-9d9c-67c1159588c8",
+								"id": "61e3c084-a796-4af1-92e5-918061fcc8ce",
 								"exec": [
 									"pm.test(\"Platform - Storage - SBL - Restore Instance - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2585,7 +2529,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "0967cde0-022c-4148-b82d-5d490cd417e5",
+								"id": "7bd5c8c4-4970-4a88-ab68-33bf17901b9d",
 								"exec": [
 									"pm.test(\"Platform - Storage - SBL - Get Instance by id for SBL - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2640,7 +2584,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "0967cde0-022c-4148-b82d-5d490cd417e5",
+								"id": "28587f7e-99a9-4fb3-a201-58a7ddfc3c1f",
 								"exec": [
 									"pm.test(\"Platform - Storage - SBL - Get Instance events - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2695,7 +2639,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"id": "7a532e2b-dfc4-4169-a703-344fa6f90b22",
 								"exec": [
 									"pm.test(\"Platform - Storage - Instance - Delete Instance - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2762,7 +2706,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"id": "0e6c99f3-08d4-4329-bd3a-eee2dc8a64ac",
 								"exec": [
 									""
 								],
@@ -2826,7 +2770,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "3d1598d9-8cc0-418f-9171-22db9db7659c",
+								"id": "17e3f6e3-c84f-4536-80bf-1eafc8e9f462",
 								"exec": [
 									"pm.test(\"Platform - Storage - SBL - Restore Instance - Status - 400\", function () {\r",
 									"    pm.response.to.have.status(400);\r",
@@ -2883,7 +2827,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "8c97e023-bdf7-4556-a260-5968b8c884cb",
+								"id": "f2cec350-53bc-4a2d-8b6b-2d760b8bf985",
 								"exec": [
 									"pm.test(\"Platform - Receipt - GET Receipt - Status - 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
@@ -2949,7 +2893,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"id": "8789c04b-e2f8-46ed-8543-45b64a9b3b1f",
 								"exec": [
 									"if (pm.response.code == 200)",
 									"{",
@@ -3024,7 +2968,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"id": "f56ae104-935d-43a1-87a5-71f14d52b66f",
 								"exec": [
 									""
 								],
@@ -3083,7 +3027,7 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"id": "b58861ce-ace0-4759-b90d-8db68f4042a7",
 								"exec": [
 									"if (pm.response.code == 200)",
 									"    {",
@@ -3158,7 +3102,7 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "c9b3b6a7-ab5e-4f32-a63c-3e0150654efb",
+						"id": "98be1a1a-fd44-4dfc-ad52-4848fb6699b3",
 						"exec": [
 							"pm.test(\"Platform - Storage - Applications - Delete App - Not possible for an user - Status - 403\", function () {\r",
 							"    pm.response.to.have.status(403);\r",
