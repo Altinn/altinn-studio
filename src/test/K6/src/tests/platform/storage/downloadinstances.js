@@ -84,14 +84,6 @@ export default function(data){
         printResponseToConsole("Instance Data is not downloaded:", success, res);
     };
 
-    //Confirm that all the dataelements are downloaded by the appOwner
-    res = storageData.putConfirmDownloadAll(runtimeToken, partyId, instanceId);
-    success = check(res, {
-        "Instance Data download is confirmed:": (r) => r.status === 200
-    });
-    addErrorCount(success);    
-    printResponseToConsole("Instance Data download is not confirmed:", success, res);
-
     //Complete confirm the app instance as an appOwner
     res = storageInstances.postCompleteConfirmation(runtimeToken, partyId, instanceId);
     success = check(res, {

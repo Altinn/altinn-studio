@@ -1,57 +1,49 @@
 /*
-  Create and archive instances of RF-0002 without attachments that simulates all the api calls from portal
-   Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and deployed RF-0002 app
-  [
-	{
-		"username": "",
-		"password": "",
-		"partyid": ""
-    }
-  ]
-  example: k6 run -i 20 --duration 1m /src/tests/app/rf0002portal.js -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=***
+  Create and archive instances of T3.0 apps with attachment component and simulate all the api calls from portal
+  example: k6 run -i 20 --duration 1m /src/tests/app/portalsimulation.js -e env=test -e org=ttd -e level2app=apps-test -e subskey=*** -e sblaccesskey=*** -e username=*** -e userpwd=***
 */
 
-import { check, sleep } from "k6";
+import { check } from "k6";
 import {addErrorCount, printResponseToConsole} from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
 import * as platformInstances from "../../api/storage/instances.js"
+import * as platformApps from "../../api/storage/applications.js"
 import * as setUpData from "../../setup.js";
 import * as appInstantiation from "../../api/app/instantiation.js"
 import * as appResources from "../../api/app/resources.js"
 
+const userName = __ENV.username;
+const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
-const environment = (__ENV.env).toLowerCase();
-const fileName = "users_"+ environment +".json";
 
 let instanceFormDataXml = open("../../data/"+ level2App +".xml");
-let users = JSON.parse(open("../../data/" + fileName));
-const usersCount = users.length;
+let pdfAttachment = open("../../data/test_file_pdf.pdf", "b");
 
 export const options = {
     thresholds:{
         "errors": ["count<1"]
-    }
+    },
+    setupTimeout: '1m'
 };
 
-//Tests for App API: RF-0002
-export default function() {
-    var userNumber = (__VU - 1) % usersCount;
-    var instanceId, dataId, res, success;
-    
-    try {
-        var userSSN = users[userNumber].username;
-        var userPwd = users[userNumber].password;    
-    } catch (error) {
-        printResponseToConsole("Testdata missing", false, null);
-    };
-
-    var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
-    const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
+//Function to setup data and return AltinnstudioRuntime Token
+export function setup(){
+    var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
+    var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
+    var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
+    data.RuntimeToken = altinnStudioRuntimeCookie;
     setUpData.clearCookies();
-    const partyId = users[userNumber].partyid;
+    return data;
+};
+
+//Tests for App API : Portal simulation
+export default function(data) {
+    const runtimeToken = data["RuntimeToken"];
+    const partyId = data["partyId"];
+    var instanceId, dataId, res, success, attachmentDataType;
     
     //Batch api calls before creating an app instance
     res = appInstantiation.beforeInstanceCreation(runtimeToken, partyId, appOwner, level2App);
@@ -62,6 +54,8 @@ export default function() {
         addErrorCount(success);
         printResponseToConsole("Batch request before app Instantiation:", success, res[i]);
     };
+
+    attachmentDataType = platformApps.findAttachmentDataType(res[2].body);
 
     //Test to create an instance with App api and validate the response
     res = appInstances.postInstance(runtimeToken, partyId, appOwner, level2App);
@@ -105,15 +99,21 @@ export default function() {
     };
 
     //Test to edit a form data in an instance with App APi and validate the response
-    for(var i = 0; i < 8; i++){
-        res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml, appOwner, level2App);
-        success = check(res, {
-            "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201
-        });
-        addErrorCount(success);    
-        printResponseToConsole("E2E PUT Edit Data by Id:", success, res);
-        sleep(0.5);
-    };
+    
+    res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml, appOwner, level2App);
+    success = check(res, {
+        "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201
+    });
+    addErrorCount(success);    
+    printResponseToConsole("E2E PUT Edit Data by Id:", success, res);    
+    
+    //upload a valid attachment to an instance with App API
+    res = appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
+    success = check(res, {
+        "E2E POST Upload Data status is 201:": (r) => r.status === 201
+    });
+    addErrorCount(success);    
+    printResponseToConsole("E2E POST Upload Data:", success, res);    
 
     //Test to get validate instance and verify that validation of instance is ok
     res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App);

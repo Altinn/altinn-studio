@@ -25,7 +25,7 @@ const level2App = __ENV.level2app;
 const environment = (__ENV.env).toLowerCase();
 const fileName = "users_"+ environment +".json";
 
-let instanceFormDataXml = open("../../data/rf-0002.xml");
+let instanceFormDataXml = open("../../data/"+ level2App +".xml");
 let users = JSON.parse(open("../../data/" + fileName));
 const usersCount = users.length;
 

@@ -76,13 +76,7 @@ export default function(data) {
        "GET Instance Events by EventType status is 200:": (r) => r.status === 200      
      });  
      addErrorCount(success);     
-
-     //Test to delete all instance events from an instance with storage api and validate the response
-    res = events.deleteEvent(runtimeToken, partyId, instanceId);    
-    success = check(res, {
-      "DELETE All Instance Events status is 200:": (r) => r.status === 200      
-    });  
-    addErrorCount(success);    
+       
 };
 
 //Delete the instance created
