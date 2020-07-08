@@ -4,7 +4,10 @@ import { ILayout, ILayoutComponent } from '../../features/form/layout';
 import { GenericComponent } from '../../components/GenericComponent';
 
 export function getLayoutComponentById(id: string, layout: ILayout): ILayoutComponent {
-  const component: ILayoutComponent = layout.find((element) => element.id === id) as ILayoutComponent;
+  const component: ILayoutComponent = layout.find((element) => {
+    const match = id.match(`${element.id}(-[0-9]*)*$`);
+    return match && match.length > 0;
+  }) as ILayoutComponent;
   return component;
 }
 

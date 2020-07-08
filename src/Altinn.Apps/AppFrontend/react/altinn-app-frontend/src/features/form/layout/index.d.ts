@@ -1,7 +1,6 @@
 export interface ILayoutEntry {
   id: string;
   type?: string;
-  hidden?: boolean;
 }
 
 export interface ILayoutGroup extends ILayoutEntry {

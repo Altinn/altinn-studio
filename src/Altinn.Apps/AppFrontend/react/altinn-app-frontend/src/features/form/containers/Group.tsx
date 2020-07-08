@@ -14,7 +14,6 @@ export interface IGroupProps {
   components: ILayoutComponent[]
   repeating?: boolean;
   index?: number;
-  dataModelBinding?: string;
   showAdd?: boolean;
   showDelete?: boolean;
   showSeparator?: boolean;
@@ -39,7 +38,6 @@ export function Group({
   components,
   repeating,
   index,
-  dataModelBinding,
   showAdd,
   showDelete,
   showSeparator,
@@ -47,17 +45,6 @@ export function Group({
   const classes = useStyles();
   const renderComponents = JSON.parse(JSON.stringify(components));
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
-
-  if (repeating) {
-    renderComponents.forEach((component) => {
-      Object.keys(component.dataModelBindings).forEach((key) => {
-        if (!component.dataModelBindings[key].startsWith(`${dataModelBinding}[${index}]`)) {
-          // eslint-disable-next-line no-param-reassign
-          component.dataModelBindings[key] = component.dataModelBindings[key].replace(dataModelBinding, `${dataModelBinding}[${index}]`);
-        }
-      });
-    });
-  }
 
   const onClickAdd = () => {
     FormLayoutActions.updateRepeatingGroups(id);

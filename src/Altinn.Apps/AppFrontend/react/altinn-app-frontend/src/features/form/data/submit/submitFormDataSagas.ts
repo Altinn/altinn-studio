@@ -39,8 +39,13 @@ function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
     const componentSpecificValidations =
       validateFormComponents(state.attachments.attachments, state.formLayout.layout, state.formData.formData,
         state.language.language, state.formLayout.uiConfig.hiddenFields);
-    const emptyFieldsValidations =
-      validateEmptyFields(state.formData.formData, state.formLayout.layout, state.language.language, state.formLayout.uiConfig.hiddenFields);
+    const emptyFieldsValidations = validateEmptyFields(
+      state.formData.formData,
+      state.formLayout.layout,
+      state.language.language,
+      state.formLayout.uiConfig.hiddenFields,
+      state.formLayout.uiConfig.repeatingGroups,
+    );
 
     validations = Object.assign(validations, componentSpecificValidations);
     if (apiMode === 'Complete') {
