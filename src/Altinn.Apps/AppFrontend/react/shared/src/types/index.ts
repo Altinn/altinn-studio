@@ -16,12 +16,6 @@ export interface IApplication {
   presentationFields?: IPresentationField[];
 }
 
-export interface IAppOwner {
-  labels: string;
-  messages: string;
-  canBeDeletedAfter: string;
-}
-
 export interface IAttachment {
   name: string;
   iconClass: string;
@@ -65,7 +59,6 @@ export interface IExtendedInstance {
 
 export interface IInstance {
   appId: string;
-  appOwner?: IAppOwner;
   created: Date;
   data: IData[];
   dueBefore?: Date;
