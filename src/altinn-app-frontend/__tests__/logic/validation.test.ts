@@ -1,9 +1,9 @@
+/* eslint-disable no-undef */
 import 'jest';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
 import { IValidationIssue, Severity } from '../../src/types';
 import * as validation from '../../src/utils/validation';
 import { getParsedLanguageFromKey } from '../../../shared/src';
-
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
@@ -47,11 +47,10 @@ describe('>>> utils/validations.ts', () => {
         validation_errors: {
           minLength: 'length must be bigger than {0}',
           min: 'must be bigger than {0}',
+          pattern: 'Feil format eller verdi',
         },
       },
     };
-
-
 
     mockLayout = [
       {
@@ -64,19 +63,39 @@ describe('>>> utils/validations.ts', () => {
 
       },
       {
-        type: 'Dropdown',
+        type: 'Input',
         id: 'componentId_2',
         dataModelBindings: {
           customBinding: 'dataModelField_2',
         },
       },
       {
-        type: 'Paragraph',
+        type: 'TextArea',
         id: 'componentId_3',
         dataModelBindings: {
           simpleBinding: 'dataModelField_3',
         },
         required: true,
+      },
+      {
+        type: 'group',
+        id: 'group1',
+        dataModelBindings: {
+          simpleBinding: 'group_1',
+        },
+        maxCount: 3,
+        children: [
+          'componentId_4',
+        ],
+      },
+      {
+        type: 'Input',
+        id: 'componentId_4',
+        dataModelBindings: {
+          simpleBinding: 'group_1.dataModelField_4',
+        },
+        required: false,
+
       },
       {
         type: 'FileUpload',
@@ -128,12 +147,19 @@ describe('>>> utils/validations.ts', () => {
       dataModelField_2: 'not long',
       dataModelField_3: '',
       random_key: 'some third value',
+      group_1: [
+        { dataModelField_4: 'Hello...' },
+      ],
     };
 
     mockValidFormData = {
       dataModelField_1: '12',
       dataModelField_2: 'Really quite long...',
       dataModelField_3: 'Test 123',
+      group_1: [
+        { dataModelField_4: 'Hello, World!' },
+        { dataModelField_4: 'Not now!' },
+      ],
     };
 
     mockJsonSchema = {
@@ -157,6 +183,27 @@ describe('>>> utils/validations.ts', () => {
             dataModelField_3: {
               type: 'string',
             },
+            group_1: {
+              type: 'array',
+              minItems: 1,
+              maxItems: 3,
+              items: {
+                $ref: '#/definitions/Group1',
+              },
+            },
+          },
+          required: [
+            'dataModelField_1',
+            'dataModelField_2',
+            'dataModelField_3',
+          ],
+        },
+        Group1: {
+          properties: {
+            dataModelField_4: {
+              type: 'string',
+              pattern: '^Hello, World!|Cool stuff...|Not now!$',
+            },
           },
         },
       },
@@ -175,6 +222,13 @@ describe('>>> utils/validations.ts', () => {
           customBinding: {
             errors: [
               getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10]),
+            ],
+          },
+        },
+        'componentId_4-0': {
+          simpleBinding: {
+            errors: [
+              getParsedLanguageFromKey('validation_errors.pattern', mockLanguage.language),
             ],
           },
         },
@@ -240,28 +294,14 @@ describe('>>> utils/validations.ts', () => {
     ];
   });
 
-
   it('+++ should map api response to redux format', () => {
     const result = validation.mapApiValidationsToRedux(mockApiResponse.messages, mockLayoutState.layout);
     expect(result).toEqual(mockReduxFormat);
   });
 
-  // it('+++ should catch errors when validating the whole form data', () => {
-  //   const result = validation.validateFormData(mockFormData, mockDataModelFields, mockLayoutState.layout,
-  //     mockLanguage.language);
-  //   expect(result).toEqual(mockFormValidationResult);
-  // });
-
-  // it('+++ should catch errors when validating component specific form data', () => {
-  //   const result =
-  //     validation.validateComponentFormData(mockFormData.dataModelField_2, mockDataModelFields[1], mockLayout[1],
-  //       mockLanguage.language);
-  //   expect(result).toEqual(mockFormValidationResult.componentId_2);
-  // });
-
   it('+++ should count total number of errors correctly', () => {
     const result = validation.getErrorCount(mockFormValidationResult.validations);
-    expect(result).toEqual(2);
+    expect(result).toEqual(3);
   });
 
   it('+++ canFormBeSaved should validate correctly', () => {
@@ -292,7 +332,7 @@ describe('>>> utils/validations.ts', () => {
       },
       invalidDataTypes: false,
     };
-    const apiModeComplete = "Complete";
+    const apiModeComplete = 'Complete';
     const falseResult = validation.canFormBeSaved(mockFormValidationResult, apiModeComplete);
     const falseResult2 = validation.canFormBeSaved(mockInvalidTypes);
     const trueResult = validation.canFormBeSaved(validValidationResult, apiModeComplete);
@@ -307,7 +347,13 @@ describe('>>> utils/validations.ts', () => {
 
   it('+++ validateFormComponents should return error on fileUpload if its not enough files', () => {
     const componentSpesificValidations =
-      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockFormData, mockLanguage.language, []);
+      validation.validateFormComponents(
+        mockFormAttachments.attachments,
+        mockLayoutState.layout,
+        mockFormData,
+        mockLanguage.language,
+        [],
+      );
 
     const mockResult = {
       componentId_4: {
@@ -320,12 +366,18 @@ describe('>>> utils/validations.ts', () => {
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
+
   it('+++ validateFormComponents should return error on fileUpload if its no file', () => {
     mockFormAttachments = {
       attachments: null,
     };
-    const componentSpesificValidations =
-      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockFormData, mockLanguage.language, []);
+    const componentSpesificValidations = validation.validateFormComponents(
+      mockFormAttachments.attachments,
+      mockLayoutState.layout,
+      mockFormData,
+      mockLanguage.language,
+      [],
+    );
 
     const mockResult = {
       componentId_4: {
@@ -338,6 +390,7 @@ describe('>>> utils/validations.ts', () => {
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
+
   it('+++ validateFormComponents should not return error on fileUpload if its enough files', () => {
     mockLayout = [
       {
@@ -349,12 +402,19 @@ describe('>>> utils/validations.ts', () => {
       },
     ];
     const componentSpesificValidations =
-      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockFormData, mockLanguage.language, []);
+      validation.validateFormComponents(
+        mockFormAttachments.attachments,
+        mockLayout,
+        mockFormData,
+        mockLanguage.language,
+        [],
+      );
 
     const mockResult = {};
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
+
   it('+++ validateFormComponents should not return error if element is hidden', () => {
     mockLayout = [
       {
@@ -372,29 +432,70 @@ describe('>>> utils/validations.ts', () => {
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
-  it('+++ validateEmptyFields should return error if empty fields are required', () => {
 
+  it('+++ validateEmptyFields should return error if empty fields are required', () => {
+    const repeatingGroups = {
+      group1: {
+        count: 0,
+      },
+    };
     const componentSpesificValidations =
-      validation.validateEmptyFields(mockFormData, mockLayout, mockLanguage.language, []);
+      validation.validateEmptyFields(
+        mockFormData,
+        mockLayout,
+        mockLanguage.language,
+        [],
+        repeatingGroups,
+      );
 
     const mockResult = { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } } };
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
+
+  it('+++ validateEmptyField should add error to validations if supplied field is required', () => {
+    const validations = {};
+    const component = mockLayout.find((c) => c.id === 'componentId_3');
+    validation.validateEmptyField(
+      mockFormData,
+      component,
+      validations,
+      mockLanguage.language,
+    );
+
+    const mockResult = { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } } };
+
+    expect(validations).toEqual(mockResult);
+  });
+
   it('+++ data element validations should be mapped correctly to our redux format', () => {
-    const mappedDataElementValidaitons = validation.mapDataElementValidationToRedux(mockDataElementValidations, mockLayoutState.layout, []);
+    const mappedDataElementValidaitons =
+      validation.mapDataElementValidationToRedux(mockDataElementValidations, mockLayoutState.layout, []);
     expect(mappedDataElementValidaitons).toEqual(mockReduxFormat);
   });
+
   it('+++ validateFormData should return error if form data is invalid', () => {
     const mockValidator = validation.createValidator(mockJsonSchema);
-    const mockResult = validation.validateFormData(mockFormData, mockLayoutState.layout, mockValidator, mockLanguage.language);
+    const mockResult = validation.validateFormData(
+      mockFormData,
+      mockLayoutState.layout,
+      mockValidator,
+      mockLanguage.language,
+    );
     expect(mockResult).toEqual(mockFormValidationResult);
   });
+
   it('+++ validateFormData should return no errors if form data is valid', () => {
     const mockValidator = validation.createValidator(mockJsonSchema);
-    const mockResult = validation.validateFormData(mockValidFormData, mockLayoutState.layout, mockValidator, mockLanguage);
+    const mockResult = validation.validateFormData(
+      mockValidFormData,
+      mockLayoutState.layout,
+      mockValidator,
+      mockLanguage,
+    );
     expect(mockResult.validations).toEqual({});
   });
+
   it('+++ validateFormData should return invalidDataTypes=true if form data is wrong type', () => {
     const data: any = {
       dataModelField_1: 'abc',
@@ -402,5 +503,15 @@ describe('>>> utils/validations.ts', () => {
     const mockValidator = validation.createValidator(mockJsonSchema);
     const mockResult = validation.validateFormData(data, mockLayoutState.layout, mockValidator, mockLanguage);
     expect(mockResult.invalidDataTypes).toBeTruthy();
+  });
+
+  it('+++ getIndex should return null for field not in repeating group', () => {
+    const dataModelBinding = 'dataModelField_1';
+    expect(validation.getIndex(dataModelBinding)).toBeNull();
+  });
+
+  it('+++ getIndex should return index for field in repeating group', () => {
+    const dataModelBinding = 'group_1[2].dataModelField_1';
+    expect(validation.getIndex(dataModelBinding)).toBe('2');
   });
 });

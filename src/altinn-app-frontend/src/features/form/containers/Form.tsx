@@ -44,37 +44,60 @@ export function Form() {
     return 0;
   };
 
+  function RenderLayoutGroup(layoutGroup: ILayoutGroup): JSX.Element[] {
+    const groupComponents = layoutGroup.children.map((child) => {
+      return layout.find((c) => c.id === child) as ILayoutComponent;
+    });
+    const repeating = layoutGroup.maxCount > 1;
+    const repeatingGroupCount = getRepeatingGroupCount(layoutGroup.id);
+    const renderGroup: JSX.Element[] = [];
+
+    for (let i = 0; i <= repeatingGroupCount; i++) {
+      const childComponents = groupComponents.map((component: ILayoutComponent) => {
+        const componentDeepCopy: ILayoutComponent = JSON.parse(JSON.stringify(component));
+        const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
+        let id = componentDeepCopy.id;
+
+        if (repeating) {
+          const groupDataModelBinding = layoutGroup.dataModelBindings.group;
+          Object.keys(dataModelBindings).forEach((key) => {
+            // eslint-disable-next-line no-param-reassign
+            dataModelBindings[key] = dataModelBindings[key].replace(groupDataModelBinding, `${groupDataModelBinding}[${i}]`);
+          });
+          id = `${componentDeepCopy.id}-${i}`;
+        }
+
+        return {
+          ...componentDeepCopy,
+          dataModelBindings,
+          id,
+          baseComponentId: componentDeepCopy.id,
+        };
+      });
+      const groupElement = (
+        <Group
+          id={layoutGroup.id}
+          key={`${layoutGroup.id}-${i}`}
+          components={childComponents}
+          repeating={repeating}
+          index={i}
+          showAdd={
+            repeating
+            && repeatingGroupCount === i
+            && repeatingGroupCount < layoutGroup.maxCount - 1
+          }
+          showDelete={repeatingGroupCount > 0}
+          showSeparator={repeatingGroupCount > i}
+        />
+      );
+      renderGroup.push(groupElement);
+    }
+    return renderGroup;
+  }
+
   function renderLayoutComponent(layoutComponent: ILayoutComponent | ILayoutGroup) {
     if (layoutComponent.type && layoutComponent.type.toLowerCase() === 'group') {
-      const groupComponents = (layoutComponent as ILayoutGroup).children.map((child) => {
-        const result = layout.find((c) => c.id === child) as ILayoutComponent;
-        return JSON.parse(JSON.stringify(result));
-      });
-      const repeating = (layoutComponent as ILayoutGroup).maxCount > 1;
-      const repeatingGroupCount = getRepeatingGroupCount(layoutComponent.id);
-      return (
-        <>
-          {Array.from(Array(repeatingGroupCount + 1).keys()).map((index) => {
-            return (
-              <Group
-                id={layoutComponent.id}
-                key={`${layoutComponent.id}-${index}`}
-                components={groupComponents}
-                repeating={repeating}
-                index={index}
-                dataModelBinding={(layoutComponent as ILayoutGroup).dataModelBindings?.group}
-                showAdd={
-                  repeating
-                  && repeatingGroupCount === index
-                  && repeatingGroupCount < (layoutComponent as ILayoutGroup).maxCount - 1
-                }
-                showDelete={repeatingGroupCount > 0}
-                showSeparator={repeatingGroupCount > index}
-              />
-            );
-          })}
-        </>
-      );
+      return RenderLayoutGroup(layoutComponent as ILayoutGroup);
     }
 
     const component: ILayoutComponent = layout.find((c) => c.id === layoutComponent.id) as ILayoutComponent;

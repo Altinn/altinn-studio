@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
+// eslint-disable-next-line import/no-cycle
 import components from '.';
 import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';

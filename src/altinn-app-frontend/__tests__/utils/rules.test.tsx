@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-undef */
 import 'jest';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
 import { ILayoutComponent } from '../../src/features/form/layout';
@@ -36,7 +38,6 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
         type: 'Input',
         dataModelBindings: { simpleBinding: 'mockDataModelBinding1' },
         disabled: false,
-        hidden: false,
         id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
         readOnly: false,
         required: false,
@@ -45,7 +46,6 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       {
         dataModelBindings: { simpleBinding: 'mockDataModelBinding2' },
         disabled: false,
-        hidden: false,
         id: 'd48096d4-7365-4392-b745-b7e4c8c933e6',
         readOnly: false,
         required: false,
@@ -55,7 +55,6 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       {
         dataModelBindings: { simpleBinding: 'mockDataModelBinding3' },
         disabled: false,
-        hidden: false,
         id: '1d61265e-66a4-48c6-800a-a77c50a8ca41',
         readOnly: false,
         required: false,
@@ -65,7 +64,6 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       {
         dataModelBindings: { simpleBinding: 'mockDataModelBinding4' },
         disabled: false,
-        hidden: false,
         id: '69fa4c53-6c04-490c-aadb-98a47b145a82',
         readOnly: false,
         required: false,
@@ -309,11 +307,12 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
   });
 });
 describe('>>> features/rules getRuleModelFields', () => {
+  let mockRuleHandlerHelper: any;
+  let mockConditionalRuleHandlerHelper : any;
+  let mockConditionalRuleHandlerObject: any;
+  let mockRuleHandlerObject: any;
+
   beforeEach(() => {
-    let mockRuleHandlerHelper;
-    let mockConditionalRuleHandlerHelper;
-    let mockConditionalRuleHandlerObject;
-    let mockRuleHandlerObject;
     mockRuleHandlerHelper = {
       sum: () => {
         return {

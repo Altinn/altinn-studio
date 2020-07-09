@@ -116,7 +116,6 @@ export function removeGroupData(
   deleteGroupData(result, groupDataModelBinding, index);
 
   if (index < repeatingGroupCount + 1) {
-    // eslint-disable-next-line no-plusplus
     for (let i = index + 1; i <= repeatingGroupCount + 1; i++) {
       deleteGroupData(result, groupDataModelBinding, i, true);
     }
