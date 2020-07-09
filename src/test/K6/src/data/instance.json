@@ -1,9 +1,6 @@
 {
-    "instanceOwner": {    	
+    "instanceOwner": {
     },
-    "appOwner":{
-    	"labels" : [ "gr", "x2" ]
-    },        
     "visibleAfter": "2019-05-20T00:00:00Z",
     "title": { "nb": "Arbeidsmelding" },
     "process": {

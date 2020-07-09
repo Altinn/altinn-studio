@@ -38,6 +38,7 @@ function* updateFormDataSaga({
       state.language.language,
       validator,
       state.formValidations.validations[componentId],
+      componentId !== component.id ? componentId : null,
     );
 
     const componentValidations = validationResult?.validations[componentId];
