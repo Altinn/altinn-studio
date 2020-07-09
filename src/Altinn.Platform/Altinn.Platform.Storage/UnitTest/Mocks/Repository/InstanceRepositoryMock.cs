@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
@@ -12,19 +13,14 @@ using Altinn.Platform.Storage.UnitTest.Utils;
 
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Primitives;
+
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 {
     public class InstanceRepositoryMock : IInstanceRepository
     {
-        public InstanceRepositoryMock()
-        {
-
-        }
-
-
-        public Task<Instance> Create(Instance item)
+        public async Task<Instance> Create(Instance item)
         {
             string partyId = item.InstanceOwner.PartyId;
             Guid instanceGuid = Guid.NewGuid();
@@ -39,10 +35,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 Data = new List<DataElement>(),
             };
 
-            string instancePath = GetInstancePath(instance.InstanceOwner.PartyId, instanceGuid);
-            File.WriteAllText(instancePath, instance.ToString());
-
-            return Task.FromResult(instance);
+            return await Task.FromResult(instance);
         }
 
         public Task<bool> Delete(Instance item)
@@ -50,9 +43,8 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             throw new NotImplementedException();
         }
 
-        public Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
+        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
         {
-
             List<Instance> instances = new List<Instance>();
 
             string instancesForPartyPath = $"{GetInstancesPath()}\\{instanceOwnerPartyId}";
@@ -81,9 +73,8 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 }
             }
 
-            return Task.FromResult(Filter(instanceState, instances));
+            return await Task.FromResult(Filter(instanceState, instances));
         }
-
 
         private List<Instance> Filter(string instanceState, List<Instance> unfilteredInstances)
         {
@@ -171,10 +162,8 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             {
                 string org = queryParams.GetValueOrDefault("org").ToString();
 
-
                 if (Directory.Exists(instancesPath))
                 {
-
                     string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
 
                     foreach (var file in files)
@@ -244,7 +233,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceRepositoryMock).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\cosmoscollections\instances");
         }
-
 
         private static DocumentClientException CreateDocumentClientExceptionForTesting(string message, HttpStatusCode httpStatusCode)
         {

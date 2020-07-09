@@ -170,9 +170,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void PutProcess_UserIsAuthorized_ReturnStatusOK()
             {
-                TestDataUtil.DeleteInstanceAndData(1337, new Guid("20a1353e-91cf-44d6-8ff7-f68993638ffe"));
-                TestDataUtil.PrepareInstance(1337, new Guid("20a1353e-91cf-44d6-8ff7-f68993638ffe"));
-
                 // Arrange 
                 string requestUri = $"storage/api/v1/instances/1337/20a1353e-91cf-44d6-8ff7-f68993638ffe/process/";
                 ProcessState state = new ProcessState();
@@ -187,8 +184,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-                TestDataUtil.DeleteInstanceAndData(1337, new Guid("20a1353e-91cf-44d6-8ff7-f68993638ffe"));
             }
 
             private HttpClient GetTestClient(IInstanceEventRepository instanceEventRepository)
