@@ -63,14 +63,14 @@ describe('>>> utils/validations.ts', () => {
 
       },
       {
-        type: 'Dropdown',
+        type: 'Input',
         id: 'componentId_2',
         dataModelBindings: {
           customBinding: 'dataModelField_2',
         },
       },
       {
-        type: 'Paragraph',
+        type: 'TextArea',
         id: 'componentId_3',
         dataModelBindings: {
           simpleBinding: 'dataModelField_3',
@@ -414,6 +414,7 @@ describe('>>> utils/validations.ts', () => {
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
+
   it('+++ validateFormComponents should not return error if element is hidden', () => {
     mockLayout = [
       {
@@ -431,6 +432,7 @@ describe('>>> utils/validations.ts', () => {
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
+
   it('+++ validateEmptyFields should return error if empty fields are required', () => {
     const repeatingGroups = {
       group1: {
@@ -450,11 +452,28 @@ describe('>>> utils/validations.ts', () => {
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
+
+  it('+++ validateEmptyField should add error to validations if supplied field is required', () => {
+    const validations = {};
+    const component = mockLayout.find((c) => c.id === 'componentId_3');
+    validation.validateEmptyField(
+      mockFormData,
+      component,
+      validations,
+      mockLanguage.language,
+    );
+
+    const mockResult = { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } } };
+
+    expect(validations).toEqual(mockResult);
+  });
+
   it('+++ data element validations should be mapped correctly to our redux format', () => {
     const mappedDataElementValidaitons =
       validation.mapDataElementValidationToRedux(mockDataElementValidations, mockLayoutState.layout, []);
     expect(mappedDataElementValidaitons).toEqual(mockReduxFormat);
   });
+
   it('+++ validateFormData should return error if form data is invalid', () => {
     const mockValidator = validation.createValidator(mockJsonSchema);
     const mockResult = validation.validateFormData(
@@ -465,6 +484,7 @@ describe('>>> utils/validations.ts', () => {
     );
     expect(mockResult).toEqual(mockFormValidationResult);
   });
+
   it('+++ validateFormData should return no errors if form data is valid', () => {
     const mockValidator = validation.createValidator(mockJsonSchema);
     const mockResult = validation.validateFormData(
@@ -475,6 +495,7 @@ describe('>>> utils/validations.ts', () => {
     );
     expect(mockResult.validations).toEqual({});
   });
+
   it('+++ validateFormData should return invalidDataTypes=true if form data is wrong type', () => {
     const data: any = {
       dataModelField_1: 'abc',
@@ -482,5 +503,15 @@ describe('>>> utils/validations.ts', () => {
     const mockValidator = validation.createValidator(mockJsonSchema);
     const mockResult = validation.validateFormData(data, mockLayoutState.layout, mockValidator, mockLanguage);
     expect(mockResult.invalidDataTypes).toBeTruthy();
+  });
+
+  it('+++ getIndex should return null for field not in repeating group', () => {
+    const dataModelBinding = 'dataModelField_1';
+    expect(validation.getIndex(dataModelBinding)).toBeNull();
+  });
+
+  it('+++ getIndex should return index for field in repeating group', () => {
+    const dataModelBinding = 'group_1[2].dataModelField_1';
+    expect(validation.getIndex(dataModelBinding)).toBe('2');
   });
 });
