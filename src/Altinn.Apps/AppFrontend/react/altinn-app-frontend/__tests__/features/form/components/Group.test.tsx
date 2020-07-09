@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* tslint:disable:jsx-wrap-multiline */
 import 'jest';
 import * as React from 'react';
@@ -102,7 +103,6 @@ describe('>>> features/form/components/Group.tsx', () => {
         <Group
           components={mockComponents}
           id='testGroupId'
-          dataModelBinding='Group'
           index={0}
           key='testKey'
           repeating={true}
@@ -119,7 +119,6 @@ describe('>>> features/form/components/Group.tsx', () => {
         <Group
           components={mockComponents}
           id='testGroupId'
-          dataModelBinding='Group'
           index={0}
           key='testKey'
           repeating={true}
@@ -136,7 +135,6 @@ describe('>>> features/form/components/Group.tsx', () => {
         <Group
           components={mockComponents}
           id='testGroupId'
-          dataModelBinding='Group'
           index={0}
           key='testKey'
           repeating={true}
