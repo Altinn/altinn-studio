@@ -10,6 +10,8 @@ import { DatePickerMinDateDefault, DatePickerMaxDateDefault, DatePickerFormatDef
 import { getFormDataForComponent } from './formComponentUtils';
 import { getTextResourceByKey } from './textResource';
 import { getKeyWithoutIndex } from './databindings';
+// eslint-disable-next-line import/no-cycle
+import { matchLayoutComponent } from './layout';
 
 export function createValidator(schema: any): ISchemaValidator {
   const ajv = new Ajv({ allErrors: true, coerceTypes: true });
@@ -101,8 +103,8 @@ export function validateEmptyFields(
   });
   const fieldsToCheck = formLayout.filter((component) => {
     return (
-      !hiddenFields.includes(component.id)
-        && component.type !== 'group'
+      component.type !== 'group'
+        && !hiddenFields.includes(component.id)
         && (component as ILayoutComponent).required
         && !fieldsInGroup.includes(component.id)
     );
@@ -119,7 +121,6 @@ export function validateEmptyFields(
     componentsToCheck.forEach((component) => {
       if (group.maxCount > 1) {
         const groupDataModelBinding = group.dataModelBindings.group;
-        // eslint-disable-next-line no-plusplus
         for (let i = 0; i <= repeatingGroups[group.id].count; i++) {
           const componentToCheck = {
             ...component,
@@ -589,8 +590,8 @@ export function mapDataElementValidationToRedux(
       component = layout.find((layoutElement) => {
         const componentCandidate = layoutElement as ILayoutComponent;
         let found = false;
-
-        if (validation.field && validation.field.match(`${componentCandidate.id}(-[0-9]*)*$`)) {
+        const match = matchLayoutComponent(validation.field, componentCandidate.id);
+        if (validation.field && match && match.length > 0) {
           found = true;
           addValidation(componentValidations, validation, 'simpleBinding', textResources);
           componentId = validation.field;

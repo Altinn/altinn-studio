@@ -83,6 +83,12 @@
         ]
       }
     ],
+    "no-plusplus": [
+      "error",
+      {
+        "allowForLoopAfterthoughts": true
+      }
+    ],
     // "@typescript-eslint/no-empty-interface": [
     //   "warning",
     //   {

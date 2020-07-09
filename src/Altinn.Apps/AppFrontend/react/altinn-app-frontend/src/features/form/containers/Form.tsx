@@ -52,7 +52,7 @@ export function Form() {
     const repeatingGroupCount = getRepeatingGroupCount(layoutGroup.id);
     const renderGroup: JSX.Element[] = [];
 
-    for (let i = 0; i <= repeatingGroupCount; i += 1) {
+    for (let i = 0; i <= repeatingGroupCount; i++) {
       const childComponents = groupComponents.map((component: ILayoutComponent) => {
         const componentDeepCopy: ILayoutComponent = JSON.parse(JSON.stringify(component));
         const dataModelBindings = { ...componentDeepCopy.dataModelBindings };

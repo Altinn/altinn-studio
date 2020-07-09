@@ -1,7 +1,8 @@
 import { AddressComponent } from './advanced/AddressComponent';
 import { ButtonComponent } from './base/ButtonComponent';
 import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
-import  DatepickerComponent from './base/DatepickerComponent';
+// eslint-disable-next-line import/no-cycle
+import DatepickerComponent from './base/DatepickerComponent';
 import { DropdownComponent } from './base/DropdownComponent';
 import { FileUploadComponent } from './base/FileUploadComponent';
 import { HeaderComponent } from './base/HeaderComponent';

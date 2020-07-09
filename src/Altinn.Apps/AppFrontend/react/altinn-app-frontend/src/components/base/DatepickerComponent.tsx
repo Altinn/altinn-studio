@@ -10,6 +10,7 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Moment } from 'moment';
 import { IComponentValidations, IComponentBindingValidation } from 'src/types/global';
 import { renderValidationMessagesForComponent } from '../../utils/render';
+// eslint-disable-next-line import/no-cycle
 import { validateDatepickerFormData } from '../../utils/validation';
 
 export interface IDatePickerProps{
