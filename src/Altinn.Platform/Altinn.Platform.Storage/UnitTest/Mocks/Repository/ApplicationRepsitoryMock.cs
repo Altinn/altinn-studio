@@ -55,7 +55,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string applicationPath = Path.Combine(GetAppsPath(), org + @"\" + app + @"\config\applicationmetadata.json");
             if (File.Exists(applicationPath))
             {
-                string content = System.IO.File.ReadAllText(applicationPath);
+                string content = File.ReadAllText(applicationPath);
                 Application application = (Application)JsonConvert.DeserializeObject(content, typeof(Application));
                 return application;
             }

@@ -183,8 +183,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             }
 
             response.Instances = instances;
-            response.Count = instances.Count();
-            response.TotalHits = instances.Count();
+            response.Count = instances.Count;
+            response.TotalHits = instances.Count;
+
             return Task.FromResult(response);
         }
 
@@ -207,20 +208,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             PreProcess(instance);
             if (instance.Id.Equals("d3b326de-2dd8-49a1-834a-b1d23b11e540"))
             {
-                throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));
+                throw CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
             }
 
-            Guid instanceGuid = Guid.Parse(instance.Id);
-            string instancePath = GetInstancePath(instance.InstanceOwner.PartyId, instanceGuid);
-
-            if (File.Exists(instancePath))
-            {
-                File.WriteAllText(instancePath, JsonConvert.SerializeObject(instance));
-                PostProcess(instance);
-                return Task.FromResult(instance);
-            }
-
-            return null;
+            return Task.FromResult(instance);
         }
 
         private string GetInstancePath(string instanceOwnerPartyId, Guid instanceGuid)
