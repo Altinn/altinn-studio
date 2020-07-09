@@ -804,7 +804,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"instanceOwner\": {\n    \t\"partyId\": \"{{instanceOwnerId}}\"\n    },\n    \"appOwner\":{\n    \t\"labels\" : [ \"gr\", \"x2\" ]\n    },\n    \"appId\" : \"{{org}}/{{app}}\",\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\n    \"visibleAfter\": \"2019-05-20T00:00:00Z\",\n    \"title\": { \"nb\": \"Arbeidsmelding\" },\n    \"process\": {\n        \"started\": \"{{current_timestamp}}\",\n        \"startEvent\": \"StartEvent_1\",\n        \"currentTask\": {\n            \"flow\": 2,\n            \"started\": \"{{current_timestamp}}\",\n            \"elementId\": \"Task_1\",\n            \"name\": \"Utfylling\",\n            \"altinnTaskType\": \"data\",\n            \"ended\": null,\n            \"validated\": null\n        },\n        \"ended\": null,\n        \"endEvent\": null\n    }\n}"
+							"raw": "{\n    \"instanceOwner\": {\n    \t\"partyId\": \"{{instanceOwnerId}}\"\n    },\n    \"appId\" : \"{{org}}/{{app}}\",\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\n    \"visibleAfter\": \"2019-05-20T00:00:00Z\",\n    \"title\": { \"nb\": \"Arbeidsmelding\" },\n    \"process\": {\n        \"started\": \"{{current_timestamp}}\",\n        \"startEvent\": \"StartEvent_1\",\n        \"currentTask\": {\n            \"flow\": 2,\n            \"started\": \"{{current_timestamp}}\",\n            \"elementId\": \"Task_1\",\n            \"name\": \"Utfylling\",\n            \"altinnTaskType\": \"data\",\n            \"ended\": null,\n            \"validated\": null\n        },\n        \"ended\": null,\n        \"endEvent\": null\n    }\n}"
 						},
 						"url": {
 							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}",
@@ -2223,7 +2223,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"instanceOwner\": {\n    \t\"partyId\": \"{{instanceOwnerId}}\"\n    },\n    \"appOwner\":{\n    \t\"labels\" : [ \"gr\", \"x2\" ]\n    },\n    \"appId\" : \"{{org}}/{{app}}\",\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\n    \"visibleAfter\": \"2019-05-20T00:00:00Z\",\n    \"title\": { \"nb\": \"Arbeidsmelding\" },\n    \"process\": {\n        \"started\": \"{{current_timestamp}}\",\n        \"startEvent\": \"StartEvent_1\",\n        \"currentTask\": {\n            \"flow\": 2,\n            \"started\": \"{{current_timestamp}}\",\n            \"elementId\": \"Task_1\",\n            \"name\": \"Utfylling\",\n            \"altinnTaskType\": \"data\",\n            \"ended\": null,\n            \"validated\": null\n        },\n        \"ended\": null,\n        \"endEvent\": null\n    }\n}"
+							"raw": "{\n    \"instanceOwner\": {\n    \t\"partyId\": \"{{instanceOwnerId}}\"\n    },\n    \"appId\" : \"{{org}}/{{app}}\",\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\n    \"visibleAfter\": \"2019-05-20T00:00:00Z\",\n    \"title\": { \"nb\": \"Arbeidsmelding\" },\n    \"process\": {\n        \"started\": \"{{current_timestamp}}\",\n        \"startEvent\": \"StartEvent_1\",\n        \"currentTask\": {\n            \"flow\": 2,\n            \"started\": \"{{current_timestamp}}\",\n            \"elementId\": \"Task_1\",\n            \"name\": \"Utfylling\",\n            \"altinnTaskType\": \"data\",\n            \"ended\": null,\n            \"validated\": null\n        },\n        \"ended\": null,\n        \"endEvent\": null\n    }\n}"
 						},
 						"url": {
 							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}",
@@ -2302,7 +2302,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"instanceOwner\": {\n    \t\"partyId\": \"{{instanceOwnerId}}\"\n    },\n    \"appOwner\":{\n    \t\"labels\" : [ \"gr\", \"x2\" ]\n    },\n    \"appId\" : \"{{org}}/{{app}}\",\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\n    \"visibleAfter\": \"2021-05-20T00:00:00Z\",\n    \"title\": { \"nb\": \"Arbeidsmelding\" },\n    \"process\": {\n        \"started\": \"{{current_timestamp}}\",\n        \"startEvent\": \"StartEvent_1\",\n        \"currentTask\": {\n            \"flow\": 2,\n            \"started\": \"{{current_timestamp}}\",\n            \"elementId\": \"Task_1\",\n            \"name\": \"Utfylling\",\n            \"altinnTaskType\": \"data\",\n            \"ended\": null,\n            \"validated\": null\n        },\n        \"ended\": null,\n        \"endEvent\": null\n    }\n}"
+							"raw": "{\n    \"instanceOwner\": {\n    \t\"partyId\": \"{{instanceOwnerId}}\"\n    },\n    \"appId\" : \"{{org}}/{{app}}\",\n    \"dueBefore\": \"2019-06-01T12:00:00Z\",\n    \"visibleAfter\": \"2021-05-20T00:00:00Z\",\n    \"title\": { \"nb\": \"Arbeidsmelding\" },\n    \"process\": {\n        \"started\": \"{{current_timestamp}}\",\n        \"startEvent\": \"StartEvent_1\",\n        \"currentTask\": {\n            \"flow\": 2,\n            \"started\": \"{{current_timestamp}}\",\n            \"elementId\": \"Task_1\",\n            \"name\": \"Utfylling\",\n            \"altinnTaskType\": \"data\",\n            \"ended\": null,\n            \"validated\": null\n        },\n        \"ended\": null,\n        \"endEvent\": null\n    }\n}"
 						},
 						"url": {
 							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}",
