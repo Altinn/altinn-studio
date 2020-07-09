@@ -16,6 +16,7 @@ import { HttpStatusCodes } from '../../../utils/networking';
 import { capitalizeName } from '../../../utils/stringHelper';
 import InstantiationContainer from './InstantiationContainer';
 import NoValidPartiesError from './NoValidPartiesError';
+import InstantiationActions from '../instantiation/actions/index';
 
 const styles = createStyles({
   partySelectionTitle: {
@@ -94,6 +95,8 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
 
   async function onSelectParty(party: IParty) {
     PartyActions.selectParty(party, true);
+    // Clear any previous instantiation errors.
+    InstantiationActions.instantiateRejected(null);
   }
 
   function renderParties() {

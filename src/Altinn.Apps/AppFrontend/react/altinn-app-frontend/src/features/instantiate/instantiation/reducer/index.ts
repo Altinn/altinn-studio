@@ -46,6 +46,9 @@ const InstantiationReducer: Reducer<IInstantiationState> = (
         error: {
           $set: error,
         },
+        instantiating: {
+          $set: false,
+        },
       });
     }
     default: {
