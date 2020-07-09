@@ -50,14 +50,11 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             string[] dataElementPaths = Directory.GetFiles(dataElementsPath);
             foreach (string elementPath in dataElementPaths)
             {
-                if (!elementPath.Contains("pretest"))
+                string content = File.ReadAllText(elementPath);
+                DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                if (dataElement.InstanceGuid.Contains(instanceGuid.ToString()))
                 {
-                    string content = File.ReadAllText(elementPath);
-                    DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
-                    if (dataElement.InstanceGuid.Contains(instanceGuid.ToString()))
-                    {
-                        dataElements.Add(dataElement);
-                    }
+                    dataElements.Add(dataElement);
                 }
             }
 
@@ -79,7 +76,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public async Task<long> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
         {
-            return await Task.FromResult(stream.Length);
+            MemoryStream memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream);
+            return memoryStream.Length;
         }
 
         private string GetDataElementsPath()

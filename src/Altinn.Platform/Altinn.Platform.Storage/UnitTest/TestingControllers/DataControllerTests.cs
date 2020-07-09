@@ -259,23 +259,25 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         [Fact]
         public async void Get_DataElement_Org_Ok()
         {
+            // Arrange
             DataElement dataElementBefore = TestDataUtil.GetDataElement("28023597-516b-4a71-a77c-d3736912abd5");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/ca9da17c-904a-44d2-9771-a5420acfbcf3/data/28023597-516b-4a71-a77c-d3736912abd5";
 
             HttpClient client = GetTestClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("tdd"));
-            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
-            DataElement dataElementAfter = TestDataUtil.GetDataElement("28023597-516b-4a71-a77c-d3736912abd5");
 
+            // Act
+            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
+
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Null(dataElementBefore.AppOwner);
-            Assert.NotNull(dataElementAfter.AppOwner);
         }
 
         private HttpClient GetTestClient()
         {
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-            Application testApp1 = new Application() { Id = "test/testApp1", Org = "test" };
+            Application testApp1 = new Application { Id = "test/testApp1", Org = "test" };
 
             applicationRepository.Setup(s => s.FindOne(It.Is<string>(p => p.Equals("test/testApp1")), It.IsAny<string>())).ReturnsAsync(testApp1);
 

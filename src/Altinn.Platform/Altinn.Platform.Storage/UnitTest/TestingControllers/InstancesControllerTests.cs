@@ -525,8 +525,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string instanceGuid = "d3b326de-2dd8-49a1-834a-b1d23b11e540";
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/complete";
 
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-
                 HttpClient client = GetTestClient();
 
                 string token = PrincipalUtil.GetOrgToken(org);

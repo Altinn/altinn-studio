@@ -1,5 +1,5 @@
 {
-  "id": "824E8304-AD9E-4D79-AC75-BCFA7213223B",
+  "id": "824e8304-ad9e-4d79-ac75-bcfa7213223b",
   "instanceOwner": {
     "partyId": "1337",
     "organisationNumber": "725736800"
@@ -13,6 +13,8 @@
     "started": "2020-04-29T13:53:01.7020218Z",
     "startEvent": "StartEvent_1",
     "currentTask": { "elementId": "Task_1" }
+  },
+  "status": {
   },
   "appOwner": {},
   "data": [

@@ -54,21 +54,18 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 string[] instancesFiles = Directory.GetFiles(instancesForPartyPath);
                 foreach (string instancePath in instancesFiles)
                 {
-                    if (!instancePath.Contains("pretest"))
+                    Instance instance = null;
+                    lock (TestDataUtil.dataLock)
                     {
-                        Instance instance = null;
-                        lock (TestDataUtil.dataLock)
-                        {
-                            string content = File.ReadAllText(instancePath);
-                            instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                        }
+                        string content = File.ReadAllText(instancePath);
+                        instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                    }
 
-                        PostProcess(instance);
+                    PostProcess(instance);
 
-                        if (instance.InstanceOwner.PartyId == instanceOwnerPartyId.ToString())
-                        {
-                            instances.Add(instance);
-                        }
+                    if (instance.InstanceOwner.PartyId == instanceOwnerPartyId.ToString())
+                    {
+                        instances.Add(instance);
                     }
                 }
             }
@@ -130,15 +127,12 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
                     foreach (var file in files)
                     {
-                        if (!file.Contains("pretest"))
+                        string content = File.ReadAllText(file);
+                        Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                        if (instance.AppId.Equals(appId, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            string content = File.ReadAllText(file);
-                            Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                            if (instance.AppId.Equals(appId, StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                PostProcess(instance);
-                                instances.Add(instance);
-                            }
+                            PostProcess(instance);
+                            instances.Add(instance);
                         }
                     }
                 }
@@ -149,13 +143,10 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
                 foreach (var file in files)
                 {
-                    if (!file.Contains("pretest"))
-                    {
-                        string content = File.ReadAllText(file);
-                        Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                        PostProcess(instance);
-                        instances.Add(instance);
-                    }
+                    string content = File.ReadAllText(file);
+                    Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                    PostProcess(instance);
+                    instances.Add(instance);
                 }
             }
             else if (queryParams.ContainsKey("org"))
@@ -168,15 +159,12 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
                     foreach (var file in files)
                     {
-                        if (!file.Contains("pretest"))
+                        string content = File.ReadAllText(file);
+                        Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+                        if (instance.Org.Equals(org, StringComparison.InvariantCultureIgnoreCase))
                         {
-                            string content = File.ReadAllText(file);
-                            Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
-                            if (instance.Org.Equals(org, StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                PostProcess(instance);
-                                instances.Add(instance);
-                            }
+                            PostProcess(instance);
+                            instances.Add(instance);
                         }
                     }
                 }
@@ -205,8 +193,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public Task<Instance> Update(Instance instance)
         {
-            PreProcess(instance);
-            if (instance.Id.Equals("d3b326de-2dd8-49a1-834a-b1d23b11e540"))
+            if (instance.Id.Equals("1337/d3b326de-2dd8-49a1-834a-b1d23b11e540"))
             {
                 throw CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
             }
@@ -249,55 +236,14 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         /// <param name="instance">the instance to preprocess</param>
         private void PostProcess(Instance instance)
         {
-            Guid instanceGuid = Guid.Parse(instance.Id);
             string instanceId = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
 
             instance.Id = instanceId;
-            // Should instanceData be included here as well?
 
             (string lastChangedBy, DateTime? lastChanged) = InstanceHelper.FindLastChanged(instance);
+
             instance.LastChanged = lastChanged;
             instance.LastChangedBy = lastChangedBy;
-        }
-
-        /// <summary>
-        /// Post-processes a list of instances.
-        /// </summary>
-        /// <param name="instances">the list of instances</param>
-        private void PostProcess(List<Instance> instances)
-        {
-            foreach (Instance item in instances)
-            {
-                PostProcess(item);
-            }
-        }
-
-        /// <summary>
-        /// Converts the instanceId (id) of the instance from {instanceOwnerPartyId}/{instanceGuid} to {instanceGuid} to use as id in cosmos.
-        /// </summary>
-        /// <param name="instance">the instance to preprocess</param>
-        private void PreProcess(Instance instance)
-        {
-            instance.Id = InstanceIdToCosmosId(instance.Id);
-        }
-
-        /// <summary>
-        /// An instanceId should follow this format {int}/{guid}.
-        /// Cosmos does not allow / in id.
-        /// But in some old cases instanceId is just {guid}.
-        /// </summary>
-        /// <param name="instanceId">the id to convert to cosmos</param>
-        /// <returns>the guid of the instance</returns>
-        private string InstanceIdToCosmosId(string instanceId)
-        {
-            string cosmosId = instanceId;
-
-            if (instanceId != null && instanceId.Contains("/"))
-            {
-                cosmosId = instanceId.Split("/")[1];
-            }
-
-            return cosmosId;
         }
     }
 }
