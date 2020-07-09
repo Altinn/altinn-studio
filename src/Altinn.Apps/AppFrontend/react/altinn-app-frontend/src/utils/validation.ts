@@ -363,7 +363,6 @@ export function validateFormData(
 ): IValidationResult {
   const { validator, rootElementPath } = schemaValidator;
   const valid = validator.validate(`schema${rootElementPath}`, formData);
-
   const result: IValidationResult = {
     validations: {},
     invalidDataTypes: false,
@@ -371,22 +370,24 @@ export function validateFormData(
 
   if (!valid) {
     validator.errors.forEach((error) => {
-      if (error.keyword === 'type' || error.keyword === 'format') {
-        result.invalidDataTypes = true;
-      }
+      if (error.keyword !== 'required') {
+        if (error.keyword === 'type' || error.keyword === 'format') {
+          result.invalidDataTypes = true;
+        }
 
-      let errorParams = error.params[errorMessageKeys[error.keyword].paramKey];
-      if (Array.isArray(errorParams)) {
-        errorParams = errorParams.join(', ');
-      }
-      const errorMessage = getParsedLanguageFromKey(
-        `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
-        language,
-        [errorParams],
-      );
+        let errorParams = error.params[errorMessageKeys[error.keyword].paramKey];
+        if (Array.isArray(errorParams)) {
+          errorParams = errorParams.join(', ');
+        }
+        const errorMessage = getParsedLanguageFromKey(
+          `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
+          language,
+          [errorParams],
+        );
 
-      const dataBindingName = processDataPath(error.dataPath);
-      mapToComponentValidations(layout, dataBindingName, errorMessage, result.validations);
+        const dataBindingName = processDataPath(error.dataPath);
+        mapToComponentValidations(layout, dataBindingName, errorMessage, result.validations);
+      }
     });
   }
 
@@ -423,14 +424,13 @@ export function mapToComponentValidations(
     return !!dataModelFieldKey;
   });
 
-  const index = getIndex(dataBindingName);
-  const componentId = index ? `${layoutComponent.id}-${index}` : layoutComponent.id;
-
   if (!dataModelFieldKey) {
     return;
   }
 
   if (layoutComponent) {
+    const index = getIndex(dataBindingName);
+    const componentId = index ? `${layoutComponent.id}-${index}` : layoutComponent.id;
     if (validations[componentId]) {
       if (validations[componentId][dataModelFieldKey]) {
         if (validations[componentId][dataModelFieldKey].errors.includes(errorMessage)) {
