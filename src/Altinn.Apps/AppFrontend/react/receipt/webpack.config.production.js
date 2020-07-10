@@ -2,6 +2,7 @@ const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
 const TerserPlugin = require('terser-webpack-plugin');
+const path = require('path');
 
 
 module.exports = {
@@ -18,6 +19,10 @@ module.exports = {
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
+    alias: {
+      // CUSTOM PACKAGES
+      'altinn-shared': path.resolve(__dirname, '../shared/src'),
+    }
   },
   performance: {
     hints: false,

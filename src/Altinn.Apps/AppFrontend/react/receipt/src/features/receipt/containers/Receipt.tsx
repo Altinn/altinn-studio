@@ -2,17 +2,14 @@ import { createStyles, WithStyles, withStyles } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Axios from 'axios';
 import * as React from 'react';
-import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
-import AltinnModal from '../../../../../shared/src/components/molecules/AltinnModal';
-import AltinnAppHeader from '../../../../../shared/src/components/organisms/AltinnAppHeader';
-import AltinnReceipt from '../../../../../shared/src/components/organisms/AltinnReceipt';
-import theme from '../../../../../shared/src/theme/altinnStudioTheme';
-import { IApplication, IAttachment, IInstance, IParty, IProfile, IExtendedInstance, ITextResource  } from '../../../../../shared/src/types';
-import { getCurrentTaskData } from '../../../../../shared/src/utils/applicationMetaDataUtils';
-import { mapInstanceAttachments, getAttachmentGroupings } from '../../../../../shared/src/utils/attachmentsUtils';
-import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
-import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
-import { nb } from '../../../resources/language';
+import { getLanguageFromCode } from 'altinn-shared/language';
+import { AltinnContentLoader, AltinnModal, AltinnAppHeader, AltinnReceipt } from 'altinn-shared/components';
+import theme from 'altinn-shared/theme/altinnStudioTheme';
+import { IApplication, IAttachment, IInstance, IParty, IProfile, IExtendedInstance, ITextResource } from 'altinn-shared/types';
+import { getCurrentTaskData } from 'altinn-shared/utils/applicationMetaDataUtils';
+import { mapInstanceAttachments, getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
+import { getLanguageFromKey } from 'altinn-shared/utils/language';
+import { returnUrlToMessagebox } from 'altinn-shared/utils/urlHelper';
 import { getInstanceMetaDataObject } from '../../../utils/receipt';
 import { altinnOrganisationsUrl, getApplicationMetadataUrl, getUserUrl, getExtendedInstanceUrl, getTextResourceUrl } from '../../../utils/urlHelper';
 
@@ -20,7 +17,7 @@ const styles = () => createStyles({
   body: {
     paddingLeft: '96px !important',
     paddingRight: '96px !important',
-    ['@media only print']: {
+    '@media only print': {
       paddingLeft: '48px !important',
     },
   },
@@ -75,9 +72,10 @@ function Receipt(props: WithStyles<typeof styles>) {
     }
   };
 
-  const fetchLanguage = async () => {
+  const fetchLanguage = async (languageCode: string) => {
     try {
-      setLanguage(nb());
+      const fetchedLanguage = getLanguageFromCode(languageCode);
+      setLanguage({ receipt_platform: { ...fetchedLanguage.receipt_platform } });
     } catch (error) {
       console.error(error);
     }
@@ -92,7 +90,7 @@ function Receipt(props: WithStyles<typeof styles>) {
       console.error(error);
       setTextResources([]);
     }
-  }
+  };
 
   const getTitle = (): string => {
     const applicationTitle = application ? application.title.nb : '';
@@ -125,15 +123,24 @@ function Receipt(props: WithStyles<typeof styles>) {
     fetchInstanceAndParty();
     fetchOrganisations();
     fetchUser();
-    fetchLanguage();
   }, []);
+
+  React.useEffect(() => {
+    if (user) {
+      if (user.profileSettingPreference?.language) {
+        fetchLanguage(user.profileSettingPreference.language);
+      } else {
+        fetchLanguage('nb');
+      }
+    }
+  }, [user]);
 
   return (
     <>
       <AltinnAppHeader
         logoColor={theme.altinnPalette.primary.blueDarker}
         headerBackgroundColor={theme.altinnPalette.primary.blue}
-        party={party ? party : {} as IParty}
+        party={party || {} as IParty}
         userParty={user ? user.party : {} as IParty}
       />
       <AltinnModal
