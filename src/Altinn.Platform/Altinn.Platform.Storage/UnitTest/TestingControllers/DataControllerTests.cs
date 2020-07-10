@@ -260,7 +260,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         public async void Get_DataElement_Org_Ok()
         {
             // Arrange
-            DataElement dataElementBefore = TestDataUtil.GetDataElement("28023597-516b-4a71-a77c-d3736912abd5");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/ca9da17c-904a-44d2-9771-a5420acfbcf3/data/28023597-516b-4a71-a77c-d3736912abd5";
 
             HttpClient client = GetTestClient();
@@ -271,7 +270,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Null(dataElementBefore.AppOwner);
         }
 
         private HttpClient GetTestClient()
@@ -279,7 +277,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
             Application testApp1 = new Application { Id = "test/testApp1", Org = "test" };
 
-            applicationRepository.Setup(s => s.FindOne(It.Is<string>(p => p.Equals("test/testApp1")), It.IsAny<string>())).ReturnsAsync(testApp1);
+            applicationRepository
+                .Setup(s => s.FindOne(It.Is<string>(p => p.Equals("test/testApp1")), It.IsAny<string>()))
+                .ReturnsAsync(testApp1);
 
             // No setup required for these services. They are not in use by the InstanceController
             Mock<ISasTokenProvider> sasTokenProvider = new Mock<ISasTokenProvider>();

@@ -155,39 +155,22 @@ namespace Altinn.Platform.Storage.Controllers
 
             DataElement dataElement = await _dataRepository.Read(instanceGuid, dataGuid);
 
-            if (dataElement != null)
+            if (dataElement != null && string.Equals(dataElement.BlobStoragePath, storageFileName))
             {
-                string orgFromClaim = User.GetOrg();
-
-                if (!string.IsNullOrEmpty(orgFromClaim))
+                try
                 {
-                    _logger.LogInformation($"App owner download of {instance.Id}/data/{dataGuid}, {instance.AppId} for {orgFromClaim}");
+                    Stream dataStream = await _dataRepository.ReadDataFromStorage(instance.Org, storageFileName);
 
-                    // update downloaded structure on data element
-                    dataElement.AppOwner ??= new ApplicationOwnerDataState();
-                    dataElement.AppOwner.Downloaded ??= new List<DateTime>();
-                    dataElement.AppOwner.Downloaded.Add(DateTime.UtcNow);
+                    if (dataStream == null)
+                    {
+                        return NotFound($"Unable to read data element from blob storage for {dataGuid}");
+                    }
 
-                    await _dataRepository.Update(dataElement);
+                    return File(dataStream, dataElement.ContentType, dataElement.Filename);
                 }
-
-                if (string.Equals(dataElement.BlobStoragePath, storageFileName))
+                catch (Exception e)
                 {
-                    try
-                    {
-                        Stream dataStream = await _dataRepository.ReadDataFromStorage(instance.Org, storageFileName);
-
-                        if (dataStream == null)
-                        {
-                            return NotFound($"Unable to read data element from blob storage for {dataGuid}");
-                        }
-
-                        return File(dataStream, dataElement.ContentType, dataElement.Filename);
-                    }
-                    catch (Exception e)
-                    {
-                        return StatusCode(500, $"Unable to access blob storage for data element {e}");
-                    }
+                    return StatusCode(500, $"Unable to access blob storage for data element {e}");
                 }
             }
 
