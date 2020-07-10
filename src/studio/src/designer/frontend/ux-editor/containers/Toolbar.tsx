@@ -101,8 +101,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           itemType: LayoutItemType.Component,
           textResourceBindings: {
             title: c.name === 'Button' ?
-            getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)
-            : getComponentTitleByComponentType(c.Type, this.props.language),
+              getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)
+              : getComponentTitleByComponentType(c.Type, this.props.language),
           },
           dataModelBindings: {},
           ...JSON.parse(JSON.stringify(customProperties)),
@@ -292,16 +292,18 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               dense={false}
               id='schema-components'
             >
+
               {this.components.map((component: IToolbarElement, index: number) => (
-                <ToolbarItem
-                  text={getComponentTitleByComponentType(component.componentType, this.props.language)
-                    || component.label}
-                  icon={component.icon}
-                  componentType={component.componentType}
-                  onDropAction={component.actionMethod}
-                  onClick={this.handleComponentInformationOpen}
-                  key={index}
-                />
+                <li>
+                  <ToolbarItem
+                    text={getComponentTitleByComponentType(component.componentType, this.props.language)
+                      || component.label}
+                    icon={component.icon}
+                    componentType={component.componentType}
+                    onDropAction={component.actionMethod}
+                    onClick={this.handleComponentInformationOpen}
+                    key={index}
+                  /></li>
               ))
               }
 
@@ -326,6 +328,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                 componentType={ComponentTypes.Container}
               />
               */}
+
             </List>
           </Collapse>
           <CollapsableMenuComponent
