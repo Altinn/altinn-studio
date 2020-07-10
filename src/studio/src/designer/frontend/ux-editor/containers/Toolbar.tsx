@@ -303,19 +303,22 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                     onDropAction={component.actionMethod}
                     onClick={this.handleComponentInformationOpen}
                     key={index}
-                  /></li>
+                  />
+                </li>
               ))
               }
 
               {this.getThirdPartyComponents().map((component: IToolbarElement, index: number) => (
-                <ToolbarItem
-                  text={component.label}
-                  icon={component.icon}
-                  componentType={component.componentType}
-                  onDropAction={component.actionMethod}
-                  onClick={this.handleComponentInformationOpen}
-                  key={index}
-                />
+                <li>
+                  <ToolbarItem
+                    text={component.label}
+                    icon={component.icon}
+                    componentType={component.componentType}
+                    onDropAction={component.actionMethod}
+                    onClick={this.handleComponentInformationOpen}
+                    key={index}
+                  />
+                </li>
               ))}
               {/*
 

@@ -21,7 +21,6 @@ export interface ILeftDrawerMenuState {
   openSubMenus: number[];
 }
 
-
 class LeftDrawerMenu extends
   React.Component<ILeftDrawerMenuProps, ILeftDrawerMenuState> {
   constructor(_props: ILeftDrawerMenuProps) {
