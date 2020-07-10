@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
+
 using LocalTest.Configuration;
 
 using Microsoft.Extensions.Options;
@@ -19,9 +20,9 @@ namespace Altinn.Platform.Storage.Repository
         private readonly LocalPlatformSettings _localPlatformSettings;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TextRepository"/> class
+        /// Initializes a new instance of the <see cref="TextRepository"/> class with the given local platform settings.
         /// </summary>
-        /// <param name="cosmosettings">the configuration settings for cosmos database</param>
+        /// <param name="localPlatformSettings">Local platform settings.</param>
         public TextRepository(IOptions<LocalPlatformSettings> localPlatformSettings)
         {
             _localPlatformSettings = localPlatformSettings.Value;
@@ -32,55 +33,41 @@ namespace Altinn.Platform.Storage.Repository
         {
             ValidateArguments(org, app, language);
             TextResource textResource = null;
-            string path = GetTextPath(org, app, language);
+            string path = GetTextPath(language);
 
             if (File.Exists(path))
             {
-                string fileContent = File.ReadAllText(path);
+                string fileContent = await File.ReadAllTextAsync(path);
                 textResource = (TextResource)JsonConvert.DeserializeObject(fileContent, typeof(TextResource));
                 textResource.Id = $"{org}-{app}-{language}";
                 textResource.Org = org;
                 textResource.Language = language;
             }
 
-            return await Task.FromResult(textResource);
+            return textResource;
         }
 
-        private string GetTextPath(string org, string app, string language)
+        private string GetTextPath(string language)
         {
             return _localPlatformSettings.AppRepsitoryBasePath + $"config/texts/resource.{language}.json";
         }
 
         /// <inheritdoc/>
-        public async Task<TextResource> Create(string org, string app, TextResource textResource)
+        public Task<TextResource> Create(string org, string app, TextResource textResource)
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
-        public async Task<TextResource> Update(string org, string app, TextResource textResource)
+        public Task<TextResource> Update(string org, string app, TextResource textResource)
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
-        public async Task<bool> Delete(string org, string app, string language)
+        public Task<bool> Delete(string org, string app, string language)
         {
             throw new NotImplementedException();
-        }
-
-        private string GetTextId(string org, string app, string language)
-        {
-            return $"{org}-{app}-{language}";
-        }
-
-        /// <summary>
-        /// Pre processes the text resource. Creates id and adds partition key org
-        /// </summary>
-        private void PreProcess(string org, string app, string language, TextResource textResource)
-        {
-            textResource.Id = GetTextId(org, app, language);
-            textResource.Org = org;
         }
 
         /// <summary>
@@ -90,17 +77,17 @@ namespace Altinn.Platform.Storage.Repository
         {
             if (string.IsNullOrEmpty(org))
             {
-                throw new ArgumentException("Org can not be null or empty");
+                throw new ArgumentException($"Parameter {nameof(org)} cannot be null or empty", nameof(org));
             }
 
             if (string.IsNullOrEmpty(app))
             {
-                throw new ArgumentException("App can not be null or empty");
+                throw new ArgumentException($"Parameter {nameof(app)} cannot be null or empty", nameof(app));
             }
 
             if (!LanguageHelper.IsTwoLetters(language))
             {
-                throw new ArgumentException("Language must be a two letter ISO name");
+                throw new ArgumentException($"Parameter {nameof(language)} cannot be null or empty", nameof(language));
             }
         }
     }

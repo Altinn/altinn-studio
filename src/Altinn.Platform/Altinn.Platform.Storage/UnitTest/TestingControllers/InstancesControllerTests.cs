@@ -226,8 +226,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
                 string json = await response.Content.ReadAsStringAsync();
                 Instance createdInstance = JsonConvert.DeserializeObject<Instance>(json);
-
-                TestDataUtil.DeleteInstanceAndData(1337, createdInstance.Id.Split("/")[1]);
             }
 
             /// <summary>
@@ -488,8 +486,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 int instanceOwnerPartyId = 1337;
                 string instanceGuid = "2f7fa5ce-e878-4e1f-a241-8c0eb1a83eab";
                 string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-                TestDataUtil.DeleteInstanceAndData(instanceOwnerPartyId, new Guid(instanceGuid));
-                TestDataUtil.PrepareInstance(instanceOwnerPartyId, new Guid(instanceGuid));
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/complete";
 
                 HttpClient client = GetTestClient();
@@ -511,7 +507,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.Equal(org, updatedInstance.CompleteConfirmations[0].StakeholderId);
                 Assert.Equal("111111111", updatedInstance.LastChangedBy);
                 Assert.Equal(instanceId, updatedInstance.Id);
-                TestDataUtil.DeleteInstanceAndData(instanceOwnerPartyId, new Guid(instanceGuid));
             }
 
             /// <summary>
@@ -529,8 +524,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 int instanceOwnerPartyId = 1337;
                 string instanceGuid = "d3b326de-2dd8-49a1-834a-b1d23b11e540";
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/complete";
-
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
 
                 HttpClient client = GetTestClient();
 
@@ -659,11 +652,9 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 // Arrange
                 int instanceOwnerPartyId = 1337;
-                string instanceGuid = "824E8304-AD9E-4D79-AC75-BCFA7213223B";
+                string instanceGuid = "824e8304-ad9e-4d79-ac75-bcfa7213223b";
 
                 ReadStatus expectedReadStus = ReadStatus.Read;
-
-                TestDataUtil.PrepareInstance(instanceOwnerPartyId, instanceGuid);
 
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/readstatus?status=read";
 
@@ -676,7 +667,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-                TestDataUtil.DeleteInstance(instanceOwnerPartyId, new Guid(instanceGuid));
                 string json = await response.Content.ReadAsStringAsync();
                 Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
 
@@ -699,8 +689,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string instanceGuid = "d9a586ca-17ab-453d-9fc5-35eaadb3369b";
                 ReadStatus expectedReadStus = ReadStatus.Unread;
 
-                TestDataUtil.PrepareInstance(instanceOwnerPartyId, instanceGuid);
-
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/readstatus?status=unread";
                 HttpClient client = GetTestClient();
 
@@ -711,7 +699,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
-                TestDataUtil.DeleteInstance(instanceOwnerPartyId, new Guid(instanceGuid));
                 string json = await response.Content.ReadAsStringAsync();
                 Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
 
@@ -733,9 +720,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 int instanceOwnerPartyId = 1337;
                 string instanceGuid = "d9a586ca-17ab-453d-9fc5-35eaadb3369b";
                 string expectedMessage = $"Invalid read status: invalid. Accepted types include: {string.Join(", ", Enum.GetNames(typeof(ReadStatus)))}";
-
-                TestDataUtil.PrepareInstance(instanceOwnerPartyId, instanceGuid);
-
+                
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/readstatus?status=invalid";
                 HttpClient client = GetTestClient();
 
@@ -745,7 +730,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-                TestDataUtil.DeleteInstance(instanceOwnerPartyId, new Guid(instanceGuid));
                 string json = await response.Content.ReadAsStringAsync();
                 string actualMessage = JsonConvert.DeserializeObject<string>(json);
 

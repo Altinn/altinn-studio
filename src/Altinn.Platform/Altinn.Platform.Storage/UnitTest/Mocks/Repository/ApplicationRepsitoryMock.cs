@@ -1,11 +1,12 @@
-using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Platform.Storage.Repository;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
+
+using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Repository;
+
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 {
@@ -21,12 +22,12 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             throw new NotImplementedException();
         }
 
-        public Task<Application> FindOne(string appId, string org)
+        public async Task<Application> FindOne(string appId, string org)
         {
-           return Task.FromResult(GetTestApplication(org, appId.Split("/")[1]));
+           return await Task.FromResult(GetTestApplication(org, appId.Split("/")[1]));
         }
 
-        public Task<Dictionary<string, Dictionary<string, string>>> GetAppTitles(List<string> appIds)
+        public async Task<Dictionary<string, Dictionary<string, string>>> GetAppTitles(List<string> appIds)
         {
             Dictionary<string, Dictionary<string, string>> appTitles = new Dictionary<string, Dictionary<string, string>>();
 
@@ -36,7 +37,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 appTitles.Add(app.Id, app.Title);
             }
 
-            return Task.FromResult(appTitles);
+            return await Task.FromResult(appTitles);
         }
 
         public Task<List<Application>> ListApplications(string org)
@@ -49,13 +50,12 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             throw new NotImplementedException();
         }
 
-
         private Application GetTestApplication(string org, string app)
         {
             string applicationPath = Path.Combine(GetAppsPath(), org + @"\" + app + @"\config\applicationmetadata.json");
             if (File.Exists(applicationPath))
             {
-                string content = System.IO.File.ReadAllText(applicationPath);
+                string content = File.ReadAllText(applicationPath);
                 Application application = (Application)JsonConvert.DeserializeObject(content, typeof(Application));
                 return application;
             }

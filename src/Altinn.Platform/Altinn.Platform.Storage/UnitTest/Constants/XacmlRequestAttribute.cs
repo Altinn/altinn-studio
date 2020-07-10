@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Altinn.Platform.Storage.UnitTest.Constants
 {
     public static class XacmlRequestAttribute

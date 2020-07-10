@@ -1,4 +1,7 @@
 {{- $environment := .Values.environment }}
+{{- $linkerd := .Values.linkerd }}
+{{- $fullName := include "fullname" . }}
+
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
@@ -24,6 +27,9 @@ spec:
     middlewares:
     {{- range $middleware := $route.middlewares}}
       - name: {{ $middleware.name }}
+    {{- end }}
+    {{- if $linkerd.enabled }}
+      - name: {{ $fullName }}
     {{- end }}
     {{- end }}
   {{- end }}

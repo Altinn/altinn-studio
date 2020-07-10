@@ -31,7 +31,6 @@ namespace LocalTest.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
         private readonly GeneralSettings _generalSettings;
         private readonly LocalPlatformSettings _localPlatformSettings;
         private readonly IApplicationRepository _applicationRepository;
@@ -39,14 +38,12 @@ namespace LocalTest.Controllers
         private readonly IAuthentication _authenticationService;
 
         public HomeController(
-            ILogger<HomeController> logger,
             IOptions<GeneralSettings> generalSettings,
             IOptions<LocalPlatformSettings> localPlatformSettings,
             IApplicationRepository applicationRepository,
             IUserProfiles userProfileService,
             IAuthentication authenticationService)
         {
-            _logger = logger;
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
             _applicationRepository = applicationRepository;
@@ -68,7 +65,7 @@ namespace LocalTest.Controllers
                 model.InvalidAppPath = true;
             }
 
-            if (model.TestUsers.Count() == 0)
+            if (!model.TestUsers.Any())
             {
                 model.InvalidTestDataPath = true;
             }
@@ -77,8 +74,8 @@ namespace LocalTest.Controllers
             {
                 model.Org = app.Org;
                 model.App = app.Id.Split("/")[1];
-
             }
+
             return View(model);
         }
 
@@ -96,15 +93,12 @@ namespace LocalTest.Controllers
         /// <summary>
         /// Method that logs inn test user
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="userId">The testUserId</param>
+        /// <param name="startAppModel">An object with information about app and user.</param>
         /// <returns>Redirects to returnUrl</returns>
         [HttpPost]
         public async Task<ActionResult> LogInTestUser(StartAppModel startAppModel)
         {
             UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
-
 
             List<Claim> claims = new List<Claim>();
             string issuer = "altinn3local.no";
@@ -117,8 +111,6 @@ namespace LocalTest.Controllers
             ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
-            DateTime later = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime));
 
             string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
             CreateJwtCookieAndAppendToResponse(token);
@@ -133,9 +125,9 @@ namespace LocalTest.Controllers
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<ActionResult> GetTestUserToken(int id)
+        public async Task<ActionResult> GetTestUserToken(int userId)
         {
-            UserProfile profile = await _userProfileService.GetUser(id);
+            UserProfile profile = await _userProfileService.GetUser(userId);
 
             if (profile == null)
             {
@@ -153,7 +145,6 @@ namespace LocalTest.Controllers
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            DateTime later = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime));
             // Create a test token with long duration
             string token = _authenticationService.GenerateToken(principal, 1337);
             return Ok(token);
@@ -175,11 +166,10 @@ namespace LocalTest.Controllers
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            DateTime later = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime));
             // Create a test token with long duration
             string token = _authenticationService.GenerateToken(principal, 1337);
 
-            return Ok(token);
+            return await Task.FromResult(Ok(token));
         }
 
         private async Task<List<UserProfile>> GetTestUsers()
@@ -196,7 +186,7 @@ namespace LocalTest.Controllers
 
             foreach (string file in files)
             {
-                int userId = 0;
+                int userId;
 
                 if (int.TryParse(Path.GetFileNameWithoutExtension(file), out userId))
                 {
@@ -206,7 +196,6 @@ namespace LocalTest.Controllers
 
             return users;
         }
-
 
         private async Task<IEnumerable<SelectListItem>> GetTestUsersForList()
         {
