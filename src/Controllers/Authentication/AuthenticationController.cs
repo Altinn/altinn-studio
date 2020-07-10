@@ -40,13 +40,13 @@ namespace LocalTest.Controllers.Authentication
         [HttpGet("refresh")]
         public async Task<ActionResult> RefreshJWTCookie()
         {
-            _logger.LogInformation($"Starting to refresh token...");
+            _logger.LogInformation("Starting to refresh token...");
             ClaimsPrincipal principal = HttpContext.User;
             _logger.LogInformation("Refreshing token....");
 
             string token = _authenticationService.GenerateToken(principal, Convert.ToInt32(_generalSettings.JwtCookieValidityTime));
-            _logger.LogInformation($"End of refreshing token");
-            return Ok(token);
+            _logger.LogInformation("End of refreshing token");
+            return await Task.FromResult(Ok(token));
         }
 
         [HttpGet("orgToken")]
@@ -70,8 +70,8 @@ namespace LocalTest.Controllers.Authentication
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
             string token = _authenticationService.GenerateToken(principal, Convert.ToInt32(_generalSettings.JwtCookieValidityTime));
-
-            return Ok(token);
+            
+            return await Task.FromResult(Ok(token));
         }
 
         [HttpGet("appToken")]
@@ -92,8 +92,8 @@ namespace LocalTest.Controllers.Authentication
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
             string token = _authenticationService.GenerateToken(principal, Convert.ToInt32(_generalSettings.JwtCookieValidityTime));
-
-            return Ok(token);
+            
+            return await Task.FromResult(Ok(token));
         }
     }
 }
