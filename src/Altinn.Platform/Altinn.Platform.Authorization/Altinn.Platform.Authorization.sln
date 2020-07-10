@@ -14,7 +14,7 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC", "Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj", "{D4EDBE62-E430-49E1-ACC7-65581BA9714F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authorization.IntegrationTest", "IntegrationTests\Altinn.Platform.Authorization.IntegrationTest.csproj", "{977119A9-CF6D-4806-BEB2-9CFEE26C3208}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authorization.IntegrationTests", "IntegrationTests\Altinn.Platform.Authorization.IntegrationTests.csproj", "{977119A9-CF6D-4806-BEB2-9CFEE26C3208}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC.UnitTest", "UnitTest\Altinn.Authorization.ABAC.UnitTest.csproj", "{F7FECF3A-0766-46DE-94C7-F237A188FCD0}"
 EndProject

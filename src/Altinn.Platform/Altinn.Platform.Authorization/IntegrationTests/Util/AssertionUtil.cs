@@ -6,7 +6,7 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 
 using Xunit;
 
-namespace Altinn.Platform.Authorization.IntegrationTest.Util
+namespace Altinn.Platform.Authorization.IntegrationTests.Util
 {
     public static class AssertionUtil
     {

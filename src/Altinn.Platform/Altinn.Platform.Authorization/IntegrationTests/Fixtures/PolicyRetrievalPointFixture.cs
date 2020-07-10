@@ -4,7 +4,7 @@ using System.Net.Http;
 
 using Altinn.Authorization.ABAC.Interface;
 
-using Altinn.Platform.Authorization.IntegrationTest.MockServices;
+using Altinn.Platform.Authorization.IntegrationTests.MockServices;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 using AltinnCore.Authentication.JwtCookie;
@@ -16,7 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.Platform.Authorization.IntegrationTest.Fixtures
+namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
 {
     public class PolicyRetrievalPointFixture : IDisposable
     {

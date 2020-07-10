@@ -4,12 +4,12 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-using Altinn.Platform.Authorization.IntegrationTest.Fixtures;
-using Altinn.Platform.Authorization.IntegrationTest.Util;
+using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
+using Altinn.Platform.Authorization.IntegrationTests.Util;
 
 using Xunit;
 
-namespace Altinn.Platform.Authorization.IntegrationTest
+namespace Altinn.Platform.Authorization.IntegrationTests
 {
     [Collection("Our Test Collection #1")]
     public class PolicyControllerTest : IClassFixture<PolicyRetrievalPointFixture>

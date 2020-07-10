@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Platform.Authorization.IntegrationTest.Fixtures;
-using Altinn.Platform.Authorization.IntegrationTest.Util;
+using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
+using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Xunit;
 
-namespace Altinn.Platform.Authorization.IntegrationTest
+namespace Altinn.Platform.Authorization.IntegrationTests
 {
     public class AltinnApps_DecisionTests :IClassFixture<PlatformAuthorizationFixture>
     { 

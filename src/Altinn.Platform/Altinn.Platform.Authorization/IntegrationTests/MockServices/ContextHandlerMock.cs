@@ -19,7 +19,7 @@ using Microsoft.AspNetCore.Http;
 
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Authorization.IntegrationTest.MockServices
+namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
     public class ContextHandlerMock : IContextHandler
     {

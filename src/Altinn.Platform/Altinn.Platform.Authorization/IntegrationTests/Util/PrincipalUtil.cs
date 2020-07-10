@@ -4,7 +4,7 @@ using System.Security.Claims;
 
 using AltinnCore.Authentication.Constants;
 
-namespace Altinn.Platform.Authorization.IntegrationTest.Util
+namespace Altinn.Platform.Authorization.IntegrationTests.Util
 {
     public static class PrincipalUtil
     {

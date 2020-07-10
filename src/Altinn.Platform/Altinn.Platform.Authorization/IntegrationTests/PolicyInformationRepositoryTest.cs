@@ -3,8 +3,8 @@ using System.IO;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Authorization.Configuration;
-using Altinn.Platform.Authorization.IntegrationTest.Fixtures;
-using Altinn.Platform.Authorization.IntegrationTest.Util;
+using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
+using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -17,7 +17,7 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-namespace Altinn.Platform.Authorization.IntegrationTest
+namespace Altinn.Platform.Authorization.IntegrationTests
 {
     public class PolicyInformationRepositoryTest : IClassFixture<PolicyInformationPointFixture>, IDisposable
     {

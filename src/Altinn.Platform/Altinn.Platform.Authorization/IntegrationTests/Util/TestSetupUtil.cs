@@ -15,7 +15,7 @@ using Authorization.Platform.Authorization.Models;
 
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Authorization.IntegrationTest.Util
+namespace Altinn.Platform.Authorization.IntegrationTests.Util
 {
     public static class TestSetupUtil
     {

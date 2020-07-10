@@ -4,7 +4,7 @@ using System.Net.Http;
 
 using Altinn.Authorization.ABAC.Interface;
 
-using Altinn.Platform.Authorization.IntegrationTest.MockServices;
+using Altinn.Platform.Authorization.IntegrationTests.MockServices;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 
@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Altinn.Platform.Authorization.IntegrationTest.Fixtures
+namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
 {
     public class PlatformAuthorizationFixture : IDisposable
     {

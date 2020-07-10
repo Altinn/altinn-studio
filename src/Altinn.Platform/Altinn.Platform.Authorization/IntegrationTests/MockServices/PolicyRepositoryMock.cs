@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Authorization.Repositories.Interface;
 
-namespace Altinn.Platform.Authorization.IntegrationTest.MockServices
+namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
     public class PolicyRepositoryMock : IPolicyRepository
     {

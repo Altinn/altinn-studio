@@ -10,7 +10,7 @@ using Altinn.Authorization.ABAC.Xacml;
 
 using Microsoft.AspNetCore.Http;
 
-namespace Altinn.Platform.Authorization.IntegrationTest.MockServices
+namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
     public class PolicyRetrievalPointMock : IPolicyRetrievalPoint
     {

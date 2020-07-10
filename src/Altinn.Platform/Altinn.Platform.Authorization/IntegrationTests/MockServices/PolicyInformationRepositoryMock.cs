@@ -7,7 +7,7 @@ using Altinn.Platform.Storage.Interface.Models;
 
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Authorization.IntegrationTest.MockServices
+namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
     public class PolicyInformationRepositoryMock : IPolicyInformationRepository
     {

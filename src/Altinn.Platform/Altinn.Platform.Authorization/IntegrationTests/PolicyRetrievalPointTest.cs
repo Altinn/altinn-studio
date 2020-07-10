@@ -8,9 +8,9 @@ using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Xacml;
 
 using Altinn.Platform.Authorization.Configuration;
-using Altinn.Platform.Authorization.IntegrationTest.Fixtures;
-using Altinn.Platform.Authorization.IntegrationTest.MockServices;
-using Altinn.Platform.Authorization.IntegrationTest.Util;
+using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
+using Altinn.Platform.Authorization.IntegrationTests.MockServices;
+using Altinn.Platform.Authorization.IntegrationTests.Util;
 
 using Altinn.Platform.Authorization.Services.Implementation;
 
@@ -20,7 +20,7 @@ using Microsoft.Extensions.Options;
 
 using Xunit;
 
-namespace Altinn.Platform.Authorization.IntegrationTest
+namespace Altinn.Platform.Authorization.IntegrationTests
 {
     [Collection("Our Test Collection #1")]
     public class PolicyRetrievalPointTest : IClassFixture<PolicyRetrievalPointFixture>

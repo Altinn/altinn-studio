@@ -2,8 +2,8 @@ using System.Threading.Tasks;
 
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Configuration;
-using Altinn.Platform.Authorization.IntegrationTest.MockServices;
-using Altinn.Platform.Authorization.IntegrationTest.Util;
+using Altinn.Platform.Authorization.IntegrationTests.MockServices;
+using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Services.Implementation;
 
 using Microsoft.Extensions.Caching.Memory;
@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 
 using Xunit;
 
-namespace Altinn.Platform.Authorization.IntegrationTest
+namespace Altinn.Platform.Authorization.IntegrationTests
 {
     /// <summary>
     /// Test class for <see cref="ContextHandler"></see>

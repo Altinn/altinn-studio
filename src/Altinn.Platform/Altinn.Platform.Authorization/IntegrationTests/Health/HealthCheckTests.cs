@@ -2,11 +2,11 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-using Altinn.Platform.Authorization.IntegrationTest.Fixtures;
+using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 
 using Xunit;
 
-namespace Altinn.Platform.Authorization.IntegrationTest.Health
+namespace Altinn.Platform.Authorization.IntegrationTests.Health
 {
     /// <summary>
     /// Health check 
