@@ -17,6 +17,10 @@ spec:
       labels:
         app: {{ template "name" . }}
         release: {{ .Release.Name }}
+      {{- if .Values.linkerd.enabled }}
+      annotations:
+        linkerd.io/inject: enabled
+      {{- end }}
     spec:
     {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
