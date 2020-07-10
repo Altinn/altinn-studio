@@ -517,7 +517,7 @@ namespace Altinn.Platform.Storage.Controllers
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
         {
-            Instance createdInstance = new Instance()
+            Instance createdInstance = new Instance
             {
                 InstanceOwner = instanceTemplate.InstanceOwner,
                 CreatedBy = userId,
@@ -529,15 +529,9 @@ namespace Altinn.Platform.Storage.Controllers
                 VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleAfter),
                 Status = instanceTemplate.Status,
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
-                AppOwner = new ApplicationOwnerState
-                {
-                    Labels = instanceTemplate.AppOwner?.Labels,
-                },
+                Data = new List<DataElement>(),
+                Process = instanceTemplate.Process,
             };
-
-            createdInstance.Data = new List<DataElement>();
-
-            createdInstance.Process = instanceTemplate.Process;
 
             return createdInstance;
         }

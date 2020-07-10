@@ -75,7 +75,6 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="processEndEvent">Process end state.</param>
         /// <param name="processEnded">Process ended value.</param>
         /// <param name="instanceOwnerPartyId">Instance owner id.</param>
-        /// <param name="labels">Labels.</param>
         /// <param name="lastChanged">Last changed date.</param>
         /// <param name="created">Created time.</param>
         /// <param name="visibleAfter">The visible after date time.</param>
@@ -97,7 +96,6 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery(Name = "process.endEvent")] string processEndEvent,
             [FromQuery(Name = "process.ended")] string processEnded,
             [FromQuery(Name = "instanceOwner.partyId")] int? instanceOwnerPartyId,
-            [FromQuery(Name = "appOwner.labels")] string labels,
             [FromQuery] string lastChanged,
             [FromQuery] string created,
             [FromQuery(Name = "visibleAfter")] string visibleAfter,
@@ -471,7 +469,7 @@ namespace Altinn.Platform.Storage.Controllers
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
         {
-            Instance createdInstance = new Instance()
+            Instance createdInstance = new Instance
             {
                 InstanceOwner = instanceTemplate.InstanceOwner,
                 CreatedBy = userId,
@@ -483,15 +481,9 @@ namespace Altinn.Platform.Storage.Controllers
                 VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleAfter),
                 Status = instanceTemplate.Status,
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
-                AppOwner = new ApplicationOwnerState
-                {
-                    Labels = instanceTemplate.AppOwner?.Labels,
-                },
+                Data = new List<DataElement>(),
+                Process = instanceTemplate.Process
             };
-
-            createdInstance.Data = new List<DataElement>();
-
-            createdInstance.Process = instanceTemplate.Process;
 
             return createdInstance;
         }
@@ -557,9 +549,9 @@ namespace Altinn.Platform.Storage.Controllers
             items.RemoveAll(x => x.Key == queryParamName);
 
             var qb = new QueryBuilder(items)
-                        {
-                            { queryParamName, newParamValue }
-                        };
+            {
+                { queryParamName, newParamValue }
+            };
 
             string nextQueryString = qb.ToQueryString().Value;
 
