@@ -1,12 +1,12 @@
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+
 using Xunit;
 
-namespace Altinn.Platform.Authorization.IntegrationTests.Util
+namespace Altinn.Platform.Authorization.IntegrationTest.Util
 {
     public static class AssertionUtil
     {
@@ -241,6 +241,5 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.AttributeId, actual.AttributeId);
             Assert.Equal(expected.DataType, actual.DataType);
         }
-
     }
 }

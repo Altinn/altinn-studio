@@ -4,10 +4,6 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
-
-    <AssemblyName>Altinn.Platform.Authorization.IntegrationTests</AssemblyName>
-
-    <RootNamespace>Altinn.Platform.Authorization.IntegrationTests</RootNamespace>
   </PropertyGroup>
 
 <ItemGroup>
@@ -22,6 +18,21 @@
   <ItemGroup>
     <ProjectReference Include="..\Authorization\Altinn.Platform.Authorization.csproj" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)'=='Debug'">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
 
   <ItemGroup>
     <None Update="Data\blobs\ttd\repository-test-app\policy.xml">

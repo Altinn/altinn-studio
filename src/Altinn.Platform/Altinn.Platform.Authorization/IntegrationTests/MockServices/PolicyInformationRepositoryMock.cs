@@ -1,15 +1,15 @@
-using Altinn.Platform.Authorization.Repositories.Interface;
-using Altinn.Platform.Storage.Interface.Models;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
+using Altinn.Platform.Authorization.Repositories.Interface;
+using Altinn.Platform.Storage.Interface.Models;
+
+using Newtonsoft.Json;
+
+namespace Altinn.Platform.Authorization.IntegrationTest.MockServices
 {
-    public class PolicyInformationRepository : IPolicyInformationRepository
+    public class PolicyInformationRepositoryMock : IPolicyInformationRepository
     {
         public async Task<Instance> GetInstance(string instanceId, int instanceOwnerId)
         {
@@ -58,7 +58,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
             string instancePart = instanceId.Split('/')[1];
 
-            content = System.IO.File.ReadAllText(Path.Combine(GetInstancePath(), partyPart + @"\" + instancePart + ".json"));
+            content = File.ReadAllText(Path.Combine(GetInstancePath(), partyPart + @"\" + instancePart + ".json"));
             Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
             return instance;
         }

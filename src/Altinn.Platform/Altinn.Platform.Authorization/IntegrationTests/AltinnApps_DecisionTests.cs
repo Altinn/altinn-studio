@@ -1,27 +1,18 @@
-using Altinn.Authorization.ABAC.Interface;
-using Altinn.Authorization.ABAC.Utils;
+using System.Net.Http;
+using System.Threading.Tasks;
+
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
-using Altinn.Platform.Authorization.IntegrationTests.Util;
-using Altinn.Platform.Authorization.Services.Interface;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
+using Altinn.Platform.Authorization.IntegrationTest.Fixtures;
+using Altinn.Platform.Authorization.IntegrationTest.Util;
 using Xunit;
 
-namespace Altinn.Platform.Authorization.IntegrationTests
+namespace Altinn.Platform.Authorization.IntegrationTest
 {
     public class AltinnApps_DecisionTests :IClassFixture<PlatformAuthorizationFixture>
     { 
         private readonly PlatformAuthorizationFixture _fixture;
+
         public AltinnApps_DecisionTests(PlatformAuthorizationFixture fixture)
         {
             _fixture = fixture;
@@ -37,6 +28,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -130,7 +122,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
-
 
         [Fact]
         public async Task PDP_Decision_AltinnApps0008()

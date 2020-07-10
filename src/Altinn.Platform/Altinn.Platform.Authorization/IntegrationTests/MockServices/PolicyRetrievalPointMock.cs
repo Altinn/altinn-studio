@@ -1,24 +1,26 @@
-using Altinn.Authorization.ABAC.Constants;
-using Altinn.Authorization.ABAC.Interface;
-using Altinn.Authorization.ABAC.Utils;
-using Altinn.Authorization.ABAC.Xacml;
-using Microsoft.AspNetCore.Http;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
+using Altinn.Authorization.ABAC.Constants;
+using Altinn.Authorization.ABAC.Interface;
+using Altinn.Authorization.ABAC.Utils;
+using Altinn.Authorization.ABAC.Xacml;
+
+using Microsoft.AspNetCore.Http;
+
+namespace Altinn.Platform.Authorization.IntegrationTest.MockServices
 {
-    public class PolicyRetrievalPoint :  IPolicyRetrievalPoint
+    public class PolicyRetrievalPointMock : IPolicyRetrievalPoint
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        private readonly string OrgAttributeId = "urn:altinn:org";
+        private readonly string _orgAttributeId = "urn:altinn:org";
 
-        private readonly string AppAttributeId = "urn:altinn:app";
+        private readonly string _appAttributeId = "urn:altinn:app";
 
-        public PolicyRetrievalPoint(IHttpContextAccessor httpContextAccessor)
+        public PolicyRetrievalPointMock(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
         }
@@ -52,7 +54,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 {
                     foreach(XacmlAttribute asd in attr.Attributes)
                     {
-                        if (asd.AttributeId.OriginalString.Equals(OrgAttributeId))
+                        if (asd.AttributeId.OriginalString.Equals(_orgAttributeId))
                         {
                             foreach (var asff in asd.AttributeValues)
                             {
@@ -61,7 +63,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                             }
                         }
 
-                        if (asd.AttributeId.OriginalString.Equals(AppAttributeId))
+                        if (asd.AttributeId.OriginalString.Equals(_appAttributeId))
                         {
                             foreach (var asff in asd.AttributeValues)
                             {
@@ -75,7 +77,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
             return GetAltinnAppsPolicyPath(org, app);
         }
-
 
         private string GetAltinnAppsPolicyPath(string org, string app)
         {
@@ -113,9 +114,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             return policy;
         }
 
-        public Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
+        public async Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
         {
-            throw new NotImplementedException();
+            return await Task.FromResult(true);
         }
     }
 }

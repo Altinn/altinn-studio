@@ -1,15 +1,19 @@
 using System;
 using System.IO;
 using System.Net.Http;
+
 using Altinn.Authorization.ABAC.Interface;
+
+using Altinn.Platform.Authorization.IntegrationTest.MockServices;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
+namespace Altinn.Platform.Authorization.IntegrationTest.Fixtures
 {
     public class PlatformAuthorizationFixture : IDisposable
     {
@@ -31,11 +35,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
             IWebHostBuilder builder = new WebHostBuilder()
                 .ConfigureTestServices(services =>
                 {
-                    //services.AddScoped<IContextHandler, MockServices.ContextHandler>();
-                    services.AddScoped<IPolicyInformationRepository, MockServices.PolicyInformationRepository>();
-                    services.AddScoped<IPolicyRetrievalPoint, MockServices.PolicyRetrievalPoint>();
-                    services.AddScoped<IRoles, MockServices.PolicyInformationPoint>();
-                    //services.AddScoped<IContextHandler, IntegrationTests.MockServices.ContextHandler>();
+                    services.AddScoped<IPolicyInformationRepository, PolicyInformationRepositoryMock>();
+                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
+                    services.AddScoped<IRoles, RolesMock>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
@@ -44,7 +46,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                 .UseContentRoot(GetContentRootPath())
                 .UseEnvironment("Development")
                 .UseConfiguration(config.Build())
-                .UseStartup<Altinn.Platform.Authorization.Startup>();
+                .UseStartup<Startup>();
 
             testServer = new TestServer(builder);
             Client = testServer.CreateClient();

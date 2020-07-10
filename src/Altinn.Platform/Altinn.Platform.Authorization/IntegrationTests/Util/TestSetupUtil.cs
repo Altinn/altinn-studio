@@ -1,9 +1,3 @@
-using Altinn.Authorization.ABAC.Utils;
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Platform.Storage.Interface.Models;
-using Authorization.Platform.Authorization.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +6,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Altinn.Platform.Authorization.IntegrationTests.Util
+using Altinn.Authorization.ABAC.Utils;
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Platform.Storage.Interface.Models;
+
+using Authorization.Platform.Authorization.Models;
+
+using Newtonsoft.Json;
+
+namespace Altinn.Platform.Authorization.IntegrationTest.Util
 {
     public static class TestSetupUtil
     {
@@ -44,13 +47,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
             if (testcase.Contains("AltinnApps"))
             {
-
-                requestText = System.IO.File.ReadAllText(Path.Combine(GetAltinnAppsPath(), testcase + "Request.json"));
+                requestText = File.ReadAllText(Path.Combine(GetAltinnAppsPath(), testcase + "Request.json"));
             }
             else
             {
-
-                requestText = System.IO.File.ReadAllText(Path.Combine(GetConformancePath(), testcase + "Request.json"));
+                requestText = File.ReadAllText(Path.Combine(GetConformancePath(), testcase + "Request.json"));
             }
 
             HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, "authorization/api/v1/Decision")
@@ -62,7 +63,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
             return message;
         }
-
 
         public static async Task<XacmlContextResponse> GetXacmlContextResponseAsync(HttpClient client, HttpRequestMessage httpRequestMessage)
         {
@@ -83,12 +83,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             return contextResponse;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="httpRequestMessage"></param>
-        /// <returns></returns>
         public static async Task<XacmlJsonResponse> GetXacmlJsonProfileContextResponseAsync(HttpClient client, HttpRequestMessage httpRequestMessage)
         {
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -97,8 +91,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             XacmlJsonResponse xacmlJsonresponse = (XacmlJsonResponse)JsonConvert.DeserializeObject(responseContent, typeof(XacmlJsonResponse));
             return xacmlJsonresponse;
         }
-
-
 
         public static XacmlContextResponse ReadExpectedResponse(string testCase)
         {
@@ -116,17 +108,17 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
             if (testCase.Contains("AltinnApps"))
             {
-                content = System.IO.File.ReadAllText(Path.Combine(GetAltinnAppsPath(), testCase + "Response.json"));
+                content = File.ReadAllText(Path.Combine(GetAltinnAppsPath(), testCase + "Response.json"));
             }
             else
             {
-                content = System.IO.File.ReadAllText(Path.Combine(GetConformancePath(), testCase + "Response.json"));
+                content = File.ReadAllText(Path.Combine(GetConformancePath(), testCase + "Response.json"));
             }
+
             XacmlJsonResponse xacmlJsonresponse = (XacmlJsonResponse)JsonConvert.DeserializeObject(content, typeof(XacmlJsonResponse));
 
             return xacmlJsonresponse;
         }
-
 
         public static XacmlContextRequest CreateXacmlContextRequest(string testCase)
         {
@@ -154,9 +146,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
             if (File.Exists(rolesPath))
             {
-                string content = System.IO.File.ReadAllText(rolesPath);
+                string content = File.ReadAllText(rolesPath);
                 roles = (List<Role>)JsonConvert.DeserializeObject(content, typeof(List<Role>));
             }
+
             return roles;
         }
 
@@ -187,6 +180,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Xacml\3.0\ConformanceTests");
         }
+
         public static string GetInstancePath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyInformationRepositoryTest).Assembly.CodeBase).LocalPath);
@@ -198,6 +192,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyInformationRepositoryTest).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Applications");
         }
+
         private static string GetRolesPath(int coveredByUserId, int offeredByPartyId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ContextHandlerTest).Assembly.CodeBase).LocalPath);
