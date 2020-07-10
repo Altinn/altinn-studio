@@ -68,7 +68,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string content = await response.Content.ReadAsStringAsync();
                 List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(content);
 
-                int expectedCount = 10;
+                int expectedCount = 13;
                 string expectedTitle = "Endring av navn (RF-1453)";
                 int actualCount = messageBoxInstances.Count;
                 string actualTitle = messageBoxInstances.First().Title;
@@ -100,7 +100,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string actualTitle = messageBoxInstances.First().Title;
 
                 // Assert
-                int expectedCount = 10;
+                int expectedCount = 13;
                 string expectedTitle = "Name change";
                 Assert.Equal(expectedCount, actualCount);
                 Assert.Equal(expectedTitle, actualTitle);
@@ -131,7 +131,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseContent);
 
                 int actualCount = messageBoxInstances.Count;
-                int expectedCount = 4;
+                int expectedCount = 6;
                 Assert.Equal(expectedCount, actualCount);
             }
 
@@ -232,8 +232,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void Undelete_RestoreSoftDeletedInstance_ReturnsTrue()
             {
-                TestDataUtil.DeleteInstanceAndData(1337, new Guid("da1f620f-1764-4f98-9f03-74e5e20f10fe"));
-                TestDataUtil.PrepareInstance(1337, new Guid("da1f620f-1764-4f98-9f03-74e5e20f10fe"));
                 // Arrange
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
@@ -248,7 +246,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 bool actualResult = JsonConvert.DeserializeObject<bool>(content);
 
                 Assert.True(actualResult);
-                TestDataUtil.DeleteInstanceAndData(1337, new Guid("da1f620f-1764-4f98-9f03-74e5e20f10fe"));
             }
 
             /// <summary>
@@ -356,9 +353,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void Delete_SoftDeleteActiveInstance_InstanceIsMarked_EventIsCreated_ReturnsTrue()
             {
                 // Arrange
-                TestDataUtil.DeleteInstanceAndData(1337, new Guid("08274f48-8313-4e2d-9788-bbdacef5a54e"));
-                TestDataUtil.PrepareInstance(1337, new Guid("08274f48-8313-4e2d-9788-bbdacef5a54e"));
-
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
@@ -371,7 +365,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string content = await response.Content.ReadAsStringAsync();
                 bool actualResult = JsonConvert.DeserializeObject<bool>(content);
                 Assert.True(actualResult);
-                TestDataUtil.DeleteInstanceAndData(1337, new Guid("08274f48-8313-4e2d-9788-bbdacef5a54e"));
             }
 
             /// <summary>
@@ -435,8 +428,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             public async void Delete_HardDeleteSoftDeleted()
             {
                 // Arrange
-                TestDataUtil.DeleteInstanceAndData(1337, new Guid("7a951b5b-ef96-4032-9273-f8d7651266f4"));
-                TestDataUtil.PrepareInstance(1337, new Guid("7a951b5b-ef96-4032-9273-f8d7651266f4"));
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
 
@@ -452,7 +443,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 bool expectedResult = true;
                 Assert.Equal(expectedResult, actualResult);
                 Assert.Equal(expectedStatusCode, actualStatusCode);
-                TestDataUtil.DeleteInstanceAndData(1337, new Guid("7a951b5b-ef96-4032-9273-f8d7651266f4"));
             }
 
             /// <summary>
@@ -466,9 +456,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void Delete_ActiveHasRole_ReturnsOk()
             {
-                TestDataUtil.DeleteInstanceAndData(1337, new Guid("d9a586ca-17ab-453d-9fc5-35eaadb3369b"));
-                TestDataUtil.PrepareInstance(1337, new Guid("d9a586ca-17ab-453d-9fc5-35eaadb3369b"));
-
                 // Arrange
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
@@ -480,7 +467,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.True(actualResult);
-                TestDataUtil.DeleteInstanceAndData(1337, new Guid("d9a586ca-17ab-453d-9fc5-35eaadb3369b"));
             }
 
             /// <summary>
@@ -517,8 +503,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             [Fact]
             public async void Delete_ArchivedHasRole_ReturnsOk()
             {
-                TestDataUtil.DeleteInstanceAndData(1337,"3b67392f-36c6-42dc-998f-c367e771dcdd");
-                TestDataUtil.PrepareInstance(1337, "3b67392f-36c6-42dc-998f-c367e771dcdd");
                 // Arrange
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
@@ -532,7 +516,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Assert
                 Assert.True(actualResult);
                 Assert.Equal(HttpStatusCode.OK, actualStatusCode);
-                TestDataUtil.DeleteInstanceAndData(1337, "3b67392f-36c6-42dc-998f-c367e771dcdd");
             }
 
             /// <summary>

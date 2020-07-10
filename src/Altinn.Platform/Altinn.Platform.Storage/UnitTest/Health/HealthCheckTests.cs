@@ -1,17 +1,19 @@
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+
 using Xunit;
 
-namespace Altinn.Platform.Storage.UnitTest
+namespace Altinn.Platform.Storage.UnitTest.Health
 {
-    public class HealtCheckTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class HealthCheckTests : IClassFixture<WebApplicationFactory<Startup>>
     {
         private readonly WebApplicationFactory<Startup> _factory;
 
-        public HealtCheckTests(WebApplicationFactory<Startup> factory)
+        public HealthCheckTests(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
         }

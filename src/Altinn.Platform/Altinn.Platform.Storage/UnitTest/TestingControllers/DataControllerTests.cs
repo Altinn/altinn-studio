@@ -42,7 +42,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         public DataControllerTests(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
-
         }
 
         /// <summary>
@@ -56,8 +55,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         [Fact]
         public async void Post_NewData_Ok()
         {
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "bc19107c-508f-48d9-bcd7-54ffec905306", "tdd", "endring-av-navn");
-            TestDataUtil.PrepareInstance(1337, "bc19107c-508f-48d9-bcd7-54ffec905306");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/bc19107c-508f-48d9-bcd7-54ffec905306/data";
             HttpContent content = new StringContent("This is a blob file");
 
@@ -72,7 +69,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             }
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "bc19107c-508f-48d9-bcd7-54ffec905306", "tdd", "endring-av-navn");
         }
 
         /// <summary>
@@ -131,8 +127,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         [Fact]
         public async void Put_UpdateData_Ok()
         {
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
-            TestDataUtil.PrepareInstance(1337, new Guid("649388f0-a2c0-4774-bd11-c870223ed819"), "tdd", "endring-av-navn");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/649388f0-a2c0-4774-bd11-c870223ed819/data/11f7c994-6681-47a1-9626-fcf6c27308a5";
             HttpContent content = new StringContent("This is a blob file with updated data");
 
@@ -141,7 +135,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}?dataType=default", content);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
         }
 
         /// <summary>
@@ -155,8 +148,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         [Fact]
         public async void Put_UpdateData_Conflict()
         {
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "6aa47207-f089-4c11-9cb2-f00af6f66a47", "tdd", "endring-av-navn");
-            TestDataUtil.PrepareInstance(1337, new Guid("6aa47207-f089-4c11-9cb2-f00af6f66a47"), "tdd", "endring-av-navn");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/6aa47207-f089-4c11-9cb2-f00af6f66a47/data/24bfec2e-c4ce-4e82-8fa9-aa39da329fd5";
             HttpContent content = new StringContent("This is a blob file with updated data");
 
@@ -165,15 +156,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}?dataType=default", content);
 
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "6aa47207-f089-4c11-9cb2-f00af6f66a47", "tdd", "endring-av-navn");
         }
 
 
         [Fact]
         public async void Delete_DataElement_Ok()
         {
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
-            TestDataUtil.PrepareInstance(1337, new Guid("649388f0-a2c0-4774-bd11-c870223ed819"), "tdd", "endring-av-navn");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/649388f0-a2c0-4774-bd11-c870223ed819/data/11f7c994-6681-47a1-9626-fcf6c27308a5";
            
             HttpClient client = GetTestClient();
@@ -181,14 +169,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
         }
 
         [Fact]
         public async void Delete_DataElement_NotAuthorized()
         {
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
-            TestDataUtil.PrepareInstance(1337, new Guid("649388f0-a2c0-4774-bd11-c870223ed819"), "tdd", "endring-av-navn");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/649388f0-a2c0-4774-bd11-c870223ed819/data/11f7c994-6681-47a1-9626-fcf6c27308a5";
 
             HttpClient client = GetTestClient();
@@ -196,15 +181,12 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "649388f0-a2c0-4774-bd11-c870223ed819", "tdd", "endring-av-navn");
         }
 
 
         [Fact]
         public async void Get_DataElement_Ok()
         {
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
-            TestDataUtil.PrepareInstance(1337, new Guid("d91fd644-1028-4efd-924f-4ca187354514"), "tdd", "endring-av-navn");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/data/f4feb26c-8eed-4d1d-9d75-9239c40724e9";
 
             HttpClient client = GetTestClient();
@@ -212,14 +194,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
         }
 
         [Fact]
         public async void Get_DataElements_Ok()
         {
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
-            TestDataUtil.PrepareInstance(1337, new Guid("d91fd644-1028-4efd-924f-4ca187354514"), "tdd", "endring-av-navn");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/dataelements/";
 
             HttpClient client = GetTestClient();
@@ -227,14 +206,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
         }
 
         [Fact]
         public async void Get_DataElements_To_Low_Auth_Level()
         {
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
-            TestDataUtil.PrepareInstance(1337, new Guid("d91fd644-1028-4efd-924f-4ca187354514"), "tdd", "endring-av-navn");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/dataelements/";
 
             HttpClient client = GetTestClient();
@@ -242,14 +218,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
         }
 
         [Fact]
         public async void Get_DataElements_NotAuthorized()
         {
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
-            TestDataUtil.PrepareInstance(1337, new Guid("d91fd644-1028-4efd-924f-4ca187354514"), "tdd", "endring-av-navn");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/dataelements/";
 
             HttpClient client = GetTestClient();
@@ -257,14 +230,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
         }
 
         [Fact]
         public async void Get_DataElement_NotAuthorized()
         {
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
-            TestDataUtil.PrepareInstance(1337, new Guid("d91fd644-1028-4efd-924f-4ca187354514"), "tdd", "endring-av-navn");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/data/f4feb26c-8eed-4d1d-9d75-9239c40724e9";
 
             HttpClient client = GetTestClient();
@@ -272,14 +242,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
         }
 
         [Fact]
         public async void Get_DataElement_ToLowAuthenticationLevel()
         {
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
-            TestDataUtil.PrepareInstance(1337, new Guid("d91fd644-1028-4efd-924f-4ca187354514"), "tdd", "endring-av-navn");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/data/f4feb26c-8eed-4d1d-9d75-9239c40724e9";
 
             HttpClient client = GetTestClient();
@@ -287,32 +254,30 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "d91fd644-1028-4efd-924f-4ca187354514", "tdd", "endring-av-navn");
         }
 
         [Fact]
         public async void Get_DataElement_Org_Ok()
         {
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "ca9da17c-904a-44d2-9771-a5420acfbcf3", "tdd", "endring-av-navn");
-            TestDataUtil.PrepareInstance(1337, new Guid("ca9da17c-904a-44d2-9771-a5420acfbcf3"), "tdd", "endring-av-navn");
+            // Arrange
             DataElement dataElementBefore = TestDataUtil.GetDataElement("28023597-516b-4a71-a77c-d3736912abd5");
             string dataPathWithData = $"{_versionPrefix}/instances/1337/ca9da17c-904a-44d2-9771-a5420acfbcf3/data/28023597-516b-4a71-a77c-d3736912abd5";
 
             HttpClient client = GetTestClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("tdd"));
-            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
-            DataElement dataElementAfter = TestDataUtil.GetDataElement("28023597-516b-4a71-a77c-d3736912abd5");
 
+            // Act
+            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
+
+            // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Null(dataElementBefore.AppOwner);
-            Assert.NotNull(dataElementAfter.AppOwner);
-            TestDataUtil.DeleteInstanceAndDataAndBlobs(1337, "ca9da17c-904a-44d2-9771-a5420acfbcf3", "tdd", "endring-av-navn");
         }
 
         private HttpClient GetTestClient()
         {
             Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
-            Application testApp1 = new Application() { Id = "test/testApp1", Org = "test" };
+            Application testApp1 = new Application { Id = "test/testApp1", Org = "test" };
 
             applicationRepository.Setup(s => s.FindOne(It.Is<string>(p => p.Equals("test/testApp1")), It.IsAny<string>())).ReturnsAsync(testApp1);
 
