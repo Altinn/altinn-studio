@@ -34,8 +34,8 @@ function ListItemLink(props: ListItemLinkProps) {
     state,
   } = props;
   const renderLink = React.useMemo(
-    () => React.forwardRef<any, Omit<RouterLinkProps, 'to'>>((itemProps, ref) => ( 
-        <RouterLink to={to} ref={ref} {...itemProps} />)),
+    () => React.forwardRef<any, Omit<RouterLinkProps, 'to'>>((itemProps, ref) => (
+      <RouterLink to={to} ref={ref} {...itemProps} />)),
     [to],
   );
   return (
@@ -46,7 +46,7 @@ function ListItemLink(props: ListItemLinkProps) {
         root: classNames(classes.listItem,
           {
             [classes.activeListItem]: activeLeftMenuSelection
-          }),
+          })
       }}
       style={{ borderBottom: 0 }}
       onMouseEnter={onMouseEnterListItem}
