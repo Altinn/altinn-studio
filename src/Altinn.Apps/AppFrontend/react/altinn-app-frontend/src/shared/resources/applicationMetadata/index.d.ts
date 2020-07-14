@@ -1,4 +1,4 @@
-import { ITitle, IDataType, IPresentationFields, IPresentationField } from "../../../../../shared/src/types";
+import { ITitle, IDataType } from "../../../../../shared/src/types";
 
 export interface IApplicationMetadata {
   createdBy: string;
@@ -10,7 +10,6 @@ export interface IApplicationMetadata {
   org: string;
   partyTypesAllowed: IPartyTypesAllowed;
   title: ITitle;
-  presentationFields?: IPresentationField[];
 }
 
 interface IPartyTypesAllowed {
