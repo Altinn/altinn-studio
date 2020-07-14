@@ -1,16 +1,13 @@
+using System.IO;
+using System.Xml;
+
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Xml;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.Util
 {
     public static class XacmlTestDataParser
     {
-
         /// <summary>
         /// Parses a XACML Response document
         /// </summary>
@@ -41,25 +38,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             }
 
             return contextRequest;
-        }
-
-        /// <summary>
-        /// Parses a Xacml 3.0 Policy
-        /// </summary>
-        /// <param name="policyDocumentTitle"></param>
-        /// <param name="policyPath"></param>
-        /// <returns></returns>
-        public static XacmlPolicy ParsePolicy(string policyDocumentTitle, string policyPath)
-        {
-            XmlDocument policyDocument = new XmlDocument();
-            policyDocument.Load(Path.Combine(policyPath, policyDocumentTitle));
-            XacmlPolicy policy;
-            using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
-            {
-                policy = XacmlParser.ParseXacmlPolicy(reader);
-            }
-
-            return policy;
         }
     }
 }

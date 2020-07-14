@@ -67,12 +67,6 @@ namespace Altinn.Platform.Storage.Interface.Models
         public InstanceStatus Status { get; set; }
 
         /// <summary>
-        /// Gets or sets an object for application owner properties.
-        /// </summary>
-        [JsonProperty(PropertyName = "appOwner")]
-        public ApplicationOwnerState AppOwner { get; set; }
-
-        /// <summary>
         /// Gets or sets a list of <see cref="CompleteConfirmation"/> elements.
         /// </summary>
         [JsonProperty(PropertyName = "completeConfirmations")]
@@ -93,8 +87,8 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// <summary>
         /// Sets platform self links for the instance.
         /// </summary>
-        /// <param name="storageHostAndBase">The host and basepath for platform storage. E.g. 'at22.altinn.cloud/storage/api/v1/'. Must end with '/'.</param>
-        public void SetPlatformSelflink(string storageHostAndBase)
+        /// <param name="storageHostAndBase">The host and base path for platform storage. E.g. 'at22.altinn.cloud/storage/api/v1/'. Must end with '/'.</param>
+        public void SetPlatformSelfLinks(string storageHostAndBase)
         {
             if (SelfLinks == null)
             {
@@ -107,10 +101,9 @@ namespace Altinn.Platform.Storage.Interface.Models
             {
                 foreach (DataElement element in Data)
                 {
-                    element.SetPlatformSelflink(storageHostAndBase, int.Parse(this.InstanceOwner.PartyId));
+                    element.SetPlatformSelfLinks(storageHostAndBase, int.Parse(this.InstanceOwner.PartyId));
                 }
             }
-
         }
 
         /// <summary>

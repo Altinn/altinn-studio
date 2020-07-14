@@ -4,10 +4,10 @@ import { useSelector } from 'react-redux';
 import { createMuiTheme } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import { AltinnReceipt, AltinnContentLoader, AltinnContentIconReceipt, AltinnButton, AltinnLoader } from 'altinn-shared/components';
-import { IInstance, IParty, IPresentationField } from 'altinn-shared/types';
-import {getLanguageFromKey, getUserLanguage } from 'altinn-shared/utils/language';
+import { IInstance, IParty } from 'altinn-shared/types';
+import { getLanguageFromKey, getUserLanguage } from 'altinn-shared/utils/language';
 import { getCurrentTaskData, mapInstanceAttachments } from 'altinn-shared/utils';
-import {AltinnAppTheme} from 'altinn-shared/theme'
+import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IValidations } from 'src/types/global';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
@@ -51,16 +51,11 @@ const useStyles = makeStyles({
 export interface ISummaryData {
   languageData?: any;
   instanceOwnerParty?: any;
-  presentationFields: IPresentationField[];
 }
 
 export const returnConfirmSummaryObject = (data: ISummaryData): {} => {
   const obj: any = {};
-  const { languageData, presentationFields, instanceOwnerParty } = data;
-
-  presentationFields.forEach((field: IPresentationField) => {
-    obj[getLanguageFromKey(field.textResource, languageData)] = field.value;
-  })
+  const { languageData, instanceOwnerParty } = data;
 
   let sender: string = '';
   if (instanceOwnerParty?.ssn) {
@@ -117,14 +112,9 @@ const Confirm = (props: IConfirmProps) => {
         return party.partyId.toString() === instance.instanceOwner.partyId;
       });
 
-      const presentationFields = applicationMetadata.presentationFields ?
-        applicationMetadata.presentationFields.filter((field) => field.taskIds.includes(instance.process.currentTask.elementId))
-        : [];
-
       const obj = returnConfirmSummaryObject({
         languageData: language,
         instanceOwnerParty,
-        presentationFields,
       });
       setInstanceMetaObject(obj);
     }

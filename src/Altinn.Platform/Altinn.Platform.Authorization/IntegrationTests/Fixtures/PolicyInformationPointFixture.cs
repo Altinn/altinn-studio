@@ -1,11 +1,13 @@
 using System;
 using System.IO;
 using System.Net.Http;
+
 using Altinn.Authorization.ABAC.Interface;
+using Altinn.Platform.Authorization.IntegrationTests.MockServices;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Implementation;
-using Altinn.Platform.Authorization.Services.Interface;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -33,7 +35,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                 .ConfigureTestServices(services =>
                 {
                     services.AddScoped<IContextHandler, ContextHandler>();
-                    services.AddScoped<IPolicyRetrievalPoint, MockServices.PolicyRetrievalPoint>();
+                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
                     services.AddScoped<IPolicyInformationRepository, PolicyInformationRepository>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>
@@ -43,7 +45,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                 .UseContentRoot(GetContentRootPath())
                 .UseEnvironment("Development")
                 .UseConfiguration(config.Build())
-                .UseStartup<Altinn.Platform.Authorization.Startup>();
+                .UseStartup<Startup>();
 
             testServer = new TestServer(builder);
             Client = testServer.CreateClient();
@@ -52,7 +54,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
         private string GetContentRootPath()
         {
             var testProjectPath = AppContext.BaseDirectory;
-            var relativePathToHostProject = @"..\..\..\..\";
+            var relativePathToHostProject = "../../../../";
 
             return Path.Combine(testProjectPath, relativePathToHostProject);
         }

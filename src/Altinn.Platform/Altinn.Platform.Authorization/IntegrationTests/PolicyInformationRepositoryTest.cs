@@ -1,18 +1,20 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Moq;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
@@ -54,7 +56,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             databaseId = _dbConfigMock.Object.Value.Database;
             instanceCollectionId = _dbConfigMock.Object.Value.InstanceCollection;
 
-            _client = new DocumentClient(new Uri("https://localhost:8081"),
+            _client = new DocumentClient(
+                new Uri("https://localhost:8081"),
                 "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
                 connectionPolicy);
             _client.OpenAsync();
@@ -278,18 +281,18 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead(Path.Combine(TestSetupUtil.GetInstancePath(), "50013976/f3fc6233-1631-429d-8405-e1678f88dbd7.json"));
             dataStream.Position = 0;
 
-            string json = "";
+            string json;
 
             using (StreamReader sr = new StreamReader(dataStream))
             {
                 json = sr.ReadToEnd();
             }
 
-            JObject jObject = JObject.Parse(json);
+            JObject jsonObject = JObject.Parse(json);
 
             try
             {
-                await _client.CreateDocumentAsync(uri, jObject);
+                await _client.CreateDocumentAsync(uri, jsonObject);
                 databasePopulatedInstances = true;
             }
             catch (Exception ex)
@@ -304,18 +307,18 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead(Path.Combine(TestSetupUtil.GetApplicationPath(), "tdd/cat/tdd-cat.json"));
             dataStream.Position = 0;
 
-            string json = "";
+            string json;
 
             using (StreamReader sr = new StreamReader(dataStream))
             {
                 json = sr.ReadToEnd();
             }
 
-            JObject jObject = JObject.Parse(json);
+            JObject jsonObject = JObject.Parse(json);
 
             try
             {
-                await _client.CreateDocumentAsync(uri, jObject);
+                await _client.CreateDocumentAsync(uri, jsonObject);
                 databasePopulatedApplications = true;
             }
             catch (Exception ex)

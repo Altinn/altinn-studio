@@ -44,10 +44,6 @@ public class InstanceUtils {
       return instance.getTitle().getNb();
     }
 
-    if (instance.getPresentationField() != null) {
-      return instance.getPresentationField().getNb();
-    }
-
     return "";
   }
 }

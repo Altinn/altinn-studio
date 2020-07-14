@@ -1,23 +1,23 @@
-using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
-using Altinn.Platform.Authorization.IntegrationTests.Util;
-using Altinn.Platform.Authorization.IntegrationTests.Utils;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+
+using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
+using Altinn.Platform.Authorization.IntegrationTests.Util;
+
 using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
     [Collection("Our Test Collection #1")]
-    public class PolicyControllerTest : IClassFixture<PolicyRetrivevalPointFixture>
+    public class PolicyControllerTest : IClassFixture<PolicyRetrievalPointFixture>
     {
         private readonly HttpClient _client;
-        private const string ORG = "ttd";
-        private const string APP = "repository-test-app";
-        private readonly PolicyRetrivevalPointFixture _fixture;
-        public PolicyControllerTest(PolicyRetrivevalPointFixture fixture)
+        private readonly PolicyRetrievalPointFixture _fixture;
+
+        public PolicyControllerTest(PolicyRetrievalPointFixture fixture)
         {
             _fixture = fixture;
             _client = _fixture.GetClient();
@@ -43,6 +43,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", content);
 
             TestSetupUtil.DeleteAppBlobData("org", "app");
+
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -78,7 +79,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         [Fact]
         public async Task WritePolicy_TC03()
         {
-
             string token = PrincipalUtil.GetAccessToken("studio.designer");
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -88,7 +88,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-
         }
 
         /// <summary>

@@ -8,20 +8,13 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Altinn.Platform.Storage.UnitTest.Mocks.Authentication
+namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
     /// <summary>
     /// Represents a stub of <see cref="ConfigurationManager{OpenIdConnectConfiguration}"/> to be used in integration tests.
     /// </summary>
     public class ConfigurationManagerStub : IConfigurationManager<OpenIdConnectConfiguration>
     {
-        /// <summary>
-        /// Initializes a new instance of <see cref="ConfigurationManagerStub" />
-        /// </summary>
-        public ConfigurationManagerStub()
-        {
-        }
-
         /// <inheritdoc />
         public async Task<OpenIdConnectConfiguration> GetConfigurationAsync(CancellationToken cancel)
         {
