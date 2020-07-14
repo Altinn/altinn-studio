@@ -15,7 +15,6 @@ public class Instance {
   private String org;
   private String createdDateTime;
   private String lastChangedDateTime;
-  private PresentationField presentationField;
   private Title title;
 
   public Title getTitle() {
@@ -80,13 +79,5 @@ public class Instance {
 
   public void setLastChangedDateTime(String lastChangedDateTime) {
     this.lastChangedDateTime = lastChangedDateTime;
-  }
-
-  public PresentationField getPresentationField() {
-    return presentationField;
-  }
-
-  public void setPresentationField(PresentationField presentationField) {
-    this.presentationField = presentationField;
   }
 }
