@@ -67,12 +67,6 @@ namespace Altinn.Platform.Storage.Interface.Models
         public bool Locked { get; set; }
 
         /// <summary>
-        /// Gets or sets information about when the application owner downloaded and confirmed download of the element.
-        /// </summary>
-        [JsonProperty(PropertyName  = "appOwner")]
-        public ApplicationOwnerDataState AppOwner;
-
-        /// <summary>
         /// Gets or sets an optional array of data element references.
         /// </summary>
         [JsonProperty(PropertyName = "refs")]
@@ -87,9 +81,9 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// <summary>
         /// Sets platform self links for the data element.
         /// </summary>
-        /// <param name="storageHostAndBase">The host and basepath for platform storage. E.g. 'at22.altinn.cloud/storage/api/v1/'. Must end with '/'.</param>
+        /// <param name="storageHostAndBase">The host and base path for platform storage. E.g. 'at22.altinn.cloud/storage/api/v1/'. Must end with '/'.</param>
         /// <param name="instanceOwnerPartyId">The instance owner party id.</param>
-        public void SetPlatformSelflink(string storageHostAndBase, int instanceOwnerPartyId)
+        public void SetPlatformSelfLinks(string storageHostAndBase, int instanceOwnerPartyId)
         {
             if (SelfLinks == null)
             {
