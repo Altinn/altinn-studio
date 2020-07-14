@@ -1,31 +1,33 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+
 using Altinn.Authorization.ABAC.Interface;
+
+using Altinn.Platform.Authorization.IntegrationTests.MockServices;
 using Altinn.Platform.Authorization.Repositories.Interface;
-using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
-using Altinn.Platform.Storage.UnitTest.Mocks.Authentication;
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
 {
-    public class PolicyRetrivevalPointFixture : IDisposable
+    public class PolicyRetrievalPointFixture : IDisposable
     {
-        private readonly TestServer testServer;
+        private readonly TestServer _testServer;
 
         /// <summary>
         /// Gets the client.
         /// </summary>
         public HttpClient Client { get; }
 
-        public PolicyRetrivevalPointFixture()
+        public PolicyRetrievalPointFixture()
         {
             string[] args = { };
 
@@ -36,11 +38,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
             IWebHostBuilder builder = new WebHostBuilder()
                 .ConfigureTestServices(services =>
                 {
-                    services.AddScoped<IContextHandler, MockServices.ContextHandler>();
-                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
-                    services.AddScoped<IRoles, MockServices.PolicyInformationPoint>();
-                    services.AddScoped<IContextHandler, MockServices.ContextHandler>();
-                    services.AddScoped<IPolicyRepository, MockServices.PolicyRepository>();
+                    services.AddScoped<IContextHandler, ContextHandlerMock>();
+                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPointMock>();
+                    services.AddScoped<IRoles, RolesMock>();
+                    services.AddScoped<IPolicyRepository, PolicyRepositoryMock>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>
@@ -50,18 +51,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                 .UseContentRoot(GetContentRootPath())
                 .UseEnvironment("Development")
                 .UseConfiguration(config.Build())
-                .UseStartup<Altinn.Platform.Authorization.Startup>();
+                .UseStartup<Startup>();
 
-            testServer = new TestServer(builder);
-            Client = testServer.CreateClient();
-        }
-
-        private string GetContentRootPath()
-        {
-            var testProjectPath = AppContext.BaseDirectory;
-            var relativePathToHostProject = @"..\..\..\..\";
-
-            return Path.Combine(testProjectPath, relativePathToHostProject);
+            _testServer = new TestServer(builder);
+            Client = _testServer.CreateClient();
         }
 
         /// <summary>
@@ -79,7 +72,15 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
         public void Dispose()
         {
             Client.Dispose();
-            testServer.Dispose();
+            _testServer.Dispose();
+        }
+
+        private string GetContentRootPath()
+        {
+            var testProjectPath = AppContext.BaseDirectory;
+            var relativePathToHostProject = "../../../../";
+
+            return Path.Combine(testProjectPath, relativePathToHostProject);
         }
     }
 }

@@ -1,24 +1,24 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Authorization.Repositories.Interface;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
-    public class PolicyRepository : IPolicyRepository
+    public class PolicyRepositoryMock : IPolicyRepository
     {
         public Task<Stream> GetPolicyAsync(string filepath)
         {
-            string dataPath = Path.Combine(GetDataBlobPath(), filepath.Replace('/', '\\'));
+            string dataPath = Path.Combine(GetDataBlobPath(), filepath);
             Stream ms = new MemoryStream();
             if (File.Exists(dataPath))
             {
-              
-
                 using (FileStream file = new FileStream(dataPath, FileMode.Open, FileAccess.Read))
                 {
                     file.CopyTo(ms);
                 }
+
                 return Task.FromResult(ms);
 
             }
@@ -28,7 +28,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         public async Task<bool> WritePolicyAsync(string filepath, Stream fileStream)
         {
-            string dataPath = GetDataBlobPath() + filepath.Replace("/", "\\");
+            string dataPath = GetDataBlobPath() + filepath;
 
             if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
             {
@@ -49,8 +49,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         private string GetDataBlobPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepository).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\data\blobs\");
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRepositoryMock).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, "../../../data/blobs/");
         }
     }
 }

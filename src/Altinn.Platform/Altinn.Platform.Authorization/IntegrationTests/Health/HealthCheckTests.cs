@@ -1,15 +1,12 @@
-using System;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
+
 using Xunit;
 
-namespace Altinn.Platform.Authorization.UnitTest
+namespace Altinn.Platform.Authorization.IntegrationTests.Health
 {
     /// <summary>
     /// Health check 
@@ -21,7 +18,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         /// <summary>
         /// Default constructor
         /// </summary>
-        /// <param name="factory">The web applicaiton factory</param>
+        /// <param name="fixture">The web application fixture</param>
         public HealthCheckTests(PlatformAuthorizationFixture fixture)
         {
             _fixture = fixture;
@@ -32,13 +29,11 @@ namespace Altinn.Platform.Authorization.UnitTest
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task VerifyHeltCheck_OK()
+        public async Task VerifyHealthCheck_OK()
         {
             HttpClient client = GetTestClient();
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/health")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/health");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string content = await response.Content.ReadAsStringAsync();
@@ -48,14 +43,6 @@ namespace Altinn.Platform.Authorization.UnitTest
         private HttpClient GetTestClient()
         {
             return _fixture.GetClient();
-        }
-
-        private string GetContentRootPath()
-        {
-            var testProjectPath = AppContext.BaseDirectory;
-            var relativePathToHostProject = @"..\..\..\..\";
-
-            return Path.Combine(testProjectPath, relativePathToHostProject);
         }
     }
 }

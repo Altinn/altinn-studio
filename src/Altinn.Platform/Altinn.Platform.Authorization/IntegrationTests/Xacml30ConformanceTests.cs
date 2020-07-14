@@ -1,12 +1,12 @@
-using Altinn.Authorization.ABAC.Interface;
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
-using Altinn.Platform.Authorization.IntegrationTests.Util;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http;
 using System.Threading.Tasks;
+
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+
+using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
+using Altinn.Platform.Authorization.IntegrationTests.Util;
+
 using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
@@ -30,6 +30,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -44,10 +45,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlJsonResponse contextResponse = await TestSetupUtil.GetXacmlJsonProfileContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
-
 
         [Fact]
         public async Task PDP_Decision_IIA002()
@@ -59,6 +60,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -73,6 +75,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -87,6 +90,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -101,6 +105,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -115,6 +120,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -129,6 +135,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -143,6 +150,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -157,10 +165,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
-
 
         [Fact]
         public async Task PDP_Decision_IIA010()
@@ -172,6 +180,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -186,6 +195,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -200,6 +210,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -214,6 +225,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -228,6 +240,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -242,6 +255,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -256,6 +270,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -270,6 +285,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -284,6 +300,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -298,6 +315,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -312,6 +330,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -326,6 +345,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -340,6 +360,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -354,6 +375,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -368,6 +390,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -382,6 +405,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -396,6 +420,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -410,6 +435,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -424,6 +450,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -438,6 +465,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -452,6 +480,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -466,6 +495,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -480,6 +510,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -494,6 +525,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -508,6 +540,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
@@ -522,15 +555,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
 
-
         private HttpClient GetTestClient()
         {
             return _fixture.GetClient();
-        }        
-  
+        }
     }
 }
