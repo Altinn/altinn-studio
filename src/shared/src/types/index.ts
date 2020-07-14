@@ -13,7 +13,6 @@ export interface IApplication {
   org: string;
   partyTypesAllowed: IPartyTypesAllowed;
   title: ITitle;
-  presentationFields?: IPresentationField[];
 }
 
 export interface IAttachment {
@@ -141,13 +140,6 @@ export interface IPerson {
   addressHouseLetter: string;
   addressPostalCode: number;
   addressCity: string;
-}
-
-export interface IPresentationField {
-  id: string;
-  textResource: string;
-  value: string;
-  taskIds: string[];
 }
 
 export interface IProcess {
