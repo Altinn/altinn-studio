@@ -54,7 +54,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
         private string GetContentRootPath()
         {
             var testProjectPath = AppContext.BaseDirectory;
-            var relativePathToHostProject = @"..\..\..\..\";
+            var relativePathToHostProject = "../../../../";
 
             return Path.Combine(testProjectPath, relativePathToHostProject);
         }

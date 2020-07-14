@@ -238,13 +238,13 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
         private string GetAltinnAppsPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Xacml\3.0\AltinnApps");
+            return Path.Combine(unitTestFolder, "../../../Data/Xacml/3.0/AltinnApps");
         }
 
         private string GetConformancePath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Xacml\3.0\ConformanceTests");
+            return Path.Combine(unitTestFolder, "../../../Data/Xacml/3.0/ConformanceTests");
         }
 
         private XacmlContextRequest ParseRequest(string requestDocumentTitle, string requestPath)
@@ -263,7 +263,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
         private string GetInstancePath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances");
+            return Path.Combine(unitTestFolder, "../../../Data/Instances");
         }
 
         private Instance GetTestInstance(string instanceId)
@@ -271,7 +271,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             string partyPart = instanceId.Split('/')[0];
             string instancePart = instanceId.Split('/')[1];
 
-            string content = File.ReadAllText(Path.Combine(GetInstancePath(), partyPart + @"\" + instancePart +".json"));
+            string content = File.ReadAllText(Path.Combine(GetInstancePath(), $"{partyPart}/{instancePart}.json"));
             Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
             return instance;
         }

@@ -155,7 +155,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
         public static void DeleteAppBlobData(string org, string app)
         {
-            string blobPath = Path.Combine(GetDataBlobPath(), $"{org}\\{app}");
+            string blobPath = Path.Combine(GetDataBlobPath(), $"{org}/{app}");
 
             if (Directory.Exists(blobPath))
             {
@@ -166,37 +166,37 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         private static string GetDataBlobPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyRetrievalPointTest).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\data\blobs\");
+            return Path.Combine(unitTestFolder, "../../../data/blobs/");
         }
 
         private static string GetAltinnAppsPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Xacml\3.0\AltinnApps");
+            return Path.Combine(unitTestFolder, "../../../Data/Xacml/3.0/AltinnApps");
         }
 
         private static string GetConformancePath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Xacml\3.0\ConformanceTests");
+            return Path.Combine(unitTestFolder, "../../../Data/Xacml/3.0/ConformanceTests");
         }
 
         public static string GetInstancePath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyInformationRepositoryTest).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances");
+            return Path.Combine(unitTestFolder, "../../../Data/Instances");
         }
 
         public static string GetApplicationPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PolicyInformationRepositoryTest).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Applications");
+            return Path.Combine(unitTestFolder, "../../../Data/Applications");
         }
 
         private static string GetRolesPath(int coveredByUserId, int offeredByPartyId)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ContextHandlerTest).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Roles\User_" + coveredByUserId + @"\party_" + offeredByPartyId + @"\roles.json");
+            return Path.Combine(unitTestFolder, $"../../../Data/Roles/User_{coveredByUserId}/party_{offeredByPartyId}/roles.json");
         }
     }
 }
