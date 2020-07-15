@@ -144,7 +144,7 @@ function ResetRepoModal(props: IResetRepoModalProps) {
                 </Grid>
                 <Grid item={true} xs={6}>
                   <AltinnButton
-                    onClickFunction={props.onClose}
+                    onClickFunction={onCloseWrapper}
                     btnText={getLanguageFromKey('general.cancel', props.language)}
                     secondaryButton={true}
                     className={classes.cancelButton}
