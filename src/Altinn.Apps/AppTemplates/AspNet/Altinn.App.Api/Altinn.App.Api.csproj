@@ -3,21 +3,21 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.1.1.0</AssemblyVersion>
-    <FileVersion>1.1.1.0</FileVersion>
-    <Version>1.1.1-alpha</Version>
-    <Description>Package that contains API controllers for the standard API for a Altinn App.</Description>
-    <Company>Altinn</Company>
+    <Version>1.1.2-alpha</Version>
     <Authors>Altinn</Authors>
-    <PackageTags>Altinn Studio</PackageTags>
+    <Company>Altinn</Company>
+    <Description>Package that contains API controllers for the standard API for a Altinn App.</Description>
+    <PackageProjectUrl>https://github.com/Altinn/altinn-studio</PackageProjectUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>1.1.2.0</AssemblyVersion>
     <IsPackable>true</IsPackable>
     <OutputType>Library</OutputType>
+    <FileVersion>1.1.2.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Altinn.Common.PEP" Version="1.0.33-alpha" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.1.18" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
