@@ -74,6 +74,11 @@ function ResetRepoModal(props: IResetRepoModalProps) {
     setDeleteRepoName(event.target.value);
   };
 
+  const onResetWrapper = () => {
+    setCanDelete(false);
+    props.handleClickResetRepo();
+  };
+
   const onCloseWrapper = () => {
     setDeleteRepoName('');
     props.onClose();
@@ -134,7 +139,7 @@ function ResetRepoModal(props: IResetRepoModalProps) {
               <>
                 <Grid item={true} xs={6}>
                   <AltinnButton
-                    onClickFunction={props.handleClickResetRepo}
+                    onClickFunction={onResetWrapper}
                     btnText={getLanguageFromKey('administration.reset_repo_button', props.language)}
                     id='confirm-reset-repo-button'
                     disabled={!canDelete}
