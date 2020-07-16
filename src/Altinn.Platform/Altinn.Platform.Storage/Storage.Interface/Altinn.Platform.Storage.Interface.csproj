@@ -8,27 +8,24 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>2.2.1</Version>
+    <Version>2.2.2</Version>
     <Description>Altinn.Platform.Storage.Interface is a package for models used by platform storage</Description>
     <PackageTags>Altinn Studio, Altinn.Platform, Altinn.Platform.Storage.Interface</PackageTags>
     <PackageId>Altinn.Platform.Storage.Interface</PackageId>
     <Company>Altinn</Company>
     <Product>StorageInterface</Product>
     <Authors>Altinn Platform Contributors</Authors>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <AssemblyVersion>2.2.2.0</AssemblyVersion>
+    <FileVersion>2.2.2.0</FileVersion>
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
   </PropertyGroup>
 
   <PropertyGroup>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <AssemblyVersion>2.2.1.0</AssemblyVersion>
-    <FileVersion>2.2.1.0</FileVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
