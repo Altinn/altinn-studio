@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -8,26 +9,46 @@ using System.Text;
 using System.Threading;
 
 using Altinn.App;
-using Altinn.App.IntegrationTests;
+using Altinn.App.IntegrationTests.Mocks.Authentication;
+using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Implementation;
+using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
+using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Authentication.Maskinporten;
 using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
+using AltinnCore.Authentication.JwtCookie;
 
+using App.IntegrationTests.Mocks.Services;
+using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Mocks.Services;
+
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
 namespace App.IntegrationTestsRef.EndToEndTests
 {
-    public class EndToEndTest : IClassFixture<CustomWebApplicationFactory<Startup>>
+    public class EndToEndTest : IClassFixture<WebApplicationFactory<Startup>>
     {
+        private readonly WebApplicationFactory<Startup> _factory;
 
-        private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
-        private readonly string org = "tdd";
-        private readonly string app = "complex-process";
-        private readonly int instanceOwnerId = 1000;
+        private string org;
+        private string app;
 
-        public EndToEndTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
+        private int instanceOwnerId;
+
+        private string instanceGuid;
+
+        private Instance instance;
+        private Dictionary<string, DataElement> dataElements;
+
+        public EndToEndTest(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
         }
@@ -35,17 +56,19 @@ namespace App.IntegrationTestsRef.EndToEndTests
         [Fact]
         public async void ComplexProcessApp()
         {
-
             // Arrange
-            string instanceGuid = string.Empty;
-            string dataGuid;
             try
             {
+                org = "tdd";
+                app = "complex-process";
+                instanceOwnerId = 1000;
+
                 string token = PrincipalUtil.GetToken(1);
-                HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+                HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 #region Start Process
+
                 // Arrange
                 Instance template = new Instance
                 {
@@ -57,26 +80,31 @@ namespace App.IntegrationTestsRef.EndToEndTests
                 string url = $"/{org}/{app}/instances/";
 
                 HttpResponseMessage response = await client.PostAsync(url, new StringContent(template.ToString(), Encoding.UTF8, "application/json"));
+
+                // Assert
                 response.EnsureSuccessStatusCode();
 
                 Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
                 instanceGuid = createdInstance.Id.Split('/')[1];
-                dataGuid = createdInstance.Data.Where(d => d.DataType.Equals("default")).Select(d => d.Id).First();
+                string dataGuid = createdInstance.Data.Where(d => d.DataType.Equals("default")).Select(d => d.Id).First();
 
-                // Assert
                 Assert.Equal(expectedCurrentTaskName, createdInstance.Process.CurrentTask.ElementId);
+
                 #endregion
 
                 #region Upload invalid attachment type
+
                 // Act
                 url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/data?dataType=invalidDataType";
                 response = await client.PostAsync(url, null);
 
                 // Assert
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
                 #endregion
 
                 #region Move process to next step
+
                 // Arrange
                 string expectedNextTask = "Task_2";
                 url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/process/next";
@@ -95,9 +123,11 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
                 // Assert
                 response.EnsureSuccessStatusCode();
+
                 #endregion
 
                 #region Upload form data during Task_2
+
                 // Arrange
                 url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/data/{dataGuid}";
 
@@ -120,9 +150,11 @@ namespace App.IntegrationTestsRef.EndToEndTests
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 Assert.Single(messages);
                 Assert.Equal(ValidationIssueSeverity.Error, messages[0].Severity);
+
                 #endregion
 
                 #region Validate Task_2 after valid time
+
                 // Arrange
                 url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/validate";
 
@@ -134,11 +166,12 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 Assert.Empty(messages);
+
                 #endregion
 
-
                 #region Complete process
-                //Arrange
+
+                // Arrange
                 url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/process/completeProcess";
 
                 // Act
@@ -147,6 +180,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
                 // Assert
                 response.EnsureSuccessStatusCode();
+
                 #endregion
             }
             finally
@@ -154,6 +188,80 @@ namespace App.IntegrationTestsRef.EndToEndTests
                 // Cleanup
                 TestDataUtil.DeleteInstanceAndData("tdd", "complex-process", 1000, new Guid(instanceGuid));
             }
+        }
+
+        private HttpClient GetTestClient()
+        {
+            Mock<IInstance> instanceService = new Mock<IInstance>();
+            instanceService.Setup(s =>
+                    s.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>()))
+                .ReturnsAsync((string a, string b, Instance c) =>
+                {
+                    instance = new Instance
+                    {
+                        Id = $"{c.InstanceOwner.PartyId}/{Guid.NewGuid()}",
+                        AppId = $"{a}/{b}",
+                        Org = a,
+                        InstanceOwner = c.InstanceOwner,
+                        Process = c.Process,
+                        Data = new List<DataElement>(),
+                    };
+                    return instance;
+                });
+            instanceService.Setup(s =>
+                    s.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+                .ReturnsAsync(() =>
+                {
+                    return instance;
+                });
+
+            WebApplicationFactory<Startup> factory = _factory.WithWebHostBuilder(builder =>
+            {
+                string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
+                string path = Path.Combine(unitTestFolder, $"../../../Data/Apps/{org}/{app}/");
+
+                builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(path + "appsettings.json"); });
+
+                var configuration = new ConfigurationBuilder()
+                    .AddJsonFile(path + "appsettings.json")
+                    .Build();
+
+                configuration.GetSection("AppSettings:AppBasePath").Value = path;
+
+                IConfigurationSection appSettingSection = configuration.GetSection("AppSettings");
+
+                builder.ConfigureTestServices(services =>
+                {
+                    services.Configure<AppSettings>(appSettingSection);
+
+                    services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
+
+                    services.AddSingleton<IValidation, ValidationAppSI>();
+
+                    services.AddTransient<IApplication, ApplicationMockSI>();
+                    services.AddTransient(provider => instanceService.Object);
+                    services.AddTransient<IData, DataMockSI>();
+                    services.AddTransient<IInstanceEvent, InstanceEventAppSIMock>();
+                    services.AddTransient<IDSF, DSFMockSI>();
+                    services.AddTransient<IER, ERMockSI>();
+                    services.AddTransient<IRegister, RegisterMockSI>();
+                    services.AddTransient<IPDF, PDFMockSI>();
+                    services.AddTransient<IProfile, ProfileMockSI>();
+                    services.AddTransient<IText, TextMockSI>();
+
+                    services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
+                    services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
+
+                    switch (app)
+                    {
+                        case "complex-process":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.complex_process.App>();
+                            break;
+                    }
+                });
+            });
+            factory.Server.AllowSynchronousIO = true;
+            return factory.CreateClient();
         }
     }
 }
