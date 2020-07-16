@@ -229,7 +229,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
 
                 // add self links to platform
-                result.Instances.ForEach(i => i.SetPlatformSelflink(_storageBaseAndHost));
+                result.Instances.ForEach(i => i.SetPlatformSelfLinks(_storageBaseAndHost));
 
                 return Ok(response);
             }
@@ -258,7 +258,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 Instance result = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
-                result.SetPlatformSelflink(_storageBaseAndHost);
+                result.SetPlatformSelfLinks(_storageBaseAndHost);
 
                 return Ok(result);
             }
@@ -322,7 +322,7 @@ namespace Altinn.Platform.Storage.Controllers
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
                 await DispatchEvent(InstanceEventType.Created, storedInstance);
                 _logger.LogInformation($"Created instance: {storedInstance.Id}");
-                storedInstance.SetPlatformSelflink(_storageBaseAndHost);
+                storedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
 
                 await _partiesWithInstancesClient.SetHasAltinn3Instances(instanceOwnerPartyId);
 
@@ -443,7 +443,7 @@ namespace Altinn.Platform.Storage.Controllers
             instance.CompleteConfirmations ??= new List<CompleteConfirmation>();
             if (instance.CompleteConfirmations.Any(cc => cc.StakeholderId == org))
             {
-                instance.SetPlatformSelflink(_storageBaseAndHost);
+                instance.SetPlatformSelfLinks(_storageBaseAndHost);
                 return Ok(instance);
             }
 
@@ -455,7 +455,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 updatedInstance = await _instanceRepository.Update(instance);
-                updatedInstance.SetPlatformSelflink(_storageBaseAndHost);
+                updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
             }
             catch (Exception e)
             {
@@ -504,7 +504,7 @@ namespace Altinn.Platform.Storage.Controllers
                 instance.Status.ReadStatus = newStatus;
 
                 updatedInstance = await _instanceRepository.Update(instance);
-                updatedInstance.SetPlatformSelflink(_storageBaseAndHost);
+                updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
             }
             catch (Exception e)
             {

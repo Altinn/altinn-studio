@@ -71,8 +71,7 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
 
   React.useEffect(() => {
     if (repoStatus && (
-      (repoStatus.behindBy && repoStatus.behindBy > 0)
-      || (repoStatus.aheadBy && repoStatus.aheadBy > 0)
+      (repoStatus.aheadBy && repoStatus.aheadBy > 0)
       || (repoStatus.contentStatus && repoStatus.contentStatus.length > 0))
     ) {
       setEnableResetButton(true);
