@@ -272,7 +272,7 @@ namespace Altinn.Platform.Storage.Controllers
                 newData.Size = await _dataRepository.WriteDataToStorage(instance.Org, theStream, newData.BlobStoragePath);
 
                 DataElement dataElement = await _dataRepository.Create(newData);
-                dataElement.SetPlatformSelflink(_storageBaseAndHost, instanceOwnerPartyId);
+                dataElement.SetPlatformSelfLinks(_storageBaseAndHost, instanceOwnerPartyId);
 
                 await DispatchEvent(InstanceEventType.Created.ToString(), instance, dataElement);
 
@@ -358,7 +358,7 @@ namespace Altinn.Platform.Storage.Controllers
                 if (dataElement.Size > 0)
                 {
                     DataElement updatedElement = await _dataRepository.Update(dataElement);
-                    updatedElement.SetPlatformSelflink(_storageBaseAndHost, instanceOwnerPartyId);
+                    updatedElement.SetPlatformSelfLinks(_storageBaseAndHost, instanceOwnerPartyId);
 
                     await DispatchEvent(InstanceEventType.Saved.ToString(), instance, updatedElement);
 
