@@ -141,7 +141,6 @@ namespace Altinn.Platform.Storage.Controllers
             InstanceHelper.AddTitleToInstances(new List<MessageBoxInstance> { authorizedInstance }, appTitle, languageId);
 
             return Ok(authorizedInstance);
-
         }
 
         /// <summary>

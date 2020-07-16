@@ -1,19 +1,3 @@
-using Altinn.Authorization.ABAC;
-using Altinn.Authorization.ABAC.Constants;
-using Altinn.Authorization.ABAC.Utils;
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Common.PEP.Configuration;
-using Altinn.Common.PEP.Constants;
-using Altinn.Common.PEP.Helpers;
-using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Platform.Storage.Models;
-using Altinn.Platform.Storage.Repository;
-using Altinn.Platform.Storage.UnitTest.Constants;
-using Altinn.Platform.Storage.UnitTest.Models;
-using Altinn.Platform.Storage.UnitTest.Utils;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,17 +6,34 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Xml;
 
+using Altinn.Authorization.ABAC;
+using Altinn.Authorization.ABAC.Constants;
+using Altinn.Authorization.ABAC.Utils;
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+
+using Altinn.Common.PEP.Constants;
+using Altinn.Common.PEP.Helpers;
+using Altinn.Common.PEP.Interfaces;
+
+using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.UnitTest.Constants;
+using Altinn.Platform.Storage.UnitTest.Models;
+using Altinn.Platform.Storage.UnitTest.Utils;
+
+using Newtonsoft.Json;
+
 namespace Altinn.Platform.Storage.UnitTest.Mocks
 {
-    public class PepWithPDPAuthorizationMockSI : Altinn.Common.PEP.Interfaces.IPDP
+    public class PepWithPDPAuthorizationMockSI : IPDP
     {
         private readonly IInstanceRepository _instanceService;
 
         private readonly string OrgAttributeId = "urn:altinn:org";
 
         private readonly string AppAttributeId = "urn:altinn:app";
-
-        private readonly string PartyAttributeId = "urn:altinn:partyid";
 
         private readonly string UserAttributeId = "urn:altinn:userid";
 
@@ -42,7 +43,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
         {
             this._instanceService = instanceService;
         }
-
 
         public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
@@ -69,9 +69,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
                     foreach (string refer in xacmlJsonRequestReference.ReferenceId)
                     {
-                        IEnumerable<XacmlJsonCategory> resourceCategoriesPart = decisionRequest.Resource.Where(i => i.Id.Equals(refer));
+                        List<XacmlJsonCategory> resourceCategoriesPart = decisionRequest.Resource.Where(i => i.Id.Equals(refer)).ToList();
 
-                        if (resourceCategoriesPart != null && resourceCategoriesPart.Count() > 0)
+                        if (resourceCategoriesPart.Count > 0)
                         {
                             if (jsonMultiRequestPart.Resource == null)
                             {
@@ -81,9 +81,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
                             jsonMultiRequestPart.Resource.AddRange(resourceCategoriesPart);
                         }
 
-                        IEnumerable<XacmlJsonCategory> subjectCategoriesPart = decisionRequest.AccessSubject.Where(i => i.Id.Equals(refer));
+                        List<XacmlJsonCategory> subjectCategoriesPart = decisionRequest.AccessSubject.Where(i => i.Id.Equals(refer)).ToList();
 
-                        if (subjectCategoriesPart != null && subjectCategoriesPart.Count() > 0)
+                        if (subjectCategoriesPart.Count > 0)
                         {
                             if (jsonMultiRequestPart.AccessSubject == null)
                             {
@@ -93,9 +93,9 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
                             jsonMultiRequestPart.AccessSubject.AddRange(subjectCategoriesPart);
                         }
 
-                        IEnumerable<XacmlJsonCategory> actionCategoriesPart = decisionRequest.Action.Where(i => i.Id.Equals(refer));
+                        List<XacmlJsonCategory> actionCategoriesPart = decisionRequest.Action.Where(i => i.Id.Equals(refer)).ToList();
 
-                        if (actionCategoriesPart != null && actionCategoriesPart.Count() > 0)
+                        if (actionCategoriesPart.Count > 0)
                         {
                             if (jsonMultiRequestPart.Action == null)
                             {
@@ -305,15 +305,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
             return resourceAttributes;
         }
 
-        private XacmlAttribute GetPartyAttribute(Instance instance)
-        {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(PartyAttributeId), false);
-            // When Party attribute is missing from input it is good to return it so PEP can get this information
-            attribute.IncludeInResult = true;
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.InstanceOwner.PartyId));
-            return attribute;
-        }
-
         private XacmlAttribute GetRoleAttribute(List<Role> roles)
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(AltinnRoleAttributeId), false);
@@ -333,7 +324,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
             if (File.Exists(rolesPath))
             {
-                string content = System.IO.File.ReadAllText(rolesPath);
+                string content = File.ReadAllText(rolesPath);
                 roles = (List<Role>)JsonConvert.DeserializeObject(content, typeof(List<Role>));
             }
 
@@ -348,7 +339,8 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
         private async Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
         {
-            return ParsePolicy("policy.xml", GetPolicyPath(request));
+            XacmlPolicy xacmlPolicy = ParsePolicy("policy.xml", GetPolicyPath(request));
+            return await Task.FromResult(xacmlPolicy);
         }
 
         private string GetPolicyPath(XacmlContextRequest request)
