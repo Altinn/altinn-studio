@@ -46,7 +46,8 @@ namespace App.IntegrationTestsRef.EndToEndTests
         private string instanceGuid;
 
         private Instance instance;
-        private Dictionary<string, DataElement> dataElements;
+        private readonly Dictionary<string, DataElement> dataElements = new Dictionary<string, DataElement>();
+        private readonly Dictionary<string, object> dataBlobs = new Dictionary<string, object>();
 
         public EndToEndTest(WebApplicationFactory<Startup> factory)
         {
@@ -57,137 +58,138 @@ namespace App.IntegrationTestsRef.EndToEndTests
         public async void ComplexProcessApp()
         {
             // Arrange
-            try
+            org = "tdd";
+            app = "complex-process";
+            instanceOwnerId = 1000;
+
+            string token = PrincipalUtil.GetToken(1);
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            #region Start Process
+
+            // Arrange
+            Instance template = new Instance
             {
-                org = "tdd";
-                app = "complex-process";
-                instanceOwnerId = 1000;
+                InstanceOwner = new InstanceOwner { PartyId = instanceOwnerId.ToString() }
+            };
+            string expectedCurrentTaskName = "Task_1";
 
-                string token = PrincipalUtil.GetToken(1);
-                HttpClient client = GetTestClient();
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            // Act
+            string url = $"/{org}/{app}/instances/";
 
-                #region Start Process
+            HttpResponseMessage response = await client.PostAsync(url,
+                new StringContent(template.ToString(), Encoding.UTF8, "application/json"));
 
-                // Arrange
-                Instance template = new Instance
-                {
-                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerId.ToString() }
-                };
-                string expectedCurrentTaskName = "Task_1";
+            // Assert
+            response.EnsureSuccessStatusCode();
 
-                // Act
-                string url = $"/{org}/{app}/instances/";
+            Instance createdInstance =
+                JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
+            instanceGuid = createdInstance.Id.Split('/')[1];
+            string dataGuid = createdInstance.Data.Where(d => d.DataType.Equals("default")).Select(d => d.Id).First();
 
-                HttpResponseMessage response = await client.PostAsync(url, new StringContent(template.ToString(), Encoding.UTF8, "application/json"));
+            Assert.Equal(expectedCurrentTaskName, createdInstance.Process.CurrentTask.ElementId);
 
-                // Assert
-                response.EnsureSuccessStatusCode();
+            #endregion
 
-                Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
-                instanceGuid = createdInstance.Id.Split('/')[1];
-                string dataGuid = createdInstance.Data.Where(d => d.DataType.Equals("default")).Select(d => d.Id).First();
+            #region Upload invalid attachment type
 
-                Assert.Equal(expectedCurrentTaskName, createdInstance.Process.CurrentTask.ElementId);
+            // Act
+            url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/data?dataType=invalidDataType";
+            response = await client.PostAsync(url, null);
 
-                #endregion
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-                #region Upload invalid attachment type
+            #endregion
 
-                // Act
-                url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/data?dataType=invalidDataType";
-                response = await client.PostAsync(url, null);
+            #region Move process to next step
 
-                // Assert
-                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            // Arrange
+            string expectedNextTask = "Task_2";
+            url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/process/next";
 
-                #endregion
+            // Act
+            response = await client.GetAsync(url);
 
-                #region Move process to next step
+            List<string> nextTasks =
+                JsonConvert.DeserializeObject<List<string>>(await response.Content.ReadAsStringAsync());
+            string actualNextTask = nextTasks[0];
 
-                // Arrange
-                string expectedNextTask = "Task_2";
-                url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/process/next";
+            // Assert
+            Assert.Equal(expectedNextTask, actualNextTask);
 
-                // Act
-                response = await client.GetAsync(url);
+            // Act
+            response = await client.PutAsync(url, null);
 
-                List<string> nextTasks = JsonConvert.DeserializeObject<List<string>>(await response.Content.ReadAsStringAsync());
-                string actualNextTask = nextTasks[0];
+            // Assert
+            response.EnsureSuccessStatusCode();
 
-                // Assert
-                Assert.Equal(expectedNextTask, actualNextTask);
+            #endregion
 
-                // Act
-                response = await client.PutAsync(url, null);
+            #region Upload form data during Task_2
 
-                // Assert
-                response.EnsureSuccessStatusCode();
+            // Arrange
+            url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/data/{dataGuid}";
 
-                #endregion
+            // Act
+            response = await client.PutAsync(url, null);
 
-                #region Upload form data during Task_2
+            // Assert: Upload for data during step 2
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
 
-                // Arrange
-                url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/data/{dataGuid}";
+            #endregion
 
-                // Act
-                response = await client.PutAsync(url, null);
+            #region Validate Task_2 before valid time
 
-                // Assert: Upload for data during step 2
-                Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-                #endregion
+            // Arrange
+            url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/validate";
 
-                #region Validate Task_2 before valid time
-                // Arrange
-                url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/validate";
+            // Act
+            response = await client.GetAsync(url);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            List<ValidationIssue> messages =
+                (List<ValidationIssue>) JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
 
-                // Act
-                response = await client.GetAsync(url);
-                string responseContent = await response.Content.ReadAsStringAsync();
-                List<ValidationIssue> messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Single(messages);
+            Assert.Equal(ValidationIssueSeverity.Error, messages[0].Severity);
 
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.Single(messages);
-                Assert.Equal(ValidationIssueSeverity.Error, messages[0].Severity);
+            #endregion
 
-                #endregion
+            #region Validate Task_2 after valid time
 
-                #region Validate Task_2 after valid time
+            // Arrange
+            url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/validate";
 
-                // Arrange
-                url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/validate";
+            // Act
+            Thread.Sleep(new TimeSpan(0, 0, 12));
+            response = await client.GetAsync(url);
+            responseContent = await response.Content.ReadAsStringAsync();
+            messages = (List<ValidationIssue>) JsonConvert.DeserializeObject(responseContent,
+                typeof(List<ValidationIssue>));
 
-                // Act
-                Thread.Sleep(new TimeSpan(0, 0, 12));
-                response = await client.GetAsync(url);
-                responseContent = await response.Content.ReadAsStringAsync();
-                messages = (List<ValidationIssue>)JsonConvert.DeserializeObject(responseContent, typeof(List<ValidationIssue>));
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Empty(messages);
 
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.Empty(messages);
+            #endregion
 
-                #endregion
+            #region Complete process
 
-                #region Complete process
+            // Arrange
+            url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/process/completeProcess";
 
-                // Arrange
-                url = $"/{org}/{app}/instances/{instanceOwnerId}/{instanceGuid}/process/completeProcess";
+            // Act
+            response = await client.PutAsync(url, null);
+            ProcessState endProcess =
+                JsonConvert.DeserializeObject<ProcessState>(await response.Content.ReadAsStringAsync());
 
-                // Act
-                response = await client.PutAsync(url, null);
-                ProcessState endProcess = JsonConvert.DeserializeObject<ProcessState>(await response.Content.ReadAsStringAsync());
+            // Assert
+            response.EnsureSuccessStatusCode();
+            Assert.NotNull(endProcess);
 
-                // Assert
-                response.EnsureSuccessStatusCode();
-
-                #endregion
-            }
-            finally
-            {
-                // Cleanup
-                TestDataUtil.DeleteInstanceAndData("tdd", "complex-process", 1000, new Guid(instanceGuid));
-            }
+            #endregion
         }
 
         private HttpClient GetTestClient()
@@ -195,15 +197,15 @@ namespace App.IntegrationTestsRef.EndToEndTests
             Mock<IInstance> instanceService = new Mock<IInstance>();
             instanceService.Setup(s =>
                     s.CreateInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Instance>()))
-                .ReturnsAsync((string a, string b, Instance c) =>
+                .ReturnsAsync((string appOwner, string appName, Instance instanceTemplate) =>
                 {
                     instance = new Instance
                     {
-                        Id = $"{c.InstanceOwner.PartyId}/{Guid.NewGuid()}",
-                        AppId = $"{a}/{b}",
-                        Org = a,
-                        InstanceOwner = c.InstanceOwner,
-                        Process = c.Process,
+                        Id = $"{instanceTemplate.InstanceOwner.PartyId}/{Guid.NewGuid()}",
+                        AppId = $"{appOwner}/{appName}",
+                        Org = appOwner,
+                        InstanceOwner = instanceTemplate.InstanceOwner,
+                        Process = instanceTemplate.Process,
                         Data = new List<DataElement>(),
                     };
                     return instance;
@@ -214,6 +216,52 @@ namespace App.IntegrationTestsRef.EndToEndTests
                 {
                     return instance;
                 });
+            instanceService.Setup(s =>
+                    s.GetInstance(It.IsAny<Instance>()))
+                .ReturnsAsync(() =>
+                {
+                    return instance;
+                });
+            instanceService.Setup(s => s.UpdateProcess(It.IsAny<Instance>())).ReturnsAsync(
+                (Instance originalInstance) =>
+                {
+                    ProcessState process = originalInstance.Process;
+                    if (instance?.Process?.Ended == null && process.Ended != null)
+                    {
+                        instance.Status ??= new InstanceStatus();
+                        instance.Status.Archived = process.Ended;
+                    }
+
+                    instance.Process = process;
+                    instance.LastChanged = DateTime.UtcNow;
+
+                    return instance;
+                });
+
+            Mock<IData> dataService = new Mock<IData>();
+            dataService.Setup(s =>
+                    s.InsertFormData(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<It.IsAnyType>(),
+                        It.IsAny<Type>()))
+                .ReturnsAsync((Instance parentInstance, string dataType, dynamic originalElement, Type type) =>
+                {
+                    Guid dataGuid = Guid.NewGuid();
+                    dataElements.Add(dataGuid.ToString(), new DataElement
+                    {
+                        Id = dataGuid.ToString(),
+                        DataType = dataType,
+                        ContentType = "application/xml",
+                        InstanceGuid = parentInstance.Id.Split('/')[1]
+                    });
+                    dataBlobs.Add(dataGuid.ToString(), originalElement);
+
+                    return dataElements[dataGuid.ToString()];
+                });
+            dataService.Setup(s => s.GetFormData(It.IsAny<Guid>(), It.IsAny<Type>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<int>(), It.IsAny<Guid>()))
+                .ReturnsAsync((Guid dataGuid, Type dataType, string appOwner, string appName, int partyId, Guid dataId) =>
+                    {
+                        return dataBlobs[dataId.ToString()];
+                    });
 
             WebApplicationFactory<Startup> factory = _factory.WithWebHostBuilder(builder =>
             {
@@ -240,7 +288,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
                     services.AddTransient<IApplication, ApplicationMockSI>();
                     services.AddTransient(provider => instanceService.Object);
-                    services.AddTransient<IData, DataMockSI>();
+                    services.AddTransient(provider => dataService.Object);
                     services.AddTransient<IInstanceEvent, InstanceEventAppSIMock>();
                     services.AddTransient<IDSF, DSFMockSI>();
                     services.AddTransient<IER, ERMockSI>();
