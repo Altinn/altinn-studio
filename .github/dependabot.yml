@@ -1,5 +1,213 @@
 version: 2
 updates:
+  - package-ecosystem: docker
+    directory: "/src/Altinn.Apps/KubernetesWrapper"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/Altinn.Platform/Altinn.Platform.PDF"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/development/loadbalancer"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/Altinn.Platform/Altinn.Platform.Authentication/Authentication"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/Altinn.Platform/Altinn.Platform.Authorization/Authorization"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/Altinn.Platform/Altinn.Platform.Profile/Profile"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/Altinn.Platform/Altinn.Platform.Receipt/Receipt"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/Altinn.Platform/Altinn.Platform.Register/Register"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/Altinn.Platform/Altinn.Platform.Storage/Storage"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/studio/src/designer"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/studio/src/load-balancer"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/studio/src/repositories"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/Altinn.Apps/AppFrontend/react/altinn-app-frontend"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/Altinn.Apps/AppFrontend/react/receipt"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/Altinn.Apps/AppTemplates/AspNet/App"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/studio/AppTemplates/AspNet/App"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/studio/src/designer/frontend/app-development"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/studio/src/designer/frontend/dashboard"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: docker
+    directory: "/src/studio/src/designer/frontend/ux-editor"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: maven
+    directory: "/src/Altinn.Platform/Altinn.Platform.PDF"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+  - package-ecosystem: npm
+    directory: "/src/Altinn.Platform/Altinn.Platform.Receipt"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: npm
+    directory: "/src/Altinn.Apps/AppFrontend/react"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: npm
+    directory: "/src/Altinn.Apps/AppFrontend/react/altinn-app-frontend"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: npm
+    directory: "/src/Altinn.Apps/AppFrontend/react/receipt"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: npm
+    directory: "/src/Altinn.Apps/AppFrontend/react/shared"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: npm
+    directory: "/src/studio/src/designer/backend"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: npm
+    directory: "/src/studio/src/designer/frontend"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: npm
+    directory: "/src/studio/src/designer/frontend/app-development"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: npm
+    directory: "/src/studio/src/designer/frontend/dashboard"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: npm
+    directory: "/src/studio/src/designer/frontend/shared"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+    allow:
+      - dependency-type: "production"
+  - package-ecosystem: npm
+    directory: "/src/studio/src/designer/frontend/ux-editor"
+    schedule: 
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 40
+    allow:
+      - dependency-type: "production"
   - package-ecosystem: nuget
     directory: "/src/Altinn.Apps/KubernetesWrapper"
     schedule: 
@@ -128,220 +336,6 @@ updates:
     open-pull-requests-limit: 40
   - package-ecosystem: nuget
     directory: "/src/studio/src/designer/backend"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/Altinn.Apps/KubernetesWrapper"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/Altinn.Platform/Altinn.Platform.PDF"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/development/loadbalancer"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/Altinn.Platform/Altinn.Platform.Authentication/Authentication"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/Altinn.Platform/Altinn.Platform.Authorization/Authorization"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/Altinn.Platform/Altinn.Platform.Profile/Profile"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/Altinn.Platform/Altinn.Platform.Receipt/Receipt"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/Altinn.Platform/Altinn.Platform.Register/Register"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/Altinn.Platform/Altinn.Platform.Storage/Storage"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/studio/src/designer"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/studio/src/load-balancer"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/studio/src/repositories"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/Altinn.Apps/AppFrontend/react/altinn-app-frontend"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/Altinn.Apps/AppFrontend/react/receipt"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/Altinn.Apps/AppTemplates/AspNet/App"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/studio/AppTemplates/AspNet/App"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/studio/src/designer/backend"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/studio/src/designer/frontend/app-development"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/studio/src/designer/frontend/dashboard"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: docker
-    directory: "/src/studio/src/designer/frontend/ux-editor"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-  - package-ecosystem: npm
-    directory: "/src/Altinn.Platform/Altinn.Platform.Receipt"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-    allow:
-      - dependency-type: "production"
-  - package-ecosystem: npm
-    directory: "/src/Altinn.Apps/AppFrontend/react"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-    allow:
-      - dependency-type: "production"
-  - package-ecosystem: npm
-    directory: "/src/Altinn.Apps/AppFrontend/react/altinn-app-frontend"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-    allow:
-      - dependency-type: "production"
-  - package-ecosystem: npm
-    directory: "/src/Altinn.Apps/AppFrontend/react/receipt"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-    allow:
-      - dependency-type: "production"
-  - package-ecosystem: npm
-    directory: "/src/Altinn.Apps/AppFrontend/react/shared"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-    allow:
-      - dependency-type: "production"
-  - package-ecosystem: npm
-    directory: "/src/studio/src/designer/backend"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-    allow:
-      - dependency-type: "production"
-  - package-ecosystem: npm
-    directory: "/src/studio/src/designer/frontend"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-    allow:
-      - dependency-type: "production"
-  - package-ecosystem: npm
-    directory: "/src/studio/src/designer/frontend/app-development"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-    allow:
-      - dependency-type: "production"
-  - package-ecosystem: npm
-    directory: "/src/studio/src/designer/frontend/dashboard"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-    allow:
-      - dependency-type: "production"
-  - package-ecosystem: npm
-    directory: "/src/studio/src/designer/frontend/shared"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-    allow:
-      - dependency-type: "production"
-  - package-ecosystem: npm
-    directory: "/src/studio/src/designer/frontend/ux-editor"
-    schedule: 
-      interval: daily
-      time: "04:00"
-    open-pull-requests-limit: 40
-    allow:
-      - dependency-type: "production"
-  - package-ecosystem: maven
-    directory: "/src/Altinn.Platform/Altinn.Platform.PDF"
     schedule: 
       interval: daily
       time: "04:00"
