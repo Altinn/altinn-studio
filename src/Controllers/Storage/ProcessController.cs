@@ -133,7 +133,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 updatedInstance = await _instanceRepository.Update(existingInstance);
-                updatedInstance.SetPlatformSelflink(_storageBaseAndHost);
+                updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
             }
             catch (Exception e)
             {
