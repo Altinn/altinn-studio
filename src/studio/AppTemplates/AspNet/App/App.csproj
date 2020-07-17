@@ -8,6 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Altinn.App.Api" Version="1.1.3-alpha" />
+    <PackageReference Include="Altinn.App.Common" Version="1.1.3-alpha" />
+    <PackageReference Include="Altinn.App.PlatformServices" Version="1.1.3-alpha" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.6" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Config\UI\**" />
     <Content Remove="Config\UI\**" />
     <EmbeddedResource Remove="Config\UI\**" />
@@ -17,14 +25,6 @@
   <ItemGroup>
     <Folder Include="wwwroot\css\" />
     <Folder Include="wwwroot\script\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="1.1.2-alpha" />
-    <PackageReference Include="Altinn.App.Common" Version="1.1.2-alpha" />
-    <PackageReference Include="Altinn.App.PlatformServices" Version="1.1.2-alpha" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.6" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.3" />
   </ItemGroup>
 
   <ItemGroup>
