@@ -12,21 +12,21 @@ namespace Altinn.App.Services.Implementation
     public class InstanceEventAppSIMock : IInstanceEvent
     {
         /// <inheritdoc/>
-        public async Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string org, string app)
+        public Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string org, string app)
         {
-            return await Task.FromResult(true);
+            return Task.FromResult(true);
         }
 
         /// <inheritdoc/>
-        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string app, string[] eventTypes, string from, string to)
+        public Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string app, string[] eventTypes, string from, string to)
         {
-            return await Task.FromResult(new List<InstanceEvent>());
+            return Task.FromResult(new List<InstanceEvent>());
         }
 
         /// <inheritdoc/>
-        public async Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app)
+        public Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app)
         {
-            return await Task.FromResult("mocked");
+            return Task.FromResult("mocked");
         }
     }
 }

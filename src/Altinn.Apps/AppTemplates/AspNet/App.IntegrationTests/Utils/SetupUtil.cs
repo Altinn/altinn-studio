@@ -82,9 +82,6 @@ namespace App.IntegrationTestsRef.Utils
                             services.AddSingleton<IInstance, InstancePlatformFailsMock>();
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.platform_fails.AltinnApp>();
                             break;
-                        case "complex-process":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.complex_process.App>();
-                            break;
                         case "contributor-restriction":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.contributer_restriction.AltinnApp>();
                             break;
@@ -113,13 +110,13 @@ namespace App.IntegrationTestsRef.Utils
 
         public static string GetXsrfCookieValue(HttpResponseMessage response)
         {
-            List<string> setCookieHeaders = response.Headers.GetValues("Set-Cookie").ToList();
+            List<string> cookieHeaders = response.Headers.GetValues("Set-Cookie").ToList();
 
-            for (int i = 0; i < setCookieHeaders.Count; i++)
+            foreach (string cookieHeader in cookieHeaders)
             {
-                if (setCookieHeaders.ElementAt(i).StartsWith("XSRF-TOKEN"))
+                if (cookieHeader.StartsWith("XSRF-TOKEN"))
                 {
-                    return setCookieHeaders.ElementAt(i).Substring(11).Split(";")[0];
+                    return cookieHeader.Substring(11).Split(";")[0];
                 }
             }
 
