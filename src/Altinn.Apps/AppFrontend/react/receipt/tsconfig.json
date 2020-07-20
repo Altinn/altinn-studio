@@ -5,6 +5,12 @@
       "node",
       "jest"
     ],
+    "baseUrl": ".",
+    "paths": {
+      "altinn-shared/*": [
+        "../shared/src/*",
+      ]
+    },
     "outDir": "compiled",
     "module": "commonjs",
     "target": "es5",
@@ -25,8 +31,7 @@
     "esModuleInterop": true
   },
   "include": [
-    "./src/**/*",
-    "../shared/src/**/*"
+    "./src/**/*"
   ],
   "exclude": [
     "node_modules",

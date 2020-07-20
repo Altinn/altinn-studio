@@ -15,8 +15,6 @@ export interface IAltinnIconCompontentProvidedProps {
   weight?: number;
 }
 
-export interface IAltinnIconComponentState {
-}
 const theme = createMuiTheme(altinnTheme);
 
 const styles = {
@@ -25,24 +23,33 @@ const styles = {
   },
 };
 
-export class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps, IAltinnIconComponentState> {
-  public render() {
-    return (
-      <i
-        className={
-          classNames(
-            this.props.iconClass,
-          )}
-        style={{
-          color: this.props.isActive ? this.props.isActiveIconColor : this.props.iconColor,
-          fontSize: this.props.iconSize ? this.props.iconSize : null,
-          fontWeight: this.props.weight ? this.props.weight : null,
-          margin: this.props.margin ? this.props.margin : null,
-          padding: this.props.padding ? this.props.padding : null,
-        }}
-      />
-    );
-  }
+export function AltinnIconComponent(props: IAltinnIconCompontentProvidedProps) {
+  const {
+    isActive,
+    isActiveIconColor,
+    iconClass,
+    iconColor,
+    iconSize,
+    weight,
+    margin,
+    padding,
+  } = props;
+
+  return (
+    <i
+      className={
+        classNames(
+          iconClass,
+        )}
+      style={{
+        color: isActive ? isActiveIconColor : iconColor,
+        fontSize: iconSize || null,
+        fontWeight: weight || null,
+        margin: margin || null,
+        padding: padding || null,
+      }}
+    />
+  );
 }
 
-export default withStyles(styles)(AltinnIcon);
+export default withStyles(styles)(AltinnIconComponent);

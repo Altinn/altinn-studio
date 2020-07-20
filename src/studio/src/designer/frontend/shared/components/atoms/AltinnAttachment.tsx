@@ -8,7 +8,7 @@ import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
 import { IAttachment } from '../../types/index.d';
-import { AltinnIcon } from '../AltinnIcon';
+import AltinnIcon from '../AltinnIcon';
 
 const styles = createStyles({
   a: {

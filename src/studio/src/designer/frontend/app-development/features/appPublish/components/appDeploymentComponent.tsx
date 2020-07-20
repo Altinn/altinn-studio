@@ -12,7 +12,7 @@ import * as moment from 'moment';
 import * as React from 'react';
 import Select from 'react-select';
 import { AltinnButton } from 'app-shared/components/AltinnButton';
-import { AltinnIcon } from 'app-shared/components/AltinnIcon';
+import AltinnIcon from 'app-shared/components/AltinnIcon';
 import { AltinnLink } from 'app-shared/components/AltinnLink';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
