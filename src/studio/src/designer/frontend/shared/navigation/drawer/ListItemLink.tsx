@@ -35,7 +35,12 @@ function ListItemLink(props: ListItemLinkProps) {
   } = props;
   const renderLink = React.useMemo(
     () => React.forwardRef<any, Omit<RouterLinkProps, 'to'>>((itemProps, ref) => (
-      <RouterLink to={to} ref={ref} {...itemProps} />)),
+      <RouterLink
+        to={to}
+        ref={ref}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...itemProps}
+      />)),
     [to],
   );
   return (
@@ -45,8 +50,8 @@ function ListItemLink(props: ListItemLinkProps) {
       classes={{
         root: classNames(classes.listItem,
           {
-            [classes.activeListItem]: activeLeftMenuSelection
-          })
+            [classes.activeListItem]: activeLeftMenuSelection,
+          }),
       }}
       style={{ borderBottom: 0 }}
       onMouseEnter={onMouseEnterListItem}
