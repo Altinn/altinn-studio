@@ -21,7 +21,7 @@ class ToolbarItem extends React.Component<IToolbarItemProps> {
   public render(): JSX.Element {
     return (
       <Paper square={true} classes={{ root: classNames(this.props.classes.paper) }}>
-        <ListItem classes={{ root: classNames(this.props.classes.listItem) }}>
+        <ListItem classes={{ root: classNames(this.props.classes.listItem) }} component='div'>
           <i className={this.props.icon} />
           <ListItemText
             classes={{

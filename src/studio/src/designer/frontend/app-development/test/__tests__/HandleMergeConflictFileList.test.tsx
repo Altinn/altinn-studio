@@ -139,11 +139,8 @@ describe('HandleMergeConflictFileList', () => {
     expect(wrapper.exists('#handleMergeConflictFileList')).toEqual(true);
 
     // Expect correct icons to show
-    expect(wrapper.find('AltinnIcon')).toHaveLength(mockRepostatus.contentStatus.length);
-    expect(wrapper.find('AltinnIcon').at(0).find('i').hasClass('fa-check')).toBe(true);
-    expect(wrapper.find('AltinnIcon').at(1).find('i').hasClass('fa-circlecancel')).toBe(true);
-    expect(wrapper.find('AltinnIcon').at(2).find('i').hasClass('fa-check')).toBe(true);
-
+    expect(wrapper.getDOMNode().getElementsByClassName('fa-check').length).toBe(2);
+    expect(wrapper.getDOMNode().getElementsByClassName('fa-circlecancel').length).toBe(1);
   });
 
   it('should trigger handleListItemClick() when listItem is clicked', async () => {
