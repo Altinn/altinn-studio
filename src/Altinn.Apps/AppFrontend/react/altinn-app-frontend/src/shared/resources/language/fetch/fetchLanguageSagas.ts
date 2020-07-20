@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, all, take, select } from 'redux-saga/effects';
 // import { get } from '../../../../utils/networking';
 import { IProfile } from 'altinn-shared/types';
-import { getLanguageFromCode } from '../languages';
+import { getLanguageFromCode } from 'altinn-shared/language';
 import LanguageActions from '../languageActions';
 import * as LanguageActionTypes from './fetchLanguageActionTypes';
 import * as ProfileActionTypes from '../../profile/fetch/fetchProfileActionTypes';

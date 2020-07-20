@@ -1,6 +1,6 @@
+import { getLanguageFromCode } from '../../shared/src/language';
 import { IRuntimeState } from '../src/types';
 import { getFormLayoutStateMock } from './formLayoutStateMock';
-import { getLanguageFromCode } from '../src/shared/resources/language/languages';
 import { getFormDataStateMock } from './formDataStateMock';
 import { applicationMetadataMock } from './applicationMetadataMock';
 

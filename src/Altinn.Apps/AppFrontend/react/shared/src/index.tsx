@@ -9,3 +9,6 @@ export * from './components';
 
 // THEMES
 export * from './theme';
+
+// LANGUAGE
+export * from './language';
