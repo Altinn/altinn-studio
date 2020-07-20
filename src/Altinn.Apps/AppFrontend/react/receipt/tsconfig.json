@@ -22,7 +22,7 @@
     "allowJs": true,
     "jsx": "react",
     "moduleResolution": "node",
-    "rootDir": "./../",
+    "rootDir": "../",
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
