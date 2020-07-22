@@ -132,7 +132,7 @@ describe('>>> containers/EditContainer', () => {
     );
     const instance = mountedEditContainer.find('Edit').instance() as Edit;
     const spy = jest.spyOn(instance, 'handleSetActive');
-    const listItem = mountedEditContainer.find('Edit').find('li').first();
+    const listItem = mountedEditContainer.find('Edit').find('.MuiListItem-root').first();
 
     listItem.simulate('click');
     listItem.simulate('click');

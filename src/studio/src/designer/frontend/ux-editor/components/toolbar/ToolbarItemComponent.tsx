@@ -1,8 +1,9 @@
-import { createStyles, ListItem, ListItemIcon, ListItemText, Paper, Theme, withStyles } from '@material-ui/core';
+import { createStyles, ListItem, ListItemIcon, ListItemText, Paper, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { ComponentTypes } from '..';
+// eslint-disable-next-line import/no-cycle
 import { getComponentTitleByComponentType } from '../../utils/language';
 
 export interface IToolbarItemProvidedProps {
@@ -17,11 +18,15 @@ export interface IToolbarItemProps extends IToolbarItemProvidedProps {
   language: any;
 }
 
+// eslint-disable-next-line react/prefer-stateless-function
 class ToolbarItem extends React.Component<IToolbarItemProps> {
   public render(): JSX.Element {
     return (
       <Paper square={true} classes={{ root: classNames(this.props.classes.paper) }}>
-        <ListItem classes={{ root: classNames(this.props.classes.listItem) }} component='div'>
+        <ListItem
+          classes={{ root: classNames(this.props.classes.listItem) }}
+          component='div'
+        >
           <i className={this.props.icon} />
           <ListItemText
             classes={{
@@ -36,9 +41,10 @@ class ToolbarItem extends React.Component<IToolbarItemProps> {
           </ListItemText>
           <ListItemIcon
             classes={{ root: classNames(this.props.classes.listItemIcon) }}
+            // eslint-disable-next-line react/jsx-no-bind
             onClick={this.props.onClick.bind(this, this.props.componentType)}
           >
-            <i className={'fa fa-help-circle ' + this.props.classes.helpIcon} />
+            <i className={`fa fa-help-circle ${this.props.classes.helpIcon}`} />
           </ListItemIcon>
         </ListItem>
       </Paper >
@@ -46,7 +52,7 @@ class ToolbarItem extends React.Component<IToolbarItemProps> {
   }
 }
 
-const styles = (theme: Theme) => createStyles({
+const styles = () => createStyles({
   searchBox: {
     border: '1px solid #0062BA',
     marginTop: '10px',
@@ -91,9 +97,9 @@ const styles = (theme: Theme) => createStyles({
     marginRight: 'auto',
   },
   helpIcon: {
-    'color': '#0062BA',
-    'cursor': 'pointer',
-    'fontSize': '2em !important',
+    color: '#0062BA',
+    cursor: 'pointer',
+    fontSize: '2em !important',
     '&:hover': {
       color: '#000000',
     },

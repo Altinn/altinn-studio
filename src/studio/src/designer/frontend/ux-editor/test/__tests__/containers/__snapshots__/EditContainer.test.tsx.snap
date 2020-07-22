@@ -13,7 +13,7 @@ exports[`>>> containers/EditContainer >>> Capture snapshot of EditContainer 1`] 
       <div
         className="Connect(Edit)-noOutline-14"
       >
-        <li
+        <div
           className="MuiListItem-root Connect(Edit)-active-1 MuiListItem-gutters"
           disabled={false}
           onClick={[Function]}
@@ -28,7 +28,7 @@ exports[`>>> containers/EditContainer >>> Capture snapshot of EditContainer 1`] 
             />
             Input
           </div>
-        </li>
+        </div>
       </div>
     </div>
     <div
