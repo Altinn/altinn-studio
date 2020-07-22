@@ -15,8 +15,6 @@ export interface IAltinnIconCompontentProvidedProps {
   weight?: number;
 }
 
-export interface IAltinnIconComponentState {
-}
 const theme = createMuiTheme(altinnTheme);
 
 const styles = {

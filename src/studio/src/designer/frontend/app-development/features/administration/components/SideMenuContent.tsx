@@ -107,7 +107,7 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
       <Typography className={classNames(classes.sidebarHeader, classes.sidebarHeaderSecond)}>
         {getLanguageFromKey('administration.reset_repo_heading', props.language)}
       </Typography>
-      <Typography className={classNames(classes.sidebarInfoText, classes.sidebarInfoTextList)}>
+      <Typography className={classNames(classes.sidebarInfoText, classes.sidebarInfoTextList)} component='div'>
         <ul>
           <li>{getLanguageFromKey('administration.reset_repo_info_i1', props.language)}</li>
           <li>{getLanguageFromKey('administration.reset_repo_info_i2', props.language)}</li>
