@@ -1,10 +1,14 @@
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemText from '@material-ui/core/ListItemText';
 import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
-import ListItemLink from './ListItemLink';
+import { Link } from 'react-router-dom';
+import AltinnIcon from '../../components/AltinnIcon';
 import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
 import { styles } from './leftDrawerMenuStyles';
 
@@ -66,6 +70,7 @@ class LeftDrawerMenu extends
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public onMouseLeaveListItem = (index: any) => (event: any) => {
     this.setState((state) => {
       return {
@@ -85,46 +90,67 @@ class LeftDrawerMenu extends
       return (
         <div />
       );
-    } else {
-      return (
-        <div>
-          <Drawer
-            variant='permanent'
-            onMouseOver={this.handleDrawerOpen}
-            onMouseLeave={this.handleDrawerClose}
-            className={classNames(classes.drawer, {
+    }
+    return (
+      <div>
+        <Drawer
+          variant='permanent'
+          onMouseOver={this.handleDrawerOpen}
+          onMouseLeave={this.handleDrawerClose}
+          className={classNames(classes.drawer, {
+            [classes.drawerOpen]: this.state.open,
+            [classes.drawerClose]: !this.state.open,
+          })}
+          classes={{
+            paper: classNames(classes.paper, {
               [classes.drawerOpen]: this.state.open,
               [classes.drawerClose]: !this.state.open,
-            })}
-            classes={{
-              paper: classNames(classes.paper, {
-                [classes.drawerOpen]: this.state.open,
-                [classes.drawerClose]: !this.state.open,
-              }),
-            }}
-            open={this.state.open}
-          >
-            <Divider />
-
-            <List>
-              {leftDrawerMenuSettings[this.props.menuType].map((menuItem: IMenuItem, index: number) => (
-                <ListItemLink
-                  to={menuItem.navLink}
-                  key={index}
-                  classes={classes}
-                  menuItem={menuItem}
-                  index={index}
-                  activeLeftMenuSelection={this.props.activeLeftMenuSelection === menuItem.activeLeftMenuSelection}
-                  onMouseEnterListItem={this.onMouseEnterListItem(index)}
-                  onMouseLeaveListItem={this.onMouseLeaveListItem(index)}
-                  state={this.state}
-                />
-              ))}
-            </List>
-          </Drawer>
-        </div>
-      );
-    }
+            }),
+          }}
+          open={this.state.open}
+        >
+          <Divider />
+          <List component='nav'>
+            {leftDrawerMenuSettings[this.props.menuType].map((menuItem: IMenuItem, index: number) => (
+              <Link
+                to={menuItem.navLink}
+                style={{ borderBottom: 0 }}
+                key={menuItem.displayText}
+              >
+                <ListItem
+                  classes={{
+                    root: classNames(classes.listItem,
+                      {
+                        [classes.activeListItem]: this.props.activeLeftMenuSelection ===
+                          menuItem.activeLeftMenuSelection,
+                      }),
+                  }}
+                  onMouseEnter={this.onMouseEnterListItem(index)}
+                  onMouseLeave={this.onMouseLeaveListItem(index)}
+                  component='div'
+                >
+                  <ListItemIcon>
+                    <AltinnIcon
+                      isActive={this.props.activeLeftMenuSelection ===
+                        menuItem.activeLeftMenuSelection}
+                      isActiveIconColor={altinnTheme.altinnPalette.primary.blueDark}
+                      iconClass={menuItem.iconClass}
+                      iconColor={this.state.iconColor[index] === undefined
+                        ? 'rgba(0, 0, 0, 0.54)' : this.state.iconColor[index]}
+                    />
+                  </ListItemIcon>
+                  <ListItemText
+                    disableTypography={true}
+                    primary={menuItem.displayText}
+                    classes={{ root: classNames(classes.listItemText) }}
+                  />
+                </ListItem>
+              </Link>
+            ))}
+          </List>
+        </Drawer>
+      </div>
+    );
   }
 }
 
