@@ -25,24 +25,22 @@ const styles = {
   },
 };
 
-export class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps, IAltinnIconComponentState> {
-  public render() {
-    return (
-      <i
-        className={
-          classNames(
-            this.props.iconClass,
-          )}
-        style={{
-          color: this.props.isActive ? this.props.isActiveIconColor : this.props.iconColor,
-          fontSize: this.props.iconSize ? this.props.iconSize : null,
-          fontWeight: this.props.weight ? this.props.weight : null,
-          margin: this.props.margin ? this.props.margin : null,
-          padding: this.props.padding ? this.props.padding : null,
-        }}
-      />
-    );
-  }
+export function AltinnIconComponent(props:IAltinnIconCompontentProvidedProps) {
+  return (
+    <i
+      className={
+        classNames(
+          props.iconClass,
+        )}
+      style={{
+        color: props.isActive ? props.isActiveIconColor : props.iconColor,
+        fontSize: props.iconSize ? props.iconSize : null,
+        fontWeight: props.weight ? props.weight : null,
+        margin: props.margin ? props.margin : null,
+        padding: props.padding ? props.padding : null,
+      }}
+    />
+  );
 }
 
-export default withStyles(styles)(AltinnIcon);
+export default withStyles(styles)(AltinnIconComponent);

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { Collapse, createStyles, Theme, withStyles } from '@material-ui/core';
 import List from '@material-ui/core/List';
 import * as React from 'react';
@@ -64,7 +65,9 @@ export interface IToolbarState {
 }
 class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public components: IToolbarElement[];
+
   public textComponents: IToolbarElement[];
+
   public advancedComponents: IToolbarElement[];
 
   constructor(props: IToolbarProps, state: IToolbarState) {
@@ -101,42 +104,18 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           itemType: LayoutItemType.Component,
           textResourceBindings: {
             title: c.name === 'Button' ?
-            getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)
-            : getComponentTitleByComponentType(c.Type, this.props.language),
+              getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)
+              : getComponentTitleByComponentType(c.Type, this.props.language),
           },
           dataModelBindings: {},
           ...JSON.parse(JSON.stringify(customProperties)),
         },
-          position,
-          containerId,
-        );
+        position,
+        containerId);
         this.updateActiveListOrder();
       },
     } as IToolbarElement;
   }
-
-  public updateActiveListOrder() {
-    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
-  }
-
-  /*
-
-  Commented out since we're disabling containers until design is done.
-  https://github.com/Altinn/altinn-studio/issues/451
-
-  public addContainerToLayout(containerId: string, index: number) {
-    FormDesignerActionDispatchers.addFormContainer({
-      repeating: false,
-      dataModelGroup: null,
-      index: 0,
-
-    } as ICreateFormContainer,
-      null,
-      containerId,
-      null,
-      index,
-    );
-  }*/
 
   public getThirdPartyComponents = (): IToolbarElement[] => {
     const { thirdPartyComponents } = this.props;
@@ -172,14 +151,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     return thirdPartyComponentArray;
   }
 
-  public handleNext(component: any, id: string) {
-    this.setState({
-      selectedComp: component,
-      selectedCompId: id,
-      modalOpen: true,
-    });
-  }
-
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
     this.handleComponentUpdate(callbackComponent);
     this.handleCloseModal();
@@ -191,6 +162,14 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       this.state.selectedCompId,
       this.props.activeContainer,
     );
+  }
+
+  public handleNext = (component: any, id: string) => {
+    this.setState({
+      selectedComp: component,
+      selectedCompId: id,
+      modalOpen: true,
+    });
   }
 
   public handleCloseModal = (): void => {
@@ -217,22 +196,18 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
   public handleCollapsableListClicked = (menu: CollapsableMenus) => {
     if (menu === CollapsableMenus.Components) {
-      this.setState({
-        componentListOpen: !this.state.componentListOpen,
-      });
+      this.setState((prevState) => ({
+        componentListOpen: !prevState.componentListOpen,
+      }));
     } else if (menu === CollapsableMenus.Texts) {
-      this.setState({
-        textListOpen: !this.state.textListOpen,
-      });
+      this.setState((prevState) => ({
+        textListOpen: !prevState.textListOpen,
+      }));
     } else if (menu === CollapsableMenus.AdvancedComponents) {
-      this.setState({
-        advancedComponentListOpen: !this.state.advancedComponentListOpen,
-      });
+      this.setState((prevState) => ({
+        advancedComponentListOpen: !prevState.advancedComponentListOpen,
+      }));
     }
-  }
-
-  public handleComponentListChange = (value: any) => {
-    // Ignore for now, favourites will be implemented at a later stage
   }
 
   public setCollapsableListAnimationState = (list: string, done: boolean) => {
@@ -251,9 +226,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     }
   }
 
+  public updateActiveListOrder() {
+    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
+  }
+
   public render() {
     return (
-      <div className={'col-sm-12'}>
+      <div className='col-sm-12'>
         {/* <FormControl
           classes={{ root: classNames(this.props.classes.searchBox) }}
           fullWidth={true}
@@ -271,7 +250,11 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             }}
           />
         </FormControl> */}
-        <List id='collapsable-items' tabIndex={-1}>
+        <List
+          id='collapsable-items'
+          tabIndex={-1}
+          component='div'
+        >
 
           <CollapsableMenuComponent
             menuIsOpen={this.state.componentListOpen}
@@ -291,8 +274,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             <List
               dense={false}
               id='schema-components'
+              component='div'
             >
-              {this.components.map((component: IToolbarElement, index: number) => (
+              {this.components.map((component: IToolbarElement) => (
                 <ToolbarItem
                   text={getComponentTitleByComponentType(component.componentType, this.props.language)
                     || component.label}
@@ -300,19 +284,19 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                   componentType={component.componentType}
                   onDropAction={component.actionMethod}
                   onClick={this.handleComponentInformationOpen}
-                  key={index}
+                  key={component.componentType}
                 />
               ))
               }
 
-              {this.getThirdPartyComponents().map((component: IToolbarElement, index: number) => (
+              {this.getThirdPartyComponents().map((component: IToolbarElement) => (
                 <ToolbarItem
                   text={component.label}
                   icon={component.icon}
                   componentType={component.componentType}
                   onDropAction={component.actionMethod}
                   onClick={this.handleComponentInformationOpen}
-                  key={index}
+                  key={`${component.componentType}-${component.label}`}
                 />
               ))}
               {/*
@@ -342,8 +326,12 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               container: this.props.classes.collapsableContainer,
             }}
           >
-            <List dense={false} id={'schema-texts'}>
-              {this.textComponents.map((component: IToolbarElement, index: number) => (
+            <List
+              dense={false}
+              id='schema-texts'
+              component='div'
+            >
+              {this.textComponents.map((component: IToolbarElement) => (
                 <ToolbarItem
                   text={getComponentTitleByComponentType(component.componentType, this.props.language)
                     || component.label}
@@ -351,7 +339,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                   componentType={component.componentType}
                   onClick={this.handleComponentInformationOpen}
                   onDropAction={component.actionMethod}
-                  key={index}
+                  key={component.componentType}
                 />
               ))}
             </List>
@@ -370,8 +358,12 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               container: this.props.classes.collapsableContainer,
             }}
           >
-            <List dense={false} id={'advanced-components'}>
-              {this.advancedComponents.map((component: IToolbarElement, index: number) => (
+            <List
+              dense={false}
+              id='advanced-components'
+              component='div'
+            >
+              {this.advancedComponents.map((component: IToolbarElement) => (
                 <ToolbarItem
                   text={getComponentTitleByComponentType(component.componentType, this.props.language)
                     || component.label}
@@ -379,7 +371,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                   componentType={component.componentType}
                   onClick={this.handleComponentInformationOpen}
                   onDropAction={component.actionMethod}
-                  key={index}
+                  key={component.componentType}
                 />
               ))}
             </List>
@@ -390,7 +382,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           isOpen={this.state.modalOpen}
           onRequestClose={this.handleCloseModal}
           ariaHideApp={false}
-          contentLabel={'Input edit'}
+          contentLabel='Input edit'
           className='react-modal a-modal-content-target a-page a-current-page modalPage'
           overlayClassName='react-modal-overlay '
         >
