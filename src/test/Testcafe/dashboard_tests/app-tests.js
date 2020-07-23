@@ -1,7 +1,7 @@
 import { t, Selector } from 'testcafe';
 import { AutoTestUser } from '../TestData';
 import App from '../app';
-import DashBoard from '../page-objects/DashboardPage';
+import DashBoard from '../page-objects/dashboardPage';
 import config from '../config.json'
 
 let app = new App();
@@ -38,9 +38,9 @@ test('Error messages when app does not exist', async () => {
   var appName = config[environment].deployApp.toString();
   appName = appName.split("/");
   appName = appName[1];
-  await t
+  await t    
+    .expect(dash.appsList.child('div').count).gte(1, 'Apps not loaded', { timeout:120000 }) //To wait until the apps are loaded
     .click(dash.appSearch)
-    .expect(Selector('h3').withExactText(appName).exists).ok({ timeout:120000 }) //To wait until the apps are loaded
     .typeText(dash.appSearch, "cannotfindapp")
     .pressKey("enter")
     .expect(Selector('p').withText(t.ctx.ingenSkriveApper)).ok({ timeout:120000 })
