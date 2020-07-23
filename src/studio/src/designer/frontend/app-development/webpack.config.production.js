@@ -16,7 +16,8 @@ module.exports = {
   ],
   output: {
     path: path.resolve(__dirname, '../dist/app-development'),
-    filename: "app-development.js"
+    filename: "[name].js",
+    chunkFilename: "[id].[chunkhash].js"
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
@@ -31,7 +32,9 @@ module.exports = {
   optimization: {
     minimize: true,
     minimizer: [
-      new TerserPlugin(),
+      new TerserPlugin({
+        extractComments: false,
+      }),
     ],
   },
   module: {
@@ -82,7 +85,8 @@ module.exports = {
     }),
     new MonacoPlugin({
       output: path.join('../app-development', 'js', 'react'),
-      languages: ['typescript', 'javascript', 'csharp']
+      languages: ['typescript', 'javascript', 'csharp'],
+      filename: '[name].worker.js'
     }),
   ],
 }
