@@ -6,7 +6,7 @@ export default class DesignerPage {
 
     //left drawer menu
     this.leftDrawerMenu = Selector('#root > div > div > div:nth-child(2) > div:nth-child(1) > div > div > div');
-    this.leftMenuList = Selector('li'); //all unordered list elements to be filtered
+    this.leftMenuList = Selector('nav'); //all unordered list elements to be filtered
 
     //"Om" navigation tab selectors
     this.omNavigationTab = Selector('div > a').withExactText('Om');
@@ -16,15 +16,15 @@ export default class DesignerPage {
     this.omLagringsNavn = Selector('#administrationInputReponame > div > div > input');
     this.omKommentarer = Selector('#administrationInputDescription > div > div > textarea');
     this.omLeftMenuItems = [
-      this.leftMenuList.withExactText('Om appen')
+      this.leftMenuList.child('a').withAttribute('href', '#/about').child('div').withExactText('Om appen')
     ];
 
     //"Lage" navigation tab selectors
     this.lageNavigationTab = Selector('div > a').withExactText('Lage');
     this.lageLeftMenuItems = [
-      this.leftMenuList.withExactText('Datamodell'),
-      this.leftMenuList.withExactText('UI-Editor'),
-      this.leftMenuList.withExactText('Tilgangsstyring')
+      this.leftMenuList.child('a').withAttribute('href', '#/datamodel').child('div').withExactText('Datamodell'),
+      this.leftMenuList.child('a').withAttribute('href', '#/ui-editor').child('div').withExactText('UI-Editor'),
+      this.leftMenuList.child('a').withAttribute('href', '#/accesscontrol').child('div').withExactText('Tilgangsstyring')
     ];
     this.dataModelIFrame = Selector("#root > div > div > div:nth-child(2) > div > div > iframe");
     this.dataModelUpload = Selector("#filelabel");
@@ -56,8 +56,7 @@ export default class DesignerPage {
     //"språk" navigation tab selectors
     this.spraakNavigationTab = Selector('div').withExactText('Språk');
     this.spraakLeftMenuItems = [
-      this.leftMenuList.withExactText('Tekster'),
-      this.leftMenuList.withExactText('Flere språk')
+      this.leftMenuList.child('a').withAttribute('href', '#/texts').child('div').withExactText('Tekster')
     ];
 
     //"teste" navigation tab selectors

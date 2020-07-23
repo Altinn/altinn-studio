@@ -2,9 +2,7 @@ import { Selector, t } from 'testcafe';
 
 export default class DashBoard {
   constructor() {
-    //New app dialogue box
     this.homeButton = Selector("img").withAttribute("title", "startside");
-    this.profileButton = Selector("ul > li > a > i").withExactText("AutoTest");
     this.logoutButton = Selector(".dropdown-item").withText("Logg ut");
     this.newAppButton = Selector("button > span").withExactText("ny app");
     this.appSearch = Selector("#service-search");
@@ -15,6 +13,7 @@ export default class DashBoard {
     this.opprettButton = Selector("button").withExactText("Opprett");
     this.appExistsDialogue = Selector("div").withExactText("En app med det navnet finnes allerede.");
     this.appOwnerList = Selector('#menu-').find('li').withAttribute('role','option');
+    this.appsList = Selector('h2').withExactText('Apper du har rettigheter til å endre').parent().sibling('div');
   }
 
   async logout() {
