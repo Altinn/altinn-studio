@@ -1,7 +1,7 @@
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import moment from 'moment';
 import Ajv from 'ajv';
-import jsonPtr from 'json-ptr';
+import { JsonPointer } from 'json-ptr';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout';
 import { IValidationIssue, Severity } from '../types';
 import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups } from '../types/global';
@@ -19,7 +19,7 @@ export function createValidator(schema: any): ISchemaValidator {
   ajv.addSchema(schema, 'schema');
   const rootKey = Object.keys(schema.properties)[0];
   const rootElementPath = schema.properties[rootKey].$ref;
-  const rootPtr = jsonPtr.create(rootElementPath);
+  const rootPtr = JsonPointer.create(rootElementPath);
   const rootElement = rootPtr.get(schema);
   const schemaValidator: ISchemaValidator = {
     validator: ajv,
@@ -335,18 +335,18 @@ export function getSchemaPart(dataModelPath: string[], subSchema: any, mainSchem
   if (subSchema.properties && subSchema.properties[dataModelRoot] && dataModelPath && dataModelPath.length !== 0) {
     const localRootElement = subSchema.properties[dataModelRoot];
     if (localRootElement.$ref) {
-      const childSchemaPtr = jsonPtr.create(localRootElement.$ref);
+      const childSchemaPtr = JsonPointer.create(localRootElement.$ref);
       return getSchemaPart(dataModelPath.slice(1), childSchemaPtr.get(mainSchema), mainSchema);
     }
     if (localRootElement.items && localRootElement.items.$ref) {
-      const childSchemaPtr = jsonPtr.create(localRootElement.items.$ref);
+      const childSchemaPtr = JsonPointer.create(localRootElement.items.$ref);
       return getSchemaPart(dataModelPath.slice(1), childSchemaPtr.get(mainSchema), mainSchema);
     }
     return localRootElement;
   }
 
   if (subSchema.$ref) {
-    const ptr = jsonPtr.create(subSchema.$ref);
+    const ptr = JsonPointer.create(subSchema.$ref);
     return getSchemaPart(dataModelPath.slice(1), ptr.get(mainSchema), mainSchema);
   }
 
