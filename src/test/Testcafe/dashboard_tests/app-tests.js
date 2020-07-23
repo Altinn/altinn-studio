@@ -1,7 +1,7 @@
 import { t, Selector } from 'testcafe';
 import { AutoTestUser } from '../TestData';
 import App from '../app';
-import DashBoard from '../page-objects/DashboardPage';
+import DashBoard from '../page-objects/dashboardPage';
 import config from '../config.json'
 
 let app = new App();
