@@ -15,7 +15,7 @@ namespace Altinn.Platform.Storage.DataCleanup
         /// </summary>
         public void Configure(IWebJobsBuilder builder)
         {
-            builder.Services.TryAddSingleton<ITelemetryInitializer, CloudRoleNameTelemetryInitializer>();
+            builder.Services.TryAddSingleton<ITelemetryInitializer, TelemetryInitializer>();
         }
     }
 }
