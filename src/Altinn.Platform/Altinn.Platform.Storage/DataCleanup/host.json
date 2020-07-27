@@ -9,7 +9,7 @@
     },
     "logLevel": {
       "default": "Information",
-      "Function": "Error"
+      "Function": "Information"
     }
   }
 }
