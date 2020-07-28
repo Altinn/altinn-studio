@@ -5,9 +5,9 @@ using System.Text;
 namespace Altinn.Platform.Storage.DataCleanup.Services
 {
     /// <summary>
-    /// Class that handles all interaction with Azure Blob Storage.
+    ///  Interface for handling interaction with data blobs
     /// </summary>
-    public class BlobService : IBlobService
+    public interface IBlobService
     {
     }
 }

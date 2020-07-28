@@ -2,14 +2,15 @@
   "version": "2.0",
   "logging": {
     "applicationInsights": {
-      "samplingExcludedTypes": "Request",
+      "samplingExcludedTypes": "Request",      
       "samplingSettings": {
         "isEnabled": true
       }
     },
     "logLevel": {
       "default": "Information",
-      "Function": "Information"
+      "Function": "Error",
+      "Altinn.Platform.Storage.DataCleanup.Services.CosmosService": "Error"
     }
   }
 }
