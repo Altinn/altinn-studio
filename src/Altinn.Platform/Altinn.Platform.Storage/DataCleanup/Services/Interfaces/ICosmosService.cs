@@ -19,11 +19,11 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <summary>
         /// Deletes the instance document with the given data.
         /// </summary>
-        public Task<bool> DeleteInstanceDocument(Guid instanceGuid, string instanceOwnerPartyId);
+        public Task<bool> DeleteInstanceDocument(string instanceGuid, string instanceOwnerPartyId);
 
         /// <summary>
-        /// Deletes the instance document with the given data.
+        /// Deletes the data element documents under the given instanceGuid.
         /// </summary>
-        public Task<bool> DeleteDataElementDocuments(Guid instanceGuid);
+        public Task<bool> DeleteDataElementDocuments(string instanceGuid);
     }
 }

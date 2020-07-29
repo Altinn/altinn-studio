@@ -10,8 +10,8 @@ using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.Logging;
 
 [assembly: WebJobsStartup(typeof(Startup))]
-#pragma warning disable IDE0060
 
+#pragma warning disable IDE0060
 namespace Altinn.Platform.Storage.DataCleanup
 {
     /// <summary>
@@ -20,14 +20,17 @@ namespace Altinn.Platform.Storage.DataCleanup
     public class NightlyCleanup
     {
         private readonly ICosmosService _cosmosService;
+        private readonly IBlobService _blobService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NightlyCleanup"/> class.
         /// </summary>
-        /// <param name="cosmosService">The Cosmos DB service</param>
-        public NightlyCleanup(ICosmosService cosmosService)
+        /// <param name="cosmosService">The Cosmos DB service.</param>
+        /// <param name="blobService">The blob service.</param>
+        public NightlyCleanup(ICosmosService cosmosService, IBlobService blobService)
         {
             _cosmosService = cosmosService;
+            _blobService = blobService;
         }
 
         /// <summary>
@@ -42,12 +45,22 @@ namespace Altinn.Platform.Storage.DataCleanup
 
             foreach (Instance instance in instances)
             {
-                if (instance.Data.Count > 0)
+                try
                 {
-                    await _cosmosService.DeleteDataElementDocuments(new Guid(instance.Id));
-                }
+                    if (instance.Data.Count > 0)
+                    {
+                        await _blobService.DeleteDataBlobs(instance);
+                        await _cosmosService.DeleteDataElementDocuments(instance.Id);
+                    }
 
-                await _cosmosService.DeleteInstanceDocument(new Guid(instance.Id), instance.InstanceOwner.PartyId);
+                    await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
+                    log.LogInformation($"NightlyCleanup // Run // Instance deleted: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}");
+                }
+                catch (Exception e)
+                {
+                    log.LogError($"NightlyCleanup // Run // Error occured when deleting instance: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}."
+                        + $"\r Exception {e.Message}");
+                }
             }
         }
     }

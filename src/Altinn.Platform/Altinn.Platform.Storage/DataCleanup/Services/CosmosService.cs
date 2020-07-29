@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -17,9 +16,9 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
     /// </summary>
     public class CosmosService : ICosmosService
     {
-        private const string DatabaseId = "Storage";
-        private const string InstanceCollectionId = "instances";
-        private const string DataElementsCollectionId = "dataElements";
+        private readonly string databaseId = "Storage";
+        private readonly string instanceCollectionId = "instances";
+        private readonly string dataElementsCollectionId = "dataElements";
 
         private readonly DocumentClient _client;
         private readonly ILogger<ICosmosService> _logger;
@@ -44,21 +43,19 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         }
 
         /// <inheritdoc/>
-        public async Task<bool> DeleteDataElementDocuments(Guid instanceGuid)
+        public async Task<bool> DeleteDataElementDocuments(string instanceGuid)
         {
-            Uri collectionUri = UriFactory.CreateDocumentCollectionUri(DatabaseId, DataElementsCollectionId);
-            IDocumentQuery<Document> query = _client.CreateDocumentQuery(collectionUri, new FeedOptions { PartitionKey = new PartitionKey(instanceGuid.ToString()) }).AsDocumentQuery();
+            Uri collectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, dataElementsCollectionId);
+            IDocumentQuery<Document> query = _client.CreateDocumentQuery(collectionUri, new FeedOptions { PartitionKey = new PartitionKey(instanceGuid) }).AsDocumentQuery();
 
             try
             {
                 while (query.HasMoreResults)
                 {
                     FeedResponse<Document> res = await query.ExecuteNextAsync<Document>();
-                    _logger.LogInformation($"Number of data elements to delete: {res.Count}");
-
                     foreach (Document item in res)
                     {
-                        //  await _client.DeleteDocumentAsync(item.SelfLink, new RequestOptions { PartitionKey = new PartitionKey(instanceGuid.ToString()) });
+                        await _client.DeleteDocumentAsync(item.SelfLink, new RequestOptions { PartitionKey = new PartitionKey(instanceGuid.ToString()) });
                     }
                 }
 
@@ -73,13 +70,13 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         }
 
         /// <inheritdoc/>
-        public async Task<bool> DeleteInstanceDocument(Guid instanceGuid, string instanceOwnerPartyId)
+        public async Task<bool> DeleteInstanceDocument(string instanceGuid, string instanceOwnerPartyId)
         {
-            Uri documentUri = UriFactory.CreateDocumentUri(DatabaseId, InstanceCollectionId, instanceGuid.ToString());
+            Uri documentUri = UriFactory.CreateDocumentUri(databaseId, instanceCollectionId, instanceGuid);
 
             try
             {
-                //  await _client.DeleteDocumentAsync(documentUri, new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId) });
+                await _client.DeleteDocumentAsync(documentUri, new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId) });
                 return true;
             }
             catch (Exception ex)
@@ -100,7 +97,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             };
 
             IQueryable<Instance> filter;
-            Uri instanceCollectionUri = UriFactory.CreateDocumentCollectionUri(DatabaseId, InstanceCollectionId);
+            Uri instanceCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceCollectionId);
 
             filter = _client.CreateDocumentQuery<Instance>(instanceCollectionUri, feedOptions)
                 .Where(i => (i.Status.HardDeleted.HasValue && i.Status.HardDeleted.Value <= DateTime.UtcNow.AddDays(-7)))
@@ -120,8 +117,6 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             {
                 _logger.LogError(ex.Message);
             }
-
-            _logger.LogInformation($"Number of instances to delete {instances.Count}");
 
             // no post process requiered as the data is not exposed to the end user
             return instances;
