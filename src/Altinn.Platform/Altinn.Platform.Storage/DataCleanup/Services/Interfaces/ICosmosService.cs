@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.DataCleanup.Services

@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;

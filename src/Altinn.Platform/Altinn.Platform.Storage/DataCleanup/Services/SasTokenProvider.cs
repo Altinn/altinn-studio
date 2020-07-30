@@ -15,11 +15,10 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         private readonly IKeyVaultService _keyVaultService;
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
-        private readonly string _orgStorageAccount = "{0}altinn{1}strg01";
-        private readonly string _orgSasDefinition = "{0}{1}sasdef01";
-        private readonly string _orgKeyVaultURI = "https://{0}-{1}-keyvault.vault.azure.net/";
-
-        private string _environment;
+        private readonly string _storageAccount = "{0}altinn{1}strg01";
+        private readonly string _sasDefinition = "{0}{1}sasdef01";
+        private readonly string _keyVaultURI;
+        private readonly string _environment;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SasTokenProvider"/> class.
@@ -29,6 +28,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         public SasTokenProvider(IKeyVaultService keyVaultService)
         {            
             _environment = Environment.GetEnvironmentVariable("Environment");
+            _keyVaultURI = Environment.GetEnvironmentVariable("KeyVaultUri");
             _keyVaultService = keyVaultService;
         }
 
@@ -49,10 +49,10 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
                     return sasToken;
                 }
 
-                string storageAccount = string.Format(_orgStorageAccount, org, _environment);
-                string sasDefinition = string.Format(_orgSasDefinition, org, _environment);
+                string storageAccount = string.Format(_storageAccount, org, _environment);
+                string sasDefinition = string.Format(_sasDefinition, org, _environment);
                 string secretName = $"{storageAccount}-{sasDefinition}";
-                string keyVaultUri = string.Format(_orgKeyVaultURI, org, _environment);
+                string keyVaultUri = string.Format(_keyVaultURI, org, _environment);
 
                 sasToken = await _keyVaultService.GetSecretAsync(keyVaultUri, secretName);
 

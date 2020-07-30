@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,10 +20,9 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         private readonly ISasTokenProvider _sasTokenProvider;
         private readonly string _accountName = "{0}altinn{1}strg01";
         private readonly string _storageContainer = "{0}-{1}-appsdata-blob-db";
-
-        private string _accountKey;
-        private string _blobEndpoint;
-        private string _environment;
+        private readonly string _accountKey;
+        private readonly string _blobEndpoint;
+        private readonly string _environment;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BlobService"/> class.
