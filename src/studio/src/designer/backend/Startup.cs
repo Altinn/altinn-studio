@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.TypedHttpClients;
@@ -65,6 +66,7 @@ namespace Altinn.Studio.Designer
             services.AddHttpContextAccessor();
             services.AddMemoryCache();
             services.AddResponseCompression();
+            services.AddHealthChecks().AddCheck<HealthCheck>("designer_health_check");
 
             CreateDirectory();
 
@@ -204,6 +206,9 @@ namespace Altinn.Studio.Designer
                     name: "defaultRoute",
                     pattern: "{action=StartPage}/{id?}",
                     defaults: new { controller = "Home" });
+
+                // ---------------------- MONITORING -------------------------- //
+                endpoints.MapHealthChecks("/health");
             });
         }
 
