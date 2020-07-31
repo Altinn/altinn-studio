@@ -33,7 +33,7 @@ const ProcessStepComponent = (props) => {
   const handleModalCloseButton = () => {
     const origin = window.location.origin;
     if (window) {
-      window.location.href = returnUrlToMessagebox(origin);
+      window.location.href = returnUrlToMessagebox(origin, party.partyId);
     }
     return true;
   };
