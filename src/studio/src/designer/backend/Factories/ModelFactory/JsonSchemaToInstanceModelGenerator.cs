@@ -748,9 +748,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     case JsonSchemaType.String:
                         {
                             FormatKeyword format = jSchema.Get<FormatKeyword>();
-                            if (format != null && format.Value != null && !string.IsNullOrEmpty(format.Value.Key))
+                            if (format != null && format.Value != null && !string.IsNullOrEmpty(format.Value))
                             {
-                                return HandleFormatTypes(format.Value.Key);
+                                return HandleFormatTypes(format.Value);
                             }
 
                             return "string";
