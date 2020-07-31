@@ -9,7 +9,6 @@ using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
