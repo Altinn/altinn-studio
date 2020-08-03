@@ -100,7 +100,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository> repos = new List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>();
 
-            HttpResponseMessage response = await _httpClient.GetAsync("user/repos");
+            HttpResponseMessage response = await _httpClient.GetAsync("user/repos?limit=500");
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 repos = await response.Content.ReadAsAsync<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>();

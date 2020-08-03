@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Models
@@ -18,6 +19,30 @@ namespace Altinn.Studio.Designer.Models
         /// </summary>
         [JsonProperty("value")]
         public string Value { get; set; }
+
+        /// <summary>
+        /// Gets or sets the variables used in the resource
+        /// </summary>
+        [JsonProperty("variables")]
+        public List<Variable> Variables { get; set; }
+
+        /// <summary>
+        /// Class representing the variables of a resource.
+        /// </summary>
+        public class Variable
+        {
+            /// <summary>
+            /// Gets or sets the value of the key
+            /// </summary>
+            [JsonProperty("key")]
+            public string Key { get; set; }
+
+            /// <summary>
+            /// Gets or sets the value of the data source
+            /// </summary>
+            [JsonProperty("dataSource")]
+            public string DataSource { get; set; }
+        }
 
         /// <summary>
         /// String representation, for debug
