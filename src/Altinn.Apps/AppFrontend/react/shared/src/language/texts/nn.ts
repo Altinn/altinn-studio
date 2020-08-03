@@ -118,7 +118,7 @@ export function nn() {
       authorization_error_main_title: 'Du manglar rett til å sjå denne tenesta.',
       authorization_error_instantiate_validation_title: 'Du kan ikkje starte denne tenesta',
       authorization_error_rights: 'Det ser ut til at du ikkje har rett til å starte denne tenesta for {0}',
-      authorization_error_ask: 'Du kan be om dei naudsynte rettane frå personer med tilgangsstyring i organisasjonen din.',
+      authorization_error_ask: 'Om du representerer ein person, er det den du representerer som kan gi deg dei naudsynte rettane til å starte tenesta. Representerer du ein organisasjon er det personar som har rolla tilgangsstyring innad i organisasjonen som kan gi deg dei naudsynte rettane.',
       authorization_error_check_rights: '<a href="https://{0}/ui/Profile/" target="_blank">Sjå kven som har rolla tilgangsstyring under "Andre med rettar til verksemda"</a>.',
       authorization_error_info_rights: '<a href="https://{0}/hjelp/profil/roller-og-rettigheter/" target="_blank">Her finn du meir informasjon om roller og rettar</a>.',
       authorization_error_info_customer_service: 'Du kan også kontakte oss på brukarservice {0}.',
