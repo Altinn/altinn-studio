@@ -59,7 +59,7 @@ namespace Altinn.Platform.Storage.DataCleanup
                 catch (Exception e)
                 {
                     log.LogError($"NightlyCleanup // Run // Error occured when deleting instance: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}."
-                        + $"\r Exception {e.Message}");
+                        + $"\r Exception {e}");
                 }
             }
         }

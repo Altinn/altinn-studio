@@ -72,7 +72,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
                 string sasToken = await _sasTokenProvider.GetSasToken(org);
 
                 string accountName = string.Format(_accountName, org, _environment);
-                string containerName = string.Format(string.Format(_storageContainer, org, _environment));
+                string containerName = string.Format(_storageContainer, org, _environment);
 
                 UriBuilder fullUri = new UriBuilder
                 {

@@ -17,7 +17,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
 
         private readonly string _storageAccount = "{0}altinn{1}strg01";
         private readonly string _sasDefinition = "{0}{1}sasdef01";
-        private readonly string _keyVaultURI;
+        private readonly string _keyVaultURI = "https://{0}-{1}-keyvault.vault.azure.net/";
         private readonly string _environment;
 
         /// <summary>
@@ -28,7 +28,6 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         public SasTokenProvider(IKeyVaultService keyVaultService)
         {            
             _environment = Environment.GetEnvironmentVariable("Environment");
-            _keyVaultURI = Environment.GetEnvironmentVariable("KeyVaultUri");
             _keyVaultService = keyVaultService;
         }
 
