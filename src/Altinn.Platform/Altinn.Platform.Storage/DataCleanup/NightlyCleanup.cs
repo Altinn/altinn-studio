@@ -2,14 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Altinn.Platform.Storage.DataCleanup;
 using Altinn.Platform.Storage.DataCleanup.Services;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.Logging;
-
-[assembly: WebJobsStartup(typeof(Startup))]
 
 #pragma warning disable IDE0060
 namespace Altinn.Platform.Storage.DataCleanup

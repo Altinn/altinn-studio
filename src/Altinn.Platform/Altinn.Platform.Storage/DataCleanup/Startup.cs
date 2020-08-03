@@ -1,9 +1,12 @@
+using Altinn.Platform.Storage.DataCleanup;
 using Altinn.Platform.Storage.DataCleanup.Services;
 
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+
+[assembly: WebJobsStartup(typeof(Startup))]
 
 namespace Altinn.Platform.Storage.DataCleanup
 {
