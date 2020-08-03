@@ -23,6 +23,8 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         private readonly DocumentClient _client;
         private readonly ILogger<ICosmosService> _logger;
 
+        private bool _clientConnectionEstablished = false;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CosmosService"/> class.
         /// </summary>
@@ -39,12 +41,16 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             string endpointUri = Environment.GetEnvironmentVariable("EndpointUri");
             string primaryKey = Environment.GetEnvironmentVariable("PrimaryKey");
             _client = new DocumentClient(new Uri(endpointUri), primaryKey, connectionPolicy);
-            _client.OpenAsync();
         }
 
         /// <inheritdoc/>
         public async Task<bool> DeleteDataElementDocuments(string instanceGuid)
         {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
             Uri collectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, dataElementsCollectionId);
             IDocumentQuery<Document> query = _client.CreateDocumentQuery(collectionUri, new FeedOptions { PartitionKey = new PartitionKey(instanceGuid) }).AsDocumentQuery();
 
@@ -72,6 +78,11 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task<bool> DeleteInstanceDocument(string instanceGuid, string instanceOwnerPartyId)
         {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
             Uri documentUri = UriFactory.CreateDocumentUri(databaseId, instanceCollectionId, instanceGuid);
 
             try
@@ -90,6 +101,11 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task<List<Instance>> GetHardDeletedInstances()
         {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
             List<Instance> instances = new List<Instance>();
             FeedOptions feedOptions = new FeedOptions
             {
@@ -120,6 +136,12 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
 
             // no post process requiered as the data is not exposed to the end user
             return instances;
+        }
+
+        private async Task<bool> ConnectClient()
+        {
+            await _client.OpenAsync();
+            return true;
         }
     }
 }
