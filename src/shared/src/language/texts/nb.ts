@@ -120,7 +120,7 @@ export function nb() {
       authorization_error_main_title: 'Du mangler rettigheter for å se denne tjenesten.',
       authorization_error_instantiate_validation_title: 'Du kan ikke starte denne tjenesten',
       authorization_error_rights: 'Det ser ut til at du ikke har rettigheter til å starte denne tjenesten for {0}',
-      authorization_error_ask: 'Du kan be om de nødvendige rettighetene fra personer med tilgangsstyring i organisasjonen din.',
+      authorization_error_ask: 'Om du representerer en person, er det den du representerer som kan gi deg rettighet til å starte tjenesten. Representerer du en organisasjon er det de som har rollen tilgangsstyring innad i organisasjonen som kan gi deg rettighet.',
       authorization_error_check_rights: '<a href="https://{0}/ui/Profile/" target="_blank">Se hvem som har rollen tilgangsstyring under "Andre med rettigheter til virksomheten"</a>.',
       authorization_error_info_rights: '<a href="https://{0}/hjelp/profil/roller-og-rettigheter/" target="_blank">Her finner du mer informasjon om roller og rettigheter</a>.',
       authorization_error_info_customer_service: 'Du kan også kontakte oss på brukerservice {0}.',
