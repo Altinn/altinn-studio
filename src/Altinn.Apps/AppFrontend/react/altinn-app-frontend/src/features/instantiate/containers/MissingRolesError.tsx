@@ -46,15 +46,15 @@ function MissingRolesError() {
     const hostName = getHostname();
 
     const errorRights = getErrorRights();
-    const errorChangeParty = <Link to='/partyselection'>{language.party_selection.change_party}</Link>;
-    const errorAsk = getParsedLanguageFromText(language.instantiate.authorization_error_ask)
+    const errorChangeParty = <Link to='/partyselection'>{getParsedLanguageFromText(language.party_selection.change_party)}</Link>;
+    const errorAsk = getParsedLanguageFromText(language.instantiate.authorization_error_ask);
     const errorCheckRights = getCheckRights(hostName);
     const errorMoreInfo = getErrorInfoRights(hostName);
     const errorCustomerService = getCustomerService();
 
     return (
       <>
-        <span>{errorRights}({errorChangeParty}). </span>
+        <span>{errorRights} ({errorChangeParty}). </span>
         <br />
         <br />
         <span>{errorAsk} </span>
