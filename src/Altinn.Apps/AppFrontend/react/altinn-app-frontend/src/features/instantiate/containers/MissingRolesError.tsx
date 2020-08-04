@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { getParsedLanguageFromKey } from 'altinn-shared/utils';
+import { getParsedLanguageFromKey, getParsedLanguageFromText } from 'altinn-shared/utils';
 import { IRuntimeState } from '../../../types';
 import { getHostname } from '../../../utils/urlHelper';
 import InstantiationErrorPage from './InstantiationErrorPage';
@@ -47,7 +47,7 @@ function MissingRolesError() {
 
     const errorRights = getErrorRights();
     const errorChangeParty = <Link to='/partyselection'>{language.party_selection.change_party}</Link>;
-    const errorAsk = language.instantiate.authorization_error_ask;
+    const errorAsk = getParsedLanguageFromText(language.instantiate.authorization_error_ask)
     const errorCheckRights = getCheckRights(hostName);
     const errorMoreInfo = getErrorInfoRights(hostName);
     const errorCustomerService = getCustomerService();
@@ -55,7 +55,10 @@ function MissingRolesError() {
     return (
       <>
         <span>{errorRights}({errorChangeParty}). </span>
+        <br />
+        <br />
         <span>{errorAsk} </span>
+        <br />
         <span>{errorCheckRights}</span>
         <br />
         <br />
