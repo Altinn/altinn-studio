@@ -18,28 +18,32 @@ function MissingRolesError() {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_rights',
       language,
-      [selectedParty.name]);
+      [selectedParty.name],
+    );
   }
 
   function getCustomerService() {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_info_customer_service',
       language,
-      [language.general.customer_service_phone_number]);
+      [language.general.customer_service_phone_number],
+    );
   }
 
   function getCheckRights(hostName: string) {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_check_rights',
       language,
-      [hostName]);
+      [hostName],
+    );
   }
 
   function getErrorInfoRights(hostName: string) {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_info_rights',
       language,
-      [hostName]);
+      [hostName],
+    );
   }
 
   function createErrorContent() {
