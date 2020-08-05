@@ -6,7 +6,7 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 
 using LocalTest.Configuration;
-
+using LocalTest.Services.Localtest.Interface;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -17,15 +17,15 @@ namespace Altinn.Platform.Storage.Repository
     /// </summary>
     public class TextRepository : ITextRepository
     {
-        private readonly LocalPlatformSettings _localPlatformSettings;
+          private readonly ILocalTestAppSelection _localTestAppSelectionService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextRepository"/> class with the given local platform settings.
         /// </summary>
         /// <param name="localPlatformSettings">Local platform settings.</param>
-        public TextRepository(IOptions<LocalPlatformSettings> localPlatformSettings)
+        public TextRepository(ILocalTestAppSelection localTestAppSelectionService)
         {
-            _localPlatformSettings = localPlatformSettings.Value;
+            _localTestAppSelectionService = localTestAppSelectionService;
         }
 
         /// <inheritdoc/>
@@ -49,7 +49,7 @@ namespace Altinn.Platform.Storage.Repository
 
         private string GetTextPath(string language)
         {
-            return _localPlatformSettings.AppRepsitoryBasePath + $"config/texts/resource.{language}.json";
+            return _localTestAppSelectionService.GetAppPath() + $"config/texts/resource.{language}.json";
         }
 
         /// <inheritdoc/>

@@ -6,23 +6,27 @@
 @{ if (!Model.InvalidAppPath && !Model.InvalidTestDataPath)
   {
 
-    <div class="text-center">
-      <h1 class="display-4">Welcome to Altinn App Local Testing</h1>
-      <p>Learn about <a href="https://docs.altinn.studio" target="_blank">building and testing Altinn Apps</a>.</p>
+  <div class="text-center">
+    <h1 class="display-4">Welcome to Altinn App Local Testing</h1>
+    <p>Learn about <a href="https://docs.altinn.studio" target="_blank">building and testing Altinn Apps</a>.</p>
 
 
-      <h2>Testing app:  @Model.Org/@Model.App</h2>
+    <h2>Testing app:  @Model.Org/@Model.App</h2>
 
-      @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin" }))
-      {
-        @Html.AntiForgeryToken();
-        <div class="form-group">
-          <label for="exampleInputEmail1">Select test users</label>
-          @Html.DropDownListFor(model => model.UserId, Model.TestUsers, new { Class = "form-control" })
-        </div>
-        <button type="submit" class="btn btn-primary">Sign in</button>
-      }
-    </div>
+    @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin" }))
+    {
+      @Html.AntiForgeryToken();
+      <div class="form-group">
+        <label for="exampleInputEmail1">Select test users</label>
+        @Html.DropDownListFor(model => model.UserId, Model.TestUsers, new { Class = "form-control" })
+      </div>
+      <div class="form-group">
+        <label for="exampleInputEmail1">Select app to test found in @Model.AppPath</label>
+        @Html.DropDownListFor(model => model.AppPathSelection, Model.TestApps, new { Class = "form-control" })
+      </div>
+      <button type="submit" class="btn btn-primary">Sign in</button>
+    }
+  </div>
   }
   else if (Model.InvalidAppPath)
   {
