@@ -50,11 +50,11 @@ namespace Altinn.Platform.Authorization.Controllers
             {
                 if (Request.ContentType.Contains("application/json"))
                 {
-                    return await AuthorizeJsonRequest(model);
+                    return await AuthorizeJsonRequest(model); // lgtm [cs/user-controlled-bypass]
                 }
-                else 
+                else
                 {
-                    return await AuthorizeXmlRequest(model);
+                    return await AuthorizeXmlRequest(model); // lgtm [cs/user-controlled-bypass]
                 }
             }
             catch

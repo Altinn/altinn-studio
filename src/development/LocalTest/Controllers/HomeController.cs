@@ -307,7 +307,7 @@ namespace LocalTest.Controllers
             CookieBuilder cookieBuilder = new RequestPathBaseCookieBuilder
             {
                 Name = "AltinnStudioRuntime",
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Lax,
                 HttpOnly = true,
                 SecurePolicy = CookieSecurePolicy.None,
                 IsEssential = true,

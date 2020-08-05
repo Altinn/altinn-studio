@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { getParsedLanguageFromKey } from 'altinn-shared/utils';
+import { getParsedLanguageFromKey, getParsedLanguageFromText } from 'altinn-shared/utils';
 import { IRuntimeState } from '../../../types';
 import { getHostname } from '../../../utils/urlHelper';
 import InstantiationErrorPage from './InstantiationErrorPage';
@@ -18,44 +18,51 @@ function MissingRolesError() {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_rights',
       language,
-      [selectedParty.name]);
+      [selectedParty.name],
+    );
   }
 
   function getCustomerService() {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_info_customer_service',
       language,
-      [language.general.customer_service_phone_number]);
+      [language.general.customer_service_phone_number],
+    );
   }
 
   function getCheckRights(hostName: string) {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_check_rights',
       language,
-      [hostName]);
+      [hostName],
+    );
   }
 
   function getErrorInfoRights(hostName: string) {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_info_rights',
       language,
-      [hostName]);
+      [hostName],
+    );
   }
 
   function createErrorContent() {
     const hostName = getHostname();
 
     const errorRights = getErrorRights();
-    const errorChangeParty = <Link to='/partyselection'>{language.party_selection.change_party}</Link>;
-    const errorAsk = language.instantiate.authorization_error_ask;
+    const errorChangeParty = <Link to='/partyselection'>{getParsedLanguageFromText(language.party_selection.change_party)}</Link>;
+    const errorAsk = getParsedLanguageFromText(language.instantiate.authorization_error_ask);
     const errorCheckRights = getCheckRights(hostName);
     const errorMoreInfo = getErrorInfoRights(hostName);
     const errorCustomerService = getCustomerService();
 
     return (
       <>
-        <span>{errorRights}({errorChangeParty}). </span>
+        <span>{errorRights} ({errorChangeParty}). </span>
+        <br />
+        <br />
         <span>{errorAsk} </span>
+        <br />
         <span>{errorCheckRights}</span>
         <br />
         <br />
