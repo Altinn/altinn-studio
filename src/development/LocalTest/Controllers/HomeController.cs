@@ -276,21 +276,19 @@ namespace LocalTest.Controllers
         {
 
             string filedata = string.Empty;
-            Application app;
+            Application app = null;
             string filename = configpath + "/applicationmetadata.json";
             try
             {
                 if (System.IO.File.Exists(filename))
                 {
                     filedata = System.IO.File.ReadAllText(filename, Encoding.UTF8);
+                    app = JsonConvert.DeserializeObject<Application>(filedata);
                 }
-                else
-                {
-                }
-                app = JsonConvert.DeserializeObject<Application>(filedata);
+              
                 return app;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
