@@ -96,28 +96,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<IList<RepositoryClient.Model.Repository>> GetUserRepos()
+        public async Task<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>> GetUserRepos()
         {
-            IList<RepositoryClient.Model.Repository> repos = new List<RepositoryClient.Model.Repository>();
-            int index = 1;
+            IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository> repos = new List<Altinn.Studio.Designer.RepositoryClient.Model.Repository>();
 
-            while (true)
+            HttpResponseMessage response = await _httpClient.GetAsync("user/repos?limit=50");
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                HttpResponseMessage response = await _httpClient.GetAsync($"user/repos?limit=50&page={index}");
+                repos = await response.Content.ReadAsAsync<IList<Altinn.Studio.Designer.RepositoryClient.Model.Repository>>();
 
-                if (response.StatusCode != HttpStatusCode.OK)
-                {
-                    break;
-                }
-
-                IList<RepositoryClient.Model.Repository> responseRepos = await response.Content.ReadAsAsync<IList<RepositoryClient.Model.Repository>>();
-
-                if (responseRepos.Count == 0)
-                {
-                    break;
-                }
-
-                foreach (RepositoryClient.Model.Repository repo in responseRepos)
+                foreach (Altinn.Studio.Designer.RepositoryClient.Model.Repository repo in repos)
                 {
                     if (string.IsNullOrEmpty(repo.Owner?.Login))
                     {
@@ -130,11 +118,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     {
                         repo.Owner.UserType = UserType.Org;
                     }
-
-                    repos.Add(repo);
                 }
-
-                ++index;
             }
 
             return repos;
@@ -211,7 +195,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return repository;
             }
 
-            foreach (RepositoryClient.Model.Repository repo in repository.Data)
+            foreach (Altinn.Studio.Designer.RepositoryClient.Model.Repository repo in repository.Data)
             {
                 if (string.IsNullOrEmpty(repo.Owner?.Login))
                 {
@@ -230,15 +214,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepositoryClient.Model.Repository> GetRepository(string org, string repository)
+        public async Task<Altinn.Studio.Designer.RepositoryClient.Model.Repository> GetRepository(string org, string repository)
         {
-            RepositoryClient.Model.Repository returnRepository = null;
+            Altinn.Studio.Designer.RepositoryClient.Model.Repository returnRepository = null;
 
             string giteaUrl = $"repos/{org}/{repository}";
             HttpResponseMessage response = await _httpClient.GetAsync(giteaUrl);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                returnRepository = await response.Content.ReadAsAsync<RepositoryClient.Model.Repository>();
+                returnRepository = await response.Content.ReadAsAsync<Altinn.Studio.Designer.RepositoryClient.Model.Repository>();
             }
             else
             {
