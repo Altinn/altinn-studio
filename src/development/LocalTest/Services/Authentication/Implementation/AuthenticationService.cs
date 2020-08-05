@@ -17,7 +17,7 @@ namespace LocalTest.Services.Authentication.Implementation
         {
             List<X509Certificate2> certificates = new List<X509Certificate2>
             {
-                new X509Certificate2("jwtselfsignedcert.pfx", "qwer1234")
+                new X509Certificate2("jwtselfsignedcert.pfx", "qwer1234") // lgtm [cs/hardcoded-credentials]
             };
 
             TimeSpan tokenExpiry = new TimeSpan(0, cookieValidityTime, 0);
