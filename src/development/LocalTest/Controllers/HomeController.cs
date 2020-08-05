@@ -25,7 +25,9 @@ using LocalTest.Services.Profile.Interface;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
-
+using System.Text;
+using Newtonsoft.Json;
+using LocalTest.Services.Localtest.Interface;
 
 namespace LocalTest.Controllers
 {
@@ -36,31 +38,35 @@ namespace LocalTest.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IUserProfiles _userProfileService;
         private readonly IAuthentication _authenticationService;
+        private readonly ILocalTestAppSelection _appSelectionService;
 
         public HomeController(
             IOptions<GeneralSettings> generalSettings,
             IOptions<LocalPlatformSettings> localPlatformSettings,
             IApplicationRepository applicationRepository,
             IUserProfiles userProfileService,
-            IAuthentication authenticationService)
+            IAuthentication authenticationService,
+            ILocalTestAppSelection appSelectionService)
         {
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
             _applicationRepository = applicationRepository;
             _userProfileService = userProfileService;
             _authenticationService = authenticationService;
+            _appSelectionService = appSelectionService;
         }
 
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             StartAppModel model = new StartAppModel();
+            model.TestApps = await GetAppsList();
             Application app = await _applicationRepository.FindOne("", "");
             model.TestUsers = await GetTestUsersForList();
             model.AppPath = _localPlatformSettings.AppRepsitoryBasePath;
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
 
-            if (app == null)
+            if (model.TestApps.Count() == 0)
             {
                 model.InvalidAppPath = true;
             }
@@ -115,9 +121,11 @@ namespace LocalTest.Controllers
             string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
             CreateJwtCookieAndAppendToResponse(token);
 
-            Application app = await _applicationRepository.FindOne("", "");
+            Application app = GetAppItem(startAppModel.AppPathSelection + "/config");
 
-            return Redirect($"{_generalSettings.GetBaseUrl}/{app.Org}/{app.Id.Split("/")[1]}");
+            _appSelectionService.SetAppPath(startAppModel.AppPathSelection);
+
+            return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/");
         }
 
         /// <summary>
@@ -216,6 +224,77 @@ namespace LocalTest.Controllers
 
             return userItems;
         }
+
+        private async Task<IEnumerable<SelectListItem>> GetAppsList()
+        {
+            List<SelectListItem> apps = new List<SelectListItem>();
+
+            string path = this._localPlatformSettings.AppRepsitoryBasePath;
+
+            if (!Directory.Exists(path))
+            {
+                return apps;
+            }
+
+            string configPath = path + "config";
+            if (Directory.Exists(configPath))
+            {
+                Application app = GetAppItem(configPath);
+                if (app != null)
+                {
+                    apps.Add(GetSelectItem(app, path));
+                }
+            }
+
+           string[] directories =  Directory.GetDirectories(path);
+
+            foreach(string directory in directories)
+            {
+
+                Application app = GetAppItem(directory + "/App/config");
+                if (app != null)
+                {
+                    apps.Add(GetSelectItem(app, directory + "/App/"));
+                }
+            }
+
+            return apps;
+        }
+
+        private SelectListItem GetSelectItem(Application app, string path)
+        {
+            SelectListItem item = new SelectListItem() { Value = path, Text = app.Title.GetValueOrDefault("nb")};
+            return item;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private Application GetAppItem(string configpath)
+        {
+
+            string filedata = string.Empty;
+            Application app = null;
+            string filename = configpath + "/applicationmetadata.json";
+            try
+            {
+                if (System.IO.File.Exists(filename))
+                {
+                    filedata = System.IO.File.ReadAllText(filename, Encoding.UTF8);
+                    app = JsonConvert.DeserializeObject<Application>(filedata);
+                }
+              
+                return app;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+
+        }
+
 
         /// <summary>
         /// Creates a session cookie meant to be used to hold the generated JSON Web Token and appends it to the response.

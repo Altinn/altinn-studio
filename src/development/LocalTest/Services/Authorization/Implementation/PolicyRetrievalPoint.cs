@@ -6,6 +6,7 @@ using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using LocalTest.Configuration;
+using LocalTest.Services.Localtest.Interface;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
@@ -17,14 +18,17 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     public class PolicyRetrievalPoint : IPolicyRetrievalPoint
     {
         private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly ILocalTestAppSelection _localTestAppSelectionService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyRetrievalPoint"/> class.
         /// </summary>
         /// <param name="policyRepository">The policy Repository..</param>
-        public PolicyRetrievalPoint(IOptions<LocalPlatformSettings> localPlatformSettings)
+        public PolicyRetrievalPoint(IOptions<LocalPlatformSettings> localPlatformSettings, ILocalTestAppSelection localTestAppSelectionService)
         {
             _localPlatformSettings = localPlatformSettings.Value;
+            _localTestAppSelectionService = localTestAppSelectionService;
+
         }
 
         /// <inheritdoc/>
@@ -36,7 +40,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
         private string GetPolicyPath()
         {
-            return _localPlatformSettings.AppRepsitoryBasePath + $"config/authorization/policy.xml";
+            return _localTestAppSelectionService.GetAppPath() + $"config/authorization/policy.xml";
         }
               
         public static XacmlPolicy ParsePolicy(string policyPath)

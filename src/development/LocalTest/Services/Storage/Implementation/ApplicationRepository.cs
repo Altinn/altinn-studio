@@ -1,6 +1,7 @@
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using LocalTest.Configuration;
+using LocalTest.Services.Localtest.Interface;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -14,12 +15,12 @@ namespace LocalTest.Services.Storage.Implementation
 {
     public class ApplicationRepository : IApplicationRepository
     {
-        private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly ILocalTestAppSelection _localTestAppSelectionService;
         private readonly ILogger _logger;
 
-        public ApplicationRepository(IOptions<LocalPlatformSettings> localPlatformSettings, ILogger<ApplicationRepository> logger)
+        public ApplicationRepository(ILocalTestAppSelection localTestAppSelectionService, ILogger<ApplicationRepository> logger)
         {
-            _localPlatformSettings = localPlatformSettings.Value;
+            _localTestAppSelectionService = localTestAppSelectionService;
             _logger = logger;
         }
 
@@ -71,7 +72,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         private string GetApplicationPath()
         {
-           return  _localPlatformSettings.AppRepsitoryBasePath + "config/applicationmetadata.json";
+           return  _localTestAppSelectionService.GetAppPath() + "config/applicationmetadata.json";
         }
     }
 }
