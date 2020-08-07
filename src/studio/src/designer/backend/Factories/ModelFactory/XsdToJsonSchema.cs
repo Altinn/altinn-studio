@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Xml;
 using System.Xml.Schema;
+using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json.FormatValidators;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -860,27 +861,27 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             else if ("http://www.w3.org/2001/XMLSchema:date".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
-                appendToSchema.Format(Format.GetFormat("date"));
+                appendToSchema.Format("date");
             }
             else if ("http://www.w3.org/2001/XMLSchema:time".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
-                appendToSchema.Format(Format.GetFormat("time"));
+                appendToSchema.Format(TimeFormatValidator.Instance);
             }
             else if ("http://www.w3.org/2001/XMLSchema:dateTime".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
-                appendToSchema.Format(Format.DateTime);
+                appendToSchema.Format("dateTime");
             }
             else if ("http://www.w3.org/2001/XMLSchema:gYear".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
-                appendToSchema.Format(Format.GetFormat("year"));
+                appendToSchema.Format(YearFormatValidator.Instance);
             }
             else if ("http://www.w3.org/2001/XMLSchema:gYearMonth".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
-                appendToSchema.Format(Format.GetFormat("year-month"));
+                appendToSchema.Format("year-month");
             }
             else if ("http://www.w3.org/2001/XMLSchema:base64Binary".Equals(type))
             {

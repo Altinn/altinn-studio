@@ -196,10 +196,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 {
                     case JsonSchemaType.String:
                         {
-                            Format format = GetterExtensions.Format(jSchema);
+                            string format = GetterExtensions.Format(jSchema);
                             if (format != null)
                             {
-                                return ExtractBaseTypeNameFromFormat(format.Key);
+                                return ExtractBaseTypeNameFromFormat(format);
                             }
                             
                             return new XmlQualifiedName("string", XML_SCHEMA_NS);
@@ -658,9 +658,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             FormatKeyword format = jSchema.Get<FormatKeyword>();
-            if (format != null && format.Value != null && !string.IsNullOrEmpty(format.Value.Key))
+            if (format != null && format.Value != null && !string.IsNullOrEmpty(format.Value))
             {
-                content.BaseTypeName = ExtractBaseTypeNameFromFormat(format.Value.Key);
+                content.BaseTypeName = ExtractBaseTypeNameFromFormat(format.Value);
             }
 
             return content;

@@ -15,7 +15,7 @@
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.3-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.2.2" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.0-alpha" />
-    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.11.3" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.11.5" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.5.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.6" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.6" />

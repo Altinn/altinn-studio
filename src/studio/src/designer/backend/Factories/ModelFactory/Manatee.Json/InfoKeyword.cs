@@ -47,27 +47,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json
         }
 
         /// <summary>
-        /// Used register any subschemas during validation.  Enables look-forward compatibility with <code>$ref</code> keywords.
-        /// </summary>
-        /// <param name="baseUri">The current base URI</param>
-        /// <param name="localRegistry">The local registry</param>
-        public void RegisterSubschemas(Uri baseUri, JsonSchemaRegistry localRegistry)
-        {
-            // Not yet implemented
-        }
-
-        /// <summary>
-        /// Resolves any subschemas during resolution of a <code>$ref</code> during validation.
-        /// </summary>
-        /// <param name="pointer">A <see cref="JsonPointer"/> to the target schema.</param>
-        /// <param name="baseUri">The current base URI.</param>
-        /// <returns>The referenced schema, if it exists; otherwise null.</returns>
-        public JsonSchema ResolveSubschema(JsonPointer pointer, Uri baseUri)
-        {
-            return null;
-        }
-
-        /// <summary>
         /// Builds an object from a <see cref="JsonValue"/>.
         /// </summary>
         /// <param name="json">The <see cref="JsonValue"/> representation of the object.</param>
@@ -147,6 +126,27 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json
                                      return code;
                                  }
                              });
+        }
+
+        /// <summary>
+        /// Used register any subschemas during validation.  Enables look-forward compatibility with <code>$ref</code> keywords.
+        /// </summary>
+        /// <param name="context">The schema validation context.</param>
+        public void RegisterSubschemas(SchemaValidationContext context)
+        {
+            // Not yet implemented
+        }
+
+        /// <summary>
+        /// Resolves any subschemas during resolution of a <code>$ref</code> during validation.
+        /// </summary>
+        /// <param name="pointer">A <see cref="JsonPointer"/> to the target schema.</param>
+        /// <param name="baseUri">The current base URI.</param>
+        /// <param name="supportedVersions">The JSON schema version.</param>
+        /// <returns>The referenced schema, if it exists; otherwise null.</returns>
+        public JsonSchema ResolveSubschema(JsonPointer pointer, Uri baseUri, JsonSchemaVersion supportedVersions)
+        {
+            return null;
         }
     }
 }
