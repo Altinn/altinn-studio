@@ -65,7 +65,7 @@ declare global {
     dataModelBindings?: IDataModelBindings;
     textResourceBindings?: ITextResourceBindings;
     customType?: string;
-    optionsId?: string;
+    codeListId?: string;
     triggerValidation?: boolean;
     handleUpdateElement?: (component: FormComponentType) => void;
     handleDeleteElement?: () => void;
