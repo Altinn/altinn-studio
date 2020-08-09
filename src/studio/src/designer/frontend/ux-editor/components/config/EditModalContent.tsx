@@ -202,7 +202,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
 
   public handleCodeListChange = (option: ICodeListOption): void => {
     const updatedComponent = this.props.component;
-    updatedComponent.optionsId = option ? option.value.codeListName : undefined;
+    updatedComponent.codeListId = option ? option.value.codeListName : undefined;
     this.props.handleComponentUpdate(updatedComponent);
   }
 
