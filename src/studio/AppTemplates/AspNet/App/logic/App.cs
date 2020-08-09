@@ -118,29 +118,7 @@ namespace Altinn.App.AppLogic
 
         public override Task<AppOptions> GetOptions(string id, AppOptions options)
         {
-            if (id.Equals("demo_id"))
-            {
-                var demoOptions = new AppOptions
-                {
-                    Options = new List<AppOption>
-                    {
-                        {
-                            Label = "Some label",
-                            Value = "Some value"
-                        },
-                        {
-                            Label = "Some other label",
-                            Value = "Some other value"
-                        }
-                    }
-                };
-                return Task.FromResult(demoOptions);
-            }
-            else
-            {
-                // don't touch existing options
-                return Task.FromResult(options);
-            }
+            return Task.FromResult(options);
         }
 
         /// <summary>
