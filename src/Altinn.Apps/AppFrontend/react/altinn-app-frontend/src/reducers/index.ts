@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { combineReducers,
   Reducer,
   ReducersMapObject } from 'redux';

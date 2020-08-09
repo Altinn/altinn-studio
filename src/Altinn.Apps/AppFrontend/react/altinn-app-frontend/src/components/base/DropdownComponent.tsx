@@ -24,7 +24,6 @@ function DropdownComponent(props: IDropdownProps) {
   const options = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
 
   const handleOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    console.log('handle on change:', event.target.value);
     props.handleDataChange(event.target.value);
   };
 

@@ -97,9 +97,11 @@ export const getHostname: () => string = () => {
   const domainSplitted: string[] = window.location.host.split('.');
   if (domainSplitted.length === 5) {
     return `${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}`;
-  } if (domainSplitted.length === 4) {
+  }
+  if (domainSplitted.length === 4) {
     return `${domainSplitted[2]}.${domainSplitted[3]}`;
-  } if (domainSplitted.length === 2 && domainSplitted[0] === 'altinn3local') {
+  }
+  if (domainSplitted.length === 2 && domainSplitted[0] === 'altinn3local') {
     // Local test
     return window.location.host;
   }
