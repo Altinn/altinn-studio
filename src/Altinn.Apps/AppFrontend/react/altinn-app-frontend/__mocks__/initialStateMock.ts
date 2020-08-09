@@ -79,6 +79,10 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       error: null,
       language: 'nb',
     },
+    optionState: {
+      options: {},
+      error: null,
+    },
   };
 
   return {
