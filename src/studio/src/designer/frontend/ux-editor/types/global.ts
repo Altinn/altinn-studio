@@ -65,7 +65,7 @@ declare global {
     dataModelBindings?: IDataModelBindings;
     textResourceBindings?: ITextResourceBindings;
     customType?: string;
-    codeListId?: string;
+    optionsId?: string;
     triggerValidation?: boolean;
     handleUpdateElement?: (component: FormComponentType) => void;
     handleDeleteElement?: () => void;
@@ -107,7 +107,7 @@ declare global {
   }
 
   export interface IFormDropdownComponent extends IFormComponent {
-    options: IOptions[];
+    optionsId: string;
   }
 
   export interface IFormFileUploaderComponent extends IFormComponent {
