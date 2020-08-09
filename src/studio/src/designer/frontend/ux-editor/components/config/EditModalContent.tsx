@@ -483,10 +483,10 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
             </Grid>
             <Typography>
               <a
-                href='https://altinn.github.io/docs/altinn-studio/app-creation/options/
+                href='https://altinn.github.io/docs/altinn-studio/app-creation/options/'
               >
                 {getLanguageFromKey(
-                  'ux_editor.modal_properties_code_list_read_more', this.props.language,
+                  'ux_editor.modal_properties_code_list_read_more', this.props.language
                 )}
               </a>
             </Typography>
