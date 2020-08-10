@@ -12,41 +12,41 @@
 */
 
 import { check } from "k6";
-import {addErrorCount, printResponseToConsole} from "../../errorcounter.js";
+import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
 import * as platformInstances from "../../api/storage/instances.js"
-import {deleteSblInstance} from "../../api/storage/messageboxinstances.js"
+import { deleteSblInstance } from "../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
 const environment = (__ENV.env).toLowerCase();
-const fileName = "users_"+ environment +".json";
+const fileName = "users_" + environment + ".json";
 
-let instanceFormDataXml = open("../../data/"+ level2App +".xml");
+let instanceFormDataXml = open("../../data/" + level2App + ".xml");
 let users = JSON.parse(open("../../data/" + fileName));
 const usersCount = users.length;
 
 export const options = {
-    thresholds:{
+    thresholds: {
         "errors": ["count<1"]
     }
 };
 
 //Tests for App API: RF-0002
-export default function() {
+export default function () {
     var userNumber = (__VU - 1) % usersCount;
-    var instanceId, dataId, res, success; 
+    var instanceId, dataId, res, success;
 
     try {
         var userSSN = users[userNumber].username;
-        var userPwd = users[userNumber].password;    
+        var userPwd = users[userNumber].password;
     } catch (error) {
         printResponseToConsole("Testdata missing", false, null)
     };
-    
+
     var aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
@@ -56,15 +56,15 @@ export default function() {
     res = appInstances.postInstance(runtimeToken, partyId, appOwner, level2App);
     success = check(res, {
         "E2E App POST Create Instance status is 201:": (r) => r.status === 201
-      });
-    addErrorCount(success);    
+    });
+    addErrorCount(success);
     printResponseToConsole("E2E App POST Create Instance:", success, res);
-    
+
     try {
         dataId = appData.findDataId(res.body);
-        instanceId = platformInstances.findInstanceId(res.body); 
+        instanceId = platformInstances.findInstanceId(res.body);
     } catch (error) {
-        printResponseToConsole("Instance id and data id not retrieved:", false , null);
+        printResponseToConsole("Instance id and data id not retrieved:", false, null);
     };
 
     //Test to edit a form data in an instance with App APi and validate the response
@@ -72,7 +72,7 @@ export default function() {
     success = check(res, {
         "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201
     });
-    addErrorCount(success);    
+    addErrorCount(success);
     printResponseToConsole("E2E PUT Edit Data by Id:", success, res);
 
     //Test to get validate instance and verify that validation of instance is ok
@@ -80,7 +80,7 @@ export default function() {
     success = check(res, {
         "E2E App GET Validate Instance validation OK:": (r) => r.body && (JSON.parse(r.body)).length === 0
     });
-    addErrorCount(success);    
+    addErrorCount(success);
     printResponseToConsole("E2E App GET Validate Instance is not OK:", success, res);
 
     //Test to get next process of an app instance again and verify response code  to be 200
@@ -88,7 +88,7 @@ export default function() {
     success = check(res, {
         "E2E App GET Next process element id:": (r) => r.status === 200
     });
-    addErrorCount(success);     
+    addErrorCount(success);
     printResponseToConsole("Unable to get next element id:", success, res);
     var nextElement = (JSON.parse(res.body))[0];
 

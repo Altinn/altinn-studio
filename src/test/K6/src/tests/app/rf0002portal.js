@@ -12,7 +12,7 @@
 */
 
 import { check, sleep } from "k6";
-import {addErrorCount, printResponseToConsole} from "../../errorcounter.js";
+import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
@@ -24,26 +24,26 @@ import * as appResources from "../../api/app/resources.js"
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
 const environment = (__ENV.env).toLowerCase();
-const fileName = "users_"+ environment +".json";
+const fileName = "users_" + environment + ".json";
 
-let instanceFormDataXml = open("../../data/"+ level2App +".xml");
+let instanceFormDataXml = open("../../data/" + level2App + ".xml");
 let users = JSON.parse(open("../../data/" + fileName));
 const usersCount = users.length;
 
 export const options = {
-    thresholds:{
+    thresholds: {
         "errors": ["count<1"]
     }
 };
 
 //Tests for App API: RF-0002
-export default function() {
+export default function () {
     var userNumber = (__VU - 1) % usersCount;
     var instanceId, dataId, res, success;
-    
+
     try {
         var userSSN = users[userNumber].username;
-        var userPwd = users[userNumber].password;    
+        var userPwd = users[userNumber].password;
     } catch (error) {
         printResponseToConsole("Testdata missing", false, null);
     };
@@ -52,13 +52,13 @@ export default function() {
     const runtimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
     const partyId = users[userNumber].partyid;
-    
+
     //Batch api calls before creating an app instance
     res = appInstantiation.beforeInstanceCreation(runtimeToken, partyId, appOwner, level2App);
-    for(var i = 0; i < res.length; i++){
+    for (var i = 0; i < res.length; i++) {
         success = check(res[i], {
             "Batch request before app Instantiation:": (r) => r.status === 200
-          });
+        });
         addErrorCount(success);
         printResponseToConsole("Batch request before app Instantiation:", success, res[i]);
     };
@@ -67,15 +67,15 @@ export default function() {
     res = appInstances.postInstance(runtimeToken, partyId, appOwner, level2App);
     success = check(res, {
         "E2E App POST Create Instance status is 201:": (r) => r.status === 201
-      });
-    addErrorCount(success);    
+    });
+    addErrorCount(success);
     printResponseToConsole("E2E App POST Create Instance:", success, res);
-    
+
     try {
         dataId = appData.findDataId(res.body);
-        instanceId = platformInstances.findInstanceId(res.body); 
+        instanceId = platformInstances.findInstanceId(res.body);
     } catch (error) {
-        printResponseToConsole("Instance id and data id not retrieved:", false , null);
+        printResponseToConsole("Instance id and data id not retrieved:", false, null);
     };
 
     //Test to get the current process of an app instance
@@ -83,7 +83,7 @@ export default function() {
     success = check(res, {
         "Get Current process of instance:": (r) => r.status === 200
     });
-    addErrorCount(success);    
+    addErrorCount(success);
     printResponseToConsole("Get Current process of instance:", success, res);
 
     //Test to get the form data xml by id
@@ -91,26 +91,26 @@ export default function() {
     success = check(res, {
         "Get form data XML by id:": (r) => r.status === 200
     });
-    addErrorCount(success);    
+    addErrorCount(success);
     printResponseToConsole("Get form data XML by id:", success, res);
 
     //Batch request to get the app resources
     res = appResources.batchGetAppResources(runtimeToken, appOwner, level2App);
-    for(var i = 0; i < res.length; i++){
+    for (var i = 0; i < res.length; i++) {
         success = check(res[i], {
             "Batch request to get app resources:": (r) => r.status === 200
-          });
+        });
         addErrorCount(success);
         printResponseToConsole("Batch request to get app resources:", success, res[i]);
     };
 
     //Test to edit a form data in an instance with App APi and validate the response
-    for(var i = 0; i < 8; i++){
+    for (var i = 0; i < 8; i++) {
         res = appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml, appOwner, level2App);
         success = check(res, {
             "E2E PUT Edit Data by Id status is 201:": (r) => r.status === 201
         });
-        addErrorCount(success);    
+        addErrorCount(success);
         printResponseToConsole("E2E PUT Edit Data by Id:", success, res);
         sleep(0.5);
     };
@@ -120,7 +120,7 @@ export default function() {
     success = check(res, {
         "E2E App GET Validate Instance validation OK:": (r) => r.body && (JSON.parse(r.body)).length === 0
     });
-    addErrorCount(success);    
+    addErrorCount(success);
     printResponseToConsole("E2E App GET Validate Instance is not OK:", success, res);
 
     //Test to move the process of an app instance to the next process element and verify response code to be 200

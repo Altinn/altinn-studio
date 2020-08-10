@@ -4,7 +4,7 @@
 */
 
 import { check } from "k6";
-import {addErrorCount} from "../../../errorcounter.js";
+import { addErrorCount } from "../../../errorcounter.js";
 import * as appInstances from "../../../api/app/instances.js"
 import * as setUpData from "../../../setup.js";
 
@@ -13,17 +13,17 @@ const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level3App = __ENV.level3app;
 
-export const options = {    
-    thresholds:{
-        "errors": ["count<1"]
-    },
-    setupTimeout: '1m'
+export const options = {
+  thresholds: {
+    "errors": ["count<1"]
+  },
+  setupTimeout: '1m'
 };
 
 //Function to setup data and return userData
-export function setup(){
-  var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);    
-  var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);    
+export function setup() {
+  var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
+  var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
   var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level3App);
   data.RuntimeToken = altinnStudioRuntimeCookie;
   setUpData.clearCookies();
@@ -31,16 +31,16 @@ export function setup(){
 };
 
 //Negative tests towards to app apis with lower security level login
-export default function(data) {
-    const partyId = data["partyId"];
-    const runtimeToken = data["RuntimeToken"];
-    var res, success;
+export default function (data) {
+  const partyId = data["partyId"];
+  const runtimeToken = data["RuntimeToken"];
+  var res, success;
 
-    //Test to create an instance without required security level login and expecting 403
-    res = appInstances.postInstance(runtimeToken, partyId, appOwner, level3App);    
-    success = check(res, {
-      "App POST Create Instance status is 403:": (r) => r.status === 403
-    });  
-    addErrorCount(success); 
-     
+  //Test to create an instance without required security level login and expecting 403
+  res = appInstances.postInstance(runtimeToken, partyId, appOwner, level3App);
+  success = check(res, {
+    "App POST Create Instance status is 403:": (r) => r.status === 403
+  });
+  addErrorCount(success);
+
 };
