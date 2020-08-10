@@ -397,7 +397,8 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 DateTime now = DateTime.UtcNow;
 
-                if(instance.Status == null){
+                if (instance.Status == null)
+                {
                     instance.Status = new InstanceStatus();
                 }
 
