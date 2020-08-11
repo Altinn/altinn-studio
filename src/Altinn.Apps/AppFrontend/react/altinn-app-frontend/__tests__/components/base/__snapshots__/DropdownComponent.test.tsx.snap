@@ -1,21 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`>>> components/base/DropdownComponent.tsx --- Snapshot >>> Capture snapshot of DropdownComponent 1`] = `
-<select
-  className="custom-select a-custom-select"
-  id="mock-id"
-  onChange={[Function]}
-  value=""
->
-  <option
-    value="test-1"
+<DocumentFragment>
+  <select
+    class="custom-select a-custom-select"
+    id="mock-id"
   >
-    test-label-1
-  </option>
-  <option
-    value="test-2"
-  >
-    test-label-2
-  </option>
-</select>
+    <option
+      value="some_value"
+    >
+      test
+    </option>
+    <option
+      value="some_value_2"
+    >
+      test
+    </option>
+  </select>
+</DocumentFragment>
 `;

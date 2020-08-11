@@ -1,9 +1,10 @@
+/* eslint-disable no-shadow */
 import { AddressComponent } from './advanced/AddressComponent';
 import { ButtonComponent } from './base/ButtonComponent';
 import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
 // eslint-disable-next-line import/no-cycle
 import DatepickerComponent from './base/DatepickerComponent';
-import { DropdownComponent } from './base/DropdownComponent';
+import DropdownComponent from './base/DropdownComponent';
 import { FileUploadComponent } from './base/FileUploadComponent';
 import { HeaderComponent } from './base/HeaderComponent';
 import { InputComponent } from './base/InputComponent';
@@ -64,9 +65,9 @@ export const schemaComponents: IComponent[] = [
     Type: ComponentTypes.Datepicker,
     customProperties: {
       readOnly: false,
-      format: "DD/MM/YYYY",
-      minDate: "1900-01-01T12:00:00.000Z",
-      maxDate: "2100-01-01T12:00:00.000Z"
+      format: 'DD/MM/YYYY',
+      minDate: '1900-01-01T12:00:00.000Z',
+      maxDate: '2100-01-01T12:00:00.000Z',
     },
   },
   {

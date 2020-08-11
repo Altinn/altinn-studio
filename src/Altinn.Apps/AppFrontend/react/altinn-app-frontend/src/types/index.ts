@@ -1,4 +1,5 @@
 import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducers';
+import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
@@ -36,6 +37,7 @@ export interface IRuntimeState {
   profile: IProfileState;
   queue: IQueueState;
   textResources: ITextResourcesState;
+  optionState: IOptionsState;
 }
 
 export interface IAltinnWindow extends Window {
@@ -56,7 +58,7 @@ export enum ProcessSteps {
 
 export enum Severity {
   Unspecified = 0,
-  Error =  1,
+  Error = 1,
   Warning = 2,
   Informational = 3,
 }

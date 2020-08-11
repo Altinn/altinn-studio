@@ -229,6 +229,15 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
     this.props.handleComponentUpdate(component);
   }
 
+  public handleOptionsIdChange = (event: any) => {
+    const component = (this.props.component as IFormDropdownComponent);
+    component.optionsId = event.target.value;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
   public handleMaxFileSizeInMBChange = (event: any) => {
     const component = (this.props.component as IFormFileUploaderComponent);
     const value = parseInt(event.target.value, 10);
@@ -442,76 +451,46 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       case 'Dropdown': {
         const component: IFormDropdownComponent = this.state.component as IFormDropdownComponent;
         return (
-          <div className='form-group a-form-group mt-2'>
-            <h2 className='a-h4'>
-              {this.props.language.ux_editor.modal_options}
-            </h2>
-            <div className='row align-items-center'>
-              <div className='col-5'>
-                <label className='a-form-label'>
-                  {this.props.language.general.label}
-                </label>
-              </div>
-              <div className='col-5'>
-                <label className='a-form-label'>
-                  {this.props.language.general.value}
-                </label>
-              </div>
-            </div>
-
-            {component.options.map((option, index) => (
-              <div key={index} className='row align-items-center'>
-                <div className='col-5'>
-                  <label htmlFor={`editModal_dropdownlabel-${index}`} className='a-form-label sr-only'>
-                    {this.props.language.ux_editor.modal_text}
-                  </label>
-                  <select
-                    id={`editModal_dropdownlabel-${index}`}
-                    className='custom-select a-custom-select'
-                    onChange={this.handleUpdateOptionLabel.bind(this, index)}
-                    value={option.label}
-                  >
-                    <option key='empty' value=''>
-                      {this.props.language.general.choose_label}
-                    </option>
-                    {this.renderTextResourceOptions()}
-                  </select>
-                </div>
-
-                <div className='col-5'>
-                  <input
-                    onChange={this.handleUpdateOptionValue.bind(this, index)}
-                    value={option.value}
-                    className='form-control'
-                    type='text'
-                  />
-                </div>
-
-                <div className='col-2'>
-                  <button
-                    type='button'
-                    className='a-btn a-btn-icon'
-                    onClick={this.handleRemoveOption.bind(this, index)}
-                  >
-                    <i className='fa fa-circle-exit a-danger ai-left' />
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            <div className='row align-items-center mb-1'>
-              <div className='col-4 col'>
-                <button
-                  type='button'
-                  className='a-btn'
-                  onClick={this.handleAddOption}
-                >
-                  {this.props.language.ux_editor.modal_new_option}
-                </button>
-              </div>
-              <div />
-            </div>
-          </div>
+          <Grid container={true}>
+            <Grid item={true} xs={12}>
+              {renderSelectDataModelBinding(
+                this.props.component.dataModelBindings,
+                this.handleDataModelChange,
+                this.props.language,
+              )}
+              {renderSelectTextFromResources('modal_properties_label_helper',
+                this.handleTitleChange,
+                this.props.textResources,
+                this.props.language,
+                this.props.component.textResourceBindings.title)}
+              {renderSelectTextFromResources('modal_properties_description_helper',
+                this.handleDescriptionChange,
+                this.props.textResources,
+                this.props.language,
+                this.props.component.textResourceBindings.description)}
+            </Grid>
+            <Grid item={true} xs={12}>
+              <AltinnInputField
+                id='modal-properties-code-list-id'
+                onChangeFunction={this.handleOptionsIdChange}
+                inputValue={component.optionsId}
+                inputDescription={getLanguageFromKey(
+                  'ux_editor.modal_properties_code_list_id', this.props.language,
+                )}
+                inputFieldStyling={{ width: '100%', marginBottom: '24px' }}
+                inputDescriptionStyling={{ marginTop: '24px' }}
+              />
+            </Grid>
+            <Typography>
+              <a
+                href='https://altinn.github.io/docs/altinn-studio/app-creation/options/'
+              >
+                {getLanguageFromKey(
+                  'ux_editor.modal_properties_code_list_read_more', this.props.language,
+                )}
+              </a>
+            </Typography>
+          </Grid>
         );
       }
 
