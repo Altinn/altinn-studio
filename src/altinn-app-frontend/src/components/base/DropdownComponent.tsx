@@ -1,12 +1,17 @@
 import * as React from 'react';
+import { useSelector } from 'react-redux';
+import { IRuntimeState } from 'src/types';
+import '../../styles/shared.css';
+import classNames from 'classnames';
 
 export interface IDropdownProps {
-  formData: any;
-  getTextResource: (resourceKey: string) => string;
-  handleDataChange: (value: any) => void;
+  formData: string;
+  getTextResourceAsString: (resourceKey: string) => string;
+  handleDataChange: (value: string) => void;
   id: string;
   isValid?: boolean;
-  options: any[];
+  optionsId: string;
+  readOnly: boolean;
 }
 
 export interface IDropdownState {
@@ -15,28 +20,30 @@ export interface IDropdownState {
   name: string;
 }
 
-export class DropdownComponent
-  extends React.Component<IDropdownProps, IDropdownState> {
+function DropdownComponent(props: IDropdownProps) {
+  const options = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
 
-  public onDataChanged = (e: any) => {
-    this.props.handleDataChange(e.target.value);
-  }
+  const handleOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    props.handleDataChange(event.target.value);
+  };
 
-  public render() {
-    return (
-      <select
-        id={this.props.id}
-        value={this.props.formData}
-        className={this.props.isValid ? 'custom-select a-custom-select'
-          : 'custom-select a-custom-select validation-error'}
-        onChange={this.onDataChanged}
-      >
-        {this.props.options.map((option, index) => (
-          <option key={index} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    );
-  }
+  return (
+    <select
+      id={props.id}
+      value={props.formData}
+      disabled={props.readOnly}
+      className={classNames('custom-select a-custom-select', { 'validation-error': !props.isValid, 'disabled !important': props.readOnly })}
+      onChange={handleOnChange}
+    >
+      {options?.map((option, index) => (
+        <option
+          key={index}
+          value={option.value}
+        >
+          {props.getTextResourceAsString(option.label)}
+        </option>
+      ))}
+    </select>
+  );
 }
+export default DropdownComponent;

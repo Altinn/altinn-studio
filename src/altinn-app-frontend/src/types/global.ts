@@ -41,7 +41,7 @@ export interface ICreateFormComponent {
   type?: string;
   name?: string;
   size?: string;
-  options?: IOptions[];
+  options?: IOption[];
   dataModelBindings?: IDataModelBindings;
   textResourceBindings?: ITextResourceBindings;
   customType?: string;
@@ -95,7 +95,7 @@ export interface IFormButtonComponent extends IFormComponent {
 }
 
 export interface IFormCheckboxComponent extends IFormComponent {
-  options: IOptions[];
+  options: IOption[];
   preselectedOptionIndex?: number;
 }
 
@@ -107,7 +107,8 @@ export interface IFormComponent extends ICreateFormComponent {
 }
 
 export interface IFormDropdownComponent extends IFormComponent {
-  options: IOptions[];
+  options: IOption[];
+  optionsId: string;
 }
 
 export interface IFormFileUploaderComponent extends IFormComponent {
@@ -130,7 +131,7 @@ export interface IFormInputComponent extends IFormComponent {
 }
 
 export interface IFormRadioButtonComponent extends IFormComponent {
-  options: IOptions[];
+  options: IOption[];
   preselectedOptionIndex?: number;
 }
 
@@ -140,9 +141,13 @@ export interface IJsonSchemas {
   [id: string]: any;
 }
 
-export interface IOptions {
+export interface IOption {
   label: string;
   value: any;
+}
+
+export interface IOptions {
+  [id: string]: IOption[];
 }
 
 export interface IQueueTask {
