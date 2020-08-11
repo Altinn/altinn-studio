@@ -1,7 +1,9 @@
 import { IAltinnWindow } from 'src/types';
 
 const altinnWindow = window as Window as IAltinnWindow;
-const { org, app, reportee } = altinnWindow;
+const {
+  org, app, reportee,
+} = altinnWindow;
 const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
@@ -63,7 +65,7 @@ export function getValidationUrl(instanceId: string) {
 }
 
 export function getCompleteProcessUrl() {
- return `${appPath}/instances/${altinnWindow.instanceId}/process/next`;
+  return `${appPath}/instances/${altinnWindow.instanceId}/process/next`;
 }
 
 export function getUpgradeAuthLevelUrl(reqAuthLevel: string) {
@@ -95,16 +97,21 @@ export const getHostname: () => string = () => {
   const domainSplitted: string[] = window.location.host.split('.');
   if (domainSplitted.length === 5) {
     return `${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}`;
-  } else if (domainSplitted.length === 4) {
+  }
+  if (domainSplitted.length === 4) {
     return `${domainSplitted[2]}.${domainSplitted[3]}`;
-  } else if (domainSplitted.length === 2 && domainSplitted[0] === "altinn3local") {
+  }
+  if (domainSplitted.length === 2 && domainSplitted[0] === 'altinn3local') {
     // Local test
     return window.location.host;
-  } else {
-    throw new Error('Unknown domain');
   }
+  throw new Error('Unknown domain');
 };
 
-export const redirectToUpgrade = (reqAuthLevel: string) =>{
+export const redirectToUpgrade = (reqAuthLevel: string) => {
   window.location.href = getUpgradeAuthLevelUrl(reqAuthLevel);
-}
+};
+
+export const getOptionsUrl = (optionsId: string) => {
+  return `${appPath}/api/options/${optionsId}`;
+};

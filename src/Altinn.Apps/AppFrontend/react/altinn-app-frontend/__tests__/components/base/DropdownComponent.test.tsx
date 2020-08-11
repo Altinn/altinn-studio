@@ -1,45 +1,57 @@
 // /* tslint:disable:jsx-wrap-multiline */
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
-
-import { DropdownComponent } from '../../../src/components/base/DropdownComponent';
+import configureStore from 'redux-mock-store';
+import { Provider } from 'react-redux';
+import { render } from '@testing-library/react';
+import DropdownComponent from '../../../src/components/base/DropdownComponent';
 
 describe('>>> components/base/DropdownComponent.tsx --- Snapshot', () => {
   let mockId: string;
-  let mockOptions: any[];
+  let mockOptionsId;
   let mockFormData: any;
+  let mockInitialState: any;
+  let mockStore: any;
   let mockHandleDataChange: (value: any) => void;
   let mockGetTextResource: (resourceKey: string) => string;
   let mockIsValid: boolean;
 
   beforeEach(() => {
+    const createStore = configureStore();
     mockId = 'mock-id';
+    mockOptionsId = 'test';
     mockFormData = '';
-    mockOptions = [{
-      label: 'test-label-1',
-      value: 'test-1',
-    }, {
-      label: 'test-label-2',
-      value: 'test-2',
-    }];
-    mockHandleDataChange = (data: any) => null;
-    mockGetTextResource = (resourceKey: string) => 'test';
+    mockInitialState = {
+      optionState: {
+        options: {
+          test: [
+            { value: 'some_value', label: 'some_label' },
+            { value: 'some_value_2', label: 'some_label_2' }
+          ],
+        },
+      },
+    };
+    mockHandleDataChange = () => null;
+    mockGetTextResource = () => 'test';
     mockIsValid = true;
+    mockStore = createStore(mockInitialState);
   });
 
   it('>>> Capture snapshot of DropdownComponent', () => {
-    const rendered = renderer.create(
-      <DropdownComponent
-        id={mockId}
-        options={mockOptions}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        getTextResource={mockGetTextResource}
-        isValid={mockIsValid}
-      />,
+    const rendered = render(
+      <Provider store={mockStore}>
+        <DropdownComponent
+          id={mockId}
+          formData={mockFormData}
+          handleDataChange={mockHandleDataChange}
+          getTextResourceAsString={mockGetTextResource}
+          optionsId={mockOptionsId}
+          isValid={mockIsValid}
+          readOnly={false}
+        />
+      </Provider>,
     );
-    expect(rendered).toMatchSnapshot();
+    expect(rendered.asFragment()).toMatchSnapshot();
   });
 //   it('+++ should trigger onDataChanged on change', () => {
 //     const mountedDropdownComponent = mount(
