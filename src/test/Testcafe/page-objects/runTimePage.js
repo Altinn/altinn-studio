@@ -18,7 +18,7 @@ export default class RunTimePage {
     this.backToAltinnStudio = Selector('.btn.btn-primary').withAttribute('value', 'Tilbake til Altinn Studio');
     this.partyList = Selector('#PartyId');
     this.partiesInTheList = this.partyList.find('option');
-    this.changeProfileButton = Selector('input').withAttribute('value','Bytt profil');
+    this.changeProfileButton = Selector('input').withAttribute('value', 'Bytt profil');
 
     //SBL components
     this.serviceBody = Selector(".modal-body.a-modal-body");
@@ -31,7 +31,7 @@ export default class RunTimePage {
     this.addressComponent = Selector('input').withAttribute('type', 'text');
     this.inputButton = Selector('input').withAttribute('type', 'Input');
     this.saveButton = Selector("#saveBtn");
-    this.sendInnButton = Selector('button').withAttribute('type','submit').withExactText('Send inn');    
+    this.sendInnButton = Selector('button').withAttribute('type', 'submit').withExactText('Send inn');
     //file component error message
     this.errorMessage = Selector('.field-validation-error.a-message.a-message-error');
     //Receipt Page
@@ -44,10 +44,10 @@ export default class RunTimePage {
 
     this.testUserHeader = [
       Selector('div').withAttribute('title', 'OLA  PRIVATPERSON'),
-      Selector('div').withAttribute('title','KARI  SELVSTENDIG'),
-      Selector('div').withAttribute('title','ANNE SOPHIE NÆRINGSDRIVENDE'),
-      Selector('div').withAttribute('title','PÅL  REVISOR'),
-      Selector('div').withAttribute('title','ROAR  SUBUNIT')
+      Selector('div').withAttribute('title', 'KARI  SELVSTENDIG'),
+      Selector('div').withAttribute('title', 'ANNE SOPHIE NÆRINGSDRIVENDE'),
+      Selector('div').withAttribute('title', 'PÅL  REVISOR'),
+      Selector('div').withAttribute('title', 'ROAR  SUBUNIT')
     ];
   }
 
@@ -56,15 +56,15 @@ export default class RunTimePage {
     return (readOnlySelector)
   }
 
-  async findAndOpenArchivedMessage (t){
+  async findAndOpenArchivedMessage(t) {
     var messages = await this.messagesList.find('tr td a');
     var messagesCount = await messages.count;
     if (messagesCount > 0) {
-        for (var i=0; i<messagesCount; i++) {
-          var innerTextMessageId = await messages.nth(i).innerText;
-          if (innerTextMessageId.includes('Arktivert'))  {
-            await t.click(messages.nth(i));
-            break;
+      for (var i = 0; i < messagesCount; i++) {
+        var innerTextMessageId = await messages.nth(i).innerText;
+        if (innerTextMessageId.includes('Arktivert')) {
+          await t.click(messages.nth(i));
+          break;
         }
       }
     }

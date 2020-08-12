@@ -9,7 +9,7 @@ let app = new App();
 let designerPage = new DesignerPage();
 let headerPage = new HeaderPage();
 let environment = (process.env.ENV).toLowerCase();
-let appName = config[environment].deployApp; 
+let appName = config[environment].deployApp;
 
 const getLocation = ClientFunction(() => document.location.href);
 

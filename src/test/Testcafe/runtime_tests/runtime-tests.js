@@ -33,7 +33,7 @@ test('Instantiate an app in runtime', async () => {
     .expect(runtime.testUsers[1].exists).ok()
     .hover(runtime.testUsers[1])
     .click(runtime.testUsers[1])
-    .expect(runtime.startNewButton.exists).ok({ timeout:120000 })
+    .expect(runtime.startNewButton.exists).ok({ timeout: 120000 })
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .expect(runtime.testUserHeader[1].exists).ok()
@@ -55,7 +55,7 @@ test('Upload files using file component in SBL', async () => {
     .click(runtime.testUsers[0])
     .expect(runtime.startNewButton.exists).ok({ timeout: 120000 })
     .click(runtime.startNewButton)
-    .switchToMainWindow()    
+    .switchToMainWindow()
     .expect(runtime.testUserHeader[0].exists).ok({ timeout: 120000 })
     .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
@@ -74,7 +74,7 @@ test('Validations when uploading file', async () => {
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()    
+    .expect(runtime.testUserHeader[0].exists).ok()
     .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_morethan_1mb.txt')
     .expect(runtime.errorMessage).ok();
@@ -121,7 +121,7 @@ test('Fill out, save, and submit an instance of an app', async () => {
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()    
+    .expect(runtime.testUserHeader[0].exists).ok()
     .expect(runtime.inputButton.exists).ok({ timeout: 120000 })
     .click(runtime.inputButton)
     .typeText(runtime.inputButton, "10101010101") //fødselsnummer input
@@ -131,8 +131,8 @@ test('Fill out, save, and submit an instance of an app', async () => {
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
     .expect(runtime.fileDeleteButton.visible).ok()
     .click(runtime.saveButton)
-    .expect(runtime.sendInnButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 240000 })
-    .click(runtime.sendInnButton)    
+    .expect(runtime.sendInnButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)", "check element color", { timeout: 240000 })
+    .click(runtime.sendInnButton)
     .expect(runtime.receiptContainer.find('h2').withText('sendt inn').exists).ok({ timeout: 120000 })
 });
 
@@ -148,7 +148,7 @@ test('Attachment dropdown and download on receipt page', async () => {
     .switchToMainWindow()
     .expect(runtime.testUserHeader[1].exists).ok()
     .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
-    .clearUpload(runtime.fileDropComponent)    
+    .clearUpload(runtime.fileDropComponent)
     .setFilesToUpload(runtime.fileDropComponent, [
       '../testdata/ServiceModel.xsd',
       '../testdata/ServiceModel.xsd',
@@ -156,16 +156,16 @@ test('Attachment dropdown and download on receipt page', async () => {
       '../testdata/ServiceModel.xsd',
       '../testdata/ServiceModel.xsd'
     ])
-  
+
   var files = await runtime.fileUploadChecks;
 
   await t
     .expect(files.exists).ok()
-    .expect(files.count).eql(5, {timeout: 180000})
-    .expect(runtime.saveButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 1000 })
+    .expect(files.count).eql(5, { timeout: 180000 })
+    .expect(runtime.saveButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)", "check element color", { timeout: 1000 })
     .click(runtime.saveButton)
-    .expect(runtime.sendInnButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 240000 })
-    .click(runtime.sendInnButton)    
+    .expect(runtime.sendInnButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)", "check element color", { timeout: 240000 })
+    .click(runtime.sendInnButton)
     .expect(runtime.receiptContainer.find('h2').withText('sendt inn').exists).ok({ timeout: 120000 })
     .expect(runtime.AttachmentDropDown.visible).ok()
     .doubleClick(runtime.AttachmentDropDown)
@@ -195,10 +195,10 @@ test('Receipt page test', async t => {
     .expect(runtime.testUsers[1].exists).ok()
     .hover(runtime.testUsers[1])
     .click(runtime.testUsers[1])
-    .expect(runtime.messagesList.exists).ok( {timeout:120000} )
+    .expect(runtime.messagesList.exists).ok({ timeout: 120000 })
   await runtime.findAndOpenArchivedMessage(t);
   await t
     .switchToMainWindow()
     .expect(runtime.receiptContainer.find('h2').withText('sendt inn').exists).ok({ timeout: 120000 })
-    .expect(runtime.receiptContainer.find('p').withText('Referansenummer').parent('td').nextSibling('td').find('p').value).notEql('','Reference number is null')
+    .expect(runtime.receiptContainer.find('p').withText('Referansenummer').parent('td').nextSibling('td').find('p').value).notEql('', 'Reference number is null')
 });
