@@ -483,6 +483,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
             </Grid>
             <Typography>
               <a
+                target='_blank'
+                rel='noopener noreferrer'
                 href='https://altinn.github.io/docs/altinn-studio/app-creation/options/'
               >
                 {getLanguageFromKey(
