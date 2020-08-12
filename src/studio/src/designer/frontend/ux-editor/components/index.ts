@@ -95,9 +95,6 @@ export const schemaComponents: IComponent[] = [
     name: 'Dropdown',
     Type: ComponentTypes.DropDown,
     Icon: componentIcons.Dropdown,
-    customProperties: {
-      options: [],
-    },
   },
   {
     name: 'FileUpload',
