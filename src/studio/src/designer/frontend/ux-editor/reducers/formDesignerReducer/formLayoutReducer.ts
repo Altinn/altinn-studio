@@ -1,3 +1,4 @@
+/* eslint-disable prefer-object-spread */
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import * as FormDesignerActions from '../../actions/formDesignerActions/actions';
@@ -437,6 +438,31 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       return update<IFormLayoutState>(state, {
         order: {
           $set: updatedOrder,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_CONTAINER_ID_FULFILLED: {
+      const { currentId, newId } = action as FormDesignerActions.IUpdateContainerIdFulfilled;
+      return update<IFormLayoutState>(state, {
+        // update component id
+        containers: (currentContainers) => {
+          const updatedContainers = Object.assign({}, currentContainers);
+          updatedContainers[newId] = updatedContainers[currentId];
+          delete updatedContainers[currentId];
+          return updatedContainers;
+        },
+        order: (currentOrder) => {
+          // update the container id in our base container
+          const updatedOrder = Object.assign({}, currentOrder);
+          const baseContainerId = Object.keys(updatedOrder)[0];
+          const baseContainerOrder = updatedOrder[baseContainerId];
+          const containerIndex = baseContainerOrder.indexOf(currentId);
+          baseContainerOrder[containerIndex] = newId;
+
+          // update id of the containers order array
+          updatedOrder[newId] = updatedOrder[currentId];
+          delete updatedOrder[currentId];
+          return updatedOrder;
         },
       });
     }

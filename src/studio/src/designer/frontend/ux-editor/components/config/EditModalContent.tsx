@@ -48,6 +48,11 @@ const styles = {
     lineHeight: 'auto',
     color: '#000000',
   },
+  addComponentText: {
+    marginTop: '2.4rem',
+    color: '#6A6A6A',
+    alignContent: 'center',
+  },
 };
 
 export interface IEditModalContentProps {
@@ -290,27 +295,17 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       dataModelBinding = {};
     }
     dataModelBinding[key] = selectedDataModelElement;
-    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 0) {
-      this.setState((prevState: IEditModalContentState) => {
-        return {
-          component: {
-            ...prevState.component,
-            required: false,
-            dataModelBindings: dataModelBinding,
-          },
-        };
-      }, () => this.props.handleComponentUpdate(this.state.component));
-    } else {
-      this.setState((prevState: IEditModalContentState) => {
-        return {
-          component: {
-            ...prevState.component,
-            required: true,
-            dataModelBindings: dataModelBinding,
-          },
-        };
-      }, () => this.props.handleComponentUpdate(this.state.component));
-    }
+    const { component } = this.props;
+    const minOccours = this.getMinOccursFromDataModel(selectedDataModelElement);
+    this.setState(() => {
+      return {
+        component: {
+          ...component,
+          required: (minOccours > 0),
+          dataModelBindings: dataModelBinding,
+        },
+      };
+    }, () => this.props.handleComponentUpdate(this.state.component));
   }
 
   public handleToggleAddressSimple = (event: object, checked: boolean) => {
@@ -730,7 +725,6 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
           </Grid>
         );
       }
-
       default: {
         return null;
       }

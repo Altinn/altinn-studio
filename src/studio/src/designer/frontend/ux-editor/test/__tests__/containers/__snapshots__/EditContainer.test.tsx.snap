@@ -5,13 +5,13 @@ exports[`>>> containers/EditContainer >>> Capture snapshot of EditContainer 1`] 
   className="MuiGrid-root MuiGrid-container"
 >
   <div
-    className="MuiGrid-root Connect(Edit)-wrapper-18 MuiGrid-container"
+    className="MuiGrid-root Connect(Edit)-wrapper-21 MuiGrid-container"
   >
     <div
       className="MuiGrid-root Connect(Edit)-gridWrapper-7 MuiGrid-item MuiGrid-grid-xs-11"
     >
       <div
-        className="Connect(Edit)-noOutline-14"
+        className="Connect(Edit)-noOutline-17"
       >
         <div
           className="MuiListItem-root Connect(Edit)-active-1 MuiListItem-gutters"
@@ -21,10 +21,10 @@ exports[`>>> containers/EditContainer >>> Capture snapshot of EditContainer 1`] 
           tabIndex={0}
         >
           <div
-            className="Connect(Edit)-textPrimaryDark-16 Connect(Edit)-formComponentTitle-6"
+            className="Connect(Edit)-textPrimaryDark-19 Connect(Edit)-formComponentTitle-6"
           >
             <i
-              className="Connect(Edit)-icon-19 fa fa-short-answer"
+              className="Connect(Edit)-icon-22 fa fa-short-answer"
             />
             Input
           </div>
@@ -35,13 +35,13 @@ exports[`>>> containers/EditContainer >>> Capture snapshot of EditContainer 1`] 
       className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-1"
     >
       <div
-        className="MuiGrid-root Connect(Edit)-gridForBtnSingleActive-11 MuiGrid-container"
+        className="MuiGrid-root Connect(Edit)-gridForBtnSingleActive-13 MuiGrid-container"
       >
         <div
           className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
         >
           <button
-            className="MuiButtonBase-root MuiIconButton-root Connect(Edit)-formComponentsBtn-5 Connect(Edit)-specialBtn-15"
+            className="MuiButtonBase-root MuiIconButton-root Connect(Edit)-formComponentsBtn-5 Connect(Edit)-specialBtn-18"
             disabled={false}
             onBlur={[Function]}
             onClick={[Function]}

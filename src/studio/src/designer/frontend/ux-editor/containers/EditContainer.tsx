@@ -1,6 +1,5 @@
-import {
-  createStyles, Grid, IconButton, ListItem, withStyles,
-} from '@material-ui/core';
+/* eslint-disable no-nested-ternary */
+import { createStyles, Grid, IconButton, ListItem, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -64,15 +63,30 @@ const styles = createStyles({
     visibility: 'hidden',
     paddingBottom: '0.8rem',
   },
+  gridForBtnGroup: {
+    marginTop: '-0.2rem !important',
+    visibility: 'hidden',
+    paddingBottom: '0.8rem',
+  },
   gridForBtnActive: {
     marginTop: '-0.2rem !important',
     visibility: 'visible',
     paddingBottom: '0.8rem',
     marginLeft: '0.2rem',
   },
+  gridForBtnActiveGroup: {
+    marginTop: '-0.2rem !important',
+    visibility: 'visible',
+    paddingBottom: '0.8rem',
+  },
   gridForBtnSingleActive: {
     marginTop: '-0.2rem !important',
     marginLeft: '-1rem !important',
+    visibility: 'visible',
+    paddingBottom: '0.8rem',
+  },
+  gridForBtnSingleActiveGroup: {
+    marginTop: '-0.2rem !important',
     visibility: 'visible',
     paddingBottom: '0.8rem',
   },
@@ -120,6 +134,9 @@ const styles = createStyles({
     '&:hover $gridForBtn': {
       visibility: 'visible',
     },
+    '&:hover $gridForBtnGroup': {
+      visibility: 'visible',
+    },
   },
   icon: {
     color: '#6a6a6a',
@@ -135,8 +152,8 @@ export interface IEditContainerProvidedProps {
   sendItemToParent: any;
   classes: any;
   singleSelected: boolean;
+  partOfGroup?: boolean;
 }
-
 export interface IEditContainerProps extends IEditContainerProvidedProps {
   id: string;
   dataModel: IDataModelFieldElement[];
@@ -172,6 +189,7 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
       hideDelete: false,
       hideEdit: false,
       component: {
+        id: this.props.id,
         ...this.props.component,
       },
       listItem: {
@@ -250,8 +268,8 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
         inEditMode: false,
       },
     }, () => {
-      const { required: requiredState, ...restState} = this.state.component;
-      const { required: requiredProps, ...restProps} = this.props.component;
+      const { required: requiredState, ...restState } = this.state.component;
+      const { required: requiredProps, ...restProps } = this.props.component;
       if (JSON.stringify(restState) !== JSON.stringify(restProps)) {
         this.handleSaveChange(this.state.component);
       }
@@ -269,10 +287,14 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
   }
 
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
+    const { id, ...rest } = callbackComponent;
     FormDesignerActionDispatchers.updateFormComponent(
-      callbackComponent,
+      rest,
       this.props.id,
     );
+    if (id !== this.props.id) {
+      FormDesignerActionDispatchers.updateContainerId(this.props.id, id);
+    }
   }
 
   public handleTitleChange = (e: any): void => {
@@ -300,10 +322,19 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
 
   public btnGrid = () => {
     if (this.props.activeList.length > 1) {
+      if (this.props.partOfGroup) {
+        return this.props.classes.gridForBtnActiveGroup;
+      }
       return this.props.classes.gridForBtnActive;
     }
     if (this.props.activeList.length === 1) {
+      if (this.props.partOfGroup) {
+        return this.props.classes.gridForBtnSingleActiveGroup;
+      }
       return this.props.classes.gridForBtnSingleActive;
+    }
+    if (this.props.partOfGroup) {
+      return this.props.classes.gridForBtnGroup;
     }
     return this.props.classes.gridForBtn;
   }
@@ -324,7 +355,7 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
               item={true}
               xs={11}
               className={(this.props.activeList.length > 1) && (activeListIndex >= 0) ?
-                this.props.classes.gridWrapperActive : this.props.classes.gridWrapper}
+                this.props.classes.gridWrapperActive : (this.props.partOfGroup ? '' : this.props.classes.gridWrapper)}
             >
               <div
                 className={(this.props.activeList.length > 1) && (activeListIndex >= 0) ?
@@ -333,7 +364,7 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
               >
                 <ListItem
                   className={activeListIndex > -1 || this.state.isEditMode ? this.props.classes.active :
-                    this.props.classes.formComponent}
+                    ((this.props.component.type === 'Group') ? this.props.classes.formGroup : this.props.classes.formComponent)}
                   onClick={this.handleSetActive}
                   tabIndex={0}
                   onKeyPress={this.handleKeyPress}
@@ -408,7 +439,8 @@ export class Edit extends React.Component<IEditContainerProps, IEditContainerSta
                 <Grid
                   container={true}
                   direction='row'
-                  className={this.props.classes.gridForBtnSingleActive}
+                  // eslint-disable-next-line max-len
+                  className={this.props.partOfGroup ? this.props.classes.gridForBtnSingleActiveGroup : this.props.classes.gridForBtnSingleActive}
                 >
                   <Grid item={true} xs={12}>
                     <IconButton

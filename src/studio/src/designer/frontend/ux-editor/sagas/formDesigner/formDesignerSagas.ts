@@ -1,3 +1,6 @@
+/* eslint-disable no-param-reassign */
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable consistent-return */
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import * as SharedNetwork from 'app-shared/utils/networking';
@@ -8,15 +11,15 @@ import FormDesignerActionDispatchers from '../../actions/formDesignerActions/for
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IServiceConfigurationState } from '../../reducers/serviceConfigurationReducer';
-import {
-  convertFromLayoutToInternalFormat,
+import { convertFromLayoutToInternalFormat,
   convertInternalToLayoutFormat,
-  getParentContainerId,
-} from '../../utils/formLayout';
+  getParentContainerId } from '../../utils/formLayout';
 import { get, post } from '../../utils/networking';
 import { getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getSaveFormLayoutUrl, getUpdateApplicationMetadataUrl } from '../../utils/urlHelper';
+import { IUpdateContainerIdAction } from '../../actions/formDesignerActions/actions';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
+
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectServiceConfiguration = (state: IAppState): IServiceConfiguration => state.serviceConfigurations;
 
@@ -144,7 +147,7 @@ function* deleteFormComponentSaga({
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     let containerId = Object.keys(formDesignerState.layout.order)[0];
-    Object.keys(formDesignerState.layout.order).forEach((cId, index) => {
+    Object.keys(formDesignerState.layout.order).forEach((cId) => {
       if (formDesignerState.layout.order[cId].find((componentId) => componentId === id)) {
         containerId = cId;
       }
@@ -176,7 +179,6 @@ export function* watchDeleteFormComponentSaga(): SagaIterator {
 function* deleteFormContainerSaga({
   id,
   index,
-  parentContainerId,
 }: FormDesignerActions.IDeleteContainerAction): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
@@ -238,8 +240,7 @@ function* fetchFormLayoutSaga({
           repeating: false,
           dataModelGroup: null,
           index: 0,
-        },
-      );
+        });
     }
   } catch (err) {
     console.error(err);
@@ -248,7 +249,7 @@ function* fetchFormLayoutSaga({
 }
 
 export function* watchFetchFormLayoutSaga(): SagaIterator {
-    yield takeLatest(
+  yield takeLatest(
     FormDesignerActionTypes.FETCH_FORM_LAYOUT,
     fetchFormLayoutSaga,
   );
@@ -272,6 +273,7 @@ function* saveFormLayoutSaga({
     yield call(FormDesignerActionDispatchers.saveFormLayoutFulfilled);
     window.postMessage(postMessages.filesAreSaved, window.location.href);
   } catch (err) {
+    console.log('err', err);
     yield call(FormDesignerActionDispatchers.saveFormLayoutRejected, err);
   }
 }
@@ -355,6 +357,10 @@ export function* updateFormContainerSaga({
       updatedContainer,
       id,
     );
+    yield call(
+      FormDesignerActionDispatchers.saveFormLayout,
+      getSaveFormLayoutUrl(),
+    );
   } catch (err) {
     yield call(FormDesignerActionDispatchers.updateFormContainerRejected, err);
   }
@@ -412,11 +418,14 @@ function* createRepeatingContainer(
   newContainerId: string,
   containerToCopyId: string,
   container: ICreateFormContainer,
-  addToId?: string): SagaIterator {
+  addToId?: string,
+): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     const serviceConfigurations: IServiceConfigurationState = yield select(selectServiceConfiguration);
-    const { layout: { components, containers, order } } = formDesignerState;
+    const { layout: {
+      components, containers, order,
+    } } = formDesignerState;
     const baseContainerId = Object.keys(order)[0];
     let positionAfter = containerToCopyId;
 
@@ -438,7 +447,8 @@ function* createRepeatingContainer(
           (selectedFieldKey: string) => {
             const selectedTarget = serviceConfigurations.conditionalRendering[key].selectedFields[selectedFieldKey];
             conditionalRenderingRules[selectedTarget] = { conditionalRenderingId: key };
-          });
+          },
+        );
       });
     }
 
@@ -480,7 +490,8 @@ function* createRepeatingContainer(
         const newConditionalRuleObject: any = {};
         newConditionalRuleObject[newConditionalRuleId] = newCondtitionalRule;
         yield call(
-          conditionalRenderingActionDispatcher.addConditionalRendering, newConditionalRuleObject);
+          conditionalRenderingActionDispatcher.addConditionalRendering, newConditionalRuleObject,
+        );
       }
     }
   } catch (err) {
@@ -501,8 +512,7 @@ export function* updateFormComponentOrderSaga({
 }: FormDesignerActions.IUpdateFormComponentOrderAction): SagaIterator {
   try {
     yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-      updatedOrder,
-    );
+      updatedOrder);
     const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
     yield call(
       FormDesignerActionDispatchers.saveFormLayout,
@@ -510,8 +520,7 @@ export function* updateFormComponentOrderSaga({
     );
   } catch (err) {
     yield call(FormDesignerActionDispatchers.updatedFormComponentOrderActionRejected,
-      err,
-    );
+      err);
   }
 }
 
@@ -538,15 +547,13 @@ export function* addApplicationMetadata({
         minCount: minFiles,
         maxSize,
         fileType,
-      },
-    );
+      });
     yield call(
       FormDesignerActionDispatchers.addApplicationMetadataFulfilled,
     );
   } catch (error) {
     yield call(FormDesignerActionDispatchers.addApplicationMetadataRejected,
-      error,
-    );
+      error);
   }
 }
 
@@ -562,15 +569,13 @@ export function* deleteApplicationMetadata({
     yield call(SharedNetwork.post, deleteApplicationMetadataUrl + id,
       {
         id,
-      },
-    );
+      });
     yield call(
       FormDesignerActionDispatchers.deleteApplicationMetadataFulfilled,
     );
   } catch (error) {
     yield call(FormDesignerActionDispatchers.deleteApplicationMetadataRejected,
-      error,
-    );
+      error);
   }
 }
 
@@ -594,19 +599,29 @@ export function* updateApplicationMetadata({
         minCount: minFiles,
         maxSize,
         fileType,
-      },
-    );
+      });
     yield call(
       FormDesignerActionDispatchers.updateApplicationMetadataFulfilled,
     );
-
   } catch (error) {
     yield call(FormDesignerActionDispatchers.updateApplicationMetadataRejected,
-      error,
-    );
+      error);
   }
 }
 
 export function* watchUpdateApplicationMetadataSaga(): SagaIterator {
   yield takeLatest(FormDesignerActionTypes.UPDATE_APPLICATION_METADATA, updateApplicationMetadata);
+}
+
+export function* updateContainerIdSaga({ currentId, newId }: IUpdateContainerIdAction): SagaIterator {
+  try {
+    yield call(FormDesignerActionDispatchers.updateContainerIdFulfilled, currentId, newId);
+    yield call(FormDesignerActionDispatchers.saveFormLayout, getSaveFormLayoutUrl());
+  } catch (error) {
+    yield call(FormDesignerActionDispatchers.updateContainerIdRejected, error);
+  }
+}
+
+export function* watchUpdateContainerIdSaga(): SagaIterator {
+  yield takeLatest(FormDesignerActionTypes.UPDATE_CONTAINER_ID, updateContainerIdSaga);
 }

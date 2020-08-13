@@ -68,13 +68,12 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       const { layoutOrder } = this.state;
       const updatedSource: string[] = layoutOrder[sourceContainerId];
       const updatedDestination: string[] = layoutOrder[destinationContainerId];
-
-      if (updatedDestination.indexOf('placeholder') > -1) {
+      if (updatedDestination?.indexOf('placeholder') > -1) {
         // remove the placeholder in the destination
         updatedDestination.splice(updatedDestination.indexOf('placeholder'), 1);
       }
       const [moveItem] = updatedSource.splice(layoutOrder[sourceContainerId].indexOf(id), 1);
-      updatedDestination.splice(index, 0, moveItem);
+      updatedDestination?.splice(index, 0, moveItem);
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
         layoutOrder: {
           [sourceContainerId]: {
@@ -104,6 +103,11 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       return;
     }
 
+    if (!destinationContainerId) {
+      // dont know where to put the container, ignore
+      return;
+    }
+
     if (sourceContainerId === destinationContainerId) {
       const { layoutOrder } = this.state;
       const updatedOrder: string[] = layoutOrder[sourceContainerId];
@@ -123,12 +127,12 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       const { layoutOrder } = this.state;
       const updatedSource: string[] = layoutOrder[sourceContainerId];
       const updatedDestination: string[] = layoutOrder[destinationContainerId];
-      if (updatedDestination.indexOf('placeholder') > -1) {
+      if (updatedDestination?.indexOf('placeholder') > -1) {
         // remove the placeholder in the destination (if there is one)
         updatedDestination.splice(updatedDestination.indexOf('placeholder'), 1);
       }
       const [movedContainer] = updatedSource.splice(layoutOrder[sourceContainerId].indexOf(id), 1);
-      updatedDestination.splice(index, 0, movedContainer);
+      updatedDestination?.splice(index, 0, movedContainer);
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
         layoutOrder: {
           [destinationContainerId]: {
