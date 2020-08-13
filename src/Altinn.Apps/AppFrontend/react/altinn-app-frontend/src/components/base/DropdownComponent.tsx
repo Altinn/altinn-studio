@@ -40,6 +40,10 @@ function DropdownComponent(props: IDropdownProps) {
     props.handleDataChange(event.target.value);
   };
 
+  const handleOnBlur = (event: React.FocusEvent<HTMLSelectElement>) => {
+    props.handleDataChange(event.target.value);
+  };
+
   return (
     <select
       id={props.id}
@@ -47,6 +51,7 @@ function DropdownComponent(props: IDropdownProps) {
       disabled={props.readOnly}
       className={classNames(classes.select, 'custom-select a-custom-select', { 'validation-error': !props.isValid, 'disabled !important': props.readOnly })}
       onChange={handleOnChange}
+      onBlur={handleOnBlur}
     >
       <option style={{ display: 'none' }}/>
       {options?.map((option, index) => (
