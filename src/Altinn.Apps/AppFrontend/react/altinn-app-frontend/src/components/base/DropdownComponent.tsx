@@ -1,8 +1,11 @@
+/* eslint-disable jsx-a11y/control-has-associated-label */
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { IRuntimeState } from 'src/types';
 import '../../styles/shared.css';
 import classNames from 'classnames';
+import { makeStyles } from '@material-ui/core';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 
 export interface IDropdownProps {
   formData: string;
@@ -20,7 +23,17 @@ export interface IDropdownState {
   name: string;
 }
 
+const useStyles = makeStyles({
+  select: {
+    fontSize: '1.6rem',
+    '&:focus': {
+      outline: `2px solid ${AltinnAppTheme.altinnPalette.primary.blueDark}`,
+    },
+  },
+});
+
 function DropdownComponent(props: IDropdownProps) {
+  const classes = useStyles();
   const options = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
 
   const handleOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -32,9 +45,10 @@ function DropdownComponent(props: IDropdownProps) {
       id={props.id}
       value={props.formData}
       disabled={props.readOnly}
-      className={classNames('custom-select a-custom-select', { 'validation-error': !props.isValid, 'disabled !important': props.readOnly })}
+      className={classNames(classes.select, 'custom-select a-custom-select', { 'validation-error': !props.isValid, 'disabled !important': props.readOnly })}
       onChange={handleOnChange}
     >
+      <option style={{ display: 'none' }}/>
       {options?.map((option, index) => (
         <option
           key={index}
