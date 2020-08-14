@@ -180,7 +180,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     event.stopPropagation();
     this.setState({
       editMode: false,
-      tmpContainer: JSON.stringify(this.props.containers[this.props.id]) as unknown as ICreateFormContainer,
+      tmpContainer: JSON.parse(JSON.stringify(this.props.containers[this.props.id])) as unknown as ICreateFormContainer,
     });
   }
 

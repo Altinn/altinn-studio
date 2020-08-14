@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-restricted-syntax */
 import { IFormDesignerState } from '../reducers/formDesignerReducer';
 // tslint:disable-next-line:no-var-requires
@@ -28,7 +29,7 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormDesig
   if (!formLayout) {
     return convertedLayout;
   }
-  formLayout = JSON.parse(JSON.stringify(formLayout));
+  formLaysout = JSON.parse(JSON.stringify(formLayout));
   const baseContainerId: string = uuid();
   convertedLayout.order[baseContainerId] = [];
   convertedLayout.containers[baseContainerId] = {
