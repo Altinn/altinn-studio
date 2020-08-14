@@ -29,7 +29,7 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormDesig
   if (!formLayout) {
     return convertedLayout;
   }
-  formLaysout = JSON.parse(JSON.stringify(formLayout));
+  formLayout = JSON.parse(JSON.stringify(formLayout));
   const baseContainerId: string = uuid();
   convertedLayout.order[baseContainerId] = [];
   convertedLayout.containers[baseContainerId] = {
