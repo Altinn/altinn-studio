@@ -23,7 +23,7 @@ test('Drag and drop test', async () => {
   var appName = config[environment].designerApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
-    .expect(designer.inputComponent).ok()
+    .expect(designer.inputComponent.exists).ok()
     .dragToElement(designer.inputComponent, designer.dragToArea)
     .click(designer.advancedComponentsGroup)
     .dragToElement(designer.addressComponent, designer.dragToArea)

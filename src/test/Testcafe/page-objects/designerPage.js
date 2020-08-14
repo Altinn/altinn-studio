@@ -44,6 +44,7 @@ export default class DesignerPage {
     this.radioButtonComponent = Selector(".fa.fa-radio-button").parent(2);
     this.textAreaComponent = Selector(".fa.fa-long-answer").parent(2);
     this.attachmentComponent = Selector(".fa.fa-attachment").parent(2);
+    this.dropDown = Selector(".fa.fa-drop-down").parent(2);
     this.submitComponent = Selector(".fa.fa-button").parent(2);
     this.headerComponent = Selector(".fa.fa-title").parent(2);
     this.paragraphComponent = Selector(".fa.fa-paragraph").parent(2);
@@ -70,7 +71,10 @@ export default class DesignerPage {
     this.versionNumber = Selector('div > div').withAttribute('aria-label', 'Versjonsnummer');
     this.versionDescription = Selector('div > textarea');
     this.buildButton = Selector('button').withExactText('Bygg versjon');
-    this.latestBuilds = Selector('.MuiGrid-root').withText('Tidligere bygg av applikasjonen').parent(0).sibling(3);
+    this.appBuilds = Selector('p').withText('Tidligere bygg av applikasjonen').parent(0).nextSibling();
+    this.latestBuildStatusSuccess = this.appBuilds.child(0).find('i').withAttribute('class', /(ai-check-circle)/);
+    this.latestBuildStatusFailure = this.appBuilds.child(0).find('i').withAttribute('class', /(ai-circle-exclamation)/);
+    this.latestBuildStatusInprogress = this.appBuilds.child(0).find('div').withAttribute('role', 'progressbar');
     this.deployButton = (environment == 'prod') ? Selector('#deploy-button-production') : Selector('#deploy-button-at22');
     this.deployVersionDropDown = (environment == 'prod') ? Selector('#deploy-select-production') : Selector('#deploy-select-at22');
     this.noDeployVersionAvailable = Selector('div').withText('Du har ingen versjoner å deploye');

@@ -54,9 +54,12 @@ test('Happy case; build and deploy an app after a change', async () => {
   await t
     .typeText(designer.versionNumber, newBuildVersion.toString())
     .typeText(designer.versionDescription, "Autotest build " + dateTime.toString(), { replace: true })
-    .click(designer.buildButton);
+    .click(designer.buildButton)
+    .wait(5000);
 
   await t
+    .expect(designer.latestBuildStatusInprogress.exists).ok({ timeout: 300000 })
+    .expect(designer.latestBuildStatusSuccess.exists).ok({ timeout: 300000 })
     .click(designer.deployVersionDropDown)
     .expect(designer.deployVersionDropDown.child(0).innerText).contains(newBuildVersion.toString(), "Fail", { timeout: 300000 })
     .expect(designer.deployVersionOptions.child().count).eql(nAvailableVersions + 1)
@@ -89,6 +92,10 @@ test('App cannot build due to compilation error', async () => {
     .typeText(designer.versionDescription, "Testcafe compilation error build", { replace: true })
     .expect(designer.buildButton.exists).ok({ timeout: 120000 })
     .click(designer.buildButton)
+    .wait(5000)
+  await t
+    .expect(designer.latestBuildStatusInprogress.exists).ok({ timeout: 300000 })
+    .expect(designer.latestBuildStatusFailure.exists).ok({ timeout: 300000 })
     .click(designer.deployVersionDropDown);
   var lastbuildVersion = await designer.getlatestBuildVersion(t);
   await t

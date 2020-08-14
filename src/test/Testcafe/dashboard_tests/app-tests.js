@@ -43,6 +43,6 @@ test('Error messages when app does not exist', async () => {
     .click(dash.appSearch)
     .typeText(dash.appSearch, "cannotfindapp")
     .pressKey("enter")
-    .expect(Selector('p').withText(t.ctx.ingenSkriveApper)).ok({ timeout: 120000 })
-    .expect(Selector('p').withText(t.ctx.ingenLeseApper)).ok({ timeout: 120000 })
+    .expect(Selector('p').withText(t.ctx.ingenSkriveApper).exists).ok({ timeout: 120000 })
+    .expect(Selector('p').withText(t.ctx.ingenLeseApper).exists).ok({ timeout: 120000 })
 });
