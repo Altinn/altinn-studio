@@ -118,5 +118,5 @@ export function deleteInstanceById(altinnStudioRuntimeCookie, partyId, instanceI
 export function putUpdateReadStatus(altinnStudioRuntimeCookie, partyId, instanceId, readStatus) {
     var endpoint = config.buildStorageUrls(partyId, instanceId, "", "readstatus") + "?status=" + readStatus;
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");
-    return http.del(endpoint, null, params);
+    return http.put(endpoint, null, params);
 };

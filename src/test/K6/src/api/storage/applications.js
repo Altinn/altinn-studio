@@ -33,8 +33,8 @@ export function putEditApp(altinnStudioRuntimeCookie, appOwner, appName, metadat
 };
 
 //Api call to Storage:Applications to delete an app by appName and returns response
-export function deleteAppByName(altinnStudioRuntimeCookie, appOwner, appName) {
-    var endpoint = config.platformStorage["applications"] + "/" + appOwner + "/" + appName;
+export function deleteAppByName(altinnStudioRuntimeCookie, appOwner, appName, hardDelete) {
+    var endpoint = config.platformStorage["applications"] + "/" + appOwner + "/" + appName + "?hard=" + hardDelete;
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");
     return http.del(endpoint, null, params);
 };

@@ -62,7 +62,23 @@ export default function (data) {
     //Test to get all instances for a party from storage and validate the response to have 403 as code
     res = instances.getAllinstancesByPartyId(runtimeToken, partyId);
     success = check(res, {
-        "GET Instaces by instanceOwner status is 200:": (r) => r.status === 200
+        "GET Instances by instanceOwner status is 200:": (r) => r.status === 200
+    });
+    addErrorCount(success);
+
+    //Test to update the read status of an instance and validate the response
+    res = instances.putUpdateReadStatus(runtimeToken, partyId, instanceId, "Read");
+    success = check(res, {
+        "PUT Update read status is 200:": (r) => r.status === 200,
+        "Read status is updated as read:": (r) => JSON.parse(r.body).status.readStatus === "Read"
+    });
+    addErrorCount(success);
+
+    //Test to soft delete an instance by id and validate the response code and response body to have the soft deleted date set
+    res = instances.deleteInstanceById(runtimeToken, partyId, instanceId, "false");
+    success = check(res, {
+        "Soft DELETE Instance status is 200:": (r) => r.status === 200,
+        "Soft DELETE data set to the instance:": (r) => JSON.parse(r.body).status.softDeleted != null
     });
     addErrorCount(success);
 

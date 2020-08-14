@@ -61,10 +61,18 @@ export default function (data) {
   addErrorCount(success);
 
   //Api call to Platform: Storage: PUT Edit an app metadata
-  //expected: 200 as response code
+  //expected: 403 as response code as it is not possible to create App with an user token
   res = application.putEditApp(runtimeToken, appOwner, testApp, metadata);
   success = check(res, {
     "PUT Edit App status is 403:": (r) => r.status === 403
+  });
+  addErrorCount(success);
+
+  //Api call to Platform: Storage: Delete an application
+  //expected: 403 as response code as it is not possible to create App with an user token
+  res = application.deleteAppByName(runtimeToken, appOwner, testApp, "false");
+  success = check(res, {
+    "DELETE App status is 403:": (r) => r.status === 403
   });
   addErrorCount(success);
 };
