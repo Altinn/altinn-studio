@@ -20,7 +20,7 @@ import { renderSelectGroupDataModelBinding } from '../utils/render';
 import { FormComponentWrapper } from '../components/FormComponent';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 
-export interface IProvidedContainerProps {
+export interface IProvidedContainerProps extends WithStyles<typeof styles>{
   id: string;
   index?: number;
   baseContainer?: boolean;
@@ -31,7 +31,7 @@ export interface IProvidedContainerProps {
   onDropContainer?: (...args: any) => void;
 }
 
-export interface IContainerProps extends IProvidedContainerProps, WithStyles<typeof styles> {
+export interface IContainerProps extends IProvidedContainerProps {
   dataModelGroup?: string;
   itemOrder: any;
   components: any;
@@ -559,6 +559,7 @@ const makeMapStateToProps = () => {
     const container = containers[props.id];
     const itemOrder = GetLayoutContainerOrder(state, props.id);
     return {
+      ...props,
       activeList: state.formDesigner.layout.activeList,
       dataModelGroup: container.dataModelGroup,
       repeating: container.repeating,
