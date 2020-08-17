@@ -16,7 +16,7 @@
       "maxCount": 1,
       "appLogic": {
         "autoCreate": true,
-        "ClassRef": "App.IntegrationTests.Mocks.Apps.tdd.custom_validation.Skjema"
+        "ClassRef": "App.IntegrationTests.Mocks.Apps.tdd.complex_process.Skjema"
       },
       "taskId": "Task_1"
     },
