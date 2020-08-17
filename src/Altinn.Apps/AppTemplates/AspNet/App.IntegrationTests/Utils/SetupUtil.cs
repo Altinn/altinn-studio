@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Linq;
@@ -13,6 +14,7 @@ using Altinn.Platform.Authentication.Maskinporten;
 
 using AltinnCore.Authentication.JwtCookie;
 using App.IntegrationTests.Mocks.Services;
+using App.IntegrationTestsRef.Data.apps.tdd.sirius.services;
 using App.IntegrationTestsRef.Mocks.Services;
 
 using Microsoft.AspNetCore.TestHost;
@@ -20,12 +22,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Mvc.Testing;
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Collections;
-using System.Linq;
-using App.IntegrationTestsRef.Data.apps.tdd.sirius.services;
 
 namespace App.IntegrationTestsRef.Utils
 {
@@ -86,9 +82,6 @@ namespace App.IntegrationTestsRef.Utils
                             services.AddSingleton<IInstance, InstancePlatformFailsMock>();
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.platform_fails.AltinnApp>();
                             break;
-                        case "complex-process":
-                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.complex_process.App>();
-                            break;
                         case "contributor-restriction":
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.contributer_restriction.AltinnApp>();
                             break;
@@ -106,7 +99,6 @@ namespace App.IntegrationTestsRef.Utils
             return factory.CreateClient();
         }
 
-
         public static void AddAuthCookie(HttpRequestMessage requestMessage, string token, string xsrfToken = null)
         {
             requestMessage.Headers.Add("Cookie", Altinn.App.Services.Constants.General.RuntimeCookieName + "=" + token);
@@ -118,13 +110,13 @@ namespace App.IntegrationTestsRef.Utils
 
         public static string GetXsrfCookieValue(HttpResponseMessage response)
         {
-            System.Collections.Generic.IEnumerable<string> setCookieHeaders = response.Headers.GetValues("Set-Cookie");
+            List<string> cookieHeaders = response.Headers.GetValues("Set-Cookie").ToList();
 
-            for (int i = 0; i < setCookieHeaders.Count(); i++)
+            foreach (string cookieHeader in cookieHeaders)
             {
-                if (setCookieHeaders.ElementAt(i).StartsWith("XSRF-TOKEN"))
+                if (cookieHeader.StartsWith("XSRF-TOKEN"))
                 {
-                    return setCookieHeaders.ElementAt(i).Substring(11).Split(";")[0];
+                    return cookieHeader.Substring(11).Split(";")[0];
                 }
             }
 
@@ -134,7 +126,7 @@ namespace App.IntegrationTestsRef.Utils
         private static string GetAppPath(string org, string app)
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Apps\", org + @"\", app + @"\");
+            return Path.Combine(unitTestFolder, $"../../../Data/Apps/{org}/{app}/");
         }
     }
 }
