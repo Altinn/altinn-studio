@@ -4,16 +4,16 @@
     3. Send maskinporten token as environment variable after generating the token
 
     This test script can only be run with virtual users and iterations count and not based on duration.
-    example: k6 run -i 20 -u 10 /src/tests/platform/storage/downloadinstances.js -e env=test -e org=ttd 
+    example: k6 run -i 20 -u 10 /src/tests/platform/storage/appowner/downloadinstances.js -e env=test -e org=ttd 
     -e level2app=rf-0002 -e subskey=*** -e maskinporten=token
 */
 
 import { check } from "k6";
-import { addErrorCount, printResponseToConsole } from "../../../errorcounter.js";
-import * as storageInstances from "../../../api/storage/instances.js"
-import * as storageData from "../../../api/storage/data.js"
-import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
-import * as setUpData from "../../../setup.js";
+import { addErrorCount, printResponseToConsole } from "../../../../errorcounter.js";
+import * as storageInstances from "../../../../api/storage/instances.js"
+import * as storageData from "../../../../api/storage/data.js"
+import { convertMaskinPortenToken } from "../../../../api/platform/authentication.js"
+import * as setUpData from "../../../../setup.js";
 
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;

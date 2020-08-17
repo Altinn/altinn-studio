@@ -1,19 +1,21 @@
 /* 
-    Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run src/tests/platform/storage/instances.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+    Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test) to find the party id of the user to create an instance
+    Command: docker-compose run k6 run src/tests/platform/storage/appowner/createinstance.js 
+    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e subskey=*** -e maskinporten=token
 */
 
 import { check } from "k6";
-import { addErrorCount } from "../../../errorcounter.js";
-import * as instances from "../../../api/storage/instances.js"
-import * as setUpData from "../../../setup.js";
-import * as sbl from "../../../api/storage/messageboxinstances.js"
+import { addErrorCount } from "../../../../errorcounter.js";
+import { convertMaskinPortenToken } from "../../../../api/platform/authentication.js"
+import * as instances from "../../../../api/storage/instances.js"
+import * as setUpData from "../../../../setup.js";
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
-let instanceJson = open("../../../data/instance.json");
+const maskinPortenToken = __ENV.maskinporten;
+let instanceJson = open("../../../../data/instance.json");
 
 export const options = {
     thresholds: {
@@ -28,19 +30,20 @@ export function setup() {
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     setUpData.clearCookies();
     var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
+    altinnStudioRuntimeCookie = convertMaskinPortenToken(maskinPortenToken, "true");
     data.RuntimeToken = altinnStudioRuntimeCookie;
     return data;
 };
 
 
-//Tests for platform Storage: Instances
+//Tests for platform Storage: Instances for an appowner
 export default function (data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
     var instanceId = "";
     var res, success;
 
-    //Test to create an instance with storage api and validate the response
+    //Test to create an instance with storage api and validate the response that created by is an app owner
     res = instances.postInstance(runtimeToken, partyId, appOwner, level2App, instanceJson);
     success = check(res, {
         "POST Create Instance status is 201:": (r) => r.status === 201,
@@ -55,14 +58,8 @@ export default function (data) {
     //Test to get an instance by id from storage and validate the response
     res = instances.getInstanceById(runtimeToken, partyId, instanceId);
     success = check(res, {
-        "GET Instance by Id status is 200:": (r) => r.status === 200
-    });
-    addErrorCount(success);
-
-    //Test to get all instances for a party from storage and validate the response to have 200 as code
-    res = instances.getAllinstancesByPartyId(runtimeToken, partyId);
-    success = check(res, {
-        "GET Instances by instanceOwner status is 200:": (r) => r.status === 200
+        "GET Instance by Id status is 200:": (r) => r.status === 200,
+        "CreatedBy of Instance is app owner:": (r) => JSON.parse(r.body).createdBy.toString().length === 9
     });
     addErrorCount(success);
 
@@ -74,13 +71,13 @@ export default function (data) {
     });
     addErrorCount(success);
 
-    //Test to soft delete an instance by id and validate the response code and response body to have the soft deleted date set
-    res = instances.deleteInstanceById(runtimeToken, partyId, instanceId, "false");
+    //Test to get an instance of an app in a specific task from storage and validate the response
+    res = instances.getAllinstancesByCurrentTask(runtimeToken, appOwner, level2App, "Task_1");
     success = check(res, {
-        "Soft DELETE Instance status is 200:": (r) => r.status === 200,
-        "Soft DELETE data set to the instance:": (r) => JSON.parse(r.body).status.softDeleted != null
+        "GET Instance by Current task is 200:": (r) => r.status === 200,
+        "Instances based on current task are retrieved:": (r) => JSON.parse(r.body).totalHits > 0,
+        "Instance current task is task_1:": (r) => JSON.parse(r.body).instances[0].process.currentTask.elementId === "Task_1"
     });
     addErrorCount(success);
 
-    sbl.deleteSblInstance(runtimeToken, partyId, instanceId, "true");
 };

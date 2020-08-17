@@ -34,6 +34,13 @@ export function getAllinstancesByPartyId(altinnStudioRuntimeCookie, partyId) {
     return http.get(endpoint, params);
 };
 
+//Api call to Storage:Instances to get all instances of an app which are in a specific current task and return response
+export function getAllinstancesByCurrentTask(altinnStudioRuntimeCookie, appOwner, appName, currentTask) {
+    var endpoint = config.platformStorage["instances"] + "?appId=" + appOwner + "/" + appName + "&process.currentTask=" + currentTask;
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");
+    return http.get(endpoint, params);
+};
+
 //Api call to Storage:Instances to get all instances under a party id and return response
 export function getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, isArchived, createdDateTime) {
     if (!(createdDateTime)) {
