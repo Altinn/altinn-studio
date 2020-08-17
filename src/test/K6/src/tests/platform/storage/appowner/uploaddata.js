@@ -70,7 +70,7 @@ export default function (data) {
     //Test to get a data from an instance by id and validate the response
     res = instanceData.getData(runtimeToken, partyId, instanceId, dataId);
     success = check(res, {
-        "GET Data by Id status is 200:": (r) => r.status === 200        
+        "GET Data by Id status is 200:": (r) => r.status === 200
     });
     addErrorCount(success);
 
