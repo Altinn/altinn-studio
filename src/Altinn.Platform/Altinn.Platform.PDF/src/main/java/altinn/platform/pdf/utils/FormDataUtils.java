@@ -98,6 +98,8 @@ public class FormDataUtils {
     String xmlAsString = new String(xmlAsBytes, StandardCharsets.UTF_8);
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
     factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+    factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+    factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
     DocumentBuilder builder = factory.newDocumentBuilder();
     return builder.parse(new InputSource(new StringReader(xmlAsString)));
   }
