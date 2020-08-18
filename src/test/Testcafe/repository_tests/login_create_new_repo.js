@@ -23,7 +23,7 @@ fixture('adminster repos')
   })
   .beforeEach(async t => {
     if (firstRun) {
-  await t.useRole(AutoTestUser)
+      await t.useRole(AutoTestUser)
       await common.ensureUserHasNoRepos(testUser.userName, landingPage, repoPage);
       firstRun = false;
     }
