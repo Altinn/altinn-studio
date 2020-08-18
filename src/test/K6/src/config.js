@@ -10,16 +10,16 @@ export var baseUrls = {
 
 //Get values from environment
 let environment = (__ENV.env).toLowerCase();
-export let baseUrl =  baseUrls[environment];
+export let baseUrl = baseUrls[environment];
 
 //Altinn API
-export var authentication =  {
+export var authentication = {
     authenticationWithPassword: "https://" + baseUrl + "/api/authentication/authenticatewithpassword"
 };
 
 //Platform APIs
 //Authentication
-export var platformAuthentication =  {
+export var platformAuthentication = {
     "authentication": "https://platform." + baseUrl + "/authentication/api/v1/authentication",
     "refresh": "https://platform." + baseUrl + "/authentication/api/v1/refresh",
     "maskinporten": "https://platform." + baseUrl + "/authentication/api/v1/exchange/maskinporten",
@@ -45,17 +45,17 @@ export var platformAuthorization = {
     "decision": "https://platform." + baseUrl + "/authorization/api/v1/decision",
     "parties": "https://platform." + baseUrl + "/authorization/api/v1/parties",
     "policy": "https://platform." + baseUrl + "/authorization/api/v1/policies",
-    "roles": "https://platform." + baseUrl + "/authorization/api/v1/roles"    
+    "roles": "https://platform." + baseUrl + "/authorization/api/v1/roles"
 };
 
 //PDF
 export var platformPdf = {
-    "generate": "https://platform." + baseUrl + "/pdf/api/v1/generate"    
+    "generate": "https://platform." + baseUrl + "/pdf/api/v1/generate"
 };
 
 //Receipt
 export var platformReceipt = {
-    "receipt": "https://platform." + baseUrl + "/receipt/api/v1/instances" 
+    "receipt": "https://platform." + baseUrl + "/receipt/api/v1/instances"
 };
 
 //Platform Storage
@@ -67,9 +67,9 @@ export var platformStorage = {
 
 //Function to build endpoints in storage with instanceOwnerId, instanceId, dataId, type
 //and returns the endpoint
-export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type){
+export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type) {
     var value = "";
-    switch(type){
+    switch (type) {
         case "instanceid":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId;
             break;
@@ -87,16 +87,19 @@ export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type){
             break;
         case "process":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/process";
-            break;        
+            break;
         case "completeconfirmation":
             value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/complete";
+            break;
+        case "readstatus":
+            value = platformStorage["instances"] + "/" + instanceOwnerId + "/" + instanceId + "/readstatus";
             break;
     };
     return value;
 };
 
 //App APIs
-export function appApiBaseUrl(appOwner, appName){
+export function appApiBaseUrl(appOwner, appName) {
     var url = "https://" + appOwner + ".apps." + baseUrl + "/" + appOwner + "/" + appName;
     return url;
 };
@@ -105,24 +108,24 @@ export function appApiBaseUrl(appOwner, appName){
 export var appValidateInstantiation = "/api/v1/parties/validateInstantiation";
 
 //App Profile
-export var appProfile =  {
+export var appProfile = {
     "user": "/api/v1/profile/user"
 };
 
 //Function to build endpoints in App Api with instanceOwnerId, instanceId, dataId, type
 //and returns the endpoint
-export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type){
+export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type) {
     var value = "";
-    switch(type){
+    switch (type) {
         case "instanceid":
             value = "/instances/" + instanceOwnerId + "/" + instanceId;
             break;
         case "dataid":
             value = "/instances/" + instanceOwnerId + "/" + instanceId + "/data/" + dataId;
-            break;        
+            break;
         case "process":
             value = "/instances/" + instanceOwnerId + "/" + instanceId + "/process";
-            break;        
+            break;
     };
     return value;
 };
@@ -130,8 +133,8 @@ export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type){
 
 //App Resources
 export var appResources = {
-    "textresources" : "/api/textresources",
-    "applicationmetadata" : "/api/v1/applicationmetadata",
+    "textresources": "/api/textresources",
+    "applicationmetadata": "/api/v1/applicationmetadata",
     "servicemetadata": "/api/metadata/ServiceMetaData",
     "formlayout": "/api/resource/FormLayout.json",
     "rulehandler": "/api/resource/RuleHandler.js",
@@ -140,6 +143,6 @@ export var appResources = {
 };
 
 //App Authorization
-export var appAuthorization =  {
+export var appAuthorization = {
     "currentparties": "/api/authorization/parties/current?returnPartyObject=true"
 };

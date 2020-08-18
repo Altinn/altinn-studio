@@ -11,7 +11,7 @@ export default class App {
       this.initialized = false;
       this.activeFixturesCount = 0;
       let environment = (process.env.ENV).toLowerCase();
-      this.baseUrl = config[environment].baseUrl;      
+      this.baseUrl = config[environment].baseUrl;
     }
     return instance;
   }

@@ -3,39 +3,39 @@ import * as config from "../../config.js";
 import * as header from "../../buildrequestheaders.js"
 
 //Api call to App Api:Instances to create an app instance and returns response
-export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, appName){    
+export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, appName) {
     var endpoint = config.appApiBaseUrl(appOwner, appName) + "/instances?instanceOwnerPartyId=" + partyId;
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app"); 
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
     params.timeout = 120000;
     return http.post(endpoint, null, params);
 };
 
 //Api call to App Api:Instances to create an app instance and returns response
-export function getInstanceById(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName){    
+export function getInstanceById(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName) {
     var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, "", "instanceid");
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app"); 
-    params.timeout = 120000;   
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
+    params.timeout = 120000;
     return http.get(endpoint, params);
 };
 
 //Api call to App Api:Instances to validate an app instance and returns response
-export function getValidateInstance(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName){    
+export function getValidateInstance(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName) {
     var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, "", "instanceid") + "/validate";
-    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app"); 
-    params.timeout = 120000;   
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
+    params.timeout = 120000;
     return http.get(endpoint, params);
 };
 
-export function postCreateInstanceWithSsnOrOrg(altinnStudioRuntimeCookie, userType, value, appOwner, appName){
+export function postCreateInstanceWithSsnOrOrg(altinnStudioRuntimeCookie, userType, value, appOwner, appName) {
     var requestBody = '{"instanceOwner":{}}';
     requestBody = JSON.parse(requestBody);
     var endpoint = config.appApiBaseUrl(appOwner, appName) + "/instances";
-    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, "app"); 
-    if(userType == "ssn"){
-        requestBody.instanceOwner.personNumber =  value ;
+    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, "app");
+    if (userType == "ssn") {
+        requestBody.instanceOwner.personNumber = value;
     }
-    else if(userType == "org"){
-        requestBody.instanceOwner.organisationNumber =  value ;
+    else if (userType == "org") {
+        requestBody.instanceOwner.organisationNumber = value;
     };
     requestBody = JSON.stringify(requestBody);
     params.timeout = 120000;

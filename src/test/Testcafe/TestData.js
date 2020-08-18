@@ -12,29 +12,29 @@ export const AutoTestUser = Role(app.baseUrl, async t => {
   var userName = config[environment].autoTestUser;
 
   //Get password from environments
-  var password= process.env.autoTestUserPwd.toString();  
+  var password = process.env.autoTestUserPwd.toString();
 
   //Login to Studio with an user who has all rights for the apps under an Org
   await t
-      .click(loginPage.welcomeLoginButton)
-      .expect(loginPage.userInput.exists).ok({timeout: 30000})
-      .typeText(loginPage.userInput, userName)
-      .typeText(loginPage.passwordInput, password)
-      .click(loginPage.loginButton)
+    .click(loginPage.welcomeLoginButton)
+    .expect(loginPage.userInput.exists).ok({ timeout: 30000 })
+    .typeText(loginPage.userInput, userName)
+    .typeText(loginPage.passwordInput, password)
+    .click(loginPage.loginButton)
 }, { preserveUrl: true })
 
 //Role for an user who does not have rights to deploy an app to a test environment
-export const NoDeployUser = Role(app.baseUrl, async t => {  
+export const NoDeployUser = Role(app.baseUrl, async t => {
   var userName = config[environment].noDeployUser;
 
   //Get password from environments
-  var password= process.env.noDeployUserPwd.toString();  
+  var password = process.env.noDeployUserPwd.toString();
 
   //Login to Studio with an user without access to app deploy
   await t
-      .click(loginPage.welcomeLoginButton)
-      .expect(loginPage.userInput.exists).ok({timeout: 30000})
-      .typeText(loginPage.userInput, userName)
-      .typeText(loginPage.passwordInput, password)
-      .click(loginPage.loginButton)
+    .click(loginPage.welcomeLoginButton)
+    .expect(loginPage.userInput.exists).ok({ timeout: 30000 })
+    .typeText(loginPage.userInput, userName)
+    .typeText(loginPage.passwordInput, password)
+    .click(loginPage.loginButton)
 }, { preserveUrl: true })

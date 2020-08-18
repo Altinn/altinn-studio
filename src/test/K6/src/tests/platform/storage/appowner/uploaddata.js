@@ -1,23 +1,25 @@
 /* 
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-    Command: docker-compose run k6 run src/tests/platform/storage/data.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+    Command: docker-compose run k6 run src/tests/platform/storage/appowner/uploaddata.js 
+    -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
 */
 
 import { check } from "k6";
-import * as apps from "../../../api/storage/applications.js"
-import * as instances from "../../../api/storage/instances.js"
-import * as instanceData from "../../../api/storage/data.js"
-import * as sbl from "../../../api/storage/messageboxinstances.js"
-import * as setUpData from "../../../setup.js";
-import { addErrorCount } from "../../../errorcounter.js";
+import * as apps from "../../../../api/storage/applications.js"
+import * as instances from "../../../../api/storage/instances.js"
+import * as instanceData from "../../../../api/storage/data.js"
+import * as setUpData from "../../../../setup.js";
+import { convertMaskinPortenToken } from "../../../../api/platform/authentication.js"
+import { addErrorCount } from "../../../../errorcounter.js";
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
-let instanceJson = open("../../../data/instance.json");
-let instanceFormDataXml = open("../../../data/" + level2App + ".xml");
-let pdfAttachment = open("../../../data/test_file_pdf.pdf", "b");
+const maskinPortenToken = __ENV.maskinporten;
+let instanceJson = open("../../../../data/instance.json");
+let instanceFormDataXml = open("../../../../data/" + level2App + ".xml");
+let pdfAttachment = open("../../../../data/test_file_pdf.pdf", "b");
 
 export const options = {
     thresholds: {
@@ -31,6 +33,7 @@ export function setup() {
     var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
+    altinnStudioRuntimeCookie = convertMaskinPortenToken(maskinPortenToken, "true");
     data.RuntimeToken = altinnStudioRuntimeCookie;
     setUpData.clearCookies();
     var attachmentDataType = apps.getAppByName(altinnStudioRuntimeCookie, appOwner, level2App);
@@ -43,7 +46,7 @@ export function setup() {
 };
 
 
-//Tests for platform Storage: Instance Data
+//Tests for platform Storage: Instance Data for an appowner
 export default function (data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
@@ -52,11 +55,13 @@ export default function (data) {
     var dataId = "";
     var res, success;
 
-    //Test to add an form data to an instance with storage api and validate the response
+    //Test to add an form data to an instance with storage api and validate the response 
+    //that created by is an app owner
     res = instanceData.postData(runtimeToken, partyId, instanceId, "default", instanceFormDataXml);
     success = check(res, {
         "POST Create Data status is 201:": (r) => r.status === 201,
-        "POST Create Instance Data Id is not null:": (r) => (JSON.parse(r.body)).id != null
+        "POST Create Instance Data Id is not null:": (r) => (JSON.parse(r.body)).id != null,
+        "CreatedBy of instance data is appowner:": (r) => JSON.parse(r.body).createdBy.toString().length === 9
     });
     addErrorCount(success);
 
@@ -100,13 +105,4 @@ export default function (data) {
         "GET All DataElements DataElements count is 1:": (r) => (JSON.parse(r.body)).dataElements.length === 1
     });
     addErrorCount(success);
-};
-
-//Delete the instance created
-export function teardown(data) {
-    const runtimeToken = data["RuntimeToken"];
-    const partyId = data["partyId"];
-    const instanceId = data["instanceId"];
-
-    sbl.deleteSblInstance(runtimeToken, partyId, instanceId, "true");
 };

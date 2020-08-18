@@ -2,7 +2,7 @@ import { Selector } from 'testcafe';
 const environment = (process.env.ENV).toLowerCase();
 
 export default class DesignerPage {
-  constructor() {    
+  constructor() {
 
     //left drawer menu
     this.leftDrawerMenu = Selector('#root > div > div > div:nth-child(2) > div:nth-child(1) > div > div > div');
@@ -44,6 +44,7 @@ export default class DesignerPage {
     this.radioButtonComponent = Selector(".fa.fa-radio-button").parent(2);
     this.textAreaComponent = Selector(".fa.fa-long-answer").parent(2);
     this.attachmentComponent = Selector(".fa.fa-attachment").parent(2);
+    this.dropDown = Selector(".fa.fa-drop-down").parent(2);
     this.submitComponent = Selector(".fa.fa-button").parent(2);
     this.headerComponent = Selector(".fa.fa-title").parent(2);
     this.paragraphComponent = Selector(".fa.fa-paragraph").parent(2);
@@ -70,8 +71,11 @@ export default class DesignerPage {
     this.versionNumber = Selector('div > div').withAttribute('aria-label', 'Versjonsnummer');
     this.versionDescription = Selector('div > textarea');
     this.buildButton = Selector('button').withExactText('Bygg versjon');
-    this.latestBuilds = Selector('.MuiGrid-root').withText('Tidligere bygg av applikasjonen').parent(0).sibling(3);
-    this.deployButton = (environment == 'prod') ? Selector('#deploy-button-production'): Selector('#deploy-button-at22');
+    this.appBuilds = Selector('p').withText('Tidligere bygg av applikasjonen').parent(0).nextSibling();
+    this.latestBuildStatusSuccess = this.appBuilds.child(0).find('i').withAttribute('class', /(ai-check-circle)/);
+    this.latestBuildStatusFailure = this.appBuilds.child(0).find('i').withAttribute('class', /(ai-circle-exclamation)/);
+    this.latestBuildStatusInprogress = this.appBuilds.child(0).find('div').withAttribute('role', 'progressbar');
+    this.deployButton = (environment == 'prod') ? Selector('#deploy-button-production') : Selector('#deploy-button-at22');
     this.deployVersionDropDown = (environment == 'prod') ? Selector('#deploy-select-production') : Selector('#deploy-select-at22');
     this.noDeployVersionAvailable = Selector('div').withText('Du har ingen versjoner å deploye');
     this.deployVersionOptions = Selector('.select__menu-list');
@@ -113,7 +117,7 @@ export default class DesignerPage {
     this.dynamicsGroup = Selector('span').withExactText('Dynamikk');
     this.editDynamic = Selector('span').withExactText('Rediger dynamikk');
     this.calculationsGroup = Selector('span').withExactText('Kalkuleringer');
-    this.editCalculations = Selector('span').withExactText('Rediger kalkuleringer');   
+    this.editCalculations = Selector('span').withExactText('Rediger kalkuleringer');
 
     //rulesmodal
     this.rulesConnectionModal = Selector('span').withExactText('Konfigurer regler');
@@ -132,45 +136,45 @@ export default class DesignerPage {
     this.deleteAppRepoName = Selector('#delete-repo-name');
     this.confirmDeleteLocalChanges = Selector('#confirm-reset-repo-button');
 
-  };   
+  };
 
   //Function to delete all the selected components in the designer page of an app
-  async deleteUIComponentsMethod (t) {
-    var addedUIComponents = await this.dragToArea.child('div').withAttribute('draggable','true');
-    var numberOfComponents = await addedUIComponents.count;    
+  async deleteUIComponentsMethod(t) {
+    var addedUIComponents = await this.dragToArea.child('div').withAttribute('draggable', 'true');
+    var numberOfComponents = await addedUIComponents.count;
     if (numberOfComponents > 0 && !await addedUIComponents.withText('Tomt').exists) {
-        for (var i = 0; i < numberOfComponents; i++) {          
-          await t.hover(addedUIComponents.nth(i));
-          await t.click(addedUIComponents.nth(i));
-        }
-        await t.hover(this.removeComponentsButton.parent('button'));
-        await t.click(this.removeComponentsButton.parent('button'));
+      for (var i = 0; i < numberOfComponents; i++) {
+        await t.hover(addedUIComponents.nth(i));
+        await t.click(addedUIComponents.nth(i));
+      }
+      await t.hover(this.removeComponentsButton.parent('button'));
+      await t.click(this.removeComponentsButton.parent('button'));
     }
   };
 
-//Function to push and commit an app changes from the designer page
-async pushAndCommitChanges (t) {
- await t 
-    .expect(this.delEndringer.exists).ok({ timeout: 180000 })
-    .click(this.delEndringer)
-    .expect(this.commitMessageBox.exists).ok({ timeout: 60000 })
-    .click(this.commitMessageBox)
-    .typeText(this.commitMessageBox, "Sync app automated test", { replace: true })
-    .expect(this.validerEndringer.exists).ok({ timeout: 60000 })
-    .click(this.validerEndringer)
-    .expect(this.delEndringerBlueButton.exists).ok({ timeout: 180000 })
-    .click(this.delEndringerBlueButton)
-    .expect(this.ingenEndringer.exists).ok({ timeout: 180000 })
+  //Function to push and commit an app changes from the designer page
+  async pushAndCommitChanges(t) {
+    await t
+      .expect(this.delEndringer.exists).ok({ timeout: 180000 })
+      .click(this.delEndringer)
+      .expect(this.commitMessageBox.exists).ok({ timeout: 60000 })
+      .click(this.commitMessageBox)
+      .typeText(this.commitMessageBox, "Sync app automated test", { replace: true })
+      .expect(this.validerEndringer.exists).ok({ timeout: 60000 })
+      .click(this.validerEndringer)
+      .expect(this.delEndringerBlueButton.exists).ok({ timeout: 180000 })
+      .click(this.delEndringerBlueButton)
+      .expect(this.ingenEndringer.exists).ok({ timeout: 180000 })
   };
 
   //Function to find the last deployed version and return the version number
-  async getlatestBuildVersion (t) {
+  async getlatestBuildVersion(t) {
     var lastBuildVersion = await this.deployVersionOptions.child(0).innerText; //first element of the dropdown list
-    lastBuildVersion = lastBuildVersion.split(" ");    
-    lastBuildVersion = lastBuildVersion[1].trim();    
-    lastBuildVersion = parseInt(lastBuildVersion);       
-    if (isNaN(lastBuildVersion)){
-        lastBuildVersion = Math.floor((Math.random() * 8000) + 1000);
+    lastBuildVersion = lastBuildVersion.split(" ");
+    lastBuildVersion = lastBuildVersion[1].trim();
+    lastBuildVersion = parseInt(lastBuildVersion);
+    if (isNaN(lastBuildVersion)) {
+      lastBuildVersion = Math.floor((Math.random() * 8000) + 1000);
     };
     return lastBuildVersion;
   };
