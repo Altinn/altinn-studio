@@ -57,7 +57,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
         layoutOrder: {
           [sourceContainerId]: {
-            $set: updatedOrder,
+            $set: [...updatedOrder],
           },
         },
         isDragging: {
@@ -150,10 +150,10 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
         layoutOrder: {
           [sourceContainerId]: {
-            $set: updatedSource,
+            $set: [...updatedSource],
           },
           [destinationContainerId]: {
-            $set: updatedDestination,
+            $set: [...updatedDestination],
           },
         },
         isDragging: {
