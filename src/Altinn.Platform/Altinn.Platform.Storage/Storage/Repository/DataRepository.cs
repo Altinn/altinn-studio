@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -76,14 +78,14 @@ namespace Altinn.Platform.Storage.Repository
             {
                 return await UploadFromStreamAsync(org, stream, blobStoragePath);
             }
-            catch (Exception storageException)
+            catch (Exception exception)
             {
-                _logger.LogWarning($"StorageException when accessing blob storage for {org}: {Environment.NewLine}{storageException}");
-                _logger.LogWarning("Invalidating SAS token and retrying upload operation.");
+                _logger.LogWarning($"Exception when trying to write to blob storage for {org}: {Environment.NewLine}{exception}");
+                _logger.LogWarning("Invalidating SAS token.");
 
                 _sasTokenProvider.InvalidateSasToken(org);
-                
-                return await UploadFromStreamAsync(org, stream, blobStoragePath);
+
+                throw;
             }
         }
 
@@ -94,9 +96,9 @@ namespace Altinn.Platform.Storage.Repository
             {
                 return await DownloadToStreamAsync(org, blobStoragePath);
             }
-            catch (Exception storageException)
+            catch (Exception exception)
             {
-                _logger.LogWarning($"StorageException when accessing blob storage for {org}: {Environment.NewLine}{storageException}");
+                _logger.LogWarning($"Exception when accessing blob storage for {org}: {Environment.NewLine}{exception}");
                 _logger.LogWarning("Invalidating SAS token and retrying download operation.");
 
                 _sasTokenProvider.InvalidateSasToken(org);
@@ -112,9 +114,9 @@ namespace Altinn.Platform.Storage.Repository
             {
                 return await DeleteIfExistsAsync(org, blobStoragePath);
             }
-            catch (Exception storageException)
+            catch (Exception exception)
             {
-                _logger.LogWarning($"StorageException when accessing blob storage for {org}: {Environment.NewLine}{storageException}");
+                _logger.LogWarning($"Exception when accessing blob storage for {org}: {Environment.NewLine}{exception}");
                 _logger.LogWarning("Invalidating SAS token and retrying delete operation.");
 
                 _sasTokenProvider.InvalidateSasToken(org);
@@ -243,7 +245,7 @@ namespace Altinn.Platform.Storage.Repository
                     Query = sasToken
                 };
 
-                return new BlobClient(fullUri.Uri, null);
+                return new BlobClient(fullUri.Uri);
             }
 
             StorageSharedKeyCredential storageCredentials = new StorageSharedKeyCredential(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
