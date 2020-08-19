@@ -104,7 +104,7 @@ export function extractChildrenFromGroup(group: any, components: any, convertedL
   restOfGroup.itemType = 'CONTAINER';
   convertedLayout.containers[id] = restOfGroup;
   convertedLayout.order[id] = children || [];
-  children?.forEach((componentId: string, index: number) => {
+  children?.forEach((componentId: string) => {
     const component = components.find((candidate: any) => candidate.id === componentId);
     const location = components.findIndex((candidate: any) => candidate.id === componentId);
     component.itemType = 'COMPONENT';
