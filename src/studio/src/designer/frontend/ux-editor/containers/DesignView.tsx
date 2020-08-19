@@ -147,6 +147,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       const updatedDestination: string[] = layoutOrder[destinationContainerId];
       const [moveItem] = updatedSource.splice(layoutOrder[sourceContainerId].indexOf(id), 1);
       updatedDestination?.push(moveItem);
+      FormDesignerActionDispatchers.updateFormComponentOrderAction(JSON.parse(JSON.stringify(this.state.layoutOrder)));
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
         layoutOrder: {
           [sourceContainerId]: {
@@ -159,11 +160,8 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
         isDragging: {
           $set: false,
         },
-      }), () => {
-        // eslint-disable-next-line max-len
-        FormDesignerActionDispatchers.updateFormComponentOrderAction(JSON.parse(JSON.stringify(this.state.layoutOrder)));
-        FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
-      });
+      }));
+      FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
     } else {
       FormDesignerActionDispatchers.updateFormComponentOrderAction(this.state.layoutOrder);
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
@@ -212,7 +210,7 @@ const mapsStateToProps = (
 ): IDesignerPreviewProps => {
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   return {
-    layoutOrder: state.formDesigner.layout.order,
+    layoutOrder: JSON.parse(JSON.stringify(state.formDesigner.layout.order)),
     order: GetLayoutOrderSelector(state),
     activeList: state.formDesigner.layout.activeList,
   };
