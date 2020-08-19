@@ -60,10 +60,12 @@ namespace Altinn.Platform.Storage.Repository
                 return sasToken.token;
             }
 
+            _sasTokens.TryRemove(org, out _);
+
             await _semaphore.WaitAsync();
             try
             {
-                if (_sasTokens.TryGetValue(org, out sasToken) && StillYoung(sasToken.created))
+                if (_sasTokens.TryGetValue(org, out sasToken))
                 {
                     return sasToken.token;
                 }
@@ -76,12 +78,13 @@ namespace Altinn.Platform.Storage.Repository
 
                 _logger.LogInformation($"Getting secret '{secretName}' from '{keyVaultUri}'.");
 
-                sasToken.created = DateTime.Now;
-                sasToken.token = await _keyVaultWrapper.GetSecretAsync(keyVaultUri, secretName);
+                (DateTime created, string token) newSasToken = default;
+                newSasToken.created = DateTime.UtcNow;
+                newSasToken.token = await _keyVaultWrapper.GetSecretAsync(keyVaultUri, secretName);
 
-                _sasTokens.TryAdd(org, sasToken);
+                _sasTokens.TryAdd(org, newSasToken);
 
-                return sasToken.token;
+                return newSasToken.token;
             }
             finally
             {
@@ -97,12 +100,12 @@ namespace Altinn.Platform.Storage.Repository
         {
             _logger.LogInformation($"Removing SAS token for '{org}'.");
 
-            _sasTokens.TryRemove(org, out (DateTime, string) _);
+            _sasTokens.TryRemove(org, out _);
         }
 
         private bool StillYoung(DateTime created)
         {
-            return created.AddHours(_storageConfiguration.AllowedSasTokenAgeHours) > DateTime.Now;
+            return created.AddHours(_storageConfiguration.AllowedSasTokenAgeHours) > DateTime.UtcNow;
         }
     }
 }
