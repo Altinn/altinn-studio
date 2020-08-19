@@ -57,8 +57,8 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
 
           props.onDropComponent(
             draggedComponent.id,
-            props.id,
             draggedComponent.containerId,
+            props.id,
           );
 
           draggedComponent.index = hoverOverIndex;

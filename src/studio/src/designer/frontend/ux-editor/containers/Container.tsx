@@ -312,18 +312,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     );
   }
 
-  public renderBaseContainer = (): JSX.Element => {
-    return (
-      <></>
-    );
-  }
-
-  public childContainer = (): JSX.Element => {
-    return (
-      <></>
-    );
-  }
-
   public renderEditSection = (): JSX.Element => {
     return (
       <Grid
@@ -480,15 +468,16 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         canDrag={true}
         onDropComponent={this.props.onDropComponent}
         onMoveComponent={this.props.onMoveComponent}
-        onDropContainer={this.props.onDropComponent}
+        onDropContainer={this.props.onDropContainer}
         onMoveContainer={this.props.onMoveContainer}
+        key={index}
       >
         <Container
           id={id}
           index={index}
           items={this.props.itemOrder[id]}
           baseContainer={false}
-          onDropComponent={this.props.onDropContainer}
+          onDropComponent={this.props.onDropComponent}
           onMoveComponent={this.props.onMoveComponent}
           onDropContainer={this.props.onDropContainer}
           onMoveContainer={this.props.onMoveContainer}
@@ -520,7 +509,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         index={index}
         key={index}
         containerId={this.props.id}
-        onDropComponent={this.props.onDropContainer}
+        onDropComponent={this.props.onDropComponent}
         onMoveComponent={this.props.onMoveComponent}
         onDropContainer={this.props.onDropContainer}
         onMoveContainer={this.props.onMoveContainer}
@@ -582,20 +571,3 @@ const makeMapStateToProps = () => {
 };
 
 export const Container = withStyles(styles, { withTheme: true })(connect(makeMapStateToProps)(ContainerComponent));
-
-/*
-
-.a-btn-action {
-    padding: 6px 24px 4px 12px;
-    color: #000;
-    text-align: left;
-    vertical-align: middle;
-    background-color: transparent;
-    border-top: 2px dotted #1eaef7;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
-    border-bottom: 2px dotted #1eaef7;
-}
-
-*/
