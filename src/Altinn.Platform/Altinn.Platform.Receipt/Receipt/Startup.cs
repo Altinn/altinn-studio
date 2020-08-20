@@ -112,6 +112,7 @@ namespace Altinn.Platform.Receipt
             {
                 services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+                services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
