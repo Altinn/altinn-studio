@@ -132,7 +132,7 @@ function DatepickerComponent(props: IDatePickerProps) {
     setDate(dateValue);
     setValidDate(true); // we reset valid date => show error onBlur or when user is done typing
     setValidationMessages({});
-    if (dateValue && dateValue.isValid()) {;
+    if (dateValue && dateValue.isValid()) {
       const dateString = props.timeStamp === false ? dateValue.format(DatePickerSaveFormatNoTimestamp)
         : dateValue?.toISOString(true);
       props.handleDataChange(dateString);
