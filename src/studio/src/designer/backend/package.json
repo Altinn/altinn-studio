@@ -12,17 +12,17 @@
     "gulp-develop-dashboard": "gulp develop-dashboard"
   },
   "devDependencies": {
-    "chokidar": "3.4.0",
+    "chokidar": "3.4.1",
     "cross-env": "7.0.2",
     "del": "5.1.0",
     "gulp": "4.0.2",
     "gulp-run-command": "0.0.10",
     "lerna": "3.22.1",
-    "webpack": "4.43.0",
+    "webpack": "4.44.1",
     "webpack-cli": "3.3.12"
   },
   "dependencies": {
-    "bootstrap": "4.5.0",
+    "bootstrap": "4.5.1",
     "bootstrap-list-filter": "0.3.3",
     "jquery": "3.5.1",
     "jquery-ui-dist": "1.12.1",

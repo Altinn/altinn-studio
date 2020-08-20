@@ -92,17 +92,11 @@ export const schemaComponents: IComponent[] = [
       required: true,
     },
   },
-  /* removed for now
-    {
-      name: 'Dropdown',
-      Tag: DropdownComponent,
-      Type: ComponentTypes.DropDown,
-      Icon: componentIcons.Dropdown,
-      customProperties: {
-        options: [],
-      },
-    },
-    */
+  {
+    name: 'Dropdown',
+    Type: ComponentTypes.DropDown,
+    Icon: componentIcons.Dropdown,
+  },
   {
     name: 'FileUpload',
     Type: ComponentTypes.FileUpload,

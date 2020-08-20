@@ -25,9 +25,9 @@ namespace LocalTest.Services.Register.Implementation
         {
             Organization org = null;
             string path = this._localPlatformSettings.LocalTestingStaticTestDataPath + "Register/Org/" + orgNr + ".json";
-            if (File.Exists(path))
+            if (File.Exists(path)) // lgtm [cs/path-injection]
             {
-                string content = File.ReadAllText(path);
+                string content = File.ReadAllText(path); // lgtm [cs/path-injection]
                 org = (Organization)JsonConvert.DeserializeObject(content, typeof(Organization));
             }
 

@@ -6,9 +6,14 @@
     <ProjectGuid>{3F69C9C9-D602-490C-B2BA-A5FB27E363EE}</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.4.4" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.2.2" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.5.1" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.14.0" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.3" />
+    <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" Version="2.14.0" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.11.6" />
+    <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.5.0" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.9" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -18,18 +23,18 @@
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  
+
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <AdditionalFiles Include="..\stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
   </ItemGroup>
-  
+
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <None Update="host.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -38,5 +43,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Helpers\" />
   </ItemGroup>
 </Project>

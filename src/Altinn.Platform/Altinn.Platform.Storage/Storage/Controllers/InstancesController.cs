@@ -397,6 +397,11 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 DateTime now = DateTime.UtcNow;
 
+                if (instance.Status == null)
+                {
+                    instance.Status = new InstanceStatus();
+                }
+
                 instance.Status.SoftDeleted = now;
                 instance.LastChangedBy = GetUserId();
                 instance.LastChanged = now;
@@ -474,7 +479,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
         /// <param name="status">The updated read status.</param>
-        /// <returns>Returns the updated instance.</returns>        
+        /// <returns>Returns the updated instance.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/readstatus")]
         [ProducesResponseType(StatusCodes.Status200OK)]

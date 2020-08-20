@@ -1,5 +1,5 @@
-import { IRuntimeState } from "src/types";
-import { createSelector } from "reselect";
+import { IRuntimeState } from 'src/types';
+import { createSelector } from 'reselect';
 
 /**
  * Selector for determinig if we have an error in one of our api calls.
@@ -18,7 +18,8 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
     state.formDynamics.error ||
     state.instanceData.error ||
     state.applicationMetadata.error ||
-    state.formDataModel.error);
+    state.formDataModel.error ||
+    state.optionState.error);
 
   if (error !== null) {
     // we have an error on something we consider critical, return true
@@ -28,27 +29,27 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
   // we have a few special cases where we allow 404 status codes but not other errors
   const textResourceError = state.textResources.error;
   if (textResourceError !== null) {
-    if (textResourceError.message.indexOf("404") === -1) {
+    if (textResourceError.message.indexOf('404') === -1) {
       hasError = true;
     }
   }
 
   const formDynamicsError = state.formDynamics.error;
   if (formDynamicsError !== null) {
-    if (formDynamicsError.message.indexOf("404") === -1) {
+    if (formDynamicsError.message.indexOf('404') === -1) {
       hasError = true;
     }
   }
 
   const formRulesError = state.formRules.error;
   if (formRulesError !== null) {
-    if (formRulesError.message.indexOf("404") === -1) {
+    if (formRulesError.message.indexOf('404') === -1) {
       hasError = true;
     }
   }
 
   return hasError;
-}
+};
 
 const getHasErrors = () => {
   return createSelector(

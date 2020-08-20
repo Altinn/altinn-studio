@@ -109,7 +109,7 @@ declare global {
   }
 
   export interface IFormDropdownComponent extends IFormComponent {
-    options: IOptions[];
+    optionsId: string;
   }
 
   export interface IFormFileUploaderComponent extends IFormComponent {

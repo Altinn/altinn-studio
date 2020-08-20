@@ -1,8 +1,8 @@
-import {
-  combineReducers,
+/* eslint-disable import/no-cycle */
+import { combineReducers,
   Reducer,
-  ReducersMapObject,
-} from 'redux';
+  ReducersMapObject } from 'redux';
+import OptionsReducer, { IOptionsState } from '../shared/resources/options/optionsReducer';
 import FormDataReducer, { IFormDataState } from '../features/form/data/formDataReducer';
 import FormDataModel, { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IFormDynamicState } from '../features/form/dynamics';
@@ -20,10 +20,10 @@ import PartyReducer, { IPartyState } from '../shared/resources/party/partyReduce
 import processReducer, { IProcessState } from '../shared/resources/process/processReducer';
 import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
 import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
-import IsLoadingReducer, { IIsLoadingState } from './../shared/resources/isLoading/isLoadingReducers';
-import QueueReducer, { IQueueState } from './../shared/resources/queue/queueReducer';
+import IsLoadingReducer, { IIsLoadingState } from '../shared/resources/isLoading/isLoadingReducers';
+import QueueReducer, { IQueueState } from '../shared/resources/queue/queueReducer';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> {
   formLayout: T1;
   formData: T2;
   formDataModel: T3;
@@ -42,6 +42,7 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T1
   process: T16;
   isLoading: T17;
   queue: T18;
+  optionState: T19
 }
 
 export interface IRuntimeReducers extends IReducers<
@@ -62,7 +63,8 @@ export interface IRuntimeReducers extends IReducers<
   Reducer<IInstanceDataState>,
   Reducer<IProcessState>,
   Reducer<IIsLoadingState>,
-  Reducer<IQueueState>
+  Reducer<IQueueState>,
+  Reducer<IOptionsState>
   >,
   ReducersMapObject {
 }
@@ -86,6 +88,7 @@ const reducers: IRuntimeReducers = {
   profile: ProfileReducer,
   queue: QueueReducer,
   textResources: TextResourcesReducer,
+  optionState: OptionsReducer,
 };
 
 export default combineReducers(reducers);

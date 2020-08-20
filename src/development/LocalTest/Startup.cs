@@ -35,6 +35,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using LocalTest.Services.Localtest.Interface;
+using LocalTest.Services.Localtest.Implementation;
 
 namespace LocalTest
 {
@@ -60,6 +62,7 @@ namespace LocalTest
             services.Configure<Altinn.Platform.Authentication.Configuration.GeneralSettings>(Configuration.GetSection("AuthnGeneralSettings"));
             services.Configure<CertificateSettings>(Configuration);
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
+            services.AddSingleton<ILocalTestAppSelection, LocalTestAppSelectionSI>();
             services.AddSingleton<IUserProfiles, UserProfilesWrapper>();
             services.AddSingleton<IOrganizations, OrganizationsWrapper>();
             services.AddSingleton<Services.Register.Interface.IParties, PartiesWrapper>();

@@ -51,6 +51,21 @@ namespace LocalTest.Models
         /// <summary>
         /// 
         /// </summary>
+        public string SelectedApp { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public string AppPathSelection { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
         public IEnumerable<SelectListItem> TestUsers { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public IEnumerable<SelectListItem> TestApps { get; set; }
     }
 }
