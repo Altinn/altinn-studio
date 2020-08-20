@@ -107,15 +107,15 @@ export interface IAttachment {
 
 export interface IData {
   id: string;
-  elementType: string;
+  dataType: string;
   filename: string;
   contentType: string;
   storageUrl: string;
   selfLinks: ISelfLinks;
   size: number;
   locked: boolean;
-  createdDateTime: Date;
-  lastChangedDateTime: Date;
+  created: Date;
+  lastChanged: Date;
 }
 
 export interface IOrganisation {
