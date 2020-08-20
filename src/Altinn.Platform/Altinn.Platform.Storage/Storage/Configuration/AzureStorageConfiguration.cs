@@ -51,8 +51,8 @@ namespace Altinn.Platform.Storage.Configuration
         public string OrgStorageContainer { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether Storage should use private blob storage accounts for each application owner.
+        /// Gets or sets the number of hours old a shared access signature token can be before requesting a new.
         /// </summary>
-        public bool OrgPrivateBlobStorageEnabled { get; set; }
+        public int AllowedSasTokenAgeHours { get; set; }
     }
 }
