@@ -8,7 +8,7 @@ import { IInstance, IParty } from 'altinn-shared/types';
 import { getLanguageFromKey, getUserLanguage } from 'altinn-shared/utils/language';
 import { getCurrentTaskData, mapInstanceAttachments } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { IValidations } from 'src/types/global';
+import { IValidations } from 'src/types';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
@@ -20,7 +20,7 @@ import InstanceDataActions from '../../../shared/resources/instanceData/instance
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { getTextFromAppOrDefault } from '../../../utils/textResource';
-
+// eslint-disable-next-line import/order
 import moment = require('moment');
 
 export interface IConfirmProps extends RouteChildrenProps {}
@@ -155,7 +155,7 @@ const Confirm = (props: IConfirmProps) => {
     }).catch(() => {
       setIsSubmitting(false);
     });
-  }
+  };
 
   return (
     <>

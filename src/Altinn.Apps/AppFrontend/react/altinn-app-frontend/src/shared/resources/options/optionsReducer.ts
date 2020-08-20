@@ -1,4 +1,4 @@
-import { IOptions } from 'src/types/global';
+import { IOptions } from 'src/types';
 import { Action, Reducer } from 'redux';
 import update from 'immutability-helper';
 import * as FetchOptionsActionTypes from './fetch/fetchOptionsActionTypes';

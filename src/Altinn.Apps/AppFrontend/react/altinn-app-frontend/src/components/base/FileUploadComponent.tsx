@@ -14,7 +14,7 @@ import { IAttachment } from '../../shared/resources/attachments';
 import AttachmentDispatcher from '../../shared/resources/attachments/attachmentActions';
 import '../../styles/FileUploadComponent.css';
 import { IRuntimeState } from '../../types';
-import { IComponentValidations } from '../../types/global';
+import { IComponentValidations } from '../../types/';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 import uuid = require('uuid');

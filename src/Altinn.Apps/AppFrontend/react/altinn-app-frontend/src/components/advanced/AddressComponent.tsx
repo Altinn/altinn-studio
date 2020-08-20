@@ -1,15 +1,15 @@
+/* eslint-disable import/order */
 /* eslint-disable no-shadow */
 /* eslint-disable consistent-return */
 /* eslint-disable react/prop-types */
 import axios from 'axios';
 import * as React from 'react';
 import { getLanguageFromKey, get } from 'altinn-shared/utils';
+import { IComponentValidations } from 'src/types';
 import { IDataModelBindings, ITextResourceBindings } from '../../features/form/layout';
 import '../../styles/AddressComponent.css';
 import '../../styles/shared.css';
-import { IComponentValidations } from '../../types/global';
 import { renderValidationMessagesForComponent } from '../../utils/render';
-
 import classNames = require('classnames');
 
 export interface IAddressComponentProps {

@@ -2,9 +2,9 @@ import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/util
 import moment from 'moment';
 import Ajv from 'ajv';
 import { JsonPointer } from 'json-ptr';
+import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups } from 'src/types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout';
 import { IValidationIssue, Severity } from '../types';
-import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups } from '../types/global';
 // eslint-disable-next-line import/no-cycle
 import { DatePickerMinDateDefault, DatePickerMaxDateDefault, DatePickerFormatDefault } from '../components/base/DatepickerComponent';
 import { getFormDataForComponent } from './formComponentUtils';

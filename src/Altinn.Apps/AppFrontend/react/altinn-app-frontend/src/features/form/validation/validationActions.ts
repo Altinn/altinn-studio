@@ -1,6 +1,6 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { IComponentValidations, IValidations } from 'src/types';
 import { store } from '../../../store';
-import { IComponentValidations, IValidations } from '../../../types/global';
 import * as ComponentValidation from './component/componentValidationsActions';
 import * as SingleFieldValidationActions from './singleField/singleFieldValidationActions';
 import * as Validations from './update/updateValidationsActions';

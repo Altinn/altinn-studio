@@ -14,19 +14,6 @@ export interface ISelfLinks {
   platform: string;
 }
 
-export interface IData {
-  id: string;
-  dataType: string;
-  filename: string;
-  contentType: string;
-  storageUrl: string;
-  selfLinks: ISelfLinks;
-  size: number;
-  locked: boolean;
-  created: Date;
-  lastChanged: Date;
-}
-
 export interface IInstance {
   id: string;
   instanceOwner: IInstanceOwner;
@@ -80,7 +67,6 @@ export interface IProfile {
   userType: number;
   profileSettingPreference: IProfileSettingPreference;
 }
-
 
 export interface IApplication {
   createdBy: string;

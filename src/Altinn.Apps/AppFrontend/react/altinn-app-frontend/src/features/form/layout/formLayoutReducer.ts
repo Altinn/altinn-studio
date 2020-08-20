@@ -4,8 +4,7 @@ import { ILayout } from './index';
 import { IFetchFormLayoutFulfilled, IFetchFormLayoutRejected } from './fetch/fetchFormLayoutActions';
 import * as ActionTypes from './formLayoutActionTypes';
 import { IUpdateFocusFulfilled, IUpdateFormLayout, IUpdateHiddenComponents, IUpdateAutoSave, IUpdateRepeatingGroupsFulfilled } from './update/updateFormLayoutActions';
-// eslint-disable-next-line import/no-cycle
-import { IUiConfig } from '../../../types/global';
+import { IUiConfig } from '../../../types';
 
 export interface ILayoutState {
   layout: ILayout;
