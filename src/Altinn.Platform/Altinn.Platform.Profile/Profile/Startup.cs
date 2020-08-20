@@ -6,7 +6,6 @@ using Altinn.Common.AccessToken.Configuration;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Profile.Configuration;
 using Altinn.Platform.Profile.Health;
-using Altinn.Platform.Profile.Services;
 using Altinn.Platform.Profile.Services.Implementation;
 using Altinn.Platform.Profile.Services.Interfaces;
 using Altinn.Platform.Telemetry;
@@ -64,7 +63,7 @@ namespace Altinn.Platform.Profile
         /// <summary>
         /// Configure profile setttings for the service
         /// </summary>
-        /// <param name="services">the service configuration</param>    
+        /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
             _logger.LogInformation("Startup // ConfigureServices");
