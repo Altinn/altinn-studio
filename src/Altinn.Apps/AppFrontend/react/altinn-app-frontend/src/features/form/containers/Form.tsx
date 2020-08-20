@@ -102,7 +102,7 @@ export function Form() {
 
     const component: ILayoutComponent = layout.find((c) => c.id === layoutComponent.id) as ILayoutComponent;
     return (
-      <RenderGenericComponent {...component} />
+      <RenderGenericComponent key={layoutComponent.id} {...component} />
     );
   }
 
