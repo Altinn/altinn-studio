@@ -20,6 +20,7 @@ export interface IDatePickerProps{
   formData: any;
   handleDataChange: (value: any) => void;
   isValid?: boolean;
+  timeStamp?: boolean;
   format: string;
   minDate: string;
   maxDate: string;
@@ -66,7 +67,7 @@ const useStyles = makeStyles({
 
 class AltinnMomentUtils extends MomentUtils {
   getDatePickerHeaderText(date: Moment) {
-    if (date && date.locale() == 'nb') {
+    if (date && date.locale() === 'nb') {
       return date.format('ddd, D MMM');
     }
     return super.getDatePickerHeaderText(date);
@@ -76,6 +77,7 @@ class AltinnMomentUtils extends MomentUtils {
 export const DatePickerMinDateDefault = '1900-01-01T12:00:00.000Z';
 export const DatePickerMaxDateDefault = '2100-01-01T12:00:00.000Z';
 export const DatePickerFormatDefault = 'DD/MM/YYYY';
+export const DatePickerSaveFormatNoTimestamp = 'YYYY-MM-DD';
 
 function DatepickerComponent(props: IDatePickerProps) {
   const classes = useStyles();
@@ -102,14 +104,14 @@ function DatepickerComponent(props: IDatePickerProps) {
     const suppliedValidations = props.componentValidations?.simpleBinding;
     if (suppliedValidations?.errors) {
       suppliedValidations.errors.forEach((validation: string) => {
-        if (validations.errors.indexOf(validation) == -1) {
+        if (validations.errors.indexOf(validation) === -1) {
           validations.errors.push(validation);
         }
       });
     }
     if (suppliedValidations?.warnings) {
       suppliedValidations.warnings.forEach((validation: string) => {
-        if (validations.warnings.indexOf(validation) == -1) {
+        if (validations.warnings.indexOf(validation) === -1) {
           validations.warnings.push(validation);
         }
       });
@@ -118,35 +120,38 @@ function DatepickerComponent(props: IDatePickerProps) {
   };
 
   React.useEffect(() => {
-    const date = moment(props.formData || '');
-    setDate(date);
+    const dateValue = moment(props.formData || '');
+    setDate(dateValue);
   }, [props.formData]);
 
   React.useEffect(() => {
     setValidationMessages(getValidationMessages());
   }, [props.formData, props.componentValidations]);
 
-  const handleDataChangeWrapper = (date: moment.Moment) => {
-    setDate(date);
+  const handleDataChangeWrapper = (dateValue: moment.Moment) => {
+    setDate(dateValue);
     setValidDate(true); // we reset valid date => show error onBlur or when user is done typing
     setValidationMessages({});
-    if (date && date.isValid()) {
-      props.handleDataChange(date?.toISOString());
-      setValidDate(isValidDate(date)); // the date can have a valid format but not pass min/max validation
+    if (dateValue && dateValue.isValid()) {
+      const dateString = props.timeStamp === false ? dateValue.format(DatePickerSaveFormatNoTimestamp)
+        : dateValue?.toISOString(true);
+      props.handleDataChange(dateString);
+      setValidDate(isValidDate(dateValue)); // the date can have a valid format but not pass min/max validation
     }
   };
 
-  const isValidDate = (date: moment.Moment): boolean => {
-    if (!date) {
+  const isValidDate = (dateValue: moment.Moment): boolean => {
+    if (!dateValue) {
       return true;
     }
-    return date.isValid() && date.isAfter(minDate) && date.isBefore(maxDate);
+    return dateValue.isValid() && dateValue.isAfter(minDate) && dateValue.isBefore(maxDate);
   };
 
   const handleOnBlur = () => {
     setValidDate(isValidDate(date));
     setValidationMessages(getValidationMessages());
-    const saveDate = isDateEmpty() ? '' : date?.toISOString();
+    const dateString = props.timeStamp === false ? date.format(DatePickerSaveFormatNoTimestamp) : date?.toISOString(true);
+    const saveDate = isDateEmpty() ? '' : dateString;
     props.handleDataChange(saveDate);
   };
 
