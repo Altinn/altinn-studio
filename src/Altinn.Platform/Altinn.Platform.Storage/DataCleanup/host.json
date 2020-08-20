@@ -9,7 +9,11 @@
     },
     "logLevel": {
       "default": "Information",
-      "Function": "Information"
+      "Function": "Error",
+      "Altinn.Platform.Storage.DataCleanup.Services.CosmosService": "Error",
+      "Altinn.Platform.Storage.DataCleanup.Services.BlobService": "Error",
+      "Altinn.Platform.Storage.DataCleanup.Services.SasTokenProvider": "Error",
+      "Altinn.Platform.Storage.DataCleanup.Services.KeyVaultService": "Error"
     }
   }
 }
