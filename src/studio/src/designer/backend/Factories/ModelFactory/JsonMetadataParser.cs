@@ -273,6 +273,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case BaseValueType.TimePeriod:
                     classBuilder.AppendLine("[RegularExpression(@\"^-?P([0-9]*Y)?([0-9]*M)?([0-9]*D)?(T([0-9]*H)?([0-9]*M)?([0-9]*S)?)?$\"" + errorMessage + ")]");
                     break;
+                case BaseValueType.Date:
+                  classBuilder.AppendLine("[RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1,2][0-9]|3[0,1])$\"" + errorMessage + ")]");
+                  break;
             }   
         }
 
@@ -289,6 +292,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case BaseValueType.GMonth:
                 case BaseValueType.Time:
                 case BaseValueType.TimePeriod:
+                case BaseValueType.Date:
                 case null:
                     return "string";
                 case BaseValueType.Int:
@@ -302,7 +306,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case BaseValueType.NonNegativeInteger:
                 case BaseValueType.NonPositiveInteger:
                     return "decimal";
-                case BaseValueType.Date:
                 case BaseValueType.DateTime:
                     return "DateTime";
                 case BaseValueType.Boolean:

@@ -220,6 +220,14 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
     return element?.minOccurs;
   }
 
+  public getXsdDataTypeFromDataModel = (dataBindingName: string): string => {
+    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) => {
+      return e.dataBindingName === dataBindingName;
+    });
+
+    return element?.xsdValueType;
+  }
+
   public handleValidFileEndingsChange = (event: any) => {
     const component = (this.props.component as IFormFileUploaderComponent);
     component.validFileEndings = event.target.value;
@@ -299,27 +307,22 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       dataModelBinding = {};
     }
     dataModelBinding[key] = selectedDataModelElement;
-    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 0) {
-      this.setState((prevState: IEditModalContentState) => {
-        return {
-          component: {
-            ...prevState.component,
-            required: false,
-            dataModelBindings: dataModelBinding,
-          },
-        };
-      }, () => this.props.handleComponentUpdate(this.state.component));
-    } else {
-      this.setState((prevState: IEditModalContentState) => {
-        return {
-          component: {
-            ...prevState.component,
-            required: true,
-            dataModelBindings: dataModelBinding,
-          },
-        };
-      }, () => this.props.handleComponentUpdate(this.state.component));
+    const modifiedProperties: any = {
+      dataModelBindings: dataModelBinding,
+      required: this.getMinOccursFromDataModel(selectedDataModelElement) !== 0,
+    };
+    if (this.props.component.type === 'Datepicker') {
+      modifiedProperties.timeStamp = this.getXsdDataTypeFromDataModel(selectedDataModelElement) === 'DateTime';
     }
+
+    this.setState((prevState: IEditModalContentState) => {
+      return {
+        component: {
+          ...prevState.component,
+          ...modifiedProperties,
+        },
+      };
+    }, () => this.props.handleComponentUpdate(this.state.component));
   }
 
   public handleToggleAddressSimple = (event: object, checked: boolean) => {
