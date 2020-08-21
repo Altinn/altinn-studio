@@ -1,22 +1,20 @@
 import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
-import {
-  watchAddActiveFormContainerSaga,
+import { watchAddActiveFormContainerSaga,
   watchAddApplicationMetadataSaga,
   watchAddFormComponentSaga,
   watchAddFormContainerSaga,
-  watchCreateRepeatingGroupSaga,
   watchDeleteApplicationMetadataSaga,
   watchDeleteFormComponentSaga,
   watchDeleteFormContainerSaga,
   watchFetchFormLayoutSaga,
   watchSaveFormLayoutSaga,
-  watchToggleFormContainerRepeatingSaga,
   watchUpdateApplicationMetadataSaga,
   watchUpdateDataModelBindingSaga,
   watchUpdateFormComponentOrderSaga,
   watchUpdateFormComponentSaga,
-} from './formDesignerSagas';
+  watchUpdateContainerIdSaga,
+  watchUpdateContainerSaga } from './formDesignerSagas';
 
 // tslint:disable-next-line:space-before-function-paren
 export default function* (): SagaIterator {
@@ -29,10 +27,10 @@ export default function* (): SagaIterator {
   yield fork(watchSaveFormLayoutSaga);
   yield fork(watchUpdateDataModelBindingSaga);
   yield fork(watchUpdateFormComponentSaga);
-  yield fork(watchToggleFormContainerRepeatingSaga);
-  yield fork(watchCreateRepeatingGroupSaga);
   yield fork(watchUpdateFormComponentOrderSaga);
   yield fork(watchAddApplicationMetadataSaga);
   yield fork(watchDeleteApplicationMetadataSaga);
   yield fork(watchUpdateApplicationMetadataSaga);
+  yield fork(watchUpdateContainerSaga);
+  yield fork(watchUpdateContainerIdSaga);
 }

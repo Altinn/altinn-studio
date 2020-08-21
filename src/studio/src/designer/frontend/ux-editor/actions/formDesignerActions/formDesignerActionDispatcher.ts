@@ -210,6 +210,17 @@ export interface IFormDesignerActionDispatchers
   updateApplicationMetadataRejected: (
     error: Error,
   ) => FormDesignerActions.IUpdateApplicationMetadaActionRejected;
+  updateContainerId: (
+    currentId: string,
+    newId: string,
+  ) => FormDesignerActions.IUpdateContainerIdAction;
+  updateContainerIdFulfilled: (
+    currentId: string,
+    newId: string,
+  ) => FormDesignerActions.IUpdateContainerIdFulfilled;
+  updateContainerIdRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateContainerIdRejectedAction;
 }
 
 const actions: IFormDesignerActionDispatchers = {
@@ -285,6 +296,9 @@ const actions: IFormDesignerActionDispatchers = {
   updateApplicationMetadataFulfilled:
     FormDesignerActions.updateApplicationMetadaActionFulfilled,
   updateApplicationMetadataRejected: FormDesignerActions.updateApplicationMetadaActionRejected,
+  updateContainerId: FormDesignerActions.updateContainerId,
+  updateContainerIdFulfilled: FormDesignerActions.updateContainerIdFulfilled,
+  updateContainerIdRejected: FormDesignerActions.updateContainerIdRejected,
 };
 
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<

@@ -9,6 +9,9 @@
   "editor.rulers": [
     120
   ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true,
+  },
   "search.exclude": {
     "**/node_modules": true,
     "**/bower_components": true,
@@ -28,5 +31,6 @@
   "eslint.workingDirectories": [
     { "directory": "./src/studio/src/designer/frontend", "changeProcessCWD": true },
     { "directory": "./src/Altinn.Apps/AppFrontend/react", "changeProcessCWD": true}
-  ]
+  ],
+  "eslint.autoFixOnSave": true
 }

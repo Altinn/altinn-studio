@@ -60,6 +60,9 @@ export function getComponentTitleByComponentType(componentType: ComponentTypes, 
     case ComponentTypes.AddressComponent: {
       return language.ux_editor.component_advanced_address;
     }
+    case ComponentTypes.Group: {
+      return language.ux_editor.component_group;
+    }
     default: {
       return '';
     }
@@ -77,15 +80,17 @@ export function getCollapsableMenuTitleByType(menu: CollapsableMenus, language: 
     case CollapsableMenus.AdvancedComponents: {
       return language.ux_editor.collapsable_text_advanced_components;
     }
+    default: {
+      return '';
+    }
   }
 }
 
 export function truncate(s: string, size: number) {
   if (s.length > size) {
-    return (s.substring(0, size) + '...');
-  } else {
-    return s;
+    return (`${s.substring(0, size)}...`);
   }
+  return s;
 }
 
 export function getTextResource(resourceKey: string, textResources: ITextResource[]): string {

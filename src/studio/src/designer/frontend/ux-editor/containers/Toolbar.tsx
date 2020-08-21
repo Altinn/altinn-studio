@@ -97,23 +97,24 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       componentType: c.Type,
       label: c.name,
       icon: c.Icon,
-      actionMethod: (containerId: string, position: number) => {
-        FormDesignerActionDispatchers.addFormComponent({
-          type: c.name,
-          componentType: c.Type,
-          itemType: LayoutItemType.Component,
-          textResourceBindings: {
-            title: c.name === 'Button' ?
-              getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)
-              : getComponentTitleByComponentType(c.Type, this.props.language),
+      actionMethod: (c.Type === ComponentTypes.Group) ? this.addContainerToLayout :
+        (containerId: string, position: number) => {
+          FormDesignerActionDispatchers.addFormComponent({
+            type: c.name,
+            componentType: c.Type,
+            itemType: LayoutItemType.Component,
+            textResourceBindings: {
+              title: c.name === 'Button' ?
+                getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)
+                : getComponentTitleByComponentType(c.Type, this.props.language),
+            },
+            dataModelBindings: {},
+            ...JSON.parse(JSON.stringify(customProperties)),
           },
-          dataModelBindings: {},
-          ...JSON.parse(JSON.stringify(customProperties)),
+          position,
+          containerId);
+          this.updateActiveListOrder();
         },
-        position,
-        containerId);
-        this.updateActiveListOrder();
-      },
     } as IToolbarElement;
   }
 
@@ -130,19 +131,17 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             thirdPartyComponentArray.push({
               label: `${packageName} - ${componentName}`,
               componentType: null,
-              actionMethod: (containerId: string, position: number) =>
-                FormDesignerActionDispatchers.addFormComponent({
-                  type: THIRD_PARTY_COMPONENT,
-                  itemType: LayoutItemType.Component,
-                  textResourceBindings: {
-                    title: `${packageName} - ${componentName}`,
-                  },
-                  dataModelBindings: {},
-                  ...JSON.parse(JSON.stringify({})),
+              actionMethod: (containerId: string, position: number) => FormDesignerActionDispatchers.addFormComponent({
+                type: THIRD_PARTY_COMPONENT,
+                itemType: LayoutItemType.Component,
+                textResourceBindings: {
+                  title: `${packageName} - ${componentName}`,
                 },
-                  position,
-                  containerId,
-                ),
+                dataModelBindings: {},
+                ...JSON.parse(JSON.stringify({})),
+              },
+              position,
+              containerId),
             });
           }
         }
@@ -224,6 +223,20 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
         advancedComponentListCloseAnimationDone: done,
       });
     }
+  }
+
+  public addContainerToLayout = (containerId: string, index: number) => {
+    FormDesignerActionDispatchers.addFormContainer(
+      {
+        maxCount: 0,
+        dataModelBindings: {},
+        itemType: 'CONTAINER',
+      } as ICreateFormContainer,
+      null,
+      containerId,
+      null,
+      index,
+    );
   }
 
   public updateActiveListOrder() {
