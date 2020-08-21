@@ -1,10 +1,10 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import { IUiConfig } from 'src/types';
 import { ILayout } from './index';
 import { IFetchFormLayoutFulfilled, IFetchFormLayoutRejected } from './fetch/fetchFormLayoutActions';
 import * as ActionTypes from './formLayoutActionTypes';
 import { IUpdateFocusFulfilled, IUpdateFormLayout, IUpdateHiddenComponents, IUpdateAutoSave, IUpdateRepeatingGroupsFulfilled } from './update/updateFormLayoutActions';
-import { IUiConfig } from '../../../types';
 
 export interface ILayoutState {
   layout: ILayout;

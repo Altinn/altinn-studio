@@ -19,51 +19,17 @@ import { IProfileState } from '../shared/resources/profile/profileReducers';
 import { IQueueState } from '../shared/resources/queue/queueReducer';
 import { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
 
-export interface IRuntimeState {
-  applicationMetadata: IApplicationMetadataState;
-  attachments: IAttachmentState;
-  formData: IFormDataState;
-  formDataModel: IDataModelState;
-  formDynamics: IFormDynamicState;
-  formLayout: ILayoutState;
-  formRules: IFormRuleState;
-  formValidations: IValidationState;
-  instanceData: IInstanceDataState;
-  instantiation: IInstantiationState;
-  isLoading: IIsLoadingState;
-  language: ILanguageState;
-  optionState: IOptionsState;
-  organisationMetaData: IOrgsState;
-  party: IPartyState;
-  process: IProcessState;
-  profile: IProfileState;
-  queue: IQueueState;
-  textResources: ITextResourcesState;
-}
-
-export enum ProcessSteps {
-  Unknown = 'unknown',
-  FormFilling = 'data',
-  Archived = 'ended',
-  Confirm = 'confirmation',
-  Feedback = 'feedback',
-}
-
-export enum Severity {
-  Unspecified = 0,
-  Error = 1,
-  Warning = 2,
-  Informational = 3,
-}
-
-export interface IValidationIssue {
-  code: string;
-  description: string;
-  field: string;
-  scope: string;
-  severity: Severity;
-  targetId: string;
-}
+export type FormComponentType =
+  | IFormAddressComponent
+  | IFormButtonComponent
+  | IFormCheckboxComponent
+  | IFormComponent
+  | IFormDropdownComponent
+  | IFormFileUploaderComponent
+  | IFormHeaderComponent
+  | IFormInputComponent
+  | IFormRadioButtonComponent
+  | IFormTextAreaComponent;
 
 export interface IAltinnWindow extends Window {
   app: string;
@@ -175,6 +141,14 @@ export interface IOptions {
   [id: string]: IOption[];
 }
 
+export interface IRepeatingGroup {
+  count: number;
+}
+
+export interface IRepeatingGroups {
+  [id: string]: IRepeatingGroup;
+}
+
 export interface IRules {
   [id: string]: any;
 }
@@ -186,6 +160,28 @@ export interface IRuntimeStore {
   formDynamics: IFormDynamicState;
   formLayout: ILayoutState;
   language: ILanguageState;
+}
+
+export interface IRuntimeState {
+  applicationMetadata: IApplicationMetadataState;
+  attachments: IAttachmentState;
+  formData: IFormDataState;
+  formDataModel: IDataModelState;
+  formDynamics: IFormDynamicState;
+  formLayout: ILayoutState;
+  formRules: IFormRuleState;
+  formValidations: IValidationState;
+  instanceData: IInstanceDataState;
+  instantiation: IInstantiationState;
+  isLoading: IIsLoadingState;
+  language: ILanguageState;
+  optionState: IOptionsState;
+  organisationMetaData: IOrgsState;
+  party: IPartyState;
+  process: IProcessState;
+  profile: IProfileState;
+  queue: IQueueState;
+  textResources: ITextResourcesState;
 }
 
 export interface ISchemaValidator {
@@ -206,6 +202,15 @@ export interface ITextResourceBindings {
   [id: string]: string;
 }
 
+export interface IValidationIssue {
+  code: string;
+  description: string;
+  field: string;
+  scope: string;
+  severity: Severity;
+  targetId: string;
+}
+
 export interface IUiConfig {
   autoSave: boolean;
   focus: string;
@@ -213,21 +218,13 @@ export interface IUiConfig {
   repeatingGroups?: IRepeatingGroups;
 }
 
-export interface IRepeatingGroup {
-  count: number;
-}
-
-export interface IRepeatingGroups {
-  [id: string]: IRepeatingGroup;
+export interface IValidationResult {
+  invalidDataTypes: boolean;
+  validations: IValidations;
 }
 
 export interface IValidations {
   [id: string]: IComponentValidations;
-}
-
-export interface IValidationResult {
-  invalidDataTypes: boolean;
-  validations: IValidations;
 }
 
 export interface IVariable {
@@ -235,14 +232,17 @@ export interface IVariable {
   key: string;
 }
 
-export type FormComponentType =
-  | IFormAddressComponent
-  | IFormButtonComponent
-  | IFormCheckboxComponent
-  | IFormComponent
-  | IFormDropdownComponent
-  | IFormFileUploaderComponent
-  | IFormHeaderComponent
-  | IFormInputComponent
-  | IFormRadioButtonComponent
-  | IFormTextAreaComponent;
+export enum ProcessSteps {
+  Unknown = 'unknown',
+  FormFilling = 'data',
+  Archived = 'ended',
+  Confirm = 'confirmation',
+  Feedback = 'feedback',
+}
+
+export enum Severity {
+  Unspecified = 0,
+  Error = 1,
+  Warning = 2,
+  Informational = 3,
+}
