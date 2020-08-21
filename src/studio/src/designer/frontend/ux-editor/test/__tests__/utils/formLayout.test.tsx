@@ -1,10 +1,9 @@
+/* eslint-disable no-undef */
 import 'jest';
-import {
-  convertFromLayoutToInternalFormat,
+import { convertFromLayoutToInternalFormat,
   convertInternalToLayoutFormat,
-  extractChildrenFromContainer,
   getParentContainerId,
-} from '../../../utils/formLayout';
+  extractChildrenFromGroup } from '../../../utils/formLayout';
 
 describe('>>> utils/formLayout', () => {
   let mockInternal: any;
@@ -29,6 +28,14 @@ describe('>>> utils/formLayout', () => {
           },
           dataModelBindings: {},
         },
+        'group-paragraph': {
+          type: 'Paragraph',
+          itemType: 'COMPONENT',
+          textResourceBindings: {
+            title: 'ServiceName',
+          },
+          dataModelBindings: {},
+        },
       },
       containers: {
         'f35e6f67-7d3a-4e20-a538-90d94e6c29a1': {
@@ -36,11 +43,22 @@ describe('>>> utils/formLayout', () => {
           dataModelGroup: null,
           index: 0,
         },
+        'group-container': {
+          dataModelBindings: {},
+          repeating: false,
+          children: [
+            'group-paragraph',
+          ],
+        },
       },
       order: {
         'f35e6f67-7d3a-4e20-a538-90d94e6c29a1': [
           '46882e2b-8097-4170-ad4c-32cdc156634e',
           'ede0b05d-2c53-4feb-bdd4-4c61b89bd729',
+          'group-container',
+        ],
+        'group-container': [
+          'group-paragraph',
         ],
       },
     };
@@ -98,7 +116,9 @@ describe('>>> utils/formLayout', () => {
   });
   it('+++ convertFromLayoutToInternalFormat should return empty IFormDesignerLayout if no formLayout', () => {
     const convertedLayout = convertFromLayoutToInternalFormat(null);
-    expect(convertedLayout).toEqual({ containers: {}, components: {}, order: {} });
+    expect(convertedLayout).toEqual({
+      containers: {}, components: {}, order: {},
+    });
   });
   it('+++ convertFromLayoutToInternalFormat should convert component.component to component.type', () => {
     mockLayout = [
@@ -166,63 +186,24 @@ describe('>>> utils/formLayout', () => {
       type: 'Paragraph',
       textResourceBindings: { title: 'ServiceName' },
       dataModelBindings: {},
-    }];
-    expect(Array.isArray(convertedLayout)).toBe(true);
-    expect(convertedLayout).toEqual(mockResult);
-  });
-  it('+++ convertInternalToLayoutFormat should convert component.component to component.type', () => {
-    mockInternal = {
-      components: {
-        '46882e2b-8097-4170-ad4c-32cdc156634e': {
-          component: 'Header',
-          textResourceBindings: {
-            title: 'ServiceName',
-          },
-          dataModelBindings: {},
-          size: 'L',
-        },
-        'ede0b05d-2c53-4feb-bdd4-4c61b89bd729': {
-          component: 'Paragraph',
-          textResourceBindings: {
-            title: 'ServiceName',
-          },
-          dataModelBindings: {},
-        },
-      },
-      containers: {
-        'f35e6f67-7d3a-4e20-a538-90d94e6c29a1': {
-          repeating: false,
-          dataModelGroup: null,
-          index: 0,
-        },
-      },
-      order: {
-        'f35e6f67-7d3a-4e20-a538-90d94e6c29a1': [
-          '46882e2b-8097-4170-ad4c-32cdc156634e',
-          'ede0b05d-2c53-4feb-bdd4-4c61b89bd729',
-        ],
-      },
-    };
-    const mockResult = [
-      {
-        id: '46882e2b-8097-4170-ad4c-32cdc156634e',
-        type: 'Header',
-        textResourceBindings: {
-          title: 'ServiceName',
-        },
-        dataModelBindings: {},
-        size: 'L',
-      },
-      {
-        id: 'ede0b05d-2c53-4feb-bdd4-4c61b89bd729',
-        type: 'Paragraph',
-        textResourceBindings: {
-          title: 'ServiceName',
-        },
-        dataModelBindings: {},
-      },
+    },
+    {
+      id: 'group-container',
+      type: 'Group',
+      dataModelBindings: {},
+      repeating: false,
+      children: [
+        'group-paragraph',
+      ],
+    },
+    {
+      id: 'group-paragraph',
+      type: 'Paragraph',
+      textResourceBindings: { title: 'ServiceName' },
+      dataModelBindings: {},
+    },
     ];
-    const convertedLayout = convertInternalToLayoutFormat(mockInternal);
+    expect(Array.isArray(convertedLayout)).toBe(true);
     expect(convertedLayout).toEqual(mockResult);
   });
 
@@ -231,75 +212,78 @@ describe('>>> utils/formLayout', () => {
     expect(result).toBe('f35e6f67-7d3a-4e20-a538-90d94e6c29a1');
   });
 
-  it('+++ extractChildrenFromContainer should return all children from a container', () => {
-    const mockContainer = {
-      id: 'mockContainerID',
+  it('+++ extractChildrenFromGroup should return all children from a container', () => {
+    const mockGroup = {
+      id: 'mock-group-id',
       children: [
-        { id: 'mockChildID_1', someProp: '1' },
-        { id: 'mockChildID_2', someProp: '2' },
+        'mock-component-1',
+        'mock-component-2',
       ],
     };
+    const mockComponents = [
+      {
+        id: 'mock-component-1',
+        someProp: '1',
+      },
+      {
+        id: 'mock-component-2',
+        someProp: '2',
+      },
+    ];
     const mockConvertedLayout = {
       containers: {},
       components: {},
       order: {},
     };
     const mockConvertedLayoutResult = {
-      containers: { mockContainerID: { itemType: 'CONTAINER' } },
+      containers: { 'mock-group-id': { itemType: 'CONTAINER' } },
       components: {
-        mockChildID_1: { someProp: '1', itemType: 'COMPONENT' },
-        mockChildID_2: { someProp: '2', itemType: 'COMPONENT' },
+        'mock-component-1': { someProp: '1', itemType: 'COMPONENT' },
+        'mock-component-2': { someProp: '2', itemType: 'COMPONENT' },
       },
-      order: { mockContainerID: ['mockChildID_1', 'mockChildID_2'] },
+      order: { 'mock-group-id': ['mock-component-1', 'mock-component-2'] },
     };
-    extractChildrenFromContainer(mockContainer, mockConvertedLayout);
+    extractChildrenFromGroup(mockGroup, mockComponents, mockConvertedLayout);
     expect(mockConvertedLayout).toEqual(mockConvertedLayoutResult);
   });
-  it('+++ if children of children, run same function over again', () => {
-    const mockContainer = {
-      id: 'mockContainerID',
-      children: [
-        { id: 'mockChildID_1', children: [{ id: 'mockChildID_3', someProp: '3' }] },
-        { id: 'mockChildID_2', someProp: '2' },
-      ],
-    };
-    const mockConvertedLayout = {
-      containers: {},
-      components: {},
-      order: {},
-    };
-    const mockConvertedLayoutResult = {
-      containers: {
-        mockChildID_1: { itemType: 'CONTAINER' },
-        mockContainerID: { itemType: 'CONTAINER' },
-      },
-      components: {
-        mockChildID_2: { someProp: '2', itemType: 'COMPONENT' },
-        mockChildID_3: { someProp: '3', itemType: 'COMPONENT' },
-      },
-      order: { mockChildID_1: ['mockChildID_3'], mockContainerID: ['mockChildID_2'] },
-    };
-    extractChildrenFromContainer(mockContainer, mockConvertedLayout);
-    expect(mockConvertedLayout).toEqual(mockConvertedLayoutResult);
-  });
+
   it('+++ if the element contains children in convertFromLayoutToInternalFormat ' +
     'extractChildrenFromContainer should run', () => {
-      mockLayout = [
-        { id: 'mockChildID_1', children: [{ id: 'mockChildID_2', someProp: '2' }] },
-        { id: 'mockChildID_3', children: [{ id: 'mockChildID_4', someProp: '4' }] },
-        { id: 'mockChildID_5', someProp: '5' },
-      ];
-      const mockResult = {
-        containers: {
-          mockChildID_1: { itemType: 'CONTAINER' },
+    mockLayout = [
+      {
+        id: 'mockChildID_1', type: 'Group', children: ['mockChildID_2'],
+      },
+      {
+        id: 'mockChildID_3', type: 'Group', children: ['mockChildID_4'],
+      },
+      {
+        id: 'mockChildID_2', type: 'Header', someProp: '2',
+      },
+      {
+        id: 'mockChildID_4', type: 'Paragraph', someProp: '4',
+      },
+      {
+        id: 'mockChildID_5', type: 'Dropdown', someProp: '5',
+      },
+    ];
+    const mockResult = {
+      containers: {
+        mockChildID_1: { itemType: 'CONTAINER' },
+        mockChildID_3: { itemType: 'CONTAINER' },
+      },
+      components: {
+        mockChildID_2: {
+          someProp: '2', type: 'Header', itemType: 'COMPONENT',
         },
-        components: {
-          mockChildID_2: { someProp: '2', itemType: 'COMPONENT' },
-          mockChildID_4: { someProp: '4', itemType: 'COMPONENT' },
-          mockChildID_5: { someProp: '5', itemType: 'COMPONENT' },
+        mockChildID_4: {
+          someProp: '4', type: 'Paragraph', itemType: 'COMPONENT',
         },
-      };
-      const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
-      expect(convertedLayout.components).toEqual(mockResult.components);
-    });
+        mockChildID_5: {
+          someProp: '5', type: 'Dropdown', itemType: 'COMPONENT',
+        },
+      },
+    };
+    const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
+    expect(convertedLayout.components).toEqual(mockResult.components);
+  });
 });

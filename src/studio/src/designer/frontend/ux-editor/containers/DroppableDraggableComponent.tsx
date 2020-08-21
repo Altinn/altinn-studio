@@ -1,6 +1,5 @@
 import * as React from 'react';
-import {
-  ConnectDragPreview,
+import { ConnectDragPreview,
   ConnectDragSource,
   ConnectDropTarget,
   DragSource,
@@ -10,8 +9,7 @@ import {
   DropTarget,
   DropTargetConnector,
   DropTargetMonitor,
-  DropTargetSpec,
-} from 'react-dnd';
+  DropTargetSpec } from 'react-dnd';
 import * as ReactDOM from 'react-dom';
 
 export interface IDroppableDraggableComponentProps {
@@ -39,13 +37,12 @@ const dragSourceSpec: DragSourceSpec<IDroppableDraggableComponentProps, any> = {
     return props.canDrag;
   },
   endDrag(props: IDroppableDraggableComponentProps, monitor: DragSourceMonitor, component: any) {
-    if (!monitor.didDrop()) {
+    if (!monitor.didDrop() && component) {
       const draggedComponent = monitor.getItem();
-
       props.onDropComponent(
         draggedComponent.id,
+        draggedComponent.containerId,
         props.containerId,
-        component.props.containerId,
       );
     }
   },
@@ -85,8 +82,8 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
           const draggedComponent = monitor.getItem();
           props.onDropComponent(
             draggedComponent.id,
+            draggedComponent.containerId,
             props.containerId,
-            component.props.containerId,
           );
 
           break;

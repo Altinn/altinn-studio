@@ -16,3 +16,4 @@ export * from './updateFormComponentOrder';
 export * from './addApplicationMetadata';
 export * from './deleteApplicationMetadata';
 export * from './updateApplicationMetadata';
+export * from './updateContainerId';

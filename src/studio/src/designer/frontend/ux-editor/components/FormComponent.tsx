@@ -1,6 +1,4 @@
-import {
-  createStyles, withStyles,
-} from '@material-ui/core';
+import { createStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
@@ -22,6 +20,7 @@ export interface IProvidedProps {
   lastInActiveList: boolean;
   sendListToParent: any;
   singleSelected: boolean;
+  partOfGroup?: boolean;
 }
 
 /**
@@ -154,6 +153,7 @@ const FormComponent = (props: IFormElementProps) => {
         lastInActiveList={props.lastInActiveList}
         sendItemToParent={handleActiveListChange}
         singleSelected={props.singleSelected}
+        partOfGroup={props.partOfGroup}
       >
         <div onClick={disableEditOnClickForAddedComponent}>
           {renderLabel()}
@@ -177,9 +177,9 @@ const makeMapStateToProps = () => {
     order: GetLayoutOrderSelector(state),
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
-      (element) =>
-        element.dataBindingName ===
-        state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding),
+      (element) => element.dataBindingName ===
+        state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding,
+    ),
     validationErrors: null,
     textResources: state.appData.textResources.resources,
     thirdPartyComponents: state.thirdPartyComponents.components,
