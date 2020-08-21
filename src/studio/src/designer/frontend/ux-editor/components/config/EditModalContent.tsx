@@ -48,6 +48,11 @@ const styles = {
     lineHeight: 'auto',
     color: '#000000',
   },
+  addComponentText: {
+    marginTop: '2.4rem',
+    color: '#6A6A6A',
+    alignContent: 'center',
+  },
 };
 
 export interface IEditModalContentProps {
@@ -714,7 +719,6 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
           </Grid>
         );
       }
-
       default: {
         return null;
       }

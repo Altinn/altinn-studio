@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { IOption } from 'src/types/global';
+import { IOption } from 'src/types';
 import * as fetchOptionsActionTypes from './fetchOptionsActionTypes';
 
 export interface IFetchOptionsFulfilledAction extends Action {

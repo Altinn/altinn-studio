@@ -1,8 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { actionChannel, call, select, take } from 'redux-saga/effects';
-
-import { IRuntimeState } from '../../../../types';
-import { IValidationResult } from '../../../../types/global';
+import { IRuntimeState, IValidationResult } from 'src/types';
 import { getLayoutComponentById } from '../../../../utils/layout';
 import { createValidator, validateComponentFormData } from '../../../../utils/validation';
 import FormDynamicActions from '../../dynamics/formDynamicsActions';

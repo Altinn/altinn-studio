@@ -1,6 +1,6 @@
+import { IAltinnWindow } from 'src/types';
 import { IFormData } from '../features/form/data/formDataReducer';
 import { IConditionalRenderingRule, IConditionalRenderingRules } from '../features/form/dynamics/types';
-import { IAltinnWindow } from '../types/global';
 
 /*
 * Runs conditional rendering rules, returns array of affected layout elements

@@ -1,6 +1,5 @@
 import * as React from 'react';
-import {
-  ConnectDragPreview,
+import { ConnectDragPreview,
   ConnectDragSource,
   ConnectDropTarget,
   DragSource,
@@ -10,8 +9,7 @@ import {
   DropTarget,
   DropTargetConnector,
   DropTargetMonitor,
-  DropTargetSpec,
-} from 'react-dnd';
+  DropTargetSpec } from 'react-dnd';
 import * as ReactDOM from 'react-dom';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 
@@ -59,8 +57,8 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
 
           props.onDropComponent(
             draggedComponent.id,
-            props.id,
             draggedComponent.containerId,
+            props.id,
           );
 
           draggedComponent.index = hoverOverIndex;
@@ -78,13 +76,15 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
             );
             break;
           } else {
-
             props.onDropContainer(
               draggedContainer.id,
               props.id,
               draggedContainer.containerId,
             );
           }
+          break;
+        }
+        default: {
           break;
         }
       }
@@ -123,14 +123,11 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
 
           break;
         }
-
         default: {
           break;
         }
       }
-
     }
-
   },
 };
 
@@ -166,10 +163,11 @@ class DroppableDraggableContainer extends React.Component<IDroppableDraggableCon
     return connectDropTarget(connectDragPreview(connectDragSource(
       <div
         style={{
-          border: '1px solid #ccc',
-          padding: '1em',
-          marginBottom: 20,
           backgroundColor: isOver ? 'white' : altinnTheme.altinnPalette.primary.greyLight,
+          paddingLeft: '1.1rem',
+          paddingRight: '1.1rem',
+          border: this.props.parentContainerId ? '' : '1px solid #ccc',
+          marginBottom: this.props.baseContainer ? '' : '12px',
         }}
       >
         {this.props.children}

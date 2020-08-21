@@ -1,5 +1,5 @@
 import 'jest';
-import { ITextResource } from '../../src/types/global';
+import { ITextResource } from '../../src/types';
 import { getTextResourceByKey } from '../../src/utils/textResource';
 
 describe('>>> /utils/textResource.ts', () => {
@@ -7,7 +7,11 @@ describe('>>> /utils/textResource.ts', () => {
   let mockKey: string;
   let mockInvalidKey: string;
   beforeEach(() => {
-    mockTextResources = [{id: 'mockId1', value: 'mock value 1', unparsedValue: 'mock value 1', variables: undefined}, {id: 'mockId2', value: 'mock value 2', unparsedValue: 'mock value 2', variables: undefined} ];
+    mockTextResources = [{
+      id: 'mockId1', value: 'mock value 1', unparsedValue: 'mock value 1', variables: undefined,
+    }, {
+      id: 'mockId2', value: 'mock value 2', unparsedValue: 'mock value 2', variables: undefined,
+    }];
     mockKey = 'mockId1';
     mockInvalidKey = 'invalid';
   });

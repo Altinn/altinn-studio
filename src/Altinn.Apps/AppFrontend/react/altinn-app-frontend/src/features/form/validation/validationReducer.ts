@@ -1,6 +1,6 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IValidations } from '../../../types/global';
+import { IValidations } from 'src/types';
 import { IUpdateComponentValidations } from './component/componentValidationsActions';
 import { IRunSingleFieldValidationActionFulfilled } from './singleField/singleFieldValidationActions';
 import * as ActionTypes from './validationActionTypes';

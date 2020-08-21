@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Interface.Models;
 
+using Azure;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -78,14 +79,20 @@ namespace Altinn.Platform.Storage.Repository
             {
                 return await UploadFromStreamAsync(org, stream, blobStoragePath);
             }
-            catch (Exception exception)
+            catch (RequestFailedException requestFailedException)
             {
-                _logger.LogWarning($"Exception when trying to write to blob storage for {org}: {Environment.NewLine}{exception}");
-                _logger.LogWarning("Invalidating SAS token.");
+                switch (requestFailedException.ErrorCode)
+                {
+                    case "AuthenticationFailed":
+                        _logger.LogWarning("Authentication failed. Invalidating SAS token.");
 
-                _sasTokenProvider.InvalidateSasToken(org);
+                        _sasTokenProvider.InvalidateSasToken(org);
 
-                throw;
+                        // No use retrying upload as the original stream can't be reset back to start.
+                        throw;
+                    default:
+                        throw;
+                }
             }
         }
 
@@ -96,14 +103,23 @@ namespace Altinn.Platform.Storage.Repository
             {
                 return await DownloadToStreamAsync(org, blobStoragePath);
             }
-            catch (Exception exception)
+            catch (RequestFailedException requestFailedException)
             {
-                _logger.LogWarning($"Exception when accessing blob storage for {org}: {Environment.NewLine}{exception}");
-                _logger.LogWarning("Invalidating SAS token and retrying download operation.");
+                switch (requestFailedException.ErrorCode)
+                {
+                    case "AuthenticationFailed":
+                        _logger.LogWarning("Authentication failed. Invalidating SAS token and retrying download operation.");
 
-                _sasTokenProvider.InvalidateSasToken(org);
-                
-                return await DownloadToStreamAsync(org, blobStoragePath);
+                        _sasTokenProvider.InvalidateSasToken(org);
+
+                        return await DownloadToStreamAsync(org, blobStoragePath);
+                    case "InvalidRange":
+                        _logger.LogWarning($"Found possibly empty blob in storage for {org}: {blobStoragePath}");
+
+                        return new MemoryStream();
+                    default:
+                        throw;
+                }
             }
         }
 
@@ -114,14 +130,19 @@ namespace Altinn.Platform.Storage.Repository
             {
                 return await DeleteIfExistsAsync(org, blobStoragePath);
             }
-            catch (Exception exception)
+            catch (RequestFailedException requestFailedException)
             {
-                _logger.LogWarning($"Exception when accessing blob storage for {org}: {Environment.NewLine}{exception}");
-                _logger.LogWarning("Invalidating SAS token and retrying delete operation.");
+                switch (requestFailedException.ErrorCode)
+                {
+                    case "AuthenticationFailed":
+                        _logger.LogWarning("Authentication failed. Invalidating SAS token and retrying delete operation.");
 
-                _sasTokenProvider.InvalidateSasToken(org);
-                
-                return await DeleteIfExistsAsync(org, blobStoragePath);
+                        _sasTokenProvider.InvalidateSasToken(org);
+
+                        return await DeleteIfExistsAsync(org, blobStoragePath);
+                    default:
+                        throw;
+                }
             }
         }
 
@@ -146,7 +167,7 @@ namespace Altinn.Platform.Storage.Repository
 
             List<DataElement> instances = feedResponse.ToList();
 
-            return instances;            
+            return instances;
         }
 
         /// <inheritdoc/>

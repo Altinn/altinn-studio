@@ -1,6 +1,5 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../store';
-
 import * as DataTaskQueueActions from './dataTask/dataTaskQueueActions';
 import * as AppTaskQueueActions from './appTask/appTaskQueueActions';
 
@@ -23,7 +22,7 @@ const actions: IQueueActions = {
   dataTaskQueueError: DataTaskQueueActions.dataTaskQueueError,
   startInitialAppTaskQueue: AppTaskQueueActions.startInitialAppTaskQueue,
   startInitialAppTaskQueueFulfilled: AppTaskQueueActions.startInitialAppTaskQueueFulfilled,
-  appTaskQueueError: AppTaskQueueActions.appTaskQueueError
+  appTaskQueueError: AppTaskQueueActions.appTaskQueueError,
 };
 
 const QueueActions: IQueueActions = bindActionCreators<any, any>(actions, store.dispatch);

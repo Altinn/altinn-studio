@@ -1,5 +1,5 @@
+import { IRepeatingGroups } from 'src/types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout';
-import { IRepeatingGroups } from '../types/global';
 
 /*
 * Returns the layout element with the given id, or undefined if no such element exists

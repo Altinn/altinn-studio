@@ -1,12 +1,14 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IDataModelFieldElement, IJsonSchemas } from '../../../types/global';
-import {
-  IFetchDataModelFulfilled,
+import { IDataModelFieldElement } from '../../../types';
+import { IFetchDataModelFulfilled,
   IFetchDataModelRejected,
-  IFetchJsonSchemaFulfilled,
-} from './fetch/fetchFormDatamodelActions';
+  IFetchJsonSchemaFulfilled } from './fetch/fetchFormDatamodelActions';
 import * as ActionTypes from './fetch/fetchFormDatamodelActionTypes';
+
+export interface IJsonSchemas {
+  [id: string]: any;
+}
 
 export interface IDataModelState {
   dataModel: IDataModelFieldElement[];

@@ -1,5 +1,5 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { ITextResource } from 'src/types/global';
+import { ITextResource } from 'src/types';
 import * as FetchActions from './fetch/fetchTextResourcesActions';
 import * as ReplaceActions from './replace/replaceTextResoucesActions';
 
