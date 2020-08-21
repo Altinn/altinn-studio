@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { IValidations } from '../../../../types/global';
+import { IValidations } from 'src/types';
 import * as ActionTypes from '../validationActionTypes';
 
 export interface IUpdateValidations extends Action {

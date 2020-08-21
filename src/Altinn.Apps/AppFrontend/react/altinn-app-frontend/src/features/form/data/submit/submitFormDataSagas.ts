@@ -1,19 +1,16 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
-import { IRuntimeState } from 'src/types';
 import { getCurrentTaskDataTypeId, get, put } from 'altinn-shared/utils';
+import { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
 import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
-import { IRuntimeStore, IUiConfig } from '../../../../types/global';
 import { convertDataBindingToModel, filterOutInvalidData } from '../../../../utils/databindings';
 import { dataElementUrl, getValidationUrl } from '../../../../utils/urlHelper';
-import {
-  canFormBeSaved,
+import { canFormBeSaved,
   createValidator,
   mapDataElementValidationToRedux,
   validateEmptyFields,
   validateFormComponents,
-  validateFormData,
-} from '../../../../utils/validation';
+  validateFormData } from '../../../../utils/validation';
 import { ILayoutState } from '../../layout/formLayoutReducer';
 import FormValidationActions from '../../validation/validationActions';
 import FormDataActions from '../formDataActions';
@@ -80,10 +77,9 @@ function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
         if (serverValidation && serverValidation.length > 0) {
           // we have validation errors, should not be able to submit
           return yield call(FormDataActions.submitFormDataRejected, null);
-        } else {
-          // data has no validation errors, we complete the current step
-          yield call(ProcessDispatcher.completeProcess);
         }
+        // data has no validation errors, we complete the current step
+        yield call(ProcessDispatcher.completeProcess);
       }
       yield call(FormDataActions.submitFormDataFulfilled);
     } else {

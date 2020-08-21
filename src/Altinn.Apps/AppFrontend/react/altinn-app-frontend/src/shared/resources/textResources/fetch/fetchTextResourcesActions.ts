@@ -1,6 +1,6 @@
 import { Action } from 'redux';
+import { ITextResource } from 'src/types';
 import * as ActionTypes from './fetchTextResourcesActionTypes';
-import { ITextResource } from '../../../../types/global';
 
 export interface IFetchTextResourcesFulfilled extends Action {
   language: string;

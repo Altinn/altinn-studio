@@ -42,6 +42,7 @@ module.exports = {
     alias: {
       // CUSTOM PACKAGES
       'altinn-shared': path.resolve(__dirname, './../shared/src'),
+      'src': path.resolve(__dirname, './src')
     }
   },
   performance: {

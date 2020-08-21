@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
+import { IComponentValidations, IValidations } from 'src/types';
 import { IRuntimeState } from '../types';
-import { IComponentValidations, IValidations } from '../types/global';
 
 const validationErrorsSelector = (state: IRuntimeState) => {
   return state.formValidations.validations;

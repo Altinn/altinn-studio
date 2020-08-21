@@ -8,10 +8,3 @@ export interface IAttachment {
 export interface IAttachments {
   [attachmentType: string]: IAttachment[];
 }
-
-export interface IAltinnWindow extends Window {
-  org: string;
-  app: string;
-  instanceId: string;
-  reportee: string;
-}

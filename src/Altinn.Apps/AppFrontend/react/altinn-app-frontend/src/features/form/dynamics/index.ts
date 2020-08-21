@@ -1,4 +1,4 @@
-import { IConditionalRenderingRules } from "./types";
+import { IConditionalRenderingRules } from './types';
 
 export interface IFormDynamicState {
   apis: any;

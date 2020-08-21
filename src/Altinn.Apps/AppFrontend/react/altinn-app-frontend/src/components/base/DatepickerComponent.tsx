@@ -8,7 +8,7 @@ import MomentUtils from '@date-io/moment';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { Moment } from 'moment';
-import { IComponentValidations, IComponentBindingValidation } from 'src/types/global';
+import { IComponentValidations, IComponentBindingValidation } from 'src/types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 // eslint-disable-next-line import/no-cycle
 import { validateDatepickerFormData } from '../../utils/validation';

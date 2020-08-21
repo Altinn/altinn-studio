@@ -1,5 +1,5 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { IOption } from 'src/types/global';
+import { IOption } from 'src/types';
 import { store } from '../../../store';
 
 import * as FetchOptions from './fetch/fetchOptionsActions';

@@ -1,4 +1,4 @@
-import { ITextResource } from 'src/types/global';
+import { ITextResource } from 'src/types';
 import { getParsedLanguageFromKey, getParsedLanguageFromText } from 'altinn-shared/utils';
 
 export function getTextResourceByKey(key: string, textResources: ITextResource[]) {
