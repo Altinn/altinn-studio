@@ -69,10 +69,9 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"CosmosService // DeleteDataElementDocuments // Exeption: {ex.Message}");
+                return false;
             }
-
-            return false;
         }
 
         /// <inheritdoc/>
@@ -92,10 +91,9 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"CosmosService // DeleteInstanceDocument // Exeption: {ex.Message}");
+                return false;
             }
-
-            return false;
         }
 
         /// <inheritdoc/>
@@ -131,7 +129,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError($"CosmosService // GetHardDeletedInstances // Exeption: {ex.Message}");
             }
 
             // no post process requiered as the data is not exposed to the end user
