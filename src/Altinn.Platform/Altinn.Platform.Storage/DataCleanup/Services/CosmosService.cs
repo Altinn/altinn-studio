@@ -117,7 +117,7 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
 
             filter = _client.CreateDocumentQuery<Instance>(instanceCollectionUri, feedOptions)
                 .Where(i => (i.Status.HardDeleted.HasValue && i.Status.HardDeleted.Value <= DateTime.UtcNow.AddDays(-7)))
-                .Where(i => i.CompleteConfirmations.Any(c => c.StakeholderId.ToLower().Equals(i.Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)));
+                .Where(i => i.CompleteConfirmations.Any(c => c.StakeholderId.ToLower().Equals(i.Org) && c.ConfirmedOn <= DateTime.UtcNow.AddDays(-7)) || i.Status.Archived == null);
 
             try
             {
