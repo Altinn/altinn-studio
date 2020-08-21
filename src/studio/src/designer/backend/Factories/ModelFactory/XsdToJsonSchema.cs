@@ -871,7 +871,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             else if ("http://www.w3.org/2001/XMLSchema:dateTime".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
-                appendToSchema.Format("dateTime");
+                appendToSchema.Format("date-time");
             }
             else if ("http://www.w3.org/2001/XMLSchema:gYear".Equals(type))
             {
