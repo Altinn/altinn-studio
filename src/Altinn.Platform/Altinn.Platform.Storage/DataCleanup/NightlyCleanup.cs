@@ -41,16 +41,24 @@ namespace Altinn.Platform.Storage.DataCleanup
 
             foreach (Instance instance in instances)
             {
+                bool dataElementsDeleted, dataElementMetadataDeleted = false;
+
                 try
                 {
                     if (instance.Data.Count > 0)
                     {
-                        await _blobService.DeleteDataBlobs(instance);
-                        await _cosmosService.DeleteDataElementDocuments(instance.Id);
+                        dataElementsDeleted = await _blobService.DeleteDataBlobs(instance);
+                        if (dataElementsDeleted)
+                        {
+                            dataElementMetadataDeleted = await _cosmosService.DeleteDataElementDocuments(instance.Id);
+                        }
                     }
 
-                    await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
-                    log.LogInformation($"NightlyCleanup // Run // Instance deleted: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}");
+                    if (dataElementMetadataDeleted)
+                    {
+                        await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
+                        log.LogInformation($"NightlyCleanup // Run // Instance deleted: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}");
+                    }
                 }
                 catch (Exception e)
                 {
