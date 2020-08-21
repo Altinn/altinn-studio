@@ -2,23 +2,27 @@ import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import * as DataTaskQueueActionTypes from './dataTask/dataTaskQueueActionTypes';
 import * as AppTaskQueueActionTypes from './appTask/appTaskQueueActionTypes';
-import {IQueueError} from './queueActions';
-import { IQueueTask } from 'src/types/global';
+import { IQueueError } from './queueActions';
 
 export interface IQueueState {
   dataTask: IQueueTask;
   appTask: IQueueTask;
 }
 
+export interface IQueueTask {
+  isDone: boolean;
+  error: any;
+}
+
 const initialState: IQueueState = {
   dataTask: {
     isDone: null,
-    error: null
+    error: null,
   },
   appTask: {
     isDone: null,
-    error: null
-  }
+    error: null,
+  },
 };
 
 const queueReducer: Reducer<IQueueState> = (

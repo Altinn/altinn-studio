@@ -172,6 +172,7 @@
       }
     ],
     "react/jsx-boolean-value": "off",
-    "linebreak-style": "off"
+    "linebreak-style": "off",
+    "import/no-cycle": "off"
   }
 }

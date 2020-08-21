@@ -29,7 +29,7 @@
     "esModuleInterop": true
   },
   "include": [
-    "./src/**/*"
+    "./src/**/*",
   ],
   "exclude": [
     "node_modules",
@@ -39,5 +39,5 @@
     "webpack",
     "jest",
     "src/setupTests.ts"
-  ],
+  ]
 }

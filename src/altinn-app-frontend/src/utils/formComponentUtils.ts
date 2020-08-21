@@ -1,5 +1,5 @@
 import { getLanguageFromKey, getParsedLanguageFromText } from 'altinn-shared/utils';
-import { IDataModelBindings, IComponentValidations, ITextResource } from '../types/global';
+import { IDataModelBindings, IComponentValidations, ITextResource } from 'src/types';
 
 export const isSimpleComponent = (dataModelBindings: any, type: string): boolean => {
   const simpleBinding = dataModelBindings.simpleBinding;

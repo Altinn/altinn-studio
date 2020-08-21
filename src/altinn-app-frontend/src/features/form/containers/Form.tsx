@@ -1,11 +1,11 @@
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
+import { IRepeatingGroups } from 'src/types';
 import { IRuntimeState } from '../../../types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { Group } from './Group';
 import { renderGenericComponent } from '../../../utils/layout';
-import { IRepeatingGroups } from '../../../types/global';
 
 export function Form() {
   const [filteredLayout, setFilteredLayout] = React.useState<any[]>([]);

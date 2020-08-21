@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useRef, useEffect } from 'react';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import { IValidations, ITextResource } from 'src/types/global';
+import { IValidations, ITextResource } from 'src/types';
 import { IRuntimeState } from 'src/types';
 import { useSelector } from 'react-redux';
 import { getTextFromAppOrDefault } from '../../utils/textResource';

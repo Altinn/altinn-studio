@@ -1,9 +1,10 @@
+import { IDataModelFieldElement } from 'src/types';
 import { IFormData } from '../../features/form/data/formDataReducer';
 import { IDataModelState } from '../../features/form/datamodel/formDatamodelReducer';
-import { IRuleConnections } from '../../features/form/dynamics/';
+import { IRuleConnections } from '../../features/form/dynamics';
 import { ILayoutComponent } from '../../features/form/layout';
 import { ILayoutState } from '../../features/form/layout/formLayoutReducer';
-import { IDataModelFieldElement, IRuleModelFieldElement } from '../../features/form/rules';
+import { IRuleModelFieldElement } from '../../features/form/rules';
 
 export function checkIfRuleShouldRun(
   ruleConnectionState: IRuleConnections,
@@ -11,7 +12,8 @@ export function checkIfRuleShouldRun(
   formDataModelState: IDataModelState,
   formLayoutState: ILayoutState,
   repeatingContainerId: string,
-  lastUpdatedDataBinding: IDataModelFieldElement) {
+  lastUpdatedDataBinding: IDataModelFieldElement,
+) {
   /*
   let repContainer;
   let repeating;
@@ -60,7 +62,8 @@ export function checkIfRuleShouldRun(
         }, {});
         const result = (window as any).ruleHandlerObject[functionToRun](newObj);
         const updatedDataBinding: IDataModelFieldElement = formDataModelState.dataModel.find(
-          (element: IDataModelFieldElement) => element.dataBindingName === connectionDef.outParams.outParam0);
+          (element: IDataModelFieldElement) => element.dataBindingName === connectionDef.outParams.outParam0,
+        );
         let updatedComponent: string;
         for (const component in formLayoutState.layout) {
           if (!component) {
@@ -84,22 +87,20 @@ export function checkIfRuleShouldRun(
         }
         if (!updatedDataBinding) {
           // Validation error on field that triggered the check?
+        } else if (!updatedComponent) {
+          // Validation error on field that triggered the check?
         } else {
-          if (!updatedComponent) {
-            // Validation error on field that triggered the check?
-          } else {
-            /* if (isPartOfRepeatingGroup) {
+          /* if (isPartOfRepeatingGroup) {
               updatedDataBinding = { ...updatedDataBinding };
               updatedDataBinding.dataBindingName =
                 updatedDataBinding.dataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
             } */
-            rules.push({
-              ruleShouldRun: true,
-              dataBindingName: updatedDataBinding.dataBindingName,
-              componentId: updatedComponent,
-              result: result.toString(),
-            });
-          }
+          rules.push({
+            ruleShouldRun: true,
+            dataBindingName: updatedDataBinding.dataBindingName,
+            componentId: updatedComponent,
+            result: result.toString(),
+          });
         }
       }
     }

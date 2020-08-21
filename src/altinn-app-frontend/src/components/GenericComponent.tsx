@@ -3,6 +3,8 @@
 import * as React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
+import { IDataModelFieldElement, ITextResource } from 'src/types';
+import { IComponentValidations } from 'src/types';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 // eslint-disable-next-line import/no-cycle
 import components from '.';
@@ -12,8 +14,6 @@ import { IDataModelBindings, ITextResourceBindings } from '../features/form/layo
 import RuleActions from '../features/form/rules/rulesActions';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
-import { IDataModelFieldElement, ITextResource } from '../types/global';
-import { IComponentValidations } from '../types/global';
 import Label from '../features/form/components/Label';
 import Legend from '../features/form/components/Legend';
 import { renderValidationMessagesForComponent } from '../utils/render';
