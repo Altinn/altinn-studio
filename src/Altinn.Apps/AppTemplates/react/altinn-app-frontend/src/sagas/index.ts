@@ -4,10 +4,6 @@ import { sagaMiddleware } from '../store';
 
 import FormDataSagas from '../features/form/data/formDataSagas';
 import FormDataModelSagas from '../features/form/datamodel/formDatamodelSagas';
-import FormDynamicsSagas from '../features/form/dynamics/formDynamicsSagas';
-import FormLayoutSagas from '../features/form/layout/formLayoutSagas';
-import FormRulesSagas from '../features/form/rules/rulesSagas';
-import FormValidationSagas from '../features/form/validation/validationSagas';
 import InstantiationSagas from '../features/instantiate/instantiation/sagas';
 import ApplicationMetadataSagas from '../shared/resources/applicationMetadata/sagas';
 import Attachments from '../shared/resources/attachments/attachmentSagas';
@@ -24,15 +20,11 @@ import OptionSagas from '../shared/resources/options/optionsSagas';
 
 function* root(): SagaIterator {
   yield fork(FormDataSagas);
-  yield fork(FormDynamicsSagas);
   yield fork(Attachments);
-  yield fork(FormLayoutSagas);
-  yield fork(FormRulesSagas);
   yield fork(FormDataModelSagas);
   yield fork(LanguageSagas);
   yield fork(TextResourcesSagas);
   yield fork(ProfileSagas);
-  yield fork(FormValidationSagas);
   yield fork(PartySagas);
   yield fork(ApplicationMetadataSagas);
   yield fork(InstantiationSagas);

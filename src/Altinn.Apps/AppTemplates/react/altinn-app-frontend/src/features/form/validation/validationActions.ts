@@ -2,7 +2,6 @@ import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { IComponentValidations, IValidations } from 'src/types';
 import { store } from '../../../store';
 import * as ComponentValidation from './component/componentValidationsActions';
-import * as SingleFieldValidationActions from './singleField/singleFieldValidationActions';
 import * as Validations from './update/updateValidationsActions';
 
 export interface IFormValidationActions extends ActionCreatorsMapObject {
@@ -11,12 +10,6 @@ export interface IFormValidationActions extends ActionCreatorsMapObject {
     ComponentValidation.IUpdateComponentValidations;
   updateComponentValidationsFulfilled: () => Action;
   updateComponentValidationsRejected: (error: Error) => ComponentValidation.IUpdateComponentValidationsRejected;
-  runSingleFieldValidation: (url: string, dataModelBinding?: string)
-    => SingleFieldValidationActions.IRunSingleFieldValidationAction;
-  runSingleFieldValidationFulfilled: (validationErrors: any)
-    => SingleFieldValidationActions.IRunSingleFieldValidationActionFulfilled;
-  runSingleFieldValidationRejected: (error: Error)
-    => SingleFieldValidationActions.IRunSingleFieldValidationActionRejected;
 }
 
 const actions: IFormValidationActions = {
@@ -24,9 +17,6 @@ const actions: IFormValidationActions = {
   updateComponentValidations: ComponentValidation.updateComponentValidations,
   updateComponentValidationsFulfilled: ComponentValidation.updateComponentValidationsFulfilled,
   updateComponentValidationsRejected: ComponentValidation.updateComponentValidationsRejected,
-  runSingleFieldValidation: SingleFieldValidationActions.runSingleFieldValidationAction,
-  runSingleFieldValidationFulfilled: SingleFieldValidationActions.runSingleFieldValidationActionFulfilled,
-  runSingleFieldValidationRejected: SingleFieldValidationActions.runSingleFieldValidationActionRejected,
 };
 
 const FormValidationActions: IFormValidationActions = bindActionCreators<any, any>(actions, store.dispatch);

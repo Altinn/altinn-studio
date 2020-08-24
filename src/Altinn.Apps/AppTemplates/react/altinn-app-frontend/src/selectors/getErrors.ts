@@ -14,8 +14,6 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
     state.process.error ||
     state.profile.error ||
     state.language.error ||
-    state.formLayout.error ||
-    state.formDynamics.error ||
     state.instanceData.error ||
     state.applicationMetadata.error ||
     state.formDataModel.error ||
@@ -30,20 +28,6 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
   const textResourceError = state.textResources.error;
   if (textResourceError !== null) {
     if (textResourceError.message.indexOf('404') === -1) {
-      hasError = true;
-    }
-  }
-
-  const formDynamicsError = state.formDynamics.error;
-  if (formDynamicsError !== null) {
-    if (formDynamicsError.message.indexOf('404') === -1) {
-      hasError = true;
-    }
-  }
-
-  const formRulesError = state.formRules.error;
-  if (formRulesError !== null) {
-    if (formRulesError.message.indexOf('404') === -1) {
       hasError = true;
     }
   }

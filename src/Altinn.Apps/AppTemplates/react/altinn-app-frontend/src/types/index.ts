@@ -1,11 +1,8 @@
 import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducers';
 import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
-import { IFormRuleState } from 'src/features/form/rules/rulesReducer';
 import ajv from 'ajv';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
-import { IFormDynamicState } from '../features/form/dynamics';
-import { ILayoutState } from '../features/form/layout/formLayoutReducer';
 import { IValidationState } from '../features/form/validation/validationReducer';
 import { IInstantiationState } from '../features/instantiate/instantiation/reducer';
 import { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
@@ -157,8 +154,6 @@ export interface IRuntimeStore {
   attachments: IAttachmentState;
   formData: IFormDataState;
   formDataModel: IDataModelState;
-  formDynamics: IFormDynamicState;
-  formLayout: ILayoutState;
   language: ILanguageState;
 }
 
@@ -167,9 +162,6 @@ export interface IRuntimeState {
   attachments: IAttachmentState;
   formData: IFormDataState;
   formDataModel: IDataModelState;
-  formDynamics: IFormDynamicState;
-  formLayout: ILayoutState;
-  formRules: IFormRuleState;
   formValidations: IValidationState;
   instanceData: IInstanceDataState;
   instantiation: IInstantiationState;

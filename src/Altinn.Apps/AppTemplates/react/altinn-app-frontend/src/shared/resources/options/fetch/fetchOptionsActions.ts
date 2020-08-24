@@ -2,6 +2,10 @@ import { Action } from 'redux';
 import { IOption } from 'src/types';
 import * as fetchOptionsActionTypes from './fetchOptionsActionTypes';
 
+export interface IFetchOptionsAction extends Action {
+  optionsId: string;
+}
+
 export interface IFetchOptionsFulfilledAction extends Action {
   optionsId: string;
   options: IOption[];
@@ -11,9 +15,10 @@ export interface IFetchOptionsRejectedAction extends Action {
   error: Error,
 }
 
-export function fetchOptions(): Action {
+export function fetchOptions(optionsId: string): IFetchOptionsAction {
   return {
     type: fetchOptionsActionTypes.FETCH_OPTIONS,
+    optionsId,
   };
 }
 

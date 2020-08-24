@@ -1,10 +1,8 @@
-import {
-  applyMiddleware,
+import { applyMiddleware,
   compose,
   createStore,
   Middleware,
-  Store,
-} from 'redux';
+  Store } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
 import reducers from '../reducers';

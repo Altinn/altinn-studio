@@ -2,7 +2,6 @@ import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IValidations } from 'src/types';
 import { IUpdateComponentValidations } from './component/componentValidationsActions';
-import { IRunSingleFieldValidationActionFulfilled } from './singleField/singleFieldValidationActions';
 import * as ActionTypes from './validationActionTypes';
 import { IUpdateValidations } from './update/updateValidationsActions';
 
@@ -45,7 +44,7 @@ const ValidationReducer: Reducer<IValidationState> = (
     }
     case ActionTypes.UPDATE_VALIDATIONS:
     case ActionTypes.RUN_SINGLE_FIELD_VALIDATION_FULFILLED: {
-      const { validations } = action as IUpdateValidations | IRunSingleFieldValidationActionFulfilled;
+      const { validations } = action as IUpdateValidations;
       return update<IValidationState>(state, {
         $set: {
           validations,

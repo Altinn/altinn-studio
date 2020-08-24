@@ -1,29 +1,16 @@
 /* eslint-disable no-restricted-syntax */
 import { SagaIterator } from 'redux-saga';
-import { fork, take, call, select } from 'redux-saga/effects';
-import { IRuntimeState } from 'src/types';
-import { ILayout } from 'src/features/form/layout';
-import { IFormDropdownComponent, IOption } from 'src/types';
+import { fork, call, takeLatest } from 'redux-saga/effects';
 import { get } from 'altinn-shared/utils';
+import { IOption } from 'src/types';
 import { getOptionsUrl } from '../../../../utils/urlHelper';
-import * as formLayoutActionTypes from '../../../../features/form/layout/formLayoutActionTypes';
 import * as fetchOptionActionTypes from './fetchOptionsActionTypes';
 import OptionsActions from '../optionsActions';
+import { IFetchOptionsAction } from './fetchOptionsActions';
 
-const formLayoutSelector = (state: IRuntimeState): ILayout => state.formLayout.layout;
-
-export function* fetchOptionsSaga(): SagaIterator {
+export function* fetchOptionsSaga({ optionsId }: IFetchOptionsAction): SagaIterator {
   try {
-    const formLayout: ILayout = yield select(formLayoutSelector);
-    for (const element of formLayout) {
-      if (element.type === 'Dropdown') {
-        // currently only dropdown that supports options-api. Support for checklist and radiobuttons is handled in issue #3626
-        const component = element as unknown as IFormDropdownComponent;
-        if (component.optionsId) {
-          yield fork(fetchSpecificOptionSaga, component.optionsId);
-        }
-      }
-    }
+    yield fork(fetchSpecificOptionSaga, optionsId);
   } catch (error) {
     yield call(OptionsActions.fetchOptionsRejected, error);
   }
@@ -38,12 +25,6 @@ export function* fetchSpecificOptionSaga(optionsId: string): SagaIterator {
   }
 }
 
-export function* watchInitialFetchOptionSaga(): SagaIterator {
-  yield take(formLayoutActionTypes.FETCH_FORM_LAYOUT_FULFILLED);
-  yield call(OptionsActions.fetchOptions);
-}
-
 export function* watchFetchOptionsSaga(): SagaIterator {
-  yield take(fetchOptionActionTypes.FETCH_OPTIONS);
-  yield call(fetchOptionsSaga);
+  yield takeLatest(fetchOptionActionTypes.FETCH_OPTIONS, fetchOptionsSaga);
 }
