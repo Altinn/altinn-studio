@@ -120,58 +120,6 @@ describe('>>> utils/formLayout', () => {
       containers: {}, components: {}, order: {},
     });
   });
-  it('+++ convertFromLayoutToInternalFormat should convert component.component to component.type', () => {
-    mockLayout = [
-      {
-        id: '17314adc-f75d-4a49-b726-242e2ae32ad2',
-        component: 'Input',
-        itemType: 'COMPONENT',
-        textResourceBindings: {
-          title: 'Input',
-        },
-        dataModelBindings: {},
-        required: false,
-        readOnly: false,
-      },
-      {
-        id: '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a',
-        component: 'Input',
-        itemType: 'COMPONENT',
-        textResourceBindings: {
-          title: 'Input',
-        },
-        dataModelBindings: {},
-        required: false,
-        readOnly: false,
-      },
-    ];
-    const mockResult = {
-      components: {
-        '17314adc-f75d-4a49-b726-242e2ae32ad2': {
-          dataModelBindings: {},
-          itemType: 'COMPONENT',
-          readOnly: false,
-          required: false,
-          textResourceBindings: {
-            title: 'Input',
-          },
-          type: 'Input',
-        },
-        '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a': {
-          dataModelBindings: {},
-          itemType: 'COMPONENT',
-          readOnly: false,
-          required: false,
-          textResourceBindings: {
-            title: 'Input',
-          },
-          type: 'Input',
-        },
-      },
-    };
-    const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
-    expect(convertedLayout.components).toEqual(mockResult.components);
-  });
   it('+++ convertInternalToLayoutFormat should convert to correct format', () => {
     const convertedLayout = convertInternalToLayoutFormat(mockInternal);
     const mockResult = [{
