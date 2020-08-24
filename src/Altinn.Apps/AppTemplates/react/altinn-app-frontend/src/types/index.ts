@@ -234,7 +234,7 @@ export interface IVariable {
 
 export enum ProcessSteps {
   Unknown = 'unknown',
-  FormFilling = 'data',
+  Data = 'data',
   Archived = 'ended',
   Confirm = 'confirmation',
   Feedback = 'feedback',

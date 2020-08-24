@@ -1,19 +1,17 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components'
+import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components';
 import { getLanguageFromKey, getUserLanguage } from 'altinn-shared/utils';
 import InstanceDataActions from '../resources/instanceData/instanceDataActions';
 import ProcessDispatcher from '../resources/process/processDispatcher';
 import { IRuntimeState, ProcessSteps, IAltinnWindow } from '../../types';
 import ProcessStep from './ProcessStep';
-import Form from '../../features/form/containers/Form';
 import ReceiptContainer from '../../features/receipt/containers/receiptContainer';
-import Confirm from '../../features/confirm/containers/Confirm';
 import UnknownError from '../../features/instantiate/containers/UnknownError';
 import QueueActions from '../resources/queue/queueActions';
 import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
-import Feedback from '../../features/feedback/Feedback';
+import CustomView from '../../features/custom/CustomView';
 
 export default (props) => {
   const {
@@ -47,7 +45,7 @@ export default (props) => {
     }
 
     switch (processStep) {
-      case (ProcessSteps.FormFilling): {
+      case (ProcessSteps.Data): {
         QueueActions.startInitialDataTaskQueue();
         break;
       }
@@ -88,22 +86,14 @@ export default (props) => {
       <div>
         {isLoading === false ? (
           <>
-            {processStep === ProcessSteps.FormFilling &&
-              <Form />
-            }
             {processStep === ProcessSteps.Archived &&
               <div id='ReceiptContainer'>
                 <ReceiptContainer/>
               </div>
             }
-            {processStep === ProcessSteps.Confirm &&
-              <div id='ConfirmContainer'>
-                <Confirm />
-              </div>
-            }
-            {processStep === ProcessSteps.Feedback &&
-              <div id='FeedbackContainer'>
-                <Feedback />
+            {processStep !== ProcessSteps.Archived &&
+              <div id='custom-view'>
+                <CustomView />
               </div>
             }
           </>
