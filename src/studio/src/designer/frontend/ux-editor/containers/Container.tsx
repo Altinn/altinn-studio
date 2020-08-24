@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/control-has-associated-label */
 /* eslint-disable global-require */
 /* eslint-disable react/button-has-type */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
@@ -29,6 +30,7 @@ export interface IProvidedContainerProps extends WithStyles<typeof styles>{
   onDropComponent?: (...args: any) => void;
   onMoveContainer?: (...args: any) => void;
   onDropContainer?: (...args: any) => void;
+  sendListToParent?: (item: object) => void;
 }
 
 export interface IContainerProps extends IProvidedContainerProps {
@@ -51,6 +53,7 @@ export interface IContainerState {
   editMode: boolean;
   tmpContainer: ICreateFormContainer;
   tmpId: string;
+  expanded: boolean;
 }
 
 const styles = createStyles({
@@ -73,8 +76,7 @@ const styles = createStyles({
   formGroup: {
     backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
     color: `${altinnTheme.altinnPalette.primary.blueDark}!important`,
-    padding: '0.0rem 1.1rem 0.0rem 1.1rem',
-    marginBottom: '1.2rem',
+    paddingRight: '1.2rem',
     height: '48px',
     cursor: 'pointer',
   },
@@ -87,6 +89,9 @@ const styles = createStyles({
     '&:hover': {
       background: 'none',
     },
+  },
+  expandIcon: {
+    paddingRight: '0px',
   },
   editIcon: {
     fontSize: '0.85em !important',
@@ -136,6 +141,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       editMode: false,
       tmpContainer: JSON.parse(JSON.stringify(this.props.containers[this.props.id])) as unknown as ICreateFormContainer,
       tmpId: this.props.id,
+      expanded: true,
     };
   }
 
@@ -178,9 +184,11 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
 
   public handleDiscard = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
+    FormDesignerActionDispatchers.deleteActiveListAction();
     this.setState({
       editMode: false,
       tmpContainer: JSON.parse(JSON.stringify(this.props.containers[this.props.id])) as unknown as ICreateFormContainer,
+      tmpId: this.props.id,
     });
   }
 
@@ -188,6 +196,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     event.stopPropagation();
     // eslint-disable-next-line max-len
     FormDesignerActionDispatchers.updateFormContainer(this.state.tmpContainer, this.props.id);
+    FormDesignerActionDispatchers.deleteActiveListAction();
     if (this.state.tmpId !== this.props.id && this.state.tmpId) {
       FormDesignerActionDispatchers.updateContainerId(this.props.id, this.state.tmpId);
     }
@@ -224,11 +233,31 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     });
   }
 
+  public handleExpand = () => {
+    this.setState((prevState: IContainerState) => {
+      return {
+        expanded: !prevState.expanded,
+      };
+    });
+  }
+
   public handleEditMode = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
     this.setState((prevState: IContainerState) => {
+      const isEdit = !(prevState.editMode);
+      if (isEdit) {
+        const activeObject = {
+          firstInActiveList: false,
+          id: this.props.id,
+          inEditMode: true,
+          lastInActiveList: true,
+          order: this.props.index,
+        };
+        this.props.sendListToParent([activeObject]);
+        FormDesignerActionDispatchers.updateActiveList(activeObject, this.props.activeList);
+      }
       return {
-        editMode: !(prevState.editMode),
+        editMode: isEdit,
       };
     });
   }
@@ -255,10 +284,17 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           >
             {(!this.props.baseContainer) &&
               <Grid item={true} style={{ paddingTop: '12px' }}>
-                <i
-                  className={
-                    `${this.props.classes.icon} fa fa-expand-alt fa-rotate-90`}
-                />
+                <IconButton
+                  type='button'
+                  className={`${this.props.classes.iconButton} ${this.props.classes.expandIcon}`}
+                  onClick={this.handleExpand}
+                >
+                  <i
+                    role='button'
+                    className={
+                      `${this.props.classes.icon} fa fa-expand-alt${this.state.expanded ? ' fa-rotate-90' : ''}`}
+                  />
+                </IconButton>
                 {`Gruppe - ${this.props.id}`}
               </Grid>
             }
@@ -285,14 +321,14 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           >
             {!this.props.itemOrder.length ?
               this.renderContainerPlaceholder() :
-              this.props.itemOrder.map((id: string, index: number) => (
+              (this.state.expanded && this.props.itemOrder.map((id: string, index: number) => (
                 this.props.components[id] ?
                   this.renderFormComponent(id, index) :
                   this.props.containers[id] ?
                     this.renderContainer(id, index)
                     : null
               ))
-            }
+              )}
           </Grid>
         </Grid>
         {!this.props.baseContainer &&
@@ -459,21 +495,23 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
 
   public renderContainer = (id: string, index: number): JSX.Element => {
     const DroppableDraggableContainer = require('./DroppableDraggableContainer').default;
+    const canDrag: boolean = !(this.state.activeList.find((element: any) => element.id === id));
     return (
       <DroppableDraggableContainer
         id={id}
         index={index}
         baseContainer={false}
         parentContainerId={this.props.id}
-        canDrag={true}
+        canDrag={canDrag}
         onDropComponent={this.props.onDropComponent}
         onMoveComponent={this.props.onMoveComponent}
         onDropContainer={this.props.onDropContainer}
         onMoveContainer={this.props.onMoveContainer}
-        key={index}
+        key={id}
       >
         <Container
           id={id}
+          key={id}
           index={index}
           items={this.props.itemOrder[id]}
           baseContainer={false}
@@ -481,6 +519,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           onMoveComponent={this.props.onMoveComponent}
           onDropContainer={this.props.onDropContainer}
           onMoveContainer={this.props.onMoveContainer}
+          sendListToParent={this.handleActiveListChange}
         />
       </DroppableDraggableContainer>
     );

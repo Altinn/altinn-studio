@@ -164,8 +164,9 @@ class DroppableDraggableContainer extends React.Component<IDroppableDraggableCon
       <div
         style={{
           backgroundColor: isOver ? 'white' : altinnTheme.altinnPalette.primary.greyLight,
-          paddingLeft: '1.1rem',
-          paddingRight: '1.1rem',
+          paddingLeft: '1.2rem',
+          paddingRight: '1.2rem',
+          paddingTop: this.props.baseContainer ? '1.2rem' : '',
           border: this.props.parentContainerId ? '' : '1px solid #ccc',
           marginBottom: this.props.baseContainer ? '' : '12px',
         }}
