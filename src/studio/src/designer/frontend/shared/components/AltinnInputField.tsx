@@ -2,7 +2,7 @@ import { createMuiTheme, createStyles, FormControl, TextField, Typography, withS
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
-import AltinnButton from './AltinnButton';
+import { AltinnButton } from './AltinnButton';
 
 export interface IAltinnInputFieldComponentProvidedProps {
   btnText?: string;
@@ -34,7 +34,7 @@ const theme = createMuiTheme(altinnTheme);
 const styles = createStyles({
   inputHeader: {
     fontSize: '24px',
-    fontWeight: 400
+    fontWeight: 400,
   },
   marginTop_10: {
     marginTop: '10px',
@@ -44,18 +44,19 @@ const styles = createStyles({
     marginTop: '10px',
   },
   inputField: {
-    border: '1px solid ' + theme.altinnPalette.primary.blueDark,
+    border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
     marginTop: '10px',
     background: 'none',
     width: '386px',
   },
   inputFieldText: {
     fontSize: '16px',
-    color: theme.altinnPalette.primary.black + '!Important',
+    color: `${theme.altinnPalette.primary.black}!Important`,
     padding: '6px',
   },
   disabled: {
-    border: '1px solid ' + theme.altinnPalette.primary.greyMedium,
+    border: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
+    backgroundColor: theme.altinnPalette.primary.greyLight,
   },
   btn: {
     marginTop: '10px',
@@ -66,8 +67,10 @@ const styles = createStyles({
 });
 
 // tslint:disable-next-line:max-line-length
-export class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
+export class AltinnInputField extends
+  React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
   public textInput: any;
+
   constructor(props: any) {
     super(props);
     this.textInput = React.createRef();
@@ -84,7 +87,10 @@ export class AltinnInputField extends React.Component<IAltinnInputFieldComponent
     return (
       <React.Fragment>
         {this.props.inputHeader &&
-          <Typography style={this.props.inputHeaderStyling} className={classNames(classes.inputHeader)} variant='h2'>
+          <Typography
+            style={this.props.inputHeaderStyling} className={classNames(classes.inputHeader)}
+            variant='h2'
+          >
             {this.props.inputHeader}
           </Typography>
         }
@@ -102,7 +108,7 @@ export class AltinnInputField extends React.Component<IAltinnInputFieldComponent
               classes.inputField,
               { [classes.disabled]: this.props.isDisabled },
               { [classes.marginTop_10]: this.props.inputDescription || this.props.inputHeader },
-              { [classes.fullWidth]: this.props.fullWidth},
+              { [classes.fullWidth]: this.props.fullWidth },
             ),
           }}
           style={this.props.inputFieldStyling}
@@ -116,7 +122,7 @@ export class AltinnInputField extends React.Component<IAltinnInputFieldComponent
             value={this.props.inputValue}
             placeholder={this.props.placeholder}
             disabled={this.props.isDisabled}
-            multiline={this.props.textAreaRows ? true : false}
+            multiline={!!this.props.textAreaRows}
             rows={this.props.textAreaRows || null}
             InputProps={{
               disableUnderline: true,

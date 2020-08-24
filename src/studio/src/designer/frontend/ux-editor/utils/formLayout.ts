@@ -38,7 +38,7 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormDesig
   };
 
   for (const element of formLayout) {
-    if (element.type !== 'Group') {
+    if (element.type.toLowerCase() !== 'group') {
       const { id, ...rest } = element;
       if (!rest.type) {
         rest.type = rest.component;
