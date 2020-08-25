@@ -1,5 +1,5 @@
 import * as React from 'react';
-import AltinnError from '../shared/components/altinnError';
+import AltinnError from './altinnError';
 
 interface IErrorBoundary {
   hasError: boolean;

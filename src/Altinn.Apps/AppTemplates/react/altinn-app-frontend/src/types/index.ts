@@ -1,20 +1,20 @@
-import { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingReducers';
-import { IOptionsState } from 'src/shared/resources/options/optionsReducer';
+import { IIsLoadingState } from 'src/resources/isLoading/isLoadingReducers';
+import { IOptionsState } from 'src/resources/options/optionsReducer';
 import ajv from 'ajv';
 import { IFormDataState } from '../features/form/data/formDataReducer';
 import { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import { IValidationState } from '../features/form/validation/validationReducer';
 import { IInstantiationState } from '../features/instantiate/instantiation/reducer';
-import { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
-import { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
-import { IInstanceDataState } from '../shared/resources/instanceData/instanceDataReducers';
-import { ILanguageState } from '../shared/resources/language/languageReducers';
-import { IOrgsState } from '../shared/resources/orgs/orgsReducers';
-import { IPartyState } from '../shared/resources/party/partyReducers';
-import { IProcessState } from '../shared/resources/process/processReducer';
-import { IProfileState } from '../shared/resources/profile/profileReducers';
-import { IQueueState } from '../shared/resources/queue/queueReducer';
-import { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
+import { IApplicationMetadataState } from '../resources/applicationMetadata/reducer';
+import { IAttachmentState } from '../resources/attachments/attachmentReducer';
+import { IInstanceDataState } from '../resources/instanceData/instanceDataReducers';
+import { ILanguageState } from '../resources/language/languageReducers';
+import { IOrgsState } from '../resources/orgs/orgsReducers';
+import { IPartyState } from '../resources/party/partyReducers';
+import { IProcessState } from '../resources/process/processReducer';
+import { IProfileState } from '../resources/profile/profileReducers';
+import { IQueueState } from '../resources/queue/queueReducer';
+import { ITextResourcesState } from '../resources/textResources/textResourcesReducer';
 
 export type FormComponentType =
   | IFormAddressComponent

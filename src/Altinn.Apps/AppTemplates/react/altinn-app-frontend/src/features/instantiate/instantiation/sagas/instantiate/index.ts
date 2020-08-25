@@ -1,8 +1,8 @@
 import { SagaIterator } from 'redux-saga';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 import { IParty } from 'altinn-shared/types';
-import InstanceDataActions from '../../../../../shared/resources/instanceData/instanceDataActions';
-import AttachmentActions from '../../../../../shared/resources/attachments/attachmentActions';
+import InstanceDataActions from '../../../../../resources/instanceData/instanceDataActions';
+import AttachmentActions from '../../../../../resources/attachments/attachmentActions';
 import { IRuntimeState } from '../../../../../types';
 import { post, putWithoutConfig } from '../../../../../utils/networking';
 import { getCreateInstancesUrl, redirectToUpgrade, invalidateCookieUrl } from '../../../../../utils/urlHelper';

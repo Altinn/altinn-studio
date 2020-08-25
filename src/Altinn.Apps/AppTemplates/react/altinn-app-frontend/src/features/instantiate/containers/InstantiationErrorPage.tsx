@@ -1,7 +1,7 @@
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { RouteProps } from 'react-router';
-import AltinnError from '../../../shared/components/altinnError';
+import AltinnError from '../../../components/altinnError';
 import InstantiateContainer from './InstantiationContainer';
 
 export interface IInstantiationErrorPageProps extends RouteProps {

@@ -2,22 +2,22 @@
 import { combineReducers,
   Reducer,
   ReducersMapObject } from 'redux';
-import OptionsReducer, { IOptionsState } from '../shared/resources/options/optionsReducer';
+import OptionsReducer, { IOptionsState } from '../resources/options/optionsReducer';
 import FormDataReducer, { IFormDataState } from '../features/form/data/formDataReducer';
 import FormDataModel, { IDataModelState } from '../features/form/datamodel/formDatamodelReducer';
 import ValidationReducer, { IValidationState } from '../features/form/validation/validationReducer';
 import InstantiationReducer, { IInstantiationState } from '../features/instantiate/instantiation/reducer';
-import ApplicationMetadataReducer, { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
-import AttachmentReducer, { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
-import InstanceDataReducer, { IInstanceDataState } from '../shared/resources/instanceData/instanceDataReducers';
-import LanguageReducer, { ILanguageState } from '../shared/resources/language/languageReducers';
-import OrgsReducer, { IOrgsState } from '../shared/resources/orgs/orgsReducers';
-import PartyReducer, { IPartyState } from '../shared/resources/party/partyReducers';
-import processReducer, { IProcessState } from '../shared/resources/process/processReducer';
-import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
-import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/textResourcesReducer';
-import IsLoadingReducer, { IIsLoadingState } from '../shared/resources/isLoading/isLoadingReducers';
-import QueueReducer, { IQueueState } from '../shared/resources/queue/queueReducer';
+import ApplicationMetadataReducer, { IApplicationMetadataState } from '../resources/applicationMetadata/reducer';
+import AttachmentReducer, { IAttachmentState } from '../resources/attachments/attachmentReducer';
+import InstanceDataReducer, { IInstanceDataState } from '../resources/instanceData/instanceDataReducers';
+import LanguageReducer, { ILanguageState } from '../resources/language/languageReducers';
+import OrgsReducer, { IOrgsState } from '../resources/orgs/orgsReducers';
+import PartyReducer, { IPartyState } from '../resources/party/partyReducers';
+import processReducer, { IProcessState } from '../resources/process/processReducer';
+import ProfileReducer, { IProfileState } from '../resources/profile/profileReducers';
+import TextResourcesReducer, { ITextResourcesState } from '../resources/textResources/textResourcesReducer';
+import IsLoadingReducer, { IIsLoadingState } from '../resources/isLoading/isLoadingReducers';
+import QueueReducer, { IQueueState } from '../resources/queue/queueReducer';
 
 export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> {
   formData: T1;

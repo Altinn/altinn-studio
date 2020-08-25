@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import { getCurrentTaskDataTypeId, get, put } from 'altinn-shared/utils';
 import { IRuntimeState } from 'src/types';
-import ProcessDispatcher from '../../../../shared/resources/process/processDispatcher';
+import ProcessDispatcher from '../../../../resources/process/processDispatcher';
 import { convertDataBindingToModel, filterOutInvalidData } from '../../../../utils/databindings';
 import { dataElementUrl, getValidationUrl } from '../../../../utils/urlHelper';
 import FormDataActions from '../formDataActions';

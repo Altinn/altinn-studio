@@ -1,5 +1,5 @@
 import { IData } from 'altinn-shared/types';
-import { IAttachments } from '../shared/resources/attachments';
+import { IAttachments } from '../resources/attachments';
 
 export function mapAttachmentListToAttachments(data: IData[], defaultElementId: string): IAttachments {
   const attachments: IAttachments = {};

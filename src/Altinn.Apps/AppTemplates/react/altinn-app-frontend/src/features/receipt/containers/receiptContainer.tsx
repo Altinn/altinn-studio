@@ -12,8 +12,8 @@ import { getCurrentTaskData,
   getUserLanguage,
   returnUrlToMessagebox } from 'altinn-shared/utils';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
-import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
-import OrgsActions from '../../../shared/resources/orgs/orgsActions';
+import InstanceDataActions from '../../../resources/instanceData/instanceDataActions';
+import OrgsActions from '../../../resources/orgs/orgsActions';
 import { IRuntimeState } from '../../../types';
 
 export interface IReceiptContainerProps extends RouteChildrenProps {

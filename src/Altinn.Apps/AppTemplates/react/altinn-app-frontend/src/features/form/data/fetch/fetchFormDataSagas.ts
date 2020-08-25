@@ -11,9 +11,9 @@ import FormActions from '../formDataActions';
 import { IFetchFormData } from './fetchFormDataActions';
 import * as FormDataActionTypes from '../formDataActionTypes';
 import { IRuntimeState, IAltinnWindow } from '../../../../types';
-import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
+import { IApplicationMetadata } from '../../../../resources/applicationMetadata';
 import { FETCH_DATA_MODEL_FULFILLED, FETCH_JSON_SCHEMA_FULFILLED } from '../../datamodel/fetch/fetchFormDatamodelActionTypes';
-import QueueActions from '../../../../shared/resources/queue/queueActions';
+import QueueActions from '../../../../resources/queue/queueActions';
 
 const appMetaDataSelector =
   (state: IRuntimeState): IApplicationMetadata => state.applicationMetadata.applicationMetadata;

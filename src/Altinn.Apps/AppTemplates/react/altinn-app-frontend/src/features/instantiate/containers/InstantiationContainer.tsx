@@ -2,7 +2,7 @@ import { createStyles, Grid, Typography, withStyles, WithStyles } from '@materia
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import {AltinnAppTheme} from 'altinn-shared/theme';
-import Header from '../../../shared/components/altinnAppHeader';
+import Header from '../../../components/altinnAppHeader';
 import { IProfile } from 'altinn-shared/types';
 import { IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';

@@ -4,11 +4,11 @@ import { call, takeLatest, select } from 'redux-saga/effects';
 import DataModelActions from '../formDatamodelActions';
 import { IFetchDataModel } from './fetchFormDatamodelActions';
 import * as ActionTypes from './fetchFormDatamodelActionTypes';
-import QueueActions from '../../../../shared/resources/queue/queueActions';
+import QueueActions from '../../../../resources/queue/queueActions';
 
 import { get } from '../../../../utils/networking';
 import { IRuntimeState } from '../../../../types';
-import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
+import { IApplicationMetadata } from '../../../../resources/applicationMetadata';
 
 const AppMetadataSelector: (state: IRuntimeState) => IApplicationMetadata =
   (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
