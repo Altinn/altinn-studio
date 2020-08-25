@@ -1,5 +1,5 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../../store';
+import { store } from '../../../redux/store';
 import * as FetchFormData from './fetch/fetchFormDataActions';
 import * as SubmitFormData from './submit/submitFormDataActions';
 import * as UpdateFormData from './update/updateFormDataActions';

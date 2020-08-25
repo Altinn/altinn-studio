@@ -3,7 +3,7 @@ import { ITextResource } from 'src/types';
 import * as FetchActions from './fetch/fetchTextResourcesActions';
 import * as ReplaceActions from './replace/replaceTextResoucesActions';
 
-import { store } from '../../store';
+import { store } from '../../redux/store';
 
 export interface ITextResourcesActions extends ActionCreatorsMapObject {
   fetchTextResources: () => Action;

@@ -1,6 +1,6 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { IApplicationMetadata } from '..';
-import { store } from '../../../store';
+import { store } from '../../../redux/store';
 
 import * as getActions from './get';
 

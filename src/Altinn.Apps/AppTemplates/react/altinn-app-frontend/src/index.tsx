@@ -3,8 +3,8 @@ import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { HashRouter } from 'react-router-dom';
 import App from './App';
-import { initSagas } from './sagas';
-import { store } from './store';
+import { initSagas } from './redux/sagas';
+import { store } from './redux/store';
 import 'core-js/es';
 import './styles/index.css';
 

@@ -1,6 +1,6 @@
 import { SagaIterator, Task } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
-import { sagaMiddleware } from '../store';
+import { sagaMiddleware } from './store';
 
 import FormDataSagas from '../features/form/data/formDataSagas';
 import FormDataModelSagas from '../features/form/datamodel/formDatamodelSagas';

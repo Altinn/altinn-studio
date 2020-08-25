@@ -1,5 +1,5 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../store';
+import { store } from '../../redux/store';
 
 import * as GetInstanceData from './get/getInstanceDataActions';
 

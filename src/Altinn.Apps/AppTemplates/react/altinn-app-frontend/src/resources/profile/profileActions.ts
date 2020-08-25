@@ -1,6 +1,6 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { IProfile } from 'altinn-shared/types';
-import { store } from '../../store';
+import { store } from '../../redux/store';
 import * as FetchProfileActions from './fetch/fetchProfileActions';
 
 export interface IProfileActions extends ActionCreatorsMapObject {
