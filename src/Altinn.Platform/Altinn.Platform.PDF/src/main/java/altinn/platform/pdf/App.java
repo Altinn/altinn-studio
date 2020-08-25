@@ -4,6 +4,7 @@ import altinn.platform.pdf.configuration.AltinnDBSettingsSecret;
 import altinn.platform.pdf.configuration.KvSetting;
 import altinn.platform.pdf.services.BasicLogger;
 import altinn.platform.pdf.utils.AltinnOrgUtils;
+import altinn.platform.pdf.utils.TextUtils;
 import com.azure.identity.ClientSecretCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.security.keyvault.secrets.SecretClient;
@@ -27,6 +28,7 @@ public class App {
   public static void main(String[] args) {
     AltinnOrgUtils.initAltinnOrgsHarvesting();
     try {
+      TextUtils.readLanguageFiles();
       connectToKeyVaultAndSetApplicationInsight();
     } catch (Exception e) {
       BasicLogger.log(Level.SEVERE, e.getMessage());

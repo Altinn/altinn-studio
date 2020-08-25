@@ -1,0 +1,13 @@
+{
+  "delivered_by": "Delivered by",
+  "on_behalf_of": "on behalf of",
+  "reference_number": "Reference number:",
+  "address": "Address",
+  "care_of": "C/O or other additional address",
+  "house_number": "House number",
+  "house_number_helper": "If several residents share the same address you must provide house number. It consists of one letter and four numbers and should be listed at your front door.",
+  "post_place": "Post Place",
+  "zip_code": "Zip Code",
+  "page": "Page",
+  "all_pages": "All pages"
+}

@@ -3,7 +3,7 @@ package altinn.platform.pdf.models;
 import io.swagger.annotations.ApiModel;
 
 @ApiModel(description = "The profile")
-public class Profile {
+public class UserProfile {
   private ProfileSettingPreference profileSettingPreference;
 
   public ProfileSettingPreference getProfileSettingPreference() {
