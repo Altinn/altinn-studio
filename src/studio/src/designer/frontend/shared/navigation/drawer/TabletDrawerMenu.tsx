@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
 import { mainMenuSettings } from './drawerMenuSettings';
 import { styles } from './tabletDrawerMenustyle';
+import { post } from '../../utils/networking';
 
 export interface ITabletDrawerMenuProps {
   classes: any;
@@ -61,9 +62,11 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
   }
 
   public handleLogout = () => {
-    if (window) {
-      window.location.href = '/Home/Logout';
-    }
+    const altinnWindow: Window = window;
+    const url = `${altinnWindow.location.origin}/repos/user/logout`;
+    post(url).then(() => {
+      window.location.assign(`${altinnWindow.location.origin}/Home/Logout`);
+    });
     return true;
   }
 

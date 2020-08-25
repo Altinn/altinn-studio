@@ -19,7 +19,7 @@ export function Form() {
     let componentsToRender: any[] = layout;
     let renderedInGroup: string[] = [];
     if (layout) {
-      const groupComponents = layout.filter((component) => component.type === 'group');
+      const groupComponents = layout.filter((component) => component.type.toLowerCase() === 'group');
       groupComponents.forEach((component: ILayoutGroup) => {
         renderedInGroup = renderedInGroup.concat(component.children);
       });
