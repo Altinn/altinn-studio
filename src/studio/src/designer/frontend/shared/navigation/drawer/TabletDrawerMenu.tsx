@@ -64,8 +64,8 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
   public handleLogout = () => {
     const altinnWindow: Window = window;
     const url = `${altinnWindow.location.origin}/repos/user/logout`;
-    post(url).then((result: any) => {
-        window.location.assign(`${altinnWindow.location.origin}/Home/Logout`);
+    post(url).then(() => {
+      window.location.assign(`${altinnWindow.location.origin}/Home/Logout`);
     });
     return true;
   }
