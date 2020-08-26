@@ -21,7 +21,7 @@ namespace Altinn.Platform.Register.Services.Implementation
         private readonly GeneralSettings _generalSettings;
         private readonly ILogger _logger;
         private readonly HttpClient _client;
-        private readonly IMemoryCache _parties;
+        private readonly IMemoryCache _memoryCache;
         private const int _cacheTimeout = 5;
 
         /// <summary>
@@ -30,19 +30,20 @@ namespace Altinn.Platform.Register.Services.Implementation
         /// <param name="httpClient">HttpClient from default httpclientfactory</param>
         /// <param name="generalSettings">the general settings</param>
         /// <param name="logger">the logger</param>
-        /// <param name="partiesCache">memory cache for parties</param>
-        public PartiesWrapper(HttpClient httpClient, IOptions<GeneralSettings> generalSettings, ILogger<PartiesWrapper> logger, IMemoryCache partiesCache)
+        /// <param name="memoryCache">the memory cache</param>
+        public PartiesWrapper(HttpClient httpClient, IOptions<GeneralSettings> generalSettings, ILogger<PartiesWrapper> logger, IMemoryCache memoryCache)
         {
             _generalSettings = generalSettings.Value;
             _logger = logger;
             _client = httpClient;
-            _parties = partiesCache;
+            _memoryCache = memoryCache;
         }
 
         /// <inheritdoc />
         public async Task<Party> GetParty(int partyId)
         {
-            if (_parties.TryGetValue(partyId, out Party party))
+            string cacheKey = $"PartyId:{partyId}";
+            if (_memoryCache.TryGetValue(cacheKey, out Party party))
             {
                 return party;
             }
@@ -54,7 +55,7 @@ namespace Altinn.Platform.Register.Services.Implementation
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 party = await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
-                _parties.Set(party.PartyId, party, new TimeSpan(0, _cacheTimeout, 0));
+                _memoryCache.Set(cacheKey, party, new TimeSpan(0, _cacheTimeout, 0));
                 return party;
             }
             else
@@ -77,7 +78,7 @@ namespace Altinn.Platform.Register.Services.Implementation
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 Party party = await JsonSerializer.DeserializeAsync<Party>(await response.Content.ReadAsStreamAsync());
-                _parties.Set(party.PartyId, party, new TimeSpan(0, _cacheTimeout, 0));
+                _memoryCache.Set($"PartyId:{party.PartyId}", party, new TimeSpan(0, _cacheTimeout, 0));
                 return party;
             }
             else
