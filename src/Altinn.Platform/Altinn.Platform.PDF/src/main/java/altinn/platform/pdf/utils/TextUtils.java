@@ -226,20 +226,12 @@ public class TextUtils {
     Gson gson = new Gson();
     for (final File file: files) {
       String langCode = file.getName().split("\\.")[0];
-      FileReader fileReader = null;
-      BufferedReader bufferedReader = null;
-      try {
-        fileReader = new FileReader((file));
-        bufferedReader = new BufferedReader(fileReader);
+      try (
+        FileReader fileReader = new FileReader((file));
+        BufferedReader bufferedReader = new BufferedReader(fileReader);
+      ) {
         Map<String, String> langMap = gson.fromJson(bufferedReader, Map.class);
         languagesMap.put(langCode, langMap);
-      } finally {
-        if (fileReader != null) {
-          fileReader.close();
-        }
-        if (bufferedReader != null) {
-          bufferedReader.close();
-        }
       }
     }
     languages = languagesMap;
