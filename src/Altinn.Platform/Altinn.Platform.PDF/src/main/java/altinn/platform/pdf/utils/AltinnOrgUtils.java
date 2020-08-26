@@ -19,9 +19,10 @@ public class AltinnOrgUtils {
   /**
    * Gets the org full name by their short name
    * @param shortName the short org name
+   * @param language the language to fetch
    * @return the long org name
    */
-  public static String getOrgFullNameByShortName(String shortName) {
+  public static String getOrgFullNameByShortName(String shortName, String language) {
     if (altinnOrgs == null || altinnOrgs.getOrgs() == null) {
       return "";
     }
@@ -32,8 +33,7 @@ public class AltinnOrgUtils {
       return "";
     }
 
-    // TODO: Fetch language by user preference => post mvp
-    return org.getName().get("nb");
+    return org.getName().get(language);
   }
 
   /**
