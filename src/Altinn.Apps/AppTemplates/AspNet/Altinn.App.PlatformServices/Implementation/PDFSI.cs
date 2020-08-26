@@ -32,7 +32,7 @@ namespace Altinn.App.Services.Implementation
         private readonly IProfile _profileService;
         private readonly UserHelper _userHelper;
         private readonly JsonSerializer _camelCaseSerializer;
-        private readonly IHttpContextAccessor httpContextAccessor;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string pdfElementType = "ref-data-as-pdf";
         private readonly string defaultFileName = "kvittering.pdf";
 
@@ -77,6 +77,7 @@ namespace Altinn.App.Services.Implementation
             _pdfClient = httpClient;
             _profileService = profileService;
             _userHelper = new UserHelper(profileService, registerService, settings);
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <inheritdoc/>
@@ -96,7 +97,7 @@ namespace Altinn.App.Services.Implementation
             await dataStream.ReadAsync(dataAsBytes);
             string encodedXml = System.Convert.ToBase64String(dataAsBytes);
 
-            UserContext userContext = await _userHelper.GetUserContext(httpContextAccessor.HttpContext);
+            UserContext userContext = await _userHelper.GetUserContext(_httpContextAccessor.HttpContext);
             UserProfile userProfile = await _profileService.GetUserProfile(userContext.UserId);
 
             byte[] formLayout = _appResourcesService.GetAppResource(org, app, _appSettings.FormLayoutJSONFileName);

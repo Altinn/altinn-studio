@@ -1,16 +1,12 @@
 package altinn.platform.pdf.utils;
 
-import altinn.platform.pdf.models.Instance;
 import altinn.platform.pdf.models.TextResourceElement;
 import altinn.platform.pdf.models.TextResources;
 import com.google.gson.Gson;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.ResourceUtils;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +14,7 @@ import java.util.Map;
 
 public class TextUtils {
 
-  private static Map<String,Map<String, String>> langauge;
+  private static Map<String,Map<String, String>> languages;
   private TextUtils() {}
 
   /**
@@ -210,13 +206,13 @@ public class TextUtils {
    * @param languageCode the language to fetch from
    */
   public static String getLanguageByKey(String key, String languageCode) {
-    if (langauge == null) {
+    if (languages == null) {
       return key;
     }
-    if (langauge.get(languageCode) == null) {
+    if (languages.get(languageCode) == null) {
       return key;
     }
-    String value = langauge.get(languageCode).get(key);
+    String value = languages.get(languageCode).get(key);
     return (value != null) ? value : key;
   }
 
@@ -233,6 +229,6 @@ public class TextUtils {
       Map<String,String> langMap = gson.fromJson(new BufferedReader(new FileReader(file)), Map.class);
       languagesMap.put(langCode, langMap);
     }
-    langauge = languagesMap;
+    languages = languagesMap;
   }
 }
