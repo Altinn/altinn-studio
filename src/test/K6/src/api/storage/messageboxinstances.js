@@ -37,3 +37,12 @@ export function getSblInstanceEvents(altinnStudioRuntimeCookie, partyId, instanc
     var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, "platform");
     return http.get(endpoint, params);
 };
+
+//Function to hard delete all instances that is passed into the function
+export function hardDeleteManyInstances(altinnStudioRuntimeCookie, instances, instancesCount) {
+    for (var i = 0; i < instancesCount; i++) {
+        var partyId = JSON.parse(instances)[i].instanceOwnerId;
+        var instanceId = JSON.parse(instances)[i].id;
+        deleteSblInstance(altinnStudioRuntimeCookie, partyId, instanceId, "true");
+    };        
+}
