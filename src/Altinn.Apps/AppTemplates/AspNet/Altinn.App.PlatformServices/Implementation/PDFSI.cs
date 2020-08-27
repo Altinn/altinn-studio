@@ -178,15 +178,12 @@ namespace Altinn.App.Services.Implementation
 
             if (!string.IsNullOrEmpty(appMetadata.Title?[language]))
             {
-                fileName = appMetadata.Title[language] + ".pdf";
+                fileName = GetValidFileName(appMetadata.Title[language] + ".pdf");
             }
-            else
+            else if (!string.IsNullOrEmpty(appMetadata.Title?["nb"]))
             {
-                fileName = app;
+                fileName = GetValidFileName(appMetadata.Title[language] + ".pdf");
             }
-
-            fileName = GetValidFileName(fileName);
-
 
             return await _dataService.InsertBinaryData(
                 instance.Id,

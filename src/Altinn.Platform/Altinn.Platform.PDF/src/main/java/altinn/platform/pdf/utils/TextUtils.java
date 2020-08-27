@@ -205,7 +205,7 @@ public class TextUtils {
    * @param key the key
    * @param languageCode the language to fetch from
    */
-  public static String getLanguageByKey(String key, String languageCode) {
+  public static String getLanguageStringByKey(String key, String languageCode) {
     if (languages == null) {
       return key;
     }

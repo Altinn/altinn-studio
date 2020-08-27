@@ -406,7 +406,7 @@ public class PDFGenerator {
 
   private String getLanguageString(String key) {
     String languageCode = (this.userProfile != null) ? this.userProfile.getProfileSettingPreference().getLanguage() : "nb";
-    return TextUtils.getLanguageByKey(key, languageCode);
+    return TextUtils.getLanguageStringByKey(key, languageCode);
   }
 }
 
