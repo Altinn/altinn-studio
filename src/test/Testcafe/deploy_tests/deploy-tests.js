@@ -42,7 +42,8 @@ test('Happy case; build and deploy an app after a change', async () => {
     .click(designer.deployNavigationTab)
     .click(designer.deployNavigationTab) //click twice to remove git push success pop-up
     .click(designer.deployVersionDropDown)
-    .expect(designer.deployVersionOptions.visible).ok();
+    .expect(designer.deployVersionOptions.visible).ok()
+    .wait(5000);
 
   var newBuildVersion = Number(await designer.getlatestBuildVersion(t)) + 1; //assumes integer as last built version and adds 1
   var today = new Date();
