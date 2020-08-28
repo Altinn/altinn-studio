@@ -34,7 +34,6 @@ namespace Altinn.App.Services.Implementation
         private readonly JsonSerializer _camelCaseSerializer;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string pdfElementType = "ref-data-as-pdf";
-        private readonly string defaultFileName = "kvittering.pdf";
 
         /// <summary>
         /// Creates a new instance of the <see cref="PDFSI"/> class
@@ -178,18 +177,22 @@ namespace Altinn.App.Services.Implementation
 
             if (!string.IsNullOrEmpty(appMetadata.Title?[language]))
             {
-                fileName = GetValidFileName(appMetadata.Title[language] + ".pdf");
+                fileName = appMetadata.Title[language] + ".pdf";
             }
             else if (!string.IsNullOrEmpty(appMetadata.Title?["nb"]))
             {
-                fileName = GetValidFileName(appMetadata.Title[language] + ".pdf");
+                fileName = appMetadata.Title[language] + ".pdf";
+            } else {
+                fileName = app + ".pdf";
             }
+
+            fileName = GetValidFileName(fileName);
 
             return await _dataService.InsertBinaryData(
                 instance.Id,
                 pdfElementType,
                 "application/pdf",
-                fileName ?? defaultFileName,
+                fileName,
                 pdfStream);
         }
 
