@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Altinn.App.Services.Configuration;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -12,14 +14,17 @@ namespace Altinn.App.Api.Controllers
     {
         private readonly IAntiforgery _antiforgery;
         private readonly PlatformSettings _platformSettings;
+        private readonly IWebHostEnvironment _env;
 
         public HomeController(
           IAntiforgery antiforgery,
-          IOptions<PlatformSettings> platformSettings
+          IOptions<PlatformSettings> platformSettings,
+          IWebHostEnvironment env
         )
         {
             _antiforgery = antiforgery;
             _platformSettings = platformSettings.Value;
+            _env = env;
         }
 
         [Route("{org}/{app}/")]
@@ -41,7 +46,8 @@ namespace Altinn.App.Api.Controllers
             }
             else
             {
-                string goToUrl = HttpUtility.UrlEncode($"{Request.Scheme}://{Request.Host.ToString()}/{org}/{app}");
+                string scheme = _env.IsDevelopment() ? "http" : "https";
+                string goToUrl = HttpUtility.UrlEncode($"{scheme}://{Request.Host.ToString()}/{org}/{app}");
                 string redirectUrl = $"{_platformSettings.ApiAuthenticationEndpoint}authentication?goto={goToUrl}";
                 return Redirect(redirectUrl);
             }
