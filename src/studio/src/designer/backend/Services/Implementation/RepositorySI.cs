@@ -282,19 +282,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public ModelMetadata GetModelMetadata(string org, string app)
         {
             string modelName = GetModelName(org, app);
-            string filedata = string.Empty;
+
             string filename = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"{modelName}.metadata.json";
 
-            try
+            if (File.Exists(filename))
             {
-                filedata = File.ReadAllText(filename, Encoding.UTF8);
+                string filedata = File.ReadAllText(filename, Encoding.UTF8);
                 return JsonConvert.DeserializeObject<ModelMetadata>(filedata);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError("Something went wrong when fetching modelMetadata ", ex);
-                return JsonConvert.DeserializeObject<ModelMetadata>("{ }");
-            }
+
+            return JsonConvert.DeserializeObject<ModelMetadata>("{ }");
         }
 
         /// <inheritdoc/>
