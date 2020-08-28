@@ -320,7 +320,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
-                RepositoryStatus status = repo.RetrieveStatus(new LibGit2Sharp.StatusOptions());
+                RepositoryStatus status = repo.RetrieveStatus();
                 foreach (StatusEntry item in status)
                 {
                     RepositoryContent content = new RepositoryContent();
@@ -406,7 +406,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
-                if (repo.Commits.Last() != null)
+                if (repo.Commits.Count() > 0)
                 {
                     LibGit2Sharp.Commit firstCommit = repo.Commits.Last();
                     commit = new Designer.Models.Commit();
@@ -427,7 +427,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 else
                 {
-                    _logger.LogError($" // SourceControlSI // GetInitialCommit // Error occured when retrieving first commit for repo {localServiceRepoFolder}");
+                    _logger.LogError($" // SourceControlSI // GetInitialCommit // Error occured when retrieving first commit for repo {localServiceRepoFolder}. \n No commits retrieved.");
                     return null;
                 }
 
