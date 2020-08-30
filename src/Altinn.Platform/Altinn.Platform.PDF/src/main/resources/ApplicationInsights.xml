@@ -19,4 +19,15 @@
     <Add type="com.microsoft.applicationinsights.web.extensibility.initializers.WebUserAgentTelemetryInitializer"/>
   </TelemetryInitializers>
 
+  <TelemetryProcessors>
+    <BuiltInProcessors>
+      <Processor type="PageViewTelemetryFilter">
+        <Add name="NotNeededUrls" value="actuator"/>
+      </Processor>
+      <Processor type="RequestTelemetryFilter">
+        <Add name="NotNeededUrls" value="actuator"/>
+      </Processor>
+    </BuiltInProcessors>
+  </TelemetryProcessors>
+
 </ApplicationInsights>
