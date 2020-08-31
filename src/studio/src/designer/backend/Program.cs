@@ -99,8 +99,10 @@ namespace Altinn.Studio.Designer
                         keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
                     try
                     {
+                        string secretId =
+                        hostingEnvironment.IsDevelopment() ? "ApplicationInsights--InstrumentationKey--Dev" : "ApplicationInsights--InstrumentationKey";
                         SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
-                            keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
+                            keyVaultEndpoint, secretId).Result;
                         Startup.ApplicationInsightsKey = secretBundle.Value;
                     }
                     catch (Exception vaultException)
@@ -159,6 +161,6 @@ namespace Altinn.Studio.Designer
                     builder.AddConsole();
                 }
             }).UseStartup<Startup>()
-            .CaptureStartupErrors(true);        
+            .CaptureStartupErrors(true);
     }
 }
