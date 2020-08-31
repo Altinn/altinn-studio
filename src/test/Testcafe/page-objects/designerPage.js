@@ -140,7 +140,7 @@ export default class DesignerPage {
 
   //Function to delete all the selected components in the designer page of an app
   async deleteUIComponentsMethod(t) {
-    var addedUIComponents = await this.dragToArea.child('div').withAttribute('draggable', 'true');
+    var addedUIComponents = await this.dragToArea.parent('div').nextSibling('div').child('div').child('div').withAttribute('draggable', 'true');
     var numberOfComponents = await addedUIComponents.count;
     if (numberOfComponents > 0 && !await addedUIComponents.withText('Tomt').exists) {
       for (var i = 0; i < numberOfComponents; i++) {

@@ -76,27 +76,34 @@ namespace Altinn.Studio.Designer.Controllers
             xsdMemoryStream.Position = 0;
             XmlReader reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
 
-            XDocument mainXsd = XDocument.Load(reader, LoadOptions.None);
-
-            xsdMemoryStream.Position = 0;
-            reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
-
-            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
-            JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
-
-            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, app, schemaJsonSchema);
-            ModelMetadata modelMetadata = converter.GetModelMetadata();
-
-            HandleTexts(org, app, converter.GetTexts());
-
-            string modelName = Path.GetFileNameWithoutExtension(mainFileName);
-
-            if (_repository.CreateModel(org, app, modelMetadata, mainXsd, modelName))
+            try
             {
-                return RedirectToAction("Index", new { org, app, modelName });
-            }
+                XDocument mainXsd = XDocument.Load(reader, LoadOptions.None);
 
-            return Json(false);
+                xsdMemoryStream.Position = 0;
+                reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
+
+                XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
+                JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+                JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, app, schemaJsonSchema);
+                ModelMetadata modelMetadata = converter.GetModelMetadata();
+
+                HandleTexts(org, app, converter.GetTexts());
+
+                string modelName = Path.GetFileNameWithoutExtension(mainFileName);
+
+                if (_repository.CreateModel(org, app, modelMetadata, mainXsd, modelName))
+                {
+                    return RedirectToAction("Index", new { org, app, modelName });
+                }
+
+                return Json(false);
+            }
+            catch
+            {
+                return RedirectToAction("Index");
+            }
         }
 
         private void HandleTexts(string org, string app, Dictionary<string, Dictionary<string, string>> allTexts)
@@ -106,7 +113,7 @@ namespace Altinn.Studio.Designer.Controllers
             if (existingTexts == null)
             {
                 existingTexts = new Dictionary<string, Dictionary<string, string>>();
-            }           
+            }
 
             foreach (KeyValuePair<string, Dictionary<string, string>> cultureString in allTexts)
             {
