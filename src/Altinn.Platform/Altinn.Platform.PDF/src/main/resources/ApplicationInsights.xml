@@ -20,14 +20,9 @@
   </TelemetryInitializers>
 
   <TelemetryProcessors>
-    <BuiltInProcessors>
-      <Processor type="PageViewTelemetryFilter">
-        <Add name="NotNeededUrls" value="actuator"/>
-      </Processor>
-      <Processor type="RequestTelemetryFilter">
-        <Add name="NotNeededUrls" value="actuator"/>
-      </Processor>
-    </BuiltInProcessors>
+    <CustomProcessors>
+      <Processor type="altinn.platform.pdf.health.HealthCheckTelemetryFilter"/>
+    </CustomProcessors>
   </TelemetryProcessors>
 
 </ApplicationInsights>
