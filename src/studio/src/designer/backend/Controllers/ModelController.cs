@@ -78,7 +78,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-               XDocument mainXsd = XDocument.Load(reader, LoadOptions.None);
+                XDocument mainXsd = XDocument.Load(reader, LoadOptions.None);
 
                 xsdMemoryStream.Position = 0;
                 reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
