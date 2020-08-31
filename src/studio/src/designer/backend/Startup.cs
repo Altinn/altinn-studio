@@ -1,10 +1,12 @@
 using System;
 using System.IO;
 using System.Reflection;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.TypedHttpClients;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -80,6 +82,8 @@ namespace Altinn.Studio.Designer
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
+                services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
+                services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
             }
 
             services.ConfigureLocalization();
