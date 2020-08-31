@@ -537,7 +537,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string modelName = GetModelName(org, app);
             string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"{modelName}.xsd";
-            string filedata = null;
+            string filedata = string.Empty;
 
             if (File.Exists(filename))
             {
