@@ -9,6 +9,8 @@ import * as React from 'react';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { FormLabel } from '@material-ui/core';
 import classNames = require('classnames');
+import { useSelector } from 'react-redux';
+import { IRuntimeState } from 'src/types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IRadioButtonsContainerProps {
@@ -18,6 +20,7 @@ export interface IRadioButtonsContainerProps {
   handleFocusUpdate: (value: any) => void;
   validationMessages?: any;
   options: any[];
+  optionsId: string;
   preselectedOptionIndex: number;
   shouldFocus: boolean;
   title: string;
@@ -76,6 +79,8 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
 
   const [selected, setSelected] = React.useState('');
   const radioGroupIsRow: boolean = (props.options.length <= 2);
+  const apiOptions = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
+  const options = apiOptions || props.options;
 
   React.useEffect(() => {
     returnSelected();
@@ -85,10 +90,10 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
     if (
       !props.formData &&
       props.preselectedOptionIndex &&
-      props.options &&
-      props.preselectedOptionIndex < props.options.length
+      options &&
+      props.preselectedOptionIndex < options.length
     ) {
-      const preselectedValue = props.options[props.preselectedOptionIndex].value;
+      const preselectedValue = options[props.preselectedOptionIndex].value;
       setSelected(preselectedValue);
     } else {
       setSelected(props.formData ? props.formData : '');
@@ -131,7 +136,7 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
         row={radioGroupIsRow}
         id={props.id}
       >
-        {props.options.map((option: any, index: number) => (
+        {options.map((option: any, index: number) => (
           <React.Fragment key={index}>
             <FormControlLabel
               control={<StyledRadio autoFocus={props.shouldFocus && selected === option.value}/>}
