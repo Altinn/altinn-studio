@@ -93,6 +93,8 @@ namespace Altinn.Studio.Designer
                 Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Retrieved config files and added to config.");
 
                 IConfiguration stageOneConfig = config.Build();
+                Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Completed build step.");
+
                 string appId = stageOneConfig.GetValue<string>("KvSetting:ClientId");
                 string tenantId = stageOneConfig.GetValue<string>("KvSetting:TenantId");
                 string appKey = stageOneConfig.GetValue<string>("KvSetting:ClientSecret");
@@ -101,6 +103,8 @@ namespace Altinn.Studio.Designer
                 if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(tenantId)
                     && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
                 {
+                    Console.WriteLine($"// Program.cs // CreateWebHostBuilder // setting up AzureServiceTokenProvider.");
+
                     AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={appId};TenantId={tenantId};AppKey={appKey}");
                     KeyVaultClient keyVaultClient = new KeyVaultClient(
                         new KeyVaultClient.AuthenticationCallback(
@@ -109,6 +113,8 @@ namespace Altinn.Studio.Designer
                         keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
                     try
                     {
+                        Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Trying to GetSecretAsync.");
+
                         string secretId =
                         hostingEnvironment.IsDevelopment() ? "ApplicationInsights--InstrumentationKey--Dev" : "ApplicationInsights--InstrumentationKey";
                         SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
