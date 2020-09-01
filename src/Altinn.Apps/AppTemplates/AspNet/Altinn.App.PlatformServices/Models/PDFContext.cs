@@ -1,4 +1,5 @@
 using System.Collections;
+using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
@@ -43,5 +44,11 @@ namespace Altinn.App.Services.Models
         /// </summary>
         [JsonProperty(PropertyName = "party")]
         public Party Party { get; set; }
+
+        /// <summary>
+        /// Gets or sets the user profile
+        /// </summary>
+        [JsonProperty(PropertyName = "userProfile")]
+        public UserProfile UserProfile {get; set; }
     }
 }

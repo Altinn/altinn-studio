@@ -49,6 +49,7 @@ public class PDFGenerator {
   private FormLayout formLayout;
   private Party party;
   private Party userParty;
+  private UserProfile userProfile;
   private PDPage currentPage;
   private PDPageContentStream currentContent;
   private PDDocumentOutline outline;
@@ -74,6 +75,7 @@ public class PDFGenerator {
     this.output = new ByteArrayOutputStream();
     this.party = pdfContext.getParty();
     this.userParty = pdfContext.getUserParty();
+    this.userProfile = pdfContext.getUserProfile();
     try {
       this.formData = FormDataUtils.parseXml(pdfContext.getData());
       this.textResources.setResources(parseTextResources(this.textResources.getResources(), this.formData));
@@ -93,7 +95,7 @@ public class PDFGenerator {
     info.setCreationDate(Calendar.getInstance());
     info.setTitle(InstanceUtils.getInstanceName(instance));
     document.setDocumentInformation(info);
-    pagesOutline.setTitle("Alle sider");
+    pagesOutline.setTitle(getLanguageString("all_pages"));
     outline.addLast(pagesOutline);
     PDDocumentCatalog catalog = document.getDocumentCatalog();
     catalog.setDocumentOutline((outline));
@@ -206,7 +208,8 @@ public class PDFGenerator {
     currentContent.beginText();
     currentContent.newLineAtOffset(xPoint, yPoint);
     currentContent.setFont(fontBold, headerFontSize);
-    currentContent.showText(AltinnOrgUtils.getOrgFullNameByShortName(instance.getOrg()) + " - " + InstanceUtils.getInstanceName(instance));
+    String language = (this.userProfile != null) ? userProfile.getProfileSettingPreference().getLanguage() : "nb";
+    currentContent.showText(AltinnOrgUtils.getOrgFullNameByShortName(instance.getOrg(), language) + " - " + InstanceUtils.getInstanceName(instance));
     yPoint -= leading;
     currentContent.endText();
     yPoint -= textFieldMargin;
@@ -225,12 +228,13 @@ public class PDFGenerator {
     currentContent.setFont(font, fontSize);
     String submittedBy;
     if (party.equals(userParty) || userParty == null) {
-      submittedBy = "Levert av " + party.getName();
+      submittedBy = getLanguageString("delivered_by") + " " + party.getName();
     } else {
-      submittedBy = "Levert av " + userParty.getName() + " på vegne av " + party.getName();
+      submittedBy =
+        getLanguageString("delivered_by") + " " + userParty.getName() + " " + getLanguageString("on_behalf_of") + " " + party.getName();
     }
     List<String> lines = TextUtils.splitTextToLines(submittedBy, font, fontSize, width);
-    lines.add("Referansenummer: " + TextUtils.getInstanceGuid(instance.getId()).split("-")[4]);
+    lines.add(getLanguageString("") + TextUtils.getInstanceGuid(instance.getId()).split("-")[4]);
     for(String line : lines) {
       currentContent.showText(line);
       currentContent.newLineAtOffset(0, -leading);
@@ -254,7 +258,7 @@ public class PDFGenerator {
     dest.setPage(currentPage);
     PDOutlineItem bookmark = new PDOutlineItem();
     bookmark.setDestination(dest);
-    bookmark.setTitle("Side " + document.getPages().getCount());
+    bookmark.setTitle(getLanguageString("page") + " " + document.getPages().getCount());
     pagesOutline.addLast(bookmark);
     currentContent= new PDPageContentStream(document, currentPage);
   }
@@ -321,27 +325,25 @@ public class PDFGenerator {
   }
 
   private void renderAddressComponent(FormLayoutElement element) throws IOException {
-    renderText("Gateadresse", font, fontSize, StandardStructureTypes.P);
+    renderText(getLanguageString("address"), font, fontSize, StandardStructureTypes.P);
     renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("address"), this.formData));
     yPoint -= componentMargin;
 
-
-    renderText("Postnr", font, fontSize, StandardStructureTypes.P);
+    renderText(getLanguageString("zip_code"), font, fontSize, StandardStructureTypes.P);
     renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("zipCode"), this.formData));
     yPoint -= componentMargin;
 
-    renderText("Poststed", font, fontSize, StandardStructureTypes.P);
+    renderText(getLanguageString("post_place"), font, fontSize, StandardStructureTypes.P);
     renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("postPlace"), this.formData));
     yPoint -= componentMargin;
 
-
     if (!element.isSimplified()) {
-      renderText("C/O eller annen tilleggsadresse", font, fontSize, StandardStructureTypes.P);
-      renderText("Om addressen er felles for flere boenhenter må du oppgi bolignummer. Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.", font, fontSize, StandardStructureTypes.P);
+      renderText(getLanguageString("care_of"), font, fontSize, StandardStructureTypes.P);
+      renderText(getLanguageString("house_number_helper"), font, fontSize, StandardStructureTypes.P);
       renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("careOf"), this.formData));
       yPoint -= componentMargin;
 
-      renderText("Bolignummer", font, fontSize, StandardStructureTypes.P);
+      renderText(getLanguageString("house_number"), font, fontSize, StandardStructureTypes.P);
       renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("houseNumber"), this.formData));
       yPoint -= componentMargin;
     }
@@ -400,6 +402,11 @@ public class PDFGenerator {
     }
 
     return nameString;
+  }
+
+  private String getLanguageString(String key) {
+    String languageCode = (this.userProfile != null) ? this.userProfile.getProfileSettingPreference().getLanguage() : "nb";
+    return TextUtils.getLanguageStringByKey(key, languageCode);
   }
 }
 
