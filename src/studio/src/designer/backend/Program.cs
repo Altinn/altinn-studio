@@ -71,27 +71,16 @@ namespace Altinn.Studio.Designer
             WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-                Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Setting up app config.");
-
-                string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-                config.SetBasePath(basePath);
-                config.AddJsonFile(basePath + "altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: false);
+                config.AddJsonFile("altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
                 IWebHostEnvironment hostingEnvironment = hostingContext.HostingEnvironment;
                 string envName = hostingEnvironment.EnvironmentName;
-                if (basePath == "/")
-                {
-                    config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: false);
-                }
-                else
-                {
-                    config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: false);
-                }
+
+                config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
 
                 Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Retrieved config files and added to config.");
-
                 IConfiguration stageOneConfig = config.Build();
                 Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Completed build step.");
 
@@ -129,9 +118,9 @@ namespace Altinn.Studio.Designer
                     }
                 }
 
-                if (hostingEnvironment.IsDevelopment() && basePath != "/")
+                if (hostingEnvironment.IsDevelopment() && !Directory.GetCurrentDirectory().Contains("app"))
                 {
-                    config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: false);
+                    config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: true);
                     Assembly assembly = Assembly.Load(new AssemblyName(hostingEnvironment.ApplicationName));
                     if (assembly != null)
                     {
