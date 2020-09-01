@@ -129,7 +129,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     _logger.LogError($"SourceControlSI // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}.");
                     _logger.LogError($"SourceControlSI // PullRemoteChanges // Repo info: {JsonConvert.SerializeObject(repo.Info)}");
                     _logger.LogError($"SourceControlSI // PullRemoteChanges // Exception: {e}");
-                    throw e;
+                    throw;
                 }
             }
 
