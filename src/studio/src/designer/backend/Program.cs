@@ -77,10 +77,10 @@ namespace Altinn.Studio.Designer
 
                 config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
-
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
 
+                Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Retrieved config files and added to config.");
                 IConfiguration stageOneConfig = config.Build();
                 Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Completed build step.");
 
