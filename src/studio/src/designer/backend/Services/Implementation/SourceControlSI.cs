@@ -10,9 +10,11 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using LibGit2Sharp;
+using Manatee.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -120,9 +122,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch (CheckoutConflictException e)
                 {
-                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Exception occured when puling repo {FindLocalRepoLocation(org, repository)}.");
-                    _logger.LogError($"Exception: {e}");
+                    _logger.LogError($"SourceControlSI // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository)}.");
                     status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}.");
+                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Repo info: {JsonConvert.SerializeObject(repo.Info)}");
+                    _logger.LogError($"Exception: {e}");
                 }
             }
 
