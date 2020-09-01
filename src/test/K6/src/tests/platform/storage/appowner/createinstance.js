@@ -1,5 +1,12 @@
 /* 
+    Pre-reqisite for test: 
+    1. MaskinPorteTokenGenerator https://github.com/Altinn/MaskinportenTokenGenerator built
+    2. Installed appOwner certificate
+    3. Send maskinporten token as environment variable after generating the token
+
+    This test script is to create instance of an app as an appowner for a party id
     Test data required: username and password, deployed app that requires level 2 login (reference app: ttd/apps-test) to find the party id of the user to create an instance
+    and maskinporten token
     Command: docker-compose run k6 run src/tests/platform/storage/appowner/createinstance.js 
     -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=*** -e subskey=*** -e maskinporten=token
 */

@@ -41,15 +41,17 @@ export function getAllinstancesByCurrentTask(altinnStudioRuntimeCookie, appOwner
     return http.get(endpoint, params);
 };
 
-//Api call to Storage:Instances to get all instances under a party id and return response
+//Api call to Storage:Instances to get all archived instances under an app created after a specific date and return response
 export function getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, isArchived, createdDateTime) {
+
+    //If createdDateTime is not sent update the value to today's date
     if (!(createdDateTime)) {
         var todayDateTime = new Date();
         todayDateTime.setUTCHours(0, 0, 0, 0);
         createdDateTime = todayDateTime.toISOString();
     };
 
-    //find archived instances of today
+    //find archived instances of the app that has created date > createdDateTime
     var endpoint = config.platformStorage["instances"] + "?created=gt:" + createdDateTime + "&org=" + appOwner + "&appId=" + appOwner + "/" + appName + "&process.isComplete=" + isArchived;
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");
     params.timeout = 120000;
@@ -126,4 +128,39 @@ export function putUpdateReadStatus(altinnStudioRuntimeCookie, partyId, instance
     var endpoint = config.buildStorageUrls(partyId, instanceId, "", "readstatus") + "?status=" + readStatus;
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");
     return http.put(endpoint, null, params);
+};
+
+//Function to find all the archived hard deleted, not complete confirmed app instances created after specific created date time for an appOwner for a specific app and returns instance id as an array
+export function findAllHardDeletedInstances(altinnStudioRuntimeCookie, appOwner, appName, createdDateTime) {
+    var allInstances = getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOwner, appName, "true", createdDateTime);
+    var params = header.buildHeaderWithRuntimeAsCookie(altinnStudioRuntimeCookie, "platform");
+    params.timeout = 120000;
+    allInstances = JSON.parse(allInstances.body);
+    var harDeletedinstances = buildArrayWithHardDeletedInstanceIds(allInstances.instances);
+
+    while (allInstances.next !== null) {
+        allInstances = http.get(allInstances.next, params);
+        if (allInstances.status != 200) {
+            printResponseToConsole("Get all instances failed:", false, allInstances);
+        };
+        allInstances = JSON.parse(allInstances.body);
+        var moreInstances = buildArrayWithHardDeletedInstanceIds(allInstances.instances);
+        harDeletedinstances = harDeletedinstances.concat(moreInstances);
+    };
+
+    harDeletedinstances = (harDeletedinstances.length > 0) ? harDeletedinstances : [];
+    return harDeletedinstances;
+};
+
+//Function to build an array with instances that are hard deleted and not complete confirmed from an json response
+function buildArrayWithHardDeletedInstanceIds(instancesArray) {
+    var harDeletedInstances = [];
+    for (var i = 0; i < instancesArray.length; i++) {
+        if ("status" in instancesArray[i] && "hardDeleted" in instancesArray[i].status) {
+            if (!("completeConfirmations" in instancesArray[i]) || instancesArray[i].completeConfirmations == null) {
+                harDeletedInstances.push(instancesArray[i].id);
+            };
+        };
+    };
+    return harDeletedInstances;
 };
