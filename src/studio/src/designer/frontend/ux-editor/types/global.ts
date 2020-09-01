@@ -95,6 +95,7 @@ declare global {
   export interface IFormCheckboxComponent extends IFormComponent {
     options: IOptions[];
     preselectedOptionIndex?: number;
+    optionsId: string;
   }
 
   export interface IFormTextAreaComponent extends IFormComponent { }
@@ -106,6 +107,7 @@ declare global {
   export interface IFormRadioButtonComponent extends IFormComponent {
     options: IOptions[];
     preselectedOptionIndex?: number;
+    optionsId: string;
   }
 
   export interface IFormDropdownComponent extends IFormComponent {

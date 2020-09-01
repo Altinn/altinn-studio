@@ -66,23 +66,17 @@ namespace Altinn.Studio.Designer
             WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-                string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-                config.SetBasePath(basePath);
-                config.AddJsonFile(basePath + "altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
+                config.AddJsonFile("altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
                 IWebHostEnvironment hostingEnvironment = hostingContext.HostingEnvironment;
                 string envName = hostingEnvironment.EnvironmentName;
-                if (basePath == "/")
-                {
-                    config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
-                }
-                else
-                {
-                    config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
-                }
+
+                config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
+
                 IConfiguration stageOneConfig = config.Build();
+
                 string appId = stageOneConfig.GetValue<string>("KvSetting:ClientId");
                 string tenantId = stageOneConfig.GetValue<string>("KvSetting:TenantId");
                 string appKey = stageOneConfig.GetValue<string>("KvSetting:ClientSecret");
@@ -111,7 +105,7 @@ namespace Altinn.Studio.Designer
                     }
                 }
 
-                if (hostingEnvironment.IsDevelopment() && basePath != "/")
+                if (hostingEnvironment.IsDevelopment() && !Directory.GetCurrentDirectory().Contains("app"))
                 {
                     config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: true);
                     Assembly assembly = Assembly.Load(new AssemblyName(hostingEnvironment.ApplicationName));

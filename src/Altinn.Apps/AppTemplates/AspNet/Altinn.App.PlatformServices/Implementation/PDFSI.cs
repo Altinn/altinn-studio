@@ -1,10 +1,13 @@
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
+using Altinn.App.Services.Helpers;
+using Altinn.Platform.Profile.Models;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -26,9 +29,11 @@ namespace Altinn.App.Services.Implementation
         private readonly IRegister _registerService;
         private readonly IAppResources _appResourcesService;
         private readonly IText _textService;
+        private readonly IProfile _profileService;
+        private readonly UserHelper _userHelper;
         private readonly JsonSerializer _camelCaseSerializer;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly string pdfElementType = "ref-data-as-pdf";
-        private readonly string defaultFileName = "kvittering.pdf";
 
         /// <summary>
         /// Creates a new instance of the <see cref="PDFSI"/> class
@@ -40,6 +45,7 @@ namespace Altinn.App.Services.Implementation
         /// <param name="registerService">The register service</param>
         /// <param name="appResourcesService">The app resource service</param>
         /// <param name="textService">The text service</param>
+        /// <param name="profileService">the profile service</param>
         public PDFSI(IOptions<PlatformSettings> platformSettings,
             IOptions<AppSettings> appSettings,
             ILogger<PDFSI> logger,
@@ -47,7 +53,11 @@ namespace Altinn.App.Services.Implementation
             IData dataService,
             IRegister registerService,
             IAppResources appResourcesService,
-            IText textService)
+            IText textService,
+            IProfile profileService,
+            IOptions<GeneralSettings> settings,
+            IHttpContextAccessor httpContextAccessor
+            )
         {
             _logger = logger;
             _dataService = dataService;
@@ -64,6 +74,9 @@ namespace Altinn.App.Services.Implementation
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiPdfEndpoint);
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             _pdfClient = httpClient;
+            _profileService = profileService;
+            _userHelper = new UserHelper(profileService, registerService, settings);
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <inheritdoc/>
@@ -83,8 +96,11 @@ namespace Altinn.App.Services.Implementation
             await dataStream.ReadAsync(dataAsBytes);
             string encodedXml = System.Convert.ToBase64String(dataAsBytes);
 
+            UserContext userContext = await _userHelper.GetUserContext(_httpContextAccessor.HttpContext);
+            UserProfile userProfile = await _profileService.GetUserProfile(userContext.UserId);
+
             byte[] formLayout = _appResourcesService.GetAppResource(org, app, _appSettings.FormLayoutJSONFileName);
-            TextResource textResource = await _textService.GetText(org, app, "nb");
+            TextResource textResource = await _textService.GetText(org, app, userProfile.ProfileSettingPreference.Language);
 
             string formLayoutString = GetUTF8String(formLayout);
             string textResourcesString = JsonConvert.SerializeObject(textResource);
@@ -95,7 +111,9 @@ namespace Altinn.App.Services.Implementation
                 FormLayout = JsonConvert.DeserializeObject(formLayoutString),
                 TextResources = JsonConvert.DeserializeObject(textResourcesString),
                 Party = await _registerService.GetParty(instanceOwnerId),
-                Instance = instance
+                Instance = instance,
+                UserProfile = userProfile,
+                UserParty = userProfile.Party
             };
 
             Stream pdfContent;
@@ -111,7 +129,7 @@ namespace Altinn.App.Services.Implementation
 
             try
             {
-                await StorePDF(pdfContent, instance, application);
+                await StorePDF(pdfContent, instance, application, userProfile.ProfileSettingPreference.Language);
             }
             catch (Exception exception)
             {
@@ -152,28 +170,29 @@ namespace Altinn.App.Services.Implementation
             return pdfContent;
         }
 
-        private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance, Application appMetadata)
+        private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance, Application appMetadata, string language)
         {
             string fileName = null;
             string app = instance.AppId.Split("/")[1];
 
-            if (!string.IsNullOrEmpty(appMetadata.Title?["nb"]))
+            if (!string.IsNullOrEmpty(appMetadata.Title?[language]))
             {
-                fileName = appMetadata.Title["nb"] + ".pdf";
+                fileName = appMetadata.Title[language] + ".pdf";
             }
-            else
+            else if (!string.IsNullOrEmpty(appMetadata.Title?["nb"]))
             {
-                fileName = app;
+                fileName = appMetadata.Title[language] + ".pdf";
+            } else {
+                fileName = app + ".pdf";
             }
 
             fileName = GetValidFileName(fileName);
-
 
             return await _dataService.InsertBinaryData(
                 instance.Id,
                 pdfElementType,
                 "application/pdf",
-                fileName ?? defaultFileName,
+                fileName,
                 pdfStream);
         }
 

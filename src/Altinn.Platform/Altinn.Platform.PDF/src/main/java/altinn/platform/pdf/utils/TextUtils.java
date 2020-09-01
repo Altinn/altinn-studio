@@ -1,17 +1,20 @@
 package altinn.platform.pdf.utils;
 
-import altinn.platform.pdf.models.Instance;
 import altinn.platform.pdf.models.TextResourceElement;
 import altinn.platform.pdf.models.TextResources;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import com.google.gson.Gson;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TextUtils {
 
+  private static Map<String,Map<String, String>> languages;
   private TextUtils() {}
 
   /**
@@ -195,5 +198,42 @@ public class TextUtils {
     }
 
     return instanceId.split("/")[1];
+  }
+
+  /**
+   * Gets the a language value by key. If key is not found the key is returned.
+   * @param key the key
+   * @param languageCode the language to fetch from
+   */
+  public static String getLanguageStringByKey(String key, String languageCode) {
+    if (languages == null) {
+      return key;
+    }
+    if (languages.get(languageCode) == null) {
+      return key;
+    }
+    String value = languages.get(languageCode).get(key);
+    return (value != null) ? value : key;
+  }
+
+  /**
+   * Reads all the language files and puts them in a lang map
+   */
+  public static void readLanguageFiles() throws IOException {
+    ClassPathResource langDir = new ClassPathResource(("language"));
+    File[] files = langDir.getFile().listFiles();
+    Map<String, Map<String, String>> languagesMap = new HashMap<>();
+    Gson gson = new Gson();
+    for (final File file: files) {
+      String langCode = file.getName().split("\\.")[0];
+      try (
+        FileReader fileReader = new FileReader((file));
+        BufferedReader bufferedReader = new BufferedReader(fileReader);
+      ) {
+        Map<String, String> langMap = gson.fromJson(bufferedReader, Map.class);
+        languagesMap.put(langCode, langMap);
+      }
+    }
+    languages = languagesMap;
   }
 }

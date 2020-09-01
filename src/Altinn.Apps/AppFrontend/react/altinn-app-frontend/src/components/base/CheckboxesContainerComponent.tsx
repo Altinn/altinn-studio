@@ -7,6 +7,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import classNames = require('classnames');
+import { useSelector } from 'react-redux';
+import { IRuntimeState } from 'src/types';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface ICheckboxContainerProps {
@@ -17,6 +19,7 @@ export interface ICheckboxContainerProps {
   isValid: boolean;
   validationMessages: any;
   options: any[];
+  optionsId: string;
   preselectedOptionIndex: number;
   readOnly: boolean;
   shouldFocus: boolean;
@@ -86,7 +89,8 @@ function usePrevious(value) {
 
 export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   const classes = useStyles(props);
-
+  const apiOptions = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
+  const options = apiOptions || props.options;
   const [selected, setSelected] = React.useState([]);
   const prevSelected: any = usePrevious(selected);
 
@@ -100,11 +104,11 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
     if (
       !props.formData &&
       props.preselectedOptionIndex &&
-      props.options &&
-      props.preselectedOptionIndex < props.options.length
+      options &&
+      props.preselectedOptionIndex < options.length
     ) {
       const preSelected: string[] = [];
-      preSelected[props.preselectedOptionIndex] = props.options[props.preselectedOptionIndex].value;
+      preSelected[props.preselectedOptionIndex] = options[props.preselectedOptionIndex].value;
       setSelected(preSelected);
     } else {
       setSelected(props.formData ? props.formData.toString().split(',') : []);
@@ -119,9 +123,9 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
     } else {
       newSelected[event.target.value] = event.target.name;
     }
-
+    const filtered = newSelected.filter((element: string) => !!element);
     props.handleFocusUpdate(props.id);
-    props.handleDataChange(selectedHasValues(newSelected) ? newSelected.join() : '');
+    props.handleDataChange(selectedHasValues(filtered) ? filtered.join() : '');
   };
 
   const selectedHasValues = (select: string[]): boolean => {
@@ -179,7 +183,7 @@ export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
         row={checkBoxesIsRow}
         id={props.id}
       >
-        {props.options.map((option, index) => (
+        {options.map((option, index) => (
           <React.Fragment key={index}>
             <FormControlLabel
               key={index}
