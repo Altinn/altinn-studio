@@ -57,6 +57,8 @@ namespace Altinn.Studio.Designer
         /// <param name="services">The services available for asp.net Core</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            Console.WriteLine($"// Program.cs // ConfigureServices // Attempting to configure services.");
+
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;
@@ -69,6 +71,7 @@ namespace Altinn.Studio.Designer
             services.AddMemoryCache();
             services.AddResponseCompression();
             services.AddHealthChecks().AddCheck<HealthCheck>("designer_health_check");
+            Console.WriteLine($"// Program.cs // ConfigureServices // Health check successfully added.");
 
             CreateDirectory();
 
@@ -78,12 +81,16 @@ namespace Altinn.Studio.Designer
             services.RegisterTypedHttpClients(Configuration);
             services.ConfigureAuthentication();
 
+            Console.WriteLine($"// Program.cs // ConfigureServices // Configure authentication successfully added.");
+
             // Add application insight telemetry
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
                 services.AddApplicationInsightsTelemetry(ApplicationInsightsKey);
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
+                Console.WriteLine($"// Program.cs // ConfigureServices // Successfully added AI config.");
+
             }
 
             services.ConfigureLocalization();
@@ -101,6 +108,7 @@ namespace Altinn.Studio.Designer
                     // Catch swashbuckle exception if it doesn't find the generated XML documentation file
                 }
             });
+            Console.WriteLine($"// Program.cs // ConfigureServices // Function complete. Successfully added swagger.");
         }
 
         /// <summary>
@@ -120,6 +128,8 @@ namespace Altinn.Studio.Designer
                 appBuilder.UseExceptionHandler("/error");
             }
 
+            Console.WriteLine($"// Program.cs // Configure // Trying to use static files.");
+
             appBuilder.UseStaticFiles(new StaticFileOptions
             {
                 OnPrepareResponse = context =>
@@ -132,6 +142,8 @@ namespace Altinn.Studio.Designer
                     };
                 },
             });
+
+            Console.WriteLine($"// Program.cs // Configure // Successfully using static files.");
 
             const string swaggerRoutePrefix = "designer/swagger";
             appBuilder.UseSwagger(c =>
@@ -153,6 +165,8 @@ namespace Altinn.Studio.Designer
 
             appBuilder.UseResponseCompression();
             appBuilder.UseRequestLocalization();
+
+            Console.WriteLine($"// Program.cs // Configure // Attempting to add endpoints.");
 
             appBuilder.UseEndpoints(endpoints =>
             {
@@ -214,10 +228,14 @@ namespace Altinn.Studio.Designer
                 // ---------------------- MONITORING -------------------------- //
                 endpoints.MapHealthChecks("/health");
             });
+
+            Console.WriteLine($"// Program.cs // Configure // Successfully added endpoints.");
         }
 
         private void CreateDirectory()
         {
+            Console.WriteLine($"// Program.cs // CreateDirectory // Trying to create directory");
+
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
             string repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ??
@@ -226,6 +244,7 @@ namespace Altinn.Studio.Designer
             if (!Directory.Exists(repoLocation))
             {
                 Directory.CreateDirectory(repoLocation);
+                Console.WriteLine($"// Program.cs // CreateDirectory // Successfully created directory");
             }
         }
 

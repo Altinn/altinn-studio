@@ -35,8 +35,11 @@ namespace Altinn.Studio.Designer
         /// <param name="args">The Arguments</param>
         public static void Main(string[] args)
         {
+            Console.WriteLine($"// Program.cs // Main // Main method triggered.");
             ConfigureSetupLogging();
+            Console.WriteLine($"// Program.cs // Main //ConfigureSetupLogging complete.");
             CreateWebHostBuilder(args).Build().Run();
+            Console.WriteLine($"// Program.cs // Main //CreateWebHostBuilder.Build.Run complete.");
         }
 
         /// <summary>
@@ -54,6 +57,8 @@ namespace Altinn.Studio.Designer
                     .AddConsole();
             });
 
+            Console.WriteLine($"// Program.cs // ConfigureSetupLogging // LoggerFactory created.");
+
             _logger = logFactory.CreateLogger<Program>();
         }
 
@@ -66,6 +71,8 @@ namespace Altinn.Studio.Designer
             WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
+                Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Setting up app config.");
+
                 string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
                 config.SetBasePath(basePath);
                 config.AddJsonFile(basePath + "altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
@@ -82,6 +89,9 @@ namespace Altinn.Studio.Designer
 
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
+
+                Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Retrieved config files and added to config.");
+
                 IConfiguration stageOneConfig = config.Build();
                 string appId = stageOneConfig.GetValue<string>("KvSetting:ClientId");
                 string tenantId = stageOneConfig.GetValue<string>("KvSetting:TenantId");
@@ -104,6 +114,8 @@ namespace Altinn.Studio.Designer
                         SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
                             keyVaultEndpoint, secretId).Result;
                         Startup.ApplicationInsightsKey = secretBundle.Value;
+                        Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Set instrumentation key from key vault. {Startup.ApplicationInsightsKey}");
+
                     }
                     catch (Exception vaultException)
                     {
@@ -123,6 +135,8 @@ namespace Altinn.Studio.Designer
             })
             .ConfigureLogging(builder =>
             {
+                Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Configuring logging.");
+
                 // The default ASP.NET Core project templates call CreateDefaultBuilder, which adds the following logging providers:
                 // Console, Debug, EventSource
                 // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/?view=aspnetcore-3.1
@@ -133,6 +147,8 @@ namespace Altinn.Studio.Designer
                 // Setup up application insight if ApplicationInsightsKey is available
                 if (!string.IsNullOrEmpty(Startup.ApplicationInsightsKey))
                 {
+                    Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Configuring logging - if case.");
+
                     // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
                     // Providing an instrumentation key here is required if you're using
                     // standalone package Microsoft.Extensions.Logging.ApplicationInsights
@@ -155,6 +171,8 @@ namespace Altinn.Studio.Designer
                 }
                 else
                 {
+                    Console.WriteLine($"// Program.cs // CreateWebHostBuilder // Configuring logging - else case.");
+
                     // If not application insight is available log to console
                     builder.AddFilter("Microsoft", LogLevel.Warning);
                     builder.AddFilter("System", LogLevel.Warning);
