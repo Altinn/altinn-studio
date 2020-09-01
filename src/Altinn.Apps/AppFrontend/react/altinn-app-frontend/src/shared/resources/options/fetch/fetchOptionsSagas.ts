@@ -3,7 +3,7 @@ import { SagaIterator } from 'redux-saga';
 import { fork, take, call, select } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
 import { ILayout } from 'src/features/form/layout';
-import { IFormDropdownComponent, IOption } from 'src/types';
+import { IOption } from 'src/types';
 import { get } from 'altinn-shared/utils';
 import { getOptionsUrl } from '../../../../utils/urlHelper';
 import * as formLayoutActionTypes from '../../../../features/form/layout/formLayoutActionTypes';
@@ -16,12 +16,9 @@ export function* fetchOptionsSaga(): SagaIterator {
   try {
     const formLayout: ILayout = yield select(formLayoutSelector);
     for (const element of formLayout) {
-      if (element.type === 'Dropdown') {
-        // currently only dropdown that supports options-api. Support for checklist and radiobuttons is handled in issue #3626
-        const component = element as unknown as IFormDropdownComponent;
-        if (component.optionsId) {
-          yield fork(fetchSpecificOptionSaga, component.optionsId);
-        }
+      const component = element as any;
+      if (component.optionsId) {
+        yield fork(fetchSpecificOptionSaga, component.optionsId);
       }
     }
   } catch (error) {

@@ -13,6 +13,7 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -118,9 +119,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         status.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
                     }
                 }
-                catch (LibGit2Sharp.CheckoutConflictException)
+                catch (CheckoutConflictException e)
                 {
+                    _logger.LogError($"SourceControlSI // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository)}.");
                     status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}.");
+                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Repo info: {JsonConvert.SerializeObject(repo.Info)}");
+                    _logger.LogError($"Exception: {e}");
                 }
             }
 
@@ -137,11 +145,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string logMessage = string.Empty;
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
             {
+                if (repo == null || repo.Network?.Remotes == null)
+                {
+                    _logger.LogError($"Retrieving repo or network remotes failed for repo: {FindLocalRepoLocation(org, repository)}");
+                }
+
                 FetchOptions fetchOptions = new FetchOptions();
                 fetchOptions.CredentialsProvider = (_url, _user, _cred) =>
                          new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
-                foreach (Remote remote in repo.Network.Remotes)
+                foreach (Remote remote in repo?.Network?.Remotes)
                 {
                     IEnumerable<string> refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
                     Commands.Fetch(repo, remote.Name, refSpecs, fetchOptions, logMessage);
@@ -229,9 +242,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
                 }
 
-                PushOptions options = new PushOptions 
+                PushOptions options = new PushOptions
                 {
-                    OnPushStatusError = pushError => 
+                    OnPushStatusError = pushError =>
                     {
                         _logger.LogError("Push error: {0}", pushError.Message);
                         pushSuccess = false;
@@ -391,28 +404,38 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public Altinn.Studio.Designer.Models.Commit GetInitialCommit(string org, string repository)
+        public Designer.Models.Commit GetInitialCommit(string org, string repository)
         {
-            List<Altinn.Studio.Designer.Models.Commit> commits = new List<Altinn.Studio.Designer.Models.Commit>();
+            List<Designer.Models.Commit> commits = new List<Designer.Models.Commit>();
             string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            Designer.Models.Commit commit = null;
+
             using (var repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
             {
-                LibGit2Sharp.Commit firstCommit = repo.Commits.Last();
-                Designer.Models.Commit commit = new Designer.Models.Commit();
-                commit.Message = firstCommit.Message;
-                commit.MessageShort = firstCommit.MessageShort;
-                commit.Encoding = firstCommit.Encoding;
-                commit.Sha = firstCommit.Sha;
+                if (repo.Commits.Last() != null)
+                {
+                    LibGit2Sharp.Commit firstCommit = repo.Commits.Last();
+                    commit = new Designer.Models.Commit();
+                    commit.Message = firstCommit.Message;
+                    commit.MessageShort = firstCommit.MessageShort;
+                    commit.Encoding = firstCommit.Encoding;
+                    commit.Sha = firstCommit.Sha;
 
-                commit.Author = new Designer.Models.Signature();
-                commit.Author.Email = firstCommit.Author.Email;
-                commit.Author.Name = firstCommit.Author.Name;
-                commit.Author.When = firstCommit.Author.When;
+                    commit.Author = new Designer.Models.Signature();
+                    commit.Author.Email = firstCommit.Author.Email;
+                    commit.Author.Name = firstCommit.Author.Name;
+                    commit.Author.When = firstCommit.Author.When;
 
-                commit.Comitter = new Designer.Models.Signature();
-                commit.Comitter.Name = firstCommit.Committer.Name;
-                commit.Comitter.Email = firstCommit.Committer.Email;
-                commit.Comitter.When = firstCommit.Committer.When;
+                    commit.Comitter = new Designer.Models.Signature();
+                    commit.Comitter.Name = firstCommit.Committer.Name;
+                    commit.Comitter.Email = firstCommit.Committer.Email;
+                    commit.Comitter.When = firstCommit.Committer.When;
+                }
+                else
+                {
+                    _logger.LogError($" // SourceControlSI // GetInitialCommit // Error occured when retrieving first commit for repo {localServiceRepoFolder}");
+                    return null;
+                }
 
                 return commit;
             }

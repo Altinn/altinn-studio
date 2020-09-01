@@ -243,7 +243,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   }
 
   public handleOptionsIdChange = (event: any) => {
-    const component = (this.props.component as IFormDropdownComponent);
+    const component =
+    (this.props.component as (IFormDropdownComponent | IFormCheckboxComponent | IFormRadioButtonComponent));
     component.optionsId = event.target.value;
     this.setState({
       component,
@@ -428,7 +429,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
             type='checkboxes'
             component={this.state.component as IFormCheckboxComponent}
             handleAddOption={this.handleAddOption}
-            handleCodeListChanged={this.handleCodeListChange}
+            handleOptionsIdChange={this.handleOptionsIdChange}
             handleDescriptionChange={this.handleDescriptionChange}
             handlePreselectedOptionChange={this.handlePreselectedOptionChange}
             handleRemoveOption={this.handleRemoveOption}
@@ -445,7 +446,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
             type='radiobuttons'
             component={this.state.component as IFormRadioButtonComponent}
             handleAddOption={this.handleAddOption}
-            handleCodeListChanged={this.handleCodeListChange}
+            handleOptionsIdChange={this.handleOptionsIdChange}
             handleDescriptionChange={this.handleDescriptionChange}
             handlePreselectedOptionChange={this.handlePreselectedOptionChange}
             handleRemoveOption={this.handleRemoveOption}

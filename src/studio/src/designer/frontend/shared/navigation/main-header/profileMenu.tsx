@@ -6,6 +6,7 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import * as React from 'react';
 import { IAltinnWindow } from '../../types';
 import { altinnStudioDocsUrl, repositoryUrl } from '../../utils/urlHelper';
+import { post } from '../../utils/networking';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -51,10 +52,11 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
   }
 
   public handleLogout = () => {
-    this.setState({ anchorEl: null });
-    if (window) {
-      window.location.href = '/Home/Logout';
-    }
+    const altinnWindow: Window = window;
+    const url = `${altinnWindow.location.origin}/repos/user/logout`;
+    post(url).then(() => {
+      window.location.assign(`${altinnWindow.location.origin}/Home/Logout`);
+    });
     return true;
   }
 
