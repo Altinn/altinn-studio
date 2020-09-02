@@ -220,9 +220,9 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           editMode: false,
         });
       } else {
-        this.setState({
+        this.setState(() => ({
           editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
-        });
+        }));
       }
     } else {
       FormDesignerActionDispatchers.updateFormContainer(this.state.tmpContainer, this.props.id);
@@ -236,9 +236,9 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   public handleNewId = (event: any) => {
     const idAlreadyExists = Object.prototype.hasOwnProperty.call(this.props.containers, event.target.value);
     if (idAlreadyExists && event.target.value !== this.props.id) {
-      this.setState({
+      this.setState(() => ({
         editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
-      });
+      }));
     } else {
       this.setState({
         editGroupIdError: null,
