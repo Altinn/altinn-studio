@@ -70,7 +70,7 @@ export interface ISelectionEditComponentProvidedProps {
   handleDescriptionChange: (updatedDescription: string) => void;
   handleUpdateOptionLabel: (index: number, event: any) => void;
   handleUpdateOptionValue: (index: number, event: any) => void;
-  handleRemoveOption: (index: number, event: any) => void;
+  handleRemoveOption: (index: number | string) => void;
   handleAddOption: () => void;
   handlePreselectedOptionChange: (event: any) => void;
   handleDataModelChange: (selectedDataModelElement: any) => void;
@@ -109,6 +109,9 @@ export class SelectionEditComponent
     if (value === 'manual') {
       // reset codelist if it exists
       this.props.handleOptionsIdChange({ target: { value: undefined } });
+    } else {
+      // reset manual list if exists
+      this.props.handleRemoveOption('all');
     }
     this.setState({
       radioButtonSelection: value,
@@ -178,11 +181,11 @@ export class SelectionEditComponent
             </>
             }
             {this.state.radioButtonSelection === 'manual' &&
-              this.props.component.options.map((option, index) => {
+              this.props.component.options?.map((option, index) => {
                 return (
                   <Grid
                     container={true} xs={12}
-                    key={option.value} classes={{ container: this.props.classes.gridContainer }}
+                    key={index} classes={{ container: this.props.classes.gridContainer }}
                   >
                     <Grid
                       xs={11}

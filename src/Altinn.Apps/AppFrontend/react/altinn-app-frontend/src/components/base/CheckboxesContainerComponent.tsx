@@ -90,11 +90,10 @@ function usePrevious(value) {
 export const CheckboxContainerComponent = (props: ICheckboxContainerProps) => {
   const classes = useStyles(props);
   const apiOptions = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
-  const options = apiOptions || props.options;
+  const options = apiOptions || props.options || [];
   const [selected, setSelected] = React.useState([]);
   const prevSelected: any = usePrevious(selected);
-
-  const checkBoxesIsRow: boolean = (props.options.length <= 2);
+  const checkBoxesIsRow: boolean = (options.length <= 2);
 
   React.useEffect(() => {
     returnState();

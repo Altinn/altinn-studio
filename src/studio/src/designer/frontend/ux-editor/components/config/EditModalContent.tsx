@@ -130,6 +130,9 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   public handleAddOption = () => {
     this.setState((prevState: IEditModalContentState) => {
       const updatedComponent: IFormComponent = (prevState.component);
+      if (!updatedComponent.options) {
+        updatedComponent.options = [];
+      }
       updatedComponent.options.push({
         label: this.props.language.general.label,
         value: this.props.language.general.value,
@@ -143,10 +146,14 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
     }, () => this.props.handleComponentUpdate(this.state.component));
   }
 
-  public handleRemoveOption = (index: number) => {
+  public handleRemoveOption = (index: number | string) => {
     this.setState((prevState: IEditModalContentState) => {
       const updatedComponent: IFormComponent = prevState.component;
-      updatedComponent.options.splice(index, 1);
+      if (index === 'all') {
+        updatedComponent.options = undefined;
+      } else {
+        updatedComponent.options.splice(index as number, 1);
+      }
       return {
         component: {
           ...prevState.component,
@@ -427,6 +434,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
         return (
           <SelectionEdit
             type='checkboxes'
+            key={this.state.component.id}
             component={this.state.component as IFormCheckboxComponent}
             handleAddOption={this.handleAddOption}
             handleOptionsIdChange={this.handleOptionsIdChange}
@@ -444,6 +452,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
         return (
           <SelectionEdit
             type='radiobuttons'
+            key={this.state.component.id}
             component={this.state.component as IFormRadioButtonComponent}
             handleAddOption={this.handleAddOption}
             handleOptionsIdChange={this.handleOptionsIdChange}

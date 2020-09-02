@@ -78,9 +78,9 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
   const classes = useStyles(props);
 
   const [selected, setSelected] = React.useState('');
-  const radioGroupIsRow: boolean = (props.options.length <= 2);
   const apiOptions = useSelector((state: IRuntimeState) => state.optionState.options[props.optionsId]);
-  const options = apiOptions || props.options;
+  const options = apiOptions || props.options || [];
+  const radioGroupIsRow: boolean = (options.length <= 2);
 
   React.useEffect(() => {
     returnSelected();
