@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, takeLatest, select } from 'redux-saga/effects';
+import { call, takeLatest, select, all, take } from 'redux-saga/effects';
 
 import DataModelActions from '../formDatamodelActions';
 import { IFetchDataModel } from './fetchFormDatamodelActions';
@@ -7,8 +7,10 @@ import * as ActionTypes from './fetchFormDatamodelActionTypes';
 import QueueActions from '../../../../shared/resources/queue/queueActions';
 
 import { get } from '../../../../utils/networking';
-import { IRuntimeState } from '../../../../types';
+import { IRuntimeState, IAltinnWindow } from '../../../../types';
 import { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
+import { FETCH_APPLICATION_METADATA_FULFILLED } from 'src/shared/resources/applicationMetadata/actions/types';
+import { getJsonSchemaUrl } from 'src/utils/urlHelper';
 
 const AppMetadataSelector: (state: IRuntimeState) => IApplicationMetadata =
   (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
@@ -34,7 +36,7 @@ export function* watchFetchFormDataModelSaga(): SagaIterator {
   yield takeLatest(ActionTypes.FETCH_DATA_MODEL, fetchFormDataModelSaga);
 }
 
-function* fetchJsonSchemaSaga({ url }: IFetchDataModel): SagaIterator {
+function* fetchJsonSchemaSaga(url: string): SagaIterator {
   try {
     const appMetadata = yield select(AppMetadataSelector);
     const dataType = appMetadata.dataTypes.find((type) => !!type.appLogic);
@@ -51,5 +53,10 @@ function* fetchJsonSchemaSaga({ url }: IFetchDataModel): SagaIterator {
 }
 
 export function* watchFetchJsonSchemaSaga(): SagaIterator {
-  yield takeLatest(ActionTypes.FETCH_JSON_SCHEMA, fetchJsonSchemaSaga);
+  yield all([
+    take(ActionTypes.FETCH_JSON_SCHEMA),
+    take(FETCH_APPLICATION_METADATA_FULFILLED),
+  ]);
+  const url = getJsonSchemaUrl();
+  yield call(fetchJsonSchemaSaga, url);
 }

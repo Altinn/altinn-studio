@@ -1,5 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { all, call, take } from 'redux-saga/effects';
+import DataModelActions from 'src/features/form/datamodel/formDatamodelActions';
+import { IAltinnWindow } from 'altinn-shared/types';
 import QueueActions from '../queueActions';
 import ApplicationMetadataActions from '../../applicationMetadata/actions';
 import TextResourcesActions from '../../textResources/textResourcesActions';
@@ -9,11 +11,14 @@ import PartyActions from '../../party/partyActions';
 import { profileApiUrl } from '../../../../utils/urlHelper';
 
 export function* startInitialAppTaskQueue(): SagaIterator {
+  const { org, app } = window as Window as IAltinnWindow;
   yield call(ProfileActions.fetchProfile, profileApiUrl);
   yield call(TextResourcesActions.fetchTextResources);
   yield call(LanguageActions.fetchLanguage);
   yield call(ApplicationMetadataActions.getApplicationMetadata);
+  yield call(DataModelActions.fetchDataModel, `${window.location.origin}/${org}/${app}/api/metadata/ServiceMetaData`);
   yield call(PartyActions.getCurrentParty);
+  yield call(DataModelActions.fetchJsonSchema);
   yield call(QueueActions.startInitialAppTaskQueueFulfilled);
 }
 
