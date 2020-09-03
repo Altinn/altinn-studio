@@ -29,5 +29,6 @@
     { "directory": "./src/studio/src/designer/frontend", "changeProcessCWD": true },
     { "directory": "./src/Altinn.Apps/AppFrontend/react", "changeProcessCWD": true}
   ],
-  "editor.codeActionsOnSave": {}
+  "editor.codeActionsOnSave": {},
+  "versionlens.logging.level": "debug"
 }
