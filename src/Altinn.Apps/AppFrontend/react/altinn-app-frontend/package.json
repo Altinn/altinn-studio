@@ -1,6 +1,6 @@
 {
   "name": "altinn-app-frontend",
-  "version": "2.1.15",
+  "version": "2.1.16",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -55,7 +55,7 @@
     "@types/classnames": "~2.2.10",
     "@types/dot-object": "~2.1.2",
     "@types/enzyme": "~3.10.5",
-    "@types/jest": "~26.0.10",
+    "@types/jest": "~26.0.13",
     "@types/lodash.isequal": "~4.5.5",
     "@types/react": "~16.9.49",
     "@types/react-dom": "~16.9.8",
