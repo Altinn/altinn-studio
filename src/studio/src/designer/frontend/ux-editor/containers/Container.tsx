@@ -133,7 +133,7 @@ const styles = createStyles({
   },
 });
 
-const validComponentId = /^[a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$/
+const validComponentId = /^[0-9a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$/
 
 export class ContainerComponent extends React.Component<IContainerProps, IContainerState> {
   public static getDerivedStateFromProps(nextProps: IContainerProps, prevState: IContainerState) {
