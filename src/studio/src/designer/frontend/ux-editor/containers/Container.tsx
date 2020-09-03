@@ -133,7 +133,7 @@ const styles = createStyles({
   },
 });
 
-const validComponentId = /^[0-9a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$/
+const validComponentId = /^[0-9a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$/;
 
 export class ContainerComponent extends React.Component<IContainerProps, IContainerState> {
   public static getDerivedStateFromProps(nextProps: IContainerProps, prevState: IContainerState) {
@@ -213,8 +213,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   public handleSave = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
     if (this.state.tmpId && this.state.tmpId !== this.props.id) {
-      const idAlreadyExists = Object.prototype.hasOwnProperty.call(this.props.containers, this.state.tmpId);
-      if (idAlreadyExists) {
+      if (this.alreadyExists(this.props.containers, this.state.tmpId)) {
         this.setState(() => ({
           editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
         }));
@@ -240,8 +239,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   }
 
   public handleNewId = (event: any) => {
-    const idAlreadyExists = Object.prototype.hasOwnProperty.call(this.props.containers, event.target.value);
-    if (idAlreadyExists && event.target.value !== this.props.id) {
+    if (this.alreadyExists(this.props.containers, this.state.tmpId) && event.target.value !== this.props.id) {
       this.setState(() => ({
         editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
       }));
@@ -254,6 +252,10 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         editGroupIdError: null,
       });
     }
+  }
+
+  public alreadyExists = (containers: any, newId: string): boolean => {
+    return Object.keys(containers).findIndex((key) => key.toUpperCase() === newId.toUpperCase()) > -1;
   }
 
   public handleClosePopup = () => {
