@@ -39,10 +39,9 @@ export function fetchDataModelRejected(error: Error): IFetchDataModelRejected {
   };
 }
 
-export function fetchJsonSchema(url: string): IFetchDataModel {
+export function fetchJsonSchema(): Action {
   return {
     type: ActionTypes.FETCH_JSON_SCHEMA,
-    url,
   };
 }
 
