@@ -133,6 +133,8 @@ const styles = createStyles({
   },
 });
 
+const validComponentId = /^[a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$/
+
 export class ContainerComponent extends React.Component<IContainerProps, IContainerState> {
   public static getDerivedStateFromProps(nextProps: IContainerProps, prevState: IContainerState) {
     if (prevState.currentlyDragging) {
@@ -212,17 +214,21 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     event.stopPropagation();
     if (this.state.tmpId && this.state.tmpId !== this.props.id) {
       const idAlreadyExists = Object.prototype.hasOwnProperty.call(this.props.containers, this.state.tmpId);
-      if (!idAlreadyExists) {
+      if (idAlreadyExists) {
+        this.setState(() => ({
+          editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
+        }));
+      } else if (!validComponentId.test(this.state.tmpId)) {
+        this.setState(() => ({
+          editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
+        }));
+      } else {
         FormDesignerActionDispatchers.updateFormContainer(this.state.tmpContainer, this.props.id);
         FormDesignerActionDispatchers.deleteActiveListAction();
         FormDesignerActionDispatchers.updateContainerId(this.props.id, this.state.tmpId);
         this.setState({
           editMode: false,
         });
-      } else {
-        this.setState(() => ({
-          editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
-        }));
       }
     } else {
       FormDesignerActionDispatchers.updateFormContainer(this.state.tmpContainer, this.props.id);
@@ -238,6 +244,10 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     if (idAlreadyExists && event.target.value !== this.props.id) {
       this.setState(() => ({
         editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
+      }));
+    } else if (!validComponentId.test(event.target.value)) {
+      this.setState(() => ({
+        editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
       }));
     } else {
       this.setState({
