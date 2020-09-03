@@ -173,7 +173,7 @@ export function en() {
       attachments: 'Attachments',
       date_sent: 'Date sent',
       helper_text: 'A mechanical check has been completed while filling in, but we reserve the right to detect errors during the processing of the case and that other documentation may be necessary. Please provide the reference number in case of any inquiries to the agency.',
-      is_sendt: 'is submitted',
+      is_sent: 'is submitted',
       receipt: 'Receipt',
       receiver: 'Receiver',
       reference_number: 'Reference number:',
