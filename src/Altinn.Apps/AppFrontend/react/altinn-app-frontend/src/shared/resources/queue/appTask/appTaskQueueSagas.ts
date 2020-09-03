@@ -15,10 +15,11 @@ export function* startInitialAppTaskQueue(): SagaIterator {
   yield call(ProfileActions.fetchProfile, profileApiUrl);
   yield call(TextResourcesActions.fetchTextResources);
   yield call(LanguageActions.fetchLanguage);
-  yield call(ApplicationMetadataActions.getApplicationMetadata);
   yield call(DataModelActions.fetchDataModel, `${window.location.origin}/${org}/${app}/api/metadata/ServiceMetaData`);
   yield call(PartyActions.getCurrentParty);
+  // JSON schema and application metadata is stricly not needed now, but pre-fetching these here to save some time during instantiation
   yield call(DataModelActions.fetchJsonSchema);
+  yield call(ApplicationMetadataActions.getApplicationMetadata);
   yield call(QueueActions.startInitialAppTaskQueueFulfilled);
 }
 
