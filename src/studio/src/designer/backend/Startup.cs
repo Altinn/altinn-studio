@@ -185,7 +185,7 @@ namespace Altinn.Studio.Designer
                         pattern: "designer/{org}/{app}",
                         defaults: new { controller = "ServiceDevelopment", action = "index" },
                         constraints: new
-                         {
+                        {
                             app = "^[a-z]+[a-zA-Z0-9-]+[a-zA-Z0-9]$",
                         });
 
