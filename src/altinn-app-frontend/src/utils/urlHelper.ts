@@ -115,3 +115,7 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
 export const getOptionsUrl = (optionsId: string) => {
   return `${appPath}/api/options/${optionsId}`;
 };
+
+export function getJsonSchemaUrl() {
+  return `${window.location.origin}/${org}/${app}/api/jsonschema/`;
+}
