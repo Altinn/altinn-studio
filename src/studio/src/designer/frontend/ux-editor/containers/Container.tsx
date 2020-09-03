@@ -7,12 +7,13 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import { createStyles, IconButton, withStyles, WithStyles, Grid } from '@material-ui/core';
+import { createStyles, IconButton, withStyles, WithStyles, Grid, Typography } from '@material-ui/core';
 
 import '../styles/index.css';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
+import AltinnPopover from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { makeGetActiveFormContainer,
   makeGetLayoutComponentsSelector,
   makeGetLayoutContainerOrder,
@@ -54,6 +55,8 @@ export interface IContainerState {
   tmpContainer: ICreateFormContainer;
   tmpId: string;
   expanded: boolean;
+  editGroupIdError: string;
+  popopAnchor: React.RefObject<HTMLDivElement>;
 }
 
 const styles = createStyles({
@@ -117,7 +120,20 @@ const styles = createStyles({
     marginBottom: '1.2rem',
     border: '0.15rem solid #fff',
   },
+  createErrorPopoverRoot: {
+    backgroundColor: altinnTheme.altinnPalette.primary.redLight,
+  },
+  popoverErrorIcon: {
+    color: altinnTheme.altinnPalette.primary.red,
+    paddingTop: '0.8rem',
+  },
+  popoverTechnicalErrorText: {
+    fontSize: '1.4rem',
+    paddingTop: '0.5rem',
+  },
 });
+
+const validComponentId = /^[0-9a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$/
 
 export class ContainerComponent extends React.Component<IContainerProps, IContainerState> {
   public static getDerivedStateFromProps(nextProps: IContainerProps, prevState: IContainerState) {
@@ -142,6 +158,8 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       tmpContainer: JSON.parse(JSON.stringify(this.props.containers[this.props.id])) as unknown as ICreateFormContainer,
       tmpId: this.props.id,
       expanded: true,
+      editGroupIdError: null,
+      popopAnchor: React.createRef<HTMLDivElement>(),
     };
   }
 
@@ -194,14 +212,53 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
 
   public handleSave = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
-    // eslint-disable-next-line max-len
-    FormDesignerActionDispatchers.updateFormContainer(this.state.tmpContainer, this.props.id);
-    FormDesignerActionDispatchers.deleteActiveListAction();
-    if (this.state.tmpId !== this.props.id && this.state.tmpId) {
-      FormDesignerActionDispatchers.updateContainerId(this.props.id, this.state.tmpId);
+    if (this.state.tmpId && this.state.tmpId !== this.props.id) {
+      const idAlreadyExists = Object.prototype.hasOwnProperty.call(this.props.containers, this.state.tmpId);
+      if (idAlreadyExists) {
+        this.setState(() => ({
+          editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
+        }));
+      } else if (!validComponentId.test(this.state.tmpId)) {
+        this.setState(() => ({
+          editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
+        }));
+      } else {
+        FormDesignerActionDispatchers.updateFormContainer(this.state.tmpContainer, this.props.id);
+        FormDesignerActionDispatchers.deleteActiveListAction();
+        FormDesignerActionDispatchers.updateContainerId(this.props.id, this.state.tmpId);
+        this.setState({
+          editMode: false,
+        });
+      }
+    } else {
+      FormDesignerActionDispatchers.updateFormContainer(this.state.tmpContainer, this.props.id);
+      FormDesignerActionDispatchers.deleteActiveListAction();
+      this.setState({
+        editMode: false,
+      });
     }
+  }
+
+  public handleNewId = (event: any) => {
+    const idAlreadyExists = Object.prototype.hasOwnProperty.call(this.props.containers, event.target.value);
+    if (idAlreadyExists && event.target.value !== this.props.id) {
+      this.setState(() => ({
+        editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
+      }));
+    } else if (!validComponentId.test(event.target.value)) {
+      this.setState(() => ({
+        editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
+      }));
+    } else {
+      this.setState({
+        editGroupIdError: null,
+      });
+    }
+  }
+
+  public handleClosePopup = () => {
     this.setState({
-      editMode: false,
+      editGroupIdError: null,
     });
   }
 
@@ -358,6 +415,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           <AltinnInputField
             id='group-id'
             onChangeFunction={this.handleIdChange}
+            onBlurFunction={this.handleNewId}
             inputValue={this.state.tmpId}
             inputDescription={getLanguageFromKey(
               'ux_editor.modal_properties_group_change_id', this.props.language,
@@ -365,6 +423,49 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             inputFieldStyling={{ width: '100%', marginBottom: '24px' }}
             inputDescriptionStyling={{ marginTop: '24px' }}
           />
+          <div ref={this.state.popopAnchor} />
+          <AltinnPopover
+            anchorEl={this.state.editGroupIdError != null ? this.state.popopAnchor.current : null}
+            handleClose={this.handleClosePopup}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left',
+            }}
+            paperProps={{
+              classes: {
+                root: this.props.classes.createErrorPopoverRoot,
+              },
+            }}
+          >
+            <Grid
+              container={true}
+              direction='row'
+              spacing={3}
+            >
+              <Grid
+                item={true}
+                xs={1}
+                style={{
+                  padding: 0,
+                }}
+              >
+                <i className={`${this.props.classes.popoverErrorIcon} ai ai-circle-exclamation`}/>
+              </Grid>
+              <Grid
+                item={true}
+                xs={11}
+                style={{
+                  padding: 0,
+                }}
+              >
+                <Typography
+                  className={this.props.classes.popoverTechnicalErrorText}
+                >
+                  {this.state.editGroupIdError}
+                </Typography>
+              </Grid>
+            </Grid>
+          </AltinnPopover>
         </Grid>
         <Grid item={true} xs={12}>
           <AltinnCheckBox
