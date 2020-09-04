@@ -8,7 +8,8 @@
 		"partyid": ""
     }
   ]
-  example: k6 run -i 20 --duration 1m /src/tests/app/e2erf0002.js -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=***
+  example: k6 run -i 20 --duration 1m --logformat raw --console-output=./src/data/instances.csv src/tests/app/e2erf0002.js 
+  -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=***
 */
 
 import { check } from "k6";
@@ -109,4 +110,8 @@ export default function () {
     printResponseToConsole("E2E App Instance is not archived:", success, res);
 
     deleteSblInstance(runtimeToken, partyId, instanceId, "true");
+
+    /* write the instance id to console which can be written to a file using --console-output and logformat raw
+    for appowner tests. */
+    console.log(partyId + "/" + instanceId);
 };
