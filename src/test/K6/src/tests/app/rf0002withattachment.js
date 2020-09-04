@@ -159,4 +159,8 @@ export default function (data) {
     printResponseToConsole("E2E App Instance is not archived:", success, res);
 
     deleteSblInstance(runtimeToken, partyId, instanceId, "true");
+
+    /* write the instance id to console which can be written to a file using --console-output and logformat raw
+    for appowner tests. */
+    console.log(partyId + "/" + instanceId);
 };
