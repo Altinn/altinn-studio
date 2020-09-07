@@ -1,11 +1,11 @@
-using Altinn.Authorization.ABAC.Utils;
-using Altinn.Authorization.ABAC.Xacml;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml;
+
+using Altinn.Authorization.ABAC.Utils;
+using Altinn.Authorization.ABAC.Xacml;
+
 using Xunit;
 
 namespace Altinn.Authorization.ABAC.UnitTest.ConformanceTests
@@ -77,10 +77,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.ConformanceTests
             Assert.Equal("A subject whose name is J. Hibbert may not\n            read Bart Simpson's medical record.  NOTAPPLICABLE", firstRule.Description.Trim());
             Assert.NotNull(firstRule.Target);
             Assert.Equal(1, firstRule.Target.AnyOf.Count);
-
-
         }
-
 
         [Fact]
         public void ParseXACMLPolicy_IIIA030Policy()
@@ -112,10 +109,6 @@ namespace Altinn.Authorization.ABAC.UnitTest.ConformanceTests
             Assert.Null(secondRule.Target);
         }
 
-
-
-
-
         [Fact]
         public void ParseXACMLPolicy_IIIE301Policy()
         {
@@ -142,7 +135,6 @@ namespace Altinn.Authorization.ABAC.UnitTest.ConformanceTests
             Assert.Equal(3, firstRule.Target.AnyOf.Count);
         }
 
-
         [Fact]
         public void ParseXACMLPolicy_IIIF007Policy()
         {
@@ -168,7 +160,6 @@ namespace Altinn.Authorization.ABAC.UnitTest.ConformanceTests
 
             Assert.Equal(3, firstRule.Target.AnyOf.Count);
         }
-
 
         private string GetConformanceTestPath()
         {

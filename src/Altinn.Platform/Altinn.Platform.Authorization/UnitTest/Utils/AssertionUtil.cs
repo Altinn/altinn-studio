@@ -1,8 +1,7 @@
-using Altinn.Authorization.ABAC.Xacml;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+
+using Altinn.Authorization.ABAC.Xacml;
+
 using Xunit;
 
 namespace Altinn.Authorization.ABAC.UnitTest.Utils
@@ -19,8 +18,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
             {
                 AssertEqual(expected.Results.First(), actual.Results.First());
             }
-       }
-
+        }
 
         private static void AssertEqual(XacmlContextResult expected, XacmlContextResult actual)
         {
