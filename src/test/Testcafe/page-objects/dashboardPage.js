@@ -6,11 +6,11 @@ export default class DashBoard {
     this.logoutButton = Selector(".dropdown-item").withText("Logg ut");
     this.newAppButton = Selector("button > span").withExactText("ny app");
     this.appSearch = Selector("#service-search");
-    this.tjenesteEier = Selector("#service-owner");
+    this.appOwner = Selector("#service-owner");
     this.appName = Selector("#service-saved-name");
-    this.rettigheterMelding = Selector("p").withText("Du har ikke tilgang");
-    this.skriveRettigheter = Selector("div > div > p").withText("Du har ikke skriverettigheter");
-    this.opprettButton = Selector("button").withExactText("Opprett");
+    this.accessMessage = Selector("p").withText("Du har ikke tilgang");
+    this.writeAccess = Selector("div > div > p").withText("Du har ikke skriverettigheter");
+    this.createAppButton = Selector("button").withExactText("Opprett");
     this.appExistsDialogue = Selector("div").withExactText("En app med det navnet finnes allerede.");
     this.appOwnerList = Selector('#menu-').find('li').withAttribute('role', 'option');
     this.appsList = Selector('h2').withExactText('Apper du har rettigheter til å endre').parent().sibling('div');
