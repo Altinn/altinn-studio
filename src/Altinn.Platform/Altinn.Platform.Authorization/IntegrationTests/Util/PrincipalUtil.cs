@@ -8,8 +8,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 {
     public static class PrincipalUtil
     {
-        public static readonly string AltinnCoreClaimTypesOrg = "urn:altinn:org";
-        public static readonly string AltinnCoreClaimTypesOrgNumber = "urn:altinn:orgNumber";
+        private static readonly string AltinnCoreClaimTypesOrg = "urn:altinn:org";
+        private static readonly string AltinnCoreClaimTypesOrgNumber = "urn:altinn:orgNumber";
 
         public static string GetToken(int userId, int partyId, int authenticationLevel = 2)
         {

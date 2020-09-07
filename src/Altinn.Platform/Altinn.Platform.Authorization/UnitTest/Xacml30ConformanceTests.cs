@@ -1,15 +1,13 @@
+using System;
+using System.IO;
+using System.Xml;
+
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.UnitTest.Utils;
-using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
+
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Xml;
+
 using Xunit;
 
 namespace Altinn.Authorization.ABAC.UnitTest
@@ -76,7 +74,6 @@ namespace Altinn.Authorization.ABAC.UnitTest
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
 
-
         private XacmlContextResponse SetuUpPolicyDecisionPoint(string testCase, bool contextRequstIsEnriched)
         {
             XacmlContextRequest contextRequest = XacmlTestDataParser.ParseRequest(testCase + "Request.xml", GetConformancePath());
@@ -108,7 +105,6 @@ namespace Altinn.Authorization.ABAC.UnitTest
 
             return xacmlResponse;
         }
-   
 
         private string GetConformancePath()
         {

@@ -503,8 +503,8 @@ exports[`Administration Should match snapshot 1`] = `
           </ul>
         </div>
         <button
-          className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-47 MuiButton-containedPrimary Mui-disabled Mui-disabled"
-          disabled={true}
+          className="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-47 MuiButton-containedPrimary"
+          disabled={false}
           id="reset-repo-button"
           onBlur={[Function]}
           onClick={[Function]}
@@ -523,7 +523,7 @@ exports[`Administration Should match snapshot 1`] = `
               "fontSize": 16,
             }
           }
-          tabIndex={-1}
+          tabIndex={0}
           type="button"
         >
           <span

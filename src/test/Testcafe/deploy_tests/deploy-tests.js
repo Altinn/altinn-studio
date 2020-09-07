@@ -12,9 +12,9 @@ fixture('Deploy of app to a test environment tests')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Header texts
-    t.ctx.tjenesteOppdatert = "Appen din er oppdatert til siste versjon";
-    t.ctx.endrnigerValidert = "Endringene er validert og kan deles med andre";
-    t.ctx.klarForDeploy = "Appen er klar til å legges ut i testmiljø";
+    t.ctx.appIsUpdated = "Appen din er oppdatert til siste versjon";
+    t.ctx.changesValidated = "Endringene er validert og kan deles med andre";
+    t.ctx.readyForDeploy = "Appen er klar til å legges ut i testmiljø";
     t.ctx.deployFailure = "Appen ble ikke lagt ut i testmiljøet";
     t.ctx.localChanges = "Du har ikke delt dine endringer med din organisasjon";
     t.ctx.noCompile = "Appen din kompilerer ikke";
@@ -31,8 +31,8 @@ test('Happy case; build and deploy an app after a change', async () => {
   await t
     .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
-    .click(designer.hentEndringer)
-    .click(designer.omNavigationTab); //remove pop up
+    .click(designer.pullChanges)
+    .click(designer.aboutNavigationTab); //remove pop up
   await designer.deleteUIComponentsMethod(t);
   await t
     .dragToElement(designer.inputComponent, designer.dragToArea);
@@ -80,7 +80,7 @@ test('App cannot build due to compilation error', async () => {
   await t
     .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
-    .click(designer.hentEndringer);
+    .click(designer.pullChanges);
   await t.eval(() => location.reload(true));
   await designer.deleteUIComponentsMethod(t);
   await t
@@ -109,15 +109,15 @@ test('App cannot be built due to uncommited local changes', async () => {
   await t
     .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
-    .click(designer.lageNavigationTab)
-    .click(designer.hentEndringer)
-    .click(designer.omNavigationTab); //remove pop up
+    .click(designer.createNavigationTab)
+    .click(designer.pullChanges)
+    .click(designer.aboutNavigationTab); //remove pop up
   await designer.deleteUIComponentsMethod(t);
   await t
     .dragToElement(designer.radioButtonComponent, designer.dragToArea)
   await t.eval(() => location.reload(true));
   await t
-    .expect(designer.delEndringer.exists).ok({ timeout: 120000 })
+    .expect(designer.pushChanges.exists).ok({ timeout: 120000 })
     .click(designer.deployNavigationTab)
     .expect(designer.buildButton.exists).notOk();
 });
