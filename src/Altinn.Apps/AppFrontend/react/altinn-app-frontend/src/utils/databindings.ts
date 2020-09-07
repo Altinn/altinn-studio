@@ -1,7 +1,6 @@
 import { object } from 'dot-object';
 import { ILayout, ILayoutGroup } from 'src/features/form/layout';
-
-const jsonPtr = require('json-ptr');
+import { JsonPointer } from 'json-ptr';
 
 /**
  * Converts the formdata in store (that is flat) to a JSON
@@ -41,8 +40,8 @@ export const filterFormData = (data: any, model: any): any => {
   const filteredResult: any = {};
   const rootKey = Object.keys(model.properties)[0];
   const modelPath = model.properties[rootKey].$ref.slice(1);
-  const pointer = jsonPtr.create(modelPath);
-  const root = pointer.get(model);
+  const pointer = JsonPointer.create(modelPath);
+  const root: any = pointer.get(model);
   Object.keys(data).forEach((key: string) => {
     const formDataKey = getKeyWithoutIndex(key);
     const formDataRoot = formDataKey.split('.')[0];
