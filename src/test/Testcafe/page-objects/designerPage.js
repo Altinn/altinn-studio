@@ -9,19 +9,19 @@ export default class DesignerPage {
     this.leftMenuList = Selector('nav'); //all unordered list elements to be filtered
 
     //"Om" navigation tab selectors
-    this.omNavigationTab = Selector('div > a').withExactText('Om');
-    this.omTjenesteNavn = Selector('#administrationInputServicename > div > div > input');
-    this.omEndreTjenesteNavn = Selector("button > span > span").withExactText("Endre");
-    this.omTjenesteId = Selector('#administrationInputServiceid > div > div > input');
+    this.aboutNavigationTab = Selector('div > a').withExactText('Om');
+    this.aboutAppName = Selector('#administrationInputServicename > div > div > input');
+    this.aboutChangeAppName = Selector("button > span > span").withExactText("Endre");
+    this.aboutAppId = Selector('#administrationInputServiceid > div > div > input');
     this.omLagringsNavn = Selector('#administrationInputReponame > div > div > input');
-    this.omKommentarer = Selector('#administrationInputDescription > div > div > textarea');
-    this.omLeftMenuItems = [
+    this.aboutComments = Selector('#administrationInputDescription > div > div > textarea');
+    this.aboutLeftMenuItems = [
       this.leftMenuList.child('a').withAttribute('href', '#/about').child('div').withExactText('Om appen')
     ];
 
     //"Lage" navigation tab selectors
-    this.lageNavigationTab = Selector('div > a').withExactText('Lage');
-    this.lageLeftMenuItems = [
+    this.createNavigationTab = Selector('div > a').withExactText('Lage');
+    this.createLeftMenuItems = [
       this.leftMenuList.child('a').withAttribute('href', '#/datamodel').child('div').withExactText('Datamodell'),
       this.leftMenuList.child('a').withAttribute('href', '#/ui-editor').child('div').withExactText('UI-Editor'),
       this.leftMenuList.child('a').withAttribute('href', '#/accesscontrol').child('div').withExactText('Tilgangsstyring')
@@ -31,10 +31,10 @@ export default class DesignerPage {
     this.dataModelTabs = Selector("#tabs");
 
     //Tilgangstyring tab selectors
-    this.konkursBo = Selector("span").withExactText("Konkursbo").sibling(0);
-    this.virksomhet = Selector("span").withExactText("Virksomhet").sibling(0);
-    this.privatPerson = Selector("span").withExactText("Privatperson").sibling(0);
-    this.underenhet = Selector("span").withExactText("Underenhet").sibling(0);
+    this.bankrupt = Selector("span").withExactText("Konkursbo").sibling(0);
+    this.organization = Selector("span").withExactText("Virksomhet").sibling(0);
+    this.privatePerson = Selector("span").withExactText("Privatperson").sibling(0);
+    this.subUnit = Selector("span").withExactText("Underenhet").sibling(0);
 
     //Form components
     this.inputComponent = Selector(".fa.fa-short-answer").parent(2);
@@ -55,16 +55,10 @@ export default class DesignerPage {
     this.textComponentsGroup = Selector("div").withExactText("Tekst");
 
     //"språk" navigation tab selectors
-    this.spraakNavigationTab = Selector('div').withExactText('Språk');
-    this.spraakLeftMenuItems = [
+    this.languageNavigationTab = Selector('div').withExactText('Språk');
+    this.languageLeftMenuItems = [
       this.leftMenuList.child('a').withAttribute('href', '#/texts').child('div').withExactText('Tekster')
-    ];
-
-    //"teste" navigation tab selectors
-    this.testeNavigationTab = Selector('div > a').withExactText('Teste');
-    this.testeLeftMenuItems = [
-      this.leftMenuList.withExactText('Test')
-    ];
+    ];    
 
     //"Deploy" navigation tab selectors
     this.deployNavigationTab = Selector('div > a').withExactText('Deploy');
@@ -92,11 +86,11 @@ export default class DesignerPage {
     this.addNewLanguage = Selector("#newtab > a");
 
     //syncing elements
-    this.hentEndringer = Selector("#fetch_changes_btn");
-    this.validerEndringer = Selector("button > span").withExactText("Valider endringer");
-    this.delEndringer = Selector("#changes_to_share_btn");
-    this.ingenEndringer = Selector("#no_changes_to_share_btn");
-    this.delEndringerBlueButton = Selector("#share_changes_modal_button");
+    this.pullChanges = Selector("#fetch_changes_btn");
+    this.validateChanges = Selector("button > span").withExactText("Valider endringer");
+    this.pushChanges = Selector("#changes_to_share_btn");
+    this.noChanges = Selector("#no_changes_to_share_btn");
+    this.pushChangesBlueButton = Selector("#share_changes_modal_button");
     this.commitMessageBox = Selector("#test");
 
     //Clone modal
@@ -155,16 +149,16 @@ export default class DesignerPage {
   //Function to push and commit an app changes from the designer page
   async pushAndCommitChanges(t) {
     await t
-      .expect(this.delEndringer.exists).ok({ timeout: 180000 })
-      .click(this.delEndringer)
+      .expect(this.pushChanges.exists).ok({ timeout: 180000 })
+      .click(this.pushChanges)
       .expect(this.commitMessageBox.exists).ok({ timeout: 60000 })
       .click(this.commitMessageBox)
       .typeText(this.commitMessageBox, "Sync app automated test", { replace: true })
-      .expect(this.validerEndringer.exists).ok({ timeout: 60000 })
-      .click(this.validerEndringer)
-      .expect(this.delEndringerBlueButton.exists).ok({ timeout: 180000 })
-      .click(this.delEndringerBlueButton)
-      .expect(this.ingenEndringer.exists).ok({ timeout: 180000 })
+      .expect(this.validateChanges.exists).ok({ timeout: 60000 })
+      .click(this.validateChanges)
+      .expect(this.pushChangesBlueButton.exists).ok({ timeout: 180000 })
+      .click(this.pushChangesBlueButton)
+      .expect(this.noChanges.exists).ok({ timeout: 180000 })
   };
 
   //Function to find the last deployed version and return the version number

@@ -79,7 +79,7 @@ test('Accessibility testing for new app modal', async t => {
 	await t
 		.navigateTo(app.baseUrl)
 		.click(dashboard.newAppButton)
-		.expect(dashboard.opprettButton.visible).ok({ timeout: 60000 });
+		.expect(dashboard.createAppButton.visible).ok({ timeout: 60000 });
 
 	const axeContext = { exclude: [['img']] };
 	const axeOptions = { runOnly: ['wcag2a', 'wcag2aa'] };
