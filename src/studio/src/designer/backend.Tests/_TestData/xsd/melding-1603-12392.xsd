@@ -1,0 +1,372 @@
+﻿<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:brreg="http://www.brreg.no/or" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!--title='RF-1366: Endringsmelding' lang='NOB'-->
+  <xs:element name="Skjema">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE">
+          <p>RF-1366 Endringsmelding for formues- og inntektsskatt 2019</p>
+        </brreg:tekst>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="Endringsmelding-grp-9786" />
+      </xs:sequence>
+      <xs:attribute fixed="1603" name="skjemanummer" type="xs:integer" use="required" />
+      <xs:attribute fixed="12392" name="spesifikasjonsnummer" type="xs:integer" use="required" />
+      <xs:attribute fixed="RF-1366" name="blankettnummer" type="xs:string" use="optional" />
+      <xs:attribute fixed="Endringsmelding" name="tittel" type="xs:string" use="optional" />
+      <xs:attribute fixed="9785" name="gruppeid" type="xs:positiveInteger" use="optional" />
+      <xs:attribute name="etatid" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="974761076">
+              <xs:annotation>
+                <xs:documentation>SKATTEETATEN</xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:anyAttribute />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Endringsmelding-grp-9786">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE">
+          <p>Endringsmelding</p>
+        </brreg:tekst>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="Avgiver-grp-9787" />
+        <xs:element maxOccurs="999" minOccurs="0" ref="OversiktOverEndringene-grp-9788" />
+      </xs:sequence>
+      <xs:attribute fixed="9786" name="gruppeid" type="xs:positiveInteger" use="required" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Avgiver-grp-9787">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE">
+          <p>Avgiver</p>
+        </brreg:tekst>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="OppgavegiverNavn-datadef-68">
+          <xs:annotation>
+            <xs:documentation>
+              <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE">
+                <p>Navn</p>
+              </brreg:tekst>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element minOccurs="0" ref="OppgavegiverFodselsnummer-datadef-26">
+          <xs:annotation>
+            <xs:documentation>
+              <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE">
+                <p>Fødselsnummer</p>
+              </brreg:tekst>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element minOccurs="0" ref="KontaktpersonEPost-datadef-27688">
+          <xs:annotation>
+            <xs:documentation>
+              <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE">
+                <p>E-post</p>
+              </brreg:tekst>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element minOccurs="0" ref="KontaktpersonTelefonnummer-datadef-3">
+          <xs:annotation>
+            <xs:documentation>
+              <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE">
+                <p>Telefonnummer</p>
+              </brreg:tekst>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute fixed="9787" name="gruppeid" type="xs:positiveInteger" use="required" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="OppgavegiverNavn-datadef-68">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:tekst brreg:lang="NOB" brreg:teksttype="DEF">
+          <p>Navn på oppgavegiver</p>
+        </brreg:tekst>
+      </xs:documentation>
+      <xs:documentation>
+        <brreg:tekst brreg:lang="NON" brreg:teksttype="DEF">
+          <p>Namn på oppgåvegjevar</p>
+        </brreg:tekst>
+      </xs:documentation>
+      <xs:documentation>
+        <brreg:info brreg:type="plassering">1</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="Tekst175-repformat-8">
+          <xs:attribute fixed="68" name="orid" type="xs:positiveInteger" use="required" />
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="Tekst175-repformat-8">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:info brreg:type="id">8</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+      <xs:maxLength value="175" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="OppgavegiverFodselsnummer-datadef-26">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:tekst brreg:lang="NOB" brreg:teksttype="DEF">
+          <p>Fødselsnummer til oppgavegiveren</p>
+        </brreg:tekst>
+      </xs:documentation>
+      <xs:documentation>
+        <brreg:info brreg:type="plassering">2</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="Tekst1111Modulus11-repformat-18">
+          <xs:attribute fixed="26" name="orid" type="xs:positiveInteger" use="required" />
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="Tekst1111Modulus11-repformat-18">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:info brreg:type="id">18</brreg:info>
+      </xs:documentation>
+      <xs:documentation>
+        <brreg:tekst brreg:lang="NOB" brreg:teksttype="FEIL">
+          <p>Ugyldig fødselsnummer</p>
+        </brreg:tekst>
+      </xs:documentation>
+      <xs:documentation>
+        <brreg:tekst brreg:lang="NON" brreg:teksttype="FEIL">
+          <p>Ugyldig fødselsnummer</p>
+        </brreg:tekst>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:length value="11" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="KontaktpersonEPost-datadef-27688">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:tekst brreg:lang="NOB" brreg:teksttype="DEF">
+          <p>E-postadressen til kontaktperson</p>
+        </brreg:tekst>
+      </xs:documentation>
+      <xs:documentation>
+        <brreg:info brreg:type="plassering">3</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="Tekst45-repformat-150">
+          <xs:attribute fixed="27688" name="orid" type="xs:positiveInteger" use="required" />
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="Tekst45-repformat-150">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:info brreg:type="id">150</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+      <xs:maxLength value="45" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="KontaktpersonTelefonnummer-datadef-3">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:tekst brreg:lang="NOB" brreg:teksttype="DEF">
+          <p>Kontaktpersonens telefonnummer</p>
+        </brreg:tekst>
+      </xs:documentation>
+      <xs:documentation>
+        <brreg:info brreg:type="plassering">4</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="Tekst13-repformat-12">
+          <xs:attribute fixed="3" name="orid" type="xs:positiveInteger" use="required" />
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="Tekst13-repformat-12">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:info brreg:type="id">12</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+      <xs:maxLength value="13" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="OversiktOverEndringene-grp-9788">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE">
+          <p>Oversikt over endringene</p>
+        </brreg:tekst>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="SkattemeldingEndringEtterFristPost-datadef-37130">
+          <xs:annotation>
+            <xs:documentation>
+              <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE">
+                <p>Post i RF-1030 Skattemelding for formues- og inntektsskatt som skal  endres</p>
+              </brreg:tekst>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element minOccurs="0" ref="SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131">
+          <xs:annotation>
+            <xs:documentation>
+              <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE">
+                <p>Endre fra</p>
+              </brreg:tekst>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element minOccurs="0" ref="SkattemeldingEndringEtterFristNyttBelop-datadef-37132">
+          <xs:annotation>
+            <xs:documentation>
+              <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE">
+                <p>Endre til</p>
+              </brreg:tekst>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element minOccurs="0" ref="SkattemeldingEndringEtterFristKommentar-datadef-37133">
+          <xs:annotation>
+            <xs:documentation>
+              <brreg:tekst brreg:lang="NOB" brreg:teksttype="LEDE">
+                <p>Kommentar</p>
+              </brreg:tekst>
+            </xs:documentation>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute fixed="9788" name="gruppeid" type="xs:positiveInteger" use="required" />
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="SkattemeldingEndringEtterFristPost-datadef-37130">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:info brreg:type="plassering">5</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="Tekst35-repformat-3">
+          <xs:attribute fixed="37130" name="orid" type="xs:positiveInteger" use="required" />
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="Tekst35-repformat-3">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:info brreg:type="id">3</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+      <xs:maxLength value="35" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:info brreg:type="plassering">6</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="BelopHeltall15-repformat-37">
+          <xs:attribute fixed="37131" name="orid" type="xs:positiveInteger" use="required" />
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="BelopHeltall15-repformat-37">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:info brreg:type="id">37</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:integer">
+      <xs:totalDigits value="15" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="SkattemeldingEndringEtterFristNyttBelop-datadef-37132">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:info brreg:type="plassering">7</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="BelopHeltall15-repformat-37">
+          <xs:attribute fixed="37132" name="orid" type="xs:positiveInteger" use="required" />
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="SkattemeldingEndringEtterFristKommentar-datadef-37133">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:info brreg:type="plassering">8</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="Tekst500-repformat-166">
+          <xs:attribute fixed="37133" name="orid" type="xs:positiveInteger" use="required" />
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="Tekst500-repformat-166">
+    <xs:annotation>
+      <xs:documentation>
+        <brreg:info brreg:type="id">166</brreg:info>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+      <xs:maxLength value="500" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
