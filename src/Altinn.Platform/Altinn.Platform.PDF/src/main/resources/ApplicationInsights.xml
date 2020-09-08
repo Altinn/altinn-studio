@@ -19,4 +19,10 @@
     <Add type="com.microsoft.applicationinsights.web.extensibility.initializers.WebUserAgentTelemetryInitializer"/>
   </TelemetryInitializers>
 
+  <TelemetryProcessors>
+    <CustomProcessors>
+      <Processor type="altinn.platform.pdf.health.HealthCheckTelemetryFilter"/>
+    </CustomProcessors>
+  </TelemetryProcessors>
+
 </ApplicationInsights>

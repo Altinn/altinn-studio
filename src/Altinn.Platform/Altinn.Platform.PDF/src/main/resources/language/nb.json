@@ -1,0 +1,13 @@
+{
+  "delivered_by": "Levert av",
+  "on_behalf_of": "på vegne av",
+  "reference_number": "Referansenummer:",
+  "address": "Gateadresse",
+  "care_of": "C/O eller annen tilleggsadresse",
+  "house_number": "Bolignummer",
+  "house_number_helper": "Om addressen er felles for flere boenhenter må du oppgi bolignummer. Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.",
+  "post_place": "Poststed",
+  "zip_code": "Postnr",
+  "page": "Side",
+  "all_pages": "Alle sider"
+}

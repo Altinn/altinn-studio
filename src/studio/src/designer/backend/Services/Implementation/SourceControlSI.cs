@@ -120,9 +120,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch (CheckoutConflictException e)
                 {
-                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Exception occured when puling repo {FindLocalRepoLocation(org, repository)}.");
-                    _logger.LogError($"Exception: {e}");
+                    _logger.LogError($"SourceControlSI // PullRemoteChanges // CheckoutConflictException occured when pulling repo {FindLocalRepoLocation(org, repository)}.");
                     status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
+                    throw;
                 }
             }
 
@@ -139,11 +143,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string logMessage = string.Empty;
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
             {
-                if (repo == null || repo.Network?.Remotes == null)
-                {
-                    _logger.LogError($"Retrieving repo or network remotes failed for repo: {FindLocalRepoLocation(org, repository)}");
-                }
-
                 FetchOptions fetchOptions = new FetchOptions();
                 fetchOptions.CredentialsProvider = (_url, _user, _cred) =>
                          new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };

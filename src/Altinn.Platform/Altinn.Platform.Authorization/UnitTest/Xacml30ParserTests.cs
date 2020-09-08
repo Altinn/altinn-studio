@@ -1,8 +1,10 @@
-using Altinn.Authorization.ABAC.Utils;
-using Altinn.Authorization.ABAC.Xacml;
 using System;
 using System.IO;
 using System.Xml;
+
+using Altinn.Authorization.ABAC.Utils;
+using Altinn.Authorization.ABAC.Xacml;
+
 using Xunit;
 
 namespace Altinn.Authorization.ABAC.UnitTests

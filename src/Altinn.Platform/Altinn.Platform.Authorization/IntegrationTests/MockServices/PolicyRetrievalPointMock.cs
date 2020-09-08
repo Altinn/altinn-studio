@@ -52,7 +52,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             {
                 if (attr.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Resource))
                 {
-                    foreach(XacmlAttribute asd in attr.Attributes)
+                    foreach (XacmlAttribute asd in attr.Attributes)
                     {
                         if (asd.AttributeId.OriginalString.Equals(_orgAttributeId))
                         {

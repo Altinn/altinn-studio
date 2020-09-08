@@ -130,6 +130,9 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   public handleAddOption = () => {
     this.setState((prevState: IEditModalContentState) => {
       const updatedComponent: IFormComponent = (prevState.component);
+      if (!updatedComponent.options) {
+        updatedComponent.options = [];
+      }
       updatedComponent.options.push({
         label: this.props.language.general.label,
         value: this.props.language.general.value,
@@ -143,10 +146,14 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
     }, () => this.props.handleComponentUpdate(this.state.component));
   }
 
-  public handleRemoveOption = (index: number) => {
+  public handleRemoveOption = (index: number | string) => {
     this.setState((prevState: IEditModalContentState) => {
       const updatedComponent: IFormComponent = prevState.component;
-      updatedComponent.options.splice(index, 1);
+      if (index === 'all') {
+        updatedComponent.options = undefined;
+      } else {
+        updatedComponent.options.splice(index as number, 1);
+      }
       return {
         component: {
           ...prevState.component,
@@ -243,7 +250,8 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   }
 
   public handleOptionsIdChange = (event: any) => {
-    const component = (this.props.component as IFormDropdownComponent);
+    const component =
+    (this.props.component as (IFormDropdownComponent | IFormCheckboxComponent | IFormRadioButtonComponent));
     component.optionsId = event.target.value;
     this.setState({
       component,
@@ -426,9 +434,10 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
         return (
           <SelectionEdit
             type='checkboxes'
+            key={this.state.component.id}
             component={this.state.component as IFormCheckboxComponent}
             handleAddOption={this.handleAddOption}
-            handleCodeListChanged={this.handleCodeListChange}
+            handleOptionsIdChange={this.handleOptionsIdChange}
             handleDescriptionChange={this.handleDescriptionChange}
             handlePreselectedOptionChange={this.handlePreselectedOptionChange}
             handleRemoveOption={this.handleRemoveOption}
@@ -443,9 +452,10 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
         return (
           <SelectionEdit
             type='radiobuttons'
+            key={this.state.component.id}
             component={this.state.component as IFormRadioButtonComponent}
             handleAddOption={this.handleAddOption}
-            handleCodeListChanged={this.handleCodeListChange}
+            handleOptionsIdChange={this.handleOptionsIdChange}
             handleDescriptionChange={this.handleDescriptionChange}
             handlePreselectedOptionChange={this.handlePreselectedOptionChange}
             handleRemoveOption={this.handleRemoveOption}

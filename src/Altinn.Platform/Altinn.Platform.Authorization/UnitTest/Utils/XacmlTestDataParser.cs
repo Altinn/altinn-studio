@@ -1,16 +1,13 @@
+using System.IO;
+using System.Xml;
+
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Xml;
 
 namespace Altinn.Authorization.ABAC.UnitTest.Utils
 {
     public static class XacmlTestDataParser
     {
-
         /// <summary>
         /// Parses a XACML Response document
         /// </summary>
@@ -46,8 +43,8 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
         /// <summary>
         /// Parses a Xacml 3.0 Policy
         /// </summary>
-        /// <param name="policyDocumentTitle"></param>
-        /// <param name="policyPath"></param>
+        /// <param name="policyDocumentTitle">Policy document title</param>
+        /// <param name="policyPath">Policy path</param>
         /// <returns></returns>
         public static XacmlPolicy ParsePolicy(string policyDocumentTitle, string policyPath)
         {

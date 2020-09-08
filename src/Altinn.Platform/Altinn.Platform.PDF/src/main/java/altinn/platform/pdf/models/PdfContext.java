@@ -35,6 +35,10 @@ public class PdfContext {
   @Nullable
   private Party userParty;
 
+  @ApiModelProperty(notes = "The profile of the active user")
+  @Nullable
+  private UserProfile userProfile;
+
   public Party getUserParty() { return userParty; }
 
   public void setUserParty(Party userParty) { this.userParty = userParty; }
@@ -58,4 +62,14 @@ public class PdfContext {
   public Instance getInstance() { return instance; }
 
   public void setInstance(Instance instance) { this.instance = instance; }
+
+  @Nullable
+  public UserProfile getUserProfile() {
+    return userProfile;
+  }
+
+  public void setUserProfile(@Nullable UserProfile userProfile) {
+    this.userProfile = userProfile;
+  }
+
 }

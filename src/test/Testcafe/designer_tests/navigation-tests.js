@@ -32,27 +32,27 @@ fixture('Navigating the App designer')
 //Test to navigate to about page and verify the links
 test('Om tab navigation', async () => {
   await t
-    .click(designerPage.omNavigationTab)
+    .click(designerPage.aboutNavigationTab)
     .hover(designerPage.leftDrawerMenu)
-    .expect(designerPage.omLeftMenuItems[0].visible).ok()
+    .expect(designerPage.aboutLeftMenuItems[0].visible).ok()
 });
 
 //Test to navigate to Develop page and verify the links
 test('Lage tab navigation', async () => {
   await t
-    .click(designerPage.lageNavigationTab)
+    .click(designerPage.createNavigationTab)
     .hover(designerPage.leftDrawerMenu)
-    .expect(designerPage.lageLeftMenuItems[0].visible).ok()
-    .expect(designerPage.lageLeftMenuItems[1].visible).ok()
-    .expect(designerPage.lageLeftMenuItems[2].visible).ok()
+    .expect(designerPage.createLeftMenuItems[0].visible).ok()
+    .expect(designerPage.createLeftMenuItems[1].visible).ok()
+    .expect(designerPage.createLeftMenuItems[2].visible).ok()
 });
 
 //Test to navigate to Language page and verify the links
 test('Språk tab navigation', async () => {
   await t
-    .click(designerPage.spraakNavigationTab)
+    .click(designerPage.languageNavigationTab)
     .hover(designerPage.leftDrawerMenu)
-    .expect(designerPage.spraakLeftMenuItems[0].visible).ok()
+    .expect(designerPage.languageLeftMenuItems[0].visible).ok()
 });
 
 //Test to navigate to deploy page and verify the links

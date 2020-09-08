@@ -2,8 +2,10 @@ package altinn.platform.pdf;
 
 import altinn.platform.pdf.configuration.AltinnDBSettingsSecret;
 import altinn.platform.pdf.configuration.KvSetting;
+import altinn.platform.pdf.health.HealthCheckTelemetryFilter;
 import altinn.platform.pdf.services.BasicLogger;
 import altinn.platform.pdf.utils.AltinnOrgUtils;
+import altinn.platform.pdf.utils.TextUtils;
 import com.azure.identity.ClientSecretCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;
 import com.azure.security.keyvault.secrets.SecretClient;
@@ -11,8 +13,10 @@ import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.microsoft.applicationinsights.TelemetryConfiguration;
+import com.microsoft.applicationinsights.extensibility.TelemetryProcessor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
 import java.io.File;
 import java.io.FileReader;
@@ -27,11 +31,17 @@ public class App {
   public static void main(String[] args) {
     AltinnOrgUtils.initAltinnOrgsHarvesting();
     try {
+      TextUtils.readLanguageFiles();
       connectToKeyVaultAndSetApplicationInsight();
     } catch (Exception e) {
       BasicLogger.log(Level.SEVERE, e.getMessage());
     }
     SpringApplication.run(App.class, args);
+  }
+
+  @Bean
+  public TelemetryProcessor healthCheckTelemetryFilter() {
+    return new HealthCheckTelemetryFilter();
   }
 
   private static void connectToKeyVaultAndSetApplicationInsight() throws IOException {

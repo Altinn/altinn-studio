@@ -50,8 +50,6 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
 
   const [resetRepoModalOpen, setResetRepoModalOpen] = React.useState<boolean>(false);
   const [resetRepoModalAnchorEl, setResetRepoModalAnchorEl] = React.useState<any>(null);
-  const [enableResetButton, setEnableResetButton] = React.useState<boolean>(false);
-
   const repoStatus = useSelector((state: IServiceDevelopmentState) => state.handleMergeConflict.repoStatus);
 
   const onCloseModal = () => {
@@ -70,13 +68,10 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
   };
 
   React.useEffect(() => {
-    if (repoStatus && (
+    if (repoStatus && !(
       (repoStatus.aheadBy && repoStatus.aheadBy > 0)
       || (repoStatus.contentStatus && repoStatus.contentStatus.length > 0))
     ) {
-      setEnableResetButton(true);
-    } else {
-      setEnableResetButton(false);
       setResetRepoModalOpen(false);
     }
   }, [repoStatus]);
@@ -118,7 +113,6 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         id='reset-repo-button'
         btnText={getLanguageFromKey('administration.reset_repo_button', props.language)}
         onClickFunction={onClickResetRepo}
-        disabled={!enableResetButton}
       />
       <ResetRepoModal
         anchorEl={resetRepoModalAnchorEl}

@@ -35,7 +35,7 @@ test('Add one of each component to the designer using keyboard', async () => {
   var appName = config[environment].designerApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
-    .click(designer.lageNavigationTab)
+    .click(designer.createNavigationTab)
     .expect(designer.inputComponent.visible).ok()
     .click(designer.inputComponent)
     .pressKey('enter') //input button
@@ -59,23 +59,23 @@ test('Sync an app with master', async () => {
   var appName = config[environment].designerApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
-    .click(designer.lageNavigationTab)
-    .click(designer.hentEndringer)
+    .click(designer.createNavigationTab)
+    .click(designer.pullChanges)
   await t.eval(() => location.reload(true));
   await t
     .dragToElement(designer.inputComponent, designer.dragToArea)
-    .click(designer.omNavigationTab)
-    .click(designer.lageNavigationTab)
-    .expect(designer.delEndringer.exists).ok({ timeout: 120000 })
-    .click(designer.delEndringer)
+    .click(designer.aboutNavigationTab)
+    .click(designer.createNavigationTab)
+    .expect(designer.pushChanges.exists).ok({ timeout: 120000 })
+    .click(designer.pushChanges)
     .expect(designer.commitMessageBox.exists).ok({ timeout: 120000 })
     .click(designer.commitMessageBox)
     .typeText(designer.commitMessageBox, "Sync app automated test", { replace: true })
-    .expect(designer.validerEndringer.exists).ok({ timeout: 120000 })
-    .click(designer.validerEndringer)
-    .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 120000 })
-    .click(designer.delEndringerBlueButton)
-    .expect(designer.ingenEndringer.exists).ok({ timeout: 120000 })
+    .expect(designer.validateChanges.exists).ok({ timeout: 120000 })
+    .click(designer.validateChanges)
+    .expect(designer.pushChangesBlueButton.exists).ok({ timeout: 120000 })
+    .click(designer.pushChangesBlueButton)
+    .expect(designer.noChanges.exists).ok({ timeout: 120000 })
 });
 
 //Tests toverify the functionlaity inside the about page of an app
@@ -86,25 +86,25 @@ test('About page items and editing', async () => {
   var appName = config[environment].designerApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
-    .click(designer.omNavigationTab)
-    .expect(designer.omTjenesteNavn.focused).notOk()
-    .click(designer.omTjenesteNavn)
-    .click(designer.omEndreTjenesteNavn)
+    .click(designer.aboutNavigationTab)
+    .expect(designer.aboutAppName.focused).notOk()
+    .click(designer.aboutAppName)
+    .click(designer.aboutChangeAppName)
     .pressKey('ctrl+a')
     .pressKey('backspace')
-    .typeText(designer.omTjenesteNavn, 'autotest' + '_' + randNumTwo.toString())
-    .expect(designer.omTjenesteNavn.getAttribute("value")).eql("autotest" + "_" + randNumTwo.toString())
+    .typeText(designer.aboutAppName, 'autotest' + '_' + randNumTwo.toString())
+    .expect(designer.aboutAppName.getAttribute("value")).eql("autotest" + "_" + randNumTwo.toString())
     .expect(designer.omLagringsNavn.getAttribute("value")).notContains(randNumTwo.toString())
     .pressKey('tab')
-    .click(designer.omTjenesteId)
+    .click(designer.aboutAppId)
     .pressKey('ctrl+a')
     .pressKey('backspace')
-    .typeText(designer.omTjenesteId, String(randId))
-    .click(designer.omKommentarer)
+    .typeText(designer.aboutAppId, String(randId))
+    .click(designer.aboutComments)
     .pressKey('ctrl+a')
     .pressKey('backspace')
-    .typeText(designer.omKommentarer, 'Lorem ipsum dolor sit amet.')
-    .expect(designer.omKommentarer.textContent).contains("Lorem")
+    .typeText(designer.aboutComments, 'Lorem ipsum dolor sit amet.')
+    .expect(designer.aboutComments.textContent).contains("Lorem")
 });
 
 //Test to verify that an app cannot be cloned when it lacks datamodel
@@ -217,21 +217,26 @@ test('Delete local app changes', async () => {
   var appName = config[environment].designerApp;
   await t
     .navigateTo(app.baseUrl + "designer/" + appName + "#/about")
-    .click(designer.lageNavigationTab)
-    .click(designer.hentEndringer)
+    .click(designer.createNavigationTab)
+    .click(designer.pullChanges)
   await t.eval(() => location.reload(true));
   appName = (appName.split('/'))[1];
   await t
     .dragToElement(designer.inputComponent, designer.dragToArea)
-    .click(designer.omNavigationTab)
+    .click(designer.aboutNavigationTab)
+    .expect(designer.pushChanges.exists).ok({ timeout: 120000 })
     .expect(designer.deleteLocalChanges.exists).ok({ timeout: 120000 })
-    .expect(designer.deleteLocalChanges.hasAttribute('disabled')).notOk('continue testing', { timeout: 120000 })
+    .expect(designer.deleteLocalChanges.hasAttribute('disabled')).notOk('Delete local changes button not enabled', { timeout: 120000 })
     .click(designer.deleteLocalChanges)
     .expect(designer.deleteAppRepoName.exists).ok({ timeout: 120000 })
     .typeText(designer.deleteAppRepoName, appName, { replace: true })
-    .wait(4000)
     .expect(designer.confirmDeleteLocalChanges.exists).ok({ timeout: 120000 })
-    .expect(designer.confirmDeleteLocalChanges.hasAttribute('disabled')).notOk('continue testing', { timeout: 120000 })
+    .expect(designer.confirmDeleteLocalChanges.hasAttribute('disabled')).notOk('Confirm delete local changes button not enabled', { timeout: 120000 })
     .click(designer.confirmDeleteLocalChanges)
-    .expect(designer.deleteLocalChanges.hasAttribute('disabled')).ok('continue testing', { timeout: 120000 })
+    .wait(4000);
+
+  await t.eval(() => location.reload(true));
+  await t
+    .wait(5000)
+    .expect(designer.noChanges.exists).ok('Local changes are not deleted', { timeout: 120000 });
 });
