@@ -17,7 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Platform.Events
 {
-        /// <summary>
+    /// <summary>
     /// Config startup.
     /// </summary>
     public class Startup

@@ -5,18 +5,17 @@ networks:
     external: false
 
 services:
-  altinn_platform_profile:
-    container_name: altinn-platform-event
-    image: altinnplatformevent:latest
+  altinn_platform_events:
+    container_name: altinn-platform-events
+    image: altinn-platform-events:latest
     restart: always
     networks:
       - altinnplatform_network
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5080
-      - GeneralSettings:BridgeApiEndpoint=https://at22.altinn.cloud/sblbridge/profile/api
     ports:
       - "5080:5080"
     build:
       context: .
-      dockerfile: Profile/Dockerfile
+      dockerfile: Events/Dockerfile
