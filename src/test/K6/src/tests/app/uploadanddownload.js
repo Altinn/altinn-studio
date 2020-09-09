@@ -2,8 +2,9 @@
   This test script can only be run with virtual users and iterations count and not based on duration.
   Create and archive instances of RF-0002 with attachments, where the distribution of attachments is based on 
   parameter attachmentdistribution among small, medium and large attachment.
-  example: k6 run -i 20 -u 10 /src/tests/app/rf0002withattachment.js 
-  -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e attachmentdistribution="60;30;10"
+
+  example: k6 run -i 20 -u 10 --logformat raw --console-output=./src/data/instances.csv 
+  /src/tests/app/rf0002withattachment.js -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e attachmentdistribution="60;30;10"
 
    Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and deployed RF-0002 app
   [
@@ -178,4 +179,8 @@ export default function (data) {
         addErrorCount(success);
         printResponseToConsole("Instance Data is not downloaded:", success, res);
     };
+
+    /* write the instance id to console which can be written to a file using --console-output and logformat raw
+    for appowner tests. */
+    console.log(partyId + "/" + instanceId);
 };

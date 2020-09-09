@@ -5,11 +5,6 @@ VisualStudioVersion = 16.0.29409.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D40D1681-F01B-4CF6-8BD1-A1714D63EED1}"
-	ProjectSection(SolutionItems) = preProject
-		Altinn3.ruleset = Altinn3.ruleset
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authentication", "Authentication\Altinn.Platform.Authentication.csproj", "{A7470874-7D29-4526-A9C6-4133595C1182}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authentication.Tests", "Altinn.Platform.Authentication.Tests\Altinn.Platform.Authentication.Tests.csproj", "{BBEE9804-91DA-4244-9795-A49D83465D52}"

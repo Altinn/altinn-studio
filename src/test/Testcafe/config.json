@@ -8,7 +8,7 @@
     "noDeployUser": "automatedtest@email.com",
     "deployApp": "ttd/autodeploy-v3",
     "compilerErrorApp": "ttd/compileerror1219",
-    "designerApp": "AutoTest/auto_test",
+    "designerApp": "AutoTest/auto-designer-app",
     "withoutDataModelApp": "AutoTest/appwithout-dm",
     "rulesApp": "AutoTest/rulesservice"
   },
