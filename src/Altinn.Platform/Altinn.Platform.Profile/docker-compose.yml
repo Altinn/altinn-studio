@@ -6,7 +6,7 @@ networks:
 
 services:
   altinn_platform_profile:
-    container_name: altinn-platform-profil
+    container_name: altinn-platform-profile
     image: altinnplatformprofile:latest
     restart: always
     networks:
