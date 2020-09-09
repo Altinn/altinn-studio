@@ -1,12 +1,16 @@
 using System;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Tests
 {
+    /// <summary>
+    /// Idiottest
+    /// </summary>
     public class DummyTest
     {
-        
+        /// <summary>
+        /// Idiottest
+        /// </summary>
         [Fact]
         public void TestName()
         {
