@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26124.0
+MinimumVisualStudioVersion = 15.0.26124.0
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.Platform.Events", "Event\Altinn.Platform.Events.csproj", "{E30E3FAC-4429-473E-BAC8-0A731E36D259}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "docker-compose", "docker-compose.dcproj", "{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.Platform.Events.Tests", "Tests\Altinn.Platform.Events.Tests.csproj", "{AC341E88-35EA-48AD-8233-C02D76A4410C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E30E3FAC-4429-473E-BAC8-0A731E36D259}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E30E3FAC-4429-473E-BAC8-0A731E36D259}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E30E3FAC-4429-473E-BAC8-0A731E36D259}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E30E3FAC-4429-473E-BAC8-0A731E36D259}.Debug|x64.Build.0 = Debug|Any CPU
+		{E30E3FAC-4429-473E-BAC8-0A731E36D259}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E30E3FAC-4429-473E-BAC8-0A731E36D259}.Debug|x86.Build.0 = Debug|Any CPU
+		{E30E3FAC-4429-473E-BAC8-0A731E36D259}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E30E3FAC-4429-473E-BAC8-0A731E36D259}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E30E3FAC-4429-473E-BAC8-0A731E36D259}.Release|x64.ActiveCfg = Release|Any CPU
+		{E30E3FAC-4429-473E-BAC8-0A731E36D259}.Release|x64.Build.0 = Release|Any CPU
+		{E30E3FAC-4429-473E-BAC8-0A731E36D259}.Release|x86.ActiveCfg = Release|Any CPU
+		{E30E3FAC-4429-473E-BAC8-0A731E36D259}.Release|x86.Build.0 = Release|Any CPU
+		{AC341E88-35EA-48AD-8233-C02D76A4410C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC341E88-35EA-48AD-8233-C02D76A4410C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC341E88-35EA-48AD-8233-C02D76A4410C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AC341E88-35EA-48AD-8233-C02D76A4410C}.Debug|x64.Build.0 = Debug|Any CPU
+		{AC341E88-35EA-48AD-8233-C02D76A4410C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AC341E88-35EA-48AD-8233-C02D76A4410C}.Debug|x86.Build.0 = Debug|Any CPU
+		{AC341E88-35EA-48AD-8233-C02D76A4410C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC341E88-35EA-48AD-8233-C02D76A4410C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC341E88-35EA-48AD-8233-C02D76A4410C}.Release|x64.ActiveCfg = Release|Any CPU
+		{AC341E88-35EA-48AD-8233-C02D76A4410C}.Release|x64.Build.0 = Release|Any CPU
+		{AC341E88-35EA-48AD-8233-C02D76A4410C}.Release|x86.ActiveCfg = Release|Any CPU
+		{AC341E88-35EA-48AD-8233-C02D76A4410C}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
