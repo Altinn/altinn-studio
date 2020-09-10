@@ -265,23 +265,23 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     });
   }
 
-  public getMaxOccursForGroupFromDataModel = (groupName: string): number => {
+  public getMaxOccursForGroupFromDataModel = (dataBindingName: string): number => {
     const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) => {
-      return e.xName === groupName;
+      return e.dataBindingName === dataBindingName;
     });
     return element?.maxOccurs;
   }
 
-  public handleDataModelGroupChange = (dataModelGroup: string, key: string) => {
-    const maxOccours = this.getMaxOccursForGroupFromDataModel(dataModelGroup);
+  public handleDataModelGroupChange = (dataBindingName: string, key: string) => {
+    const maxOccurs = this.getMaxOccursForGroupFromDataModel(dataBindingName);
     this.setState((prevState: IContainerState) => {
       return {
         tmpContainer: {
           ...prevState.tmpContainer,
           dataModelBindings: {
-            [key]: dataModelGroup,
+            [key]: dataBindingName,
           },
-          maxCount: maxOccours,
+          maxCount: maxOccurs,
         },
       };
     });

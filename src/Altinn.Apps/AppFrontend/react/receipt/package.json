@@ -30,7 +30,7 @@
     "webpack-dev-server": "~3.11.0"
   },
   "devDependencies": {
-    "@babel/core": "~7.11.5",
+    "@babel/core": "~7.11.6",
     "@babel/preset-env": "~7.11.5",
     "@babel/preset-react": "~7.10.4",
     "@types/jest": "~26.0.13",
@@ -38,12 +38,12 @@
     "@types/react-dom": "~16.9.8",
     "awesome-typescript-loader": "~5.2.1",
     "cross-env": "~7.0.2",
-    "css-loader": "~4.2.2",
+    "css-loader": "~4.3.0",
     "enzyme": "~3.11.0",
     "enzyme-adapter-react-16": "~1.15.4",
     "html-webpack-plugin": "~4.4.1",
     "jest": "~26.4.2",
-    "mini-css-extract-plugin": "~0.11.0",
+    "mini-css-extract-plugin": "~0.11.1",
     "rimraf": "~3.0.2",
     "terser-webpack-plugin": "~4.1.0",
     "ts-jest": "~26.3.0",

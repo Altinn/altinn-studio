@@ -300,10 +300,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 inputType = "Group";
             }
 
-            if (!inputType.Equals("Group") && string.IsNullOrEmpty(fixedValue))
+            int maxOccursParsed = maxItems.Equals("*") ? MagicNumberMaxOccurs : int.Parse(maxItems);
+
+            if ((!inputType.Equals("Group") && string.IsNullOrEmpty(fixedValue)) || (inputType.Equals("Group") && maxOccursParsed > 1))
             {
-                string databindingNameWithoutFirstPropertyName = $"{parentXpath}/{propertyName}".Replace("/" + firstPropertyName + "/", string.Empty);
-                string dataBindingName = databindingNameWithoutFirstPropertyName.Replace("/", ".");
+                string dataBindingNameWithoutFirstPropertyName = $"{parentXpath}/{propertyName}".Replace("/" + firstPropertyName + "/", string.Empty);
+                string dataBindingName = dataBindingNameWithoutFirstPropertyName.Replace("/", ".");
                 result.Add("DataBindingName", dataBindingName);
             }
 
@@ -330,7 +332,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             result.Add("CustomProperties", new JsonObject()); // ??
 
-            result.Add("MaxOccurs", maxItems.Equals("*") ? MagicNumberMaxOccurs : int.Parse(maxItems));
+            result.Add("MaxOccurs", maxOccursParsed);
             result.Add("MinOccurs", int.Parse(minItems));
 
             result.Add("XName", propertyName);
