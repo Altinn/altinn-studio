@@ -3,15 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29215.179
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0CE60568-1CC9-4F7A-BE1C-43969F984B7A}"
-	ProjectSection(SolutionItems) = preProject
-		..\..\..\Altinn3.ruleset = ..\..\..\Altinn3.ruleset
-		..\..\..\stylecop.json = ..\..\..\stylecop.json
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Designer", "backend\Designer.csproj", "{6D0AC0E2-5A9A-4804-AA89-48000067AEB0}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "..\..\docker-compose.dcproj", "{56321ACF-FBE6-4445-98BB-FAF9B18C5EB4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Designer.Tests", "backend.Tests\Designer.Tests.csproj", "{9DB55096-4A57-4E3D-9D2C-B2405C461267}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +23,10 @@ Global
 		{56321ACF-FBE6-4445-98BB-FAF9B18C5EB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{56321ACF-FBE6-4445-98BB-FAF9B18C5EB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{56321ACF-FBE6-4445-98BB-FAF9B18C5EB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DB55096-4A57-4E3D-9D2C-B2405C461267}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DB55096-4A57-4E3D-9D2C-B2405C461267}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DB55096-4A57-4E3D-9D2C-B2405C461267}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DB55096-4A57-4E3D-9D2C-B2405C461267}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

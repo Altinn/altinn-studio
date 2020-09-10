@@ -60,7 +60,8 @@ export class SelectDataModel extends React.Component<
       );
     }
     const selected = this.props.dataModelElements.find(
-      (modelBinding) => modelBinding.dataBindingName === selectedId);
+      (modelBinding) => modelBinding.dataBindingName === selectedId,
+    );
     return (
       Object.keys(selected.restrictions).length === 0 ? (
         <li className='a-dotted'>
@@ -87,10 +88,8 @@ export class SelectDataModel extends React.Component<
   public render() {
     const dataModelElementNames = [];
     for (const element of this.props.dataModelElements) {
-      if (element.dataBindingName && !this.props.selectGroup) {
+      if (element.dataBindingName && (!this.props.selectGroup || element.maxOccurs > 1)) {
         dataModelElementNames.push({ value: element.dataBindingName, label: element.displayString });
-      } else if (element.maxOccurs > 1 && this.props.selectGroup) {
-        dataModelElementNames.push({ value: element.xName, label: element.displayString });
       }
     }
     return (

@@ -90,7 +90,6 @@ namespace Altinn.Studio.Designer
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
                 Console.WriteLine($"// Program.cs // ConfigureServices // Successfully added AI config.");
-
             }
 
             services.ConfigureLocalization();
