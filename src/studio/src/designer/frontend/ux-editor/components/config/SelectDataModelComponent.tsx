@@ -88,7 +88,8 @@ export class SelectDataModel extends React.Component<
   public render() {
     const dataModelElementNames = [];
     for (const element of this.props.dataModelElements) {
-      if (element.dataBindingName && (!this.props.selectGroup || element.maxOccurs > 1)) {
+      if (element.dataBindingName &&
+        ((!this.props.selectGroup && element.maxOccurs <= 1) || (this.props.selectGroup && element.maxOccurs > 1))) {
         dataModelElementNames.push({ value: element.dataBindingName, label: element.displayString });
       }
     }
