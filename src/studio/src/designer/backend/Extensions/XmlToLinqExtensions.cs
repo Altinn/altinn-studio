@@ -197,58 +197,7 @@ namespace Altinn.Studio.Designer.Extensions
         {
             return element.AttributeValue(XName.Get(attributeName));
         }
-
-        /// <summary>
-        /// Creates an XML representations of a CultureString
-        /// </summary>
-        /// <param name="cultureString">
-        /// this CultureString
-        /// </param>
-        /// <param name="elementName">
-        /// Name of the XElement
-        /// </param>
-        /// <returns>
-        /// XElement with language strings
-        /// </returns>
-        public static XElement CreateCultreStringXElement(this CultureString cultureString, string elementName)
-        {
-            return CreateCultreStringXElement(cultureString, elementName, false);
-        }
-
-        /// <summary>
-        /// Creates an XML representations of a CultureString
-        /// </summary>
-        /// <param name="cultureString">
-        /// this CultureString
-        /// </param>
-        /// <param name="elementName">
-        /// Name of the XElement
-        /// </param>
-        /// <param name="wrapInCData">
-        /// Wrap the contents in CDATA, default = false
-        /// </param>
-        /// <returns>
-        /// XElement with language strings
-        /// </returns>
-        public static XElement CreateCultreStringXElement(this CultureString cultureString, string elementName, bool wrapInCData)
-        {
-            XElement element = new XElement(elementName);
-            foreach (int lang in Enum.GetValues(typeof(Language)))
-            {
-                string str = cultureString.Get(lang);
-                if (string.IsNullOrEmpty(str))
-                {
-                    continue;
-                }
-
-                XElement content = new XElement("content", wrapInCData ? new XCData(str).ToString() : str);
-                content.AddAttribute("lang", lang);
-                element.Add(content);
-            }
-
-            return element;
-        }
-
+ 
         /// <summary>
         /// Creates the culture string from X element.
         /// </summary>

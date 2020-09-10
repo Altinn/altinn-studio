@@ -67,50 +67,6 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
 
         #region - Bool operators -
 
-        /// <summary>
-        /// Overloading of == operator
-        /// </summary>
-        /// <param name="a">
-        /// Culture string A
-        /// </param>
-        /// <param name="b">
-        /// Culture string B
-        /// </param>
-        /// <returns>
-        /// True if both are equal
-        /// </returns>
-        public static bool operator ==(CultureString a, CultureString b)
-        {
-            if (ReferenceEquals(a, b))
-            {
-                return true;
-            }
-
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
-
-            return ((int[])Enum.GetValues(typeof(Language))).Any(value => a.Get(value) == b.Get(value));
-        }
-
-        /// <summary>
-        /// Overloading of != operator
-        /// </summary>
-        /// <param name="a">
-        /// Culture string A
-        /// </param>
-        /// <param name="b">
-        /// Culture string B
-        /// </param>
-        /// <returns>
-        /// True if both are not equal
-        /// </returns>
-        public static bool operator !=(CultureString a, CultureString b)
-        {
-            return !(a == b);
-        }
-
         #endregion<
 
         #region - Create Culture String -
@@ -270,20 +226,6 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
             return ContainsKey(language) ? this[language] : ToString();
         }
 
-        /// <summary>
-        /// Gets language ID
-        /// </summary>
-        /// <param name="language">
-        /// Language details
-        /// </param>
-        /// <returns>
-        /// Language ID
-        /// </returns>
-        public string Get(Language language)
-        {
-            return Get((int)language);
-        }
-
         #endregion
 
         #region - Set -
@@ -308,30 +250,6 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         #endregion
 
         #region - Equality -
-
-        /// <summary>
-        /// Checks whether one culture string equal to other
-        /// </summary>
-        /// <param name="other">
-        /// Culture string to compare with
-        /// </param>
-        /// <returns>
-        /// True if both are equal
-        /// </returns>
-        public bool Equals(CultureString other)
-        {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            return ((int[])Enum.GetValues(typeof(Language))).Any(value => Get(value) == other.Get(value));
-        }
 
         /// <summary>
         /// Checks whether the culture string is equal to an object value
