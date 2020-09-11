@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -13,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
-using Newtonsoft.Json;
+
 using Xunit;
 
 namespace Altinn.Platform.Profile.Tests.ServiceTests
@@ -99,11 +98,12 @@ namespace Altinn.Platform.Profile.Tests.ServiceTests
             generalSettingsOptions.Setup(s => s.Value).Returns(generalSettings);
 
             handlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(),
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponseMessage)
                 .Verifiable();
-
         }
     }
 }
