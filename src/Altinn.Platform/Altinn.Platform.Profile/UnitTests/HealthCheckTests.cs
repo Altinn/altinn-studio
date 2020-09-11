@@ -1,17 +1,19 @@
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+
 using Xunit;
 
-namespace Altinn.Platform.Profile.UnitTests
+namespace Altinn.Platform.Profile.Tests
 {
-    public class HealtCheckTests : IClassFixture<WebApplicationFactory<Startup>>
+    public class HealthCheckTests : IClassFixture<WebApplicationFactory<Startup>>
     {
         private readonly WebApplicationFactory<Startup> _factory;
 
-        public HealtCheckTests(WebApplicationFactory<Startup> factory)
+        public HealthCheckTests(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
         }
@@ -21,16 +23,14 @@ namespace Altinn.Platform.Profile.UnitTests
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task VerifyHeltCheck_OK()
+        public async Task VerifyHealthCheck_OK()
         {
             HttpClient client = GetTestClient();
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/health")
-            {
-            };
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/health");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string content = await response.Content.ReadAsStringAsync();
+
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 

@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Reflection;
 using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Configuration;
@@ -32,7 +31,7 @@ namespace Altinn.Platform.Profile
     public class Startup
     {
         /// <summary>
-        /// The key valt key for application insights.
+        /// The key vault key for application insights.
         /// </summary>
         internal static readonly string VaultApplicationInsightsKey = "ApplicationInsights--InstrumentationKey";
 
@@ -61,7 +60,7 @@ namespace Altinn.Platform.Profile
         public IConfiguration Configuration { get; }
 
         /// <summary>
-        /// Configure profile setttings for the service
+        /// Configure profile settings for the service
         /// </summary>
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
@@ -80,7 +79,6 @@ namespace Altinn.Platform.Profile
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<ISigningKeysResolver, SigningKeysResolver>();
 
-            GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                 {
