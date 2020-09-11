@@ -1,43 +1,56 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
-
 using Altinn.Platform.Storage.DataCleanup.Services;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 
-#pragma warning disable IDE0060
+using Newtonsoft.Json;
+
 namespace Altinn.Platform.Storage.DataCleanup
 {
     /// <summary>
-    /// Azure Function class for handling tasks related to nightly data cleanup.
+    /// Azure Function class for handling tasks related to load testing cleanup
     /// </summary>
-    public class NightlyCleanup
+    public class LoadTestingCleanup
     {
         private readonly ICosmosService _cosmosService;
         private readonly IBlobService _blobService;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NightlyCleanup"/> class.
+        /// Initializes a new instance of the <see cref="LoadTestingCleanup"/> class.
         /// </summary>
         /// <param name="cosmosService">The Cosmos DB service.</param>
         /// <param name="blobService">The blob service.</param>
-        public NightlyCleanup(ICosmosService cosmosService, IBlobService blobService)
+        public LoadTestingCleanup(ICosmosService cosmosService, IBlobService blobService)
         {
             _cosmosService = cosmosService;
             _blobService = blobService;
         }
 
         /// <summary>
-        /// Runs nightly cleanup.
+        /// Runs load testing cleanup.
         /// </summary>
-        /// <param name="timer">The trigger timer.</param>
+        /// <param name="req">The http request.</param>
         /// <param name="log">The log.</param>
-        [FunctionName("NightlyCleanup")]
-        public async Task Run([TimerTrigger("0 0 3 * * 1-5", RunOnStartup = false)] TimerInfo timer, ILogger log)
+        [FunctionName("LoadTestingCleanup")]
+        public async Task<IActionResult> Run(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
+            ILogger log)
         {
-            List<Instance> instances = await _cosmosService.GetHardDeletedInstances();
+            string app = req.Query["app"];
+
+            if (string.IsNullOrEmpty(app))
+            {
+                return new BadRequestObjectResult("Pass an app name in the query string to clean up load testing data.");
+            }
+
+            List<Instance> instances = await _cosmosService.GetAllInstancesOfApp(app.ToLower().Trim());
 
             foreach (Instance instance in instances)
             {
@@ -48,6 +61,7 @@ namespace Altinn.Platform.Storage.DataCleanup
                     if (instance.Data.Count > 0)
                     {
                         dataElementsDeleted = await _blobService.DeleteDataBlobs(instance);
+
                         if (dataElementsDeleted)
                         {
                             dataElementMetadataDeleted = await _cosmosService.DeleteDataElementDocuments(instance.Id);
@@ -57,15 +71,17 @@ namespace Altinn.Platform.Storage.DataCleanup
                     if (instance.Data.Count == 0 || dataElementMetadataDeleted)
                     {
                         await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
-                        log.LogInformation($"NightlyCleanup // Run // Instance deleted: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}");
+                        log.LogInformation($"LoadTestingCleanup // Run // Instance deleted: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}");
                     }
                 }
                 catch (Exception e)
                 {
-                    log.LogError($"NightlyCleanup // Run // Error occured when deleting instance: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}."
+                    log.LogError($"LoadTestingCleanup // Run // Error occured when deleting instance: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}."
                         + $"\r Exception {e}");
                 }
             }
+
+            return new OkObjectResult($"{instances.Count} instances and all related data has been successfully deleted.");
         }
     }
 }
