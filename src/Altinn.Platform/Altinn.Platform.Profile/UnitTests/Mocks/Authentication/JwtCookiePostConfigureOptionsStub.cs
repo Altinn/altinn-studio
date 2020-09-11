@@ -4,8 +4,6 @@ using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace Altinn.Platform.Profile.Tests.Mocks.Authentication
 {

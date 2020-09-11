@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -14,15 +14,21 @@
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.0-alpha" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.5.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.8" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.205">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
+    <AdditionalFiles Include="..\..\..\..\stylecop.json">
+      <Link>stylecop.json</Link>
+    </AdditionalFiles>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <PropertyGroup>
