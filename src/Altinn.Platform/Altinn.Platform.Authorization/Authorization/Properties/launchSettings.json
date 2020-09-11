@@ -11,7 +11,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "authorization/api/v1/actors/test",
+      "launchUrl": "authorization/swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -19,7 +19,7 @@
     "Altinn.Platform.Authorization": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/authentication/v1/debug",
+      "launchUrl": "authorization/swagger",
       "applicationUrl": "http://localhost:5050",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
