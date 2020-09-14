@@ -1,0 +1,60 @@
+using System;
+using System.Threading.Tasks;
+using Altinn.Platform.Events.Repository;
+using CloudNative.CloudEvents;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+
+namespace Altinn.Platform.Events.Controllers
+{
+    /// <summary>
+    /// Provides operations for handling events
+    /// </summary>
+    [Route("events/api/v1/events")]
+    [ApiController]
+    public class EventsController : ControllerBase
+    {
+        private readonly IEventsRepository repository;
+        private readonly ILogger logger;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EventsController"/> class
+        /// </summary>
+        /// <param name="repository">the events repository handler</param>
+        /// <param name="logger">dependency injection of logger</param>
+        public EventsController(IEventsRepository repository, ILogger<EventsController> logger)
+        {
+            this.repository = repository;
+            this.logger = logger;
+        }
+
+        /// <summary>
+        /// Inserts a new event.
+        /// </summary>
+        /// <param name="cloudEvent">The event to store.</param>
+        /// <returns>The applicaiton metadata object.</returns>
+        // [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
+        [HttpPost]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Produces("application/json")]
+        public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
+        {
+            try
+            {
+                string result = await repository.Create(cloudEvent);
+
+                logger.LogInformation($"Cloud Event sucessfully stored", result);
+
+                return Created(cloudEvent.Subject, result);
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Unable to store cloud event in database. {e}");
+                return StatusCode(500, $"Unable to store cloud event in database. {e}");
+            }
+        }
+    }
+}

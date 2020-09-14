@@ -1,8 +1,10 @@
 using System;
 using System.Net;
+using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Health;
 using Altinn.Platform.Telemetry;
 using AltinnCore.Authentication.JwtCookie;
+using CloudNative.CloudEvents;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
@@ -70,7 +72,12 @@ namespace Altinn.Platform.Events
 
             services.AddControllersWithViews();
             services.AddHealthChecks().AddCheck<HealthCheck>("events_health_check");
-
+            services.AddMvc(opts =>
+            {
+                opts.InputFormatters.Insert(0, new CloudEventJsonInputFormatter());
+            });
+            services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
+            
             services.AddSingleton(Configuration);
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
