@@ -1,9 +1,10 @@
 /* eslint-disable no-undef */
 import 'jest';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
-import { IValidationIssue, Severity } from '../../src/types';
+import { IValidationIssue, Severity, IValidations } from '../../src/types';
 import * as validation from '../../src/utils/validation';
 import { getParsedLanguageFromKey } from '../../../shared/src';
+import { ILayoutComponent } from '../../src/features/form/layout';
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
@@ -513,5 +514,65 @@ describe('>>> utils/validations.ts', () => {
   it('+++ getIndex should return index for field in repeating group', () => {
     const dataModelBinding = 'group_1[2].dataModelField_1';
     expect(validation.getIndex(dataModelBinding)).toBe('2');
+  });
+
+  it('+++ componentHasValidations should return true if component has validations', () => {
+    const validations: IValidations = {
+      dummyId: {
+        simpleBinding: {
+          errors: ['Some error'],
+        },
+      },
+    };
+    expect(validation.componentHasValidations(validations, 'dummyId')).toBeTruthy();
+  });
+
+  it('+++ componentHasValidations should return false if component has no validations', () => {
+    const validations: IValidations = {
+      dummyId: {
+        simpleBinding: {
+          errors: ['Some error'],
+        },
+      },
+    };
+    expect(validation.componentHasValidations(validations, 'someOtherId')).toBeFalsy();
+  });
+
+  it('+++ componentHasValidations should return false when supplied with null values', () => {
+    expect(validation.componentHasValidations(null, null)).toBeFalsy();
+  });
+
+  it('+++ repeatingGroupHasValidations should return true when components in group has errors', () => {
+    const children: ILayoutComponent[] = [
+      { id: 'some-id' } as ILayoutComponent,
+      { id: 'some-other-id' } as ILayoutComponent,
+    ];
+    const validations: IValidations = {
+      'some-id-2': {
+        simpleBinding: {
+          errors: ['Some error'],
+        },
+      },
+    };
+    expect(validation.repeatingGroupHasValidations(validations, 2, children)).toBeFalsy();
+  });
+
+  it('+++ repeatingGroupHasValidations should return false when no components in group has errors', () => {
+    const children: ILayoutComponent[] = [
+      { id: 'some-id' } as ILayoutComponent,
+      { id: 'some-other-id' } as ILayoutComponent,
+    ];
+    const validations: IValidations = {
+      differentId: {
+        simpleBinding: {
+          errors: ['Some error'],
+        },
+      },
+    };
+    expect(validation.repeatingGroupHasValidations(validations, 2, children)).toBeFalsy();
+  });
+
+  it('+++ repeatingGroupHasValidations should return false when supplied with null values', () => {
+    expect(validation.repeatingGroupHasValidations(null, null, null)).toBeFalsy();
   });
 });

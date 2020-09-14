@@ -7,6 +7,8 @@ export interface ILayoutGroup extends ILayoutEntry {
   children: string[];
   dataModelBindings?: IDataModelBindings;
   maxCount: number;
+  textResourceBindings?: ITextResourceBindings;
+  tableHeaders?: string[];
 }
 
 export interface ILayoutComponent extends ILayoutEntry {

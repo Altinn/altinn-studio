@@ -1,10 +1,10 @@
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { IRepeatingGroups } from 'src/types';
+import { IRepeatingGroups, ITextResource } from 'src/types';
 import { IRuntimeState } from '../../../types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
-import { Group } from './Group';
+import { GroupContainer } from './GroupContainer';
 import { renderGenericComponent } from '../../../utils/layout';
 
 export function Form() {
@@ -14,6 +14,7 @@ export function Form() {
   const repeatingGroups: IRepeatingGroups =
     useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
   const hiddenComponents: string[] = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields);
+  const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
 
   React.useEffect(() => {
     let componentsToRender: any[] = layout;
@@ -37,62 +38,29 @@ export function Form() {
     return renderGenericComponent(component);
   }
 
-  const getRepeatingGroupCount = (id: string) => {
-    if (repeatingGroups && repeatingGroups[id] && repeatingGroups[id].count) {
-      return repeatingGroups[id].count;
-    }
-    return 0;
-  };
-
-  function RenderLayoutGroup(layoutGroup: ILayoutGroup): JSX.Element[] {
+  function RenderLayoutGroup(layoutGroup: ILayoutGroup): JSX.Element {
     const groupComponents = layoutGroup.children.map((child) => {
       return layout.find((c) => c.id === child) as ILayoutComponent;
     });
     const repeating = layoutGroup.maxCount > 1;
-    const repeatingGroupCount = getRepeatingGroupCount(layoutGroup.id);
-    const renderGroup: JSX.Element[] = [];
-
-    for (let i = 0; i <= repeatingGroupCount; i++) {
-      const childComponents = groupComponents.map((component: ILayoutComponent) => {
-        const componentDeepCopy: ILayoutComponent = JSON.parse(JSON.stringify(component));
-        const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
-        let id = componentDeepCopy.id;
-
-        if (repeating) {
-          const groupDataModelBinding = layoutGroup.dataModelBindings.group;
-          Object.keys(dataModelBindings).forEach((key) => {
-            // eslint-disable-next-line no-param-reassign
-            dataModelBindings[key] = dataModelBindings[key].replace(groupDataModelBinding, `${groupDataModelBinding}[${i}]`);
-          });
-          id = `${componentDeepCopy.id}-${i}`;
-        }
-
-        return {
-          ...componentDeepCopy,
-          dataModelBindings,
-          id,
-          baseComponentId: componentDeepCopy.id,
-        };
-      });
-      const groupElement = (
-        <Group
-          id={layoutGroup.id}
-          key={`${layoutGroup.id}-${i}`}
-          components={childComponents}
-          repeating={repeating}
-          index={i}
-          showAdd={
-            repeating
-            && repeatingGroupCount === i
-            && repeatingGroupCount < layoutGroup.maxCount - 1
-          }
-          showDelete={repeatingGroupCount > 0}
-          showSeparator={repeatingGroupCount > i}
-        />
+    if (!repeating) {
+      // If not repeating, treat as regular components
+      return (
+        <>
+          {groupComponents.map(renderLayoutComponent)}
+        </>
       );
-      renderGroup.push(groupElement);
     }
-    return renderGroup;
+
+    return (
+      <GroupContainer
+        container={layoutGroup}
+        id={layoutGroup.id}
+        key={layoutGroup.id}
+        textResources={textResources}
+        components={groupComponents}
+      />
+    );
   }
 
   function renderLayoutComponent(layoutComponent: ILayoutComponent | ILayoutGroup) {
