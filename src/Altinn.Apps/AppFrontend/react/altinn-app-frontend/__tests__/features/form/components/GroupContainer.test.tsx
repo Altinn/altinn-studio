@@ -37,7 +37,7 @@ describe('>>> features/form/components/Group.tsx', () => {
         id: 'field1',
         type: 'Input',
         dataModelBindings: {
-          simple: 'Group.prop1',
+          simpleBinding: 'Group.prop1',
         },
         textResourceBindings: {
           title: 'Title1',
@@ -50,7 +50,7 @@ describe('>>> features/form/components/Group.tsx', () => {
         id: 'field2',
         type: 'Input',
         dataModelBindings: {
-          simple: 'Group.prop2',
+          simpleBinding: 'Group.prop2',
         },
         textResourceBindings: {
           title: 'Title2',
@@ -63,7 +63,7 @@ describe('>>> features/form/components/Group.tsx', () => {
         id: 'field3',
         type: 'Input',
         dataModelBindings: {
-          simple: 'Group.prop3',
+          simpleBinding: 'Group.prop3',
         },
         textResourceBindings: {
           title: 'Title3',
@@ -77,7 +77,7 @@ describe('>>> features/form/components/Group.tsx', () => {
     mockLayout = {
       layout: [
         {
-          id: 'testGroupId',
+          id: 'mock-container-id',
           type: 'group',
           dataModelBindings: {
             group: 'Group',
@@ -91,7 +91,11 @@ describe('>>> features/form/components/Group.tsx', () => {
       ].concat(mockComponents),
       uiConfig: {
         hiddenFields: [],
-        repeatingGroups: [],
+        repeatingGroups: {
+          'mock-container-id': {
+            count: 3,
+          },
+        },
         autosave: false,
       },
     };
@@ -109,7 +113,7 @@ describe('>>> features/form/components/Group.tsx', () => {
         'field2',
         'field3',
       ],
-      maxCount: 5,
+      maxCount: 8,
       dataModelBindings: {
         group: 'some-group',
       },
@@ -170,5 +174,25 @@ describe('>>> features/form/components/Group.tsx', () => {
     );
     const item = await utils.findByText('Legg til ny person');
     expect(item).not.toBeNull();
+  });
+
+  it('+++ should not show add button when maxOccurs is reached', async () => {
+    const mockContainerWithMaxCount = {
+      ...mockContainer,
+      maxCount: 3,
+    };
+    const utils = render(
+      <Provider store={mockStore}>
+        <GroupContainer
+          components={mockComponents}
+          container={mockContainerWithMaxCount}
+          id='mock-container-id'
+          key='testKey'
+          textResources={mockTextResources}
+        />
+      </Provider>,
+    );
+    const addButton = await utils.queryByText('Legg til ny');
+    expect(addButton).toBeNull();
   });
 });

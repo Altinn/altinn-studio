@@ -1,3 +1,4 @@
+/* eslint-disable react/no-array-index-key */
 /* eslint-disable max-len */
 import React from 'react';
 import { Grid, makeStyles, createMuiTheme, TableContainer, Table, TableHead, TableRow, TableBody, TableCell, IconButton, useMediaQuery } from '@material-ui/core';
@@ -223,18 +224,18 @@ export function GroupContainer({
                   return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
                 });
                 return (
-                  <TableRow className={rowHasErrors ? classes.tableRowError : ''}>
+                  <TableRow className={rowHasErrors ? classes.tableRowError : ''} key={repeatingGroupIndex}>
                     {components.map((component: ILayoutComponent) => {
                       if (!tableHeaderComponents.includes(component.id)) {
                         return null;
                       }
                       return (
-                        <TableCell>
+                        <TableCell key={`${component.id} ${repeatingGroupIndex}`}>
                           {getFormDataForComponent(component, repeatingGroupIndex)}
                         </TableCell>
                       );
                     })}
-                    <TableCell align='right'>
+                    <TableCell align='right' key={`delete-${repeatingGroupIndex}`}>
                       <IconButton style={{ color: 'black' }} onClick={() => onClickEdit(repeatingGroupIndex)}>
                         {getLanguageFromKey('general.edit_alt', language)}
                         <i className={rowHasErrors ? `ai ai-circle-exclamation a-icon ${classes.errorIcon}` : 'fa fa-editing-file'}/>
@@ -297,7 +298,7 @@ export function GroupContainer({
         container={true}
         justify='flex-end'
       />
-      {(editIndex < 0) &&
+      {((editIndex < 0) && (repeatingGroupCount < container.maxCount)) &&
       <Grid
         container={true}
         direction='row'
