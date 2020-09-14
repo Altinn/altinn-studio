@@ -1,6 +1,6 @@
-using Newtonsoft.Json;
 using System;
 
+using Newtonsoft.Json;
 
 namespace Authorization.Platform.Authorization.Models
 {
