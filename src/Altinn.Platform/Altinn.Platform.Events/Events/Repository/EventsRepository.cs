@@ -48,30 +48,9 @@ namespace Altinn.Platform.Events.Repository
             client.OpenAsync();
         }
 
-        /// <summary>
-        /// Converts the subject "party/{party-id}" to "{party}-{party-id}"
-        /// </summary>
-        /// <param name="subject">the id to convert</param>
-        /// <returns>the converted id</returns>
-        private string SubjectToCosmosId(string subject)
-        {
-            string cosmosId = subject;
-
-            if (subject != null && subject.Contains("/"))
-            {
-                string[] parts = subject.Split("/");
-
-                cosmosId = $"{parts[0]}-{parts[1]}";
-            }
-
-            return cosmosId;
-        }
-
         /// <inheritdoc/>
         public async Task<string> Create(CloudEvent item)
         {
-            item.Subject = SubjectToCosmosId(item.Subject);
-
             ResourceResponse<Document> createDocumentResponse = await client.CreateDocumentAsync(collectionUri, item);
             Document document = createDocumentResponse.Resource;
             return createDocumentResponse.Resource.Id;

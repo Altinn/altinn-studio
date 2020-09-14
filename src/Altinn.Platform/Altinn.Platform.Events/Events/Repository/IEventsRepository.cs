@@ -12,7 +12,7 @@ namespace Altinn.Platform.Events.Repository
         /// Creates an cloud event in repository
         /// </summary>
         /// <param name="item">the cloud event object</param>
-        /// <returns>the created cloudevent</returns>
+        /// <returns>id for created cloudevent</returns>
         Task<string> Create(CloudEvent item);
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Repository;
 using CloudNative.CloudEvents;
@@ -32,7 +33,7 @@ namespace Altinn.Platform.Events.Controllers
         /// <summary>
         /// Inserts a new event.
         /// </summary>
-        /// <param name="cloudEvent">The event to store.</param>
+        /// <param name="source">The event to store.</param>
         /// <returns>The applicaiton metadata object.</returns>
         // [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         [HttpPost]
@@ -40,21 +41,34 @@ namespace Altinn.Platform.Events.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
+
+        // public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
+        public async Task<ActionResult<string>> Post()
         {
-            try
+            Stream stream = Request.Body;
+            StreamReader reader = new StreamReader(stream);
+            string text =  await reader.ReadToEndAsync();
+            CloudEventJsonInputFormatter 
+/*             if (string.IsNullOrEmpty(cloudEvent.Source.AbsolutePath) || string.IsNullOrEmpty(cloudEvent.Subject) ||
+            string.IsNullOrEmpty(cloudEvent.Type) || cloudEvent.Time == null || string.IsNullOrEmpty(cloudEvent.Id))
+            {
+                return BadRequest("Missing parameter values: source, subject, type, id or time cannot be null");
+            }
+ */
+/*             try
             {
                 string result = await repository.Create(cloudEvent);
 
                 logger.LogInformation($"Cloud Event sucessfully stored", result);
 
-                return Created(cloudEvent.Subject, result);
+                return Created(cloudEvent.Id, result);
             }
             catch (Exception e)
             {
                 logger.LogError($"Unable to store cloud event in database. {e}");
                 return StatusCode(500, $"Unable to store cloud event in database. {e}");
-            }
+            } */
+            return Created("source", "ok");
         }
     }
 }
