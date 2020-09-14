@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Altinn.Platform.Models.UnitTest
+namespace Altinn.Platform.Models.Tests
 {
     /// <summary>
     /// Helper methods for model validation.
