@@ -45,6 +45,7 @@ declare global {
   }
 
   export interface ICreateFormContainer {
+    itemType?: string;
     dataModelBindings?: IDataModelBindings;
     maxCount: number;
     textResourceBindings?: ITextResourceBindings;

@@ -30,7 +30,7 @@ export class AltinnFormControlLabel extends React.Component<IAltinnFormControlLa
         classes={{ label: classes.label, root: classes.root }}
         label={this.props.label}
         control={this.props.control}
-        key={id}
+        key={this.props.id}
       />
     );
   }
