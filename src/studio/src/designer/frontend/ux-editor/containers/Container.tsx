@@ -18,9 +18,10 @@ import { makeGetActiveFormContainer,
   makeGetLayoutComponentsSelector,
   makeGetLayoutContainerOrder,
   makeGetLayoutContainersSelector } from '../selectors/getLayoutData';
-import { renderSelectGroupDataModelBinding } from '../utils/render';
+import { renderSelectGroupDataModelBinding, renderSelectTextFromResources } from '../utils/render';
 import { FormComponentWrapper } from '../components/FormComponent';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import { getTextResource } from '../utils/language';
 
 export interface IProvidedContainerProps extends WithStyles<typeof styles>{
   id: string;
@@ -37,7 +38,7 @@ export interface IProvidedContainerProps extends WithStyles<typeof styles>{
 export interface IContainerProps extends IProvidedContainerProps {
   dataModelGroup?: string;
   itemOrder: any;
-  components: any;
+  components: IFormDesignerComponent;
   containers: any;
   repeating: boolean;
   index?: number;
@@ -45,6 +46,7 @@ export interface IContainerProps extends IProvidedContainerProps {
   activeList: any[];
   language: any;
   dataModel: IDataModelFieldElement[];
+  textResources: ITextResource[];
 }
 
 export interface IContainerState {
@@ -171,6 +173,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         // we are disabling the repeating feature, remove datamodelbinding
         tmpContainer.dataModelBindings.group = undefined;
         tmpContainer.maxCount = undefined;
+        tmpContainer.textResourceBindings = undefined;
       } else {
         tmpContainer.maxCount = 2;
       }
@@ -259,6 +262,40 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   public handleClosePopup = () => {
     this.setState({
       editGroupIdError: null,
+    });
+  }
+
+  public handleButtonTextChange = (e: any) => {
+    this.setState((prevState: IContainerState) => {
+      const updatedContainer = prevState.tmpContainer;
+      if (!updatedContainer.textResourceBindings) {
+        updatedContainer.textResourceBindings = {};
+      }
+      updatedContainer.textResourceBindings.add_button = e ? e.value : null;
+      return {
+        tmpContainer: updatedContainer,
+      };
+    });
+  }
+
+  public handleTableHeadersChange = (id: string, index: number) => {
+    this.setState((prevState: IContainerState) => {
+      const updatedContainer = prevState.tmpContainer;
+      if (!prevState.tmpContainer.tableHeaders) {
+        updatedContainer.tableHeaders = [...prevState.itemOrder];
+      }
+      if (updatedContainer.tableHeaders.includes(id)) {
+        updatedContainer.tableHeaders.splice(updatedContainer.tableHeaders.indexOf(id), 1);
+      } else {
+        updatedContainer.tableHeaders.splice(index, 0, id);
+      }
+      if (updatedContainer.tableHeaders?.length === this.props.itemOrder.length) {
+        // table headers is the same as children. We ignore the table header prop
+        updatedContainer.tableHeaders = undefined;
+      }
+      return {
+        tmpContainer: updatedContainer,
+      };
     });
   }
 
@@ -492,6 +529,31 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
               type='number'
               isDisabled={!!(this.state.tmpContainer.dataModelBindings.group)}
             />
+            {renderSelectTextFromResources('modal_properties_group_add_button',
+              this.handleButtonTextChange,
+              this.props.textResources,
+              this.props.language,
+              this.state.tmpContainer.textResourceBindings?.add_button)
+            }
+            <Grid item={true} style={{ marginTop: '24px' }}>
+              {this.props.language.ux_editor.modal_properties_group_table_headers}
+              {this.props.itemOrder.map((id: string, index: number) => {
+                const componentLabel = getTextResource(
+                  this.props.components[id].textResourceBindings?.title,
+                  this.props.textResources,
+                );
+                const tableHeaders = this.state.tmpContainer.tableHeaders || this.props.itemOrder;
+                return (
+                  <Grid item={true} xs={12}>
+                    <AltinnCheckBox
+                      checked={tableHeaders.includes(id)}
+                      onChangeFunction={() => this.handleTableHeadersChange(id, index)}
+                    />
+                    {componentLabel}
+                  </Grid>
+                );
+              })}
+            </Grid>
           </Grid>
         }
       </Grid>
@@ -705,6 +767,7 @@ const makeMapStateToProps = () => {
       onDropComponent: props.onDropComponent,
       onMoveContainer: props.onMoveContainer,
       onDropContainer: props.onDropContainer,
+      textResources: state.appData.textResources.resources,
     };
   };
   return mapStateToProps;
