@@ -48,7 +48,7 @@ declare global {
     index?: number;
     itemType?: string;
     dataModelBindings?: IDataModelBindings;
-    maxCount: number;
+    maxCount?: number;
     textResourceBindings?: ITextResourceBindings;
     tableHeaders?: string[];
   }
