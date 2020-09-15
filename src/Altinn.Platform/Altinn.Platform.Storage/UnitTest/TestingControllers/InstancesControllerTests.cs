@@ -749,7 +749,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             {
                 // Arrange
                 int instanceOwnerPartyId = 1337;
-                string instanceGuid = "824e8304-ad9e-4d79-ac75-bcfa7213223b";
+                string instanceGuid = "20475edd-dc38-4ae0-bd64-1b20643f506c";
 
                 Substatus expectedSubStatus = new Substatus { Label = "Substatus.Approved.Label", Description= "Substatus.Approved.Description" };
 
@@ -845,6 +845,37 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
                 // Assert
                 Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            }
+
+            /// <summary>
+            /// Scenario:
+            /// Org tries to update substatus without setting label.
+            /// Result:
+            /// Response is 400 bas request.
+            /// </summary>
+            [Fact]
+            public async void UpdateSubstatus_MissingLabel_ReturnsBadRequest()
+            {
+                // Arrange
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "824e8304-ad9e-4d79-ac75-bcfa7213223b";
+
+                Substatus subStatus = new Substatus { Description = "Substatus.Approved.Description" };
+
+                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/substatus";
+
+                HttpClient client = GetTestClient();
+
+                string token = PrincipalUtil.GetOrgToken("tdd");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             }
 
             private HttpClient GetTestClient()
