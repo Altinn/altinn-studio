@@ -157,7 +157,7 @@ describe('>>> features/form/components/Group.tsx', () => {
   it('+++ should render add new button with custom label when supplied', async () => {
     const mockContainerWithLabel: ILayoutGroup = {
       textResourceBindings: {
-        header: 'person',
+        add_button: 'person',
       },
       ...mockContainer,
     };

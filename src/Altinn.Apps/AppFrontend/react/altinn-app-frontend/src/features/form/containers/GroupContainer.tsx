@@ -323,7 +323,7 @@ export function GroupContainer({
           <Grid item={true}>
             <span className={classes.addButtonText}>
               {`${getLanguageFromKey('general.add_new', language)} 
-              ${container.textResourceBindings?.header ? getTextResourceByKey(container.textResourceBindings.header, textResources) : ''}`}
+              ${container.textResourceBindings?.add_button ? getTextResourceByKey(container.textResourceBindings.add_button, textResources) : ''}`}
             </span>
           </Grid>
         </Grid>
