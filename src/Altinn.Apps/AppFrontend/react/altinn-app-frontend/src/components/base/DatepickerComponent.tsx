@@ -129,7 +129,8 @@ function DatepickerComponent(props: IDatePickerProps) {
   }, [props.formData, props.componentValidations]);
 
   const handleDataChangeWrapper = (dateValue: moment.Moment) => {
-    setDate(dateValue);
+    dateValue.set('hour', 12);
+    dateValue.set('minute', 0);
     setValidDate(true); // we reset valid date => show error onBlur or when user is done typing
     setValidationMessages({});
     if (dateValue && dateValue.isValid()) {
@@ -150,7 +151,8 @@ function DatepickerComponent(props: IDatePickerProps) {
   const handleOnBlur = () => {
     setValidDate(isValidDate(date));
     setValidationMessages(getValidationMessages());
-    const dateString = props.timeStamp === false ? date.format(DatePickerSaveFormatNoTimestamp) : date?.toISOString(true);
+    const dateString = (props.timeStamp === false) ?
+      date.format(DatePickerSaveFormatNoTimestamp) : date?.toISOString(true);
     const saveDate = isDateEmpty() ? '' : dateString;
     props.handleDataChange(saveDate);
   };
