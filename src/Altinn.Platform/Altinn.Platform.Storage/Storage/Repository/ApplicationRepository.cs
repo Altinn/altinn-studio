@@ -149,13 +149,18 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<List<Application>> ListApplications(string org)
         {
+            List<Application> applications = new List<Application>();
+
             IDocumentQuery<Application> query = _client
                 .CreateDocumentQuery<Application>(_collectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
                 .Where(i => i.Org == org)
                 .AsDocumentQuery();
 
-            FeedResponse<Application> result = await query.ExecuteNextAsync<Application>();
-            List<Application> applications = result.ToList<Application>();
+            while (query.HasMoreResults)
+            {
+                FeedResponse<Application> result = await query.ExecuteNextAsync<Application>();
+                applications.AddRange(result.ToList());
+            }
 
             PostProcess(applications);
 
