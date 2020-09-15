@@ -537,8 +537,12 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
               this.handleButtonTextChange,
               this.props.textResources,
               this.props.language,
-              this.state.tmpContainer.textResourceBindings?.add_button)
+              this.state.tmpContainer.textResourceBindings?.add_button,
+              undefined, undefined, undefined,
+              getLanguageFromKey('ux_editor.modal_properties_group_add_button_description', this.props.language),
+              true)
             }
+            {(this.props.itemOrder.length > 0) &&
             <Grid item={true} style={{ marginTop: '24px' }}>
               {this.props.language.ux_editor.modal_properties_group_table_headers}
               {this.props.itemOrder.map((id: string, index: number) => {
@@ -558,6 +562,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
                 );
               })}
             </Grid>
+            }
           </Grid>
         }
       </Grid>

@@ -92,6 +92,9 @@ const useStyles = makeStyles({
     padding: '0px',
     color: 'black',
   },
+  editIcon: {
+    paddingLeft: '6px',
+  },
   mobileGrid: {
     borderBottom: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
     paddingLeft: '0.6rem',
@@ -239,7 +242,10 @@ export function GroupContainer({
                     <TableCell align='right' key={`delete-${repeatingGroupIndex}`}>
                       <IconButton style={{ color: 'black' }} onClick={() => onClickEdit(repeatingGroupIndex)}>
                         {getLanguageFromKey('general.edit_alt', language)}
-                        <i className={rowHasErrors ? `ai ai-circle-exclamation a-icon ${classes.errorIcon}` : 'fa fa-editing-file'}/>
+                        <i className={rowHasErrors ?
+                          `ai ai-circle-exclamation a-icon ${classes.errorIcon} ${classes.editIcon}` :
+                          `fa fa-editing-file ${classes.editIcon}`}
+                        />
                       </IconButton>
                     </TableCell>
                   </TableRow>);
@@ -269,7 +275,10 @@ export function GroupContainer({
                     }} onClick={() => onClickEdit(repeatingGroupIndex)}
                   >
                     {getLanguageFromKey('general.edit_alt', language)}
-                    <i className={rowHasErrors ? `ai ai-circle-exclamation a-icon ${classes.errorIcon}` : 'fa fa-editing-file'}/>
+                    <i className={rowHasErrors ?
+                      `ai ai-circle-exclamation a-icon ${classes.errorIcon}` :
+                      `fa fa-editing-file ${classes.editIcon}`}
+                    />
                   </IconButton>
                 </Grid>
                 {componentTitles.map((title: string, index: number) => {

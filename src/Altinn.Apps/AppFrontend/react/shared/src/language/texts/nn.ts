@@ -110,7 +110,7 @@ export function nn() {
       version: 'Versjon',
     },
     group: {
-      row_error: 'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',
+      row_error: 'Ei av radene er ikkje fylt ut riktig. Dette må bli retta før skjema kan sendast inn.',
     },
     instantiate: {
       all_forms: 'alle skjema',
