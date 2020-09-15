@@ -148,6 +148,7 @@ namespace Altinn.Platform.Storage.Repository
                     queryResponse.Instances.AddRange(instances);
                     queryResponse.Count += instances.Count;
                     queryResponse.ContinuationToken = feedResponse.ResponseContinuation;
+                    continuationToken = feedResponse.ResponseContinuation;
                 }
                 catch (Exception e)
                 {
@@ -158,7 +159,7 @@ namespace Altinn.Platform.Storage.Repository
             }
 
             return queryResponse;
-        }        
+        }
 
         private IQueryable<Instance> BuildQueryFromParameters(Dictionary<string, StringValues> queryParams, IQueryable<Instance> queryBuilder)
         {
