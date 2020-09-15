@@ -1,0 +1,21 @@
+version: '3.4'
+
+networks:
+  altinnplatform_network:
+    external: false
+
+services:
+  altinn_platform_events:
+    container_name: altinn-platform-events
+    image: altinn-platform-events:latest
+    restart: always
+    networks:
+      - altinnplatform_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5080
+    ports:
+      - "5080:5080"
+    build:
+      context: .
+      dockerfile: Events/Dockerfile

@@ -8,8 +8,16 @@ using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.Util
 {
+    /// <summary>
+    /// Class with methods that can help with assertions of larger objects.
+    /// </summary>
     public static class AssertionUtil
     {
+        /// <summary>
+        /// Assert that two <see cref="XacmlContextResponse"/> have the same property values.
+        /// </summary>
+        /// <param name="expected">An instance with the expected values.</param>
+        /// <param name="actual">The instance to verify.</param>
         public static void AssertEqual(XacmlContextResponse expected, XacmlContextResponse actual)
         {
             Assert.NotNull(actual);
@@ -21,7 +29,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                 AssertEqual(expected.Results.First(), actual.Results.First());
             }
         }
-
+        
+        /// <summary>
+        /// Assert that two <see cref="XacmlJsonResponse"/> have the same property values.
+        /// </summary>
+        /// <param name="expected">An instance with the expected values.</param>
+        /// <param name="actual">The instance to verify.</param>
         public static void AssertEqual(XacmlJsonResponse expected, XacmlJsonResponse actual)
         {
             Assert.NotNull(actual);
@@ -36,6 +49,19 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                 }
             }
         }
+        
+        /// <summary>
+        /// Assert that two <see cref="XacmlContextRequest"/> have the same property values.
+        /// </summary>
+        /// <param name="expected">An instance with the expected values.</param>
+        /// <param name="actual">The instance to verify.</param>
+        public static void AssertEqual(XacmlContextRequest expected, XacmlContextRequest actual)
+        {
+            Assert.Equal(expected.Attributes.Count, actual.Attributes.Count);
+            Assert.Equal(expected.GetResourceAttributes().Attributes.Count, actual.GetResourceAttributes().Attributes.Count);
+            Assert.Equal(expected.GetSubjectAttributes().Attributes.Count, actual.GetSubjectAttributes().Attributes.Count);
+            AssertEqual(expected.Attributes, actual.Attributes);
+        }
 
         private static void AssertEqual(XacmlJsonResult expected, XacmlJsonResult actual)
         {
@@ -43,15 +69,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.Status.StatusCode.Value, actual.Status.StatusCode.Value);
             AssertEqual(expected.Obligations, actual.Obligations);
             AssertEqual(expected.Category, actual.Category);
-
-        }
-
-        public static void AssertEqual(XacmlContextRequest expected, XacmlContextRequest actual)
-        {
-            Assert.Equal(expected.Attributes.Count, actual.Attributes.Count);
-            Assert.Equal(expected.GetResourceAttributes().Attributes.Count, actual.GetResourceAttributes().Attributes.Count);
-            Assert.Equal(expected.GetSubjectAttributes().Attributes.Count, actual.GetSubjectAttributes().Attributes.Count);
-            AssertEqual(expected.Attributes, actual.Attributes);
         }
 
         private static void AssertEqual(List<XacmlJsonObligationOrAdvice> expected, List<XacmlJsonObligationOrAdvice> actual)
@@ -84,7 +101,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             {
                 AssertEqual(expected[i], actual[i]);
             }
-                
         }
 
         private static void AssertEqual(XacmlJsonCategory expected, XacmlJsonCategory actual)
@@ -108,7 +124,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.Category, actual.Category);
             Assert.Equal(expected.DataType, actual.DataType);
             Assert.Equal(expected.Issuer, actual.Issuer);
-            Assert.Equal(expected.Value, actual.Value, ignoreCase: true);
+            Assert.Equal(expected.Value, actual.Value, true);
         }
 
         private static void AssertEqual(List<XacmlJsonAttribute> expected, List<XacmlJsonAttribute> actual)
@@ -132,7 +148,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.DataType, actual.DataType);
             Assert.Equal(expected.IncludeInResult, actual.IncludeInResult);
             Assert.Equal(expected.Issuer, actual.Issuer);
-            Assert.Equal(expected.Value, actual.Value, ignoreCase: true);
+            Assert.Equal(expected.Value, actual.Value, true);
         }
 
         private static void AssertEqual(XacmlContextResult expected, XacmlContextResult actual)
@@ -168,6 +184,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.FulfillOn, actual.FulfillOn);
             Assert.Equal(expected.ObligationId, actual.ObligationId);
             Assert.Equal(expected.AttributeAssignment.Count, expected.AttributeAssignment.Count);
+
             if (expected.AttributeAssignment.Count > 0)
             {
                 AssertEqual(expected.AttributeAssignment.First(), actual.AttributeAssignment.First());
@@ -192,7 +209,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             {
                 AssertEqual(expectedList[i], actualList[i]);
             }
-
         }
 
         private static void AssertEqual(XacmlContextAttributes expected, XacmlContextAttributes actual)

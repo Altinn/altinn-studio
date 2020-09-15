@@ -13,7 +13,6 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -126,9 +125,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}.");
-                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Repo info: {JsonConvert.SerializeObject(repo.Info)}");
-                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Exception: {e}");
+                    _logger.LogError($"SourceControlSI // PullRemoteChanges // Exception occured when pulling repo {FindLocalRepoLocation(org, repository)}. {e}");
                     throw;
                 }
             }
@@ -146,11 +143,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string logMessage = string.Empty;
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
             {
-                if (repo == null || repo.Network?.Remotes == null)
-                {
-                    _logger.LogError($"Retrieving repo or network remotes failed for repo: {FindLocalRepoLocation(org, repository)}");
-                }
-
                 FetchOptions fetchOptions = new FetchOptions();
                 fetchOptions.CredentialsProvider = (_url, _user, _cred) =>
                          new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };

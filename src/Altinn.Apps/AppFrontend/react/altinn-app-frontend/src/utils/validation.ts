@@ -1,7 +1,6 @@
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 import moment from 'moment';
 import Ajv from 'ajv';
-import { JsonPointer } from 'json-ptr';
 import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups } from 'src/types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout';
 import { IValidationIssue, Severity } from '../types';
@@ -13,13 +12,15 @@ import { getKeyWithoutIndex } from './databindings';
 // eslint-disable-next-line import/no-cycle
 import { matchLayoutComponent } from './layout';
 
+const JsonPointer = require('jsonpointer');
+
 export function createValidator(schema: any): ISchemaValidator {
   const ajv = new Ajv({ allErrors: true, coerceTypes: true });
   ajv.addFormat('year', /^[0-9]{4}$/);
   ajv.addSchema(schema, 'schema');
   const rootKey = Object.keys(schema.properties)[0];
   const rootElementPath = schema.properties[rootKey].$ref;
-  const rootPtr = JsonPointer.create(rootElementPath);
+  const rootPtr = JsonPointer.compile(rootElementPath.substr(1));
   const rootElement = rootPtr.get(schema);
   const schemaValidator: ISchemaValidator = {
     validator: ajv,
@@ -335,18 +336,18 @@ export function getSchemaPart(dataModelPath: string[], subSchema: any, mainSchem
   if (subSchema.properties && subSchema.properties[dataModelRoot] && dataModelPath && dataModelPath.length !== 0) {
     const localRootElement = subSchema.properties[dataModelRoot];
     if (localRootElement.$ref) {
-      const childSchemaPtr = JsonPointer.create(localRootElement.$ref);
+      const childSchemaPtr = JsonPointer.compile(localRootElement.$ref.substr(1));
       return getSchemaPart(dataModelPath.slice(1), childSchemaPtr.get(mainSchema), mainSchema);
     }
     if (localRootElement.items && localRootElement.items.$ref) {
-      const childSchemaPtr = JsonPointer.create(localRootElement.items.$ref);
+      const childSchemaPtr = JsonPointer.compile(localRootElement.items.$ref.substr(1));
       return getSchemaPart(dataModelPath.slice(1), childSchemaPtr.get(mainSchema), mainSchema);
     }
     return localRootElement;
   }
 
   if (subSchema.$ref) {
-    const ptr = JsonPointer.create(subSchema.$ref);
+    const ptr = JsonPointer.compile(subSchema.$ref.substr(1));
     return getSchemaPart(dataModelPath.slice(1), ptr.get(mainSchema), mainSchema);
   }
 

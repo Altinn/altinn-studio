@@ -8,7 +8,7 @@ namespace Altinn.Platform.Authorization.Health
     /// <summary>
     /// Filter to exclude health check request from Application Insights
     /// </summary>
-   [ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]
     public class HealthTelemetryFilter : ITelemetryProcessor
     {
         private ITelemetryProcessor Next { get; set; }

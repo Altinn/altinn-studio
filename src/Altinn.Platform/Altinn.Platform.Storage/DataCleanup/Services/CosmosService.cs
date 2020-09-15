@@ -98,6 +98,45 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         }
 
         /// <inheritdoc/>
+        public async Task<List<Instance>> GetAllInstancesOfApp(string app)
+        {
+            if (!_clientConnectionEstablished)
+            {
+                _clientConnectionEstablished = await ConnectClient();
+            }
+
+            List<Instance> instances = new List<Instance>();
+            FeedOptions feedOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = true
+            };
+
+            IQueryable<Instance> filter;
+            Uri instanceCollectionUri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceCollectionId);
+
+            filter = _client.CreateDocumentQuery<Instance>(instanceCollectionUri, feedOptions)
+                .Where(i => i.AppId.Equals($"ttd/{app}"));
+
+            try
+            {
+                IDocumentQuery<Instance> query = filter.AsDocumentQuery();
+
+                while (query.HasMoreResults)
+                {
+                    FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
+                    instances.AddRange(feedResponse.ToList());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"CosmosService // GetAllInstancesOfApp ttd/{app} // Exeption: {ex.Message}");
+            }
+
+            // no post process requiered as the data is not exposed to the end user
+            return instances;
+        }
+
+        /// <inheritdoc/>
         public async Task<List<Instance>> GetHardDeletedInstances()
         {
             if (!_clientConnectionEstablished)

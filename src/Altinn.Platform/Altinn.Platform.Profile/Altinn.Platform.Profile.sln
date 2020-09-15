@@ -7,12 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Profile", "
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BA784F39-D1C6-4AF4-A8D8-DA9EC183636F}"
-	ProjectSection(SolutionItems) = preProject
-		Altinn3.ruleset = Altinn3.ruleset
-		stylecop.json = stylecop.json
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Profile.Tests", "UnitTests\Altinn.Platform.Profile.Tests.csproj", "{5F3A2322-627F-430A-8B1A-88D76C9E9B1A}"
 EndProject
 Global

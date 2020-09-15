@@ -90,7 +90,6 @@ namespace Altinn.Studio.Designer
                 services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
                 services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
                 Console.WriteLine($"// Program.cs // ConfigureServices // Successfully added AI config.");
-
             }
 
             services.ConfigureLocalization();
@@ -183,16 +182,20 @@ namespace Altinn.Studio.Designer
                 endpoints.MapControllerRoute(
                         name: "serviceDevelopmentRoute",
                         pattern: "designer/{org}/{app}",
-                        defaults: new { controller = "ServiceDevelopment", action = "index" });
+                        defaults: new { controller = "ServiceDevelopment", action = "index" },
+                        constraints: new
+                        {
+                            app = "^[a-z]+[a-zA-Z0-9-]+[a-zA-Z0-9]$",
+                        });
 
                 endpoints.MapControllerRoute(
-                    name: "designerApiRoute",
-                    pattern: "designerapi/{controller}/{action=Index}/{id?}",
-                    defaults: new { controller = "Repository" },
-                    constraints: new
-                    {
-                        controller = @"(Repository|Language|User)",
-                    });
+                        name: "designerApiRoute",
+                        pattern: "designerapi/{controller}/{action=Index}/{id?}",
+                        defaults: new { controller = "Repository" },
+                        constraints: new
+                        {
+                            controller = @"(Repository|Language|User)",
+                        });
                 endpoints.MapControllerRoute(
                           name: "serviceRoute",
                           pattern: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
@@ -200,7 +203,7 @@ namespace Altinn.Studio.Designer
                           constraints: new
                           {
                               controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
-                              app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                              app = "^[a-z]+[a-zA-Z0-9-]+[a-zA-Z0-9]$",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
                           });
 

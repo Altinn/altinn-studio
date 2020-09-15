@@ -1,5 +1,6 @@
-using Altinn.Platform.Register.Enums;
 using System.Collections.Generic;
+
+using Altinn.Platform.Register.Enums;
 
 namespace Altinn.Platform.Register.Models
 {

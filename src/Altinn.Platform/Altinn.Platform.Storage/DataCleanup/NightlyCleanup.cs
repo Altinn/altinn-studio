@@ -54,7 +54,7 @@ namespace Altinn.Platform.Storage.DataCleanup
                         }
                     }
 
-                    if (dataElementMetadataDeleted)
+                    if (instance.Data.Count == 0 || dataElementMetadataDeleted)
                     {
                         await _cosmosService.DeleteInstanceDocument(instance.Id, instance.InstanceOwner.PartyId);
                         log.LogInformation($"NightlyCleanup // Run // Instance deleted: {instance.AppId}/{instance.InstanceOwner.PartyId}/{instance.Id}");

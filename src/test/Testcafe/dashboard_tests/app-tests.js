@@ -25,12 +25,12 @@ fixture('Creating/Reading/Updating/Deleting App')
 test('Cannot create new app, as app name already exists', async () => {
   await t
     .click(dash.newAppButton)
-    .click(dash.tjenesteEier)
+    .click(dash.appOwner)
     .expect(dash.appOwnerList.withExactText('Testdepartementet').exists).ok()
     .click(dash.appOwnerList.withExactText('Testdepartementet'))
     .click(dash.appName)
     .typeText(dash.appName, t.ctx.existingApp)
-    .click(dash.opprettButton)
+    .click(dash.createAppButton)
     .expect(dash.appExistsDialogue.exists).ok()
 });
 

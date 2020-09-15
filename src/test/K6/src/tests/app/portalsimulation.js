@@ -138,4 +138,5 @@ export default function (data) {
     });
     addErrorCount(success);
     printResponseToConsole("E2E App Instance is not archived:", success, res);
+
 };

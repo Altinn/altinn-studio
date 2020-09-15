@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,7 +12,7 @@ using Newtonsoft.Json;
 
 using Xunit;
 
-namespace Altinn.Platform.Profile.Tests
+namespace Altinn.Platform.Profile.Tests.ApiTests
 {
     public class UserProfileTests : IClassFixture<WebApplicationFactory<Startup>>
     {
@@ -31,9 +30,8 @@ namespace Altinn.Platform.Profile.Tests
 
             HttpClient client = SetupUtil.GetTestClient(_factory);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/profile/api/v1/users/current")
-            {
-            };
+            HttpRequestMessage httpRequestMessage =
+                new HttpRequestMessage(HttpMethod.Get, "/profile/api/v1/users/current");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
@@ -50,9 +48,8 @@ namespace Altinn.Platform.Profile.Tests
 
             HttpClient client = SetupUtil.GetTestClient(_factory);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/profile/api/v1/users/1337")
-            {
-            };
+            HttpRequestMessage httpRequestMessage =
+                new HttpRequestMessage(HttpMethod.Get, "/profile/api/v1/users/1337");
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
@@ -71,9 +68,8 @@ namespace Altinn.Platform.Profile.Tests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpStatusCode expected = HttpStatusCode.NotFound;
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/profile/api/v1/users/1994")
-            {
-            };
+            HttpRequestMessage httpRequestMessage =
+                new HttpRequestMessage(HttpMethod.Get, "/profile/api/v1/users/1994");
 
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
@@ -136,6 +132,5 @@ namespace Altinn.Platform.Profile.Tests
             // Assert
             Assert.Equal(expected, actual);
         }
-
     }
 }

@@ -1,14 +1,13 @@
 using System;
-using System.IO;
 using System.Net.Http;
-using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Profile.Configuration;
-using Altinn.Platform.Profile.Helpers;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Profile.Services.Interfaces;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -26,7 +25,7 @@ namespace Altinn.Platform.Profile.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="UserProfilesWrapper"/> class
         /// </summary>
-        /// <param name="httpClient">Httpclient from default httpclient factory</param>
+        /// <param name="httpClient">HttpClient from default http client factory</param>
         /// <param name="logger">the logger</param>
         /// <param name="generalSettings">the general settings</param>
         public UserProfilesWrapper(HttpClient httpClient, ILogger<UserProfilesWrapper> logger, IOptions<GeneralSettings> generalSettings)

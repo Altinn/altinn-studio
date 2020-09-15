@@ -3,14 +3,14 @@
 export function en() {
   return {
     address_component: {
-      address: 'Gateadresse',
-      care_of: 'C/O eller annen tilleggsadresse',
-      house_number: 'Bolignummer',
-      house_number_helper: 'Om addressen er felles for flere boenhenter må du oppgi bolignummer. Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.',
-      post_place: 'Poststed',
-      simplified: 'Enkel',
-      title_text_binding: 'Søk etter ledetekst for Adressekomponenten',
-      zip_code: 'Postnr',
+      address: 'Street Address',
+      care_of: 'C/O or other additional address',
+      house_number: 'House Number',
+      house_number_helper: 'If several residents share the same address you must provide house number. It consists of one letter and four numbers and should be listed at your front door.',
+      post_place: 'Post Place',
+      simplified: 'Simplified',
+      title_text_binding: 'Search for title for address component',
+      zip_code: 'Zip Code',
       validation_error_zipcode: 'Zip code is invalid',
       validation_error_house_number: 'House number is invalid',
     },
