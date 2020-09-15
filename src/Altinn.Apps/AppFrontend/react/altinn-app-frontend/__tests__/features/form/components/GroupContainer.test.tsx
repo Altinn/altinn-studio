@@ -176,7 +176,7 @@ describe('>>> features/form/components/Group.tsx', () => {
     expect(item).not.toBeNull();
   });
 
-  it('+++ should not show add button when maxOccurs is reached', async () => {
+  it('+++ should not show add button when maxOccurs is reached', () => {
     const mockContainerWithMaxCount = {
       ...mockContainer,
       maxCount: 3,
@@ -192,7 +192,7 @@ describe('>>> features/form/components/Group.tsx', () => {
         />
       </Provider>,
     );
-    const addButton = await utils.queryByText('Legg til ny');
+    const addButton = utils.queryByText('Legg til ny');
     expect(addButton).toBeNull();
   });
 });

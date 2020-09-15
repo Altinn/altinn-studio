@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 /* eslint-disable global-require */
 /* eslint-disable react/button-has-type */

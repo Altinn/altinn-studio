@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { useSelector } from 'react-redux';

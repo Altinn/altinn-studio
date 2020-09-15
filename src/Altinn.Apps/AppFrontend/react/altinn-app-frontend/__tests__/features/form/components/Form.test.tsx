@@ -1,7 +1,6 @@
 /* tslint:disable:jsx-wrap-multiline */
 import 'jest';
 import * as React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
