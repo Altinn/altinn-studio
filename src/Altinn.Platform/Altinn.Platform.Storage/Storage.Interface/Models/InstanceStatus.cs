@@ -35,7 +35,13 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "readStatus")]
         [JsonConverter(typeof(StringEnumConverter))]
-        public ReadStatus ReadStatus{get; set;}
+        public ReadStatus ReadStatus { get; set; }
+
+        /// <summary>
+        /// Gets or sets the sub status of the instance.
+        /// </summary>
+        [JsonProperty(PropertyName = "subStatus")]
+        public SubStatus SubStatus { get; set; }
     }
 
     public enum ReadStatus
@@ -54,5 +60,20 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Instance has been updated since last review
         /// </summary>
         UpdatedSinceLastReview
+    }
+
+    public class SubStatus
+    {
+        /// <summary>
+        /// A text key pointing to a short description of the sub status.
+        /// </summary>
+        [JsonProperty(PropertyName = "label")]
+        public string Label { get; set; }
+
+        /// <summary>
+        /// A text key pointing to a longer description of the sub status.
+        /// </summary>
+        [JsonProperty(PropertyName = "description")]
+        public string Description { get; set; }
     }
 }
