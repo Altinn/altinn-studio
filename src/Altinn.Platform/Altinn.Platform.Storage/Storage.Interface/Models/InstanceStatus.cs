@@ -64,9 +64,15 @@ namespace Altinn.Platform.Storage.Interface.Models
 
     public class SubStatus
     {
+        /// <summary>
+        /// A text key pointing to a short description of the sub status.
+        /// </summary>
         [JsonProperty(PropertyName = "label")]
         public string Label { get; set; }
 
+        /// <summary>
+        /// A text key pointing to a longer description of the sub status.
+        /// </summary>
         [JsonProperty(PropertyName = "description")]
         public string Description { get; set; }
     }
