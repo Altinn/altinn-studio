@@ -484,6 +484,7 @@ namespace App.IntegrationTests
             string app = "endring-av-navn";
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "66233fb5-a9f2-45d4-90b1-f6d93ad40713";
+            TestDataUtil.PrepareInstance(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
 
             Substatus subStatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
@@ -497,6 +498,7 @@ namespace App.IntegrationTests
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            TestDataUtil.DeleteInstance(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
