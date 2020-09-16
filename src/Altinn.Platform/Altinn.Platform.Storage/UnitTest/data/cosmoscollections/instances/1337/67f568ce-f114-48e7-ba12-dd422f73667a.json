@@ -5,6 +5,10 @@
   "org": "tdd",
   "data": [],
   "status": {
-    "softDeleted": "2020-04-29T13:53:06.117891Z"
+    "softDeleted": "2020-04-29T13:53:06.117891Z",
+    "subStatus": {
+      "label": "substatus.Initial.Label",
+      "description": "substatus.Initial.Description"
+    }
   }
 }
