@@ -467,6 +467,64 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(updatedInstance);
         }
 
+        /// <summary>
+        /// Update instance sub status.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="substatus">The updated sub status.</param>
+        /// <returns>Returns the updated instance.</returns>
+        [Authorize]
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/substatus")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> UpdateSubStatus(
+          [FromRoute] int instanceOwnerPartyId,
+          [FromRoute] Guid instanceGuid,
+          [FromBody] Substatus substatus)
+        {
+            DateTime creationTime = DateTime.UtcNow;
+
+            if (substatus == null || string.IsNullOrEmpty(substatus.Label))
+            {
+                return BadRequest($"Invalid sub status: {JsonConvert.SerializeObject(substatus)}. Substatus must be defined and include a label.");
+            }
+
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+
+            string org = User.GetOrg();
+            if (!instance.Org.Equals(org))
+            {
+                return Forbid();
+            }
+
+            Instance updatedInstance;
+            try
+            {
+                if (instance.Status == null)
+                {
+                    instance.Status = new InstanceStatus();
+                }
+
+                instance.Status.SubStatus = substatus;
+                instance.LastChanged = creationTime;
+                instance.LastChangedBy = User.GetOrgNumber().ToString();
+
+                updatedInstance = await _instanceRepository.Update(instance);
+                updatedInstance.SetPlatformSelfLinks(_storageBaseAndHost);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Unable to update sub status for instance {instanceId}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+
+            await DispatchEvent(InstanceEventType.SubstatusUpdated, updatedInstance);
+            return Ok(updatedInstance);
+        }
+
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
         {
             Instance createdInstance = new Instance
