@@ -296,8 +296,6 @@ namespace Altinn.App.Api.Controllers
         /// collected all the data and information they needed from the instance and expect no additional data to be added to it.
         /// The body of the request isn't used for anything despite this being a POST operation.
         /// </remarks>
-        /// <param name="org">unique identifier of the organisation responsible for the app</param>
-        /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
         /// <returns>Returns the instance with updated list of confirmations.</returns>
@@ -306,8 +304,6 @@ namespace Altinn.App.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Produces("application/json")]
         public async Task<ActionResult<Instance>> AddCompleteConfirmation(
-            [FromRoute] string org,
-            [FromRoute] string app,
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
@@ -321,6 +317,53 @@ namespace Altinn.App.Api.Controllers
             catch (Exception exception)
             {
                 return ExceptionResponse(exception, $"Adding complete confirmation to instance {instanceOwnerPartyId}/{instanceGuid} failed");
+            }
+        }
+
+        /// <summary>
+        /// Allows an app owner to update the substatus of an instance.
+        /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="substatus">The new substatus of the instance.</param>
+        /// <returns>Returns the instance with updated list of confirmations.</returns>
+        [Authorize]
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/substatus")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> UpdateSubstatus(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid,
+            [FromBody] Substatus substatus)
+        {
+            if (substatus == null || string.IsNullOrEmpty(substatus.Label))
+            {
+                return BadRequest($"Invalid sub status: {JsonConvert.SerializeObject(substatus)}. Substatus must be defined and include a label.");
+            }
+
+            Instance instance = await _instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+
+            string orgClaim = User.GetOrg();
+            if (!instance.Org.Equals(orgClaim))
+            {
+                return Forbid();
+            }
+
+            try
+            {
+                Instance updatedInstance = await _instanceService.UpdateSubstatus(instanceOwnerPartyId, instanceGuid, substatus);
+                SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+
+                return Ok(updatedInstance);
+            }
+            catch (Exception exception)
+            {
+                return ExceptionResponse(exception, $"Updating substatus for instance {instanceOwnerPartyId}/{instanceGuid} failed.");
             }
         }
 
