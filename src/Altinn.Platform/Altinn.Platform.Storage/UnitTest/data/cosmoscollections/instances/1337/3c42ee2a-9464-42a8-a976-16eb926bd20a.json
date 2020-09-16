@@ -12,5 +12,7 @@
   "visibleAfter": "2019-06-05T00:00:00Z",
   "process": {
     "currentTask": { "elementId": "Task_1" }
+  },
+  "status": {
   }
 }
