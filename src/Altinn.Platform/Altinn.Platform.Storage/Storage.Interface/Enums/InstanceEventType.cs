@@ -3,7 +3,7 @@ namespace Altinn.Platform.Storage.Interface.Enums
     /// <summary>
     /// Represents a set of different events that can occur for an instance
     /// </summary>
-    public enum InstanceEventType 
+    public enum InstanceEventType
     {
         /// <summary>
         /// Unkown instance event.
@@ -36,6 +36,16 @@ namespace Altinn.Platform.Storage.Interface.Enums
         Undeleted,
 
         /// <summary>
+        /// A stakeholder has confirmed that they consider the instance as complete.
+        /// </summary>
+        ConfirmedComplete,
+
+        /// <summary>
+        /// Instance substatus updated event.
+        /// </summary>
+        SubstatusUpdated,
+
+        /// <summary>
         /// Instance process start event.
         /// </summary>
         process_StartEvent,
@@ -53,11 +63,6 @@ namespace Altinn.Platform.Storage.Interface.Enums
         /// <summary>
         /// Instance process task ended event.
         /// </summary>
-        process_EndTask,
-
-        /// <summary>
-        /// A stakeholder has confirmed that they consider the instance as complete
-        /// </summary>
-        ConfirmedComplete
+        process_EndTask
     }
 }

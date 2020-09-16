@@ -738,6 +738,146 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.Equal(expectedMessage, actualMessage);
             }
 
+            /// <summary>
+            /// Scenario:
+            /// Update substatus for an instance where the substatus has not been initialized yet. 
+            /// Result:
+            /// substatus is successfuly updated and the updated instance returned.
+            /// </summary>
+            [Fact]
+            public async void UpdateSubstatus_SetInitialSubStatus_ReturnsUpdatedInstance()
+            {
+                // Arrange
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "20475edd-dc38-4ae0-bd64-1b20643f506c";
+
+                Substatus expectedSubStatus = new Substatus { Label = "Substatus.Approved.Label", Description= "Substatus.Approved.Description" };
+
+                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/substatus";
+
+                HttpClient client = GetTestClient();
+
+                string token = PrincipalUtil.GetOrgToken("tdd");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(expectedSubStatus), Encoding.UTF8, "application/json");
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                string json = await response.Content.ReadAsStringAsync();
+                Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+
+                // Assert
+                Assert.NotNull(updatedInstance);
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedSubStatus.Label, updatedInstance.Status.SubStatus.Label);
+                Assert.Equal(expectedSubStatus.Description, updatedInstance.Status.SubStatus.Description);
+                Assert.Equal("111111111", updatedInstance.LastChangedBy);
+                Assert.True(updatedInstance.LastChanged > DateTime.UtcNow.AddMinutes(-5));
+            }
+
+            /// <summary>
+            /// Scenario:
+            /// Update substatus for an instance where there is a pre-existing substatus.
+            /// Result:
+            /// substatus is completely overwritten by the new substatus.
+            /// </summary>
+            [Fact]
+            public async void UpdateSubstatus_OverwriteSubStatus_DescriptionIsEmpty()
+            {
+                // Arrange
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "67f568ce-f114-48e7-ba12-dd422f73667a";
+
+                Substatus expectedSubStatus = new Substatus { Label = "Substatus.Approved.Label" };
+
+                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/substatus";
+
+                HttpClient client = GetTestClient();
+
+                string token = PrincipalUtil.GetOrgToken("tdd");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(expectedSubStatus), Encoding.UTF8, "application/json");
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                string json = await response.Content.ReadAsStringAsync();
+                Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+
+                // Assert
+                Assert.NotNull(updatedInstance);
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedSubStatus.Label, updatedInstance.Status.SubStatus.Label);
+                Assert.Equal(expectedSubStatus.Description, updatedInstance.Status.SubStatus.Description);
+                Assert.Equal("111111111", updatedInstance.LastChangedBy);
+                Assert.True(updatedInstance.LastChanged > DateTime.UtcNow.AddMinutes(-5));
+            }
+
+            /// <summary>
+            /// Scenario:
+            /// Actor with user claims attemts to update substatus for an instance.
+            /// Result:
+            /// Response is 403 forbidden.
+            /// </summary>
+            [Fact]
+            public async void UpdateSubstatus_EndUserTriestoSetSubStatus_ReturnsForbidden()
+            {
+                // Arrange
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "824e8304-ad9e-4d79-ac75-bcfa7213223b";
+
+                Substatus subStatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
+
+                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/substatus";
+
+                HttpClient client = GetTestClient();
+
+                string token = PrincipalUtil.GetToken(3, 1337);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            }
+
+            /// <summary>
+            /// Scenario:
+            /// Org tries to update substatus without setting label.
+            /// Result:
+            /// Response is 400 bas request.
+            /// </summary>
+            [Fact]
+            public async void UpdateSubstatus_MissingLabel_ReturnsBadRequest()
+            {
+                // Arrange
+                int instanceOwnerPartyId = 1337;
+                string instanceGuid = "824e8304-ad9e-4d79-ac75-bcfa7213223b";
+
+                Substatus subStatus = new Substatus { Description = "Substatus.Approved.Description" };
+
+                string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/substatus";
+
+                HttpClient client = GetTestClient();
+
+                string token = PrincipalUtil.GetOrgToken("tdd");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            }
+
             private HttpClient GetTestClient()
             {
                 Mock<IApplicationRepository> applicationRepository = new Mock<IApplicationRepository>();
