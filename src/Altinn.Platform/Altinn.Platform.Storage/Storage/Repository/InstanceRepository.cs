@@ -96,66 +96,66 @@ namespace Altinn.Platform.Storage.Repository
             string continuationToken,
             int size)
         {
-            InstanceQueryResponse queryResponse = new InstanceQueryResponse();
-
-            FeedOptions feedOptions = new FeedOptions
+            InstanceQueryResponse queryResponse = new InstanceQueryResponse
             {
-                EnableCrossPartitionQuery = true,
-                MaxItemCount = size,
+                Count = 0,
+                Instances = new List<Instance>()
             };
 
-            if (continuationToken != null)
+            while (queryResponse.Count < size)
             {
-                feedOptions.RequestContinuation = continuationToken;
-            }
-
-            IQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
-
-            try
-            {
-                queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder);
-            }
-            catch (Exception e)
-            {
-                queryResponse.Exception = e.Message;
-                return queryResponse;
-            }
-
-            try
-            {
-                IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
-
-                FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
-                if (feedResponse.Count <= 0)
+                FeedOptions feedOptions = new FeedOptions
                 {
-                    queryResponse.Count = 0;
-                    queryResponse.TotalHits = 0;
-                    queryResponse.Instances = new List<Instance>();
+                    EnableCrossPartitionQuery = true,
+                    MaxItemCount = size - queryResponse.Count,
+                };
 
+                if (continuationToken != null)
+                {
+                    feedOptions.RequestContinuation = continuationToken;
+                }
+
+                IQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
+
+                try
+                {
+                    queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder);
+                }
+                catch (Exception e)
+                {
+                    queryResponse.Exception = e.Message;
                     return queryResponse;
                 }
 
-                string nextContinuationToken = feedResponse.ResponseContinuation;
+                try
+                {
+                    if (queryResponse.TotalHits == null)
+                    {
+                        queryResponse.TotalHits = queryBuilder.Count();
+                    }
 
-                _logger.LogInformation($"continuation token: {nextContinuationToken}");
+                    IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
 
-                // this migth be expensive
-                feedOptions.RequestContinuation = null;
-                int totalHits = queryBuilder.Count();
-                queryResponse.TotalHits = totalHits;
+                    FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
+                    if (feedResponse.Count == 0)
+                    {
+                        queryResponse.ContinuationToken = string.Empty;
+                        break;
+                    }
 
-                List<Instance> instances = feedResponse.ToList();
-
-                await PostProcess(instances);
-
-                queryResponse.Instances = instances;
-                queryResponse.ContinuationToken = nextContinuationToken;
-                queryResponse.Count = instances.Count;
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("error: {e}");
-                queryResponse.Exception = e.Message;
+                    List<Instance> instances = feedResponse.ToList();
+                    await PostProcess(instances);
+                    queryResponse.Instances.AddRange(instances);
+                    queryResponse.Count += instances.Count;
+                    queryResponse.ContinuationToken = feedResponse.ResponseContinuation;
+                    continuationToken = feedResponse.ResponseContinuation;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError("error: {e}");
+                    queryResponse.Exception = e.Message;
+                    break;
+                }
             }
 
             return queryResponse;
