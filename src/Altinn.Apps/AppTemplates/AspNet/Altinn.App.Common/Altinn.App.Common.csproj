@@ -20,6 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.2.2" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.2.4" />
   </ItemGroup>
 </Project>
