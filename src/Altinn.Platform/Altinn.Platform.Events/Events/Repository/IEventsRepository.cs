@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using CloudNative.CloudEvents;
+using Altinn.Platform.Events.Models;
 
 namespace Altinn.Platform.Events.Repository
 {
