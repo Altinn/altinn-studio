@@ -1,6 +1,7 @@
 namespace Altinn.Platform.Storage.Repository
 {
     using System;
+    using System.Collections.Generic;
     using System.Net;
     using System.Threading.Tasks;
     using Altinn.Platform.Storage.Configuration;
@@ -8,6 +9,7 @@ namespace Altinn.Platform.Storage.Repository
     using Altinn.Platform.Storage.Interface.Models;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
 
@@ -21,15 +23,17 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string _collectionId = "texts";
         private readonly string _partitionKey = "/org";
         private readonly DocumentClient _client;
+        private readonly ILogger<ITextRepository> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
-        public TextRepository(IOptions<AzureCosmosSettings> cosmosettings)
+        /// <param name="logger">the logger</param>
+        public TextRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<ITextRepository> logger)
         {
             var database = new CosmosDatabaseHandler(cosmosettings.Value);
-
+            _logger = logger;
             _client = database.CreateDatabaseAndCollection(_collectionId);
             _collectionUri = database.CollectionUri;
             _databaseId = database.DatabaseName;
@@ -66,6 +70,33 @@ namespace Altinn.Platform.Storage.Repository
 
                 throw;
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<TextResource>> Get(List<string> appIds, string language)
+        {
+            List<TextResource> result = new List<TextResource>();
+            foreach (string appId in appIds)
+            {
+                string org = appId.Split("/")[0];
+                string app = appId.Split("/")[1];
+
+                // Swallowing exceptions, only adding valid text resources as this is used by messagebox
+                try
+                {
+                    TextResource resource = await Get(org, app, language);
+                    if (resource != null)
+                    {
+                        result.Add(resource);
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError($"Error occured when retriecing text resources for {org}-{app} in language {language}. Exception: {e}");
+                }
+            }
+
+            return result;
         }
 
         /// <inheritdoc/>
