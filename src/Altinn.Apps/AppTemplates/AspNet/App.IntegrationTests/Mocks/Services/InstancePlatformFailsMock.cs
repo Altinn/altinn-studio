@@ -70,5 +70,10 @@ namespace App.IntegrationTests.Mocks.Services
         {
             throw new NotImplementedException();
         }
+
+        public Task<Instance> UpdateSubstatus(int instanceOwnerPartyId, Guid instanceGuid, Substatus substatus)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

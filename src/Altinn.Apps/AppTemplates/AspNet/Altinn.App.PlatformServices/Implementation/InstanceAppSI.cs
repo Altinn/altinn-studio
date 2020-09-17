@@ -181,6 +181,7 @@ namespace Altinn.App.Services.Implementation
             throw await PlatformHttpException.CreateAsync(response);
         }
 
+        /// <inheritdoc/>
         public async Task<Instance> UpdateReadStatus(int instanceOwnerPartyId, Guid instanceGuid, string readStatus)
         {
             string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/readstatus?status={readStatus}";
@@ -198,6 +199,24 @@ namespace Altinn.App.Services.Implementation
             _logger.LogError($"Could not update read status for instance {instanceOwnerPartyId}/{instanceGuid}. Request failed with status code {response.StatusCode}");
             return null;
 
+        }
+
+        /// <inheritdoc/>
+        public async Task<Instance> UpdateSubstatus(int instanceOwnerPartyId, Guid instanceGuid, Substatus substatus)
+        {
+            string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/substatus";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, new StringContent(JsonConvert.SerializeObject(substatus)));
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                string instanceData = await response.Content.ReadAsStringAsync();
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                return instance;
+            }
+
+            throw await PlatformHttpException.CreateAsync(response);
         }
     }
 }
