@@ -19,7 +19,7 @@ using Xunit;
 
 namespace App.IntegrationTests
 {
-    public class InstanceApiTest: IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
+    public class InstanceApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
 
@@ -132,7 +132,7 @@ namespace App.IntegrationTests
             Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
 
             Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
-            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn",1337, new Guid(createdInstance.Id.Split('/')[1]));
+            TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
 
         }
 
@@ -209,7 +209,7 @@ namespace App.IntegrationTests
             string token = PrincipalUtil.GetToken(1337);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            HttpResponseMessage response =  await client.PostAsync(uri, formData);
+            HttpResponseMessage response = await client.PostAsync(uri, formData);
 
             response.EnsureSuccessStatusCode();
 
@@ -351,7 +351,7 @@ namespace App.IntegrationTests
 
             TestDataUtil.DeleteInstanceAndData(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
             TestDataUtil.PrepareInstance(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
-        
+
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
 
             string token = PrincipalUtil.GetOrgToken(org);
@@ -391,7 +391,7 @@ namespace App.IntegrationTests
 
             TestDataUtil.DeleteInstanceAndData(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
             TestDataUtil.PrepareInstance(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
-            
+
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
 
             string token = PrincipalUtil.GetOrgToken("brg");
@@ -423,7 +423,7 @@ namespace App.IntegrationTests
 
             TestDataUtil.DeleteInstanceAndData(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
             TestDataUtil.PrepareInstance(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
-            
+
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
 
             string token = PrincipalUtil.GetToken(21023); // 21023 is connected to party with id 1337
@@ -436,6 +436,119 @@ namespace App.IntegrationTests
 
             // Assert
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Org tries to update substatus without setting label.
+        /// Result:
+        /// Response is 400 bas request.
+        /// </summary>
+        [Fact]
+        public async void UpdateSubstatus_MissingLabel_ReturnsBadRequest()
+        {
+            // Arrange
+            string org = "tdd";
+            string app = "endring-av-navn";
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "66233fb5-a9f2-45d4-90b1-f6d93ad40713";
+
+            Substatus subStatus = new Substatus { Description = "Substatus.Approved.Description" };
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+
+            string token = PrincipalUtil.GetOrgToken(org);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/substatus";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Actor with user claims attemts to update substatus for an instance.
+        /// Result:
+        /// Response is 403 forbidden.
+        /// </summary>
+        [Fact]
+        public async void UpdateSubstatus_EndUserTriestoSetSubStatus_ReturnsForbidden()
+        {
+            // Arrange
+            string org = "tdd";
+            string app = "endring-av-navn";
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "66233fb5-a9f2-45d4-90b1-f6d93ad40713";
+            TestDataUtil.PrepareInstance(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
+
+            Substatus subStatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+
+            string token = PrincipalUtil.GetToken(21023); // 21023 is connected to party with id 1337
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/substatus";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            TestDataUtil.DeleteInstance(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Scenario:
+        /// Update substatus for an instance where the substatus has not been initialized yet. 
+        /// Result:
+        /// substatus is successfuly updated and the updated instance returned.
+        /// </summary>
+        [Fact]
+        public async void UpdateSubstatus_SetInitialSubStatus_ReturnsUpdatedInstance()
+        {
+            // Arrange
+            string org = "tdd";
+            string app = "endring-av-navn";
+            int instanceOwnerPartyId = 1337;
+            string instanceGuid = "66233fb5-a9f2-45d4-90b1-f6d93ad40713";
+            Substatus expectedSubStatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
+            TestDataUtil.PrepareInstance(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+
+            string token = PrincipalUtil.GetOrgToken("tdd");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            string requestUri = $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/substatus";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            httpRequestMessage.Content = new StringContent(
+                JsonConvert.SerializeObject(new Substatus
+                {
+                    Label = "Substatus.Approved.Label",
+                    Description = "Substatus.Approved.Description"
+                }),
+                Encoding.UTF8, "application/json");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            TestDataUtil.DeleteInstance(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
+
+            string json = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
+
+            // Assert
+            Assert.NotNull(updatedInstance);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expectedSubStatus.Label, updatedInstance.Status.SubStatus.Label);
+            Assert.Equal(expectedSubStatus.Description, updatedInstance.Status.SubStatus.Description);
+            Assert.True(updatedInstance.LastChanged > DateTime.UtcNow.AddMinutes(-5));
         }
     }
 }

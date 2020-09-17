@@ -160,6 +160,82 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             handlerMock.VerifyAll();
         }
 
+        [Fact]
+        public async Task UpdateSubtatus_StorageReturnsSuccess()
+        {
+            // Arrange
+            Instance expected = new Instance
+            {
+                Status = new InstanceStatus
+                {
+                    SubStatus = new Substatus
+                    {
+                        Label = "Substatus.Label",
+                        Description = "Substatus.Description"
+                    }
+                }
+            };
+
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonConvert.SerializeObject(expected), Encoding.UTF8, "application/json"),
+            };
+
+            InitializeMocks(httpResponseMessage, "substatus");
+
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
+
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+
+            // Act       
+            Instance actual = await target.UpdateSubstatus(1337, Guid.NewGuid(), new Substatus
+            {
+                Label = "Substatus.Label",
+                Description = "Substatus.Description"
+            });
+
+
+            // Assert
+            Assert.Equal(expected.Status.SubStatus.Label, actual.Status.SubStatus.Label);
+            Assert.Equal(expected.Status.SubStatus.Description, actual.Status.SubStatus.Description);
+            handlerMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task UpdateSubtatus_StorageReturnsNonSuccess_ThrowsPlatformHttpException()
+        {
+            // Arrange
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
+            };
+
+            InitializeMocks(httpResponseMessage, "substatus");
+
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
+
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+
+            PlatformHttpException actualException = null;
+
+            // Act
+            try
+            {
+                await target.UpdateSubstatus(1337, Guid.NewGuid(), new Substatus());
+            }
+            catch (PlatformHttpException e)
+            {
+                actualException = e;
+            }
+
+            // Assert
+            handlerMock.VerifyAll();
+
+            Assert.NotNull(actualException);
+        }
+
         private void InitializeMocks(HttpResponseMessage httpResponseMessage, string urlPart)
         {
             PlatformSettings platformSettings = new PlatformSettings { ApiStorageEndpoint = "http://localhost", SubscriptionKey = "key" };
