@@ -102,12 +102,8 @@ namespace Altinn.Platform.Storage.Repository
                 Instances = new List<Instance>()
             };
 
-            int iteration = 0; 
-            
-            while (queryResponse.Count < size && (iteration == 0 || !string.IsNullOrEmpty(continuationToken)))
+            while (queryResponse.Count < size)
             {
-                ++iteration;
-
                 FeedOptions feedOptions = new FeedOptions
                 {
                     EnableCrossPartitionQuery = true,
@@ -151,8 +147,16 @@ namespace Altinn.Platform.Storage.Repository
                     await PostProcess(instances);
                     queryResponse.Instances.AddRange(instances);
                     queryResponse.Count += instances.Count;
-                    queryResponse.ContinuationToken = feedResponse.ResponseContinuation;
-                    continuationToken = feedResponse.ResponseContinuation;
+
+                    if (!string.IsNullOrEmpty(feedResponse.ResponseContinuation))
+                    {
+                        queryResponse.ContinuationToken = feedResponse.ResponseContinuation;
+                        continuationToken = feedResponse.ResponseContinuation;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
                 catch (Exception e)
                 {
