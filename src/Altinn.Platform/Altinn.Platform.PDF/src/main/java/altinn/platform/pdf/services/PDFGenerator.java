@@ -303,7 +303,12 @@ public class PDFGenerator {
   }
 
   private void renderLayoutElementContent(FormLayoutElement element) throws IOException {
-    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData));
+    String value = FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
+    if (element.getType().equalsIgnoreCase("Datepicker")) {
+      renderContent(TextUtils.getDateFormat(value, userProfile.getProfileSettingPreference().getLanguage()));
+    } else {
+      renderContent(value);
+    }
   }
 
   private void renderFileUploadContent(FormLayoutElement element) throws IOException {

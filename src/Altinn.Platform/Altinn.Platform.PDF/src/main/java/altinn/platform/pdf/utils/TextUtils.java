@@ -248,7 +248,7 @@ public class TextUtils {
    * @return the formatted date
    */
   public static String getDateFormat(String value, String countryCode) {
-    if (value == null || countryCode == null) {
+    if (value == null || value.isEmpty() || countryCode == null || countryCode.isEmpty()) {
       return "";
     }
     Locale locale = new Locale(countryCode);
