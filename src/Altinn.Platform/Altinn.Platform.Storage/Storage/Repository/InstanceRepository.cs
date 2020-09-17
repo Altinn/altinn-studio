@@ -102,8 +102,12 @@ namespace Altinn.Platform.Storage.Repository
                 Instances = new List<Instance>()
             };
 
-            while (queryResponse.Count < size)
+            int iteration = 0; 
+            
+            while (queryResponse.Count < size && (iteration == 0 || !string.IsNullOrEmpty(continuationToken)))
             {
+                ++iteration;
+
                 FeedOptions feedOptions = new FeedOptions
                 {
                     EnableCrossPartitionQuery = true,
