@@ -16,14 +16,16 @@ const formDataSelector = (state: IRuntimeState) => state.formData;
 function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
   try {
     const { data }: any = yield call(get, url);
+    const testId = 'FormLayout';
     const formDataState: IFormDataState = yield select(formDataSelector);
     const repeatingGroups = getRepeatingGroups(data.layout, formDataState.formData);
     yield call(
       Actions.fetchFormLayoutFulfilled,
-      data.layout,
+      { FormLayout: data.layout, sometest: data.layout },
     );
     yield call(Actions.updateAutoSave, data.autoSave);
     yield call(Actions.updateRepeatingGroupsFulfilled, repeatingGroups);
+    yield call(Actions.updateCurrentView, testId);
   } catch (err) {
     yield call(Actions.fetchFormLayoutRejected, err);
     yield call(QueueActions.dataTaskQueueError, err);

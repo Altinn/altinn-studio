@@ -2,7 +2,7 @@ import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/util
 import moment from 'moment';
 import Ajv from 'ajv';
 import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups } from 'src/types';
-import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout';
+import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../features/form/layout';
 import { IValidationIssue, Severity } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { DatePickerMinDateDefault, DatePickerMaxDateDefault, DatePickerFormatDefault } from '../components/base/DatepickerComponent';
@@ -86,10 +86,29 @@ export const errorMessageKeys = {
   },
 };
 
+export function validateEmptyFields(
+  formData: any,
+  layouts: ILayouts,
+  language: any,
+  hiddenFields: string[],
+  repeatingGroups: IRepeatingGroups,
+) {
+  let validations = {};
+  Object.keys(layouts).forEach((id) => {
+    const result = validateEmptyFieldsForLayout(formData, layouts[id], language, hiddenFields, repeatingGroups);
+    validations = {
+      ...validations,
+      ...result,
+    };
+  });
+
+  return validations;
+}
+
 /*
   Fetches validations for fields without data
 */
-export function validateEmptyFields(
+export function validateEmptyFieldsForLayout(
   formData: any,
   formLayout: ILayout,
   language: any,
@@ -354,10 +373,33 @@ export function getSchemaPart(dataModelPath: string[], subSchema: any, mainSchem
   return subSchema;
 }
 
+export function validateFormData(
+  formData: any,
+  layouts: ILayouts,
+  schemaValidator: ISchemaValidator,
+  language: any,
+): IValidationResult {
+  let validations: any = {};
+  let invalidDataTypes: boolean = false;
+
+  Object.keys(layouts).forEach((id) => {
+    const result = validateFormDataForLayout(formData, layouts[id], schemaValidator, language);
+    validations = {
+      ...validations,
+      ...result.validations,
+    };
+    if (!invalidDataTypes) {
+      invalidDataTypes = result.invalidDataTypes;
+    }
+  });
+
+  return { validations, invalidDataTypes };
+}
+
 /*
   Validates the entire formData and returns an IValidations object with validations mapped for all components
 */
-export function validateFormData(
+export function validateFormDataForLayout(
   formData: any,
   layout: ILayout,
   schemaValidator: ISchemaValidator,
@@ -575,7 +617,7 @@ export function mapApiValidationsToRedux(
 /* Function to map the new data element validations to our internal redux structure */
 export function mapDataElementValidationToRedux(
   validations: IValidationIssue[],
-  layout: ILayout,
+  layouts: ILayouts,
   textResources: ITextResource[],
 ) {
   const validationResult: IValidations = {};
@@ -587,8 +629,13 @@ export function mapDataElementValidationToRedux(
     const componentValidations: IComponentValidations = {};
     let component;
     let componentId;
-    if (layout) {
-      component = layout.find((layoutElement) => {
+    const layoutId = Object.keys(layouts).find((id) => {
+      const foundInLayout = layouts[id].find((c: ILayoutComponent) => Object.values(c.dataModelBindings)
+        .includes(validation.field));
+      return !!foundInLayout;
+    });
+    if (layoutId && layouts[layoutId]) {
+      component = layouts[layoutId].find((layoutElement) => {
         const componentCandidate = layoutElement as ILayoutComponent;
         let found = false;
         const match = matchLayoutComponent(validation.field, componentCandidate.id);

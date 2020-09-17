@@ -28,3 +28,5 @@ export const UPDATE_REPEATING_GROUPS_REJECTED: string = `${moduleName}.UPDATE_RE
 export const UPDATE_AUTO_SAVE: string = `${moduleName}.UPDATE_AUTO_SAVE`;
 export const UPDATE_AUTO_SAVE_FULFILLED: string = `${moduleName}.UPDATE_AUTO_SAVE_FULFILLED`;
 export const UPDATE_AUTO_SAVE_REJECTED: string = `${moduleName}.UPDATE_AUTO_SAVE_REJECTED`;
+
+export const UPDATE_CURRENT_VIEW: string = `${moduleName}.UPDATE_CURRENT_VIEW`;

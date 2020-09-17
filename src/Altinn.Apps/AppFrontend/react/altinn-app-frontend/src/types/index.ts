@@ -213,6 +213,7 @@ export interface IValidationIssue {
 
 export interface IUiConfig {
   autoSave: boolean;
+  currentView: string;
   focus: string;
   hiddenFields: string[];
   repeatingGroups?: IRepeatingGroups;

@@ -10,7 +10,8 @@ import { renderGenericComponent } from '../../../utils/layout';
 export function Form() {
   const [filteredLayout, setFilteredLayout] = React.useState<any[]>([]);
 
-  const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layout);
+  const layout: ILayout =
+    useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
   const repeatingGroups: IRepeatingGroups =
     useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
   const hiddenComponents: string[] = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields);

@@ -1,3 +1,7 @@
+export interface ILayouts {
+  [id: string]: ILayout;
+}
+
 export interface ILayoutEntry {
   id: string;
   type?: string;
