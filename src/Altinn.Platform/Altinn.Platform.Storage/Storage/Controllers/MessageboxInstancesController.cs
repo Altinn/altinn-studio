@@ -96,7 +96,6 @@ namespace Altinn.Platform.Storage.Controllers
             List<MessageBoxInstance> autorizedInstances = await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
             List<string> appIds = autorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
 
-            // get app texts and exchange all text keys.
             List<TextResource> texts = await _textRepository.Get(appIds, languageId);
             InstanceHelper.ReplaceTextKeys(autorizedInstances, texts, languageId);
 

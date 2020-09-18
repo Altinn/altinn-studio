@@ -19,7 +19,7 @@ namespace Altinn.Platform.Storage.Repository
         Task<TextResource> Get(string org, string app, string language);
 
         /// <summary>
-        /// Gets a list of text resource
+        /// Gets a list of text resources based on appId.
         /// </summary>
         /// <param name="appIds">List of application ids e.g. ttd/apps-test</param>
         /// <param name="language">the language. Must be a two letter ISO name.</param>

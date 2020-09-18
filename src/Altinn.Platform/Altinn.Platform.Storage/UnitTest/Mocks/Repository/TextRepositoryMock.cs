@@ -54,7 +54,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 }
             }
 
-            return result;
+            return await Task.FromResult(result);
         }
 
         public Task<bool> Delete(string org, string app, string language)
