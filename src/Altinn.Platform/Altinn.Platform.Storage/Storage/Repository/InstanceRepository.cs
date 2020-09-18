@@ -128,12 +128,7 @@ namespace Altinn.Platform.Storage.Repository
                 }
 
                 try
-                {
-                    if (queryResponse.TotalHits == null)
-                    {
-                        queryResponse.TotalHits = queryBuilder.Count();
-                    }
-
+                {                    
                     IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
 
                     FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
