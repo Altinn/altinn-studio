@@ -74,7 +74,7 @@ export function en() {
       action: 'Action',
       add: 'Add',
       add_connection: 'Add connection',
-      add_new: 'Legg til ny',
+      add_new: 'Add new',
       back: 'Back',
       cancel: 'Cancel',
       choose: 'Choose',
