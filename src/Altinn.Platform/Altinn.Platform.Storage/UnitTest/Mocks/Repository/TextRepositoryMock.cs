@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-using Newtonsoft.Json;
+
 
 namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 {
@@ -32,7 +30,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             if (File.Exists(textResourcePath))
             {
                 string content = File.ReadAllText(textResourcePath);
-                TextResource textResource = (TextResource)JsonConvert.DeserializeObject(content, typeof(TextResource));
+                TextResource textResource = JsonSerializer.Deserialize<TextResource>(content, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase});
                 return Task.FromResult(textResource);
             }
 
@@ -47,7 +45,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 string org = appId.Split("/")[0];
                 string app = appId.Split("/")[1];
 
-                TextResource resource = await Get(org, app, language);
+                TextResource resource = Get(org, app, language).Result;
                 if (resource != null)
                 {
                     result.Add(resource);
