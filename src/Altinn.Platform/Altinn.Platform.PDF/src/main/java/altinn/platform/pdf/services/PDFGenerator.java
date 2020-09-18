@@ -305,7 +305,7 @@ public class PDFGenerator {
   private void renderLayoutElementContent(FormLayoutElement element) throws IOException {
     String value = FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
     if (element.getType().equalsIgnoreCase("Datepicker")) {
-      renderContent(TextUtils.getDateFormat(value, userProfile.getProfileSettingPreference().getLanguage()));
+      renderContent(TextUtils.getDateFormat(value, getUserLanguage()));
     } else {
       renderContent(value);
     }
@@ -410,8 +410,11 @@ public class PDFGenerator {
   }
 
   private String getLanguageString(String key) {
-    String languageCode = (this.userProfile != null) ? this.userProfile.getProfileSettingPreference().getLanguage() : "nb";
-    return TextUtils.getLanguageStringByKey(key, languageCode);
+    return TextUtils.getLanguageStringByKey(key, getUserLanguage());
+  }
+
+  private String getUserLanguage() {
+    return (this.userProfile != null) ? this.userProfile.getProfileSettingPreference().getLanguage() : "nb";
   }
 }
 
