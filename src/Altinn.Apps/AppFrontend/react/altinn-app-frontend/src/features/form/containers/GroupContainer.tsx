@@ -176,7 +176,7 @@ export function GroupContainer({
 
   const createRepeatingGroupComponents = () => {
     const componentArray = [];
-    for (let i = 0; i < repeatingGroupCount; i++) {
+    for (let i = 0; i <= repeatingGroupCount; i++) {
       const childComponents = renderComponents.map((component: ILayoutComponent) => {
         const componentDeepCopy: ILayoutComponent = JSON.parse(JSON.stringify(component));
         const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
@@ -223,7 +223,7 @@ export function GroupContainer({
               </TableRow>
             </TableHead>
             <TableBody className={classes.tableBody}>
-              {[...Array(repeatingGroupCount)].map((_x: any, repeatingGroupIndex: number) => {
+              {[...Array(repeatingGroupCount + 1)].map((_x: any, repeatingGroupIndex: number) => {
                 const rowHasErrors = components.some((component: ILayoutComponent) => {
                   return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
                 });
@@ -258,7 +258,7 @@ export function GroupContainer({
           container={true} direction='column'
           className={classes.mobileContainer}
         >
-          {[...Array(repeatingGroupCount)].map((_x: any, repeatingGroupIndex: number) => {
+          {[...Array(repeatingGroupCount + 1)].map((_x: any, repeatingGroupIndex: number) => {
             const rowHasErrors = components.some((component: ILayoutComponent) => {
               return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
             });
