@@ -189,7 +189,6 @@ namespace Altinn.Platform.Storage.Controllers
                     result.TotalHits -= originalCount - result.Instances.Count;
                 }
 
-                string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
                 QueryResponse<Instance> response = new QueryResponse<Instance>
@@ -214,10 +213,11 @@ namespace Altinn.Platform.Storage.Controllers
                     string selfUrl = $"{host}{url}{selfQueryString}";
 
                     response.Self = selfUrl;
-                }
+                }               
 
-                if (nextContinuationToken != null)
+                if (!string.IsNullOrEmpty(result.ContinuationToken))
                 {
+                    string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                     string nextQueryString = BuildQueryStringWithOneReplacedParameter(
                         queryParams,
                         "continuationToken",
