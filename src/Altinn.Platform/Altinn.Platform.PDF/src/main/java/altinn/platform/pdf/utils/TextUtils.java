@@ -7,8 +7,6 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.*;
-import java.text.DateFormat;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
