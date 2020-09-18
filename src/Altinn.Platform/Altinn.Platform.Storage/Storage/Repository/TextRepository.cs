@@ -58,7 +58,7 @@ namespace Altinn.Platform.Storage.Repository
             _memoryCache = memoryCache;
             _cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetPriority(CacheItemPriority.High)
-                .SetAbsoluteExpiration(new TimeSpan(0, 0, generalSettings.Value.CacheResourceLifeTimeInSeconds));
+                .SetAbsoluteExpiration(new TimeSpan(0, 0, generalSettings.Value.TextResourceCacheLifeTimeInSeconds));
         }
 
         /// <inheritdoc/>
@@ -113,7 +113,7 @@ namespace Altinn.Platform.Storage.Repository
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError($"Error occured when retriecing text resources for {org}-{app} in language {language}. Exception: {e}");
+                    _logger.LogError($"Error occured when retrieving text resources for {org}-{app} in language {language}. Exception: {e}");
                 }
             }
 

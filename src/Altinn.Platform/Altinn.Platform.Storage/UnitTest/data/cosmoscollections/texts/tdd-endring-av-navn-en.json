@@ -27,8 +27,6 @@
       "id": "substatus.accepted.label",
       "value": "Application approved",
       "variables": null
-    },
-
-    
+    }    
   ]
 }

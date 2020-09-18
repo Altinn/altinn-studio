@@ -28,8 +28,8 @@ namespace Altinn.Platform.Storage.Configuration
         public Uri BridgeApiAuthorizationEndpoint { get; set; }
 
         /// <summary>
-        /// Gets or sets the cache resource lifetime.
+        /// Gets or sets the cache lifetime for text resources.
         /// </summary>
-        public int CacheResourceLifeTimeInSeconds { get; set; }
+        public int TextResourceCacheLifeTimeInSeconds { get; set; }
     }
 }
