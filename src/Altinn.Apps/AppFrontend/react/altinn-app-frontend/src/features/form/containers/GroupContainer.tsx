@@ -179,14 +179,13 @@ export function GroupContainer({
       const childComponents = renderComponents.map((component: ILayoutComponent) => {
         const componentDeepCopy: ILayoutComponent = JSON.parse(JSON.stringify(component));
         const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
-        let deepCopyId = componentDeepCopy.id;
 
         const groupDataModelBinding = container.dataModelBindings.group;
         Object.keys(dataModelBindings).forEach((key) => {
           // eslint-disable-next-line no-param-reassign
           dataModelBindings[key] = dataModelBindings[key].replace(groupDataModelBinding, `${groupDataModelBinding}[${i}]`);
         });
-        deepCopyId = `${componentDeepCopy.id}-${i}`;
+        const deepCopyId = `${componentDeepCopy.id}-${i}`;
         return {
           ...componentDeepCopy,
           dataModelBindings,
