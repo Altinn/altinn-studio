@@ -148,15 +148,13 @@ namespace Altinn.Platform.Storage.Repository
                     queryResponse.Instances.AddRange(instances);
                     queryResponse.Count += instances.Count;
 
-                    if (!string.IsNullOrEmpty(feedResponse.ResponseContinuation))
-                    {
-                        queryResponse.ContinuationToken = feedResponse.ResponseContinuation;
-                        continuationToken = feedResponse.ResponseContinuation;
-                    }
-                    else
+                    if (string.IsNullOrEmpty(feedResponse.ResponseContinuation))
                     {
                         break;
                     }
+
+                    queryResponse.ContinuationToken = feedResponse.ResponseContinuation;
+                    continuationToken = feedResponse.ResponseContinuation;
                 }
                 catch (Exception e)
                 {
