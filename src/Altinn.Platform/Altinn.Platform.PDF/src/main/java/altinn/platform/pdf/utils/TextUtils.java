@@ -10,7 +10,9 @@ import java.io.*;
 import java.text.DateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.FormatStyle;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
@@ -266,7 +268,16 @@ public class TextUtils {
       return df.format(d);
     } else {
       LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_DATE);
-      return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale));
+      String pattern =
+        DateTimeFormatterBuilder
+          .getLocalizedDateTimePattern
+            ( FormatStyle.SHORT
+              , null
+              , IsoChronology.INSTANCE
+              , locale
+            );
+      pattern = pattern.replace("yy", "yyyy");
+      return date.format(DateTimeFormatter.ofPattern(pattern).withLocale(locale));
     }
   }
 }
