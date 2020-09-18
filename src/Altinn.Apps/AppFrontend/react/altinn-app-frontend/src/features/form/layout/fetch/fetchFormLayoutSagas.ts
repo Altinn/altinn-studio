@@ -19,10 +19,23 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
     const testId = 'FormLayout';
     const formDataState: IFormDataState = yield select(formDataSelector);
     const repeatingGroups = getRepeatingGroups(data.layout, formDataState.formData);
-    yield call(
-      Actions.fetchFormLayoutFulfilled,
-      { FormLayout: data.layout, sometest: data.layout },
-    );
+    const result = {
+      FormLayout: data.layout,
+      sometest: [
+        {
+          id: 'someText2',
+          type: 'Paragraph',
+          componentType: 9,
+          textResourceBindings: {
+            title: '### Hello!  This is a page.',
+          },
+          dataModelBindings: {},
+          readOnly: false,
+          required: false,
+        },
+      ],
+    };
+    yield call(Actions.fetchFormLayoutFulfilled, result);
     yield call(Actions.updateAutoSave, data.autoSave);
     yield call(Actions.updateRepeatingGroupsFulfilled, repeatingGroups);
     yield call(Actions.updateCurrentView, testId);

@@ -16,8 +16,12 @@ export function Form() {
     useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
   const hiddenComponents: string[] = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields);
 
+  console.log('RENDERING FORM');
+  console.log('LAYOUT: ', layout);
+
   React.useEffect(() => {
     let componentsToRender: any[] = layout;
+    console.log('LAYOUT: ', layout);
     let renderedInGroup: string[] = [];
     if (layout) {
       const groupComponents = layout.filter((component) => component.type.toLowerCase() === 'group');
@@ -107,6 +111,7 @@ export function Form() {
     );
   }
 
+  console.log('filtered layout: ', filteredLayout);
   return (
     <Grid container={true}>
       {filteredLayout && filteredLayout.map(renderLayoutComponent)}
