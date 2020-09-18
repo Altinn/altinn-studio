@@ -9,6 +9,7 @@ namespace Altinn.Platform.Storage.Repository
     using Altinn.Platform.Storage.Interface.Models;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
+    using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
@@ -24,13 +25,21 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string _partitionKey = "/org";
         private readonly DocumentClient _client;
         private readonly ILogger<ITextRepository> _logger;
+        private readonly IMemoryCache _memoryCache;
+        private readonly MemoryCacheEntryOptions _cacheEntryOptions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
+        /// <param name="generalSettings">the general configurations settings</param>
         /// <param name="logger">the logger</param>
-        public TextRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<ITextRepository> logger)
+        /// <param name="memoryCache">the memory cache</param>
+        public TextRepository(
+            IOptions<AzureCosmosSettings> cosmosettings,
+            IOptions<GeneralSettings> generalSettings,
+            ILogger<ITextRepository> logger,
+            IMemoryCache memoryCache)
         {
             var database = new CosmosDatabaseHandler(cosmosettings.Value);
             _logger = logger;
@@ -45,31 +54,43 @@ namespace Altinn.Platform.Storage.Repository
                 documentCollection).GetAwaiter().GetResult();
 
             _client.OpenAsync();
+
+            _memoryCache = memoryCache;
+            _cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetPriority(CacheItemPriority.High)
+                .SetAbsoluteExpiration(new TimeSpan(0, 0, generalSettings.Value.CacheResourceLifeTimeInSeconds));
         }
 
         /// <inheritdoc/>
         public async Task<TextResource> Get(string org, string app, string language)
         {
             ValidateArguments(org, app, language);
-            try
+            string id = GetTextId(org, app, language);
+            if (!_memoryCache.TryGetValue(id, out TextResource textResource))
             {
-                string id = GetTextId(org, app, language);
-                Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, id);
-                TextResource result = await _client
-                    .ReadDocumentAsync<TextResource>(
-                        uri,
-                        new RequestOptions { PartitionKey = new PartitionKey(org) });
-                return result;
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.StatusCode == HttpStatusCode.NotFound)
+                try
                 {
-                    return null;
-                }
+                    Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, id);
+                    textResource = await _client
+                        .ReadDocumentAsync<TextResource>(
+                            uri,
+                            new RequestOptions { PartitionKey = new PartitionKey(org) });
 
-                throw;
+                    _memoryCache.Set(id, textResource, _cacheEntryOptions);
+                    return textResource;
+                }
+                catch (DocumentClientException dce)
+                {
+                    if (dce.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return null;
+                    }
+
+                    throw;
+                }
             }
+
+            return textResource;
         }
 
         /// <inheritdoc/>

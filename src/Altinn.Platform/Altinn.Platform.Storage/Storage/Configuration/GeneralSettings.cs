@@ -26,5 +26,10 @@ namespace Altinn.Platform.Storage.Configuration
         /// Gets or sets the URI for the SBL Bridge Authorization API.
         /// </summary>
         public Uri BridgeApiAuthorizationEndpoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets the cache resource lifetime.
+        /// </summary>
+        public int CacheResourceLifeTimeInSeconds { get; set; }
     }
 }
