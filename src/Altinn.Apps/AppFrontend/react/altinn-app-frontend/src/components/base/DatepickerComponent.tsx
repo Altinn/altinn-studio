@@ -76,7 +76,7 @@ class AltinnMomentUtils extends MomentUtils {
 
 export const DatePickerMinDateDefault = '1900-01-01T12:00:00.000Z';
 export const DatePickerMaxDateDefault = '2100-01-01T12:00:00.000Z';
-export const DatePickerFormatDefault = 'DD/MM/YYYY';
+export const DatePickerFormatDefault = 'DD.MM.YYYY';
 export const DatePickerSaveFormatNoTimestamp = 'YYYY-MM-DD';
 
 function DatepickerComponent(props: IDatePickerProps) {
@@ -86,10 +86,9 @@ function DatepickerComponent(props: IDatePickerProps) {
   const [validationMessages, setValidationMessages] = React.useState<IComponentBindingValidation>(null);
   const minDate = props.minDate || DatePickerMinDateDefault;
   const maxDate = props.maxDate || DatePickerMaxDateDefault;
-  const format = props.format || DatePickerFormatDefault;
-
   const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb-NO';
   moment.locale(locale);
+  const format = moment.localeData().longDateFormat('L') || props.format || DatePickerFormatDefault;
   const theme = useTheme();
   const inline = useMediaQuery(theme.breakpoints.up('sm'));
 
@@ -129,7 +128,8 @@ function DatepickerComponent(props: IDatePickerProps) {
   }, [props.formData, props.componentValidations]);
 
   const handleDataChangeWrapper = (dateValue: moment.Moment) => {
-    setDate(dateValue);
+    dateValue.set('hour', 12);
+    dateValue.set('minute', 0);
     setValidDate(true); // we reset valid date => show error onBlur or when user is done typing
     setValidationMessages({});
     if (dateValue && dateValue.isValid()) {
@@ -150,7 +150,8 @@ function DatepickerComponent(props: IDatePickerProps) {
   const handleOnBlur = () => {
     setValidDate(isValidDate(date));
     setValidationMessages(getValidationMessages());
-    const dateString = props.timeStamp === false ? date.format(DatePickerSaveFormatNoTimestamp) : date?.toISOString(true);
+    const dateString = (props.timeStamp === false) ?
+      date.format(DatePickerSaveFormatNoTimestamp) : date?.toISOString(true);
     const saveDate = isDateEmpty() ? '' : dateString;
     props.handleDataChange(saveDate);
   };
