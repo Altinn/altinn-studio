@@ -128,12 +128,7 @@ namespace Altinn.Platform.Storage.Repository
                 }
 
                 try
-                {
-                    if (queryResponse.TotalHits == null)
-                    {
-                        queryResponse.TotalHits = queryBuilder.Count();
-                    }
-
+                {                    
                     IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
 
                     FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
@@ -147,6 +142,12 @@ namespace Altinn.Platform.Storage.Repository
                     await PostProcess(instances);
                     queryResponse.Instances.AddRange(instances);
                     queryResponse.Count += instances.Count;
+
+                    if (string.IsNullOrEmpty(feedResponse.ResponseContinuation))
+                    {
+                        break;
+                    }
+
                     queryResponse.ContinuationToken = feedResponse.ResponseContinuation;
                     continuationToken = feedResponse.ResponseContinuation;
                 }
