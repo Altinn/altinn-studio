@@ -216,7 +216,7 @@ namespace Altinn.Platform.Storage.Controllers
                     response.Self = selfUrl;
                 }
 
-                if (nextContinuationToken != null)
+                if (!string.IsNullOrEmpty(nextContinuationToken))
                 {
                     string nextQueryString = BuildQueryStringWithOneReplacedParameter(
                         queryParams,
