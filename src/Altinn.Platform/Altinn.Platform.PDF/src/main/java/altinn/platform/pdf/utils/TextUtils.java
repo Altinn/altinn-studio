@@ -247,11 +247,17 @@ public class TextUtils {
    * @param value a date, could be a ISO instant or ISO date
    * @return the formatted date
    */
-  public static String getDateFormat(String value, String countryCode) {
-    if (value == null || value.isEmpty() || countryCode == null || countryCode.isEmpty()) {
+  public static String getDateFormat(String value, String language) {
+    if (value == null || value.isEmpty()) {
       return "";
     }
-    Locale locale = new Locale(countryCode);
+    Locale locale;
+    if (language == null || language.isEmpty()) {
+      locale = new Locale("nb");
+    } else {
+      locale = new Locale(language);
+    }
+
     if (value.length() > 10) {
       TemporalAccessor ta = DateTimeFormatter.ISO_DATE_TIME.parse(value);
       Instant i = Instant.from(ta);
