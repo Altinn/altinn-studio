@@ -15,7 +15,6 @@ describe('>>> features/form/components/Group.tsx', () => {
   let mockStore: any;
   let mockLayout: any;
   let mockComponents: any;
-  let mockTextResources: any[];
   let mockContainer: ILayoutGroup;
 
   beforeAll(() => {
@@ -100,12 +99,6 @@ describe('>>> features/form/components/Group.tsx', () => {
       },
     };
 
-    mockTextResources = [
-      {},
-      {},
-      {},
-    ];
-
     mockContainer = {
       id: 'mock-container-id',
       children: [
@@ -131,7 +124,6 @@ describe('>>> features/form/components/Group.tsx', () => {
           id='testGroupId'
           key='testKey'
           container={mockContainer}
-          textResources={mockTextResources}
         />
       </Provider>,
     );
@@ -146,7 +138,6 @@ describe('>>> features/form/components/Group.tsx', () => {
           container={mockContainer}
           id='testGroupId'
           key='testKey'
-          textResources={mockTextResources}
         />
       </Provider>,
     );
@@ -168,7 +159,6 @@ describe('>>> features/form/components/Group.tsx', () => {
           components={mockComponents}
           id='testGroupId'
           key='testKey'
-          textResources={mockTextResources}
         />
       </Provider>,
     );
@@ -188,7 +178,6 @@ describe('>>> features/form/components/Group.tsx', () => {
           container={mockContainerWithMaxCount}
           id='mock-container-id'
           key='testKey'
-          textResources={mockTextResources}
         />
       </Provider>,
     );

@@ -19,7 +19,6 @@ export interface IGroupProps {
   id: string;
   container: ILayoutGroup;
   components: ILayoutComponent[]
-  textResources: ITextResource[];
 }
 
 const theme = createMuiTheme(altinnAppTheme);
@@ -118,7 +117,6 @@ export function GroupContainer({
   id,
   container,
   components,
-  textResources,
 }: IGroupProps): JSX.Element {
   const classes = useStyles();
   const renderComponents: ILayoutComponent[] = JSON.parse(JSON.stringify(components));
@@ -127,6 +125,7 @@ export function GroupContainer({
   const repeatingGroups: IRepeatingGroups = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
   const formData: IFormData = useSelector((state: IRuntimeState) => state.formData.formData);
   const [editIndex, setEditIndex] = React.useState<number>(-1);
+  const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const getRepeatingGroupCount = (containerId: string) => {
     if (repeatingGroups && repeatingGroups[containerId] && repeatingGroups[containerId].count) {
       return repeatingGroups[containerId].count;

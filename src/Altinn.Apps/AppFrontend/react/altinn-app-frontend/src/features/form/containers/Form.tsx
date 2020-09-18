@@ -2,7 +2,6 @@
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { IRepeatingGroups, ITextResource } from 'src/types';
 import { IRuntimeState } from '../../../types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
 import { GroupContainer } from './GroupContainer';
@@ -12,10 +11,7 @@ export function Form() {
   const [filteredLayout, setFilteredLayout] = React.useState<any[]>([]);
 
   const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layout);
-  const repeatingGroups: IRepeatingGroups =
-    useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
   const hiddenComponents: string[] = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields);
-  const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
 
   React.useEffect(() => {
     let componentsToRender: any[] = layout;
@@ -33,7 +29,7 @@ export function Form() {
       });
     }
     setFilteredLayout(componentsToRender);
-  }, [layout, hiddenComponents, repeatingGroups]);
+  }, [layout, hiddenComponents]);
 
   function RenderGenericComponent(component: ILayoutComponent) {
     return renderGenericComponent(component);
@@ -58,7 +54,6 @@ export function Form() {
         container={layoutGroup}
         id={layoutGroup.id}
         key={layoutGroup.id}
-        textResources={textResources}
         components={groupComponents}
       />
     );
