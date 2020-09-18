@@ -76,34 +76,27 @@ namespace Altinn.Studio.Designer.Controllers
             xsdMemoryStream.Position = 0;
             XmlReader reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
 
-            try
+            XDocument mainXsd = XDocument.Load(reader, LoadOptions.None);
+
+            xsdMemoryStream.Position = 0;
+            reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
+
+            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
+            JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, app, schemaJsonSchema);
+            ModelMetadata modelMetadata = converter.GetModelMetadata();
+
+            HandleTexts(org, app, converter.GetTexts());
+
+            string modelName = Path.GetFileNameWithoutExtension(mainFileName);
+
+            if (_repository.CreateModel(org, app, modelMetadata, mainXsd, modelName))
             {
-                XDocument mainXsd = XDocument.Load(reader, LoadOptions.None);
-
-                xsdMemoryStream.Position = 0;
-                reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
-
-                XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
-                JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
-
-                JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, app, schemaJsonSchema);
-                ModelMetadata modelMetadata = converter.GetModelMetadata();
-
-                HandleTexts(org, app, converter.GetTexts());
-
-                string modelName = Path.GetFileNameWithoutExtension(mainFileName);
-
-                if (_repository.CreateModel(org, app, modelMetadata, mainXsd, modelName))
-                {
-                    return RedirectToAction("Index", new { org, app, modelName });
-                }
-
-                return Json(false);
+                return RedirectToAction("Index", new { org, app, modelName });
             }
-            catch
-            {
-                return RedirectToAction("Index");
-            }
+
+            return Json(false);
         }
 
         private void HandleTexts(string org, string app, Dictionary<string, Dictionary<string, string>> allTexts)

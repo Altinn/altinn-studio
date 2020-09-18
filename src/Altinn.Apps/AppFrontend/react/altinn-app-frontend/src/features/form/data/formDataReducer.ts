@@ -60,6 +60,13 @@ const FormDataReducer: Reducer<IFormDataState> = (
         },
       });
     }
+    case actionTypes.UPDATE_FORM_DATA: {
+      return Immutable<IFormDataState>(state, {
+        hasSubmitted: {
+          $set: false,
+        },
+      });
+    }
     case actionTypes.UPDATE_FORM_DATA_FULFILLED: {
       const { field, data } = action as IUpdateFormDataFulfilled;
       if (!data || data === '') {
