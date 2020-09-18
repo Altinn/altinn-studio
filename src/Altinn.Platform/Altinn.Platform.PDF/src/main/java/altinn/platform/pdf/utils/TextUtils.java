@@ -241,7 +241,7 @@ public class TextUtils {
   }
 
   /**
-   * Formats a date to the user lang. The date value can be a ISO-string or a DateTime string
+   * Formats a date to the user lang. The date value can be a ISO date-time or a  ISO date
    * ISO date time format example: 2020-09-11T12:00:00.000+02:00
    * ISO date format example: 2020-09-11
    * @param value a date, could be a ISO instant or ISO date
