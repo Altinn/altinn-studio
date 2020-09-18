@@ -260,15 +260,7 @@ public class TextUtils {
       locale = new Locale(language);
     }
 
-    if (value.length() > 10) {
-      TemporalAccessor ta = DateTimeFormatter.ISO_DATE_TIME.parse(value);
-      Instant i = Instant.from(ta);
-      Date d = Date.from(i);
-      DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT, locale);
-      return df.format(d);
-    } else {
-      LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_DATE);
-      String pattern =
+    String pattern =
         DateTimeFormatterBuilder
           .getLocalizedDateTimePattern
             ( FormatStyle.SHORT
@@ -276,7 +268,13 @@ public class TextUtils {
               , IsoChronology.INSTANCE
               , locale
             );
-      pattern = pattern.replace("yy", "yyyy");
+    pattern = pattern.replace("yy", "yyyy");
+
+    if (value.length() > 10) {
+      TemporalAccessor ta = DateTimeFormatter.ISO_DATE_TIME.parse(value);
+      return DateTimeFormatter.ofPattern(pattern).withLocale(locale).format(ta);
+    } else {
+      LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_DATE);
       return date.format(DateTimeFormatter.ofPattern(pattern).withLocale(locale));
     }
   }

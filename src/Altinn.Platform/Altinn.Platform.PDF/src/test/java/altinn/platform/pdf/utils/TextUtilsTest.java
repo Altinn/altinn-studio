@@ -36,7 +36,7 @@ public class TextUtilsTest extends TestCase {
     {
       String value = "2020-09-11T12:00:00.000+02:00";
       String result = TextUtils.getDateFormat(value, "en");
-      String expectedResult = "9/11/20";
+      String expectedResult = "9/11/2020";
       assertEquals(expectedResult, result);
     }
 
