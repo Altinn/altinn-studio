@@ -7,10 +7,10 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.*;
-import java.text.DateFormat;
-import java.time.Instant;
 import java.time.LocalDate;
+import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.FormatStyle;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
@@ -258,15 +258,22 @@ public class TextUtils {
       locale = new Locale(language);
     }
 
+    String pattern =
+        DateTimeFormatterBuilder
+          .getLocalizedDateTimePattern
+            ( FormatStyle.SHORT
+              , null
+              , IsoChronology.INSTANCE
+              , locale
+            );
+    pattern = pattern.replace("yy", "yyyy");
+
     if (value.length() > 10) {
       TemporalAccessor ta = DateTimeFormatter.ISO_DATE_TIME.parse(value);
-      Instant i = Instant.from(ta);
-      Date d = Date.from(i);
-      DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT, locale);
-      return df.format(d);
+      return DateTimeFormatter.ofPattern(pattern).withLocale(locale).format(ta);
     } else {
       LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_DATE);
-      return date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(locale));
+      return date.format(DateTimeFormatter.ofPattern(pattern).withLocale(locale));
     }
   }
 }
