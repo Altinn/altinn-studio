@@ -169,9 +169,9 @@ function buildArrayWithHardDeletedInstanceIds(instancesArray) {
 export function putUpdateSubStatus(altinnStudioRuntimeCookie, partyId, instanceId, statusLabel, statusDescription) {
     var endpoint = config.buildStorageUrls(partyId, instanceId, "", "substatus");
     var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, "platform");
-    var requestBody = JSON.parse("{}");    
-    requestBody.label = statusLabel; 
+    var requestBody = JSON.parse("{}");
+    requestBody.label = statusLabel;
     requestBody.description = statusDescription;
-    requestBody = JSON.stringify(requestBody);    
+    requestBody = JSON.stringify(requestBody);
     return http.put(endpoint, requestBody, params);
 };
