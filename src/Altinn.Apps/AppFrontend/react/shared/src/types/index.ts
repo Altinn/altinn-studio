@@ -68,9 +68,18 @@ export interface IInstance {
   org: string;
   process: IProcess;
   selfLinks: ISelfLinks;
-  status: string;
+  status: IInstanceStatus;
   title: ITitle;
   visibleAfter?: Date;
+}
+
+export interface IInstanceStatus {
+  substatus: ISubstatus;
+}
+
+export interface ISubstatus {
+  label: string;
+  description: string;
 }
 
 export interface IInstanceOwner {
