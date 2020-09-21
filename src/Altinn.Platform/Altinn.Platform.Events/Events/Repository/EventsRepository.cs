@@ -8,7 +8,6 @@ using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Events.Repository
 {
@@ -23,6 +22,7 @@ namespace Altinn.Platform.Events.Repository
         private readonly Uri collectionUri;
         private readonly string collectionId = "events";
         private readonly string partitionKey = "/subject";
+        private readonly string triggerId = "trgUpdateItemTimestamp";
         private readonly string databaseId;
         private static DocumentClient client;
 
@@ -47,8 +47,6 @@ namespace Altinn.Platform.Events.Repository
             client.CreateDocumentCollectionIfNotExistsAsync(
                 databaseUri,
                 documentCollection).GetAwaiter().GetResult();
-            logger.LogInformation("Before InsertTrigger");
-            logger.LogInformation("CollectionURI: " + collectionUri);
             InsertTrigger();
             client.OpenAsync();
         }
@@ -56,30 +54,37 @@ namespace Altinn.Platform.Events.Repository
         /// <inheritdoc/>
         public async Task<string> Create(CloudEvent item)
         {
-            ResourceResponse<Document> createDocumentResponse = await client.CreateDocumentAsync(collectionUri, item, new RequestOptions { PreTriggerInclude = new List<string> { "trgUpdateItemTimestamp" } });
+            ResourceResponse<Document> createDocumentResponse = await client.CreateDocumentAsync(
+                collectionUri, 
+                item, 
+                new RequestOptions { PreTriggerInclude = new List<string> { "trgUpdateItemTimestamp" } });
             Document document = createDocumentResponse.Resource;
-/*             CloudEvent instance = JsonConvert.DeserializeObject<CloudEvent>(document.ToString());
-            logger.LogInformation("Time from saved object: " + instance.Time); */
             return createDocumentResponse.Resource.Id;
         }
 
         private async void InsertTrigger()
         {
-            Trigger trigger = new Trigger();
-            trigger.Id = "trgUpdateItemTimestamp";
-            trigger.Body = File.ReadAllText("./Configuration/UpdateItemTimestamp.js");
-            trigger.TriggerOperation = TriggerOperation.Create;
-            trigger.TriggerType = TriggerType.Pre;
-            ResourceResponse<Trigger> response = await client.CreateTriggerAsync(collectionUri, trigger);
-            logger.LogInformation("Statuskode: " + response.StatusCode);
-/*             await client.CreateTriggerAsync(new Microsoft.Azure.Management.ContainerRegistry.Fluent.TriggerProperties
+            try
             {
-                Id = "trgPreValidateToDoItemTimestamp",
-                Body = File.ReadAllText("@..\js\trgPreValidateToDoItemTimestamp.js"),
-                TriggerOperation = TriggerOperation.Create,
-                TriggerType = TriggerType.Pre
-            });
-            ResourceResponse<Trigger> response = await client.CreateTriggerAsync(collectionId, "triggerLink"); */
+                Trigger trigger = new Trigger();
+                trigger.Id = triggerId;
+                trigger.Body = File.ReadAllText("./Configuration/UpdateItemTimestamp.js");
+                trigger.TriggerOperation = TriggerOperation.Create;
+                trigger.TriggerType = TriggerType.Pre;
+                ResourceResponse<Trigger> response = await client.CreateTriggerAsync(collectionUri, trigger);
+            } 
+            catch (DocumentClientException e) 
+            {
+                if (e.StatusCode == System.Net.HttpStatusCode.Conflict) 
+                {
+                    logger.LogInformation("Trigger already exists, triggerId: " + triggerId);
+                }
+                else 
+                {
+                    logger.LogCritical($"Unable to create trigger {triggerId} in database. {e}");
+                    throw e;
+                }
+            }
         }
     }
 }

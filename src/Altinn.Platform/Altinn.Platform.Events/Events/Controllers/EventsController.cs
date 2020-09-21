@@ -1,6 +1,4 @@
 using System;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository;
@@ -42,12 +40,8 @@ namespace Altinn.Platform.Events.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-
-        // public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
         public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
         {
-            logger.LogInformation("CloudEventSubject: " + cloudEvent.Subject);
-            logger.LogInformation("CloudEventSource" + cloudEvent.Source.OriginalString);
             if (string.IsNullOrEmpty(cloudEvent.Source.OriginalString) || string.IsNullOrEmpty(cloudEvent.Specversion) ||
             string.IsNullOrEmpty(cloudEvent.Type) || string.IsNullOrEmpty(cloudEvent.Subject) || cloudEvent.Time == null)
             {
@@ -56,6 +50,7 @@ namespace Altinn.Platform.Events.Controllers
 
             try
             {
+                // Force cosmos to create id
                 cloudEvent.Id = null;
                 string result = await repository.Create(cloudEvent);
 
