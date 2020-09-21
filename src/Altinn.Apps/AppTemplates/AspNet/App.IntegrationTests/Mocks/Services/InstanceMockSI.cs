@@ -1,13 +1,16 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+
+using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Dependency;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace App.IntegrationTests.Mocks.Services
 {
@@ -204,6 +207,39 @@ namespace App.IntegrationTests.Mocks.Services
             return null;
 
         }
+
+        public async Task<Instance> UpdateSubstatus(int instanceOwnerPartyId, Guid instanceGuid, Substatus substatus)
+        {
+            DateTime creationTime = DateTime.UtcNow;
+
+            if (substatus == null || string.IsNullOrEmpty(substatus.Label))
+            {
+                throw await PlatformHttpException.CreateAsync(
+                    new System.Net.Http.HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.BadRequest});
+            }
+
+            string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
+
+            if (File.Exists(instancePath))
+            {
+                string content = File.ReadAllText(instancePath);
+                Instance storedInstance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+
+                storedInstance.Status ??= new InstanceStatus();
+
+                storedInstance.Status.SubStatus = substatus;
+                storedInstance.LastChanged = creationTime;
+                // mock does not set last changed by, but this is set by the platform.
+                storedInstance.LastChangedBy = "";
+
+                File.WriteAllText(instancePath, JsonConvert.SerializeObject(storedInstance));
+                return await Task.FromResult(storedInstance);
+            }
+
+
+            return null;
+        }
+
 
         // Finds the path for the instance based on instanceId. Only works if guid is unique.
         private string GetInstancePath(int instanceOwnerPartyId, Guid instanceGuid)

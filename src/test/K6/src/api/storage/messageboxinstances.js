@@ -39,10 +39,23 @@ export function getSblInstanceEvents(altinnStudioRuntimeCookie, partyId, instanc
 };
 
 //Function to hard delete all instances that is passed into the function
-export function hardDeleteManyInstances(altinnStudioRuntimeCookie, instances, instancesCount) {
-    for (var i = 0; i < instancesCount; i++) {
-        var partyId = JSON.parse(instances)[i].instanceOwnerId;
-        var instanceId = JSON.parse(instances)[i].id;
+export function hardDeleteManyInstances(altinnStudioRuntimeCookie, instances) {
+    for (var i = 0; i < instances.length; i++) {        
+        var instanceIdSplit = instances[i].split("/");
+        var partyId = instanceIdSplit[0];
+        var instanceId = instanceIdSplit[1];        
         deleteSblInstance(altinnStudioRuntimeCookie, partyId, instanceId, "true");
-    };        
+    };
+}
+
+//Function to filter app instances based on appName and return instances as an array
+export function filterInstancesByAppName(appNames, responseJson) {
+    responseJson = JSON.parse(responseJson);    
+    var instances = [];
+    for (var i = 0; i < responseJson.length; i++) {
+        if (appNames.includes(responseJson[i].appName)) {            
+            instances.push(responseJson[i].instanceOwnerId + "/" + responseJson[i].id)
+        }
+    }
+    return instances;
 }

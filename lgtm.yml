@@ -3,8 +3,8 @@ extraction:
     index:
       maven:
         version: 4.0.0
-      build_command: mvn -f ./src/Altinn.Platform/Altinn.Platform.PDF/pom.xml -Pprod package
+      build_command: mvn -f ./src/Altinn.Platform/Altinn.Platform.PDF/pom.xml -Pprod package -DskipTests 
   csharp:
     index:
       dotnet:
-        version: 3.1.302
+        version: 3.1.402

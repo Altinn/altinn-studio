@@ -7,10 +7,13 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.chrono.IsoChronology;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.FormatStyle;
+import java.time.temporal.TemporalAccessor;
+import java.util.*;
 
 public class TextUtils {
 
@@ -235,5 +238,42 @@ public class TextUtils {
       }
     }
     languages = languagesMap;
+  }
+
+  /**
+   * Formats a date to the user lang. The date value can be a ISO date-time or a  ISO date
+   * ISO date time format example: 2020-09-11T12:00:00.000+02:00
+   * ISO date format example: 2020-09-11
+   * @param value a date, could be a ISO instant or ISO date
+   * @return the formatted date
+   */
+  public static String getDateFormat(String value, String language) {
+    if (value == null || value.isEmpty()) {
+      return "";
+    }
+    Locale locale;
+    if (language == null || language.isEmpty()) {
+      locale = new Locale("nb");
+    } else {
+      locale = new Locale(language);
+    }
+
+    String pattern =
+        DateTimeFormatterBuilder
+          .getLocalizedDateTimePattern
+            ( FormatStyle.SHORT
+              , null
+              , IsoChronology.INSTANCE
+              , locale
+            );
+    pattern = pattern.replace("yy", "yyyy");
+
+    if (value.length() > 10) {
+      TemporalAccessor ta = DateTimeFormatter.ISO_DATE_TIME.parse(value);
+      return DateTimeFormatter.ofPattern(pattern).withLocale(locale).format(ta);
+    } else {
+      LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_DATE);
+      return date.format(DateTimeFormatter.ofPattern(pattern).withLocale(locale));
+    }
   }
 }

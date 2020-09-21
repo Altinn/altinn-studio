@@ -6,7 +6,7 @@ using Altinn.Platform.Register.Models;
 
 using Xunit;
 
-namespace Altinn.Platform.Models.UnitTest.Register
+namespace Altinn.Platform.Models.Tests.Register
 {
     public class PartyLookupValidationTests
     {
@@ -59,7 +59,7 @@ namespace Altinn.Platform.Models.UnitTest.Register
         public void OrgNoInvalid(string orgNo)
         {
             // Arrange
-            PartyLookup target = new PartyLookup { OrgNo = orgNo};
+            PartyLookup target = new PartyLookup { OrgNo = orgNo };
 
             // Act
             IList<ValidationResult> issues = ModelValidator.ValidateModel(target);

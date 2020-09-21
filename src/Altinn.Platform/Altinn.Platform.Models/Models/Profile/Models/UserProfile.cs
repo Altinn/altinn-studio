@@ -1,4 +1,3 @@
-
 using Altinn.Platform.Profile.Enums;
 using Altinn.Platform.Register.Models;
 

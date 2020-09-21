@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -122,7 +119,7 @@ namespace Altinn.Platform.Profile
         /// <param name="config">the config</param>
         /// <param name="basePath">the base path to look for application settings files</param>
         /// <param name="args">programs arguments</param>
-        public static async Task LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
+        public static void LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
         {
             _logger.LogInformation($"Program // Loading Configuration from basePath={basePath}");
 

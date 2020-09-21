@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -35,7 +34,13 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "readStatus")]
         [JsonConverter(typeof(StringEnumConverter))]
-        public ReadStatus ReadStatus{get; set;}
+        public ReadStatus ReadStatus { get; set; }
+
+        /// <summary>
+        /// Gets or sets the sub status of the instance.
+        /// </summary>
+        [JsonProperty(PropertyName = "substatus")]
+        public Substatus SubStatus { get; set; }
     }
 
     public enum ReadStatus
@@ -54,5 +59,20 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Instance has been updated since last review
         /// </summary>
         UpdatedSinceLastReview
+    }
+
+    public class Substatus
+    {
+        /// <summary>
+        /// A text key pointing to a short description of the substatus.
+        /// </summary>
+        [JsonProperty(PropertyName = "label")]
+        public string Label { get; set; }
+
+        /// <summary>
+        /// A text key pointing to a longer description of the substatus.
+        /// </summary>
+        [JsonProperty(PropertyName = "description")]
+        public string Description { get; set; }
     }
 }
