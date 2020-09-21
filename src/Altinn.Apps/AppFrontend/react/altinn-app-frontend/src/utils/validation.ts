@@ -189,10 +189,27 @@ export function validateEmptyField(
   }
 }
 
+export function validateFormComponents(
+  attachments: any,
+  layouts: any,
+  formData: any,
+  language: any,
+  hiddenFields: string[],
+) {
+  let validations: any = {};
+  Object.keys(layouts).forEach((id) => {
+    const result = validateFormComponentsForLayout(attachments, layouts[id], formData, language, hiddenFields);
+    validations = {
+      ...validations,
+      ...result,
+    };
+  });
+}
+
 /*
   Fetches component spesific validations
 */
-export function validateFormComponents(
+export function validateFormComponentsForLayout(
   attachments: any,
   formLayout: any,
   formData: any,

@@ -77,6 +77,11 @@ export interface IInputProps extends ILayoutComponent {
   inputType: InputFieldType;
 }
 
+export interface INavigationButtonProps extends ILayoutComponent {
+  next?: string;
+  previous?: string;
+}
+
 export interface IParagraphProps extends ILayoutComponent { }
 
 export interface IRadioButtonsProps extends ILayoutComponent {

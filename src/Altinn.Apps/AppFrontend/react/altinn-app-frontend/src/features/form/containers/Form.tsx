@@ -9,19 +9,21 @@ import { renderGenericComponent } from '../../../utils/layout';
 
 export function Form() {
   const [filteredLayout, setFilteredLayout] = React.useState<any[]>([]);
+  const [currentLayout, setCurrentLayout] = React.useState<string>();
 
+  const currentView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
   const layout: ILayout =
     useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
   const repeatingGroups: IRepeatingGroups =
     useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
   const hiddenComponents: string[] = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields);
 
-  console.log('RENDERING FORM');
-  console.log('LAYOUT: ', layout);
+  React.useEffect(() => {
+    setCurrentLayout(currentView);
+  }, [currentView]);
 
   React.useEffect(() => {
     let componentsToRender: any[] = layout;
-    console.log('LAYOUT: ', layout);
     let renderedInGroup: string[] = [];
     if (layout) {
       const groupComponents = layout.filter((component) => component.type.toLowerCase() === 'group');
@@ -114,7 +116,7 @@ export function Form() {
   console.log('filtered layout: ', filteredLayout);
   return (
     <Grid container={true}>
-      {filteredLayout && filteredLayout.map(renderLayoutComponent)}
+      {currentView === currentLayout && filteredLayout && filteredLayout.map(renderLayoutComponent)}
     </Grid>
   );
 }

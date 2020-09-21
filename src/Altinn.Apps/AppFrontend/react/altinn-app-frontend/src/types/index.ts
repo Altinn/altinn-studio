@@ -132,6 +132,11 @@ export interface IFormRadioButtonComponent extends IFormComponent {
 
 export interface IFormTextAreaComponent extends IFormComponent { }
 
+export interface INavigationButtonsComponent extends IFormComponent {
+  next: string;
+  previous: string;
+}
+
 export interface IOption {
   label: string;
   value: any;

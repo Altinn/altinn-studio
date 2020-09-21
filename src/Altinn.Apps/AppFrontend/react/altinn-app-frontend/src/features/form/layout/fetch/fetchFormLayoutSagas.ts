@@ -10,35 +10,30 @@ import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { getRepeatingGroups } from '../../../../utils/formLayout';
 import { IRuntimeState } from '../../../../types';
 import { IFormDataState } from '../../data/formDataReducer';
+import { ILayouts } from '../index';
 
 const formDataSelector = (state: IRuntimeState) => state.formData;
 
 function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
   try {
-    const { data }: any = yield call(get, url);
-    const testId = 'FormLayout';
+    // const { data }: any = yield call(get, url);
+    console.log('URL: ', url);
+    const test: any = yield call(get, url);
+    const layouts: ILayouts = {};
+    const orderedLayoutKeys = Object.keys(test).sort();
+    const firstLayoutKey = orderedLayoutKeys[0];
+
+    orderedLayoutKeys.forEach((key) => {
+      layouts[key] = test[key].data.layout;
+    });
+
     const formDataState: IFormDataState = yield select(formDataSelector);
-    const repeatingGroups = getRepeatingGroups(data.layout, formDataState.formData);
-    const result = {
-      FormLayout: data.layout,
-      sometest: [
-        {
-          id: 'someText2',
-          type: 'Paragraph',
-          componentType: 9,
-          textResourceBindings: {
-            title: '### Hello!  This is a page.',
-          },
-          dataModelBindings: {},
-          readOnly: false,
-          required: false,
-        },
-      ],
-    };
-    yield call(Actions.fetchFormLayoutFulfilled, result);
-    yield call(Actions.updateAutoSave, data.autoSave);
+    const repeatingGroups = getRepeatingGroups(test[firstLayoutKey].data.layout, formDataState.formData);
+
+    yield call(Actions.fetchFormLayoutFulfilled, layouts);
+    // yield call(Actions.updateAutoSave, data.autoSave);
     yield call(Actions.updateRepeatingGroupsFulfilled, repeatingGroups);
-    yield call(Actions.updateCurrentView, testId);
+    yield call(Actions.updateCurrentView, firstLayoutKey);
   } catch (err) {
     yield call(Actions.fetchFormLayoutRejected, err);
     yield call(QueueActions.dataTaskQueueError, err);
@@ -52,6 +47,6 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
     take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
   ]);
   const { org, app } = window as Window as IAltinnWindow;
-  const url = `${window.location.origin}/${org}/${app}/api/resource/FormLayout.json`;
+  const url = `${window.location.origin}/${org}/${app}/api/layouts`;
   yield call(fetchFormLayoutSaga, { url } as IFetchFormLayout);
 }
