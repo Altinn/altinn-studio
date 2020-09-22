@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
 
@@ -44,22 +45,17 @@ namespace Altinn.Platform.Storage.Helpers
                 ReadStatus = status.ReadStatus
             };
 
-            return messageBoxInstance;
-        }
-
-        /// <summary>
-        /// Adds title to the intance
-        /// </summary>
-        public static List<MessageBoxInstance> AddTitleToInstances(List<MessageBoxInstance> instances, Dictionary<string, Dictionary<string, string>> appTitles, string language)
-        {
-            foreach (MessageBoxInstance instance in instances)
+            if (instance.Status?.SubStatus != null)
             {
-                string title = appTitles[GetAppId(instance)].ContainsKey(language) ? appTitles[GetAppId(instance)][language] : appTitles[GetAppId(instance)]["nb"];
-                instance.Title = title;
+                messageBoxInstance.Substatus = new Substatus
+                {
+                    Label = instance.Status.SubStatus.Label,
+                    Description = instance.Status.SubStatus.Description
+                };
             }
 
-            return instances;
-        }
+            return messageBoxInstance;
+        } 
 
         /// <summary>
         /// Returns app id
@@ -154,6 +150,34 @@ namespace Altinn.Platform.Storage.Helpers
             });
 
             return (lastChangedBy, lastChanged);
+        }
+
+        /// <summary>
+        /// Replaces central texts in instance with values from text resource.
+        /// </summary>
+        /// <param name="instances">list of instances</param>
+        /// <param name="textResources">list of text resources</param>
+        /// <param name="language">the language</param>
+        /// <returns>list of instances with updated texts</returns>
+        public static List<MessageBoxInstance> ReplaceTextKeys(List<MessageBoxInstance> instances, List<TextResource> textResources, string language)
+        {
+            foreach (MessageBoxInstance instance in instances)
+            {
+                string id = $"{instance.Org}-{instance.AppName}-{language}";
+                instance.Title = textResources.FirstOrDefault(t => t.Id.Equals(id))?.Resources.Where(r => r.Id.Equals("ServiceName")).Select(r => r.Value).FirstOrDefault() ?? instance.AppName;
+
+                if (instance.Substatus?.Label != null)
+                {
+                    instance.Substatus.Label = textResources.FirstOrDefault(t => t.Id.Equals(id))?.Resources.Where(r => r.Id.Equals(instance.Substatus.Label)).Select(r => r.Value).FirstOrDefault() ?? instance.Substatus.Label;
+                }
+
+                if (instance.Substatus?.Description != null)
+                {
+                    instance.Substatus.Description = textResources.FirstOrDefault(t => t.Id.Equals(id))?.Resources.Where(r => r.Id.Equals(instance.Substatus.Description)).Select(r => r.Value).FirstOrDefault() ?? instance.Substatus.Description;
+                }
+            }
+
+            return instances;
         }
     }
 }

@@ -16,7 +16,10 @@
     "endEvent": "EndEvent_1"
   },
   "status": {
-    "archived": "2020-04-29T13:53:06.117891Z"
+    "archived": "2020-04-29T13:53:06.117891Z",
+    "substatus": {
+      "label": "substatus.declined.label"
+    }
   },
   "appOwner": {},
   "data": [

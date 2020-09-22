@@ -149,6 +149,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Arrange
                 string instanceId = "1337/6323a337-26e7-4d40-89e8-f5bb3d80be3a";
                 string expectedTitle = "Name change";
+                string expectedSubstatusLabel = "Application approved";
 
                 HttpClient client = GetTestClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(3, 1337, 3));
@@ -165,6 +166,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 Assert.Equal(expectedTitle, actual.Title);
                 Assert.True(actual.AllowDelete);
                 Assert.True(actual.AuthorizedForWrite);
+                Assert.Equal(expectedSubstatusLabel, actual.Substatus.Label);
             }
 
             /// <summary>
@@ -558,6 +560,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                         services.AddSingleton<IApplicationRepository, ApplicationRepositoryMock>();
                         services.AddSingleton<IInstanceEventRepository, InstanceEventRepositoryMock>();
                         services.AddSingleton<IInstanceRepository, InstanceRepositoryMock>();
+                        services.AddSingleton<ITextRepository, TextRepositoryMock>();
                         services.AddSingleton(sasTokenProvider.Object);
                         services.AddSingleton(keyVaultWrapper.Object);
                         services.AddSingleton(partiesWrapper.Object);
