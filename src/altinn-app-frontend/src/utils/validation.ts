@@ -725,3 +725,33 @@ export function getNumberOfComponentsWithErrors(validations: IValidations): numb
 
   return numberOfComponents;
 }
+
+/*
+  Checks if a given component has any validation errors. Returns true/false.
+*/
+export function componentHasValidations(validations: IValidations, componentId: string): boolean {
+  if (!validations || !componentId) {
+    return false;
+  }
+  return Object.keys(validations[componentId] || {})?.some((bindingKey: string) => {
+    return (validations[componentId][bindingKey].errors?.length > 0);
+  });
+}
+
+/*
+  Checks if a given repeating group has any child components with errors.
+*/
+export function repeatingGroupHasValidations(
+  validations:IValidations,
+  repeatingGroupCount: number,
+  children: ILayoutComponent[],
+): boolean {
+  if (!validations || !repeatingGroupCount || !children) {
+    return false;
+  }
+  return [...Array(repeatingGroupCount)].some((_x: any, index: number) => {
+    return children.some((component: ILayoutComponent) => {
+      return componentHasValidations(validations, `${component.id}-${index}`);
+    });
+  });
+}
