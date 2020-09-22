@@ -8,12 +8,11 @@
       "sslPort": 44400
     }
   },
-  "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "storage/swagger/index.html",
+      "launchUrl": "events/swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -21,7 +20,7 @@
     "Altinn.Platform.Events": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "storage/swagger/index.html",
+      "launchUrl": "events/swagger",
       "applicationUrl": "http://localhost:5080",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
