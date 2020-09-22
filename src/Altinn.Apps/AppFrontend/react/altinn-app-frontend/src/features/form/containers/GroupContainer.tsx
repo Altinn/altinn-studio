@@ -126,16 +126,16 @@ export function GroupContainer({
   const formData: IFormData = useSelector((state: IRuntimeState) => state.formData.formData);
   const [editIndex, setEditIndex] = React.useState<number>(-1);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
-  const getRepeatingGroupCount = (containerId: string) => {
+  const getRepeatingGroupIndex = (containerId: string) => {
     if (repeatingGroups && repeatingGroups[containerId] && repeatingGroups[containerId].count) {
-      return repeatingGroups[containerId].count + 1; // count is actually an index
+      return repeatingGroups[containerId].count;
     }
     return 0;
   };
-  const repeatingGroupCount = getRepeatingGroupCount(id);
+  const repeatinGroupIndex = getRepeatingGroupIndex(id);
   const tableHeaderComponents = container.tableHeaders || container.children || [];
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
-  const tableHasErrors = repeatingGroupHasValidations(validations, repeatingGroupCount, components);
+  const tableHasErrors = repeatingGroupHasValidations(validations, repeatinGroupIndex + 1, components);
   const componentTitles: string[] = [];
   renderComponents.forEach((component: ILayoutComponent) => {
     if (tableHeaderComponents.includes(component.id)) {
@@ -145,7 +145,7 @@ export function GroupContainer({
 
   const onClickAdd = () => {
     FormLayoutActions.updateRepeatingGroups(id);
-    setEditIndex(repeatingGroupCount);
+    setEditIndex(repeatinGroupIndex + 1);
   };
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -175,7 +175,7 @@ export function GroupContainer({
 
   const createRepeatingGroupComponents = () => {
     const componentArray = [];
-    for (let i = 0; i < repeatingGroupCount; i++) {
+    for (let i = 0; i <= repeatinGroupIndex; i++) {
       const childComponents = renderComponents.map((component: ILayoutComponent) => {
         const componentDeepCopy: ILayoutComponent = JSON.parse(JSON.stringify(component));
         const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
@@ -221,7 +221,7 @@ export function GroupContainer({
               </TableRow>
             </TableHead>
             <TableBody className={classes.tableBody}>
-              {[...Array(repeatingGroupCount)].map((_x: any, repeatingGroupIndex: number) => {
+              {[...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
                 const rowHasErrors = components.some((component: ILayoutComponent) => {
                   return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
                 });
@@ -256,7 +256,7 @@ export function GroupContainer({
           container={true} direction='column'
           className={classes.mobileContainer}
         >
-          {[...Array(repeatingGroupCount)].map((_x: any, repeatingGroupIndex: number) => {
+          {[...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
             const rowHasErrors = components.some((component: ILayoutComponent) => {
               return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
             });
@@ -306,7 +306,7 @@ export function GroupContainer({
         container={true}
         justify='flex-end'
       />
-      {((editIndex < 0) && (repeatingGroupCount < container.maxCount)) &&
+      {((editIndex < 0) && (repeatinGroupIndex < container.maxCount)) &&
       <Grid
         container={true}
         direction='row'
