@@ -19,7 +19,6 @@ namespace Altinn.Platform.Events.Repository
     public class EventsRepository : IEventsRepository
     {
         private readonly ILogger _logger;
-        private readonly Uri _databaseUri;
         private readonly Uri _collectionUri;
         private readonly string _collectionId = "events";
         private readonly string _partitionKey = "/subject";
@@ -39,12 +38,11 @@ namespace Altinn.Platform.Events.Repository
 
             _client = database.CreateDatabaseAndCollection(_collectionId);
             _collectionUri = database.CollectionUri;
-            _databaseUri = database.DatabaseUri;
 
             DocumentCollection documentCollection = database.CreateDocumentCollection(_collectionId, _partitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
-                _databaseUri,
+                database.DatabaseUri,
                 documentCollection).GetAwaiter().GetResult();
             InsertTrigger();
             _client.OpenAsync();
