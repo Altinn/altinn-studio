@@ -128,7 +128,7 @@ export function GroupContainer({
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const getRepeatingGroupCount = (containerId: string) => {
     if (repeatingGroups && repeatingGroups[containerId] && repeatingGroups[containerId].count) {
-      return repeatingGroups[containerId].count;
+      return repeatingGroups[containerId].count + 1; // count is actually an index
     }
     return 0;
   };
@@ -175,7 +175,7 @@ export function GroupContainer({
 
   const createRepeatingGroupComponents = () => {
     const componentArray = [];
-    for (let i = 0; i <= repeatingGroupCount; i++) {
+    for (let i = 0; i < repeatingGroupCount; i++) {
       const childComponents = renderComponents.map((component: ILayoutComponent) => {
         const componentDeepCopy: ILayoutComponent = JSON.parse(JSON.stringify(component));
         const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
@@ -221,7 +221,7 @@ export function GroupContainer({
               </TableRow>
             </TableHead>
             <TableBody className={classes.tableBody}>
-              {[...Array(repeatingGroupCount + 1)].map((_x: any, repeatingGroupIndex: number) => {
+              {[...Array(repeatingGroupCount)].map((_x: any, repeatingGroupIndex: number) => {
                 const rowHasErrors = components.some((component: ILayoutComponent) => {
                   return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
                 });
@@ -256,7 +256,7 @@ export function GroupContainer({
           container={true} direction='column'
           className={classes.mobileContainer}
         >
-          {[...Array(repeatingGroupCount + 1)].map((_x: any, repeatingGroupIndex: number) => {
+          {[...Array(repeatingGroupCount)].map((_x: any, repeatingGroupIndex: number) => {
             const rowHasErrors = components.some((component: ILayoutComponent) => {
               return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
             });
