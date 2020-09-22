@@ -105,8 +105,22 @@ const useStyles = makeStyles({
   },
   mobileText: {
     fontWeight: 500,
+    float: 'left',
+    maxWidth: '50%',
+    minWidth: '50%',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
   },
-  textFormatting: {
+  mobileValueText: {
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    maxWidth: '50%',
+    minWidth: '50%',
+  },
+  textContainer: {
+    width: '100%',
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
@@ -126,16 +140,16 @@ export function GroupContainer({
   const formData: IFormData = useSelector((state: IRuntimeState) => state.formData.formData);
   const [editIndex, setEditIndex] = React.useState<number>(-1);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
-  const getRepeatingGroupCount = (containerId: string) => {
+  const getRepeatingGroupIndex = (containerId: string) => {
     if (repeatingGroups && repeatingGroups[containerId] && repeatingGroups[containerId].count) {
       return repeatingGroups[containerId].count;
     }
     return 0;
   };
-  const repeatingGroupCount = getRepeatingGroupCount(id);
+  const repeatinGroupIndex = getRepeatingGroupIndex(id);
   const tableHeaderComponents = container.tableHeaders || container.children || [];
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
-  const tableHasErrors = repeatingGroupHasValidations(validations, repeatingGroupCount, components);
+  const tableHasErrors = repeatingGroupHasValidations(validations, repeatinGroupIndex + 1, components);
   const componentTitles: string[] = [];
   renderComponents.forEach((component: ILayoutComponent) => {
     if (tableHeaderComponents.includes(component.id)) {
@@ -145,7 +159,7 @@ export function GroupContainer({
 
   const onClickAdd = () => {
     FormLayoutActions.updateRepeatingGroups(id);
-    setEditIndex(repeatingGroupCount);
+    setEditIndex(repeatinGroupIndex + 1);
   };
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -157,7 +171,7 @@ export function GroupContainer({
   const getFormDataForComponent = (component: ILayoutComponent, index: number): string => {
     const dataModelBinding = (component.type === 'AddressComponent') ? component.dataModelBindings?.address : component.dataModelBindings?.simpleBinding;
     const replaced = dataModelBinding.replace(container.dataModelBindings.group, `${container.dataModelBindings.group}[${index}]`);
-    return formData[replaced] || null;
+    return formData[replaced] || '';
   };
 
   const onClickRemove = (groupIndex: number) => {
@@ -175,7 +189,7 @@ export function GroupContainer({
 
   const createRepeatingGroupComponents = () => {
     const componentArray = [];
-    for (let i = 0; i <= repeatingGroupCount; i++) {
+    for (let i = 0; i <= repeatinGroupIndex; i++) {
       const childComponents = renderComponents.map((component: ILayoutComponent) => {
         const componentDeepCopy: ILayoutComponent = JSON.parse(JSON.stringify(component));
         const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
@@ -221,7 +235,7 @@ export function GroupContainer({
               </TableRow>
             </TableHead>
             <TableBody className={classes.tableBody}>
-              {[...Array(repeatingGroupCount + 1)].map((_x: any, repeatingGroupIndex: number) => {
+              {[...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
                 const rowHasErrors = components.some((component: ILayoutComponent) => {
                   return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
                 });
@@ -256,7 +270,7 @@ export function GroupContainer({
           container={true} direction='column'
           className={classes.mobileContainer}
         >
-          {[...Array(repeatingGroupCount + 1)].map((_x: any, repeatingGroupIndex: number) => {
+          {[...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
             const rowHasErrors = components.some((component: ILayoutComponent) => {
               return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
             });
@@ -274,25 +288,22 @@ export function GroupContainer({
                   >
                     {getLanguageFromKey('general.edit_alt', language)}
                     <i className={rowHasErrors ?
-                      `ai ai-circle-exclamation a-icon ${classes.errorIcon}` :
+                      `ai ai-circle-exclamation ${classes.errorIcon}` :
                       `fa fa-editing-file ${classes.editIcon}`}
                     />
                   </IconButton>
                 </Grid>
                 {componentTitles.map((title: string, index: number) => {
                   return (
-                    <Grid
-                      item={true} container={true}
-                      direction='row' className={rowHasErrors ? classes.tableRowError : ''}
-                    >
-                      <span className={classes.textFormatting}>
-                        <span className={classes.mobileText}>
-                          {`${getTextResourceByKey(title, textResources)}:`}
-                        </span>
-                        <span>
-                          {getFormDataForComponent(components[index], repeatingGroupIndex)}
-                        </span>
-                      </span>
+                    <Grid item={true} className={rowHasErrors ? `${classes.tableRowError} ${classes.textContainer}` : classes.textContainer}>
+                      <div className={classes.mobileText}>
+                        {`${getTextResourceByKey(title, textResources)}:`}
+                      </div>
+                      <div
+                        className={classes.mobileValueText}
+                      >
+                        {getFormDataForComponent(components[index], repeatingGroupIndex)}
+                      </div>
                     </Grid>
                   );
                 })}
@@ -306,7 +317,7 @@ export function GroupContainer({
         container={true}
         justify='flex-end'
       />
-      {((editIndex < 0) && (repeatingGroupCount < container.maxCount)) &&
+      {((editIndex < 0) && (repeatinGroupIndex < container.maxCount)) &&
       <Grid
         container={true}
         direction='row'
