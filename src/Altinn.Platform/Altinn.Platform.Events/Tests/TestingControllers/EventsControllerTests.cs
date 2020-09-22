@@ -16,8 +16,14 @@ using Xunit;
 
 namespace Altinn.Platform.Events.Tests.TestingControllers
 {
+    /// <summary>
+    /// Represents a collection of integration tests.
+    /// </summary>
     public partial class IntegrationTests
     {
+        /// <summary>
+        /// Represents a collection of integration tests of the <see cref="EventsController"/>.
+        /// </summary>
         public class EventsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
         {
             private const string BasePath = "/events/api/v1";
@@ -61,8 +67,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
                 string content = response.Content.ReadAsStringAsync().Result;
-
-                Assert.True(content.Contains(responseId));
+                Assert.Contains(responseId, content);
             }
 
             /// <summary>

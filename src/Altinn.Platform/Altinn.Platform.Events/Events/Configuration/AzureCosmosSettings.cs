@@ -19,10 +19,5 @@ namespace Altinn.Platform.Events.Configuration
         /// name of the database in the given end point
         /// </summary>
         public string Database { get; set; }
-
-        /// <summary>
-        /// name of the collection in the given database
-        /// </summary>
-        public string Collection { get; set; }
     }
 }

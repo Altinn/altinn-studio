@@ -15,8 +15,8 @@ namespace Altinn.Platform.Events.Controllers
     [ApiController]
     public class EventsController : ControllerBase
     {
-        private readonly IEventsRepository repository;
-        private readonly ILogger logger;
+        private readonly IEventsRepository _repository;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsController"/> class
@@ -25,8 +25,8 @@ namespace Altinn.Platform.Events.Controllers
         /// <param name="logger">dependency injection of logger</param>
         public EventsController(IEventsRepository repository, ILogger<EventsController> logger)
         {
-            this.repository = repository;
-            this.logger = logger;
+            this._repository = repository;
+            this._logger = logger;
         }
 
         /// <summary>
@@ -34,7 +34,6 @@ namespace Altinn.Platform.Events.Controllers
         /// </summary>
         /// <param name="cloudEvent">The event to store.</param>
         /// <returns>The applicaiton metadata object.</returns>
-        // [Authorize(Policy = AuthzConstants.POLICY_STUDIO_DESIGNER)]
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -52,15 +51,16 @@ namespace Altinn.Platform.Events.Controllers
             {
                 // Force cosmos to create id
                 cloudEvent.Id = null;
-                string result = await repository.Create(cloudEvent);
 
-                logger.LogInformation($"Cloud Event sucessfully stored", result);
+                string cloudEventId = await _repository.Create(cloudEvent);
 
-                return Created(cloudEvent.Subject, result);
+                _logger.LogInformation($"Cloud Event sucessfully stored", cloudEventId);
+
+                return Created(cloudEvent.Subject, cloudEventId);
             }
             catch (Exception e)
             {
-                logger.LogError($"Unable to store cloud event in database. {e}");
+                _logger.LogError($"Unable to store cloud event in database. {e}");
                 return StatusCode(500, $"Unable to store cloud event in database. {e}");
             }
         }
