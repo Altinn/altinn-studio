@@ -24,7 +24,7 @@ namespace Altinn.Platform.Events.Repository
         private readonly string _collectionId = "events";
         private readonly string _partitionKey = "/subject";
         private readonly string _triggerId = "trgUpdateItemTimestamp";
-        private static DocumentClient _client;
+        private readonly DocumentClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsRepository"/> class.
