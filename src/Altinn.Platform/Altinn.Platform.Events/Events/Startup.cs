@@ -75,7 +75,7 @@ namespace Altinn.Platform.Events
            });
 
             services.AddHealthChecks().AddCheck<HealthCheck>("events_health_check");
-            services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
+            services.Configure<AzureCosmosSettings>(Configuration.GetSection(nameof(AzureCosmosSettings)));
 
             services.AddSingleton<IEventsRepository, EventsRepository>();
             services.AddSingleton(Configuration);

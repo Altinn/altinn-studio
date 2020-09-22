@@ -34,7 +34,7 @@ namespace Altinn.Platform.Events.Repository
         {
             this._logger = logger;
 
-            var database = new CosmosDatabaseHandler(cosmosettings.Value);
+            CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosettings.Value);
 
             _client = database.CreateDatabaseAndCollection(_collectionId);
             _collectionUri = database.CollectionUri;
