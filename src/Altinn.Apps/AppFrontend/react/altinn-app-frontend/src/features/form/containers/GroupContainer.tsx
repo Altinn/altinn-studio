@@ -105,8 +105,22 @@ const useStyles = makeStyles({
   },
   mobileText: {
     fontWeight: 500,
+    float: 'left',
+    maxWidth: '50%',
+    minWidth: '50%',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
   },
-  textFormatting: {
+  mobileValueText: {
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    maxWidth: '50%',
+    minWidth: '50%',
+  },
+  textContainer: {
+    width: '100%',
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
@@ -157,7 +171,7 @@ export function GroupContainer({
   const getFormDataForComponent = (component: ILayoutComponent, index: number): string => {
     const dataModelBinding = (component.type === 'AddressComponent') ? component.dataModelBindings?.address : component.dataModelBindings?.simpleBinding;
     const replaced = dataModelBinding.replace(container.dataModelBindings.group, `${container.dataModelBindings.group}[${index}]`);
-    return formData[replaced] || null;
+    return formData[replaced] || '';
   };
 
   const onClickRemove = (groupIndex: number) => {
@@ -274,25 +288,22 @@ export function GroupContainer({
                   >
                     {getLanguageFromKey('general.edit_alt', language)}
                     <i className={rowHasErrors ?
-                      `ai ai-circle-exclamation a-icon ${classes.errorIcon}` :
+                      `ai ai-circle-exclamation ${classes.errorIcon}` :
                       `fa fa-editing-file ${classes.editIcon}`}
                     />
                   </IconButton>
                 </Grid>
                 {componentTitles.map((title: string, index: number) => {
                   return (
-                    <Grid
-                      item={true} container={true}
-                      direction='row' className={rowHasErrors ? classes.tableRowError : ''}
-                    >
-                      <span className={classes.textFormatting}>
-                        <span className={classes.mobileText}>
-                          {`${getTextResourceByKey(title, textResources)}:`}
-                        </span>
-                        <span>
-                          {getFormDataForComponent(components[index], repeatingGroupIndex)}
-                        </span>
-                      </span>
+                    <Grid item={true} className={rowHasErrors ? `${classes.tableRowError} ${classes.textContainer}` : classes.textContainer}>
+                      <div className={classes.mobileText}>
+                        {`${getTextResourceByKey(title, textResources)}:`}
+                      </div>
+                      <div
+                        className={classes.mobileValueText}
+                      >
+                        {getFormDataForComponent(components[index], repeatingGroupIndex)}
+                      </div>
                     </Grid>
                   );
                 })}
