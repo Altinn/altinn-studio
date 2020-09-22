@@ -43,7 +43,7 @@ namespace Altinn.Platform.Events.Controllers
         public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
         {
             if (string.IsNullOrEmpty(cloudEvent.Source.OriginalString) || string.IsNullOrEmpty(cloudEvent.Specversion) ||
-            string.IsNullOrEmpty(cloudEvent.Type) || string.IsNullOrEmpty(cloudEvent.Subject) || cloudEvent.Time == null)
+            string.IsNullOrEmpty(cloudEvent.Type) || string.IsNullOrEmpty(cloudEvent.Subject))
             {
                 return BadRequest("Missing parameter values: source, subject, type, id or time cannot be null");
             }

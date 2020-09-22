@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Models;
@@ -23,7 +24,6 @@ namespace Altinn.Platform.Events.Repository
         private readonly string collectionId = "events";
         private readonly string partitionKey = "/subject";
         private readonly string triggerId = "trgUpdateItemTimestamp";
-        private readonly string databaseId;
         private static DocumentClient client;
 
         /// <summary>
@@ -40,7 +40,6 @@ namespace Altinn.Platform.Events.Repository
             client = database.CreateDatabaseAndCollection(collectionId);
             collectionUri = database.CollectionUri;
             databaseUri = database.DatabaseUri;
-            databaseId = database.DatabaseName;
 
             DocumentCollection documentCollection = database.CreateDocumentCollection(collectionId, partitionKey);
 
@@ -58,11 +57,10 @@ namespace Altinn.Platform.Events.Repository
                 collectionUri, 
                 item, 
                 new RequestOptions { PreTriggerInclude = new List<string> { "trgUpdateItemTimestamp" } });
-            Document document = createDocumentResponse.Resource;
             return createDocumentResponse.Resource.Id;
         }
 
-        private async void InsertTrigger()
+        private void InsertTrigger()
         {
             try
             {
@@ -71,7 +69,7 @@ namespace Altinn.Platform.Events.Repository
                 trigger.Body = File.ReadAllText("./Configuration/UpdateItemTimestamp.js");
                 trigger.TriggerOperation = TriggerOperation.Create;
                 trigger.TriggerType = TriggerType.Pre;
-                ResourceResponse<Trigger> response = await client.CreateTriggerAsync(collectionUri, trigger);
+                client.CreateTriggerAsync(collectionUri, trigger).GetAwaiter().GetResult();
             } 
             catch (DocumentClientException e) 
             {
@@ -82,7 +80,7 @@ namespace Altinn.Platform.Events.Repository
                 else 
                 {
                     logger.LogCritical($"Unable to create trigger {triggerId} in database. {e}");
-                    throw e;
+                    throw;
                 }
             }
         }
