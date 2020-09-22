@@ -207,7 +207,7 @@ namespace Altinn.App.Services.Implementation
             string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/substatus";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, new StringContent(JsonConvert.SerializeObject(substatus)));
+            HttpResponseMessage response = await _client.PutAsync(token, apiUrl, new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json"));
 
             if (response.StatusCode == HttpStatusCode.OK)
             {

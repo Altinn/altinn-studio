@@ -15,12 +15,37 @@ export const styles = {
     lineHeight: 'auto',
     color: '#000000',
   },
+  optional: {
+    marginTop: '2.4rem',
+    marginLeft: '0.4rem',
+    color: '#6A6A6A',
+    fontSize: '1.4rem',
+  },
+  description: {
+    fontSize: '1.4rem',
+  },
 };
 
 export function renderPropertyLabel(textKey: string) {
   return (
     <Typography style={styles.inputHelper}>
       {textKey}
+    </Typography>
+  );
+}
+
+export function renderOptionalLabel(text: string) {
+  return (
+    <Typography style={styles.optional}>
+      {`(${text.toLowerCase()})`}
+    </Typography>
+  );
+}
+
+export function renderDescription(text: string) {
+  return (
+    <Typography style={styles.description}>
+      {text}
     </Typography>
   );
 }
@@ -126,6 +151,8 @@ export function renderSelectTextFromResources(
   returnValue?: string,
   truncateLimit: number = 80,
   createNewTextAllowed: boolean = false,
+  description?: string,
+  optional: boolean = false,
 ): JSX.Element {
   const resources: any = [];
   if (textResources) {
@@ -136,7 +163,11 @@ export function renderSelectTextFromResources(
   }
   return (
     <div>
-      {renderPropertyLabel(language.ux_editor[labelText])}
+      <div style={{ display: 'flex' }}>
+        {renderPropertyLabel(language.ux_editor[labelText])}
+        {optional && renderOptionalLabel(language.general.optional)}
+      </div>
+      {description && renderDescription(description)}
       {!createNewTextAllowed &&
         /* TODO: add back in when creating new texts is allowed
           <CreatableSelect
@@ -161,7 +192,7 @@ export function renderSelectTextFromResources(
           // tslint:disable-next-line:jsx-no-lambda
           onChange={(value) => onChangeFunction(value, returnValue)}
           isClearable={true}
-          placeholder={placeholder ?
+          placeholder={(placeholder !== undefined) ?
             truncate(getTextResource(placeholder, textResources), 40)
             : language.ux_editor[labelText]}
           // tslint:disable-next-line:jsx-no-lambda

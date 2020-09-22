@@ -87,4 +87,11 @@ export default function (data) {
     });
     addErrorCount(success);
 
+    //Test to update the sub status of an instance and validate the response
+    res = instances.putUpdateSubStatus(runtimeToken, partyId, instanceId, "test", "test description");
+    success = check(res, {
+        "PUT Update sub status is 200:": (r) => r.status === 200,
+        "Instance sub status is updated:": (r) => JSON.parse(r.body).status.substatus != null
+    });
+    addErrorCount(success);
 };
