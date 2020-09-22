@@ -29,7 +29,6 @@ describe('>>> utils/render', () => {
       // do someting
     };
     mockPlaceholder = '25795.OppgavegiverNavnPreutfyltdatadef25795.Label';
-
   });
   it('+++ should render select with placeholder', () => {
     const render = renderSelectTextFromResources(
@@ -40,7 +39,7 @@ describe('>>> utils/render', () => {
       mockPlaceholder,
     );
     expect(typeof render).toBe('object');
-    expect(render.props.children[1].props.placeholder).toEqual('Navn');
+    expect(render.props.children[2].props.placeholder).toEqual('Navn');
   });
   it('+++ should render select with default placeholder', () => {
     const render = renderSelectTextFromResources(
@@ -48,10 +47,10 @@ describe('>>> utils/render', () => {
       mockOnChangeFunction,
       mockTextResources,
       mockLanguage,
-      null,
+      undefined,
     );
     expect(typeof render).toBe('object');
-    expect(render.props.children[0].props.children).toEqual('Søk etter ledetekst');
-    expect(render.props.children[1].props.placeholder).toEqual('Søk etter ledetekst');
+    expect(render.props.children[0].props.children[0].props.children).toEqual('Søk etter ledetekst');
+    expect(render.props.children[2].props.placeholder).toEqual('Søk etter ledetekst');
   });
 });

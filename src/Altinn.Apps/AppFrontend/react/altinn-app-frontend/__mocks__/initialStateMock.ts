@@ -50,7 +50,7 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       dataTask: false,
     },
     language: {
-      language: getLanguageFromCode('1044'),
+      language: getLanguageFromCode('nb'),
       error: null,
     },
     organisationMetaData: {
