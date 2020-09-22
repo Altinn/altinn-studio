@@ -1,8 +1,11 @@
 using System;
+using System.IO;
 using System.Net;
+using System.Reflection;
+using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Health;
+using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Telemetry;
-using AltinnCore.Authentication.JwtCookie;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
@@ -13,7 +16,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Altinn.Platform.Events
 {
@@ -68,9 +72,16 @@ namespace Altinn.Platform.Events
 
             _logger.LogInformation("Startup // ConfigureServices");
 
-            services.AddControllersWithViews();
-            services.AddHealthChecks().AddCheck<HealthCheck>("events_health_check");
+            services.AddControllers().AddJsonOptions(options =>
+           {
+               options.JsonSerializerOptions.IgnoreNullValues = true;
+               options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+           });
 
+            services.AddHealthChecks().AddCheck<HealthCheck>("events_health_check");
+            services.Configure<AzureCosmosSettings>(Configuration.GetSection(nameof(AzureCosmosSettings)));
+
+            services.AddSingleton<IEventsRepository, EventsRepository>();
             services.AddSingleton(Configuration);
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
@@ -82,6 +93,13 @@ namespace Altinn.Platform.Events
 
                 _logger.LogInformation($"Startup // ApplicationInsightsTelemetryKey = {ApplicationInsightsKey}");
             }
+
+            // Add Swagger support (Swashbuckle)
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Platform Events", Version = "v1" });
+                IncludeXmlComments(c);
+            });
         }
 
         /// <summary>
@@ -112,6 +130,14 @@ namespace Altinn.Platform.Events
                 app.UseExceptionHandler("/Error");
             }
 
+            app.UseSwagger(o => o.RouteTemplate = "events/swagger/{documentName}/swagger.json");
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/events/swagger/v1/swagger.json", "Altinn Platform Events API");
+                c.RoutePrefix = "events/swagger";
+            });
+
             app.UseStaticFiles();
             app.UseStatusCodePages(async context =>
             {
@@ -135,6 +161,20 @@ namespace Altinn.Platform.Events
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/health");
             });
+        }
+
+        private void IncludeXmlComments(SwaggerGenOptions options)
+        {
+            try
+            {
+                string fileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                string fullFilePath = Path.Combine(AppContext.BaseDirectory, fileName);
+                options.IncludeXmlComments(fullFilePath);
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning(e, "Failed to include the XmlComment file into Swagger for Events.");
+            }
         }
     }
 }

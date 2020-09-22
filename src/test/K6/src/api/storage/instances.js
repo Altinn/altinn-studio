@@ -164,3 +164,14 @@ function buildArrayWithHardDeletedInstanceIds(instancesArray) {
     };
     return harDeletedInstances;
 };
+
+//Api call to Storage:Instances to update the sub status of an instance and return response
+export function putUpdateSubStatus(altinnStudioRuntimeCookie, partyId, instanceId, statusLabel, statusDescription) {
+    var endpoint = config.buildStorageUrls(partyId, instanceId, "", "substatus");
+    var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, "platform");
+    var requestBody = JSON.parse("{}");
+    requestBody.label = statusLabel;
+    requestBody.description = statusDescription;
+    requestBody = JSON.stringify(requestBody);
+    return http.put(endpoint, requestBody, params);
+};

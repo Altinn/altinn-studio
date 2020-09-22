@@ -7,13 +7,15 @@ import '@testing-library/jest-dom/extend-expect';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import { Group } from '../../../../src/features/form/containers/Group';
+import { GroupContainer } from '../../../../src/features/form/containers/GroupContainer';
 import { getInitialStateMock } from '../../../../__mocks__/mocks';
+import { ILayoutGroup } from '../../../../src/features/form/layout';
 
 describe('>>> features/form/components/Group.tsx', () => {
   let mockStore: any;
   let mockLayout: any;
   let mockComponents: any;
+  let mockContainer: ILayoutGroup;
 
   beforeAll(() => {
     window.matchMedia = jest.fn().mockImplementation((query) => {
@@ -34,10 +36,10 @@ describe('>>> features/form/components/Group.tsx', () => {
         id: 'field1',
         type: 'Input',
         dataModelBindings: {
-          simple: 'Group.prop1',
+          simpleBinding: 'Group.prop1',
         },
         textResourceBindings: {
-          title: 'Title',
+          title: 'Title1',
         },
         readOnly: false,
         required: false,
@@ -47,10 +49,10 @@ describe('>>> features/form/components/Group.tsx', () => {
         id: 'field2',
         type: 'Input',
         dataModelBindings: {
-          simple: 'Group.prop2',
+          simpleBinding: 'Group.prop2',
         },
         textResourceBindings: {
-          title: 'Title',
+          title: 'Title2',
         },
         readOnly: false,
         required: false,
@@ -60,10 +62,10 @@ describe('>>> features/form/components/Group.tsx', () => {
         id: 'field3',
         type: 'Input',
         dataModelBindings: {
-          simple: 'Group.prop3',
+          simpleBinding: 'Group.prop3',
         },
         textResourceBindings: {
-          title: 'Title',
+          title: 'Title3',
         },
         readOnly: false,
         required: false,
@@ -74,7 +76,7 @@ describe('>>> features/form/components/Group.tsx', () => {
     mockLayout = {
       layout: [
         {
-          id: 'testGroupId',
+          id: 'mock-container-id',
           type: 'group',
           dataModelBindings: {
             group: 'Group',
@@ -88,8 +90,25 @@ describe('>>> features/form/components/Group.tsx', () => {
       ].concat(mockComponents),
       uiConfig: {
         hiddenFields: [],
-        repeatingGroups: [],
+        repeatingGroups: {
+          'mock-container-id': {
+            count: 3,
+          },
+        },
         autosave: false,
+      },
+    };
+
+    mockContainer = {
+      id: 'mock-container-id',
+      children: [
+        'field1',
+        'field2',
+        'field3',
+      ],
+      maxCount: 8,
+      dataModelBindings: {
+        group: 'some-group',
       },
     };
 
@@ -100,48 +119,69 @@ describe('>>> features/form/components/Group.tsx', () => {
   it('+++ should match snapshot', () => {
     const rendered = renderer.create(
       <Provider store={mockStore}>
-        <Group
+        <GroupContainer
           components={mockComponents}
           id='testGroupId'
-          index={0}
           key='testKey'
-          repeating={true}
-          showAdd={true}
+          container={mockContainer}
         />
       </Provider>,
     );
     expect(rendered).toMatchSnapshot();
   });
 
-  it('+++ should render Add-button when group is repeating', () => {
+  it('+++ should render add new button', async () => {
     const utils = render(
       <Provider store={mockStore}>
-        <Group
+        <GroupContainer
           components={mockComponents}
+          container={mockContainer}
           id='testGroupId'
-          index={0}
           key='testKey'
-          repeating={true}
-          showAdd={true}
         />
       </Provider>,
     );
-    expect(utils.findByText('Legg til')).toBeTruthy();
+    const item = await utils.findByText('Legg til ny');
+    expect(item).not.toBe(null);
   });
 
-  it('+++ should render Delete-button when specified and group is repeating.', () => {
+  it('+++ should render add new button with custom label when supplied', async () => {
+    const mockContainerWithLabel: ILayoutGroup = {
+      textResourceBindings: {
+        add_button: 'person',
+      },
+      ...mockContainer,
+    };
     const utils = render(
       <Provider store={mockStore}>
-        <Group
+        <GroupContainer
+          container={mockContainerWithLabel}
           components={mockComponents}
           id='testGroupId'
-          index={0}
           key='testKey'
-          repeating={true}
-          showDelete={true}
         />
       </Provider>,
     );
-    expect(utils.findByText('Slett')).toBeTruthy();
+    const item = await utils.findByText('Legg til ny person');
+    expect(item).not.toBeNull();
+  });
+
+  it('+++ should not show add button when maxOccurs is reached', () => {
+    const mockContainerWithMaxCount = {
+      ...mockContainer,
+      maxCount: 3,
+    };
+    const utils = render(
+      <Provider store={mockStore}>
+        <GroupContainer
+          components={mockComponents}
+          container={mockContainerWithMaxCount}
+          id='mock-container-id'
+          key='testKey'
+        />
+      </Provider>,
+    );
+    const addButton = utils.queryByText('Legg til ny');
+    expect(addButton).toBeNull();
   });
 });
