@@ -159,7 +159,7 @@ export function GroupContainer({
 
   const onClickAdd = () => {
     FormLayoutActions.updateRepeatingGroups(id);
-    setEditIndex(repeatinGroupIndex + 1);
+    setEditIndex(repeatinGroupIndex);
   };
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -235,7 +235,7 @@ export function GroupContainer({
               </TableRow>
             </TableHead>
             <TableBody className={classes.tableBody}>
-              {[...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
+              {[...Array(repeatinGroupIndex)].map((_x: any, repeatingGroupIndex: number) => {
                 const rowHasErrors = components.some((component: ILayoutComponent) => {
                   return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
                 });
@@ -270,7 +270,7 @@ export function GroupContainer({
           container={true} direction='column'
           className={classes.mobileContainer}
         >
-          {[...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
+          {[...Array(repeatinGroupIndex)].map((_x: any, repeatingGroupIndex: number) => {
             const rowHasErrors = components.some((component: ILayoutComponent) => {
               return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
             });
