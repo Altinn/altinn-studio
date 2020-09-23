@@ -40,7 +40,7 @@ export function getRepeatingGroups(formLayout: [ILayoutComponent | ILayoutGroup]
             repeatingGroups[groupElement.id] = { count };
           }
         } else {
-          repeatingGroups[groupElement.id] = { count: 0 };
+          repeatingGroups[groupElement.id] = { count: -1 };
         }
       }
     });
