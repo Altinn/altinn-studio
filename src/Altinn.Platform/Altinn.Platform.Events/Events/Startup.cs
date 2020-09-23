@@ -84,7 +84,7 @@ namespace Altinn.Platform.Events
             services.Configure<AzureCosmosSettings>(Configuration.GetSection(nameof(AzureCosmosSettings)));
 
             services.AddSingleton<IEventsRepository, EventsRepository>();
-            services.AddSingleton<ICosmosService, CosmosService>();
+            services.AddSingleton<IEventsCosmosService, EventsCosmosService>();
             services.AddSingleton(Configuration);
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))

@@ -14,9 +14,11 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Events.Services
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Class that handles storing and retrieving documents from Cosmos DB.
+    /// </summary>
     [ExcludeFromCodeCoverage]
-    public class CosmosService : ICosmosService
+    public class EventsCosmosService : IEventsCosmosService
     {
         private readonly string _collectionId = "events";
         private readonly string _partitionKey = "/subject";
@@ -26,9 +28,9 @@ namespace Altinn.Platform.Events.Services
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="CosmosService"/> class.
+        /// Initializes a new instance of the <see cref="EventsCosmosService"/> class.
         /// </summary>
-        public CosmosService(IOptions<AzureCosmosSettings> cosmosettings, ILogger<CosmosService> logger)
+        public EventsCosmosService(IOptions<AzureCosmosSettings> cosmosettings, ILogger<EventsCosmosService> logger)
         {
             CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosettings.Value);
 
@@ -46,7 +48,7 @@ namespace Altinn.Platform.Events.Services
         }
 
         /// <inheritdoc/>
-        public async Task<string> StoreEventsDocument(CloudEvent cloudEvent, bool applyTrigger = true)
+        public async Task<string> StoreItemtToEventsCollection<T>(T item, bool applyTrigger = true)
         {
             RequestOptions options = new RequestOptions();
 
@@ -57,7 +59,7 @@ namespace Altinn.Platform.Events.Services
 
             ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(
                 _collectionUri,
-                cloudEvent,
+                item,
                 options);
 
             return createDocumentResponse.Resource.Id;

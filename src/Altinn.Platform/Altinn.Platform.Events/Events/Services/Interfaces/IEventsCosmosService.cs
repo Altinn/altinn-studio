@@ -7,15 +7,15 @@ namespace Altinn.Platform.Events.Services.Interfaces
     /// <summary>
     /// Interface that exposes cosmos DB functionality
     /// </summary>
-    public interface ICosmosService
+    public interface IEventsCosmosService
     {
         /// <summary>
         /// Stores a cloud event document to the events collection.
         /// </summary>
-        /// <param name="cloudEvent">The cloud event to be stored</param>
+        /// <param name="item">The item to be stored</param>
         /// <param name="applyTrigger">Boolean to indicate if trigger should be applied</param>
         /// <returns>Id for the created document</returns>
-        public Task<string> StoreEventsDocument(CloudEvent cloudEvent, bool applyTrigger = true);
+        public Task<string> StoreItemtToEventsCollection<T>(T item, bool applyTrigger = true);
 
         /// <summary>
         /// Stores a trigger in the collection.

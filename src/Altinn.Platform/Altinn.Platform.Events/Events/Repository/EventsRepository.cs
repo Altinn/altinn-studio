@@ -14,7 +14,7 @@ namespace Altinn.Platform.Events.Repository
     /// </summary>
     public class EventsRepository : IEventsRepository
     {
-        private readonly ICosmosService _cosmosService;
+        private readonly IEventsCosmosService _cosmosService;
         private readonly string _triggerId = "trgUpdateItemTimestamp";
         private readonly string _triggerPath = "./Configuration/UpdateItemTimestamp.js";
         private readonly ILogger _logger;
@@ -25,7 +25,7 @@ namespace Altinn.Platform.Events.Repository
         /// </summary>
         /// <param name="cosmosService">the cosmos DB service</param>
         /// <param name="logger">the logger</param>
-        public EventsRepository(ICosmosService cosmosService, ILogger<EventsRepository> logger)
+        public EventsRepository(IEventsCosmosService cosmosService, ILogger<EventsRepository> logger)
         {
             _cosmosService = cosmosService;
             _logger = logger;
@@ -39,12 +39,18 @@ namespace Altinn.Platform.Events.Repository
                 await EnsureTriggerIsPresent();
             }
 
-            string id = await _cosmosService.StoreEventsDocument(item);
+            string id = await _cosmosService.StoreItemtToEventsCollection(item);
             return id;
         }
 
         private async Task EnsureTriggerIsPresent()
         {
+            if (!File.Exists(_triggerPath))
+            {
+                _logger.LogCritical($"Unable to find trigger function on path {_triggerPath}.");
+                return;
+            }
+
             Trigger trigger = new Trigger();
             trigger.Id = _triggerId;
             trigger.Body = File.ReadAllText(_triggerPath);
@@ -55,11 +61,11 @@ namespace Altinn.Platform.Events.Repository
             if (successful)
             {
                 _triggersRegistered = true;
+                return;
             }
             else
             {
-                string message = $"Unable to create trigger {trigger.Id} in database.";
-                _logger.LogCritical(message);
+                _logger.LogCritical($"Unable to create trigger {trigger.Id} in database.");
             }
         }
     }
