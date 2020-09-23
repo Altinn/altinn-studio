@@ -1,13 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository;
-using Altinn.Platform.Events.Tests.Helpers;
 using Altinn.Platform.Events.Tests.Mocks;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -53,7 +48,7 @@ namespace Altinn.Platform.Events.Tests.TestingRepositories
         /// Scenario:
         ///   Store a cloud event in Cosmos DB, but an unexpected error occurs when storing the trigger function.
         /// Expected result:
-        ///   Critical error is logged and an exception thrown.
+        ///   An exception thrown.
         /// Success criteria:
         ///   An exception is thronw.
         /// </summary>
@@ -72,7 +67,6 @@ namespace Altinn.Platform.Events.Tests.TestingRepositories
             {
                 // Assert
                 Assert.NotNull(e);
-                _loggerMock.VerifyCriticalWasCalled();
             }
         }
 

@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Configuration;
-using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Events.Services.Interfaces;
 using Microsoft.Azure.Documents;
@@ -80,12 +79,12 @@ namespace Altinn.Platform.Events.Services
                 {
                     string message = $"Unable to create trigger {trigger.Id} in database. Status code {res.StatusCode}.";
                     _logger.LogCritical(message);
-                    throw new System.InvalidOperationException(message);
+                    throw new InvalidOperationException(message);
                 }
             }
             catch (DocumentClientException e)
             {
-                if (e.StatusCode == System.Net.HttpStatusCode.Conflict)
+                if (e.StatusCode == HttpStatusCode.Conflict)
                 {
                     _logger.LogInformation("Trigger already exists, triggerId: " + trigger.Id);
                     return true;

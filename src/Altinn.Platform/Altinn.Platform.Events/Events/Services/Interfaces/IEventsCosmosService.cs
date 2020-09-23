@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using Altinn.Platform.Events.Models;
 using Microsoft.Azure.Documents;
 
 namespace Altinn.Platform.Events.Services.Interfaces

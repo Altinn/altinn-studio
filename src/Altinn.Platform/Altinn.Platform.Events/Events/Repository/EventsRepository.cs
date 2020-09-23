@@ -61,11 +61,6 @@ namespace Altinn.Platform.Events.Repository
             if (successful)
             {
                 _triggersRegistered = true;
-                return;
-            }
-            else
-            {
-                _logger.LogCritical($"Unable to create trigger {trigger.Id} in database.");
             }
         }
     }
