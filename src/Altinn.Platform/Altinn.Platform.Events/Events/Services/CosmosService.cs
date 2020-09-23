@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Configuration;
@@ -14,6 +15,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Platform.Events.Services
 {
     /// <inheritdoc/>
+    [ExcludeFromCodeCoverage]
     public class CosmosService : ICosmosService
     {
         private readonly string _collectionId = "events";
