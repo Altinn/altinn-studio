@@ -15,6 +15,10 @@
     "currentTask": { "elementId": "Task_1" }
   },
   "status": {
+    "substatus": {
+      "label": "substatus.accepted.label",
+      "description": "substatus.accepted.description"
+    }
   },
   "appOwner": {},
   "data": [

@@ -15,7 +15,8 @@
     "**/bin": true,
     "**/obj": true,
     "**/publish/**": true,
-    "**/Debug": true
+    "**/Debug": true,
+    "**/AppTemplates/**": true
   },
   "typescript.surveys.enabled": false,
   "cSpell.words": [

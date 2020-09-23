@@ -1,7 +1,6 @@
 /* tslint:disable:jsx-wrap-multiline */
 import 'jest';
 import * as React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
@@ -101,53 +100,5 @@ describe('>>> features/form/components/Form.tsx', () => {
       </Provider>,
     );
     expect(rendered).toMatchSnapshot();
-  });
-
-  it('+++ should render new repeating group when Add button is clicked', async () => {
-    const utils = render(
-      <Provider store={mockStore}>
-        <Form/>
-      </Provider>,
-    );
-
-    waitFor(() => {
-      expect(utils.getByTestId(`group-${mockGroupId}-0`)).toBeTruthy();
-      expect(utils.getByTestId(`group-${mockGroupId}-1`)).toBeFalsy();
-    });
-
-    const addButton = await utils.findByText('Legg til');
-    fireEvent.click(addButton);
-
-    waitFor(() => {
-      expect(utils.getByTestId(`group-${mockGroupId}-0`)).toBeTruthy();
-      expect(utils.getByTestId(`group-${mockGroupId}-1`)).toBeTruthy();
-    });
-  });
-
-  it('+++ should hide Add-button when maxCount for repeating groups is reached.', async () => {
-    const utils = render(
-      <Provider store={mockStore}>
-        <Form/>
-      </Provider>,
-    );
-
-    waitFor(() => {
-      expect(utils.getByTestId(`group-${mockGroupId}-0`)).toBeTruthy();
-      expect(utils.getByTestId(`group-${mockGroupId}-1`)).toBeFalsy();
-    });
-
-    const addButton = await utils.findByRole('button');
-    fireEvent.click(addButton);
-
-    waitFor(() => {
-      expect(utils.getByTestId(`group-${mockGroupId}-1`)).toBeTruthy();
-    });
-
-    fireEvent.click(addButton);
-
-    waitFor(() => {
-      expect(utils.getByTestId(`group-${mockGroupId}-2`)).toBeTruthy();
-      expect(addButton).toBeTruthy();
-    });
   });
 });
