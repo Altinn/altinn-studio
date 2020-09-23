@@ -61,7 +61,7 @@ const ProcessStepComponent = (props) => {
               validations={validations}
               textResources={textResources}
             />
-            {instance?.status?.substatus &&
+            {isProcessStepsArchived && instance?.status?.substatus &&
             <AltinnSubstatusPaper
               label={getTextResourceByKey(instance.status.substatus.label, textResources)}
               description={getTextResourceByKey(instance.status.substatus.description, textResources)}

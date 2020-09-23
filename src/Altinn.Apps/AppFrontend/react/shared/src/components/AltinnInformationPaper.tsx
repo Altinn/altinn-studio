@@ -11,7 +11,7 @@ const useStyles = makeStyles({
     boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
     borderRadius: 0,
     fontSize: 16,
-    padding: 26,
+    padding: 24,
     fontFamily: 'Roboto',
   },
 });

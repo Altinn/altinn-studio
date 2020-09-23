@@ -18,7 +18,7 @@ export default function AltinnSubstatusPaper({
         direction='column'
       >
         <Grid item={true}>
-          <Typography id='substatus-label' style={{ fontSize: '2.4rem', marginBottom: '0.8rem' }} >
+          <Typography id='substatus-label' style={{ fontSize: '2.4rem', marginBottom: description ? '0.8rem' : '' }} >
             {label}
           </Typography>
         </Grid>
