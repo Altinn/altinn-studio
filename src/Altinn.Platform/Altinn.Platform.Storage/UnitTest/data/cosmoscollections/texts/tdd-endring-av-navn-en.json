@@ -1,0 +1,32 @@
+{
+  "id": "tdd-endring-av-navn-en",
+  "org": "tdd",
+  "language": "en",
+  "resources": [
+    {
+      "id": "11339.InnsenderPostnummerdatadef11339.Label",
+      "value": "Post code",
+      "variables": null
+    },
+    {
+      "id": "34891.SignererTredjeReferanseAltinndatadef34891.Label",
+      "value": "Reference number Altinn",
+      "variables": null
+    },
+    {
+      "id": "ServiceName",
+      "value": "Name change",
+      "variables": null
+    },
+    {
+      "id": "substatus.accepted.description",
+      "value": "Application approved by all instances.",
+      "variables": null
+    },
+    {
+      "id": "substatus.accepted.label",
+      "value": "Application approved",
+      "variables": null
+    }    
+  ]
+}

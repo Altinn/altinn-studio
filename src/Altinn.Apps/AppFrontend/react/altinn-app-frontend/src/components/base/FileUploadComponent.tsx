@@ -38,7 +38,7 @@ const baseStyle = {
   height: '15.6rem',
   borderWidth: '2px',
   borderColor: AltinnAppTheme.altinnPalette.primary.blueMedium,
-  borderStyle: 'dashed',
+  borderStyle: 'dotted',
   cursor: 'pointer',
 };
 const activeStyle = {
@@ -49,7 +49,7 @@ const rejectStyle = {
   borderColor: AltinnAppTheme.altinnPalette.primary.red,
 };
 const validationErrorStyle = {
-  borderStyle: 'dashed',
+  borderStyle: 'dotted',
   borderColor: AltinnAppTheme.altinnPalette.primary.red,
 };
 

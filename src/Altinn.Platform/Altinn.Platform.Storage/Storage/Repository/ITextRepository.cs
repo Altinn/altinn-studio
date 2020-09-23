@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -16,6 +17,14 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="language">the language. Must be a two letter ISO name.</param>
         /// <returns>the text resource</returns>
         Task<TextResource> Get(string org, string app, string language);
+
+        /// <summary>
+        /// Gets a list of text resources based on appId.
+        /// </summary>
+        /// <param name="appIds">List of application ids e.g. ttd/apps-test</param>
+        /// <param name="language">the language. Must be a two letter ISO name.</param>
+        /// <returns>the list of text resource</returns>
+        Task<List<TextResource>> Get(List<string> appIds, string language);
 
         /// <summary>
         /// Creates a text resource

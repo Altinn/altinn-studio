@@ -145,6 +145,7 @@ namespace Altinn.Platform.Storage.Repository
 
                     if (string.IsNullOrEmpty(feedResponse.ResponseContinuation))
                     {
+                        queryResponse.ContinuationToken = string.Empty;
                         break;
                     }
 
