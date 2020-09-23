@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
 using Microsoft.Azure.Documents;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Events.Repository
 {
@@ -17,14 +18,17 @@ namespace Altinn.Platform.Events.Repository
         private readonly string _triggerId = "trgUpdateItemTimestamp";
         private readonly string _triggerPath = "./Configuration/UpdateItemTimestamp.js";
         private bool _triggersRegistered = false;
+        private ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsRepository"/> class.
         /// </summary>
         /// <param name="cosmosService">the cosmos DB service</param>
-        public EventsRepository(ICosmosService cosmosService)
+        /// <param name="logger">the logger</param>
+        public EventsRepository(ICosmosService cosmosService, ILogger<EventsRepository> logger)
         {
             _cosmosService = cosmosService;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -47,8 +51,16 @@ namespace Altinn.Platform.Events.Repository
             trigger.TriggerOperation = TriggerOperation.Create;
             trigger.TriggerType = TriggerType.Pre;
 
-            await _cosmosService.StoreTrigger(trigger);
-            _triggersRegistered = true;
+            bool successful = await _cosmosService.StoreTrigger(trigger);
+            if (successful)
+            {
+                _triggersRegistered = true;
+            }
+            else
+            {
+                string message = $"Unable to create trigger {trigger.Id} in database.";
+                _logger.LogCritical(message);
+            }
         }
     }
 }

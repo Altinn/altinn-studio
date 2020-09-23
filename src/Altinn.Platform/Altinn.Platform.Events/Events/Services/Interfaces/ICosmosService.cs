@@ -21,6 +21,7 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// Stores a trigger in the collection.
         /// </summary>
         /// <param name="trigger">The trigger</param>
-        public Task StoreTrigger(Trigger trigger);
+        /// <returns>True if trigger is successfully stored</returns>
+        public Task<bool> StoreTrigger(Trigger trigger);
     }
 }

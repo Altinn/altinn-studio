@@ -18,7 +18,7 @@ namespace Altinn.Platform.Events.Services
     {
         private readonly string _collectionId = "events";
         private readonly string _partitionKey = "/subject";
-        private List<string> _triggers = new List<string>();
+        private readonly List<string> _triggers = new List<string>();
         private readonly DocumentClient _client;
         private readonly Uri _collectionUri;
         private readonly ILogger _logger;
@@ -62,20 +62,21 @@ namespace Altinn.Platform.Events.Services
         }
 
         /// <inheritdoc/>
-        public async Task StoreTrigger(Trigger trigger)
+        public async Task<bool> StoreTrigger(Trigger trigger)
         {
             try
-            {                
+            {
                 ResourceResponse<Trigger> res = await _client.CreateTriggerAsync(_collectionUri, trigger);
                 if (res.StatusCode.Equals(HttpStatusCode.Created))
                 {
                     _triggers.Add(trigger.Id);
+                    return true;
                 }
                 else
                 {
                     string message = $"Unable to create trigger {trigger.Id} in database.";
                     _logger.LogCritical(message);
-                    throw new Exception(message);
+                    return false;
                 }
             }
             catch (DocumentClientException e)
@@ -83,6 +84,7 @@ namespace Altinn.Platform.Events.Services
                 if (e.StatusCode == System.Net.HttpStatusCode.Conflict)
                 {
                     _logger.LogInformation("Trigger already exists, triggerId: " + trigger.Id);
+                    return true;
                 }
                 else
                 {
