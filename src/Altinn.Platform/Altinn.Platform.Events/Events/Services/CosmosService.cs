@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Configuration;
@@ -63,23 +62,18 @@ namespace Altinn.Platform.Events.Services
         }
 
         /// <inheritdoc/>
-        public async Task StoreTrigger(string triggerId, string path)
+        public async Task StoreTrigger(Trigger trigger)
         {
             try
-            {
-                Trigger trigger = new Trigger();
-                trigger.Id = triggerId;
-                trigger.Body = File.ReadAllText(path);
-                trigger.TriggerOperation = TriggerOperation.Create;
-                trigger.TriggerType = TriggerType.Pre;
+            {                
                 ResourceResponse<Trigger> res = await _client.CreateTriggerAsync(_collectionUri, trigger);
                 if (res.StatusCode.Equals(HttpStatusCode.Created))
                 {
-                    _triggers.Add(triggerId);
+                    _triggers.Add(trigger.Id);
                 }
                 else
                 {
-                    string message = $"Unable to create trigger {triggerId} in database.";
+                    string message = $"Unable to create trigger {trigger.Id} in database.";
                     _logger.LogCritical(message);
                     throw new Exception(message);
                 }
@@ -88,11 +82,11 @@ namespace Altinn.Platform.Events.Services
             {
                 if (e.StatusCode == System.Net.HttpStatusCode.Conflict)
                 {
-                    _logger.LogInformation("Trigger already exists, triggerId: " + triggerId);
+                    _logger.LogInformation("Trigger already exists, triggerId: " + trigger.Id);
                 }
                 else
                 {
-                    _logger.LogCritical($"Unable to create trigger {triggerId} in database. {e}");
+                    _logger.LogCritical($"Unable to create trigger {trigger.Id} in database. {e}");
                     throw;
                 }
             }

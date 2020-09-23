@@ -1,9 +1,9 @@
+using System.IO;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
-
-using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Documents;
 
 namespace Altinn.Platform.Events.Repository
 {
@@ -41,7 +41,13 @@ namespace Altinn.Platform.Events.Repository
 
         private async Task EnsureTriggerIsPresent()
         {
-            await _cosmosService.StoreTrigger(_triggerId, _triggerPath);
+            Trigger trigger = new Trigger();
+            trigger.Id = _triggerId;
+            trigger.Body = File.ReadAllText(_triggerPath);
+            trigger.TriggerOperation = TriggerOperation.Create;
+            trigger.TriggerType = TriggerType.Pre;
+
+            await _cosmosService.StoreTrigger(trigger);
             _triggersRegistered = true;
         }
     }

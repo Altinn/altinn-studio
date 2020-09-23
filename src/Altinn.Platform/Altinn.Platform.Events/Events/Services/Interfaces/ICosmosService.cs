@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
+using Microsoft.Azure.Documents;
 
 namespace Altinn.Platform.Events.Services.Interfaces
 {
@@ -19,8 +20,7 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// <summary>
         /// Stores a trigger in the collection.
         /// </summary>
-        /// <param name="triggerId">The trigger id</param>
-        /// <param name="path">The path to the trigger function</param>
-        public Task StoreTrigger(string triggerId, string path);
+        /// <param name="trigger">The trigger</param>
+        public Task StoreTrigger(Trigger trigger);
     }
 }
