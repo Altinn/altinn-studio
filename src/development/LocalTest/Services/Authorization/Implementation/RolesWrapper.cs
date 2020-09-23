@@ -46,7 +46,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private string GetRolesPath(int userId, int resourcePartyId)
         {
             string unitTestFolder = this._localPlatformSettings.LocalTestingStaticTestDataPath + this._localPlatformSettings.AuthorizationDataFolder + this._localPlatformSettings.RolesFolder;
-            return Path.Combine(unitTestFolder, @"User_" + userId + @"\party_" + resourcePartyId + @"\roles.json");
+            return Path.Combine(unitTestFolder, @"User_" + userId + @"/party_" + resourcePartyId + @"/roles.json");
         }
     }
 }
