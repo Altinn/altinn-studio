@@ -32,13 +32,15 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ required "A valid image.repository value is required!" .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if .Values.image.environment}}
           env:
+          {{- if .Values.image.environment}}
           {{- range $environment := .Values.image.environment}}
             - name: {{ $environment.name }}
               value: {{ quote $environment.value }}
           {{- end }}
           {{- end }}
+            - name: ALTINN_KEYS_DIRECTORY
+              value: "/mnt/keys"
           ports:
             - containerPort: {{ .Values.service.internalPort }}
           {{- if .Values.volumeMounts}}
