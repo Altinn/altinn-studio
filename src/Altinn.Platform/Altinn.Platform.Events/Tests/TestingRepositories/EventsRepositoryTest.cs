@@ -22,7 +22,12 @@ namespace Altinn.Platform.Events.Tests.TestingRepositories
         private readonly Mock<ILogger<EventsRepository>> _loggerMock = new Mock<ILogger<EventsRepository>>();
 
         /// <summary>
-        /// Testing
+        /// Scenario:
+        ///   Store a cloud event in Cosmos DB.
+        /// Expected result:
+        ///   Returns the id of the newly created document.
+        /// Success criteria:
+        ///   The response is a non-empty string.
         /// </summary>
         [Fact]
         public async Task Create_EventSuccessfullyStored_IdReturned()
@@ -45,7 +50,12 @@ namespace Altinn.Platform.Events.Tests.TestingRepositories
         }
 
         /// <summary>
-        /// Testing
+        /// Scenario:
+        ///   Store a cloud event in Cosmos DB, but an unexpected error occurs when storing the trigger function.
+        /// Expected result:
+        ///   Critical error is logged and an exception thrown.
+        /// Success criteria:
+        ///   An exception is thronw.
         /// </summary>
         [Fact]
         public async Task Create_StoreTriggerException_CritialEventLogged()
@@ -53,13 +63,26 @@ namespace Altinn.Platform.Events.Tests.TestingRepositories
             // Arrange
             EventsRepository repository = new EventsRepository(new EventsCosmosServiceMockFails(false, true), _loggerMock.Object);
 
-            // Act
-            await repository.Create(new CloudEvent());
-            _loggerMock.VerifyCriticalWasCalled();
+            try
+            {
+                // Act
+                await repository.Create(new CloudEvent());
+            }
+            catch (Exception e)
+            {
+                // Assert
+                Assert.NotNull(e);
+                _loggerMock.VerifyCriticalWasCalled();
+            }
         }
 
         /// <summary>
-        /// Testing
+        /// Scenario:
+        ///   Store a cloud event in Cosmos DB, but an unexpected error occurs when storing the document in the database.
+        /// Expected result:
+        ///   The cosmos service throws an exception.
+        /// Success criteria:
+        ///   The exception is forwarded to the caller.
         /// </summary>
         [Fact]
         public async Task Create_StoreInstanceThrowsException_ExceptionReturnedToCaller()

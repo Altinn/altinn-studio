@@ -78,9 +78,9 @@ namespace Altinn.Platform.Events.Services
                 }
                 else
                 {
-                    string message = $"Unable to create trigger {trigger.Id} in database.";
+                    string message = $"Unable to create trigger {trigger.Id} in database. Status code {res.StatusCode}.";
                     _logger.LogCritical(message);
-                    return false;
+                    throw new System.InvalidOperationException(message);
                 }
             }
             catch (DocumentClientException e)

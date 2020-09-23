@@ -1,20 +1,18 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Altinn.Platform.Events.Tests.Helpers
 {
     /// <summary>
-    /// dge
+    /// Extension class for Mock(ILogger(T))
     /// </summary>
     public static class ILoggerMockExtension
     {
         /// <summary>
-        /// egweg
+        /// Verifies that LogCritical has been called.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">The type of the ILogger/typeparam>
         /// <param name="logger">The logger</param>
         /// <returns></returns>
         public static Mock<ILogger<T>> VerifyCriticalWasCalled<T>(this Mock<ILogger<T>> logger)
