@@ -3,6 +3,8 @@ using System;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
 using Altinn.App.PlatformServices.Extensions;
+using Altinn.App.PlatformServices.Implementation;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -44,12 +46,17 @@ namespace Altinn.App
         public void ConfigureServices(IServiceCollection services)
         {
             // Add API controllers from Altinn.App.Api
-            services.AddControllersWithViews().AddApplicationPart(typeof(InstancesController).Assembly).AddXmlSerializerFormatters()
-            .AddJsonOptions(options =>
-            {
-                // Use camel casing.
-                options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-            });
+            IMvcBuilder mvcBuilder = services.AddControllersWithViews();
+            mvcBuilder
+                .AddApplicationPart(typeof(InstancesController).Assembly)
+                .AddXmlSerializerFormatters()
+                .AddJsonOptions(options =>
+                {
+                    // Use camel casing.
+                    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                    options.JsonSerializerOptions.WriteIndented = _env.IsDevelopment() || _env.IsStaging();
+                    options.JsonSerializerOptions.IgnoreNullValues = true;
+                });
             services.AddMemoryCache();
 
             // Dot net services
@@ -66,7 +73,7 @@ namespace Altinn.App
             services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
             services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
 
-            // HttpClients for platform functionality. Registred as httpclients so default httpclientfactory is used
+            // HttpClients for platform functionality. Registered as HttpClients so default HttpClientFactory is used
             services.AddHttpClient<AuthorizationApiClient>();
             services.AddHttpClient<IApplication, ApplicationAppSI>();
             services.AddHttpClient<IAuthentication, AuthenticationAppSI>();
@@ -76,13 +83,14 @@ namespace Altinn.App
             services.AddHttpClient<IER, RegisterERAppSI>();
             services.AddHttpClient<IInstance, InstanceAppSI>();
             services.AddHttpClient<IInstanceEvent, InstanceEventAppSI>();
+            services.AddHttpClient<IEvents, EventsAppSI>();
             services.AddHttpClient<IPDF, PDFSI>();
             services.AddHttpClient<IProcess, ProcessAppSI>();
             services.AddHttpClient<IProfile, ProfileAppSI>();
             services.AddHttpClient<IRegister, RegisterAppSI>();
             services.AddHttpClient<IText, TextAppSI>();
 
-            // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
+            // Altinn App implementation service (The concrete implementation of logic from Application repository)
             services.AddTransient<IAltinnApp, AppLogic.App>();
 
             services.Configure<KestrelServerOptions>(options =>
@@ -97,8 +105,6 @@ namespace Altinn.App
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(Configuration.GetSection("PEPSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(Configuration.GetSection("PlatformSettings"));
             services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
-
-            AppSettings appSettings = Configuration.GetSection("AppSettings").Get<AppSettings>();
 
             services.ConfigureDataProtection();
 

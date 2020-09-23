@@ -10,10 +10,9 @@ using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.Platform.Storage.Interface.Models;
-using Castle.Core.Logging;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Options;
 
 using Moq;

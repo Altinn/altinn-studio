@@ -20,15 +20,15 @@ namespace Altinn.App.PlatformServices.Extensions
         /// <returns>A HttpResponseMessage</returns>
         public static Task<HttpResponseMessage> PostAsync(this HttpClient httpClient, string authorizationToken, string requestUri, HttpContent content, string platformAccessToken = null)
         {
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUri);
-                request.Headers.Add("Authorization", "Bearer " + authorizationToken);
-                request.Content = content;
-                if (!string.IsNullOrEmpty(platformAccessToken))
-                {
-                    request.Headers.Add("PlatformAccessToken", platformAccessToken);
-                }
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            request.Headers.Add("Authorization", "Bearer " + authorizationToken);
+            request.Content = content;
+            if (!string.IsNullOrEmpty(platformAccessToken))
+            {
+                request.Headers.Add("PlatformAccessToken", platformAccessToken);
+            }
 
-                return httpClient.SendAsync(request, CancellationToken.None);
+            return httpClient.SendAsync(request, CancellationToken.None);
         }
 
         /// <summary>
@@ -42,15 +42,15 @@ namespace Altinn.App.PlatformServices.Extensions
         /// <returns>A HttpResponseMessage</returns>
         public static Task<HttpResponseMessage> PutAsync(this HttpClient httpClient, string authorizationToken, string requestUri, HttpContent content, string platformAccessToken = null)
         {
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUri);
-                request.Headers.Add("Authorization", "Bearer " + authorizationToken);
-                request.Content = content;
-                if (!string.IsNullOrEmpty(platformAccessToken))
-                {
-                    request.Headers.Add("PlatformAccessToken", platformAccessToken);
-                }
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUri);
+            request.Headers.Add("Authorization", "Bearer " + authorizationToken);
+            request.Content = content;
+            if (!string.IsNullOrEmpty(platformAccessToken))
+            {
+                request.Headers.Add("PlatformAccessToken", platformAccessToken);
+            }
 
-                return httpClient.SendAsync(request, CancellationToken.None);
+            return httpClient.SendAsync(request, CancellationToken.None);
         }
 
 
@@ -66,7 +66,7 @@ namespace Altinn.App.PlatformServices.Extensions
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
             request.Headers.Add("Authorization", "Bearer " + authorizationToken);
-            if(!string.IsNullOrEmpty(platformAccessToken))
+            if (!string.IsNullOrEmpty(platformAccessToken))
             {
                 request.Headers.Add("PlatformAccessToken", platformAccessToken);
             }
