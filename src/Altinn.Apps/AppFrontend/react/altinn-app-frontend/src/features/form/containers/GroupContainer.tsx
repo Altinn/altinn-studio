@@ -141,10 +141,10 @@ export function GroupContainer({
   const [editIndex, setEditIndex] = React.useState<number>(-1);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const getRepeatingGroupIndex = (containerId: string) => {
-    if (repeatingGroups && repeatingGroups[containerId] && repeatingGroups[containerId].count) {
+    if (repeatingGroups && repeatingGroups[containerId]) {
       return repeatingGroups[containerId].count;
     }
-    return 0;
+    return -1;
   };
   const repeatinGroupIndex = getRepeatingGroupIndex(id);
   const tableHeaderComponents = container.tableHeaders || container.children || [];
@@ -159,7 +159,7 @@ export function GroupContainer({
 
   const onClickAdd = () => {
     FormLayoutActions.updateRepeatingGroups(id);
-    setEditIndex(repeatinGroupIndex);
+    setEditIndex(repeatinGroupIndex + 1);
   };
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -235,7 +235,7 @@ export function GroupContainer({
               </TableRow>
             </TableHead>
             <TableBody className={classes.tableBody}>
-              {[...Array(repeatinGroupIndex)].map((_x: any, repeatingGroupIndex: number) => {
+              {(repeatinGroupIndex >= 0) && [...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
                 const rowHasErrors = components.some((component: ILayoutComponent) => {
                   return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
                 });
@@ -270,7 +270,7 @@ export function GroupContainer({
           container={true} direction='column'
           className={classes.mobileContainer}
         >
-          {[...Array(repeatinGroupIndex)].map((_x: any, repeatingGroupIndex: number) => {
+          {(repeatinGroupIndex >= 0) && [...Array(repeatinGroupIndex + 1)].map((_x: any, repeatingGroupIndex: number) => {
             const rowHasErrors = components.some((component: ILayoutComponent) => {
               return componentHasValidations(validations, `${component.id}-${repeatingGroupIndex}`);
             });
