@@ -159,7 +159,7 @@ export function GroupContainer({
 
   const onClickAdd = () => {
     FormLayoutActions.updateRepeatingGroups(id);
-    setEditIndex(repeatinGroupIndex);
+    setEditIndex(repeatinGroupIndex + 1);
   };
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
