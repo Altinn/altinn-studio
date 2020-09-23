@@ -17,8 +17,8 @@ namespace Altinn.Platform.Events.Repository
         private readonly ICosmosService _cosmosService;
         private readonly string _triggerId = "trgUpdateItemTimestamp";
         private readonly string _triggerPath = "./Configuration/UpdateItemTimestamp.js";
+        private readonly ILogger _logger;
         private bool _triggersRegistered = false;
-        private ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsRepository"/> class.
