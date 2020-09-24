@@ -5,6 +5,8 @@ using System.Reflection;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Health;
 using Altinn.Platform.Events.Repository;
+using Altinn.Platform.Events.Services;
+using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Telemetry;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -82,6 +84,7 @@ namespace Altinn.Platform.Events
             services.Configure<AzureCosmosSettings>(Configuration.GetSection(nameof(AzureCosmosSettings)));
 
             services.AddSingleton<IEventsRepository, EventsRepository>();
+            services.AddSingleton<IEventsCosmosService, EventsCosmosService>();
             services.AddSingleton(Configuration);
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
