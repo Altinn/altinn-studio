@@ -306,7 +306,7 @@ describe('>>> utils/validations.ts', () => {
   });
 
   it('+++ canFormBeSaved should validate correctly', () => {
-    const validValidationResult = {
+    const validationResult = {
       validations: {
         componentId_1: {
           simpleBinding: {
@@ -336,12 +336,12 @@ describe('>>> utils/validations.ts', () => {
     const apiModeComplete = 'Complete';
     const falseResult = validation.canFormBeSaved(mockFormValidationResult, apiModeComplete);
     const falseResult2 = validation.canFormBeSaved(mockInvalidTypes);
-    const trueResult = validation.canFormBeSaved(validValidationResult, apiModeComplete);
+    const falseResult3 = validation.canFormBeSaved(validationResult, apiModeComplete);
     const trueResult2 = validation.canFormBeSaved(null);
     const trueResult3 = validation.canFormBeSaved(mockFormValidationResult);
     expect(falseResult).toBeFalsy();
     expect(falseResult2).toBeFalsy();
-    expect(trueResult).toBeTruthy();
+    expect(falseResult3).toBeFalsy();
     expect(trueResult2).toBeTruthy();
     expect(trueResult3).toBeTruthy();
   });
