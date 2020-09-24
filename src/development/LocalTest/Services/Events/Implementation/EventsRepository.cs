@@ -6,7 +6,7 @@ using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Events.Models;
 
 using LocalTest.Configuration;
-
+using LocalTest.Helpers;
 using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json;
@@ -36,7 +36,7 @@ namespace LocalTest.Services.Events.Implementation
             string eventsFolder = GetEventsCollectionFolder();
             Directory.CreateDirectory(eventsFolder);
 
-            string filePath = Path.Combine(eventsFolder, cloudEvent.Id);
+            string filePath = Path.Combine(eventsFolder, cloudEvent.Id.AsFileName());
 
             string serializedCloudEvent = JsonConvert.SerializeObject(cloudEvent);
             await File.WriteAllTextAsync(filePath, serializedCloudEvent);
