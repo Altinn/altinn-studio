@@ -42,65 +42,6 @@ namespace Altinn.Platform.Events.Tests.TestingRepositories
 
             // Assert
             Assert.NotEmpty(actual);
-        }
-
-        /// <summary>
-        /// Scenario:
-        ///   Store a cloud event in Cosmos DB, but an unexpected error occurs when storing the trigger function.
-        /// Expected result:
-        ///   An exception thrown.
-        /// Success criteria:
-        ///   An exception is thronw.
-        /// </summary>
-        [Fact]
-        public async Task Create_StoreTriggerException_CritialEventLogged()
-        {
-            // Arrange
-            EventsRepository repository = new EventsRepository(new EventsCosmosServiceMockFails(false, true), _loggerMock.Object);
-
-            try
-            {
-                // Act
-                await repository.Create(new CloudEvent());
-            }
-            catch (Exception e)
-            {
-                // Assert
-                Assert.NotNull(e);
-            }
-        }
-
-        /// <summary>
-        /// Scenario:
-        ///   Store a cloud event in Cosmos DB, but an unexpected error occurs when storing the document in the database.
-        /// Expected result:
-        ///   The cosmos service throws an exception.
-        /// Success criteria:
-        ///   The exception is forwarded to the caller.
-        /// </summary>
-        [Fact]
-        public async Task Create_StoreInstanceThrowsException_ExceptionReturnedToCaller()
-        {
-            // Arrange
-            EventsRepository repository = new EventsRepository(new EventsCosmosServiceMockFails(true, false), _loggerMock.Object);
-
-            CloudEvent cloudEvent = new CloudEvent
-            {
-                Specversion = "1.x - wip",
-                Source = new Uri("http://www.altinn.no"),
-                Subject = "party/234234422"
-            };
-
-            try
-            {
-                // Act
-                await repository.Create(cloudEvent);
-            }
-            catch (Exception e)
-            {
-                // Assert
-                Assert.NotNull(e);
-            }
-        }
+        }        
     }
 }

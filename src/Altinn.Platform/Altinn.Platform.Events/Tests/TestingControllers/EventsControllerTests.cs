@@ -97,6 +97,32 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             }
 
+            /// <summary>
+            /// Scenario:
+            ///   Post a valid cloud event, unexpected error when storing document
+            /// Expected result:
+            ///   Returns HttpStatus Internal Server Error.
+            /// Success criteria:
+            ///   The response has correct status.
+            /// </summary>
+            [Fact]
+            public async void Post_RepositoryThrowsException_ReturnsInternalServerError()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/events";
+                CloudEvent cloudEvent = GetCloudEvent();
+
+                Mock<IEventsRepository> eventsRepository = new Mock<IEventsRepository>();
+                eventsRepository.Setup(er => er.Create(It.IsAny<CloudEvent>())).Throws(new Exception());
+                HttpClient client = GetTestClient(eventsRepository.Object);
+
+                // Act
+                HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(cloudEvent), Encoding.UTF8, "application/json"));
+
+                // Assert
+                Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+            }
+
             private HttpClient GetTestClient(IEventsRepository eventsRepository)
             {
                 Program.ConfigureSetupLogging();
