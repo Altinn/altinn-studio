@@ -107,7 +107,6 @@ const useStyles = makeStyles({
     fontWeight: 500,
     float: 'left',
     maxWidth: '50%',
-    minWidth: '50%',
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
@@ -297,12 +296,12 @@ export function GroupContainer({
                   return (
                     <Grid item={true} className={rowHasErrors ? `${classes.tableRowError} ${classes.textContainer}` : classes.textContainer}>
                       <div className={classes.mobileText}>
-                        {`${getTextResourceByKey(title, textResources)}:`}
+                        {`${getTextResourceByKey(title, textResources)}`}
                       </div>
                       <div
                         className={classes.mobileValueText}
                       >
-                        {getFormDataForComponent(components[index], repeatingGroupIndex)}
+                        {`: ${getFormDataForComponent(components[index], repeatingGroupIndex)}`}
                       </div>
                     </Grid>
                   );

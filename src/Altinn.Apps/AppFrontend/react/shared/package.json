@@ -81,7 +81,11 @@
       "tsx",
       "js"
     ],
-    "setupTestFrameworkScriptFile": "<rootDir>/setupTests.js"
+    "setupTestFrameworkScriptFile": "<rootDir>/setupTests.js",
+    "collectCoverageFrom": [
+      "!__tests__/**/*",
+      "src/**/*.{ts,tsx}"
+    ]
   },
   "browserslist": {
     "production": [
