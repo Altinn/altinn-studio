@@ -30,6 +30,16 @@
       <Link>stylecop.json</Link>
     </AdditionalFiles>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Configuration\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\Events\Configuration\UpdateItemTimestamp.js" Link="Configuration\UpdateItemTimestamp.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
