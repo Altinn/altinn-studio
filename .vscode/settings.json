@@ -16,7 +16,6 @@
     "**/obj": true,
     "**/publish/**": true,
     "**/Debug": true,
-    "**/AppTemplates/**": true
   },
   "typescript.surveys.enabled": false,
   "cSpell.words": [
