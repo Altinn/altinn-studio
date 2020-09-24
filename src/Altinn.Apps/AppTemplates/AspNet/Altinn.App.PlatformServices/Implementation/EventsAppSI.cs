@@ -11,7 +11,7 @@ using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
-
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
 
 using Microsoft.AspNetCore.Http;
@@ -21,7 +21,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.App.PlatformServices.Implementation
 {
     /// <summary>
-    /// App implementation of the instance events service, for saving to and retrieving from Platform Storage.
+    /// Represents an implementation of <see cref="IEvents"/> that acts as a client for the platform Events component.
     /// </summary>
     public class EventsAppSI : IEvents
     {
@@ -33,10 +33,10 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsAppSI"/> class.
         /// </summary>
-        /// <param name="platformSettings">the platform settings</param>
-        /// <param name="logger">The logger</param>
-        /// <param name="httpContextAccessor">The http context accessor </param>
-        /// <param name="httpClient">The Http client accessor </param>
+        /// <param name="platformSettings">The platform settings.</param>
+        /// <param name="logger">A logger.</param>
+        /// <param name="httpContextAccessor">The http context accessor.</param>
+        /// <param name="httpClient">A HttpClient.</param>
         /// <param name="settings">The application settings.</param>
         public EventsAppSI(
             IOptions<PlatformSettings> platformSettings,
@@ -55,9 +55,20 @@ namespace Altinn.App.PlatformServices.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<string> AddEvent(CloudEvent cloudEvent)
+        public async Task<string> AddEvent(string eventType, Instance instance)
         {
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+            CloudEvent cloudEvent = new CloudEvent
+            {
+                Subject = $"/party/{instance.InstanceOwner.PartyId}",
+                Type = eventType,
+                AlternativeSubject = instance.InstanceOwner.OrganisationNumber ?? instance.InstanceOwner.PersonNumber,
+                Time = DateTime.UtcNow,
+                SpecVersion = "1.0",
+                Source = new Uri("")
+            };
+
+            string token =
+                JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
             string serializedCloudEvent = JsonSerializer.Serialize(cloudEvent);
 

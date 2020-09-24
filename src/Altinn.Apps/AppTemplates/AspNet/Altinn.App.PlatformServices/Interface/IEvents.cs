@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
-using Altinn.App.PlatformServices.Models;
+
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.PlatformServices.Interface
 {
@@ -11,6 +12,6 @@ namespace Altinn.App.PlatformServices.Interface
         /// <summary>
         /// Adds a new event to the events published by the Events component.
         /// </summary>
-        Task<string> AddEvent(CloudEvent cloudEvent);
+        Task<string> AddEvent(string eventType, Instance instance);
     }
 }
