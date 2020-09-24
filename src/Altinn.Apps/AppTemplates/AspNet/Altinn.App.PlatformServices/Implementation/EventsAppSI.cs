@@ -30,6 +30,8 @@ namespace Altinn.App.PlatformServices.Implementation
         private readonly AppSettings _settings;
         private readonly HttpClient _client;
 
+        private readonly string _storageBaseAndHost;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsAppSI"/> class.
         /// </summary>
@@ -48,6 +50,7 @@ namespace Altinn.App.PlatformServices.Implementation
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
+            _storageBaseAndHost = platformSettings.Value.ApiStorageEndpoint;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiEventsEndpoint);
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -57,6 +60,7 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <inheritdoc/>
         public async Task<string> AddEvent(string eventType, Instance instance)
         {
+            string source = $"{_storageBaseAndHost}instances/{instance.Id}";
             CloudEvent cloudEvent = new CloudEvent
             {
                 Subject = $"/party/{instance.InstanceOwner.PartyId}",
@@ -64,7 +68,7 @@ namespace Altinn.App.PlatformServices.Implementation
                 AlternativeSubject = instance.InstanceOwner.OrganisationNumber ?? instance.InstanceOwner.PersonNumber,
                 Time = DateTime.UtcNow,
                 SpecVersion = "1.0",
-                Source = new Uri("")
+                Source = new Uri(source)
             };
 
             string token =

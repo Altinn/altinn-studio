@@ -1,14 +1,14 @@
 using System;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Implementation;
-using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
+using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -28,8 +28,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         private readonly Mock<IHttpContextAccessor> contextAccessor;
         private readonly Mock<ILogger<EventsAppSI>> logger;
 
-        private readonly JsonSerializerOptions _jsonSerializerOptions;
-
         public EventsAppSITests()
         {
             platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
@@ -37,17 +35,16 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             contextAccessor = new Mock<IHttpContextAccessor>();
             logger = new Mock<ILogger<EventsAppSI>>();
-
-            _jsonSerializerOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         }
 
         [Fact]
         public async Task AddEvent_TheServiceResponseIndicateSuccess_ReturnsString()
         {
             // Arrange
-            CloudEvent cloudEvent = new CloudEvent();
-
-            string serializedEvent = JsonSerializer.Serialize(cloudEvent, _jsonSerializerOptions);
+            Instance instance = new Instance
+            {
+                InstanceOwner = new InstanceOwner { OrganisationNumber = "org" }
+            };
 
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
             {
@@ -67,19 +64,20 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 appSettingsOptions.Object);
 
             // Act
-            await target.AddEvent(cloudEvent);
+            await target.AddEvent("created", instance);
 
             // Assert
             handlerMock.VerifyAll();
         }
 
         [Fact]
-        public async Task AddEvent_TheServiceResponseIndicateFailure_ThrowsPlatformException()
+        public async Task AddEvent_TheServiceResponseIndicateFailure_ThrowsPlatformHttpException()
         {
             // Arrange
-            CloudEvent cloudEvent = new CloudEvent();
-
-            string serializedEvent = JsonSerializer.Serialize(cloudEvent, _jsonSerializerOptions);
+            Instance instance = new Instance
+            {
+                InstanceOwner = new InstanceOwner { OrganisationNumber = "org" }
+            };
 
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
             {
@@ -103,7 +101,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             // Act
             try
             {
-                await target.AddEvent(cloudEvent);
+                await target.AddEvent("created", instance);
             }
             catch (PlatformHttpException platformHttpException)
             {
@@ -121,7 +119,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         {
             PlatformSettings platformSettings = new PlatformSettings
             {
-                ApiEventsEndpoint = "http://localhost",
+                ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
+                ApiStorageEndpoint = "http://localhost:5101/storage/api/v1/",
                 SubscriptionKey = "key"
             };
             platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
