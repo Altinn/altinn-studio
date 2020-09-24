@@ -1,17 +1,19 @@
-import { createStyles, WithStyles, withStyles } from '@material-ui/core';
+import { createStyles, WithStyles, Grid, withStyles, createMuiTheme } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Axios from 'axios';
 import * as React from 'react';
 import { getLanguageFromCode } from 'altinn-shared/language';
-import { AltinnContentLoader, AltinnModal, AltinnAppHeader, AltinnReceipt } from 'altinn-shared/components';
-import theme from 'altinn-shared/theme/altinnStudioTheme';
+import { AltinnContentLoader, AltinnModal, AltinnAppHeader, AltinnReceipt, AltinnSubstatusPaper } from 'altinn-shared/components';
 import { IApplication, IAttachment, IInstance, IParty, IProfile, IExtendedInstance, ITextResource } from 'altinn-shared/types';
 import { getCurrentTaskData } from 'altinn-shared/utils/applicationMetaDataUtils';
 import { mapInstanceAttachments, getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
-import { getLanguageFromKey } from 'altinn-shared/utils/language';
+import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils/language';
 import { returnUrlToMessagebox } from 'altinn-shared/utils/urlHelper';
+import AltinnReceiptTheme from 'altinn-shared/theme/altinnReceiptTheme';
 import { getInstanceMetaDataObject } from '../../../utils/receipt';
 import { altinnOrganisationsUrl, getApplicationMetadataUrl, getUserUrl, getExtendedInstanceUrl, getTextResourceUrl } from '../../../utils/urlHelper';
+
+const theme = createMuiTheme(AltinnReceiptTheme);
 
 const styles = () => createStyles({
   body: {
@@ -19,6 +21,15 @@ const styles = () => createStyles({
     paddingRight: '96px !important',
     '@media only print': {
       paddingLeft: '48px !important',
+    },
+  },
+  substatus: {
+    maxWidth: '875px',
+    [theme.breakpoints.down('sm')]: {
+      width: '95%',
+    },
+    [theme.breakpoints.up('md')]: {
+      width: '80%',
     },
   },
 });
@@ -136,13 +147,26 @@ function Receipt(props: WithStyles<typeof styles>) {
   }, [user]);
 
   return (
-    <>
+    <Grid
+      container={true}
+      direction='column'
+      justify='center'
+      alignItems='center'
+    >
       <AltinnAppHeader
         logoColor={theme.altinnPalette.primary.blueDarker}
         headerBackgroundColor={theme.altinnPalette.primary.blue}
         party={party || {} as IParty}
         userParty={user ? user.party : {} as IParty}
       />
+      {instance?.status?.substatus &&
+        <Grid item={true} className={props.classes.substatus}>
+          <AltinnSubstatusPaper
+            label={getTextResourceByKey(instance.status.substatus.label, textResources)}
+            description={getTextResourceByKey(instance.status.substatus.description, textResources)}
+          />
+        </Grid>
+      }
       <AltinnModal
         classes={props.classes}
         isOpen={true}
@@ -167,7 +191,7 @@ function Receipt(props: WithStyles<typeof styles>) {
           />
         }
       </AltinnModal>
-    </>
+    </Grid>
   );
 }
 

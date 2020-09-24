@@ -72,5 +72,9 @@
     "not dead",
     "not ie <= 10",
     "not op_mini all"
+  ],
+  "collectCoverageFrom": [
+    "!__tests__/**/*",
+    "src/**/*.{ts,tsx}"
   ]
 }
