@@ -498,24 +498,12 @@ export function canFormBeSaved(validationResult: IValidationResult, apiMode?: st
     }
     const componentCanBeSaved = Object.keys(componentValidations).every((bindingKey: string) => {
       const componentErrors = componentValidations[bindingKey].errors;
-      if (componentErrors) {
-        return componentErrors.every((error) => (
-          validErrorMessages.indexOf(error) > -1
-        ));
-      }
-      return true;
+      return !componentErrors;
     });
     return componentCanBeSaved;
   });
   return layoutCanBeSaved;
 }
-
-/*
-* Validation messages we allow before saving the form
-*/
-const validErrorMessages: string[] = [
-  'Field is required',
-];
 
 /*
   Maps the API validation response to our redux format
