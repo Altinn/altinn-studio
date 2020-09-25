@@ -45,17 +45,17 @@ namespace Altinn.Platform.Storage.Helpers
                 ReadStatus = status.ReadStatus
             };
 
-            if (instance.Status?.SubStatus != null)
+            if (instance.Status?.Substatus != null)
             {
                 messageBoxInstance.Substatus = new Substatus
                 {
-                    Label = instance.Status.SubStatus.Label,
-                    Description = instance.Status.SubStatus.Description
+                    Label = instance.Status.Substatus.Label,
+                    Description = instance.Status.Substatus.Description
                 };
             }
 
             return messageBoxInstance;
-        } 
+        }
 
         /// <summary>
         /// Returns app id
