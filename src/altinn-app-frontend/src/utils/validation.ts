@@ -498,7 +498,7 @@ export function canFormBeSaved(validationResult: IValidationResult, apiMode?: st
     }
     const componentCanBeSaved = Object.keys(componentValidations).every((bindingKey: string) => {
       const componentErrors = componentValidations[bindingKey].errors;
-      return !componentErrors;
+      return !componentErrors || componentErrors.length === 0;
     });
     return componentCanBeSaved;
   });
