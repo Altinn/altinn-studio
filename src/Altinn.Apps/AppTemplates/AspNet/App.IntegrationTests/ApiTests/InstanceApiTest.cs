@@ -453,7 +453,7 @@ namespace App.IntegrationTests
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "66233fb5-a9f2-45d4-90b1-f6d93ad40713";
 
-            Substatus subStatus = new Substatus { Description = "Substatus.Approved.Description" };
+            Substatus substatus = new Substatus { Description = "Substatus.Approved.Description" };
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
 
             string token = PrincipalUtil.GetOrgToken(org);
@@ -461,7 +461,7 @@ namespace App.IntegrationTests
 
             string requestUri = $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/substatus";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -486,7 +486,7 @@ namespace App.IntegrationTests
             string instanceGuid = "66233fb5-a9f2-45d4-90b1-f6d93ad40713";
             TestDataUtil.PrepareInstance(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
 
-            Substatus subStatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
+            Substatus substatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
 
             string token = PrincipalUtil.GetToken(21023); // 21023 is connected to party with id 1337
@@ -494,7 +494,7 @@ namespace App.IntegrationTests
 
             string requestUri = $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/substatus";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);

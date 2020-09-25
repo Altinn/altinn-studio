@@ -829,7 +829,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 int instanceOwnerPartyId = 1337;
                 string instanceGuid = "824e8304-ad9e-4d79-ac75-bcfa7213223b";
 
-                Substatus subStatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
+                Substatus substatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
 
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/substatus";
 
@@ -838,7 +838,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string token = PrincipalUtil.GetToken(3, 1337);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json");
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -860,7 +860,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 int instanceOwnerPartyId = 1337;
                 string instanceGuid = "824e8304-ad9e-4d79-ac75-bcfa7213223b";
 
-                Substatus subStatus = new Substatus { Description = "Substatus.Approved.Description" };
+                Substatus substatus = new Substatus { Description = "Substatus.Approved.Description" };
 
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/substatus";
 
@@ -869,7 +869,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string token = PrincipalUtil.GetOrgToken("tdd");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json");
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
