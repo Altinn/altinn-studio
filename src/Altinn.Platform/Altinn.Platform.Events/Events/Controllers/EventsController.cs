@@ -11,7 +11,7 @@ namespace Altinn.Platform.Events.Controllers
     /// <summary>
     /// Provides operations for handling events
     /// </summary>
-    [Route("events/api/v1/events")]
+    [Route("events/api/v1/app")]
     [ApiController]
     public class EventsController : ControllerBase
     {
