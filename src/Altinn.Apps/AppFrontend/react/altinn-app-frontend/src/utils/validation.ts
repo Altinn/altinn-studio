@@ -557,24 +557,12 @@ export function canFormBeSaved(validationResult: IValidationResult, apiMode?: st
     }
     const componentCanBeSaved = Object.keys(componentValidations).every((bindingKey: string) => {
       const componentErrors = componentValidations[bindingKey].errors;
-      if (componentErrors) {
-        return componentErrors.every((error) => (
-          validErrorMessages.indexOf(error) > -1
-        ));
-      }
-      return true;
+      return !componentErrors || componentErrors.length === 0;
     });
     return componentCanBeSaved;
   });
   return layoutCanBeSaved;
 }
-
-/*
-* Validation messages we allow before saving the form
-*/
-const validErrorMessages: string[] = [
-  'Field is required',
-];
 
 /*
   Maps the API validation response to our redux format
@@ -788,4 +776,34 @@ export function getNumberOfComponentsWithErrors(validations: IValidations): numb
   });
 
   return numberOfComponents;
+}
+
+/*
+  Checks if a given component has any validation errors. Returns true/false.
+*/
+export function componentHasValidations(validations: IValidations, componentId: string): boolean {
+  if (!validations || !componentId) {
+    return false;
+  }
+  return Object.keys(validations[componentId] || {})?.some((bindingKey: string) => {
+    return (validations[componentId][bindingKey].errors?.length > 0);
+  });
+}
+
+/*
+  Checks if a given repeating group has any child components with errors.
+*/
+export function repeatingGroupHasValidations(
+  validations:IValidations,
+  repeatingGroupCount: number,
+  children: ILayoutComponent[],
+): boolean {
+  if (!validations || !repeatingGroupCount || !children) {
+    return false;
+  }
+  return [...Array(repeatingGroupCount)].some((_x: any, index: number) => {
+    return children.some((component: ILayoutComponent) => {
+      return componentHasValidations(validations, `${component.id}-${index}`);
+    });
+  });
 }

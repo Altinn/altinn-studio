@@ -377,7 +377,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </remarks>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
-        /// <returns>Returns a list of the process events.</returns>        
+        /// <returns>Returns a list of the process events.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_COMPLETE)]
         [HttpPost("{instanceOwnerPartyId:int}/{instanceGuid:guid}/complete")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -426,7 +426,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
         /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
         /// <param name="status">The updated read status.</param>
-        /// <returns>Returns the updated instance.</returns>        
+        /// <returns>Returns the updated instance.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/readstatus")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -479,7 +479,7 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        public async Task<ActionResult<Instance>> UpdateSubStatus(
+        public async Task<ActionResult<Instance>> UpdateSubstatus(
           [FromRoute] int instanceOwnerPartyId,
           [FromRoute] Guid instanceGuid,
           [FromBody] Substatus substatus)
@@ -508,7 +508,7 @@ namespace Altinn.Platform.Storage.Controllers
                     instance.Status = new InstanceStatus();
                 }
 
-                instance.Status.SubStatus = substatus;
+                instance.Status.Substatus = substatus;
                 instance.LastChanged = creationTime;
                 instance.LastChangedBy = User.GetOrgNumber().ToString();
 

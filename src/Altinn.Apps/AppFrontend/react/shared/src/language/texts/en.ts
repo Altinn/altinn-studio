@@ -74,6 +74,7 @@ export function en() {
       action: 'Action',
       add: 'Add',
       add_connection: 'Add connection',
+      add_new: 'Add new',
       back: 'Back',
       cancel: 'Cancel',
       choose: 'Choose',
@@ -89,6 +90,7 @@ export function en() {
       delete: 'Delete',
       disabled: 'Disabled',
       edit: 'Edit',
+      edit_alt: 'Edit',
       enabled: 'Enabled',
       error_message_with_colon: 'Error message:',
       for: 'for',
@@ -108,6 +110,9 @@ export function en() {
       validate_changes: 'Validate changes',
       value: 'Value',
       version: 'Version',
+    },
+    group: {
+      row_error: 'One of the rows is incorrectly filled out. This has to bee fixed before the schema can be submitted.',
     },
     instantiate: {
       all_forms: 'all forms',

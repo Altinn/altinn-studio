@@ -1,6 +1,6 @@
 using System.IO;
-using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.PlatformServices.Extensions
@@ -18,30 +18,23 @@ namespace Altinn.App.PlatformServices.Extensions
         {
             services
                 .AddDataProtection()
-                .PersistKeysToFileSystem(new DirectoryInfo(GetKeysDirectory()));
+                .PersistKeysToFileSystem(GetKeysDirectory());
         }
 
         /// <summary>
-        /// Return a directory based on the running operating system. It is possible to override the directory based on the KEYS_DIRECTORY environment variable. 
+        /// Return a directory based on the running operating system. It is possible to override the directory based on the ALTINN_KEYS_DIRECTORY environment variable.
         /// </summary>
         /// <returns></returns>
-        private static string GetKeysDirectory()
+        private static DirectoryInfo GetKeysDirectory()
         {
             var environmentVariable = System.Environment.GetEnvironmentVariable("ALTINN_KEYS_DIRECTORY");
             if (!string.IsNullOrWhiteSpace(environmentVariable))
             {
-                return environmentVariable;
+                return new DirectoryInfo(environmentVariable);
             }
 
             // Return a key directory based on the current operating system
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                // This is the default behaviour for keys in Windows.
-                return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "ASP.NET", "DataProtection-Keys");
-            }
-
-            // Assume *nix like systems
-            return "/mnt/keys";
+            return FileSystemXmlRepository.DefaultKeyStorageDirectory;
         }
     }
 }

@@ -1,0 +1,55 @@
+{
+  "id": "tdd-endring-av-navn-nb",
+  "org": "tdd",
+  "language": "nb",
+  "resources": [
+    {
+      "id": "11339.InnsenderPostnummerdatadef11339.Label",
+      "value": "Postnummer",
+      "variables": null
+    },
+    {
+      "id": "34891.SignererTredjeReferanseAltinndatadef34891.Label",
+      "value": "Referansenummer Altinn",
+      "variables": null
+    },
+    {
+      "id": "755.EnhetTelefonnummerdatadef755.Label",
+      "value": "Telefon",
+      "variables": null
+    },
+    {
+      "id": "BegrunnelseSamboer1",
+      "value": "Etternavn på samboer",
+      "variables": null
+    },
+    {
+      "id": "BegrunnelseSamboer2",
+      "value": "Fødselsnummer på samboer",
+      "variables": null
+    },
+    {
+      "id": "BegrunnelseSlektskap",
+      "value": "Forklar hvem du tar navnet fra, og hvilken side slektskapet ligger",
+      "variables": null
+    },
+    {
+      "id": "BegrunnelseSteforeldre",
+      "value": "Etternavn på ste- eller fosterforeldre du ønsker å ta navnet til",
+      "variables": null
+    },
+    {
+      "id": "ServiceName",
+      "value": "Endring av navn (RF-1453)",
+      "variables": null
+    },
+
+    {
+      "id": "substatus.declined.label",
+      "value": "Søknad avvist",
+      "variables": null
+    }
+
+    
+  ]
+}

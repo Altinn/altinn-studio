@@ -1,9 +1,10 @@
 /* eslint-disable no-undef */
 import 'jest';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
-import { IValidationIssue, Severity } from '../../src/types';
+import { IValidationIssue, Severity, IValidations } from '../../src/types';
 import * as validation from '../../src/utils/validation';
 import { getParsedLanguageFromKey } from '../../../shared/src';
+import { ILayoutComponent } from '../../src/features/form/layout';
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
@@ -305,42 +306,13 @@ describe('>>> utils/validations.ts', () => {
   });
 
   it('+++ canFormBeSaved should validate correctly', () => {
-    const validValidationResult = {
-      validations: {
-        componentId_1: {
-          simpleBinding: {
-            errors: [
-              'Field is required',
-            ],
-            warnings: [],
-          },
-        },
-        componentId_2: {
-          customBinding: {
-            errors: [],
-            warnings: [],
-          },
-        },
-        componentId_3: {
-          simpleBinding: {
-            errors: [
-              'Field is required',
-            ],
-            warnings: [],
-          },
-        },
-      },
-      invalidDataTypes: false,
-    };
     const apiModeComplete = 'Complete';
     const falseResult = validation.canFormBeSaved(mockFormValidationResult, apiModeComplete);
     const falseResult2 = validation.canFormBeSaved(mockInvalidTypes);
-    const trueResult = validation.canFormBeSaved(validValidationResult, apiModeComplete);
     const trueResult2 = validation.canFormBeSaved(null);
     const trueResult3 = validation.canFormBeSaved(mockFormValidationResult);
     expect(falseResult).toBeFalsy();
     expect(falseResult2).toBeFalsy();
-    expect(trueResult).toBeTruthy();
     expect(trueResult2).toBeTruthy();
     expect(trueResult3).toBeTruthy();
   });
@@ -513,5 +485,65 @@ describe('>>> utils/validations.ts', () => {
   it('+++ getIndex should return index for field in repeating group', () => {
     const dataModelBinding = 'group_1[2].dataModelField_1';
     expect(validation.getIndex(dataModelBinding)).toBe('2');
+  });
+
+  it('+++ componentHasValidations should return true if component has validations', () => {
+    const validations: IValidations = {
+      dummyId: {
+        simpleBinding: {
+          errors: ['Some error'],
+        },
+      },
+    };
+    expect(validation.componentHasValidations(validations, 'dummyId')).toBeTruthy();
+  });
+
+  it('+++ componentHasValidations should return false if component has no validations', () => {
+    const validations: IValidations = {
+      dummyId: {
+        simpleBinding: {
+          errors: ['Some error'],
+        },
+      },
+    };
+    expect(validation.componentHasValidations(validations, 'someOtherId')).toBeFalsy();
+  });
+
+  it('+++ componentHasValidations should return false when supplied with null values', () => {
+    expect(validation.componentHasValidations(null, null)).toBeFalsy();
+  });
+
+  it('+++ repeatingGroupHasValidations should return true when components in group has errors', () => {
+    const children: ILayoutComponent[] = [
+      { id: 'some-id' } as ILayoutComponent,
+      { id: 'some-other-id' } as ILayoutComponent,
+    ];
+    const validations: IValidations = {
+      'some-id-2': {
+        simpleBinding: {
+          errors: ['Some error'],
+        },
+      },
+    };
+    expect(validation.repeatingGroupHasValidations(validations, 2, children)).toBeFalsy();
+  });
+
+  it('+++ repeatingGroupHasValidations should return false when no components in group has errors', () => {
+    const children: ILayoutComponent[] = [
+      { id: 'some-id' } as ILayoutComponent,
+      { id: 'some-other-id' } as ILayoutComponent,
+    ];
+    const validations: IValidations = {
+      differentId: {
+        simpleBinding: {
+          errors: ['Some error'],
+        },
+      },
+    };
+    expect(validation.repeatingGroupHasValidations(validations, 2, children)).toBeFalsy();
+  });
+
+  it('+++ repeatingGroupHasValidations should return false when supplied with null values', () => {
+    expect(validation.repeatingGroupHasValidations(null, null, null)).toBeFalsy();
   });
 });

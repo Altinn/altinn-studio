@@ -53,7 +53,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             }
 
             /// <summary>
-            /// Test case: User has to low authentication level. 
+            /// Test case: User has to low authentication level.
             /// Expected: Returns status forbidden.
             /// </summary>
             [Fact]
@@ -150,7 +150,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             }
 
             /// <summary>
-            /// Test case: Response is deny. 
+            /// Test case: Response is deny.
             /// Expected: Returns status forbidden.
             /// </summary>
             [Fact]
@@ -164,7 +164,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string token = PrincipalUtil.GetToken(-1, 1);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                // Laste opp test instance.. 
+                // Laste opp test instance..
                 Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1337" }, Org = "tdd", AppId = "tdd/endring-av-navn" };
 
                 // Act
@@ -175,7 +175,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             }
 
             /// <summary>
-            /// Test case: User has to low authentication level. 
+            /// Test case: User has to low authentication level.
             /// Expected: Returns status forbidden.
             /// </summary>
             [Fact]
@@ -189,7 +189,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string token = PrincipalUtil.GetToken(3, 1337, 0);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                // Laste opp test instance.. 
+                // Laste opp test instance..
                 Instance instance = new Instance() { InstanceOwner = new InstanceOwner() { PartyId = "1337" }, Org = "tdd", AppId = "tdd/endring-av-navn" };
 
                 // Act
@@ -201,7 +201,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
 
             /// <summary>
-            /// Test case: User has to low authentication level. 
+            /// Test case: User has to low authentication level.
             /// Expected: Returns status forbidden.
             /// </summary>
             [Fact]
@@ -229,7 +229,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             }
 
             /// <summary>
-            /// Test case: User has to low authentication level. 
+            /// Test case: User has to low authentication level.
             /// Expected: Returns status forbidden.
             /// </summary>
             [Fact]
@@ -451,7 +451,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             }
 
             /// <summary>
-            /// Test case: Response is deny. 
+            /// Test case: Response is deny.
             /// Expected: Returns status forbidden.
             /// </summary>
             [Fact]
@@ -643,7 +643,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             /// <summary>
             /// Scenario:
-            /// Update read status for an instance where the status has not been initialized yet. 
+            /// Update read status for an instance where the status has not been initialized yet.
             /// Result:
             /// Read status is successfuly updated and the updated instance returned.
             /// </summary>
@@ -677,7 +677,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             /// <summary>
             /// Scenario:
-            /// Update read status for an instance with current status 'read'. 
+            /// Update read status for an instance with current status 'read'.
             /// Result:
             /// Read status is successfuly updated and the updated instance returned.
             /// </summary>
@@ -720,7 +720,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 int instanceOwnerPartyId = 1337;
                 string instanceGuid = "d9a586ca-17ab-453d-9fc5-35eaadb3369b";
                 string expectedMessage = $"Invalid read status: invalid. Accepted types include: {string.Join(", ", Enum.GetNames(typeof(ReadStatus)))}";
-                
+
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/readstatus?status=invalid";
                 HttpClient client = GetTestClient();
 
@@ -740,18 +740,18 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             /// <summary>
             /// Scenario:
-            /// Update substatus for an instance where the substatus has not been initialized yet. 
+            /// Update substatus for an instance where the substatus has not been initialized yet.
             /// Result:
             /// substatus is successfuly updated and the updated instance returned.
             /// </summary>
             [Fact]
-            public async void UpdateSubstatus_SetInitialSubStatus_ReturnsUpdatedInstance()
+            public async void UpdateSubstatus_SetInitialSubstatus_ReturnsUpdatedInstance()
             {
                 // Arrange
                 int instanceOwnerPartyId = 1337;
                 string instanceGuid = "20475edd-dc38-4ae0-bd64-1b20643f506c";
 
-                Substatus expectedSubStatus = new Substatus { Label = "Substatus.Approved.Label", Description= "Substatus.Approved.Description" };
+                Substatus expectedSubstatus = new Substatus { Label = "Substatus.Approved.Label", Description= "Substatus.Approved.Description" };
 
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/substatus";
 
@@ -760,7 +760,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string token = PrincipalUtil.GetOrgToken("tdd");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(expectedSubStatus), Encoding.UTF8, "application/json");
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(expectedSubstatus), Encoding.UTF8, "application/json");
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -771,8 +771,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Assert
                 Assert.NotNull(updatedInstance);
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.Equal(expectedSubStatus.Label, updatedInstance.Status.SubStatus.Label);
-                Assert.Equal(expectedSubStatus.Description, updatedInstance.Status.SubStatus.Description);
+                Assert.Equal(expectedSubstatus.Label, updatedInstance.Status.Substatus.Label);
+                Assert.Equal(expectedSubstatus.Description, updatedInstance.Status.Substatus.Description);
                 Assert.Equal("111111111", updatedInstance.LastChangedBy);
                 Assert.True(updatedInstance.LastChanged > DateTime.UtcNow.AddMinutes(-5));
             }
@@ -784,13 +784,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// substatus is completely overwritten by the new substatus.
             /// </summary>
             [Fact]
-            public async void UpdateSubstatus_OverwriteSubStatus_DescriptionIsEmpty()
+            public async void UpdateSubstatus_OverwriteSubstatus_DescriptionIsEmpty()
             {
                 // Arrange
                 int instanceOwnerPartyId = 1337;
                 string instanceGuid = "67f568ce-f114-48e7-ba12-dd422f73667a";
 
-                Substatus expectedSubStatus = new Substatus { Label = "Substatus.Approved.Label" };
+                Substatus expectedSubstatus = new Substatus { Label = "Substatus.Approved.Label" };
 
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/substatus";
 
@@ -799,7 +799,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string token = PrincipalUtil.GetOrgToken("tdd");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(expectedSubStatus), Encoding.UTF8, "application/json");
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(expectedSubstatus), Encoding.UTF8, "application/json");
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -810,8 +810,8 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 // Assert
                 Assert.NotNull(updatedInstance);
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.Equal(expectedSubStatus.Label, updatedInstance.Status.SubStatus.Label);
-                Assert.Equal(expectedSubStatus.Description, updatedInstance.Status.SubStatus.Description);
+                Assert.Equal(expectedSubstatus.Label, updatedInstance.Status.Substatus.Label);
+                Assert.Equal(expectedSubstatus.Description, updatedInstance.Status.Substatus.Description);
                 Assert.Equal("111111111", updatedInstance.LastChangedBy);
                 Assert.True(updatedInstance.LastChanged > DateTime.UtcNow.AddMinutes(-5));
             }
@@ -823,13 +823,13 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Response is 403 forbidden.
             /// </summary>
             [Fact]
-            public async void UpdateSubstatus_EndUserTriestoSetSubStatus_ReturnsForbidden()
+            public async void UpdateSubstatus_EndUserTriestoSetSubstatus_ReturnsForbidden()
             {
                 // Arrange
                 int instanceOwnerPartyId = 1337;
                 string instanceGuid = "824e8304-ad9e-4d79-ac75-bcfa7213223b";
 
-                Substatus subStatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
+                Substatus substatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
 
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/substatus";
 
@@ -838,7 +838,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string token = PrincipalUtil.GetToken(3, 1337);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json");
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -860,7 +860,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 int instanceOwnerPartyId = 1337;
                 string instanceGuid = "824e8304-ad9e-4d79-ac75-bcfa7213223b";
 
-                Substatus subStatus = new Substatus { Description = "Substatus.Approved.Description" };
+                Substatus substatus = new Substatus { Description = "Substatus.Approved.Description" };
 
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/substatus";
 
@@ -869,7 +869,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string token = PrincipalUtil.GetOrgToken("tdd");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json");
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);

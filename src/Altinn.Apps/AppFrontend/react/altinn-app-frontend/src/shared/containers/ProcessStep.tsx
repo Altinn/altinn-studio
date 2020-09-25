@@ -3,10 +3,10 @@
 /* eslint-disable no-restricted-syntax */
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { AltinnAppHeader } from 'altinn-shared/components';
+import { AltinnAppHeader, AltinnSubstatusPaper } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { IParty } from 'altinn-shared/types';
-import { returnUrlToMessagebox } from 'altinn-shared/utils';
+import { IParty, IInstance } from 'altinn-shared/types';
+import { returnUrlToMessagebox, getTextResourceByKey } from 'altinn-shared/utils';
 import { IRuntimeState, ProcessSteps, IValidations, ITextResource } from 'src/types';
 import ErrorReport from '../../components/message/ErrorReport';
 import Header from '../../components/process-step/Header';
@@ -21,6 +21,7 @@ export interface IProcessStepProvidedProps {
 const ProcessStepComponent = (props) => {
   const party: IParty = useSelector((state: IRuntimeState) => (state.party ? state.party.selectedParty : {} as IParty));
   const language: any = useSelector((state: IRuntimeState) => (state.language ? state.language.language : {}));
+  const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const formHasErrors: boolean = useSelector(
     (state: IRuntimeState) => getFormHasErrors(state.formValidations.validations),
   );
@@ -60,6 +61,11 @@ const ProcessStepComponent = (props) => {
               validations={validations}
               textResources={textResources}
             />
+            {isProcessStepsArchived && instance?.status?.substatus &&
+            <AltinnSubstatusPaper
+              label={getTextResourceByKey(instance.status.substatus.label, textResources)}
+              description={getTextResourceByKey(instance.status.substatus.description, textResources)}
+            />}
             <NavBar
               handleClose={handleModalCloseButton}
               language={language}

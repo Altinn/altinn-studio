@@ -72,6 +72,7 @@ export function nn() {
       action: 'Handling',
       add_connection: 'Legg til tilkobling',
       add: 'Legg til',
+      add_new: 'Legg til ny',
       back: 'Attende',
       cancel: 'Avbryt',
       choose_label: 'Vel namn',
@@ -87,6 +88,7 @@ export function nn() {
       delete: 'Slett',
       disabled: 'Deaktivert',
       edit: 'Endre',
+      edit_alt: 'Rediger',
       enabled: 'Aktivert',
       error_message_with_colon: 'Feilmelding:',
       for: 'for',
@@ -106,6 +108,9 @@ export function nn() {
       validate_changes: 'Validér endringar',
       value: 'Verdi',
       version: 'Versjon',
+    },
+    group: {
+      row_error: 'Ei av radene er ikkje fylt ut riktig. Dette må bli retta før skjema kan sendast inn.',
     },
     instantiate: {
       all_forms: 'alle skjema',
