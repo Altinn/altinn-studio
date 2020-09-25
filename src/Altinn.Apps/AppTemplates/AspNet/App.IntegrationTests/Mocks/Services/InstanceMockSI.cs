@@ -227,7 +227,7 @@ namespace App.IntegrationTests.Mocks.Services
 
                 storedInstance.Status ??= new InstanceStatus();
 
-                storedInstance.Status.SubStatus = substatus;
+                storedInstance.Status.Substatus = substatus;
                 storedInstance.LastChanged = creationTime;
                 // mock does not set last changed by, but this is set by the platform.
                 storedInstance.LastChangedBy = "";
