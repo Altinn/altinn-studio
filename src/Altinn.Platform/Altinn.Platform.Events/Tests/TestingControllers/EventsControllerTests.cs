@@ -51,7 +51,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Post_GivenValidCloudEvent_ReturnsStatusCreatedAndCorrectData()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/events";
+                string requestUri = $"{BasePath}/app";
                 string responseId = Guid.NewGuid().ToString();
                 CloudEvent cloudEvent = GetCloudEvent();
 
@@ -82,7 +82,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Post_InValidCloudEvent_ReturnsStatusBadRequest()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/events";
+                string requestUri = $"{BasePath}/app";
                 CloudEvent cloudEvent = GetCloudEvent();
                 cloudEvent.Subject = null;
 
@@ -109,7 +109,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Post_RepositoryThrowsException_ReturnsInternalServerError()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/events";
+                string requestUri = $"{BasePath}/app";
                 CloudEvent cloudEvent = GetCloudEvent();
 
                 Mock<IEventsRepository> eventsRepository = new Mock<IEventsRepository>();
