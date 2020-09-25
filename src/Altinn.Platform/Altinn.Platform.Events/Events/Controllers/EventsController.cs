@@ -25,8 +25,8 @@ namespace Altinn.Platform.Events.Controllers
         /// <param name="logger">dependency injection of logger</param>
         public EventsController(IEventsRepository repository, ILogger<EventsController> logger)
         {
-            this._repository = repository;
-            this._logger = logger;
+            _repository = repository;
+            _logger = logger;
         }
 
         /// <summary>

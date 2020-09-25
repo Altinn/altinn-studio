@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
-using Altinn.Platform.Events.Configuration;
+
 using Altinn.Platform.Events.Models;
+using Altinn.Platform.Events.Services.Interfaces;
 using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Altinn.Platform.Events.Repository
 {
@@ -18,68 +14,53 @@ namespace Altinn.Platform.Events.Repository
     /// </summary>
     public class EventsRepository : IEventsRepository
     {
-        private readonly ILogger _logger;
-        private readonly Uri _collectionUri;
-        private readonly string _collectionId = "events";
-        private readonly string _partitionKey = "/subject";
+        private readonly IEventsCosmosService _cosmosService;
         private readonly string _triggerId = "trgUpdateItemTimestamp";
-        private readonly DocumentClient _client;
+        private readonly string _triggerPath = "./Configuration/UpdateItemTimestamp.js";
+        private readonly ILogger _logger;
+        private bool _triggersRegistered = false;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsRepository"/> class.
         /// </summary>
-        /// <param name="cosmosettings">the configuration settings for cosmos database</param>
-        /// <param name="logger">dependency injection of logger</param>
-        public EventsRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<EventsRepository> logger)
+        /// <param name="cosmosService">the cosmos DB service</param>
+        /// <param name="logger">the logger</param>
+        public EventsRepository(IEventsCosmosService cosmosService, ILogger<EventsRepository> logger)
         {
-            this._logger = logger;
-
-            CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosettings.Value);
-
-            _client = database.CreateDatabaseAndCollection(_collectionId);
-            _collectionUri = database.CollectionUri;
-
-            DocumentCollection documentCollection = database.CreateDocumentCollection(_collectionId, _partitionKey);
-
-            _client.CreateDocumentCollectionIfNotExistsAsync(
-                database.DatabaseUri,
-                documentCollection).GetAwaiter().GetResult();
-            InsertTrigger();
-            _client.OpenAsync();
+            _cosmosService = cosmosService;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
         public async Task<string> Create(CloudEvent item)
         {
-            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(
-                _collectionUri, 
-                item, 
-                new RequestOptions { PreTriggerInclude = new List<string> { _triggerId } });
-            return createDocumentResponse.Resource.Id;
+            if (!_triggersRegistered)
+            {
+                await EnsureTriggerIsPresent();
+            }
+
+            string id = await _cosmosService.StoreItemtToEventsCollection(item);
+            return id;
         }
 
-        private void InsertTrigger()
+        private async Task EnsureTriggerIsPresent()
         {
-            try
+            if (!File.Exists(_triggerPath))
             {
-                Trigger trigger = new Trigger();
-                trigger.Id = _triggerId;
-                trigger.Body = File.ReadAllText("./Configuration/UpdateItemTimestamp.js");
-                trigger.TriggerOperation = TriggerOperation.Create;
-                trigger.TriggerType = TriggerType.Pre;
-                _client.CreateTriggerAsync(_collectionUri, trigger).GetAwaiter().GetResult();
-            } 
-            catch (DocumentClientException e) 
+                _logger.LogCritical($"Unable to find trigger function on path {_triggerPath}.");
+                return;
+            }
+
+            Trigger trigger = new Trigger();
+            trigger.Id = _triggerId;
+            trigger.Body = File.ReadAllText(_triggerPath);
+            trigger.TriggerOperation = TriggerOperation.Create;
+            trigger.TriggerType = TriggerType.Pre;
+
+            bool successful = await _cosmosService.StoreTrigger(trigger);
+            if (successful)
             {
-                if (e.StatusCode == System.Net.HttpStatusCode.Conflict) 
-                {
-                    _logger.LogInformation("Trigger already exists, triggerId: " + _triggerId);
-                }
-                else 
-                {
-                    _logger.LogCritical($"Unable to create trigger {_triggerId} in database. {e}");
-                    throw;
-                }
+                _triggersRegistered = true;
             }
         }
     }

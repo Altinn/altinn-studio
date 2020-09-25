@@ -40,7 +40,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Gets or sets the sub status of the instance.
         /// </summary>
         [JsonProperty(PropertyName = "substatus")]
-        public Substatus SubStatus { get; set; }
+        public Substatus Substatus { get; set; }
     }
 
     public enum ReadStatus

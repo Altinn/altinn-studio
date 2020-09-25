@@ -453,7 +453,7 @@ namespace App.IntegrationTests
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "66233fb5-a9f2-45d4-90b1-f6d93ad40713";
 
-            Substatus subStatus = new Substatus { Description = "Substatus.Approved.Description" };
+            Substatus substatus = new Substatus { Description = "Substatus.Approved.Description" };
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
 
             string token = PrincipalUtil.GetOrgToken(org);
@@ -461,7 +461,7 @@ namespace App.IntegrationTests
 
             string requestUri = $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/substatus";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -477,7 +477,7 @@ namespace App.IntegrationTests
         /// Response is 403 forbidden.
         /// </summary>
         [Fact]
-        public async void UpdateSubstatus_EndUserTriestoSetSubStatus_ReturnsForbidden()
+        public async void UpdateSubstatus_EndUserTriestoSetSubstatus_ReturnsForbidden()
         {
             // Arrange
             string org = "tdd";
@@ -486,7 +486,7 @@ namespace App.IntegrationTests
             string instanceGuid = "66233fb5-a9f2-45d4-90b1-f6d93ad40713";
             TestDataUtil.PrepareInstance(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
 
-            Substatus subStatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
+            Substatus substatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
 
             string token = PrincipalUtil.GetToken(21023); // 21023 is connected to party with id 1337
@@ -494,7 +494,7 @@ namespace App.IntegrationTests
 
             string requestUri = $"/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/substatus";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUri);
-            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(subStatus), Encoding.UTF8, "application/json");
+            httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(substatus), Encoding.UTF8, "application/json");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -506,19 +506,19 @@ namespace App.IntegrationTests
 
         /// <summary>
         /// Scenario:
-        /// Update substatus for an instance where the substatus has not been initialized yet. 
+        /// Update substatus for an instance where the substatus has not been initialized yet.
         /// Result:
         /// substatus is successfuly updated and the updated instance returned.
         /// </summary>
         [Fact]
-        public async void UpdateSubstatus_SetInitialSubStatus_ReturnsUpdatedInstance()
+        public async void UpdateSubstatus_SetInitialSubstatus_ReturnsUpdatedInstance()
         {
             // Arrange
             string org = "tdd";
             string app = "endring-av-navn";
             int instanceOwnerPartyId = 1337;
             string instanceGuid = "66233fb5-a9f2-45d4-90b1-f6d93ad40713";
-            Substatus expectedSubStatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
+            Substatus expectedSubstatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
             TestDataUtil.PrepareInstance(org, app, instanceOwnerPartyId, new Guid(instanceGuid));
 
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
@@ -546,8 +546,8 @@ namespace App.IntegrationTests
             // Assert
             Assert.NotNull(updatedInstance);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(expectedSubStatus.Label, updatedInstance.Status.SubStatus.Label);
-            Assert.Equal(expectedSubStatus.Description, updatedInstance.Status.SubStatus.Description);
+            Assert.Equal(expectedSubstatus.Label, updatedInstance.Status.Substatus.Label);
+            Assert.Equal(expectedSubstatus.Description, updatedInstance.Status.Substatus.Description);
             Assert.True(updatedInstance.LastChanged > DateTime.UtcNow.AddMinutes(-5));
         }
     }
