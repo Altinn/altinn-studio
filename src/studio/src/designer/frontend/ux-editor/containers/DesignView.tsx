@@ -49,6 +49,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       // dragging a toolbaritem - they don't have ids
       return;
     }
+
     if (sourceContainerId === destinationContainerId) {
       const { layoutOrder } = this.state;
       const updatedOrder: string[] = layoutOrder[sourceContainerId];
@@ -64,6 +65,50 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
           $set: true,
         },
       }));
+    } else {
+      // Moving to different container
+      // If element is still inside old container => remove from old and place in the new conatiner
+      const { layoutOrder } = this.state;
+      const updatedOrderSource: string[] = layoutOrder[sourceContainerId];
+      const updatedOrderDestination: string[] = layoutOrder[destinationContainerId];
+      if (updatedOrderSource.indexOf(id) > -1) {
+        // Remove component from source, place in dest layoutOrder
+        const [moveItem] = updatedOrderSource.splice(updatedOrderSource.indexOf(id), 1);
+        updatedOrderDestination.splice(index, 0, moveItem);
+        this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
+          layoutOrder: {
+            [destinationContainerId]: {
+              $set: [...updatedOrderDestination],
+            },
+            [sourceContainerId]: {
+              $set: [...updatedOrderSource],
+            },
+          },
+          isDragging: {
+            $set: true,
+          },
+        }));
+      } else {
+        // The component has been dragged to an unknown container, locate the container and remove
+        const container = Object.keys(layoutOrder).find((containerId: string) => {
+          return layoutOrder[containerId].includes(id);
+        });
+        const [movedComponent] = layoutOrder[container].splice(layoutOrder[container].indexOf(id), 1);
+        updatedOrderDestination.splice(index, 0, movedComponent);
+        this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
+          layoutOrder: {
+            [destinationContainerId]: {
+              $set: [...updatedOrderDestination],
+            },
+            [container]: {
+              $set: [...layoutOrder[container]],
+            },
+          },
+          isDragging: {
+            $set: true,
+          },
+        }));
+      }
     }
   }
 
@@ -139,38 +184,14 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
   }
 
   public dropComponent = (id: string, sourceContainerId: string, destinationContainerId: string) => {
-    if (sourceContainerId !== destinationContainerId) {
-      // If a component has been dropped in a different container, add component to container.
-      // The handling of a component that is dragged within a container is done in onMoveComponent and handled on the fly
-      const { layoutOrder } = this.state;
-      const updatedSource: string[] = layoutOrder[sourceContainerId];
-      const updatedDestination: string[] = layoutOrder[destinationContainerId];
-      const [moveItem] = updatedSource.splice(layoutOrder[sourceContainerId].indexOf(id), 1);
-      updatedDestination?.push(moveItem);
-      FormDesignerActionDispatchers.updateFormComponentOrderAction(JSON.parse(JSON.stringify(this.state.layoutOrder)));
-      this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
-        layoutOrder: {
-          [sourceContainerId]: {
-            $set: [...updatedSource],
-          },
-          [destinationContainerId]: {
-            $set: [...updatedDestination],
-          },
-        },
-        isDragging: {
-          $set: false,
-        },
-      }));
-      FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
-    } else {
-      FormDesignerActionDispatchers.updateFormComponentOrderAction(this.state.layoutOrder);
-      this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
-        isDragging: {
-          $set: false,
-        },
-      }));
-      FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
-    }
+    console.log('ondrop', id, sourceContainerId, destinationContainerId);
+    FormDesignerActionDispatchers.updateFormComponentOrderAction(this.state.layoutOrder);
+    this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
+      isDragging: {
+        $set: false,
+      },
+    }));
+    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
   }
 
   public render(): JSX.Element {
@@ -195,6 +216,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
           baseContainer={true}
           id={baseContainerId}
           items={this.state.layoutOrder[baseContainerId]}
+          layoutOrder={this.state.layoutOrder}
           onDropComponent={this.dropComponent}
           onMoveComponent={this.moveComponent}
           onDropContainer={this.dropContainer}

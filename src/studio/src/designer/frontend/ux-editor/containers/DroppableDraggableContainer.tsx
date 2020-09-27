@@ -1,3 +1,4 @@
+/* eslint-disable react/no-find-dom-node */
 import * as React from 'react';
 import { ConnectDragPreview,
   ConnectDragSource,
@@ -119,6 +120,31 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
             hoverOverIndex,
             props.id,
             component.props.containerId,
+          );
+
+          break;
+        }
+        case 'ITEM': {
+          const draggedItem = monitor.getItem();
+          let hoverOverIndex = props.index;
+          const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
+          const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+          const clientOffset = monitor.getClientOffset();
+          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+
+          if (draggedItem.id === props.id || draggedItem.index === props.index) {
+            return;
+          }
+
+          if (hoverClientY > hoverMiddleY) {
+            hoverOverIndex += 1;
+          }
+
+          props.onMoveComponent(
+            draggedItem.id,
+            hoverOverIndex,
+            draggedItem.containerId,
+            props.id,
           );
 
           break;

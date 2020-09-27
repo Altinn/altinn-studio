@@ -1,3 +1,4 @@
+/* eslint-disable react/no-find-dom-node */
 import * as React from 'react';
 import { ConnectDragPreview,
   ConnectDragSource,
@@ -176,7 +177,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
             draggedItem.id,
             hoverOverIndex,
             draggedItem.containerId,
-            component.props.containerId,
+            props.containerId,
           );
 
           monitor.getItem().index = hoverOverIndex;

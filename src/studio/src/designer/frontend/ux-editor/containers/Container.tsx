@@ -29,6 +29,7 @@ export interface IProvidedContainerProps extends WithStyles<typeof styles>{
   index?: number;
   baseContainer?: boolean;
   items?: string[];
+  layoutOrder: IFormLayoutOrder;
   onMoveComponent?: (...args: any) => void;
   onDropComponent?: (...args: any) => void;
   onMoveContainer?: (...args: any) => void;
@@ -367,7 +368,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       return this.renderEditMode();
     }
     return (
-      <Grid container={true}>
+      <Grid container={true} style={this.props.baseContainer ? { paddingTop: '24px', paddingBottom: '24px' } : undefined}>
         <Grid
           container={true}
           onClick={this.changeActiveFormContainer}
@@ -685,7 +686,8 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           id={id}
           key={id}
           index={index}
-          items={this.props.itemOrder[id]}
+          items={this.props.layoutOrder[id]}
+          layoutOrder={this.props.layoutOrder}
           baseContainer={false}
           onDropComponent={this.props.onDropComponent}
           onMoveComponent={this.props.onMoveComponent}
