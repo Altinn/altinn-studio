@@ -6,7 +6,7 @@ const userParty = {partyId: 12, person: {firstName: 'Ola', middleName: '', lastN
 
 <AltinnAppHeader
   logoColor={'#022F51'}
-  headerColor={'#1EAEF7'}
+  headerBackgroundColor={'#1EAEF7'}
   party={userParty}
   userParty={userParty}
 />
@@ -22,7 +22,7 @@ const party = {partyId: 13, person: {firstName: 'Tine', middleName: '', lastName
 
 <AltinnAppHeader
   logoColor={'#022F51'}
-  headerColor={'#1EAEF7'}
+  headerBackgroundColor={'#1EAEF7'}
   party={party}
   userParty={userParty}
 />
@@ -38,7 +38,7 @@ const party = {partyId: 13, organisation: {name: 'FIRMA AS'}, orgNumber: '123467
 
 <AltinnAppHeader
   logoColor={'#022F51'}
-  headerColor={'#1EAEF7'}
+  headerBackgroundColor={'#1EAEF7'}
   party={party}
   userParty={userParty}
 />
