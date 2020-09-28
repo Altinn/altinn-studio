@@ -1,7 +1,7 @@
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import * as React from 'react';
+import altinnTheme from '../src/theme/altinnStudioTheme';
 
-import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
 const theme = createMuiTheme(altinnTheme);
 
 // import injectTapEventPlugin from 'react-tap-event-plugin';
