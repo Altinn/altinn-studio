@@ -183,8 +183,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
   }
 
-  public dropComponent = (id: string, sourceContainerId: string, destinationContainerId: string) => {
-    console.log('ondrop', id, sourceContainerId, destinationContainerId);
+  public dropComponent = () => {
     FormDesignerActionDispatchers.updateFormComponentOrderAction(this.state.layoutOrder);
     this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
       isDragging: {
