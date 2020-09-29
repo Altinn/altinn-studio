@@ -2,27 +2,31 @@ import * as React from 'react';
 import { AltinnButton } from 'altinn-shared/components';
 import { Grid, makeStyles } from '@material-ui/core';
 import { useSelector } from 'react-redux';
-import { IRuntimeState } from 'src/types';
+import { IRuntimeState, INavigationConfig, ILayoutNavigation } from 'src/types';
+import classNames from 'classnames';
 import FormLayoutActions from '../../features/form/layout/formLayoutActions';
 
 const useStyles = makeStyles({
   root: {
     paddingTop: '2.4em',
   },
+  backButton: {
+    marginRight: '1.2em',
+  },
 });
 
-export interface INavigationButtonsProps {
-  next?: string;
-  previous?: string;
-}
-
-export function NavigationButtons(props: INavigationButtonsProps) {
+export function NavigationButtons() {
   const classes = useStyles();
-  const { next, previous } = props;
   const [disableBack, setDisableBack] = React.useState<boolean>(false);
   const [disableNext, setDisableNext] = React.useState<boolean>(false);
   const currentView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
   const orderedLayoutKeys = useSelector((state: IRuntimeState) => Object.keys(state.formLayout.layouts));
+  const { next, previous } = useSelector(
+    (state: IRuntimeState) => getNavigationConfigForCurrentView(
+      state.formLayout.uiConfig.navigationConfig,
+      state.formLayout.uiConfig.currentView,
+    ),
+  );
 
   React.useEffect(() => {
     const currentViewIndex = orderedLayoutKeys.indexOf(currentView);
@@ -51,19 +55,32 @@ export function NavigationButtons(props: INavigationButtonsProps) {
       className={classes.root}
     >
       <Grid item={true} xs={10}>
-        <AltinnButton
-          btnText='Tilbake'
-          onClickFunction={onClickPrevious}
-          disabled={disableBack}
-        />
-      </Grid>
-      <Grid item={true} xs={2}>
-        <AltinnButton
-          btnText='Neste'
-          onClickFunction={OnClickNext}
-          disabled={disableNext}
-        />
+        {!disableBack &&
+          <AltinnButton
+            btnText='Tilbake'
+            onClickFunction={onClickPrevious}
+            disabled={disableBack}
+            className={classNames(classes.backButton)}
+          />
+        }
+        {!disableNext &&
+          <AltinnButton
+            btnText='Neste'
+            onClickFunction={OnClickNext}
+            disabled={disableNext}
+          />
+        }
       </Grid>
     </Grid>
   );
+}
+
+function getNavigationConfigForCurrentView(
+  navigationConfig: INavigationConfig,
+  currentView: string,
+): ILayoutNavigation {
+  if (navigationConfig && navigationConfig[currentView]) {
+    return navigationConfig[currentView];
+  }
+  return {};
 }

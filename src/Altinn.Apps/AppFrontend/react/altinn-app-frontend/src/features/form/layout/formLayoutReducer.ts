@@ -25,6 +25,7 @@ const initialState: ILayoutState = {
     autoSave: null,
     repeatingGroups: {},
     currentView: 'FormLayout',
+    navigationConfig: {},
   },
 };
 
@@ -38,10 +39,15 @@ const LayoutReducer: Reducer<ILayoutState> = (
 
   switch (action.type) {
     case ActionTypes.FETCH_FORM_LAYOUT_FULFILLED: {
-      const { layout } = action as IFetchFormLayoutFulfilled;
+      const { layouts, navigationConfig } = action as IFetchFormLayoutFulfilled;
       return update<ILayoutState>(state, {
         layouts: {
-          $set: layout,
+          $set: layouts,
+        },
+        uiConfig: {
+          navigationConfig: {
+            $set: navigationConfig,
+          },
         },
         error: {
           $set: null,

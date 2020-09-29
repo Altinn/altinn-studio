@@ -26,7 +26,6 @@ export function matchLayoutComponent(providedId: string, componentId: string) {
 }
 
 export function renderGenericComponent(component: ILayoutComponent) {
-  console.log('RENDER GENERIC component, ', component);
   return (
     <Grid
       item={true}

@@ -16,21 +16,21 @@ const formDataSelector = (state: IRuntimeState) => state.formData;
 
 function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
   try {
-    // const { data }: any = yield call(get, url);
-    console.log('URL: ', url);
     const test: any = yield call(get, url);
     const layouts: ILayouts = {};
+    const navigationConfig: any = {};
     const orderedLayoutKeys = Object.keys(test).sort();
     const firstLayoutKey = orderedLayoutKeys[0];
 
     orderedLayoutKeys.forEach((key) => {
       layouts[key] = test[key].data.layout;
+      navigationConfig[key] = test[key].data.navigation;
     });
 
     const formDataState: IFormDataState = yield select(formDataSelector);
     const repeatingGroups = getRepeatingGroups(test[firstLayoutKey].data.layout, formDataState.formData);
 
-    yield call(Actions.fetchFormLayoutFulfilled, layouts);
+    yield call(Actions.fetchFormLayoutFulfilled, layouts, navigationConfig);
     // yield call(Actions.updateAutoSave, data.autoSave);
     yield call(Actions.updateRepeatingGroupsFulfilled, repeatingGroups);
     yield call(Actions.updateCurrentView, firstLayoutKey);
