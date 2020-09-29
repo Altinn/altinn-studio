@@ -52,10 +52,7 @@ namespace Altinn.App
                 .AddXmlSerializerFormatters()
                 .AddJsonOptions(options =>
                 {
-                    // Use camel casing.
                     options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-                    options.JsonSerializerOptions.WriteIndented = _env.IsDevelopment() || _env.IsStaging();
-                    options.JsonSerializerOptions.IgnoreNullValues = true;
                 });
             services.AddMemoryCache();
 
