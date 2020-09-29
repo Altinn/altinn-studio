@@ -12,7 +12,6 @@ using Altinn.App.Services.Configuration;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Moq;
@@ -26,6 +25,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
     {
         private readonly Mock<IOptions<PlatformSettings>> platformSettingsOptions;
         private readonly Mock<IOptionsMonitor<AppSettings>> appSettingsOptions;
+        private readonly Mock<IOptions<GeneralSettings>> generalSettingsOptions;
         private readonly Mock<HttpMessageHandler> handlerMock;
         private readonly Mock<IHttpContextAccessor> contextAccessor;
 
@@ -33,6 +33,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         {
             platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
             appSettingsOptions = new Mock<IOptionsMonitor<AppSettings>>();
+            generalSettingsOptions = new Mock<IOptions<GeneralSettings>>();
             handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             contextAccessor = new Mock<IHttpContextAccessor>();
         }
@@ -43,6 +44,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             // Arrange
             Instance instance = new Instance
             {
+                AppId = "ttd/best-app",
                 InstanceOwner = new InstanceOwner
                 {
                     OrganisationNumber = "org",
@@ -66,7 +68,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 platformSettingsOptions.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object);
+                appSettingsOptions.Object,
+                generalSettingsOptions.Object);
 
             // Act
             await target.AddEvent("created", instance);
@@ -82,6 +85,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Assert.NotNull(actualEvent);
             Assert.Equal("/party/123", actualEvent.Subject);
             Assert.Equal("org", actualEvent.AlternativeSubject);
+            Assert.Contains("at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
 
             handlerMock.VerifyAll();
         }
@@ -111,7 +115,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 platformSettingsOptions.Object,
                 contextAccessor.Object,
                 httpClient,
-                appSettingsOptions.Object);
+                appSettingsOptions.Object,
+                generalSettingsOptions.Object);
 
             PlatformHttpException actual = null;
 
@@ -139,10 +144,15 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             PlatformSettings platformSettings = new PlatformSettings
             {
                 ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
-                ApiStorageEndpoint = "http://localhost:5101/storage/api/v1/",
                 SubscriptionKey = "key"
             };
             platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
+
+            GeneralSettings generalSettings = new GeneralSettings
+            {
+                HostName = "at22.altinn.cloud"
+            };
+            generalSettingsOptions.Setup(s => s.Value).Returns(generalSettings);
 
             AppSettings appSettings = new AppSettings { RuntimeCookieName = "AltinnStudioRuntime" };
             appSettingsOptions.Setup(s => s.CurrentValue).Returns(appSettings);
@@ -154,7 +164,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                     "SendAsync",
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>())
-                .Callback<HttpRequestMessage, CancellationToken>((r,c) => callback(r))
+                .Callback<HttpRequestMessage, CancellationToken>((request, _) => callback(request))
                 .ReturnsAsync(httpResponseMessage)
                 .Verifiable();
         }

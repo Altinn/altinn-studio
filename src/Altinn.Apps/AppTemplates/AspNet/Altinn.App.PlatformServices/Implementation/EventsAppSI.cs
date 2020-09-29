@@ -15,7 +15,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
 
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.PlatformServices.Implementation
@@ -27,9 +26,8 @@ namespace Altinn.App.PlatformServices.Implementation
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
+        private readonly GeneralSettings _generalSettings;
         private readonly HttpClient _client;
-
-        private readonly string _storageBaseAndHost;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsAppSI"/> class.
@@ -38,15 +36,17 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="httpClient">A HttpClient.</param>
         /// <param name="settings">The application settings.</param>
+        /// <param name="generalSettings">The general settings of the application.</param>
         public EventsAppSI(
             IOptions<PlatformSettings> platformSettings,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,
-            IOptionsMonitor<AppSettings> settings)
+            IOptionsMonitor<AppSettings> settings,
+            IOptions<GeneralSettings> generalSettings)
         {
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
-            _storageBaseAndHost = platformSettings.Value.ApiStorageEndpoint;
+            _generalSettings = generalSettings.Value;
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiEventsEndpoint);
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -56,7 +56,7 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <inheritdoc/>
         public async Task<string> AddEvent(string eventType, Instance instance)
         {
-            string source = $"{_storageBaseAndHost}instances/{instance.Id}";
+            string source = $"https://{_generalSettings.HostName}/{instance.AppId}/instances/{instance.Id}";
             CloudEvent cloudEvent = new CloudEvent
             {
                 Subject = $"/party/{instance.InstanceOwner.PartyId}",
