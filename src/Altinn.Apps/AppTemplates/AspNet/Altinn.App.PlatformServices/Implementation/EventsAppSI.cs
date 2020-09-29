@@ -78,7 +78,7 @@ namespace Altinn.App.PlatformServices.Implementation
 
             HttpResponseMessage response = await _client.PostAsync(
                 token,
-                "events",
+                "app",
                 new StringContent(serializedCloudEvent, Encoding.UTF8, "application/json"));
 
             if (response.IsSuccessStatusCode)

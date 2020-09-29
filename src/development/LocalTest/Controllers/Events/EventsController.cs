@@ -13,7 +13,7 @@ namespace Altinn.Platform.Events.Controllers
     /// <summary>
     /// Provides operations for handling events
     /// </summary>
-    [Route("events/api/v1/events")]
+    [Route("events/api/v1/app")]
     [ApiController]
     public class EventsController : ControllerBase
     {
@@ -56,7 +56,7 @@ namespace Altinn.Platform.Events.Controllers
 
                 string cloudEventId = await _repository.Create(cloudEvent);
 
-                _logger.LogInformation("Cloud Event successfully stored", cloudEventId);
+                _logger.LogInformation("Cloud Event successfully stored with id: {0}", cloudEventId);
 
                 return Created(cloudEvent.Subject, cloudEventId);
             }

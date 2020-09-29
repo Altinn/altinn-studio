@@ -33,6 +33,9 @@ namespace LocalTest.Services.Events.Implementation
         /// <inheritdoc />
         public async Task<string> Create(CloudEvent cloudEvent)
         {
+            cloudEvent.Id = Guid.NewGuid().ToString();
+            cloudEvent.Time = DateTime.UtcNow;
+
             string eventsFolder = GetEventsCollectionFolder();
             Directory.CreateDirectory(eventsFolder);
 

@@ -1,11 +1,13 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Implementation;
+using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -43,16 +45,22 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             // Arrange
             Instance instance = new Instance
             {
-                InstanceOwner = new InstanceOwner { OrganisationNumber = "org" }
+                InstanceOwner = new InstanceOwner
+                {
+                    OrganisationNumber = "org",
+                    PartyId = 123.ToString()
+                }
             };
 
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(Guid.NewGuid().ToString()),
+                Content = new StringContent(Guid.NewGuid().ToString())
             };
 
-            InitializeMocks(httpResponseMessage, "events");
+            HttpRequestMessage actualRequest = null;
+            void SetRequest(HttpRequestMessage request) => actualRequest = request;
+            InitializeMocks(httpResponseMessage, SetRequest);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -67,6 +75,17 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             await target.AddEvent("created", instance);
 
             // Assert
+            Assert.NotNull(actualRequest);
+            Assert.Equal(HttpMethod.Post, actualRequest.Method);
+            Assert.EndsWith("app", actualRequest.RequestUri.OriginalString);
+
+            string requestContent = await actualRequest.Content.ReadAsStringAsync();
+            CloudEvent actualEvent = JsonSerializer.Deserialize<CloudEvent>(requestContent);
+
+            Assert.NotNull(actualEvent);
+            Assert.Equal("/party/123", actualEvent.Subject);
+            Assert.Equal("org", actualEvent.AlternativeSubject);
+
             handlerMock.VerifyAll();
         }
 
@@ -85,7 +104,9 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 Content = new StringContent(Guid.NewGuid().ToString()),
             };
 
-            InitializeMocks(httpResponseMessage, "events");
+            HttpRequestMessage actualRequest = null;
+            void SetRequest(HttpRequestMessage request) => actualRequest = request;
+            InitializeMocks(httpResponseMessage, SetRequest);
 
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
@@ -109,13 +130,15 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             }
 
             // Assert
-            handlerMock.VerifyAll();
-
             Assert.NotNull(actual);
             Assert.Equal(HttpStatusCode.BadRequest, actual.Response.StatusCode);
+
+            Assert.NotNull(actualRequest);
+
+            handlerMock.VerifyAll();
         }
 
-        private void InitializeMocks(HttpResponseMessage httpResponseMessage, string urlPart)
+        private void InitializeMocks(HttpResponseMessage httpResponseMessage, Action<HttpRequestMessage> callback)
         {
             PlatformSettings platformSettings = new PlatformSettings
             {
@@ -133,8 +156,9 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             handlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart)),
+                    ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>())
+                .Callback<HttpRequestMessage, CancellationToken>((r,c) => callback(r))
                 .ReturnsAsync(httpResponseMessage)
                 .Verifiable();
         }
