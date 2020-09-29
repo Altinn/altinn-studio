@@ -109,7 +109,7 @@ export default function (data) {
     //Test to get validate instance and verify that validation of instance is ok
     res = appInstances.getValidateInstance(runtimeToken, partyId, instanceId, appOwner, level2App);
     success = check(res, {
-        "E2E App GET Validate Instance validation OK:": (r) => (JSON.parse(r.body)).length === 0
+        "App GET Validate Instance validation OK:": (r) => (JSON.parse(r.body)).length === 0
     });
     addErrorCount(success);
 
@@ -121,7 +121,7 @@ export default function (data) {
     //Test to move the process of an app instance to the next process element and verify response code to be 200
     res = appProcess.putNextProcess(runtimeToken, partyId, instanceId, nextElement, appOwner, level2App);
     success = check(res, {
-        "E2E App PUT Move process to Next element status is 200:": (r) => r.status === 200
+        "App PUT Move process to Next element status is 200:": (r) => r.status === 200
     });
     addErrorCount(success);
 
