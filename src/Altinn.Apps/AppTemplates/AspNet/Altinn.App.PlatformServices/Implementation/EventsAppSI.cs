@@ -25,7 +25,6 @@ namespace Altinn.App.PlatformServices.Implementation
     /// </summary>
     public class EventsAppSI : IEvents
     {
-        private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppSettings _settings;
         private readonly HttpClient _client;
@@ -36,18 +35,15 @@ namespace Altinn.App.PlatformServices.Implementation
         /// Initializes a new instance of the <see cref="EventsAppSI"/> class.
         /// </summary>
         /// <param name="platformSettings">The platform settings.</param>
-        /// <param name="logger">A logger.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="httpClient">A HttpClient.</param>
         /// <param name="settings">The application settings.</param>
         public EventsAppSI(
             IOptions<PlatformSettings> platformSettings,
-            ILogger<EventsAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,
             IOptionsMonitor<AppSettings> settings)
         {
-            _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _settings = settings.CurrentValue;
             _storageBaseAndHost = platformSettings.Value.ApiStorageEndpoint;

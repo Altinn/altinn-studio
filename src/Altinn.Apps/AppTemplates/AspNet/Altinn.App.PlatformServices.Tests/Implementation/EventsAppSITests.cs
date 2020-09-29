@@ -28,7 +28,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         private readonly Mock<IOptionsMonitor<AppSettings>> appSettingsOptions;
         private readonly Mock<HttpMessageHandler> handlerMock;
         private readonly Mock<IHttpContextAccessor> contextAccessor;
-        private readonly Mock<ILogger<EventsAppSI>> logger;
 
         public EventsAppSITests()
         {
@@ -36,7 +35,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             appSettingsOptions = new Mock<IOptionsMonitor<AppSettings>>();
             handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             contextAccessor = new Mock<IHttpContextAccessor>();
-            logger = new Mock<ILogger<EventsAppSI>>();
         }
 
         [Fact]
@@ -66,7 +64,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             EventsAppSI target = new EventsAppSI(
                 platformSettingsOptions.Object,
-                logger.Object,
                 contextAccessor.Object,
                 httpClient,
                 appSettingsOptions.Object);
@@ -112,7 +109,6 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             EventsAppSI target = new EventsAppSI(
                 platformSettingsOptions.Object,
-                logger.Object,
                 contextAccessor.Object,
                 httpClient,
                 appSettingsOptions.Object);
