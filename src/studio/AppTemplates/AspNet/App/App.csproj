@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="1.1.8-alpha" />
-    <PackageReference Include="Altinn.App.Common" Version="1.1.8-alpha" />
-    <PackageReference Include="Altinn.App.PlatformServices" Version="1.1.8-alpha" />
+    <PackageReference Include="Altinn.App.Api" Version="1.1.9-alpha" />
+    <PackageReference Include="Altinn.App.Common" Version="1.1.9-alpha" />
+    <PackageReference Include="Altinn.App.PlatformServices" Version="1.1.9-alpha" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.8" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.4" />
   </ItemGroup>

@@ -150,7 +150,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
 
-            // Act       
+            // Act
             Instance actual = await target.UpdateReadStatus(1337, Guid.NewGuid(), "read");
 
 
@@ -167,7 +167,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             {
                 Status = new InstanceStatus
                 {
-                    SubStatus = new Substatus
+                    Substatus = new Substatus
                     {
                         Label = "Substatus.Label",
                         Description = "Substatus.Description"
@@ -187,7 +187,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
 
-            // Act       
+            // Act
             Instance actual = await target.UpdateSubstatus(1337, Guid.NewGuid(), new Substatus
             {
                 Label = "Substatus.Label",
@@ -196,8 +196,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
 
             // Assert
-            Assert.Equal(expected.Status.SubStatus.Label, actual.Status.SubStatus.Label);
-            Assert.Equal(expected.Status.SubStatus.Description, actual.Status.SubStatus.Description);
+            Assert.Equal(expected.Status.Substatus.Label, actual.Status.Substatus.Label);
+            Assert.Equal(expected.Status.Substatus.Description, actual.Status.Substatus.Description);
             handlerMock.VerifyAll();
         }
 

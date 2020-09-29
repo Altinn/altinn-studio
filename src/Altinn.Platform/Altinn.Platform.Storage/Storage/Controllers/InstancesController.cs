@@ -533,7 +533,7 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        public async Task<ActionResult<Instance>> UpdateSubStatus(
+        public async Task<ActionResult<Instance>> UpdateSubstatus(
           [FromRoute] int instanceOwnerPartyId,
           [FromRoute] Guid instanceGuid,
           [FromBody] Substatus substatus)
@@ -562,7 +562,7 @@ namespace Altinn.Platform.Storage.Controllers
                     instance.Status = new InstanceStatus();
                 }
 
-                instance.Status.SubStatus = substatus;
+                instance.Status.Substatus = substatus;
                 instance.LastChanged = creationTime;
                 instance.LastChangedBy = User.GetOrgNumber().ToString();
 
