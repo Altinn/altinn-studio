@@ -56,15 +56,25 @@ namespace Altinn.App.PlatformServices.Implementation
         /// <inheritdoc/>
         public async Task<string> AddEvent(string eventType, Instance instance)
         {
-            string source = $"https://{_generalSettings.HostName}/{instance.AppId}/instances/{instance.Id}";
+            string alternativeSubject = null;
+            if (!string.IsNullOrWhiteSpace(instance.InstanceOwner.OrganisationNumber))
+            {
+                alternativeSubject = $"/organisation/{instance.InstanceOwner.OrganisationNumber}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(instance.InstanceOwner.PersonNumber))
+            {
+                alternativeSubject = $"/person/{instance.InstanceOwner.PersonNumber}";
+            }
+
             CloudEvent cloudEvent = new CloudEvent
             {
                 Subject = $"/party/{instance.InstanceOwner.PartyId}",
                 Type = eventType,
-                AlternativeSubject = instance.InstanceOwner.OrganisationNumber ?? instance.InstanceOwner.PersonNumber,
+                AlternativeSubject = alternativeSubject,
                 Time = DateTime.UtcNow,
                 SpecVersion = "1.0",
-                Source = new Uri(source)
+                Source = new Uri($"https://{_generalSettings.HostName}/{instance.AppId}/instances/{instance.Id}")
             };
 
             string token =

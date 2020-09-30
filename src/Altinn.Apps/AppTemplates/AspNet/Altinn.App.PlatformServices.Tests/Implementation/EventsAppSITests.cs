@@ -39,7 +39,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         }
 
         [Fact]
-        public async Task AddEvent_TheServiceResponseIndicateSuccess_ReturnsString()
+        public async Task AddEvent_RegisterEventWithInstanceOwnerOrganisation_CloudEventInRequestContainOrganisationNumber()
         {
             // Arrange
             Instance instance = new Instance
@@ -84,7 +84,59 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
 
             Assert.NotNull(actualEvent);
             Assert.Equal("/party/123", actualEvent.Subject);
-            Assert.Equal("org", actualEvent.AlternativeSubject);
+            Assert.Equal("/organisation/org", actualEvent.AlternativeSubject);
+            Assert.Contains("at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
+
+            handlerMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task AddEvent_RegisterEventWithInstanceOwnerPerson_CloudEventInRequestContainPersonNumber()
+        {
+            // Arrange
+            Instance instance = new Instance
+            {
+                AppId = "ttd/best-app",
+                InstanceOwner = new InstanceOwner
+                {
+                    PersonNumber = "43234123",
+                    PartyId = 321.ToString()
+                }
+            };
+
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(Guid.NewGuid().ToString())
+            };
+
+            HttpRequestMessage actualRequest = null;
+            void SetRequest(HttpRequestMessage request) => actualRequest = request;
+            InitializeMocks(httpResponseMessage, SetRequest);
+
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
+
+            EventsAppSI target = new EventsAppSI(
+                platformSettingsOptions.Object,
+                contextAccessor.Object,
+                httpClient,
+                appSettingsOptions.Object,
+                generalSettingsOptions.Object);
+
+            // Act
+            await target.AddEvent("created", instance);
+
+            // Assert
+            Assert.NotNull(actualRequest);
+            Assert.Equal(HttpMethod.Post, actualRequest.Method);
+            Assert.EndsWith("app", actualRequest.RequestUri.OriginalString);
+
+            string requestContent = await actualRequest.Content.ReadAsStringAsync();
+            CloudEvent actualEvent = JsonSerializer.Deserialize<CloudEvent>(requestContent);
+
+            Assert.NotNull(actualEvent);
+            Assert.Equal("/party/321", actualEvent.Subject);
+            Assert.Equal("/person/43234123", actualEvent.AlternativeSubject);
             Assert.Contains("at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
 
             handlerMock.VerifyAll();

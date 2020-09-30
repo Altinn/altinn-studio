@@ -13,6 +13,7 @@ using Altinn.App.Common.RequestHandling;
 using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
@@ -53,6 +54,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IAltinnApp _altinnApp;
         private readonly IProcess _processService;
         private readonly IPDP _pdp;
+        private readonly IEvents _eventsService;
 
         private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
@@ -67,7 +69,8 @@ namespace Altinn.App.Api.Controllers
             IAppResources appResourcesService,
             IAltinnApp altinnApp,
             IProcess processService,
-            IPDP pdp)
+            IPDP pdp,
+            IEvents eventsService)
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -76,8 +79,8 @@ namespace Altinn.App.Api.Controllers
             _registerService = registerService;
             _altinnApp = altinnApp;
             _processService = processService;
-
             _pdp = pdp;
+            _eventsService = eventsService;
         }
 
         /// <summary>
@@ -281,6 +284,8 @@ namespace Altinn.App.Api.Controllers
             {
                 return ExceptionResponse(exception, $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
+
+            await _eventsService.AddEvent("app.instance.created", instance);
 
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
             string url = instance.SelfLinks.Apps;

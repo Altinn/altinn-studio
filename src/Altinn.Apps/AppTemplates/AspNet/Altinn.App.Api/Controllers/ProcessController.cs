@@ -4,21 +4,26 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+
 using Altinn.App.Api.Filters;
 using Altinn.App.Common.Process.Elements;
 using Altinn.App.PlatformServices.Helpers;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
+
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -40,6 +45,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IAltinnApp _altinnApp;
         private readonly IValidation _validationService;
         private readonly IPDP _pdp;
+        private readonly IEvents _eventsService;
 
         private readonly ProcessHelper processHelper;
 
@@ -52,7 +58,8 @@ namespace Altinn.App.Api.Controllers
             IProcess processService,
             IAltinnApp altinnApp,
             IValidation validationService,
-            IPDP pdp)
+            IPDP pdp,
+            IEvents eventsService)
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -60,6 +67,7 @@ namespace Altinn.App.Api.Controllers
             _altinnApp = altinnApp;
             _validationService = validationService;
             _pdp = pdp;
+            _eventsService = eventsService;
 
             using Stream bpmnStream = _processService.GetProcessDefinition();
             processHelper = new ProcessHelper(bpmnStream);
@@ -311,6 +319,15 @@ namespace Altinn.App.Api.Controllers
                     {
                         Instance changedInstance = await UpdateProcessAndDispatchEvents(instance, nextResult);
 
+                        if (changedInstance.Process.EndEvent == null)
+                        {
+                            await _eventsService.AddEvent($"app.instance.process.movedTo.{nextElement}", instance);
+                        }
+                        else
+                        {
+                            await _eventsService.AddEvent($"app.instance.process.completed", instance);
+                        }
+
                         return Ok(changedInstance.Process);
                     }
                 }
@@ -365,7 +382,7 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = null;
+            Instance instance;
 
             try
             {
@@ -430,6 +447,15 @@ namespace Altinn.App.Api.Controllers
                         instance = await UpdateProcessAndDispatchEvents(instance, nextResult);
 
                         currentTaskId = instance.Process.CurrentTask?.ElementId;
+
+                        if (instance.Process.EndEvent == null)
+                        {
+                            await _eventsService.AddEvent($"app.instance.process.movedTo.{nextElement}", instance);
+                        }
+                        else
+                        {
+                            await _eventsService.AddEvent($"app.instance.process.completed", instance);
+                        }
                     }
                     else
                     {
