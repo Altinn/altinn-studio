@@ -21,8 +21,8 @@
     "classnames": "~2.2.6",
     "core-js": "~3.6.5",
     "diff": "~4.0.2",
-    "dompurify": "~2.1.0",
-    "marked": "~1.1.1",
+    "dompurify": "~2.1.1",
+    "marked": "~1.2.0",
     "moment": "~2.29.0",
     "react-content-loader": "~5.1.2",
     "react-html-parser": "~2.0.2",
@@ -57,11 +57,11 @@
     "jest-junit": "~11.1.0",
     "jsdom": "~16.4.0",
     "react": "~16.13.1",
-    "react-docgen-typescript": "~1.20.4",
+    "react-docgen-typescript": "~1.20.5",
     "react-dom": "~16.13.1",
     "react-styleguidist": "~11.1.0",
     "react-test-renderer": "~16.13.1",
-    "ts-jest": "~26.4.0"
+    "ts-jest": "~26.4.1"
   },
   "jest": {
     "transform": {
