@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import update from 'immutability-helper';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -49,9 +50,6 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       // dragging a toolbaritem - they don't have ids
       return;
     }
-
-
-    console.log()
 
     if (sourceContainerId === destinationContainerId) {
       const { layoutOrder } = this.state;
@@ -128,7 +126,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     if (containerId === parentContainerId) {
       return 0;
     }
-    return this.state.layoutOrder[parentContainerId].indexOf(containerId);
+    return this.state.layoutOrder[parentContainerId]?.indexOf(containerId);
   }
 
   public moveContainer = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
@@ -227,6 +225,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
           baseContainer={true}
           id={baseContainerId}
           items={this.state.layoutOrder[baseContainerId]}
+          key={baseContainerId}
           layoutOrder={this.state.layoutOrder}
           onDropComponent={this.dropComponent}
           onMoveComponent={this.moveComponent}

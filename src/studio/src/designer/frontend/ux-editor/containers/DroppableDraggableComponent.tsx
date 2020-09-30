@@ -183,8 +183,8 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
             props.containerId,
           );
 
-          monitor.getItem().index = hoverOverIndex;
-          monitor.getItem().containerId = props.containerId;
+          draggedItem.index = hoverOverIndex;
+          draggedItem.containerId = props.containerId;
           break;
         }
         case 'CONTAINER': {
@@ -211,7 +211,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
             component.props.containerId,
           );
 
-          monitor.getItem().index = hoverOverIndex;
+          draggedContainer.index = hoverOverIndex;
           break;
         }
         default: {

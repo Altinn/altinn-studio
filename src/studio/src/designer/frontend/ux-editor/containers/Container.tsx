@@ -204,10 +204,13 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     containerId: string,
     parentContainerId: string = Object.keys(this.props.containers)[0],
   ): number => {
+    if (!containerId) {
+      return 0;
+    }
     if (containerId === parentContainerId) {
       return 0;
     }
-    return this.props.containers[parentContainerId].indexOf(containerId);
+    return this.props.containers[parentContainerId]?.indexOf(containerId);
   }
 
   public handleContainerDelete = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
