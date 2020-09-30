@@ -326,9 +326,9 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
-        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="instanceGuid">The id of the instance to update.</param>
         /// <param name="substatus">The new substatus of the instance.</param>
-        /// <returns>Returns the instance with updated list of confirmations.</returns>
+        /// <returns>Returns the instance with updated substatus.</returns>
         [Authorize]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/substatus")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -364,6 +364,34 @@ namespace Altinn.App.Api.Controllers
             catch (Exception exception)
             {
                 return ExceptionResponse(exception, $"Updating substatus for instance {instanceOwnerPartyId}/{instanceGuid} failed.");
+            }
+        }
+
+        /// <summary>
+        /// Deletes an instance.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to delete.</param>
+        /// <returns>Returns the deleted instance.</returns>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_DELETE)]
+        [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> DeleteInstance(
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid,
+            [FromQuery] bool hard)
+        {
+            try
+            {
+                Instance deletedInstance = await _instanceService.DeleteInstance(instanceOwnerPartyId, instanceGuid, hard);
+                SelfLinkHelper.SetInstanceAppSelfLinks(deletedInstance, Request);
+
+                return Ok(deletedInstance);
+            }
+            catch (Exception exception)
+            {
+                return ExceptionResponse(exception, $"Deleting instance {instanceOwnerPartyId}/{instanceGuid} failed.");
             }
         }
 

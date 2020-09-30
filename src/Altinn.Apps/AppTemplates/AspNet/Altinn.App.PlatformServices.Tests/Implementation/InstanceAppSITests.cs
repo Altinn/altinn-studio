@@ -236,6 +236,76 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Assert.NotNull(actualException);
         }
 
+        [Fact]
+        public async Task DeleteInstance_StorageReturnsSuccess()
+        {
+            // Arrange
+            Guid instanceGuid = Guid.NewGuid();
+            string instanceOwnerId = "1337";
+
+            Instance expected = new Instance
+            {
+                InstanceOwner = new InstanceOwner { PartyId = instanceOwnerId },
+                Id = $"{instanceOwnerId}/{instanceGuid}"
+            };
+
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonConvert.SerializeObject(expected), Encoding.UTF8, "application/json"),
+            };
+
+            InitializeMocks(httpResponseMessage, "1337");
+
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
+
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+
+            // Act
+            Instance actual = await target.DeleteInstance(1337, Guid.NewGuid(), false);
+
+
+            // Assert
+            Assert.Equal("1337", actual.InstanceOwner.PartyId);
+            handlerMock.VerifyAll();
+        }
+
+        [Fact]
+        public async Task DeleteInstance_StorageReturnsNonSuccess_ThrowsPlatformHttpException()
+        {
+            // Arrange
+            Guid instanceGuid = Guid.NewGuid();
+
+            HttpResponseMessage httpResponseMessage = new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.Forbidden,
+                Content = new StringContent("Error message", Encoding.UTF8, "application/json"),
+            };
+
+            InitializeMocks(httpResponseMessage, "1337");
+
+            HttpClient httpClient = new HttpClient(handlerMock.Object);
+
+            InstanceAppSI target = new InstanceAppSI(platformSettingsOptions.Object, logger.Object, contextAccessor.Object, httpClient, appSettingsOptions.Object);
+
+            PlatformHttpException actualException = null;
+
+            // Act
+            try
+            {
+                await target.DeleteInstance(1337, instanceGuid, false);
+            }
+            catch (PlatformHttpException e)
+            {
+                actualException = e;
+            }
+
+            // Assert
+            handlerMock.VerifyAll();
+
+            Assert.NotNull(actualException);
+        }
+
         private void InitializeMocks(HttpResponseMessage httpResponseMessage, string urlPart)
         {
             PlatformSettings platformSettings = new PlatformSettings { ApiStorageEndpoint = "http://localhost", SubscriptionKey = "key" };
