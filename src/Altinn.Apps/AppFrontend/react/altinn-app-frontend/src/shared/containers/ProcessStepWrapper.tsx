@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components'
-import { getLanguageFromKey } from 'altinn-shared/utils';
+import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components';
+import { getTextResourceByKey } from 'altinn-shared/utils';
 import InstanceDataActions from '../resources/instanceData/instanceDataActions';
 import ProcessDispatcher from '../resources/process/processDispatcher';
 import { IRuntimeState, ProcessSteps, IAltinnWindow } from '../../types';
@@ -79,13 +79,22 @@ export default (props) => {
     return null;
   }
 
+  const getHeaderText = () => {
+    const serviceNameKey = 'ServiceName';
+    const serviceNameFromTextResources = getTextResourceByKey(serviceNameKey, textResources);
+
+    if (serviceNameFromTextResources === serviceNameKey) {
+      if (applicationMetadata && applicationMetadata.title[userLanguage]) {
+        return applicationMetadata.title[userLanguage];
+      }
+      return applicationMetadata.title.nb;
+    }
+    return serviceNameFromTextResources;
+  };
+
   return (
     <ProcessStep
-      header={
-        applicationMetadata &&
-          applicationMetadata.title[userLanguage] ? applicationMetadata.title[userLanguage] :
-          getLanguageFromKey('general.ServiceName', textResources)
-      }
+      header={getHeaderText()}
       step={processStep}
     >
       <div>
