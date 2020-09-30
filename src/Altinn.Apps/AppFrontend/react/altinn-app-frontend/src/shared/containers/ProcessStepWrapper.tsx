@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components'
-import { getLanguageFromKey, getUserLanguage } from 'altinn-shared/utils';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 import InstanceDataActions from '../resources/instanceData/instanceDataActions';
 import ProcessDispatcher from '../resources/process/processDispatcher';
 import { IRuntimeState, ProcessSteps, IAltinnWindow } from '../../types';
@@ -34,12 +34,15 @@ export default (props) => {
   const processStep: ProcessSteps = useSelector((state: IRuntimeState) => state.process.state);
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors = useSelector(hasErrorSelector);
+  const profile = useSelector((state: IRuntimeState) => state.profile.profile);
 
   (window as Window as IAltinnWindow).instanceId = `${partyId}/${instanceGuid}`;
 
   React.useEffect(() => {
-    setUserLanguage(getUserLanguage());
-  }, []);
+    if (profile && profile.profileSettingPreference) {
+      setUserLanguage(profile.profileSettingPreference.language);
+    }
+  }, [profile]);
 
   React.useEffect(() => {
     if (!processStep) {
