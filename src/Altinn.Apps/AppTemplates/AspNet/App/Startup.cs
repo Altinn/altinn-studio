@@ -80,6 +80,7 @@ namespace Altinn.App
             services.AddHttpClient<IER, RegisterERAppSI>();
             services.AddHttpClient<IInstance, InstanceAppSI>();
             services.AddHttpClient<IInstanceEvent, InstanceEventAppSI>();
+            services.AddHttpClient<IEvents, EventsAppSI>();
             services.AddHttpClient<IPDF, PDFSI>();
             services.AddHttpClient<IProcess, ProcessAppSI>();
             services.AddHttpClient<IProfile, ProfileAppSI>();
