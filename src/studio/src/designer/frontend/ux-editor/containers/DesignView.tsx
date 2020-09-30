@@ -192,7 +192,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
         $set: false,
       },
     }));
-    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
+    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order as any);
   }
 
   public dropComponent = () => {
@@ -202,7 +202,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
         $set: false,
       },
     }));
-    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
+    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order as any);
   }
 
   public render(): JSX.Element {

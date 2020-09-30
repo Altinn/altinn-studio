@@ -47,7 +47,7 @@ export interface IToolbarProps extends IToolbarProvidedProps {
   activeContainer: string;
   activeList: any[];
   language: any;
-  order: IFormLayoutOrder;
+  order: any[];
 }
 export interface IToolbarState {
   modalOpen: boolean;
