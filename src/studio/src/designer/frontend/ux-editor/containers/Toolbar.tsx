@@ -47,7 +47,7 @@ export interface IToolbarProps extends IToolbarProvidedProps {
   activeContainer: string;
   activeList: any[];
   language: any;
-  order: any[];
+  order: IFormLayoutOrder;
 }
 export interface IToolbarState {
   modalOpen: boolean;
@@ -232,8 +232,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
         dataModelBindings: {},
         itemType: 'CONTAINER',
       } as ICreateFormContainer,
-      null,
       containerId,
+      null,
       null,
       index,
     );

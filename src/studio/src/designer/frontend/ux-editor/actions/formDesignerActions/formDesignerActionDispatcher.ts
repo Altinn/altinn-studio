@@ -123,7 +123,7 @@ export interface IFormDesignerActionDispatchers
   ) => FormDesignerActions.IUpdateActiveListActionRejected;
   updateActiveListOrder: (
     containerList: any,
-    orderList: any[],
+    orderList: IFormLayoutOrder,
   ) => FormDesignerActions.IUpdateActiveListOrderAction;
   updateActiveListOrderActionFulfilled: (
     containerList: any,

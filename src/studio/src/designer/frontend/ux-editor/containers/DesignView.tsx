@@ -8,7 +8,7 @@ import DroppableDraggableContainer from './DroppableDraggableContainer';
 
 interface IDesignerPreviewProps {
   layoutOrder: IFormLayoutOrder;
-  order: any[];
+  order: IFormLayoutOrder;
   activeList: any[];
 }
 
@@ -50,9 +50,15 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       return;
     }
 
+
+    console.log()
+
     if (sourceContainerId === destinationContainerId) {
       const { layoutOrder } = this.state;
       const updatedOrder: string[] = layoutOrder[sourceContainerId];
+      if (updatedOrder.indexOf(id) === index) {
+        return;
+      }
       const [moveItem] = updatedOrder.splice(updatedOrder.indexOf(id), 1);
       updatedOrder.splice(index, 0, moveItem);
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
@@ -94,6 +100,9 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
           return layoutOrder[containerId].includes(id);
         });
         const [movedComponent] = layoutOrder[container].splice(layoutOrder[container].indexOf(id), 1);
+        if (!movedComponent) {
+          return;
+        }
         updatedOrderDestination.splice(index, 0, movedComponent);
         this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
           layoutOrder: {
@@ -116,6 +125,9 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     containerId: string,
     parentContainerId: string = Object.keys(this.props.layoutOrder)[0],
   ): number => {
+    if (containerId === parentContainerId) {
+      return 0;
+    }
     return this.state.layoutOrder[parentContainerId].indexOf(containerId);
   }
 

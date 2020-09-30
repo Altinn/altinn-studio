@@ -14,7 +14,7 @@ export interface IUpdateActiveListActionRejected extends Action {
 
 export interface IUpdateActiveListOrderAction extends Action {
   containerList: any;
-  orderList: any[];
+  orderList: IFormLayoutOrder;
 }
 export interface IUpdateActiveListOrderActionFulfilled extends Action {
   containerList: any;

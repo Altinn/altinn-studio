@@ -29,7 +29,7 @@ export interface IProvidedContainerProps extends WithStyles<typeof styles>{
   index?: number;
   baseContainer?: boolean;
   items?: string[];
-  layoutOrder: IFormLayoutOrder;
+  layoutOrder?: IFormLayoutOrder;
   onMoveComponent?: (...args: any) => void;
   onDropComponent?: (...args: any) => void;
   onMoveContainer?: (...args: any) => void;
@@ -198,6 +198,16 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         },
       };
     });
+  }
+
+  public getStatefullIndexOfContainer = (
+    containerId: string,
+    parentContainerId: string = Object.keys(this.props.containers)[0],
+  ): number => {
+    if (containerId === parentContainerId) {
+      return 0;
+    }
+    return this.props.containers[parentContainerId].indexOf(containerId);
   }
 
   public handleContainerDelete = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -418,7 +428,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             item={true}
             xs={12}
           >
-            {!this.props.itemOrder.length ?
+            {!this.props.itemOrder?.length ?
               this.renderContainerPlaceholder() :
               (this.state.expanded && this.props.itemOrder.map((id: string, index: number) => (
                 this.props.components[id] ?
@@ -680,6 +690,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         onMoveComponent={this.props.onMoveComponent}
         onDropContainer={this.props.onDropContainer}
         onMoveContainer={this.props.onMoveContainer}
+        getIndex={this.getStatefullIndexOfContainer}
         key={id}
       >
         <Container
@@ -687,7 +698,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           key={id}
           index={index}
           items={this.props.layoutOrder[id]}
-          layoutOrder={this.props.layoutOrder}
           baseContainer={false}
           onDropComponent={this.props.onDropComponent}
           onMoveComponent={this.props.onMoveComponent}

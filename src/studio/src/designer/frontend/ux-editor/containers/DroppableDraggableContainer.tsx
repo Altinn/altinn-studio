@@ -111,6 +111,10 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
             return;
           }
 
+          if (!hoverOverIndex) {
+            hoverOverIndex = props.getIndex(draggedContainer.containerId);
+          }
+
           if (hoverClientY > hoverMiddleY && props.id !== 'placeholder') {
             hoverOverIndex += 1;
           }
@@ -140,6 +144,10 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
             return;
           }
 
+          if (!hoverOverIndex) {
+            hoverOverIndex = props.getIndex(draggedItem.containerId);
+          }
+
           if (hoverClientY > hoverMiddleY) {
             hoverOverIndex += 1;
           }
@@ -150,6 +158,9 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
             draggedItem.containerId,
             props.id,
           );
+
+          draggedItem.index = hoverOverIndex;
+          draggedItem.containerId = props.id;
 
           break;
         }
