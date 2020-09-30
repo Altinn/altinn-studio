@@ -4,8 +4,8 @@ import { useSelector } from 'react-redux';
 import { createMuiTheme } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import { AltinnReceipt, AltinnContentLoader, AltinnContentIconReceipt, AltinnButton, AltinnLoader } from 'altinn-shared/components';
-import { IInstance, IParty } from 'altinn-shared/types';
-import { getLanguageFromKey, getUserLanguage } from 'altinn-shared/utils/language';
+import { IInstance, IParty, IProfile } from 'altinn-shared/types';
+import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { getCurrentTaskData, mapInstanceAttachments } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IValidations } from 'src/types';
@@ -83,6 +83,7 @@ const Confirm = (props: IConfirmProps) => {
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
+  const profile: IProfile = useSelector((state: IRuntimeState) => state.profile.profile);
 
   const routeParams: any = props.match.params;
 
@@ -101,10 +102,15 @@ const Confirm = (props: IConfirmProps) => {
   );
 
   React.useEffect(() => {
-    setUserLanguage(getUserLanguage());
     OrgsActions.fetchOrgs();
     InstanceDataActions.getInstanceData(routeParams.partyId, routeParams.instanceGuid);
   }, []);
+
+  React.useEffect(() => {
+    if (profile && profile.profileSettingPreference) {
+      setUserLanguage(profile.profileSettingPreference.language);
+    }
+  }, [profile]);
 
   React.useEffect(() => {
     if (instance && instance.org && parties && applicationMetadata) {

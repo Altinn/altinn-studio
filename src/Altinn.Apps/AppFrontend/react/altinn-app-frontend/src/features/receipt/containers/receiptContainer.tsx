@@ -5,11 +5,10 @@ import moment from 'moment';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
 import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent} from 'altinn-shared/components';
-import { IInstance, IParty, ITextResource } from 'altinn-shared/types';
+import { IInstance, IParty, ITextResource, IProfile } from 'altinn-shared/types';
 import { getCurrentTaskData,
   mapInstanceAttachments,
   getLanguageFromKey,
-  getUserLanguage,
   returnUrlToMessagebox } from 'altinn-shared/utils';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
@@ -65,6 +64,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const profile: IProfile = useSelector((state: IRuntimeState) => state.profile.profile);
 
   const origin = window.location.origin;
   const routeParams: any = props.match.params;
@@ -81,10 +81,15 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   );
 
   React.useEffect(() => {
-    setUserLanguage(getUserLanguage());
     OrgsActions.fetchOrgs();
     InstanceDataActions.getInstanceData(routeParams.partyId, routeParams.instanceGuid);
   }, []);
+
+  React.useEffect(() => {
+    if (profile && profile.profileSettingPreference) {
+      setUserLanguage(profile.profileSettingPreference.language);
+    }
+  }, [profile]);
 
   React.useEffect(() => {
     if (allOrgs != null && instance && instance.org && allOrgs && parties) {
