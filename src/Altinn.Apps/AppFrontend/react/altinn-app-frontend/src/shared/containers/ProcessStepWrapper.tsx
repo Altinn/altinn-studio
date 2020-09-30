@@ -2,7 +2,6 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components';
-import { getTextResourceByKey } from 'altinn-shared/utils';
 import InstanceDataActions from '../resources/instanceData/instanceDataActions';
 import ProcessDispatcher from '../resources/process/processDispatcher';
 import { IRuntimeState, ProcessSteps, IAltinnWindow } from '../../types';
@@ -14,6 +13,7 @@ import UnknownError from '../../features/instantiate/containers/UnknownError';
 import QueueActions from '../resources/queue/queueActions';
 import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
 import Feedback from '../../features/feedback/Feedback';
+import { getTextResourceByKey } from 'altinn-shared/utils';
 
 export default (props) => {
   const {
@@ -25,12 +25,13 @@ export default (props) => {
     },
   } = props;
   const [userLanguage, setUserLanguage] = React.useState('nb');
+  const [appHeader, setAppHeader] = React.useState('');
 
   const instantiating = useSelector((state: IRuntimeState) => state.instantiation.instantiating);
   const instanceId = useSelector((state: IRuntimeState) => state.instantiation.instanceId);
   const applicationMetadata: any = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const isLoading: boolean = useSelector((state: IRuntimeState) => state.isLoading.dataTask);
-  const textResources: any[] = useSelector((state: IRuntimeState) => state.language.language);
+  const textResources: any[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const processStep: ProcessSteps = useSelector((state: IRuntimeState) => state.process.state);
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors = useSelector(hasErrorSelector);
@@ -43,6 +44,24 @@ export default (props) => {
       setUserLanguage(profile.profileSettingPreference.language);
     }
   }, [profile]);
+
+  React.useEffect(() => {
+    const getHeaderText = () => {
+      const appNameKey = 'ServiceName';
+      let appName;
+      if (textResources) {
+        appName = getTextResourceByKey(appNameKey, textResources);
+      }
+  
+      if (appName && appName === appNameKey) {
+        if (applicationMetadata) {
+          return applicationMetadata.title[userLanguage] || applicationMetadata.title.nb;
+        }
+      }
+      return appName;
+    };
+    setAppHeader(getHeaderText());
+  }, [textResources, applicationMetadata]);
 
   React.useEffect(() => {
     if (!processStep) {
@@ -79,22 +98,9 @@ export default (props) => {
     return null;
   }
 
-  const getHeaderText = () => {
-    const serviceNameKey = 'ServiceName';
-    const serviceNameFromTextResources = getTextResourceByKey(serviceNameKey, textResources);
-
-    if (serviceNameFromTextResources === serviceNameKey) {
-      if (applicationMetadata && applicationMetadata.title[userLanguage]) {
-        return applicationMetadata.title[userLanguage];
-      }
-      return applicationMetadata.title.nb;
-    }
-    return serviceNameFromTextResources;
-  };
-
   return (
     <ProcessStep
-      header={getHeaderText()}
+      header={appHeader}
       step={processStep}
     >
       <div>
