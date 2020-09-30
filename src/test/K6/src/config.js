@@ -129,6 +129,12 @@ export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type) {
         case "process":
             value = "/instances/" + instanceOwnerId + "/" + instanceId + "/process";
             break;
+        case "complete":
+            value = "/instances/" + instanceOwnerId + "/" + instanceId + "/complete";
+            break;
+        case "substatus":
+            value = "/instances/" + instanceOwnerId + "/" + instanceId + "/substatus";
+            break;
     };
     return value;
 };
