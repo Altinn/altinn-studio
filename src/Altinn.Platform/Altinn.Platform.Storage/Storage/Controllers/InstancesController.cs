@@ -355,7 +355,7 @@ namespace Altinn.Platform.Storage.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Produces("application/json")]
-        public async Task<ActionResult<Instance>> Delete(int instanceOwnerPartyId, Guid instanceGuid, bool? hard)
+        public async Task<ActionResult<Instance>> Delete(int instanceOwnerPartyId, Guid instanceGuid, [FromQuery] bool hard)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
@@ -380,44 +380,36 @@ namespace Altinn.Platform.Storage.Controllers
                 return StatusCode(500, $"Unknown exception in delete: {e}");
             }
 
-            if (hard.HasValue && hard == true)
-            {
-                try
-                {
-                    await _instanceRepository.Delete(instance);
+            DateTime now = DateTime.UtcNow;
 
-                    return NoContent();
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError($"Unexpected exception in delete: {e}");
-                    return StatusCode(500, $"Unexpected exception in delete: {e.Message}");
-                }
+            if (instance.Status == null)
+            {
+                instance.Status = new InstanceStatus();
+            }
+
+            if (hard)
+            {
+                instance.Status.HardDeleted = now;
+                instance.Status.SoftDeleted ??= now;
             }
             else
             {
-                DateTime now = DateTime.UtcNow;
-
-                if (instance.Status == null)
-                {
-                    instance.Status = new InstanceStatus();
-                }
-
                 instance.Status.SoftDeleted = now;
-                instance.LastChangedBy = GetUserId();
-                instance.LastChanged = now;
+            }
 
-                try
-                {
-                    Instance softDeletedInstance = await _instanceRepository.Update(instance);
+            instance.LastChangedBy = GetUserId();
+            instance.LastChanged = now;
 
-                    return Ok(softDeletedInstance);
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError($"Unexpected exception when updating instance after soft delete: {e}");
-                    return StatusCode(500, $"Unexpected exception when updating instance after soft delete: {e.Message}");
-                }
+            try
+            {
+                Instance deletedInstance = await _instanceRepository.Update(instance);
+
+                return Ok(deletedInstance);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Unexpected exception when deleting instance {instance.Id}: {e}");
+                return StatusCode(500, $"Unexpected exception when deleting instance {instance.Id}: {e.Message}");
             }
         }
 
