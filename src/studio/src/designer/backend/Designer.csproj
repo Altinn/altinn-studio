@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="0.5.4" />
+    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="0.5.5" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.2.5" />
     <PackageReference Include="CompilerAttributes" Version="1.1.2" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
