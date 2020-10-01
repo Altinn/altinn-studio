@@ -281,7 +281,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected: Returns success and deleted instance
             /// </summary>
             [Fact]
-            public async void Delete_OrgHardDeletesInstance_DeletedInstanceIsReturned()
+            public async void Delete_OrgHardDeletesInstance_ReturnedInstanceHasStatusBothSoftAndHardDeleted()
             {
                 // Arrange
                 int instanceOwnerId = 1337;
@@ -310,7 +310,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected: Returns success and deleted instance
             /// </summary>
             [Fact]
-            public async void Delete_EndUserSoftDeletesInstance_DeletedInstanceIsReturned()
+            public async void Delete_EndUserSoftDeletesInstanceR_eturnedInstanceHasStatusOnlySoftDeleted()
             {
                 // Arrange
                 int instanceOwnerId = 1337;
