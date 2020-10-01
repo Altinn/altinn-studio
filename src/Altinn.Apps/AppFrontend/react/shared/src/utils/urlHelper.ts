@@ -85,7 +85,7 @@ export const returnBaseUrlToAltinn = (url: string): string => {
 
 export function customEncodeURI(uri:string): string{
   let result: string;
-  result=encodeURIComponent(uri);
+  result = encodeURIComponent(uri);
   result = result.replace('(', '%28').replace(')', '%29');
   return result;
 }
