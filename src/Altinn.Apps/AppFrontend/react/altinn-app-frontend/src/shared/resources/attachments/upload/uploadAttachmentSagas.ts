@@ -1,6 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeEvery } from 'redux-saga/effects';
 import { AxiosRequestConfig } from 'axios';
+import { customEncodeURI } from 'altinn-shared/utils';
 import { IAttachment } from '..';
 import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
 import FormValidationsDispatcher from '../../../../features/form/validation/validationActions';
@@ -32,7 +33,7 @@ export function* uploadAttachmentSaga(
     const config: AxiosRequestConfig = {
       headers: {
         'Content-Type': contentType,
-        'Content-Disposition': `attachment; filename=${encodeURI(file.name)}`,
+        'Content-Disposition': `attachment; filename=${customEncodeURI(file.name)}`,
       },
     };
 

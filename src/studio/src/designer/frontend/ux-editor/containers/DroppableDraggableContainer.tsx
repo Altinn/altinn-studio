@@ -1,3 +1,4 @@
+/* eslint-disable react/no-find-dom-node */
 import * as React from 'react';
 import { ConnectDragPreview,
   ConnectDragSource,
@@ -106,20 +107,68 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
           const clientOffset = monitor.getClientOffset();
           const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
-          if (draggedContainer.id === props.id) {
+          if (draggedContainer.id === props.id || draggedContainer.index === -1) {
             return;
+          }
+
+          if (!hoverOverIndex) {
+            hoverOverIndex = props.getIndex(draggedContainer.containerId);
+            if (hoverOverIndex < 0) {
+              return;
+            }
           }
 
           if (hoverClientY > hoverMiddleY && props.id !== 'placeholder') {
             hoverOverIndex += 1;
+            if (hoverOverIndex === draggedContainer.index) {
+              return;
+            }
           }
 
           props.onMoveContainer(
             draggedContainer.id,
             hoverOverIndex,
-            props.id,
-            component.props.containerId,
+            draggedContainer.parentContainerId,
+            draggedContainer.parentContainerId,
           );
+
+          draggedContainer.index = hoverOverIndex;
+
+          break;
+        }
+        case 'ITEM': {
+          const draggedItem = monitor.getItem();
+          let hoverOverIndex = props.index;
+          const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
+          const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+          const clientOffset = monitor.getClientOffset();
+          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+
+          if (
+            draggedItem.id === props.id ||
+            draggedItem.index === props.index ||
+            draggedItem.containerId === props.id
+          ) {
+            return;
+          }
+
+          if (!hoverOverIndex) {
+            hoverOverIndex = props.getIndex(draggedItem.containerId);
+          }
+
+          if (hoverClientY > hoverMiddleY) {
+            hoverOverIndex += 1;
+          }
+
+          props.onMoveComponent(
+            draggedItem.id,
+            hoverOverIndex,
+            draggedItem.containerId,
+            props.id,
+          );
+
+          draggedItem.index = hoverOverIndex;
+          draggedItem.containerId = props.id;
 
           break;
         }
