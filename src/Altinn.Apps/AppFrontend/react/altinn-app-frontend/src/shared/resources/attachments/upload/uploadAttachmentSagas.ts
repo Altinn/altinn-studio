@@ -10,6 +10,7 @@ import { fileUploadUrl } from '../../../../utils/urlHelper';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
 import * as uploadActions from './uploadAttachmentActions';
+import { customEncodeURI } from 'altinn-shared/utils';
 
 export function* uploadAttachmentSaga(
   {
@@ -32,7 +33,7 @@ export function* uploadAttachmentSaga(
     const config: AxiosRequestConfig = {
       headers: {
         'Content-Type': contentType,
-        'Content-Disposition': `attachment; filename=${encodeURI(file.name)}`,
+        'Content-Disposition': `attachment; filename=${customEncodeURI(file.name)}`,
       },
     };
 
