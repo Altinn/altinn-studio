@@ -170,6 +170,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Data\Instances\ttd\events\1337\bffd2c17-9d93-49f4-b504-3d0ece2402c6\blob\" />
     <Folder Include="Data\Instances\ttd\model-validation\1337\8fab6615-3c57-484b-bd32-3065be958a1e\blob\" />
   </ItemGroup>
 

@@ -1,16 +1,18 @@
-using Altinn.App.IntegrationTests;
-using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
-using Newtonsoft.Json;
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+
+using Altinn.App.IntegrationTests;
+using Altinn.Platform.Storage.Interface.Models;
+using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Utils;
+
+using Newtonsoft.Json;
 using Xunit;
-using System.Linq;
-using System;
 
 namespace App.IntegrationTests.ApiTests
 {
@@ -149,6 +151,53 @@ namespace App.IntegrationTests.ApiTests
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
+        }
+
+        [Fact]
+        public async Task Next_RegistrationOfEventsTurnedOn_ControllerCallsEventWithCorrectType()
+        {
+            string org = "ttd";
+            string app = "events";
+            int partyId = 1337;
+            string instanceGuid = "bffd2c17-9d93-49f4-b504-3d0ece2402c6";
+
+            TestDataUtil.DeleteInstanceAndData(org, app, partyId, new Guid(instanceGuid));
+            TestDataUtil.PrepareInstance(org, app, partyId, new Guid(instanceGuid));
+
+            string token = PrincipalUtil.GetToken(partyId);
+
+            string instancePath = $"/{org}/{app}/instances/{partyId}/{instanceGuid}";
+
+            ////string eventType = null;
+            ////Instance instance = null;
+
+            ////Mock<IEvents> eventsServiceMock = new Mock<IEvents>();
+            ////eventsServiceMock.Setup(s => s.AddEvent(It.IsAny<string>(), It.IsAny<Instance>()))
+            ////    .Callback<string, Instance>((t, i) =>
+            ////    {
+            ////        eventType = t;
+            ////        instance = i;
+            ////    })
+            ////    .ReturnsAsync("success");
+
+            ////List<Mock> serviceMocks = new List<Mock> { eventsServiceMock };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, $"{instancePath}/process/next");
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Assert.True(false, "The next request failed.");
+            }
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            ////Assert.Equal("", eventType);
+            ////Assert.NotNull(instance);
+
+            TestDataUtil.DeleteInstanceAndData(org, app, partyId, new Guid(instanceGuid));
         }
 
         [Fact]

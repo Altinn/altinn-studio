@@ -10,6 +10,7 @@ using Altinn.App.Common.Process.Elements;
 using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
@@ -23,8 +24,8 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -38,7 +39,8 @@ namespace Altinn.App.Api.Controllers
     [AutoValidateAntiforgeryTokenIfAuthCookie]
     public class ProcessController : ControllerBase
     {
-        private const int MAX_ITERATIONS_ALLOWED = 100;
+        private const int MaxIterationsAllowed = 100;
+
         private readonly ILogger<ProcessController> _logger;
         private readonly IInstance _instanceService;
         private readonly IProcess _processService;
@@ -46,6 +48,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IValidation _validationService;
         private readonly IPDP _pdp;
         private readonly IEvents _eventsService;
+        private readonly AppSettings _appSettings;
 
         private readonly ProcessHelper processHelper;
 
@@ -59,7 +62,8 @@ namespace Altinn.App.Api.Controllers
             IAltinnApp altinnApp,
             IValidation validationService,
             IPDP pdp,
-            IEvents eventsService)
+            IEvents eventsService,
+            IOptions<AppSettings> appSettings)
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -68,6 +72,7 @@ namespace Altinn.App.Api.Controllers
             _validationService = validationService;
             _pdp = pdp;
             _eventsService = eventsService;
+            _appSettings = appSettings.Value;
 
             using Stream bpmnStream = _processService.GetProcessDefinition();
             processHelper = new ProcessHelper(bpmnStream);
@@ -319,14 +324,7 @@ namespace Altinn.App.Api.Controllers
                     {
                         Instance changedInstance = await UpdateProcessAndDispatchEvents(instance, nextResult);
 
-                        if (changedInstance.Process.EndEvent == null)
-                        {
-                            await _eventsService.AddEvent($"app.instance.process.movedTo.{nextElement}", instance);
-                        }
-                        else
-                        {
-                            await _eventsService.AddEvent($"app.instance.process.completed", instance);
-                        }
+                        await RegisterEventWithEventsComponent(changedInstance);
 
                         return Ok(changedInstance.Process);
                     }
@@ -448,14 +446,7 @@ namespace Altinn.App.Api.Controllers
 
                         currentTaskId = instance.Process.CurrentTask?.ElementId;
 
-                        if (instance.Process.EndEvent == null)
-                        {
-                            await _eventsService.AddEvent($"app.instance.process.movedTo.{nextElement}", instance);
-                        }
-                        else
-                        {
-                            await _eventsService.AddEvent($"app.instance.process.completed", instance);
-                        }
+                        await RegisterEventWithEventsComponent(instance);
                     }
                     else
                     {
@@ -469,9 +460,9 @@ namespace Altinn.App.Api.Controllers
 
                 counter++;
             }
-            while (instance.Process.EndEvent == null || counter > MAX_ITERATIONS_ALLOWED);
+            while (instance.Process.EndEvent == null || counter > MaxIterationsAllowed);
 
-            if (counter > MAX_ITERATIONS_ALLOWED)
+            if (counter > MaxIterationsAllowed)
             {
                 _logger.LogError($"More than {counter} iterations detected in process. Possible loop. Fix app {org}/{app}'s process definition!");
                 return StatusCode(500, $"More than {counter} iterations detected in process. Possible loop. Fix app process definition!");
@@ -598,6 +589,28 @@ namespace Altinn.App.Api.Controllers
             else
             {
                 return ExceptionResponse(e, defaultMessage);
+            }
+        }
+
+        private async Task RegisterEventWithEventsComponent(Instance instance)
+        {
+            if (_appSettings.RegisterEventsWithEventsComponent)
+            {
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(instance.Process.CurrentTask?.ElementId))
+                    {
+                        await _eventsService.AddEvent($"app.instance.process.movedTo.{instance.Process.CurrentTask.ElementId}", instance);
+                    }
+                    else if (instance.Process.EndEvent != null)
+                    {
+                        await _eventsService.AddEvent("app.instance.process.completed", instance);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Exception when sending event with the Events component.");
+                }
             }
         }
     }

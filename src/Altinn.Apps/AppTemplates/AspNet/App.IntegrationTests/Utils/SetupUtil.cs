@@ -23,12 +23,20 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Mvc.Testing;
 
+using Moq;
+
 namespace App.IntegrationTestsRef.Utils
 {
     public static class SetupUtil
     {
-        public static HttpClient GetTestClient(CustomWebApplicationFactory<Startup> customFactory, string org, string app)
+        public static HttpClient GetTestClient(
+            CustomWebApplicationFactory<Startup> customFactory,
+            string org,
+            string app,
+            List<Mock> serviceMocks = null)
         {
+            serviceMocks ??= new List<Mock>();
+
             WebApplicationFactory<Startup> factory = customFactory.WithWebHostBuilder(builder =>
             {
                 string path = GetAppPath(org, app);
@@ -67,6 +75,11 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
 
+                    foreach (var service in serviceMocks)
+                    {
+                        services.AddTransient(provider => service.Object);
+                    }
+
                     switch (app)
                     {
                         case "endring-av-navn":
@@ -88,6 +101,9 @@ namespace App.IntegrationTestsRef.Utils
                         case "sirius":
                             services.AddSingleton<ISiriusApi, SiriusAPImock>();
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.sirius.App>();
+                            break;
+                        case "events":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.ttd.events.AltinnApp>();
                             break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
