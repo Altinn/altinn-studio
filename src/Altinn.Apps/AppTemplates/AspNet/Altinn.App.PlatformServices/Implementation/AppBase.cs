@@ -75,16 +75,11 @@ namespace Altinn.App.Services.Implementation
         {
             await Task.CompletedTask;
             _logger.LogInformation($"OnStartProcess for {instance.Id}");
-
         }
 
         /// <inheritdoc />
         public async Task OnEndProcess(string endEvent, Instance instance)
         {
-            // Set archived status
-            instance.Status ??= new InstanceStatus();
-            instance.Status.Archived = DateTime.UtcNow;
-
             await Task.CompletedTask;
             _logger.LogInformation($"OnEndProcess for {instance.Id}, endEvent: {endEvent}");
         }
