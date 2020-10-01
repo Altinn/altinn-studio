@@ -215,7 +215,7 @@ namespace App.IntegrationTests.Mocks.Services
             if (substatus == null || string.IsNullOrEmpty(substatus.Label))
             {
                 throw await PlatformHttpException.CreateAsync(
-                    new System.Net.Http.HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.BadRequest});
+                    new System.Net.Http.HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.BadRequest });
             }
 
             string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
@@ -240,6 +240,36 @@ namespace App.IntegrationTests.Mocks.Services
             return null;
         }
 
+        public Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard)
+        {
+            string instancePath = GetInstancePath(instanceOwnerPartyId, instanceGuid);
+            if (File.Exists(instancePath))
+            {
+                string content = File.ReadAllText(instancePath);
+                Instance storedInstance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
+
+                if (storedInstance.Status == null)
+                {
+                    storedInstance.Status = new InstanceStatus();
+                }
+
+                if (hard)
+                {
+                    storedInstance.Status.HardDeleted = DateTime.UtcNow;
+                }
+
+                storedInstance.Status.SoftDeleted = DateTime.UtcNow;
+
+                // mock does not set last changed by, but this is set by the platform.
+                storedInstance.LastChangedBy = "";
+
+                File.WriteAllText(instancePath, JsonConvert.SerializeObject(storedInstance));
+
+                return Task.FromResult(storedInstance);
+            }
+
+            return null;
+        }
 
         // Finds the path for the instance based on instanceId. Only works if guid is unique.
         private string GetInstancePath(int instanceOwnerPartyId, Guid instanceGuid)
