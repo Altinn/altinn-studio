@@ -277,6 +277,63 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             }
 
             /// <summary>
+            /// Test case: App owner tries to hard delete an instance
+            /// Expected: Returns success and deleted instance
+            /// </summary>
+            [Fact]
+            public async void Delete_OrgHardDeletesInstance_ReturnedInstanceHasStatusBothSoftAndHardDeleted()
+            {
+                // Arrange
+                int instanceOwnerId = 1337;
+                string instanceGuid = "7e6cc8e2-6cd4-4ad4-9ce8-c37a767677b5";
+
+                string requestUri = $"{BasePath}/{instanceOwnerId}/{instanceGuid}?hard=true";
+
+                HttpClient client = GetTestClient();
+                string token = PrincipalUtil.GetOrgToken("tdd");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                // Act
+                HttpResponseMessage response = await client.DeleteAsync(requestUri);
+
+                string json = await response.Content.ReadAsStringAsync();
+                Instance deletedInstance = JsonConvert.DeserializeObject<Instance>(json);
+
+                // Assert
+                Assert.NotNull(deletedInstance.Status.HardDeleted);
+                Assert.NotNull(deletedInstance.Status.SoftDeleted);
+                Assert.Equal(deletedInstance.Status.HardDeleted, deletedInstance.Status.SoftDeleted);
+            }
+
+            /// <summary>
+            /// Test case: End user system tries to soft delete an instance
+            /// Expected: Returns success and deleted instance
+            /// </summary>
+            [Fact]
+            public async void Delete_EndUserSoftDeletesInstanceR_eturnedInstanceHasStatusOnlySoftDeleted()
+            {
+                // Arrange
+                int instanceOwnerId = 1337;
+                string instanceGuid = "7e6cc8e2-6cd4-4ad4-9ce8-c37a767677b5";
+
+                string requestUri = $"{BasePath}/{instanceOwnerId}/{instanceGuid}";
+
+                HttpClient client = GetTestClient();
+                string token = PrincipalUtil.GetToken(1337, 1337);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                // Act
+                HttpResponseMessage response = await client.DeleteAsync(requestUri);
+
+                string json = await response.Content.ReadAsStringAsync();
+                Instance deletedInstance = JsonConvert.DeserializeObject<Instance>(json);
+
+                // Assert
+                Assert.Null(deletedInstance.Status.HardDeleted);
+                Assert.NotNull(deletedInstance.Status.SoftDeleted);
+            }
+
+            /// <summary>
             /// Test case: Org user requests to get multiple instances from one of their apps.
             /// Expected: List of instances is returned.
             /// </summary>
@@ -751,7 +808,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 int instanceOwnerPartyId = 1337;
                 string instanceGuid = "20475edd-dc38-4ae0-bd64-1b20643f506c";
 
-                Substatus expectedSubstatus = new Substatus { Label = "Substatus.Approved.Label", Description= "Substatus.Approved.Description" };
+                Substatus expectedSubstatus = new Substatus { Label = "Substatus.Approved.Label", Description = "Substatus.Approved.Description" };
 
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/substatus";
 
