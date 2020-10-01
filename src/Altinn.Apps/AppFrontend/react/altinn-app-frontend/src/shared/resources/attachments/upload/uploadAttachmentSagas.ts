@@ -1,6 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeEvery } from 'redux-saga/effects';
 import { AxiosRequestConfig } from 'axios';
+import { customEncodeURI } from 'altinn-shared/utils';
 import { IAttachment } from '..';
 import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
 import FormValidationsDispatcher from '../../../../features/form/validation/validationActions';
@@ -10,7 +11,6 @@ import { fileUploadUrl } from '../../../../utils/urlHelper';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
 import * as uploadActions from './uploadAttachmentActions';
-import { customEncodeURI } from 'altinn-shared/utils';
 
 export function* uploadAttachmentSaga(
   {
