@@ -29,6 +29,7 @@ export interface IProvidedContainerProps extends WithStyles<typeof styles>{
   index?: number;
   baseContainer?: boolean;
   items?: string[];
+  layoutOrder?: IFormLayoutOrder;
   onMoveComponent?: (...args: any) => void;
   onDropComponent?: (...args: any) => void;
   onMoveContainer?: (...args: any) => void;
@@ -199,6 +200,19 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     });
   }
 
+  public getStatefullIndexOfContainer = (
+    containerId: string,
+    parentContainerId: string = Object.keys(this.props.containers)[0],
+  ): number => {
+    if (!containerId) {
+      return 0;
+    }
+    if (containerId === parentContainerId) {
+      return 0;
+    }
+    return this.props.containers[parentContainerId]?.indexOf(containerId);
+  }
+
   public handleContainerDelete = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
     FormDesignerActionDispatchers.deleteFormContainer(this.props.id, this.props.index);
@@ -367,7 +381,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       return this.renderEditMode();
     }
     return (
-      <Grid container={true}>
+      <Grid container={true} style={this.props.baseContainer ? { paddingTop: '24px', paddingBottom: '24px' } : undefined}>
         <Grid
           container={true}
           onClick={this.changeActiveFormContainer}
@@ -417,7 +431,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             item={true}
             xs={12}
           >
-            {!this.props.itemOrder.length ?
+            {!this.props.itemOrder?.length ?
               this.renderContainerPlaceholder() :
               (this.state.expanded && this.props.itemOrder.map((id: string, index: number) => (
                 this.props.components[id] ?
@@ -679,13 +693,14 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         onMoveComponent={this.props.onMoveComponent}
         onDropContainer={this.props.onDropContainer}
         onMoveContainer={this.props.onMoveContainer}
+        getIndex={this.getStatefullIndexOfContainer}
         key={id}
       >
         <Container
           id={id}
           key={id}
           index={index}
-          items={this.props.itemOrder[id]}
+          items={this.props.layoutOrder[id]}
           baseContainer={false}
           onDropComponent={this.props.onDropComponent}
           onMoveComponent={this.props.onMoveComponent}
