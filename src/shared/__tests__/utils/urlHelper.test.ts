@@ -1,5 +1,5 @@
 import 'jest';
-import { returnUrlToMessagebox, returnUrlToProfile, returnUrlToAllSchemas, returnBaseUrlToAltinn } from '../../src/utils/urlHelper';
+import { returnUrlToMessagebox, returnUrlToProfile, returnUrlToAllSchemas, returnBaseUrlToAltinn, customEncodeURI } from '../../src/utils/urlHelper';
 
 describe('Shared urlHelper.ts', () => {
   test('returnUrlToMessagebox() returning production messagebox', () => {
@@ -61,4 +61,16 @@ describe('Shared urlHelper.ts', () => {
     expect(returnUrlToAllSchemas(originProd)).toContain('altinn.no/skjemaoversikt');
     expect(returnUrlToAllSchemas(originUnknown)).toBe(null);
   });
+
+test('customEncodeURI() returning correct encoding', () => {
+  const uri1 = 'http://ttd.apps.tt02.altinn.no/tdd/tjeneste-20190826-1130';
+  const uri2 = 'attachment [example].png';
+  const uri3 = 'attachment (example).gif';
+  const uri4 = 'attachment (example) (1) (2).gif';
+  expect(customEncodeURI(uri1)).toBe('http%3A%2F%2Fttd.apps.tt02.altinn.no%2Ftdd%2Ftjeneste-20190826-1130');
+  expect(customEncodeURI(uri2)).toBe('attachment%20%5Bexample%5D.png');
+  expect(customEncodeURI(uri3)).toBe('attachment%20%28example%29.gif');
+  expect(customEncodeURI(uri4)).toBe('attachment%20%28example%29%20%281%29%20%282%29.gif');
+
+});
 });
