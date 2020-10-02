@@ -179,7 +179,7 @@ namespace Altinn.App.Services.Implementation
             
             if (titleText != null && !String.IsNullOrEmpty(titleText.Value))
             {
-                fileName = titleText.Value;
+                fileName = titleText.Value +  ".pdf";
             }
             else {
                 fileName = app + ".pdf";
