@@ -13,7 +13,9 @@ using Altinn.App.Common.RequestHandling;
 using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
@@ -29,7 +31,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -53,6 +55,9 @@ namespace Altinn.App.Api.Controllers
         private readonly IAltinnApp _altinnApp;
         private readonly IProcess _processService;
         private readonly IPDP _pdp;
+        private readonly IEvents _eventsService;
+
+        private readonly AppSettings _appSettings;
 
         private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
@@ -67,7 +72,9 @@ namespace Altinn.App.Api.Controllers
             IAppResources appResourcesService,
             IAltinnApp altinnApp,
             IProcess processService,
-            IPDP pdp)
+            IPDP pdp,
+            IEvents eventsService,
+            IOptions<AppSettings> appSettings)
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -76,8 +83,9 @@ namespace Altinn.App.Api.Controllers
             _registerService = registerService;
             _altinnApp = altinnApp;
             _processService = processService;
-
             _pdp = pdp;
+            _eventsService = eventsService;
+            _appSettings = appSettings.Value;
         }
 
         /// <summary>
@@ -281,6 +289,8 @@ namespace Altinn.App.Api.Controllers
             {
                 return ExceptionResponse(exception, $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
+
+            await RegisterInstanceCreatedEvent(instance);
 
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
             string url = instance.SelfLinks.Apps;
@@ -584,6 +594,21 @@ namespace Altinn.App.Api.Controllers
             }
 
             return instanceTemplate;
+        }
+
+        private async Task RegisterInstanceCreatedEvent(Instance instance)
+        {
+            if (_appSettings.RegisterEventsWithEventsComponent)
+            {
+                try
+                {
+                    await _eventsService.AddEvent("app.instance.created", instance);
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Exception when sending event with the Events component.");
+                }
+            }
         }
     }
 }

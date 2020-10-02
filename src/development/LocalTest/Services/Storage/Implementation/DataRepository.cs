@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
@@ -38,12 +37,10 @@ namespace LocalTest.Services.Storage.Implementation
             string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
             File.Delete(path);
             return Task.FromResult(true);
-  
         }
 
         public Task<bool> DeleteDataInStorage(string org, string blobStoragePath)
         {
-
             string path = GetFilePath(blobStoragePath);
             File.Delete(path);
             return Task.FromResult(true);
@@ -99,16 +96,16 @@ namespace LocalTest.Services.Storage.Implementation
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
             }
 
-            long filesize;
+            long fileSize;
 
             using (Stream streamToWriteTo = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
             {
                 await stream.CopyToAsync(streamToWriteTo);
                 streamToWriteTo.Flush();
-                filesize = streamToWriteTo.Length;
+                fileSize = streamToWriteTo.Length;
             }
 
-            return filesize;
+            return fileSize;
         }
 
         private string GetFilePath(string fileName)

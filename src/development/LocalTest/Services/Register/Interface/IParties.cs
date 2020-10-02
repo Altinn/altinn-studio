@@ -1,7 +1,6 @@
 using Altinn.Platform.Register.Models;
 using System.Threading.Tasks;
 
-
 namespace LocalTest.Services.Register.Interface
 {
     /// <summary>
