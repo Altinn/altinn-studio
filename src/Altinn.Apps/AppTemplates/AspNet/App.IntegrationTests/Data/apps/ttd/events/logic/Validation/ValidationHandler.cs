@@ -1,8 +1,8 @@
+using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-
 
 namespace App.IntegrationTests.Mocks.Apps.ttd.events
 {
@@ -28,24 +28,14 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
         ///      validationResults.Add(new ValidationResult([error message], new List<string>() { [affected field id] } ));
         ///  }
         /// </example>
-        public void ValidateData(object instance, ModelStateDictionary validationResults)
+        public async Task ValidateData(object instance, ModelStateDictionary validationResults)
         {
-            if (instance.GetType() == typeof(Skjema))
-            {
-                Skjema model = (Skjema)instance;
-                if (model.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value == 1234)
-                {
-                    validationResults.AddModelError(
-                        "opplysningerOmArbeidstakerengrp8819.skjemainstansgrp8854.journalnummerdatadef33316.value",
-                        "Value cannot be 1234"
-                    );
-                }
-            }
+            await Task.CompletedTask;
         }
 
-        public void ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
+        public async Task ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
-           
+            await Task.CompletedTask;
         }
     }
 }

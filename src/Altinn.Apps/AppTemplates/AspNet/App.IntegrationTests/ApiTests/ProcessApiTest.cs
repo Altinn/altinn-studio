@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Altinn.App.IntegrationTests;
 using Altinn.Platform.Storage.Interface.Models;
+using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
 
@@ -23,6 +24,8 @@ namespace App.IntegrationTests.ApiTests
         public ProcessApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
             _factory = factory;
+
+            EventsMockSI.Requests.Clear();
         }
 
         [Fact]
@@ -168,20 +171,6 @@ namespace App.IntegrationTests.ApiTests
 
             string instancePath = $"/{org}/{app}/instances/{partyId}/{instanceGuid}";
 
-            ////string eventType = null;
-            ////Instance instance = null;
-
-            ////Mock<IEvents> eventsServiceMock = new Mock<IEvents>();
-            ////eventsServiceMock.Setup(s => s.AddEvent(It.IsAny<string>(), It.IsAny<Instance>()))
-            ////    .Callback<string, Instance>((t, i) =>
-            ////    {
-            ////        eventType = t;
-            ////        instance = i;
-            ////    })
-            ////    .ReturnsAsync("success");
-
-            ////List<Mock> serviceMocks = new List<Mock> { eventsServiceMock };
-
             HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -194,8 +183,9 @@ namespace App.IntegrationTests.ApiTests
             }
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            ////Assert.Equal("", eventType);
-            ////Assert.NotNull(instance);
+
+            Assert.Equal("app.instance.process.completed", EventsMockSI.Requests.First().eventType);
+            Assert.NotNull(EventsMockSI.Requests.First().instance);
 
             TestDataUtil.DeleteInstanceAndData(org, app, partyId, new Guid(instanceGuid));
         }

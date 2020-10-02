@@ -7,6 +7,7 @@ using System.Linq;
 using Altinn.App;
 using Altinn.App.IntegrationTests;
 using Altinn.App.IntegrationTests.Mocks.Authentication;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -32,11 +33,8 @@ namespace App.IntegrationTestsRef.Utils
         public static HttpClient GetTestClient(
             CustomWebApplicationFactory<Startup> customFactory,
             string org,
-            string app,
-            List<Mock> serviceMocks = null)
+            string app)
         {
-            serviceMocks ??= new List<Mock>();
-
             WebApplicationFactory<Startup> factory = customFactory.WithWebHostBuilder(builder =>
             {
                 string path = GetAppPath(org, app);
@@ -65,6 +63,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddTransient<IInstance, InstanceMockSI>();
                     services.AddTransient<IData, DataMockSI>();
                     services.AddTransient<IInstanceEvent, InstanceEventAppSIMock>();
+                    services.AddTransient<IEvents, EventsMockSI>();
                     services.AddTransient<IDSF, DSFMockSI>();
                     services.AddTransient<IER, ERMockSI>();
                     services.AddTransient<IRegister, RegisterMockSI>();
@@ -74,11 +73,6 @@ namespace App.IntegrationTestsRef.Utils
 
                     services.AddSingleton<ISigningKeysRetriever, SigningKeysRetrieverStub>();
                     services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
-
-                    foreach (var service in serviceMocks)
-                    {
-                        services.AddTransient(provider => service.Object);
-                    }
 
                     switch (app)
                     {

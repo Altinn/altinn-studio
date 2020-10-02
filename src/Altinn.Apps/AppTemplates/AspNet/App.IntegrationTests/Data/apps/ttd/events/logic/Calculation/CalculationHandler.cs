@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
 using Altinn.App.Services.Interface;
@@ -29,21 +30,9 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
         ///      validationResults.Add(new ValidationResult([error message], new List<string>() { [affected field id] } ));
         ///  }
         /// </example>
-        public bool Calculate(object instance)
+        public Task<bool> Calculate(object instance)
         {
-            bool changed = false;
-            if (instance.GetType() == typeof(Skjema))
-            {
-                Skjema model = (Skjema)instance;
-                decimal? journalnummer = model.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value;
-                if (journalnummer != null && journalnummer == 1000)
-                {
-                    model.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316.value = (decimal)journalnummer + 1;
-                    changed = true;
-                }
-            }
-
-            return changed;
+            return Task.FromResult(false);
         }
     }
 }

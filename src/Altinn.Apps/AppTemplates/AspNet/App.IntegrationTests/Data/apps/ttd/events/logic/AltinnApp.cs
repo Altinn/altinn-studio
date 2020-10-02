@@ -51,14 +51,12 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
 
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
-            await Task.CompletedTask;
-            _validationHandler.ValidateData(data, validationResults);
+            await _validationHandler.ValidateData(data, validationResults);
         }
 
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
-            await Task.CompletedTask;
-            _validationHandler.ValidateTask(instance, taskId, validationResults);
+            await _validationHandler.ValidateTask(instance, taskId, validationResults);
         }
 
         /// <summary>
@@ -68,8 +66,7 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task<bool> RunCalculation(object data)
         {
-            await Task.CompletedTask;
-            return _calculationHandler.Calculate(data);
+            return await _calculationHandler.Calculate(data);
         }
 
         /// <summary>
@@ -79,8 +76,7 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
-            await Task.CompletedTask;
-            return _instantiationHandler.RunInstantiationValidation(instance);
+            return await _instantiationHandler.RunInstantiationValidation(instance);
         }
 
         /// <summary>
