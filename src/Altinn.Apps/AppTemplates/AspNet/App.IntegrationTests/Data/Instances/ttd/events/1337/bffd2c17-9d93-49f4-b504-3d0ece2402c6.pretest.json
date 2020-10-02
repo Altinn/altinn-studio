@@ -1,10 +1,10 @@
 {
-  "id": "1337/8fab6615-3c57-484b-bd32-3065be958a1e",
+  "id": "1337/bffd2c17-9d93-49f4-b504-3d0ece2402c6",
   "instanceOwner": {
     "partyId": "1337",
     "personNumber": "12345678901"
   },
-  "appId": "ttd/model-validation",
+  "appId": "ttd/events",
   "org": "ttd",
   "process": {
     "started": "2019-12-11T09:34:35.5471442Z",
@@ -18,12 +18,5 @@
     }
   },
   "data": [
-    {
-      "id": "3c745299-d5b0-4fa2-8cbd-5c9110660303",
-      "dataType": "default",
-      "contentType": "application/xml",
-      "size": 0,
-      "locked": false
-    }
   ]
 }

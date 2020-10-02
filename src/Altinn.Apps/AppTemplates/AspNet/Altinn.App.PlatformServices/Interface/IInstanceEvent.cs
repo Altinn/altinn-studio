@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Services.Interface
@@ -18,10 +19,5 @@ namespace Altinn.App.Services.Interface
         /// Gets the instance events related to the instance matching the instance id. 
         /// </summary>
         Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerPartyId, string org, string app, string[] eventTypes, string from, string to);
-
-        /// <summary>
-        /// Deletes the instance events related to the instance matching the instance id. 
-        /// </summary>
-        Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerPartyId, string org, string app);
     }
 }

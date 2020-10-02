@@ -15,13 +15,8 @@
     <FileVersion>1.1.10.0</FileVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Enums\**" />
-    <Compile Remove="Interfaces\**" />
-    <EmbeddedResource Remove="Enums\**" />
-    <EmbeddedResource Remove="Interfaces\**" />
-    <None Remove="Enums\**" />
-    <None Remove="Interfaces\**" />
+ <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,10 +28,6 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.7.0" />
-  </ItemGroup>
-
- <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
  <ItemGroup>
