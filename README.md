@@ -83,7 +83,7 @@ cd \.\<path to app on disk>
   - Open the file `views/Home/Index.cshtml` and change the line
 
   ```html
-   <script src="https://altinncdn.no/toolkits/altinn-app-frontend/1/altinn-app-frontend.js"></script>
+   <script src="https://altinncdn.no/toolkits/altinn-app-frontend/2/altinn-app-frontend.js"></script>
     ```
 
     to
