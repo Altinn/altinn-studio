@@ -4,6 +4,9 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import java.io.IOException;
+import java.util.Map;
+
 public class TextUtilsTest extends TestCase {
 
     public TextUtilsTest( String testName )
@@ -64,4 +67,10 @@ public class TextUtilsTest extends TestCase {
       assertEquals(expectedResult, result);
     }
 
+    public void testReadLanguageFiles() throws IOException {
+      Map<String, Map<String, String>> languages = TextUtils.readLanguageFiles();
+      assertEquals("House number", languages.get("en").get("house_number"));
+      assertEquals("Bustadnummer", languages.get("nn").get("house_number"));
+      assertEquals("Bolignummer", languages.get("nb").get("house_number"));
+    }
 }

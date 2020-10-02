@@ -209,7 +209,7 @@ public class PDFGenerator {
     currentContent.newLineAtOffset(xPoint, yPoint);
     currentContent.setFont(fontBold, headerFontSize);
     String language = (this.userProfile != null) ? userProfile.getProfileSettingPreference().getLanguage() : "nb";
-    currentContent.showText(AltinnOrgUtils.getOrgFullNameByShortName(instance.getOrg(), language) + " - " + InstanceUtils.getInstanceName(instance));
+    currentContent.showText(AltinnOrgUtils.getOrgFullNameByShortName(instance.getOrg(), language) + " - " + TextUtils.getTextResourceByKey("ServiceName", textResources));
     yPoint -= leading;
     currentContent.endText();
     yPoint -= textFieldMargin;
@@ -234,7 +234,7 @@ public class PDFGenerator {
         getLanguageString("delivered_by") + " " + userParty.getName() + " " + getLanguageString("on_behalf_of") + " " + party.getName();
     }
     List<String> lines = TextUtils.splitTextToLines(submittedBy, font, fontSize, width);
-    lines.add(getLanguageString("") + TextUtils.getInstanceGuid(instance.getId()).split("-")[4]);
+    lines.add(getLanguageString("reference_number") + " " + TextUtils.getInstanceGuid(instance.getId()).split("-")[4]);
     for(String line : lines) {
       currentContent.showText(line);
       currentContent.newLineAtOffset(0, -leading);
