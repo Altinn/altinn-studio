@@ -156,6 +156,9 @@ public class PDFGenerator {
           for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
             for (String childId: element.getChildren()) {
               FormLayoutElement childElement = formLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+              if (childElement == null) {
+                continue;
+              }
               if (childElement.getDataModelBindings() != null) {
                 Map<String, String> dataBindings = childElement.getDataModelBindings();
                 for (Map.Entry<String, String> dataBinding : dataBindings.entrySet()) {
