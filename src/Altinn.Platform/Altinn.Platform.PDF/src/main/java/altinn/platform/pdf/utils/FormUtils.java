@@ -1,5 +1,7 @@
 package altinn.platform.pdf.utils;
 
+import altinn.platform.pdf.models.FormLayout;
+import altinn.platform.pdf.models.FormLayoutElement;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -15,11 +17,15 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class FormDataUtils {
+public class FormUtils {
 
-  private FormDataUtils() {}
+  private FormUtils() {}
 
   /**
    * Returns the data data for a given data binding
@@ -36,7 +42,7 @@ public class FormDataUtils {
     }
     String[] keySplit = key.split(Pattern.quote("."));
     Element rootElement = formData.getDocumentElement();
-    return getValueOfEndNode(rootElement, keySplit, 0);
+    return getValueOfEndNode(rootElement, keySplit, 0, 0);
   }
 
   /**
@@ -46,7 +52,7 @@ public class FormDataUtils {
    * @param keyIndex the index of the current element we are looking for
    * @return the value if found, or empty string otherwise
    */
-  public static String getValueOfEndNode(Node parentNode, String[] keys, int keyIndex) {
+  public static String getValueOfEndNode(Node parentNode, String[] keys, int keyIndex, int groupIndex) {
     if (parentNode == null || keys == null || keyIndex > (keys.length - 1)) {
       return "";
     }
@@ -54,17 +60,32 @@ public class FormDataUtils {
     if (childNodes == null || childNodes.getLength() == 0) {
       return "";
     }
+    for(int i =0; i < childNodes.getLength(); i++) {
+    }
+    int indexCounter = -1; // for some data models we need to find a given child by index
     for (int i = 0; i < childNodes.getLength(); i++) {
       Node childNode = childNodes.item(i);
       String nodeName = childNode.getNodeName();
       nodeName = nodeName.replace("-", "").toLowerCase();
+      String key = keys[keyIndex].replace("-", "").toLowerCase();
+      if (key.contains("[")) {
+        // The key have an index
+        groupIndex = Integer.parseInt(key.substring(key.indexOf("[") + 1, key.indexOf("]")));
+        key = key.replace("[" + groupIndex + "]", "");
+      } else {
+        groupIndex = 0;
+      }
       if (nodeName == null) {
         continue;
       }
-      if (nodeName.equals(keys[keyIndex].replace("-", "").toLowerCase())) {
+      if (nodeName.equals(key)) {
+        // We have a match.
+        indexCounter ++;
+      }
+      if (nodeName.equals(key) && indexCounter == groupIndex) {
         if ((keys.length - 1) == keyIndex) {
           // If no more partial keys we have reached bottom node, return value if present
-          String value = null;
+          String value;
           if (childNode.getFirstChild() != null) {
             value = childNode.getFirstChild().getNodeValue();
           }
@@ -78,11 +99,63 @@ public class FormDataUtils {
           }
         } else {
           // We keep digging
-          return getValueOfEndNode(childNode, keys, keyIndex + 1 );
+          return getValueOfEndNode(childNode, keys, keyIndex + 1 ,groupIndex);
         }
       }
     }
     return "";
+  }
+
+  /**
+   * Gets the the filtered layout. Removes all components which should be rendered as part of groups.
+   * In the future this method should be extended to include filtering away hidden components when we support dynamics.
+   * @param layout the form layout
+   * @return the filtered form layout
+   */
+  public static List<FormLayoutElement> getFilteredLayout(List<FormLayoutElement> layout) {
+    if (layout == null) {
+      return null;
+    }
+    List<String> renderedInGroup = new ArrayList<>();
+    layout.stream()
+      .filter(formLayoutElement -> formLayoutElement.getType().equalsIgnoreCase("group"))
+      .forEach(formLayoutElement -> formLayoutElement.getChildren().forEach(child -> renderedInGroup.add(child)));
+
+    return layout.stream().
+      filter(formLayoutElement -> !renderedInGroup.contains(formLayoutElement.getId()))
+      .collect(Collectors.toList());
+  }
+
+  /**
+   * Setup repeating groups. Finds the number of iterations for a given group in the by looking at how many iterations the data model binding has in the form data
+   * @param layout the form layout
+   * @param formData the form data
+   * @return a form layout list where the group counts have been initialized
+   */
+  public static List<FormLayoutElement> setupRepeatingGroups(List<FormLayoutElement> layout, Document formData) {
+    if (layout == null || formData == null) {
+      return null;
+    }
+    return layout.stream().map(formLayoutElement -> {
+      if (formLayoutElement.getType().equalsIgnoreCase("group")) {
+        formLayoutElement.setCount(getGroupCount(formLayoutElement.getDataModelBindings().get("group"), formData));
+      }
+      return formLayoutElement;
+    }).collect(Collectors.toList());
+  }
+
+  /**
+   * Gets the number of repetitions a given group has in the form data
+   * @param group the group
+   * @param formData the form data
+   * @return number of repetitions for a given group
+   */
+  public static int getGroupCount(String group, Document formData) {
+    if (group == null || formData == null) {
+      return 0;
+    }
+    String[] split = group.split(Pattern.quote("."));
+    return formData.getElementsByTagName(split[split.length - 1]).getLength();
   }
 
   /**
