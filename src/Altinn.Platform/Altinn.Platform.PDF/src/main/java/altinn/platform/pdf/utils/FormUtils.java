@@ -41,7 +41,7 @@ public class FormUtils {
     }
     String[] keySplit = key.split(Pattern.quote("."));
     Element rootElement = formData.getDocumentElement();
-    return getValueOfEndNode(rootElement, keySplit, 0, 0);
+    return getValueOfEndNode(rootElement, keySplit, 0);
   }
 
   /**
@@ -51,7 +51,7 @@ public class FormUtils {
    * @param keyIndex the index of the current element we are looking for
    * @return the value if found, or empty string otherwise
    */
-  public static String getValueOfEndNode(Node parentNode, String[] keys, int keyIndex, int groupIndex) {
+  public static String getValueOfEndNode(Node parentNode, String[] keys, int keyIndex) {
     if (parentNode == null || keys == null || keyIndex > (keys.length - 1)) {
       return "";
     }
@@ -66,6 +66,7 @@ public class FormUtils {
       String nodeName = childNode.getNodeName();
       nodeName = nodeName.replace("-", "").toLowerCase();
       String key = keys[keyIndex].replace("-", "").toLowerCase();
+      int groupIndex;
       if (key.contains("[")) {
         // The key have an index
         groupIndex = Integer.parseInt(key.substring(key.indexOf("[") + 1, key.indexOf("]")));
@@ -97,7 +98,7 @@ public class FormUtils {
           }
         } else {
           // We keep digging
-          return getValueOfEndNode(childNode, keys, keyIndex + 1 ,groupIndex);
+          return getValueOfEndNode(childNode, keys, keyIndex + 1);
         }
       }
     }
