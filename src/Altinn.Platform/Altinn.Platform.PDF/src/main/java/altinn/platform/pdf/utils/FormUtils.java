@@ -1,6 +1,5 @@
 package altinn.platform.pdf.utils;
 
-import altinn.platform.pdf.models.FormLayout;
 import altinn.platform.pdf.models.FormLayoutElement;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.w3c.dom.Document;
@@ -18,10 +17,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class FormUtils {
 
@@ -60,8 +59,7 @@ public class FormUtils {
     if (childNodes == null || childNodes.getLength() == 0) {
       return "";
     }
-    for(int i =0; i < childNodes.getLength(); i++) {
-    }
+
     int indexCounter = -1; // for some data models we need to find a given child by index
     for (int i = 0; i < childNodes.getLength(); i++) {
       Node childNode = childNodes.item(i);
@@ -114,12 +112,12 @@ public class FormUtils {
    */
   public static List<FormLayoutElement> getFilteredLayout(List<FormLayoutElement> layout) {
     if (layout == null) {
-      return null;
+      return Collections.emptyList();
     }
     List<String> renderedInGroup = new ArrayList<>();
     layout.stream()
       .filter(formLayoutElement -> formLayoutElement.getType().equalsIgnoreCase("group"))
-      .forEach(formLayoutElement -> formLayoutElement.getChildren().forEach(child -> renderedInGroup.add(child)));
+      .forEach(formLayoutElement -> formLayoutElement.getChildren().forEach(renderedInGroup::add));
 
     return layout.stream().
       filter(formLayoutElement -> !renderedInGroup.contains(formLayoutElement.getId()))
@@ -134,7 +132,7 @@ public class FormUtils {
    */
   public static List<FormLayoutElement> setupRepeatingGroups(List<FormLayoutElement> layout, Document formData) {
     if (layout == null || formData == null) {
-      return null;
+      return Collections.emptyList();
     }
     return layout.stream().map(formLayoutElement -> {
       if (formLayoutElement.getType().equalsIgnoreCase("group")) {

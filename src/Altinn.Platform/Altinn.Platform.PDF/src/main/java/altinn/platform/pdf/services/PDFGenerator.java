@@ -158,12 +158,12 @@ public class PDFGenerator {
               FormLayoutElement childElement = formLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
               if (childElement.getDataModelBindings() != null) {
                 Map<String, String> dataBindings = childElement.getDataModelBindings();
-                for (String dataBindingKey : dataBindings.keySet()) {
-                  String replacedBinding = dataBindings.get(dataBindingKey).replace(groupBinding, groupBinding + '[' + groupIndex + ']');
+                for (Map.Entry<String, String> dataBinding : dataBindings.entrySet()) {
+                  String replacedBinding = dataBinding.getValue().replace(groupBinding, groupBinding + '[' + groupIndex + ']');
                   if (groupIndex > 0) {
                     replacedBinding = replacedBinding.replace("[" + (groupIndex - 1) + "]", "");
                   }
-                  dataBindings.put(dataBindingKey, replacedBinding);
+                  dataBinding.setValue(replacedBinding);
                 }
               }
               renderLayoutElement(childElement);
