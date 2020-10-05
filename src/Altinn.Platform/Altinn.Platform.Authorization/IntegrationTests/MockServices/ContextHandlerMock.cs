@@ -41,6 +41,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         private readonly string _altinnRoleAttributeId = "urn:altinn:rolecode";
 
+        private readonly string _appresourceAttributeId = "urn:altinn:appresource";
+
         public ContextHandlerMock(IHttpContextAccessor httpContextAccessor, IRoles rolesWrapper)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -75,6 +77,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             string instanceAttributeValue = string.Empty;
             string resourcePartyAttributeValue = string.Empty;
             string taskAttributeValue = string.Empty;
+            string appresourceAttributeValue = string.Empty;
 
             XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
       
@@ -104,6 +107,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 {
                     resourcePartyAttributeValue = attribute.AttributeValues.First().Value;
                 }
+
+                if (attribute.AttributeId.OriginalString.Equals(_appresourceAttributeId))
+                {
+                    appresourceAttributeValue = attribute.AttributeValues.First().Value;
+                }
             }
 
             bool resourceAttributeComplete = false;
@@ -124,6 +132,16 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 string.IsNullOrEmpty(taskAttributeValue))
             {
                 // The resource attributes are complete
+                resourceAttributeComplete = true;
+            }
+            else if (!string.IsNullOrEmpty(orgAttributeValue) &&
+            !string.IsNullOrEmpty(appAttributeValue) &&
+           !string.IsNullOrEmpty(instanceAttributeValue) &&
+           !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
+           !string.IsNullOrEmpty(appresourceAttributeValue) &&
+           appresourceAttributeValue.Equals("events"))
+            {
+                // Events scenario The resource attributes are complete
                 resourceAttributeComplete = true;
             }
 

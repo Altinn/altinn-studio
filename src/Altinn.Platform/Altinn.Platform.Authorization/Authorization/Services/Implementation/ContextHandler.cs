@@ -85,6 +85,16 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
             }
+            else if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
+            !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
+            !string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
+            !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
+            !string.IsNullOrEmpty(resourceAttributes.AppResourceValue) &&
+            resourceAttributes.AppResourceValue.Equals("events"))
+            {
+                // The resource attributes are complete
+                resourceAttributeComplete = true;
+            }
 
             if (!resourceAttributeComplete && !string.IsNullOrEmpty(resourceAttributes.InstanceValue))
             {
@@ -140,6 +150,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.TaskAttribute))
                 {
                     resourceAttributes.TaskValue = attribute.AttributeValues.First().Value;
+                }
+
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.AppResourceAttribute))
+                {
+                    resourceAttributes.AppResourceValue = attribute.AttributeValues.First().Value;
                 }
             }
 
