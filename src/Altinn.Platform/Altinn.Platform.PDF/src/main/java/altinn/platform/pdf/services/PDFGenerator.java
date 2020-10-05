@@ -172,8 +172,10 @@ public class PDFGenerator {
         } else {
           // not repeating => treat children as regular components
           for (String childId : element.getChildren()) {
-            FormLayoutElement childElement = formLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElseThrow();
-            renderLayoutElement(childElement);
+            FormLayoutElement childElement = formLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+            if (childElement != null ) {
+              renderLayoutElement(childElement);
+            }
           }
         }
       } else {
