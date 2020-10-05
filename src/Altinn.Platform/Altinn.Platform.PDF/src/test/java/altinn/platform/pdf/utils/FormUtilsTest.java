@@ -122,9 +122,9 @@ public class FormUtilsTest extends TestCase {
     }
     String xmlAsString = IOUtils.toString(this.getClass().getResourceAsStream("/formData/repeatingGroupFormData.xml"));
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
     factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
     factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+    factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
     DocumentBuilder builder = factory.newDocumentBuilder();
     formData = builder.parse(new InputSource(new StringReader(xmlAsString)));
     return formData;

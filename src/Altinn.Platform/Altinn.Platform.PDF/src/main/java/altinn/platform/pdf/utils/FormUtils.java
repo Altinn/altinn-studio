@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 public class FormUtils {
 
+  private final static String GROUP_NAME = "group";
   private FormUtils() {}
 
   /**
@@ -117,7 +118,7 @@ public class FormUtils {
     }
     List<String> renderedInGroup = new ArrayList<>();
     layout.stream()
-      .filter(formLayoutElement -> formLayoutElement.getType().equalsIgnoreCase("group"))
+      .filter(formLayoutElement -> formLayoutElement.getType().equalsIgnoreCase(GROUP_NAME))
       .forEach(formLayoutElement -> formLayoutElement.getChildren().forEach(renderedInGroup::add));
 
     return layout.stream().
@@ -136,8 +137,8 @@ public class FormUtils {
       return Collections.emptyList();
     }
     return layout.stream().map(formLayoutElement -> {
-      if (formLayoutElement.getType().equalsIgnoreCase("group")) {
-        formLayoutElement.setCount(getGroupCount(formLayoutElement.getDataModelBindings().get("group"), formData));
+      if (formLayoutElement.getType().equalsIgnoreCase(GROUP_NAME)) {
+        formLayoutElement.setCount(getGroupCount(formLayoutElement.getDataModelBindings().get(GROUP_NAME), formData));
       }
       return formLayoutElement;
     }).collect(Collectors.toList());
