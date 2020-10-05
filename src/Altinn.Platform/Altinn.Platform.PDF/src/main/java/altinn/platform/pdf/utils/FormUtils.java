@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 public class FormUtils {
 
-  private final static String GROUP_NAME = "group";
+  private static final String GROUP_NAME = "group";
   private FormUtils() {}
 
   /**
