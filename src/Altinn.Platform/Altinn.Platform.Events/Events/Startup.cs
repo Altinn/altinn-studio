@@ -118,26 +118,22 @@ namespace Altinn.Platform.Events
         {
             _logger.LogInformation("Startup // Configure");
 
-            ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
-
-            string workspacePath = Path.Combine(Environment.CurrentDirectory, "Migration");
-
-            if (Environment.CurrentDirectory.Contains("Test"))
+            if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableCBConnection"))
             {
-                workspacePath = Path.Combine(Environment.CurrentDirectory, @"..\..\..\Migration");
-            }     
+                ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
 
-            app.UseYuniql(
-                new PostgreSqlDataService(traceService),
-                new PostgreSqlBulkImportService(traceService),
-                traceService,
-                new Yuniql.AspNetCore.Configuration
-                {
-                    WorkspacePath = workspacePath,
-                    ConnectionString = Configuration.GetValue<string>("PostgreSQLSettings:ConnectionString"),
-                    AutoCreateDatabase = false,
-                    DebugTraceMode = true
-                });
+                app.UseYuniql(
+                    new PostgreSqlDataService(traceService),
+                    new PostgreSqlBulkImportService(traceService),
+                    traceService,
+                    new Yuniql.AspNetCore.Configuration
+                    {
+                        WorkspacePath = Path.Combine(Environment.CurrentDirectory, "Migration"),
+                        ConnectionString = Configuration.GetValue<string>("PostgreSQLSettings:ConnectionString"),
+                        AutoCreateDatabase = false,
+                        DebugTraceMode = true
+                    });
+            }
 
             string authenticationEndpoint = string.Empty;
             if (Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpoint") != null)
