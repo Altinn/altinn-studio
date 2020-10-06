@@ -128,7 +128,7 @@ namespace Altinn.Platform.Events
                     traceService,
                     new Yuniql.AspNetCore.Configuration
                     {
-                        WorkspacePath = Path.Combine(Environment.CurrentDirectory, "Migration"),
+                        WorkspacePath = Path.Combine(Environment.CurrentDirectory, Configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
                         ConnectionString = Configuration.GetValue<string>("PostgreSQLSettings:ConnectionString"),
                         AutoCreateDatabase = false,
                         DebugTraceMode = true
