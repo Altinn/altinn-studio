@@ -116,5 +116,17 @@ namespace Altinn.App.Api.Controllers
             string schema = _appResourceService.GetModelJsonSchema(id);
             return Ok(schema);
         }
+
+        
+        /// <summary>
+        /// Get the form layout
+        /// </summary>
+        [HttpGet]
+        [Route("{org}/{app}/api/layouts")]
+        public ActionResult Layouts(string org, string app)
+        {
+          string layouts = _appResourceService.GetLayouts();
+          return Ok(layouts);
+        }
     }
 }

@@ -1,5 +1,6 @@
 import { Action } from 'redux';
-import { ILayout } from '..';
+import { INavigationConfig } from 'src/types';
+import { ILayouts } from '..';
 import * as actionTypes from '../formLayoutActionTypes';
 
 export interface IFetchFormLayout extends Action {
@@ -14,13 +15,18 @@ export function fetchFormLayout(url: string): IFetchFormLayout {
 }
 
 export interface IFetchFormLayoutFulfilled extends Action {
-  layout: ILayout;
+  layouts: ILayouts;
+  navigationConfig?: INavigationConfig;
 }
 
-export function fetchFormLayoutFulfilled(layout: ILayout): IFetchFormLayoutFulfilled {
+export function fetchFormLayoutFulfilled(
+  layouts: ILayouts,
+  navigationConfig: INavigationConfig,
+): IFetchFormLayoutFulfilled {
   return {
     type: actionTypes.FETCH_FORM_LAYOUT_FULFILLED,
-    layout,
+    layouts,
+    navigationConfig,
   };
 }
 
