@@ -3,21 +3,18 @@ using Yuniql.Extensibility;
 
 namespace Altinn.Platform.Events.Configuration
 {
-    //TIP: You can implement custom ITraceService to capture the log and debug information during your migration run.
-    //This us usefule if you wish to sink trace logs into your preferred provider ie. serilog, seq, or others.
-
     /// <summary>
-    /// Copied fromsample project.
+    /// Copied from sample project.
     /// </summary>
     public class ConsoleTraceService : ITraceService
     {
         /// <summary>
-        /// Debug enabled prop
+        /// Debug enabled 
         /// </summary>
         public bool IsDebugEnabled { get; set; } = false;
 
         /// <summary>
-        /// Prop
+        /// Info
         /// </summary>      
         public void Info(string message, object payload = null)
         {
@@ -26,7 +23,7 @@ namespace Altinn.Platform.Events.Configuration
         }
 
         /// <summary>
-        /// Error prop
+        /// Error
         /// </summary>
         public void Error(string message, object payload = null)
         {
@@ -35,7 +32,7 @@ namespace Altinn.Platform.Events.Configuration
         }
 
         /// <summary>
-        /// Prop
+        /// Debug
         /// </summary>
         public void Debug(string message, object payload = null)
         {
@@ -47,7 +44,7 @@ namespace Altinn.Platform.Events.Configuration
         }
 
         /// <summary>
-        /// prop
+        /// Success
         /// </summary>
         public void Success(string message, object payload = null)
         {
