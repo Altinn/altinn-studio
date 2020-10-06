@@ -118,7 +118,7 @@ namespace Altinn.Platform.Events
         {
             _logger.LogInformation("Startup // Configure");
 
-            if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableCBConnection"))
+            if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
             {
                 ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
 
