@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import moment from 'moment';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
-import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent} from 'altinn-shared/components';
+import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent } from 'altinn-shared/components';
 import { IInstance, IParty, ITextResource, IProfile } from 'altinn-shared/types';
 import { getCurrentTaskData,
   mapInstanceAttachments,
