@@ -1,3 +1,8 @@
+-- SCHEMA: events
+
+CREATE SCHEMA IF NOT EXISTS events
+    AUTHORIZATION postgres;
+
 -- Table: events.events
 
 CREATE TABLE IF NOT EXISTS events.events
