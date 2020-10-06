@@ -124,7 +124,7 @@ namespace Altinn.Platform.Events
 
             if (Environment.CurrentDirectory.Contains("Test"))
             {
-                workspacePath = Path.Combine(Environment.CurrentDirectory, @"..\..\..\..\Events\Migration");
+                workspacePath = Path.Combine(Environment.CurrentDirectory, @"..\..\..\Migration");
             }     
 
             app.UseYuniql(

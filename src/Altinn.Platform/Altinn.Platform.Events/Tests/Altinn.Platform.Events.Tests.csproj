@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -33,15 +33,15 @@
 
   <ItemGroup>
     <Folder Include="Configuration\" />
-    <Folder Include="TestingRepositories\" />
+    <Folder Include="TestingRepositories\" />        
   </ItemGroup>
-
+  
   <ItemGroup>
     <None Include="..\Events\Configuration\UpdateItemTimestamp.js" Link="Configuration\UpdateItemTimestamp.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
