@@ -120,13 +120,20 @@ namespace Altinn.Platform.Events
 
             ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
 
+            string workspacePath = Path.Combine(Environment.CurrentDirectory, "Migration");
+
+            if (Environment.CurrentDirectory.Contains("Test"))
+            {
+                workspacePath = Path.Combine(Environment.CurrentDirectory, @"..\..\..\..\Events\Migration");
+            }     
+
             app.UseYuniql(
                 new PostgreSqlDataService(traceService),
                 new PostgreSqlBulkImportService(traceService),
                 traceService,
                 new Yuniql.AspNetCore.Configuration
                 {
-                    WorkspacePath = Path.Combine(Environment.CurrentDirectory, "Migration"),
+                    WorkspacePath = workspacePath,
                     ConnectionString = Configuration.GetValue<string>("PostgreSQLSettings:ConnectionString"),
                     AutoCreateDatabase = false,
                     DebugTraceMode = true
