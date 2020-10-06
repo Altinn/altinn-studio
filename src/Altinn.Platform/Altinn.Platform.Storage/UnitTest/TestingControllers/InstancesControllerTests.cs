@@ -257,7 +257,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected: Returns status forbidden.
             /// </summary>
             [Fact]
-            public async void Delete_ReponseIsDeny_ReturnsStatusForbidden()
+            public async void Delete_ResponseIsDeny_ReturnsStatusForbidden()
             {
                 // Arrange
                 int instanceOwnerId = 1337;
@@ -310,7 +310,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected: Returns success and deleted instance
             /// </summary>
             [Fact]
-            public async void Delete_EndUserSoftDeletesInstanceR_eturnedInstanceHasStatusOnlySoftDeleted()
+            public async void Delete_EndUserSoftDeletesInstance_ReturnedInstanceHasStatusOnlySoftDeleted()
             {
                 // Arrange
                 int instanceOwnerId = 1337;
@@ -610,8 +610,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string instanceGuid = "ef1b16fc-4566-4577-b2d8-db74fbee4f7c";
                 string requestUri = $"{BasePath}/{instanceOwnerPartyId}/{instanceGuid}/complete";
 
-                Mock<IInstanceRepository> instanceRepository = new Mock<IInstanceRepository>();
-
                 HttpClient client = GetTestClient();
 
                 string token = PrincipalUtil.GetOrgToken(org);
@@ -624,7 +622,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 {
                     string serverContent = await response.Content.ReadAsStringAsync();
                     throw new Exception(serverContent);
-                    //Assert.Equal("Hei", serverContent);
                 }
 
                 // Assert
@@ -633,7 +630,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
                 string json = await response.Content.ReadAsStringAsync();
                 Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(json);
 
-                // Don't compare original and updated instance in asserts. The two instances are identical.
+                // Don't compare original and updated instance. The two variables point to the same instance.
                 Assert.NotNull(updatedInstance);
                 Assert.Equal(org, updatedInstance.CompleteConfirmations[0].StakeholderId);
                 Assert.Equal("1337", updatedInstance.LastChangedBy);
@@ -650,7 +647,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             ///   The response has status code 500.
             /// </summary>
             [Fact]
-            public async void AddCompleteConfirmation_CompleteNonExistantInstance_ExceptionDuringAuthorization_RespondsWithInternalServerError()
+            public async void AddCompleteConfirmation_CompleteNonExistentInstance_ExceptionDuringAuthorization_RespondsWithInternalServerError()
             {
                 // Arrange
                 string org = "tdd";

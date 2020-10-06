@@ -9,6 +9,7 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.ApplicationInsights;
 
 namespace Altinn.Platform.Storage
 {
@@ -90,15 +91,15 @@ namespace Altinn.Platform.Storage
                     // Optional: Apply filters to control what logs are sent to Application Insights.
                     // The following configures LogLevel Information or above to be sent to
                     // Application Insights for all categories.
-                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(string.Empty, LogLevel.Warning);
+                    builder.AddFilter<ApplicationInsightsLoggerProvider>(string.Empty, LogLevel.Warning);
 
                     // Adding the filter below to ensure logs of all severity from Program.cs
                     // is sent to ApplicationInsights.
-                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
+                    builder.AddFilter<ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
 
                     // Adding the filter below to ensure logs of all severity from Startup.cs
                     // is sent to ApplicationInsights.
-                    builder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Startup).FullName, LogLevel.Trace);
+                    builder.AddFilter<ApplicationInsightsLoggerProvider>(typeof(Startup).FullName, LogLevel.Trace);
                 }
                 else
                 {
@@ -106,7 +107,6 @@ namespace Altinn.Platform.Storage
                     builder.AddFilter("Microsoft", LogLevel.Warning);
                     builder.AddFilter("System", LogLevel.Warning);
                     builder.AddConsole();
-                    builder.AddEventLog();
                 }
             }).UseStartup<Startup>();
 
