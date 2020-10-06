@@ -480,7 +480,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 if (dce.StatusCode == HttpStatusCode.NotFound)
                 {
-                    errorMessage = NotFound($"Unable to find any data element with id: {instanceId}.");
+                    errorMessage = NotFound($"Unable to find any instance with id: {instanceId}.");
                 }
                 else
                 {
