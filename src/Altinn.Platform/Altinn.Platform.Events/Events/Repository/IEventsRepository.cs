@@ -14,6 +14,6 @@ namespace Altinn.Platform.Events.Repository
         /// <param name="item">the cloud event object</param>
         /// <param name="cloudEvent">the cloud event string</param>
         /// <returns>id for created cloudevent</returns>
-        string Create(CloudEvent item, string cloudEvent);
+        Task<string> Create(CloudEvent item, string cloudEvent);
     }
 }

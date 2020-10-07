@@ -25,7 +25,7 @@ namespace Altinn.Platform.Events.Controllers
         /// </summary>
         /// <param name="postgresService">postgres service</param>
         /// <param name="logger">dependency injection of logger</param>
-        public EventsController(IEventsPostgresService postgresService, ILogger<EventsController> logger )
+        public EventsController(IEventsPostgresService postgresService, ILogger<EventsController> logger)
         {
             _logger = logger;
             _postgresService = postgresService;
@@ -51,7 +51,8 @@ namespace Altinn.Platform.Events.Controllers
 
             try
             {
-                string cloudEventId = _postgresService.StoreItemToPostgresDb(cloudEvent);
+                string cloudEventId = await _postgresService.StoreItemToPostgresDb(cloudEvent);
+
                 _logger.LogInformation("Cloud Event successfully stored with id: {0}", cloudEventId);
 
                 return Created(cloudEvent.Subject, cloudEventId);

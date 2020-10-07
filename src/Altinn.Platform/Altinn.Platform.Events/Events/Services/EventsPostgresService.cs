@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Events.Services.Interfaces;
@@ -24,11 +25,11 @@ namespace Altinn.Platform.Events.Services
         }
 
         /// <inheritdoc/>
-        public string StoreItemToPostgresDb(CloudEvent cloudEvent)
+        public async Task<string> StoreItemToPostgresDb(CloudEvent cloudEvent)
         {
             cloudEvent.Id = Guid.NewGuid().ToString();
             string cloudtext = "something json";
-            return _repository.Create(cloudEvent, cloudtext);
+            return await _repository.Create(cloudEvent, cloudtext);
         }
     }
 }

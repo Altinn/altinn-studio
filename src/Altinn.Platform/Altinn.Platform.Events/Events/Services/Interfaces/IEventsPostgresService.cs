@@ -13,6 +13,6 @@ namespace Altinn.Platform.Events.Services.Interfaces
         /// </summary>
         /// <param name="cloudEvent">The cloudEvent to be stored</param>
         /// <returns>Id for the created document</returns>
-        string StoreItemToPostgresDb(CloudEvent cloudEvent);
+        Task<string> StoreItemToPostgresDb(CloudEvent cloudEvent);
     }
 }

@@ -15,6 +15,7 @@ namespace Altinn.Platform.Events.Repository
     {
         private NpgsqlConnection _conn;
         private readonly ILogger _logger;
+        private readonly string insertEventSql = "call events.insert_event(@id, @source, @subject, @type, @cloudevent)";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsRepository"/> class.
@@ -27,19 +28,20 @@ namespace Altinn.Platform.Events.Repository
         }
 
         /// <inheritdoc/>
-        public string Create(CloudEvent item, string cloudEvent)
+        public async Task<string> Create(CloudEvent item, string cloudEvent)
         {
-            _conn.Open();
-            string sql = "call events.insert_event(@id, @source, @subject, @type, @cloudevent)";
+            await _conn.OpenAsync();
 
-            NpgsqlCommand pgcom = new NpgsqlCommand(sql, _conn);
+            NpgsqlCommand pgcom = new NpgsqlCommand(insertEventSql, _conn);
             pgcom.Parameters.AddWithValue("id", item.Id);
             pgcom.Parameters.AddWithValue("source", item.Source.OriginalString);
             pgcom.Parameters.AddWithValue("subject", item.Subject);
             pgcom.Parameters.AddWithValue("type", item.Type);
             pgcom.Parameters.AddWithValue("cloudevent", cloudEvent);
-            pgcom.ExecuteNonQuery();
-            _conn.Close();
+
+            await pgcom.ExecuteNonQueryAsync();
+            await _conn.CloseAsync();
+            
             return item.Id;
         }
     }
