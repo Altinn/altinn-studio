@@ -17,6 +17,7 @@ const JsonPointer = require('jsonpointer');
 export function createValidator(schema: any): ISchemaValidator {
   const ajv = new Ajv({ allErrors: true, coerceTypes: true });
   ajv.addFormat('year', /^[0-9]{4}$/);
+  ajv.addFormat('year-month', /^[0-9]{4}-(0[1-9]|1[0-2])$/);
   ajv.addSchema(schema, 'schema');
   const rootKey = Object.keys(schema.properties)[0];
   const rootElementPath = schema.properties[rootKey].$ref;
@@ -380,6 +381,17 @@ export function getSchemaPart(dataModelPath: string[], subSchema: any, mainSchem
       return getSchemaPart(dataModelPath.slice(1), childSchemaPtr.get(mainSchema), mainSchema);
     }
     return localRootElement;
+  }
+
+  if (subSchema.allOf) {
+    let tmpSchema: any = {};
+    subSchema.allOf.forEach((element) => {
+      tmpSchema = {
+        ...tmpSchema,
+        ...element,
+      };
+    });
+    return getSchemaPart(dataModelPath, tmpSchema, mainSchema);
   }
 
   if (subSchema.$ref) {
