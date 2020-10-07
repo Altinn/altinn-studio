@@ -17,6 +17,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Altinn.App.Services.Implementation
 {
@@ -96,16 +97,15 @@ namespace Altinn.App.Services.Implementation
             UserContext userContext = await _userHelper.GetUserContext(_httpContextAccessor.HttpContext);
             UserProfile userProfile = await _profileService.GetUserProfile(userContext.UserId);
             
-            byte[] formLayout = _appResourcesService.GetAppResource(org, app, _appSettings.FormLayoutJSONFileName);
+            string formLayoutsString = _appResourcesService.GetLayouts();
             TextResource textResource = await _textService.GetText(org, app, userProfile.ProfileSettingPreference.Language);
 
-            string formLayoutString = GetUTF8String(formLayout);
             string textResourcesString = JsonConvert.SerializeObject(textResource);
 
             PDFContext pdfContext = new PDFContext
             {
                 Data = encodedXml,
-                FormLayout = JsonConvert.DeserializeObject(formLayoutString),
+                FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsString),
                 TextResources = JsonConvert.DeserializeObject(textResourcesString),
                 Party = await _registerService.GetParty(instanceOwnerId),
                 Instance = instance,
