@@ -4,12 +4,13 @@ import { useSelector } from 'react-redux';
 import moment from 'moment';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
-import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent} from 'altinn-shared/components';
+import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent } from 'altinn-shared/components';
 import { IInstance, IParty, ITextResource, IProfile } from 'altinn-shared/types';
 import { getCurrentTaskData,
   mapInstanceAttachments,
   getLanguageFromKey,
-  returnUrlToMessagebox } from 'altinn-shared/utils';
+  returnUrlToMessagebox,
+  getTextResourceByKey } from 'altinn-shared/utils';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
@@ -52,7 +53,6 @@ export const returnInstanceMetaDataObject = (
 };
 
 const ReceiptContainer = (props: IReceiptContainerProps) => {
-  const [appName, setAppName] = React.useState('');
   const [attachments, setAttachments] = useState([]);
   const [lastChangedDateTime, setLastChangedDateTime] = useState('');
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
@@ -73,7 +73,6 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
     !attachments ||
     !instanceMetaObject ||
     !lastChangedDateTime ||
-    !appName ||
     !allOrgs ||
     !instance ||
     !lastChangedDateTime ||
@@ -111,12 +110,6 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
   }, [allOrgs, parties, instance, lastChangedDateTime]);
 
   React.useEffect(() => {
-    if (applicationMetadata && applicationMetadata.title) {
-      setAppName(applicationMetadata.title[userLanguage]);
-    }
-  }, [applicationMetadata, userLanguage]);
-
-  React.useEffect(() => {
     if (instance && instance.data && applicationMetadata) {
       const defaultElement = getCurrentTaskData(applicationMetadata, instance);
 
@@ -145,7 +138,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
           instanceMetaDataObject={instanceMetaObject}
           subtitle={getLanguageFromKey('receipt.subtitle', language)}
           subtitleurl={returnUrlToMessagebox(origin)}
-          title={`${appName} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
+          title={`${getTextResourceByKey('ServiceName', textResources)} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
           titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
         />
       }
