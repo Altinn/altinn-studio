@@ -14,6 +14,7 @@ using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -81,10 +82,15 @@ namespace Altinn.Platform.Events
            });
 
             services.AddHealthChecks().AddCheck<HealthCheck>("events_health_check");
-            services.Configure<AzureCosmosSettings>(Configuration.GetSection(nameof(AzureCosmosSettings)));
+         
+            //services.AddDbContext<EventsContext>(options => options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")).UseLowerCaseNamingConvention());
 
+            services.Configure<AzureCosmosSettings>(Configuration.GetSection(nameof(AzureCosmosSettings)));
+            services.Configure<PostgresSettings>(Configuration.GetSection(nameof(PostgresSettings)));
             services.AddSingleton<IEventsRepository, EventsRepository>();
             services.AddSingleton<IEventsCosmosService, EventsCosmosService>();
+            services.AddSingleton<IEventsPostgresService, EventsPostgresService>();
+            services.AddSingleton<INewEventsRepository, NewEventsRepository>();
             services.AddSingleton(Configuration);
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))

@@ -5,6 +5,7 @@ using Altinn.Platform.Events.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace Altinn.Platform.Events.Controllers
 {
@@ -16,6 +17,7 @@ namespace Altinn.Platform.Events.Controllers
     public class EventsController : ControllerBase
     {
         private readonly IEventsRepository _repository;
+        private readonly INewEventsRepository _newRepository;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -23,10 +25,11 @@ namespace Altinn.Platform.Events.Controllers
         /// </summary>
         /// <param name="repository">the events repository handler</param>
         /// <param name="logger">dependency injection of logger</param>
-        public EventsController(IEventsRepository repository, ILogger<EventsController> logger)
+        public EventsController(IEventsRepository repository, ILogger<EventsController> logger, INewEventsRepository newEventsRepository)
         {
             _repository = repository;
             _logger = logger;
+            _newRepository = newEventsRepository;
         }
 
         /// <summary>
@@ -53,7 +56,8 @@ namespace Altinn.Platform.Events.Controllers
                 cloudEvent.Id = null;
 
                 string cloudEventId = await _repository.Create(cloudEvent);
-
+                int result = _newRepository.Create(cloudEvent);
+                _logger.LogInformation("Testresult: " + result);
                 _logger.LogInformation("Cloud Event successfully stored with id: {0}", cloudEventId);
 
                 return Created(cloudEvent.Subject, cloudEventId);
