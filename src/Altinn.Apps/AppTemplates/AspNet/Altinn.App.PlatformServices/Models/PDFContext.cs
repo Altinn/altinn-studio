@@ -1,9 +1,8 @@
-using System.Collections;
+using System.Collections.Generic;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Altinn.App.Services.Models
 {
@@ -16,10 +15,10 @@ namespace Altinn.App.Services.Models
         public Instance Instance { get; set; }
 
         /// <summary>
-        /// Gets or sets the form layout
+        /// Gets or sets the form layouts
         /// </summary>
-        [JsonProperty(PropertyName = "formLayout")]
-        public object FormLayout { get; set; }
+        [JsonProperty(PropertyName = "formLayouts")]
+        public Dictionary<string, object> FormLayouts { get; set; }
 
         /// <summary>
         /// Gets or sets the text resources
