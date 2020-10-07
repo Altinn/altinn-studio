@@ -77,7 +77,6 @@ export function Form() {
     );
   }
 
-  console.log('filtered layout: ', filteredLayout);
   return (
     <Grid container={true}>
       {currentView === currentLayout && filteredLayout && filteredLayout.map(renderLayoutComponent)}
