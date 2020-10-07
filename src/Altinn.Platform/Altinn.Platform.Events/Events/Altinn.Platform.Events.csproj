@@ -23,6 +23,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Yuniql.AspNetCore" Version="1.0.2" />
+    <PackageReference Include="Yuniql.PostgreSql" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
@@ -33,6 +35,14 @@
     <AdditionalFiles Include="..\..\..\..\stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migration\_erase\" />
+    <Folder Include="Migration\_draft\" />
+    <Folder Include="Migration\_init\" />
+    <Folder Include="Migration\_post\" />
+    <Folder Include="Migration\_pre\" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
