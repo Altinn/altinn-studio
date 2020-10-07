@@ -513,7 +513,7 @@ namespace Altinn.Platform.Storage.Repository
 
             if (_settings.CollectMetrics)
             {
-                _logger.LogError($"{JsonConvert.SerializeObject(feedResponse.QueryMetrics)}");
+                _logger.LogError($"Metrics retrieving {instanceState} instances for {instanceOwnerPartyId}: {JsonConvert.SerializeObject(feedResponse.QueryMetrics)}");
             }
 
             instances = feedResponse.ToList();
