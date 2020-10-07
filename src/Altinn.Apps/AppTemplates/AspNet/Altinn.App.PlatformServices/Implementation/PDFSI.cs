@@ -25,7 +25,6 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly ILogger _logger;
         private readonly HttpClient _pdfClient;
-        private readonly AppSettings _appSettings;
         private readonly IData _dataService;
         private readonly IRegister _registerService;
         private readonly IAppResources _appResourcesService;
@@ -39,7 +38,7 @@ namespace Altinn.App.Services.Implementation
         /// <summary>
         /// Creates a new instance of the <see cref="PDFSI"/> class
         /// </summary>
-        /// <param name="appSettings">The app settings</param>
+        /// <param name="platformSettings">The platform settingssettings</param>
         /// <param name="logger">The logger</param>
         /// <param name="httpClient">The http client</param>
         /// <param name="dataService">The data service</param>
@@ -47,8 +46,9 @@ namespace Altinn.App.Services.Implementation
         /// <param name="appResourcesService">The app resource service</param>
         /// <param name="textService">The text service</param>
         /// <param name="profileService">the profile service</param>
+        /// <param name="settings">the general settings</param>
+        /// <param name="httpContextAccessor">the httpContextAccessor</param>
         public PDFSI(IOptions<PlatformSettings> platformSettings,
-            IOptions<AppSettings> appSettings,
             ILogger<PDFSI> logger,
             HttpClient httpClient,
             IData dataService,
@@ -65,7 +65,6 @@ namespace Altinn.App.Services.Implementation
             _registerService = registerService;
             _appResourcesService = appResourcesService;
             _textService = textService;
-            _appSettings = appSettings.Value;
             _camelCaseSerializer = JsonSerializer.Create(
                 new JsonSerializerSettings
                 {
@@ -136,25 +135,6 @@ namespace Altinn.App.Services.Implementation
             finally
             {
                 pdfContent.Dispose();
-            }
-        }
-
-        private static string GetUTF8String(byte[] data)
-        {
-            if (data == null || !data.Any())
-            {
-                return null;
-            }
-
-            byte[] utf8Preamble = Encoding.UTF8.GetPreamble();
-            bool hasPreamble = utf8Preamble[0] == data[0];
-            if (hasPreamble)
-            {
-                return Encoding.UTF8.GetString(data, utf8Preamble.Length, data.Length - utf8Preamble.Length);
-            }
-            else
-            {
-                return Encoding.UTF8.GetString(data);
             }
         }
 
