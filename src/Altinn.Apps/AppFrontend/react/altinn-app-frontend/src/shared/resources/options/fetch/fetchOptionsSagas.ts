@@ -2,7 +2,7 @@
 import { SagaIterator } from 'redux-saga';
 import { fork, take, call, select } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
-import { ILayout, ILayouts } from 'src/features/form/layout';
+import { ILayouts } from 'src/features/form/layout';
 import { IOption } from 'src/types';
 import { get } from 'altinn-shared/utils';
 import { getOptionsUrl } from '../../../../utils/urlHelper';
@@ -14,9 +14,9 @@ const formLayoutSelector = (state: IRuntimeState): ILayouts => state.formLayout.
 
 export function* fetchOptionsSaga(): SagaIterator {
   try {
-    const layouts: ILayout = yield select(formLayoutSelector);
-    for (const layout of Object.keys(layouts)) {
-      for (const element of layout) {
+    const layouts: ILayouts = yield select(formLayoutSelector);
+    for (const layoutId of Object.keys(layouts)) {
+      for (const element of layouts[layoutId]) {
         const component = element as any;
         if (component.optionsId) {
           yield fork(fetchSpecificOptionSaga, component.optionsId);

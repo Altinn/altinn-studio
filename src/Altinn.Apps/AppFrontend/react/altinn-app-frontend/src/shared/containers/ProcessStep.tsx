@@ -87,7 +87,7 @@ const ProcessStepComponent = (props) => {
               handleClose={handleModalCloseButton}
               handleBack={handleBackArrowButton}
               language={language}
-              showBackArrow={!!previousFormPage}
+              showBackArrow={!!previousFormPage && props.step === ProcessSteps.FormFilling}
             />
             <div className='a-modal-content-target'>
               <div className='a-page a-current-page'>
