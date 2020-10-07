@@ -48,7 +48,6 @@ public class PDFGenerator {
   private Document formData;
   private FormLayout originalFormLayout;
   private Map<String, FormLayout> formLayouts;
-  private List<FormLayoutElement> initializedLayout;
   private Party party;
   private Party userParty;
   private UserProfile userProfile;
