@@ -316,7 +316,7 @@ export function GroupContainer({
         container={true}
         justify='flex-end'
       />
-      {((editIndex < 0) && (repeatinGroupIndex < container.maxCount)) &&
+      {((editIndex < 0) && ((repeatinGroupIndex + 1) < container.maxCount)) &&
       <Grid
         container={true}
         direction='row'

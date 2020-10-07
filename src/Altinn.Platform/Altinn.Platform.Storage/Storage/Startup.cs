@@ -205,16 +205,15 @@ namespace Altinn.Platform.Storage
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             _logger.LogInformation("Startup // Configure");
+            _logger.LogInformation($"Environment: {env.EnvironmentName}");
+
             if (env.IsDevelopment() || env.IsStaging())
             {
                 app.UseDeveloperExceptionPage();
-                _logger.LogInformation("IsDevelopment || IsStaging");
             }
             else
             {
-                app.UseExceptionHandler("/Error");
-
-                // app.UseHsts();
+                app.UseExceptionHandler("/storage/api/v1/error");
             }
 
             app.UseSwagger(o => o.RouteTemplate = "storage/swagger/{documentName}/swagger.json");
@@ -225,9 +224,7 @@ namespace Altinn.Platform.Storage
                 c.RoutePrefix = "storage/swagger";
             });
 
-            // app.UseHttpsRedirection();
             app.UseRouting();
-
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>

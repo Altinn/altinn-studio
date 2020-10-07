@@ -104,7 +104,7 @@ function Receipt(props: WithStyles<typeof styles>) {
   };
 
   const getTitle = (): string => {
-    const applicationTitle = application ? application.title.nb : '';
+    const applicationTitle = getTextResourceByKey('ServiceName', textResources);
     return `${applicationTitle} ${getLanguageFromKey('receipt_platform.is_sent', language)}`;
   };
 

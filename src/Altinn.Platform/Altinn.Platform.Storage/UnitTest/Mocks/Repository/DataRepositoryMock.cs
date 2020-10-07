@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.UnitTest.Utils;
 
+using Microsoft.Azure.Documents;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
@@ -30,16 +33,24 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 
         public async Task<DataElement> Read(Guid instanceGuid, Guid dataElementId)
         {
-            DataElement dataElement;
+            DataElement dataElement = null;
 
             lock (TestDataUtil.dataLock)
             {
                 string elementPath = Path.Combine(GetDataElementsPath(), dataElementId.ToString() + ".json");
-                string content = File.ReadAllText(elementPath);
-                dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                if (File.Exists(elementPath))
+                {
+                    string content = File.ReadAllText(elementPath);
+                    dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                }
             }
 
-            return await Task.FromResult(dataElement);
+            if (dataElement != null)
+            {
+                return await Task.FromResult(dataElement);
+            }
+
+            throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));
         }
 
         public async Task<List<DataElement>> ReadAll(Guid instanceGuid)
@@ -91,6 +102,24 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DataRepositoryMock).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\data\blob\");
+        }
+
+        private static DocumentClientException CreateDocumentClientExceptionForTesting(string message, HttpStatusCode httpStatusCode)
+        {
+            Type type = typeof(DocumentClientException);
+
+            string fullName = type.FullName ?? "wtf?";
+
+            object documentClientExceptionInstance = type.Assembly.CreateInstance(
+                fullName,
+                false,
+                BindingFlags.Instance | BindingFlags.NonPublic,
+                null,
+                new object[] { message, null, null, httpStatusCode, null },
+                null,
+                null);
+
+            return (DocumentClientException)documentClientExceptionInstance;
         }
     }
 }

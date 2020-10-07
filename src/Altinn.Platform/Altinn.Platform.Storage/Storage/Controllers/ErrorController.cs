@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Altinn.Platform.Authentication.Controllers
+namespace Altinn.Platform.Storage.Controllers
 {
     /// <summary>
     /// Handles the presentation of unhandled exceptions during the execution of a request.
@@ -9,7 +9,7 @@ namespace Altinn.Platform.Authentication.Controllers
     [ApiController]
     [ApiExplorerSettings(IgnoreApi = true)]
     [AllowAnonymous]
-    [Route("authentication/api/v1")]
+    [Route("storage/api/v1")]
     public class ErrorController : ControllerBase
     {
         /// <summary>

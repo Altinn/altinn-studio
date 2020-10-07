@@ -25,8 +25,7 @@ import org.w3c.dom.Document;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -41,12 +40,14 @@ public class PDFGenerator {
   private float fontSize = 10;
   private float headerFontSize = 14;
   private float leading = 1.2f * fontSize;
+  private float margin = 50;
   private PDFont font;
   private PDFont fontBold;
   private TextResources textResources;
   private Instance instance;
   private Document formData;
   private FormLayout formLayout;
+  private List<FormLayoutElement> initializedLayout;
   private Party party;
   private Party userParty;
   private UserProfile userProfile;
@@ -77,15 +78,18 @@ public class PDFGenerator {
     this.userParty = pdfContext.getUserParty();
     this.userProfile = pdfContext.getUserProfile();
     try {
-      this.formData = FormDataUtils.parseXml(pdfContext.getData());
+      this.formData = FormUtils.parseXml(pdfContext.getData());
       this.textResources.setResources(parseTextResources(this.textResources.getResources(), this.formData));
+      // Initializes our form layout => remove components which are rendered as part of a group & setup initial data needed to generate the groups.
+      List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(this.formLayout.getData().getLayout());
+      this.initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
     } catch (Exception e) {
       BasicLogger.log(Level.SEVERE, e.toString());
     }
   }
 
    /**
-   * Generetes the pdf based on the pdf context
+   * Generates the pdf based on the pdf context
    * @return a byte array output stream containing the generated pdf
    * @throws IOException
    */
@@ -119,7 +123,6 @@ public class PDFGenerator {
     createNewPage();
     float pageWidth = currentPage.getMediaBox().getWidth();
     float pageHeight = currentPage.getMediaBox().getHeight();
-    float margin = 50;
     this.width = pageWidth - 2* margin;
 
     // sets background color
@@ -141,19 +144,46 @@ public class PDFGenerator {
     renderSubmittedBy();
 
     // Loop through all pdfLayout elements and draws them
-    for (FormLayoutElement element : formLayout.getData().getLayout()) {
+    for (FormLayoutElement element : initializedLayout) {
       if (element.getType().equals("Button")) {
         continue;
       }
-      float elementHeight = LayoutUtils.getElementHeight(element, font, fontSize, width, leading, textFieldMargin, textResources, formData, instance);
-      if ((yPoint - elementHeight) < (0 + margin)) {
-        // the element would fall outside the page, we create new page and start from there
-        createNewPage();
-        yPoint = currentPage.getMediaBox().getHeight() - margin;
+      if (element.getType().equalsIgnoreCase("group")) {
+        // We have a group. Render child components.
+        if (element.getMaxCount() > 0) {
+          // repeating group => update data binding based on group count
+          String groupBinding = element.getDataModelBindings().get("group");
+          for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
+            for (String childId: element.getChildren()) {
+              FormLayoutElement childElement = formLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+              if (childElement == null) {
+                continue;
+              }
+              if (childElement.getDataModelBindings() != null) {
+                Map<String, String> dataBindings = childElement.getDataModelBindings();
+                for (Map.Entry<String, String> dataBinding : dataBindings.entrySet()) {
+                  String replacedBinding = dataBinding.getValue().replace(groupBinding, groupBinding + '[' + groupIndex + ']');
+                  if (groupIndex > 0) {
+                    replacedBinding = replacedBinding.replace("[" + (groupIndex - 1) + "]", "");
+                  }
+                  dataBinding.setValue(replacedBinding);
+                }
+              }
+              renderLayoutElement(childElement);
+            }
+          }
+        } else {
+          // not repeating => treat children as regular components
+          for (String childId : element.getChildren()) {
+            FormLayoutElement childElement = formLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+            if (childElement != null ) {
+              renderLayoutElement(childElement);
+            }
+          }
+        }
+      } else {
+        renderLayoutElement(element);
       }
-      addPart();
-      renderLayoutElement(element);
-      yPoint -= componentMargin;
     }
 
     // close document and save
@@ -167,6 +197,14 @@ public class PDFGenerator {
 
   private void renderLayoutElement(FormLayoutElement element) throws IOException {
     // Render title
+    float elementHeight = LayoutUtils.getElementHeight(element, font, fontSize, width, leading, textFieldMargin, textResources, formData, instance);
+    if ((yPoint - elementHeight) < (0 + margin)) {
+      // the element would fall outside the page, we create new page and start from there
+      createNewPage();
+      yPoint = currentPage.getMediaBox().getHeight() - margin;
+    }
+    addPart();
+
     String titleKey = element.getTextResourceBindings().getTitle();
     if (titleKey != null && !titleKey.isEmpty()) {
       String title = TextUtils.getTextResourceByKey(titleKey, textResources);
@@ -197,6 +235,7 @@ public class PDFGenerator {
       // all other components rendered equally
       renderLayoutElementContent(element);
     }
+    yPoint -= componentMargin;
   }
 
   private void renderHeader() throws IOException{
@@ -303,7 +342,7 @@ public class PDFGenerator {
   }
 
   private void renderLayoutElementContent(FormLayoutElement element) throws IOException {
-    String value = FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
+    String value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
     if (element.getType().equalsIgnoreCase("Datepicker")) {
       renderContent(TextUtils.getDateFormat(value, getUserLanguage()));
     } else {
@@ -331,25 +370,25 @@ public class PDFGenerator {
 
   private void renderAddressComponent(FormLayoutElement element) throws IOException {
     renderText(getLanguageString("address"), font, fontSize, StandardStructureTypes.P);
-    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("address"), this.formData));
+    renderContent(FormUtils.getFormDataByKey(element.getDataModelBindings().get("address"), this.formData));
     yPoint -= componentMargin;
 
     renderText(getLanguageString("zip_code"), font, fontSize, StandardStructureTypes.P);
-    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("zipCode"), this.formData));
+    renderContent(FormUtils.getFormDataByKey(element.getDataModelBindings().get("zipCode"), this.formData));
     yPoint -= componentMargin;
 
     renderText(getLanguageString("post_place"), font, fontSize, StandardStructureTypes.P);
-    renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("postPlace"), this.formData));
+    renderContent(FormUtils.getFormDataByKey(element.getDataModelBindings().get("postPlace"), this.formData));
     yPoint -= componentMargin;
 
     if (!element.isSimplified()) {
       renderText(getLanguageString("care_of"), font, fontSize, StandardStructureTypes.P);
       renderText(getLanguageString("house_number_helper"), font, fontSize, StandardStructureTypes.P);
-      renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("careOf"), this.formData));
+      renderContent(FormUtils.getFormDataByKey(element.getDataModelBindings().get("careOf"), this.formData));
       yPoint -= componentMargin;
 
       renderText(getLanguageString("house_number"), font, fontSize, StandardStructureTypes.P);
-      renderContent(FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("houseNumber"), this.formData));
+      renderContent(FormUtils.getFormDataByKey(element.getDataModelBindings().get("houseNumber"), this.formData));
       yPoint -= componentMargin;
     }
   }
@@ -389,7 +428,7 @@ public class PDFGenerator {
       if(res.getVariables() != null){
         for(TextResourceVariableElement variable : res.getVariables()){
           if(variable.getDataSource().startsWith("dataModel")){
-            replaceValues.add(FormDataUtils.getFormDataByKey(variable.getKey(), formData));
+            replaceValues.add(FormUtils.getFormDataByKey(variable.getKey(), formData));
           }
         }
         res.setValue(replaceParameters(res.getValue(), replaceValues));

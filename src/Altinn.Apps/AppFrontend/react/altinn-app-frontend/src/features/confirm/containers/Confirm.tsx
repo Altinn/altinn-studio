@@ -1,15 +1,17 @@
+/* eslint-disable max-len */
 import * as React from 'react';
 import { RouteChildrenProps, withRouter } from 'react-router';
 import { useSelector } from 'react-redux';
 import { createMuiTheme } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
 import { AltinnReceipt, AltinnContentLoader, AltinnContentIconReceipt, AltinnButton, AltinnLoader } from 'altinn-shared/components';
-import { IInstance, IParty, IProfile } from 'altinn-shared/types';
+import { IInstance, IParty } from 'altinn-shared/types';
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { getCurrentTaskData, mapInstanceAttachments } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IValidations } from 'src/types';
 import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
+import { getTextResource } from 'src/utils/formComponentUtils';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { get } from '../../../utils/networking';
@@ -71,19 +73,15 @@ export const returnConfirmSummaryObject = (data: ISummaryData): {} => {
 const Confirm = (props: IConfirmProps) => {
   const classes = useStyles();
 
-  const [appName, setAppName] = React.useState('');
   const [attachments, setAttachments] = React.useState([]);
   const [lastChangedDateTime, setLastChangedDateTime] = React.useState('');
   const [instanceMetaObject, setInstanceMetaObject] = React.useState({});
-  const [userLanguage, setUserLanguage] = React.useState('nb');
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
-
   const applicationMetadata: IApplicationMetadata = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
-  const profile: IProfile = useSelector((state: IRuntimeState) => state.profile.profile);
 
   const routeParams: any = props.match.params;
 
@@ -95,7 +93,6 @@ const Confirm = (props: IConfirmProps) => {
     !attachments ||
     !instanceMetaObject ||
     !lastChangedDateTime ||
-    !appName ||
     !instance ||
     !lastChangedDateTime ||
     !parties
@@ -105,12 +102,6 @@ const Confirm = (props: IConfirmProps) => {
     OrgsActions.fetchOrgs();
     InstanceDataActions.getInstanceData(routeParams.partyId, routeParams.instanceGuid);
   }, []);
-
-  React.useEffect(() => {
-    if (profile && profile.profileSettingPreference) {
-      setUserLanguage(profile.profileSettingPreference.language);
-    }
-  }, [profile]);
 
   React.useEffect(() => {
     if (instance && instance.org && parties && applicationMetadata) {
@@ -125,12 +116,6 @@ const Confirm = (props: IConfirmProps) => {
       setInstanceMetaObject(obj);
     }
   }, [parties, instance, lastChangedDateTime, applicationMetadata]);
-
-  React.useEffect(() => {
-    if (applicationMetadata && applicationMetadata.title) {
-      setAppName(applicationMetadata.title[userLanguage]);
-    }
-  }, [applicationMetadata, userLanguage]);
 
   React.useEffect(() => {
     if (instance && instance.data && applicationMetadata) {
@@ -174,7 +159,7 @@ const Confirm = (props: IConfirmProps) => {
       <>
         <AltinnReceipt
           attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
-          body={getTextFromAppOrDefault('confirm.body', textResources, language, [appName])}
+          body={getTextFromAppOrDefault('confirm.body', textResources, language, [getTextResource('ServiceName', textResources)])}
           collapsibleTitle={getTextFromAppOrDefault('confirm.attachments', textResources, language, null, true)}
           hideCollapsibleCount={true}
           instanceMetaDataObject={instanceMetaObject}
