@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository;
+using Altinn.Platform.Events.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -16,20 +17,18 @@ namespace Altinn.Platform.Events.Controllers
     [ApiController]
     public class EventsController : ControllerBase
     {
-        private readonly IEventsRepository _repository;
-        private readonly INewEventsRepository _newRepository;
+        private readonly IEventsPostgresService _postgresService;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsController"/> class
         /// </summary>
-        /// <param name="repository">the events repository handler</param>
+        /// <param name="postgresService">postgres service</param>
         /// <param name="logger">dependency injection of logger</param>
-        public EventsController(IEventsRepository repository, ILogger<EventsController> logger, INewEventsRepository newEventsRepository)
+        public EventsController(IEventsPostgresService postgresService, ILogger<EventsController> logger )
         {
-            _repository = repository;
             _logger = logger;
-            _newRepository = newEventsRepository;
+            _postgresService = postgresService;
         }
 
         /// <summary>
@@ -52,12 +51,7 @@ namespace Altinn.Platform.Events.Controllers
 
             try
             {
-                // Force cosmos to create id
-                cloudEvent.Id = null;
-
-                string cloudEventId = await _repository.Create(cloudEvent);
-                int result = _newRepository.Create(cloudEvent);
-                _logger.LogInformation("Testresult: " + result);
+                string cloudEventId = _postgresService.StoreItemToPostgresDb(cloudEvent);
                 _logger.LogInformation("Cloud Event successfully stored with id: {0}", cloudEventId);
 
                 return Created(cloudEvent.Subject, cloudEventId);

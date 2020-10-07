@@ -9,6 +9,5 @@ namespace Altinn.Platform.Events.Configuration
         /// Connection string for the postgres db
         /// </summary>
         public string DefaultConnection { get; set; }
-
     }
 }

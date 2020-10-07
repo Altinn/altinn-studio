@@ -1,10 +1,11 @@
 using Altinn.Platform.Events.Configuration;
 using Npgsql;
+using Npgsql.Logging;
 
 namespace Altinn.Platform.Events.Repository
 {
     /// <summary>
-    /// Something smart
+    /// Handling the postgres db
     /// </summary>
     public class PostgresDatabaseHandler
     {
@@ -19,10 +20,11 @@ namespace Altinn.Platform.Events.Repository
         }
 
         /// <summary>
-        /// Something smart
+        /// Creates a new connection to postgres db
         /// </summary>
         public NpgsqlConnection GetConnection()
         {
+            NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
             return new NpgsqlConnection(postgresSettings.DefaultConnection);
         }
     }
