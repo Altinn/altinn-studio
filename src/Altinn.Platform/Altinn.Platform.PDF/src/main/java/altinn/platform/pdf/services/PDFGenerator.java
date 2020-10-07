@@ -153,6 +153,7 @@ public class PDFGenerator {
       Iterator<FormLayout> iterator = formLayouts.values().iterator();
       while (iterator.hasNext()) {
         FormLayout layout = iterator.next();
+        originalFormLayout = layout;
         List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
         List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
         renderFormLayout(initializedLayout);
