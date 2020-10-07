@@ -57,7 +57,7 @@ public class LayoutUtils {
         height += (leading - fontSize);
       }
     } else {
-      String value = FormDataUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
+      String value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
       float rectHeight = TextUtils.getHeightNeededForTextBox(value, font, fontSize, width, leading);
       PDRectangle rect = new PDRectangle(0, 0, width, rectHeight);
       height += rect.getHeight();
