@@ -24,5 +24,10 @@ namespace Altinn.Platform.Storage.Configuration
         /// name of the collection in the given database
         /// </summary>
         public string Collection { get; set; }
+
+        /// <summary>
+        /// boolean to indicate if query metrics should be collected.
+        /// </summary>
+        public bool CollectMetrics { get; set; }
     }
 }
