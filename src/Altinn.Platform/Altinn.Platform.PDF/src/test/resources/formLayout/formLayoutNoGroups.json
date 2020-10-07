@@ -1,0 +1,200 @@
+{
+  "data": {
+    "layout": [
+      {
+        "id": "9f4224c4-ec21-4547-836c-8349cb92acf7",
+        "type": "Header",
+        "componentType": 0,
+        "textResourceBindings": {
+          "title": "ServiceName"
+        },
+        "dataModelBindings": {},
+        "size": "S"
+      },
+      {
+        "id": "d6cd758d-2d98-4232-a15f-cb89717625ec",
+        "type": "Paragraph",
+        "componentType": 1,
+        "textResourceBindings": {
+          "title": "33316.Journalnummerdatadef33316.Label"
+        },
+        "dataModelBindings": {}
+      },
+      {
+        "id": "f7806a6a-f261-4b60-bb5f-bfa7a36a79b6",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "33316.Journalnummerdatadef33316.Label",
+          "description": "33316.Journalnummerdatadef33316.Label",
+          "help": "33316.Journalnummerdatadef33316.helptext"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.Journalnummer-datadef-33316.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "4f0fbab6-0a9c-40bb-95de-ae11e8402713",
+        "type": "AddressComponent",
+        "componentType": 11,
+        "textResourceBindings": {
+          "title": "3445.InnsenderAdressedatadef3445.Label"
+        },
+        "dataModelBindings": {
+          "address": "Foretak-grp-8820.InnsenderAdresse-datadef-3445.value",
+          "zipCode": "Foretak-grp-8820.InnsenderPostnummer-datadef-11339.value",
+          "postPlace": "Foretak-grp-8820.InnsenderPoststed-datadef-11340.value"
+        },
+        "simplified": true,
+        "readOnly": false,
+        "required": true
+      },
+      {
+        "id": "1caa8889-6c30-4256-b952-96c2b863326d",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "Kort svar"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Skjemainstans-grp-8854.IdentifikasjonsnummerKrav-datadef-33317.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "d323f51d-03ef-423a-9449-086fd1638360",
+        "type": "Input",
+        "componentType": 2,
+        "textResourceBindings": {
+          "title": "Kort svar"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value"
+        },
+        "required": true,
+        "readOnly": true
+      },
+      {
+        "id": "9ac139f9-23c7-4b2d-b318-2bf98472dc90",
+        "type": "TextArea",
+        "componentType": 7,
+        "textResourceBindings": {
+          "title": "33290.Merknaddatadef33290.Label",
+          "description": "33290.Merknaddatadef33290.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Foretak-grp-8820.Merknad-datadef-33290.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "ed41d928-6784-46d3-a992-73d978a388f1",
+        "type": "Datepicker",
+        "componentType": 3,
+        "textResourceBindings": {
+          "title": "33282.AnsattSoknadAFPDatodatadef33282.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattSoknadAFPDato-datadef-33282.value"
+        },
+        "readOnly": false,
+        "format": "DD/MM/YYYY",
+        "minDate": "1900-01-01T12:00:00Z",
+        "maxDate": "2100-01-01T12:00:00Z",
+        "required": true,
+        "timeStamp": false
+      },
+      {
+        "id": "d34e047b-4de5-4f0f-a7a2-5033fa2b2c36",
+        "type": "Checkboxes",
+        "componentType": 5,
+        "textResourceBindings": {
+          "title": "33281.AnsattPermisjonTypedatadef33281.Label",
+          "description": "checkbox.desc"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Permisjonsopplysninger-grp-8822.AnsattPermisjonType-datadef-33281.value"
+        },
+        "required": true,
+        "optionsId": "checkbox"
+      },
+      {
+        "id": "8c0f817b-afe0-440c-b860-3c03ea9f6c1c",
+        "type": "RadioButtons",
+        "componentType": 6,
+        "textResourceBindings": {
+          "title": "33269.AnsattArbeidsforholdOpphortdatadef33269.Label",
+          "description": "radio.desc"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Arbeidsforhold-grp-8856.AnsattArbeidsforholdOpphort-datadef-33269.value"
+        },
+        "required": true,
+        "optionsId": "radiobutton"
+      },
+      {
+        "id": "15f82eba-c364-4cf4-9ce1-452cff866334",
+        "type": "Dropdown",
+        "componentType": 4,
+        "textResourceBindings": {
+          "title": "33271.AnsattArbeidsforholdOpphortArsakdatadef33271.Label",
+          "description": "33271.AnsattArbeidsforholdOpphortArsakdatadef33271.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Arbeidsforhold-grp-8856.AnsattArbeidsforholdOpphortArsak-datadef-33271.value"
+        },
+        "optionsId": "list",
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "d817ef98-00da-4ec5-8d3b-1d38d9972f3e",
+        "type": "Datepicker",
+        "componentType": 3,
+        "textResourceBindings": {
+          "title": "1387.AnsattTiltredelseDatodatadef1387.Label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.Arbeidsforhold-grp-8856.AnsattTiltredelseDato-datadef-1387.value"
+        },
+        "readOnly": false,
+        "format": "DD/MM/YYYY",
+        "minDate": "1900-01-01T12:00:00Z",
+        "maxDate": "2100-01-01T12:00:00Z",
+        "required": true,
+        "timeStamp": false
+      },
+      {
+        "id": "749cfa90-a3d2-4a7c-9a09-77e43aab94d2",
+        "type": "FileUpload",
+        "componentType": 8,
+        "textResourceBindings": {
+          "title": "attachment.titletext"
+        },
+        "dataModelBindings": {},
+        "maxFileSizeInMB": 1,
+        "maxNumberOfAttachments": 3,
+        "minNumberOfAttachments": 0,
+        "displayMode": "list",
+        "required": false,
+        "hasCustomFileEndings": true,
+        "validFileEndings": ".pdf, .jpeg, .jpg, .png"
+      },
+      {
+        "id": "89fd9689-1edf-4ea7-b310-3f915a7030a2",
+        "type": "Button",
+        "componentType": 9,
+        "textResourceBindings": {
+          "title": "sendinn"
+        },
+        "dataModelBindings": {},
+        "textResourceId": "Standard.Button.Button",
+        "customType": "Standard"
+      }
+    ]
+  }
+}

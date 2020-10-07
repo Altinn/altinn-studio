@@ -10,8 +10,8 @@ namespace Altinn.App.Services.Interface
     public interface IPDF
     {
         /// <summary>
-        /// Generates a pdf receipt
+        /// Generates a pdf receipt for a given dataElement
         /// </summary>
-        Task GenerateAndStoreReceiptPDF(Instance instance);
+        Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement);
     }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable react/no-find-dom-node */
 import * as React from 'react';
 import { ConnectDragPreview,
   ConnectDragSource,
@@ -164,22 +165,26 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
           const clientOffset = monitor.getClientOffset();
           const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
-          if (draggedItem.id === props.id || draggedItem.index === props.index) {
+          if (draggedItem.id === props.id) {
             return;
           }
 
           if (hoverClientY > hoverMiddleY) {
             hoverOverIndex += 1;
+            if (draggedItem.index === hoverOverIndex) {
+              return;
+            }
           }
 
           props.onMoveComponent(
             draggedItem.id,
             hoverOverIndex,
             draggedItem.containerId,
-            component.props.containerId,
+            props.containerId,
           );
 
-          monitor.getItem().index = hoverOverIndex;
+          draggedItem.index = hoverOverIndex;
+          draggedItem.containerId = props.containerId;
           break;
         }
         case 'CONTAINER': {
@@ -206,7 +211,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
             component.props.containerId,
           );
 
-          monitor.getItem().index = hoverOverIndex;
+          draggedContainer.index = hoverOverIndex;
           break;
         }
         default: {

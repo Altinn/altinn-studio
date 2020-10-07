@@ -65,9 +65,18 @@ namespace Altinn.App.Services.Interface
         /// Update substatus.
         /// </summary>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
-        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="instanceGuid">The id of the instance to be updated.</param>
         /// <param name="substatus">The new substatus.</param>
         /// <returns>Returns the updated instance.</returns>
         Task<Instance> UpdateSubstatus(int instanceOwnerPartyId, Guid instanceGuid, Substatus substatus);
+
+        /// <summary>
+        /// Delete instance.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to delete.</param>
+        /// <param name="hard">Boolean to indicate if instance should be hard deleted.</param>
+        /// <returns>Returns the deleted instance.</returns>
+        Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard);
     }
 }

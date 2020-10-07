@@ -13,7 +13,9 @@ using Altinn.App.Common.RequestHandling;
 using Altinn.App.Common.Serialization;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
@@ -29,7 +31,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -53,6 +55,9 @@ namespace Altinn.App.Api.Controllers
         private readonly IAltinnApp _altinnApp;
         private readonly IProcess _processService;
         private readonly IPDP _pdp;
+        private readonly IEvents _eventsService;
+
+        private readonly AppSettings _appSettings;
 
         private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
@@ -67,7 +72,9 @@ namespace Altinn.App.Api.Controllers
             IAppResources appResourcesService,
             IAltinnApp altinnApp,
             IProcess processService,
-            IPDP pdp)
+            IPDP pdp,
+            IEvents eventsService,
+            IOptions<AppSettings> appSettings)
         {
             _logger = logger;
             _instanceService = instanceService;
@@ -76,8 +83,9 @@ namespace Altinn.App.Api.Controllers
             _registerService = registerService;
             _altinnApp = altinnApp;
             _processService = processService;
-
             _pdp = pdp;
+            _eventsService = eventsService;
+            _appSettings = appSettings.Value;
         }
 
         /// <summary>
@@ -282,6 +290,8 @@ namespace Altinn.App.Api.Controllers
                 return ExceptionResponse(exception, $"Instantiation of data elements failed for instance {instance.Id} for party {instanceTemplate.InstanceOwner?.PartyId}");
             }
 
+            await RegisterInstanceCreatedEvent(instance);
+
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
             string url = instance.SelfLinks.Apps;
 
@@ -326,9 +336,9 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
-        /// <param name="instanceGuid">The id of the instance to confirm as complete.</param>
+        /// <param name="instanceGuid">The id of the instance to update.</param>
         /// <param name="substatus">The new substatus of the instance.</param>
-        /// <returns>Returns the instance with updated list of confirmations.</returns>
+        /// <returns>Returns the instance with updated substatus.</returns>
         [Authorize]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/substatus")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -364,6 +374,34 @@ namespace Altinn.App.Api.Controllers
             catch (Exception exception)
             {
                 return ExceptionResponse(exception, $"Updating substatus for instance {instanceOwnerPartyId}/{instanceGuid} failed.");
+            }
+        }
+
+        /// <summary>
+        /// Deletes an instance.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">The party id of the instance owner.</param>
+        /// <param name="instanceGuid">The id of the instance to delete.</param>
+        /// <returns>Returns the deleted instance.</returns>
+        [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_DELETE)]
+        [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Produces("application/json")]
+        public async Task<ActionResult<Instance>> DeleteInstance(
+            [FromRoute] int instanceOwnerPartyId,
+            [FromRoute] Guid instanceGuid,
+            [FromQuery] bool hard)
+        {
+            try
+            {
+                Instance deletedInstance = await _instanceService.DeleteInstance(instanceOwnerPartyId, instanceGuid, hard);
+                SelfLinkHelper.SetInstanceAppSelfLinks(deletedInstance, Request);
+
+                return Ok(deletedInstance);
+            }
+            catch (Exception exception)
+            {
+                return ExceptionResponse(exception, $"Deleting instance {instanceOwnerPartyId}/{instanceGuid} failed.");
             }
         }
 
@@ -556,6 +594,21 @@ namespace Altinn.App.Api.Controllers
             }
 
             return instanceTemplate;
+        }
+
+        private async Task RegisterInstanceCreatedEvent(Instance instance)
+        {
+            if (_appSettings.RegisterEventsWithEventsComponent)
+            {
+                try
+                {
+                    await _eventsService.AddEvent("app.instance.created", instance);
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogWarning(exception, "Exception when sending event with the Events component.");
+                }
+            }
         }
     }
 }

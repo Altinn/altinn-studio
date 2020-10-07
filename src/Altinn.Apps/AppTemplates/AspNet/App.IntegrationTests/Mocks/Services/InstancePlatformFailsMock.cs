@@ -75,5 +75,10 @@ namespace App.IntegrationTests.Mocks.Services
         {
             throw new NotImplementedException();
         }
+
+        public Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

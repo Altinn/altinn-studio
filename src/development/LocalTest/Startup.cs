@@ -13,6 +13,7 @@ using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.ModelBinding;
+using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Storage.Repository;
 using Altinn.Platform.Storage.Helpers;
 
@@ -20,6 +21,7 @@ using LocalTest.Configuration;
 using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authorization.Implementation;
+using LocalTest.Services.Events.Implementation;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Profile.Implementation;
 using LocalTest.Services.Register.Interface;
@@ -71,6 +73,7 @@ namespace LocalTest
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
+            services.AddSingleton<IEventsRepository, EventsRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<ITextRepository, TextRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -91,7 +94,6 @@ namespace LocalTest
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(options =>
                 {
-                    var generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuerSigningKey = true,
@@ -108,6 +110,7 @@ namespace LocalTest
             {
                 options.AddPolicy(AuthzConstants.POLICY_INSTANCE_READ, policy => policy.Requirements.Add(new AppAccessRequirement("read")));
                 options.AddPolicy(AuthzConstants.POLICY_INSTANCE_WRITE, policy => policy.Requirements.Add(new AppAccessRequirement("write")));
+                options.AddPolicy(AuthzConstants.POLICY_INSTANCE_DELETE, policy => policy.Requirements.Add(new AppAccessRequirement("delete")));
                 options.AddPolicy(AuthzConstants.POLICY_SCOPE_APPDEPLOY, policy => policy.Requirements.Add(new ScopeAccessRequirement("altinn:appdeploy")));
                 options.AddPolicy(AuthzConstants.POLICY_SCOPE_INSTANCE_READ, policy => policy.Requirements.Add(new ScopeAccessRequirement("altinn:instances.read")));
             });
@@ -115,7 +118,7 @@ namespace LocalTest
 
             services.AddMvc(options =>
             {
-                // Adding custom modelbinders
+                // Adding custom model binders
                 options.ModelBinderProviders.Insert(0, new XacmlRequestApiModelBinderProvider());
             });
         }

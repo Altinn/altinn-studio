@@ -24,13 +24,13 @@ import * as apps from "../../api/storage/applications.js"
 import { deleteSblInstance } from "../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../setup.js";
 
-const instanceFormDataXml = open("../../data/" + level2App + ".xml");
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
 const environment = (__ENV.env).toLowerCase();
 const fileName = "users_" + environment + ".json";
 
 var attachmentDistribution = __ENV.attachmentdistribution;
+const instanceFormDataXml = open("../../data/" + level2App + ".xml");
 const smallAttachment = open("../../data/50kb.txt");
 const mediumAttachment = open("../../data/1mb.txt");
 const largeAttachment = open("../../data/99mb.txt");

@@ -66,7 +66,7 @@ namespace LocalTest.Controllers
             model.AppPath = _localPlatformSettings.AppRepsitoryBasePath;
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
 
-            if (model.TestApps.Count() == 0)
+            if (!model.TestApps.Any())
             {
                 model.InvalidAppPath = true;
             }

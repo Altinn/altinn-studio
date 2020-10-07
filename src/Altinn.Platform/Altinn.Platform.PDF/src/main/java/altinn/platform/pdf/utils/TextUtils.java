@@ -4,9 +4,12 @@ import altinn.platform.pdf.models.TextResourceElement;
 import altinn.platform.pdf.models.TextResources;
 import com.google.gson.Gson;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import java.io.*;
+import java.lang.invoke.MethodHandles;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
@@ -221,23 +224,33 @@ public class TextUtils {
 
   /**
    * Reads all the language files and puts them in a lang map
+   * @return a map of languages with corresponding texts
    */
-  public static void readLanguageFiles() throws IOException {
-    ClassPathResource langDir = new ClassPathResource(("language"));
-    File[] files = langDir.getFile().listFiles();
+  public static Map<String, Map<String, String>> readLanguageFiles() throws IOException {
+    ClassLoader classLoader = MethodHandles.lookup().getClass().getClassLoader();
+    PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(classLoader);
+    Resource[] resources = resolver.getResources("classpath:language/*.json");
+
     Map<String, Map<String, String>> languagesMap = new HashMap<>();
     Gson gson = new Gson();
-    for (final File file: files) {
-      String langCode = file.getName().split("\\.")[0];
+    for (final Resource resource: resources) {
+      String langCode = resource.getFilename().split("\\.")[0];
       try (
-        FileReader fileReader = new FileReader((file));
-        BufferedReader bufferedReader = new BufferedReader(fileReader);
+        InputStreamReader inputStreamReader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
+        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
       ) {
         Map<String, String> langMap = gson.fromJson(bufferedReader, Map.class);
         languagesMap.put(langCode, langMap);
       }
     }
-    languages = languagesMap;
+    return languagesMap;
+  }
+
+  /**
+   * initializes the languages
+   */
+  public static void initializeLanguages() throws IOException {
+    languages = readLanguageFiles();
   }
 
   /**

@@ -49,6 +49,7 @@ export default function (data) {
     const attachmentDataType = data["attachmentDataType"];
     var instanceId = "";
     var dataId = "";
+    var isReceiptPdfGenerated = false;
 
     //Test to create an instance with App api and validate the response
     instanceId = appInstances.postInstance(runtimeToken, partyId, appOwner, level2App);
@@ -129,8 +130,10 @@ export default function (data) {
 
     //Test to call get instance details and verify the presence of archived date
     res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);
+    isReceiptPdfGenerated = appInstances.isReceiptPdfGenerated(res.body);
     success = check(res, {
-        "E2E App Instance is archived:": (r) => (JSON.parse(r.body)).status.archived != null
+        "E2E App Instance is archived:": (r) => (JSON.parse(r.body)).status.archived != null,
+        "E2E Receipt pdf is generated:": (r) => isReceiptPdfGenerated == true
     });
     deleteSblInstance(runtimeToken, partyId, instanceId, "true");
 };

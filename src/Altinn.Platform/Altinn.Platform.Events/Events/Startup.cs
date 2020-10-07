@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Reflection;
+
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Health;
 using Altinn.Platform.Events.Repository;
@@ -19,7 +20,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Yuniql.AspNetCore;
+using Yuniql.PostgreSql;
 
 namespace Altinn.Platform.Events
 {
@@ -113,6 +117,23 @@ namespace Altinn.Platform.Events
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             _logger.LogInformation("Startup // Configure");
+
+            if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
+            {
+                ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
+
+                app.UseYuniql(
+                    new PostgreSqlDataService(traceService),
+                    new PostgreSqlBulkImportService(traceService),
+                    traceService,
+                    new Yuniql.AspNetCore.Configuration
+                    {
+                        WorkspacePath = Path.Combine(Environment.CurrentDirectory, Configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
+                        ConnectionString = Configuration.GetValue<string>("PostgreSQLSettings:ConnectionString"),
+                        AutoCreateDatabase = false,
+                        DebugTraceMode = true
+                    });
+            }
 
             string authenticationEndpoint = string.Empty;
             if (Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpoint") != null)

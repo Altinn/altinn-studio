@@ -232,8 +232,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
         dataModelBindings: {},
         itemType: 'CONTAINER',
       } as ICreateFormContainer,
-      null,
       containerId,
+      null,
       null,
       index,
     );

@@ -1,8 +1,7 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components'
-import { getLanguageFromKey, getUserLanguage } from 'altinn-shared/utils';
+import { AltinnContentLoader, AltinnContentIconFormData } from 'altinn-shared/components';
 import InstanceDataActions from '../resources/instanceData/instanceDataActions';
 import ProcessDispatcher from '../resources/process/processDispatcher';
 import { IRuntimeState, ProcessSteps, IAltinnWindow } from '../../types';
@@ -14,6 +13,7 @@ import UnknownError from '../../features/instantiate/containers/UnknownError';
 import QueueActions from '../resources/queue/queueActions';
 import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
 import Feedback from '../../features/feedback/Feedback';
+import { getTextResourceByKey } from 'altinn-shared/utils';
 
 export default (props) => {
   const {
@@ -25,21 +25,43 @@ export default (props) => {
     },
   } = props;
   const [userLanguage, setUserLanguage] = React.useState('nb');
+  const [appHeader, setAppHeader] = React.useState('');
 
   const instantiating = useSelector((state: IRuntimeState) => state.instantiation.instantiating);
   const instanceId = useSelector((state: IRuntimeState) => state.instantiation.instanceId);
   const applicationMetadata: any = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const isLoading: boolean = useSelector((state: IRuntimeState) => state.isLoading.dataTask);
-  const textResources: any[] = useSelector((state: IRuntimeState) => state.language.language);
+  const textResources: any[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const processStep: ProcessSteps = useSelector((state: IRuntimeState) => state.process.state);
   const hasErrorSelector = makeGetHasErrorsSelector();
   const hasApiErrors = useSelector(hasErrorSelector);
+  const profile = useSelector((state: IRuntimeState) => state.profile.profile);
 
   (window as Window as IAltinnWindow).instanceId = `${partyId}/${instanceGuid}`;
 
   React.useEffect(() => {
-    setUserLanguage(getUserLanguage());
-  }, []);
+    if (profile && profile.profileSettingPreference) {
+      setUserLanguage(profile.profileSettingPreference.language);
+    }
+  }, [profile]);
+
+  React.useEffect(() => {
+    const getHeaderText = () => {
+      const appNameKey = 'ServiceName';
+      let appName;
+      if (textResources) {
+        appName = getTextResourceByKey(appNameKey, textResources);
+      }
+  
+      if (appName && appName === appNameKey) {
+        if (applicationMetadata) {
+          return applicationMetadata.title[userLanguage] || applicationMetadata.title.nb;
+        }
+      }
+      return appName;
+    };
+    setAppHeader(getHeaderText());
+  }, [textResources, applicationMetadata]);
 
   React.useEffect(() => {
     if (!processStep) {
@@ -78,11 +100,7 @@ export default (props) => {
 
   return (
     <ProcessStep
-      header={
-        applicationMetadata &&
-          applicationMetadata.title[userLanguage] ? applicationMetadata.title[userLanguage] :
-          getLanguageFromKey('general.ServiceName', textResources)
-      }
+      header={appHeader}
       step={processStep}
     >
       <div>

@@ -5,7 +5,7 @@
     "personNumber": "12345678901"
   },
   "appId": "ttd/model-validation",
-  "org": "tdd",
+  "org": "ttd",
   "process": {
     "started": "2019-12-11T09:34:35.5471442Z",
     "startEvent": "StartEvent_1",

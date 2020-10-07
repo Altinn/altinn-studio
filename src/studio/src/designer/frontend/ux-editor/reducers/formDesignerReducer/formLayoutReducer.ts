@@ -81,6 +81,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         callback,
         destinationIndex,
       } = action as FormDesignerActions.IAddFormContainerActionFulfilled;
+
       if (callback) {
         callback(container, id);
       }
