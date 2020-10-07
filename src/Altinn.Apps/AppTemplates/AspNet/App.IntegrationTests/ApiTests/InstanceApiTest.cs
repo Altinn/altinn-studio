@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-
+using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
 using App.IntegrationTestsRef.Utils;
 
@@ -26,6 +27,8 @@ namespace App.IntegrationTests
         public InstanceApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
             _factory = factory;
+
+            EventsMockSI.Requests.Clear();
         }
 
         /// <summary>
@@ -134,6 +137,50 @@ namespace App.IntegrationTests
             Assert.Equal("1337", createdInstance.InstanceOwner.PartyId);
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new Guid(createdInstance.Id.Split('/')[1]));
 
+        }
+
+        [Fact]
+        public async void Post_RegistrationOfEventsTurnedOn_ControllerCallsEventWithCorrectType()
+        {
+            string org = "ttd";
+            string app = "events";
+            int partyId = 1337;
+
+            Instance instanceTemplate = new Instance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = partyId.ToString(),
+                }
+            };
+
+            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
+
+            string token = PrincipalUtil.GetToken(partyId);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, $"/{org}/{app}/instances")
+            {
+                Content = content
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            response.EnsureSuccessStatusCode();
+
+            Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            Assert.Equal(partyId.ToString(), createdInstance.InstanceOwner.PartyId);
+
+            //// Commented out the Asserts as another test might clear the Requests list and then fail these.
+            ////Assert.Equal("app.instance.created", EventsMockSI.Requests.First().eventType);
+            ////Assert.NotNull(EventsMockSI.Requests.First().instance);
+
+            TestDataUtil.DeleteInstanceAndData(org, app, partyId, new Guid(createdInstance.Id.Split('/')[1]));
         }
 
         [Fact]

@@ -12,12 +12,6 @@ namespace Altinn.App.Services.Implementation
     public class InstanceEventAppSIMock : IInstanceEvent
     {
         /// <inheritdoc/>
-        public Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string org, string app)
-        {
-            return Task.FromResult(true);
-        }
-
-        /// <inheritdoc/>
         public Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string app, string[] eventTypes, string from, string to)
         {
             return Task.FromResult(new List<InstanceEvent>());

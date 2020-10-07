@@ -31,7 +31,7 @@ public class App {
   public static void main(String[] args) {
     AltinnOrgUtils.initAltinnOrgsHarvesting();
     try {
-      TextUtils.readLanguageFiles();
+      TextUtils.initializeLanguages();
       connectToKeyVaultAndSetApplicationInsight();
     } catch (Exception e) {
       BasicLogger.log(Level.SEVERE, e.getMessage());

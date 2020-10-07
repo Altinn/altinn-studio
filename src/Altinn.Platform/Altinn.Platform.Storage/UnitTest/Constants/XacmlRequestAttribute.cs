@@ -18,6 +18,11 @@ namespace Altinn.Platform.Storage.UnitTest.Constants
         public const string InstanceAttribute = "urn:altinn:instance-id";
 
         /// <summary>
+        /// xacm string that represents appresource
+        /// </summary>
+        public const string AppResourceAttribute = "urn:altinn:appresource";
+
+        /// <summary>
         /// xacml string that represents task
         /// </summary>
         public const string TaskAttribute = "urn:altinn:task";

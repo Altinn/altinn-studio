@@ -12,7 +12,7 @@ namespace App.IntegrationTestsRef.Mocks.Services
 
         }
 
-        public Task GenerateAndStoreReceiptPDF(Instance instance)
+        public Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement)
         {
             return Task.CompletedTask;
         }

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Platform.Authentication.Controllers
 {
     /// <summary>
-    /// Handles the presentation of unhandled exceptions during the execution of a requeest.
+    /// Handles the presentation of unhandled exceptions during the execution of a request.
     /// </summary>
     [ApiController]
     [ApiExplorerSettings(IgnoreApi = true)]
@@ -20,7 +20,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// if there has been an unhandled exception.
         /// </remarks>
         /// <returns>A new <see cref="ObjectResult"/> instance.</returns>
-        [HttpGet("error")]
+        [Route("error")]
         public IActionResult Error() => Problem();
     }
 }

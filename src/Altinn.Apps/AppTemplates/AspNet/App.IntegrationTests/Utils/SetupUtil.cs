@@ -7,6 +7,7 @@ using System.Linq;
 using Altinn.App;
 using Altinn.App.IntegrationTests;
 using Altinn.App.IntegrationTests.Mocks.Authentication;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
@@ -23,11 +24,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Mvc.Testing;
 
+using Moq;
+
 namespace App.IntegrationTestsRef.Utils
 {
     public static class SetupUtil
     {
-        public static HttpClient GetTestClient(CustomWebApplicationFactory<Startup> customFactory, string org, string app)
+        public static HttpClient GetTestClient(
+            CustomWebApplicationFactory<Startup> customFactory,
+            string org,
+            string app)
         {
             WebApplicationFactory<Startup> factory = customFactory.WithWebHostBuilder(builder =>
             {
@@ -57,6 +63,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddTransient<IInstance, InstanceMockSI>();
                     services.AddTransient<IData, DataMockSI>();
                     services.AddTransient<IInstanceEvent, InstanceEventAppSIMock>();
+                    services.AddTransient<IEvents, EventsMockSI>();
                     services.AddTransient<IDSF, DSFMockSI>();
                     services.AddTransient<IER, ERMockSI>();
                     services.AddTransient<IRegister, RegisterMockSI>();
@@ -88,6 +95,9 @@ namespace App.IntegrationTestsRef.Utils
                         case "sirius":
                             services.AddSingleton<ISiriusApi, SiriusAPImock>();
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.sirius.App>();
+                            break;
+                        case "events":
+                            services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.ttd.events.AltinnApp>();
                             break;
                         default:
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();

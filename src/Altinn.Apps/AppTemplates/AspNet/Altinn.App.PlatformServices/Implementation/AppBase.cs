@@ -75,22 +75,13 @@ namespace Altinn.App.Services.Implementation
         {
             await Task.CompletedTask;
             _logger.LogInformation($"OnStartProcess for {instance.Id}");
-
         }
 
         /// <inheritdoc />
         public async Task OnEndProcess(string endEvent, Instance instance)
         {
+            await Task.CompletedTask;
             _logger.LogInformation($"OnEndProcess for {instance.Id}, endEvent: {endEvent}");
-
-            if (endEvent != null && endEvent.Equals("EndEvent_1"))
-            {
-                await _pdfService.GenerateAndStoreReceiptPDF(instance);
-            }
-
-            // Set archived status
-            instance.Status ??= new InstanceStatus();
-            instance.Status.Archived = DateTime.UtcNow;
         }
 
         /// <inheritdoc />
@@ -155,13 +146,27 @@ namespace Altinn.App.Services.Implementation
 
             foreach (DataType dataType in dataTypesToLock)
             {
+                bool generatePdf = dataType.AppLogic != null;
+
                 foreach (DataElement dataElement in instance.Data.FindAll(de => de.DataType == dataType.Id))
                 {
                     dataElement.Locked = true;
                     _logger.LogInformation($"Locking data element {dataElement.Id} of dataType {dataType.Id}.");
-                    await _dataService.Update(instance, dataElement);
+                    Task updateData = _dataService.Update(instance, dataElement);
+
+                    if (generatePdf)
+                    {
+                        Task createPdf = _pdfService.GenerateAndStoreReceiptPDF(instance, dataElement);
+                        await Task.WhenAll(updateData, createPdf);
+                    }
+                    else
+                    {
+                        await updateData;
+                    }
                 }
             }
+
+            await Task.CompletedTask;
         }
     }
 }

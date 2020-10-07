@@ -80,7 +80,7 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task GenerateAndStoreReceiptPDF(Instance instance)
+        public async Task GenerateAndStoreReceiptPDF(Instance instance, DataElement dataElement)
         {
             string app = instance.AppId.Split("/")[1];
             string org = instance.Org;
@@ -88,17 +88,14 @@ namespace Altinn.App.Services.Implementation
             Application application = _appResourcesService.GetApplication();
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            DataType dataModelDataElement = application.DataTypes.Find(element => element.AppLogic != null);
-            Guid dataModelDataElementGuid = Guid.Parse(instance.Data.Find(element => element.DataType.Equals(dataModelDataElement.Id))?.Id);
-
-            Stream dataStream = await _dataService.GetBinaryData(org, app, instanceOwnerId, instanceGuid, dataModelDataElementGuid);
+            Stream dataStream = await _dataService.GetBinaryData(org, app, instanceOwnerId, instanceGuid, new Guid(dataElement.Id));
             byte[] dataAsBytes = new byte[dataStream.Length];
             await dataStream.ReadAsync(dataAsBytes);
-            string encodedXml = System.Convert.ToBase64String(dataAsBytes);
+            string encodedXml = Convert.ToBase64String(dataAsBytes);
 
             UserContext userContext = await _userHelper.GetUserContext(_httpContextAccessor.HttpContext);
             UserProfile userProfile = await _profileService.GetUserProfile(userContext.UserId);
-
+            
             byte[] formLayout = _appResourcesService.GetAppResource(org, app, _appSettings.FormLayoutJSONFileName);
             TextResource textResource = await _textService.GetText(org, app, userProfile.ProfileSettingPreference.Language);
 
@@ -129,7 +126,7 @@ namespace Altinn.App.Services.Implementation
 
             try
             {
-                await StorePDF(pdfContent, instance, application, userProfile.ProfileSettingPreference.Language);
+                await StorePDF(pdfContent, instance, textResource);
             }
             catch (Exception exception)
             {
@@ -170,19 +167,18 @@ namespace Altinn.App.Services.Implementation
             return pdfContent;
         }
 
-        private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance, Application appMetadata, string language)
+        private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance, TextResource textResource)
         {
             string fileName = null;
             string app = instance.AppId.Split("/")[1];
 
-            if (!string.IsNullOrEmpty(appMetadata.Title?[language]))
+            TextResourceElement titleText = textResource.Resources.Find(textResourceElement => textResourceElement.Id.Equals("ServiceName"));
+            
+            if (titleText != null && !String.IsNullOrEmpty(titleText.Value))
             {
-                fileName = appMetadata.Title[language] + ".pdf";
+                fileName = titleText.Value +  ".pdf";
             }
-            else if (!string.IsNullOrEmpty(appMetadata.Title?["nb"]))
-            {
-                fileName = appMetadata.Title[language] + ".pdf";
-            } else {
+            else {
                 fileName = app + ".pdf";
             }
 

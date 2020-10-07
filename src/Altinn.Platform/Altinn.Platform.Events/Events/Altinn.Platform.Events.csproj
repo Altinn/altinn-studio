@@ -8,12 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="0.5.4" />
+    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="0.5.5" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.0.4-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.2.5" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
-    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.5.0" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.0" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.11.6" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.8" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.15.0" />
@@ -23,6 +23,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Yuniql.AspNetCore" Version="1.0.2" />
+    <PackageReference Include="Yuniql.PostgreSql" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
@@ -33,6 +35,14 @@
     <AdditionalFiles Include="..\..\..\..\stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migration\_erase\" />
+    <Folder Include="Migration\_draft\" />
+    <Folder Include="Migration\_init\" />
+    <Folder Include="Migration\_post\" />
+    <Folder Include="Migration\_pre\" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

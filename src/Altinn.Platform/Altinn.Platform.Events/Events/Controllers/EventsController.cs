@@ -33,7 +33,7 @@ namespace Altinn.Platform.Events.Controllers
         /// Inserts a new event.
         /// </summary>
         /// <param name="cloudEvent">The event to store.</param>
-        /// <returns>The applicaiton metadata object.</returns>
+        /// <returns>The application metadata object.</returns>
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -54,7 +54,7 @@ namespace Altinn.Platform.Events.Controllers
 
                 string cloudEventId = await _repository.Create(cloudEvent);
 
-                _logger.LogInformation($"Cloud Event sucessfully stored", cloudEventId);
+                _logger.LogInformation("Cloud Event successfully stored with id: {0}", cloudEventId);
 
                 return Created(cloudEvent.Subject, cloudEventId);
             }

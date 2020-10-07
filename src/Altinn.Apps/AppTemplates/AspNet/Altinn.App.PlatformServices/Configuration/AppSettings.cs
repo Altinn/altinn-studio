@@ -167,5 +167,10 @@ namespace Altinn.App.Services.Configuration
         /// Cache lifetime for app resources
         /// </summary>
         public int CacheResourceLifeTimeInSeconds { get; set; } = 3600;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the app should send events to the Events component.
+        /// </summary>
+        public bool RegisterEventsWithEventsComponent { get; set; } = false;
     }
 }
