@@ -4,6 +4,7 @@ import { Grid, makeStyles } from '@material-ui/core';
 import { useSelector } from 'react-redux';
 import { IRuntimeState, INavigationConfig, ILayoutNavigation } from 'src/types';
 import classNames from 'classnames';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import FormLayoutActions from '../../features/form/layout/formLayoutActions';
 
 const useStyles = makeStyles({
@@ -15,18 +16,29 @@ const useStyles = makeStyles({
   },
 });
 
-export function NavigationButtons() {
+export interface INavigationButtons {
+  id: string;
+  showBackButton: boolean;
+  textResourceBindings: any;
+}
+
+export function NavigationButtons(props: INavigationButtons) {
   const classes = useStyles();
   const [disableBack, setDisableBack] = React.useState<boolean>(false);
   const [disableNext, setDisableNext] = React.useState<boolean>(false);
   const currentView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
   const orderedLayoutKeys = useSelector((state: IRuntimeState) => Object.keys(state.formLayout.layouts));
+  const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const language = useSelector((state: IRuntimeState) => state.language.language);
   const { next, previous } = useSelector(
     (state: IRuntimeState) => getNavigationConfigForCurrentView(
       state.formLayout.uiConfig.navigationConfig,
       state.formLayout.uiConfig.currentView,
     ),
   );
+
+  const nextTextKey = props.textResourceBindings?.next || 'next';
+  const backTextKey = props.textResourceBindings?.back || 'back';
 
   React.useEffect(() => {
     const currentViewIndex = orderedLayoutKeys.indexOf(currentView);
@@ -55,9 +67,9 @@ export function NavigationButtons() {
       className={classes.root}
     >
       <Grid item={true} xs={10}>
-        {!disableBack &&
+        {!disableBack && props.showBackButton &&
           <AltinnButton
-            btnText='Tilbake'
+            btnText={getTextFromAppOrDefault(backTextKey, textResources, language, null, true)}
             onClickFunction={onClickPrevious}
             disabled={disableBack}
             className={classNames(classes.backButton)}
@@ -65,7 +77,7 @@ export function NavigationButtons() {
         }
         {!disableNext &&
           <AltinnButton
-            btnText='Neste'
+            btnText={getTextFromAppOrDefault(nextTextKey, textResources, language, null, true)}
             onClickFunction={OnClickNext}
             disabled={disableNext}
           />
