@@ -1,6 +1,6 @@
 -- SCHEMA: events
 
-DROP TABLE events.events
+DROP TABLE IF EXISTS events.events CASCADE;
 
 CREATE TABLE IF NOT EXISTS events.events
 (
