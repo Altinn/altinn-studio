@@ -31,6 +31,7 @@ namespace Altinn.Platform.Storage.Repository
         private readonly IDataRepository _dataRepository;
 
         private readonly DocumentClient _client;
+        private readonly AzureCosmosSettings _settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
@@ -45,6 +46,8 @@ namespace Altinn.Platform.Storage.Repository
         {
             _logger = logger;
             _dataRepository = dataRepository;
+
+            _settings = cosmosSettings.Value;
 
             CosmosDatabaseHandler database = new CosmosDatabaseHandler(cosmosSettings.Value);
 
@@ -128,7 +131,7 @@ namespace Altinn.Platform.Storage.Repository
                 }
 
                 try
-                {                    
+                {
                     IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
 
                     FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
@@ -467,6 +470,11 @@ namespace Altinn.Platform.Storage.Repository
                 PartitionKey = new PartitionKey(instanceOwnerPartyIdString)
             };
 
+            if (_settings.CollectMetrics)
+            {
+                feedOptions.PopulateQueryMetrics = true;
+            }
+
             IQueryable<Instance> filter;
 
             if (instanceState.Equals("active"))
@@ -502,6 +510,11 @@ namespace Altinn.Platform.Storage.Repository
             IDocumentQuery<Instance> query = filter.AsDocumentQuery();
 
             FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
+
+            if (_settings.CollectMetrics)
+            {
+                _logger.LogError($"Metrics retrieving {instanceState} instances for {instanceOwnerPartyId}: {JsonConvert.SerializeObject(feedResponse.QueryMetrics)}");
+            }
 
             instances = feedResponse.ToList();
 
