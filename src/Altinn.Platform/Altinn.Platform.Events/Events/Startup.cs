@@ -129,7 +129,7 @@ namespace Altinn.Platform.Events
                     new Yuniql.AspNetCore.Configuration
                     {
                         WorkspacePath = Path.Combine(Environment.CurrentDirectory, Configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
-                        ConnectionString = Configuration.GetValue<string>("PostgreSQLSettings:ConnectionString"),
+                        ConnectionString = Configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
                         AutoCreateDatabase = false,
                         DebugTraceMode = true
                     });

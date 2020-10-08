@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS events.events
     id character varying COLLATE pg_catalog."default" NOT NULL,
     source character varying COLLATE pg_catalog."default" NOT NULL,
     subject character varying COLLATE pg_catalog."default" NOT NULL,
-    "time" time with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "time" timestamptz  NOT NULL DEFAULT CURRENT_TIMESTAMP,
     type character varying COLLATE pg_catalog."default" NOT NULL,
     cloudevent text COLLATE pg_catalog."default" NOT NULL,
     CONSTRAINT events_pkey PRIMARY KEY (sequenceno)
