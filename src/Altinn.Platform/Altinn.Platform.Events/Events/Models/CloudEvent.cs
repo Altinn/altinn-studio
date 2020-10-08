@@ -43,7 +43,7 @@ namespace Altinn.Platform.Events.Models
         /// Gets or sets the Time of the event
         /// </summary>
         [JsonProperty(PropertyName = "time")]
-        public DateTime Time { get; set; }
+        public DateTime? Time { get; set; }
 
         /// <summary>
         /// Gets or sets the alternativesubject of the event
