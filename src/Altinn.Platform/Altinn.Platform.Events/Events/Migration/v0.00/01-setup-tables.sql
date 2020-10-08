@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS events.events
     cloudevent text COLLATE pg_catalog."default" NOT NULL,
     CONSTRAINT events_pkey PRIMARY KEY (sequenceno)
 )
+
 TABLESPACE pg_default;
 
 ALTER TABLE events.events
