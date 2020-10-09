@@ -97,6 +97,10 @@ namespace Altinn.App.Services.Implementation
             
             string formLayoutsString = _appResourcesService.GetLayouts();
             TextResource textResource = await _textService.GetText(org, app, userProfile.ProfileSettingPreference.Language);
+            if (textResource == null && !userProfile.ProfileSettingPreference.Equals("nb")) {
+                // fallback to norwegian if texts does not exist
+                textResource = await _textService.GetText(org, app, "nb");
+            }
 
             string textResourcesString = JsonConvert.SerializeObject(textResource);
 
