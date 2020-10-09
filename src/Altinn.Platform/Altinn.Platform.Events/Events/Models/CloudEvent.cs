@@ -1,54 +1,75 @@
 using System;
-using Newtonsoft.Json;
+using System.Net.Mime;
+using System.Text.Json.Serialization;
 
 namespace Altinn.Platform.Events.Models
 {
     /// <summary>
-    /// Class describing a CloudEvent
+    /// Represents a cloud event. Based on CloudEvent: https://github.com/cloudevents/spec/blob/v1.0/spec.md.
     /// </summary>
-    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class CloudEvent
     {
         /// <summary>
-        /// Gets or sets the Id of the event
+        /// Gets or sets the id of the event.
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [JsonPropertyName("id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets the Source of the event
+        /// Gets or sets the source of the event.
         /// </summary>
-        [JsonProperty(PropertyName = "source")]
+        [JsonPropertyName("source")]
         public Uri Source { get; set; }
 
         /// <summary>
-        /// Gets or sets the Specversion of the event
+        /// Gets or sets the specification version of the event.
         /// </summary>
-        [JsonProperty(PropertyName = "specversion")]
-        public string Specversion { get; set; }
+        [JsonPropertyName("specversion")]
+        public string SpecVersion { get; set; }
 
         /// <summary>
-        /// Gets or sets the Type of the event
+        /// Gets or sets the type of the event.
         /// </summary>
-        [JsonProperty(PropertyName = "type")]
+        [JsonPropertyName("type")]
         public string Type { get; set; }
 
         /// <summary>
-        /// Gets or sets the Subject of the event
+        /// Gets or sets the subject of the event.
         /// </summary>
-        [JsonProperty(PropertyName = "subject")]
+        [JsonPropertyName("subject")]
         public string Subject { get; set; }
-    
-        /// <summary>
-        /// Gets or sets the Time of the event
-        /// </summary>
-        [JsonProperty(PropertyName = "time")]
-        public DateTime? Time { get; set; }
 
         /// <summary>
-        /// Gets or sets the alternativesubject of the event
+        /// Gets or sets the time of the event.
         /// </summary>
-        [JsonProperty(PropertyName = "alternativesubject")]
-        public string Alternativesubject { get; set; }
+        [JsonPropertyName("time")]
+        public DateTime Time { get; set; }
+
+        /// <summary>
+        /// Gets or sets the alternative subject of the event.
+        /// </summary>
+        [JsonPropertyName("alternativesubject")]
+        public string AlternativeSubject { get; set; }
+
+        /// <summary>
+        /// Gets or sets the cloudEvent data content. The event payload.
+        /// The payload depends on the type and the dataschema.
+        /// </summary>
+        [JsonPropertyName("data")]
+        public object Data { get; set; }
+
+        /// <summary>
+        /// Gets or sets the cloudEvent dataschema attribute.
+        /// A link to the schema that the data attribute adheres to.
+        /// </summary>
+        [JsonPropertyName("dataschema")]
+        public Uri DataSchema { get; set; }
+
+        /// <summary>
+        /// Gets or sets the cloudEvent datacontenttype attribute.
+        /// Content type of the data attribute value.
+        /// </summary>
+        [JsonPropertyName("contenttype")]
+        public ContentType DataContentType { get; set; }
     }
 }
