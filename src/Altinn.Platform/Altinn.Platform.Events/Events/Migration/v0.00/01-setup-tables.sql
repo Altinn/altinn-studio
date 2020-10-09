@@ -1,7 +1,6 @@
 -- SCHEMA: events
 
 CREATE SCHEMA IF NOT EXISTS events
-    AUTHORIZATION postgres;
 
 -- Table: events.events
 
@@ -18,9 +17,6 @@ CREATE TABLE IF NOT EXISTS events.events
 )
 
 TABLESPACE pg_default;
-
-ALTER TABLE events.events
-    OWNER to postgres;
 
 -- Procecure: insert_event
 
