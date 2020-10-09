@@ -20,7 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-
+using Npgsql.Logging;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Yuniql.AspNetCore;
 using Yuniql.PostgreSql;
@@ -85,7 +85,6 @@ namespace Altinn.Platform.Events
            });
 
             services.AddHealthChecks().AddCheck<HealthCheck>("events_health_check");
-            services.Configure<AzureCosmosSettings>(Configuration.GetSection(nameof(AzureCosmosSettings)));
 
             services.AddSingleton<IEventsRepository, EventsRepository>();
             services.AddSingleton<IEventsCosmosService, EventsCosmosService>();
@@ -120,7 +119,13 @@ namespace Altinn.Platform.Events
 
             if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
             {
+                NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
+
                 ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
+
+                string connectionString = string.Format(
+                    Configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
+                    Configuration.GetValue<string>("PostgreSQLSettings:EventsDbAdminPwd"));
 
                 app.UseYuniql(
                     new PostgreSqlDataService(traceService),
@@ -129,7 +134,7 @@ namespace Altinn.Platform.Events
                     new Yuniql.AspNetCore.Configuration
                     {
                         WorkspacePath = Path.Combine(Environment.CurrentDirectory, Configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
-                        ConnectionString = Configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
+                        ConnectionString = connectionString,
                         AutoCreateDatabase = false,
                         DebugTraceMode = true
                     });

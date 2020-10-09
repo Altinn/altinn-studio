@@ -24,18 +24,19 @@ ALTER TABLE events.events
 
 -- Procecure: insert_event
 
-
 CREATE OR REPLACE PROCEDURE events.insert_event(
 	id character varying,
-	source character varying, 
-	subject character varying, 
+	source character varying,
+	subject character varying,
 	type character varying,
 	cloudevent text)
 LANGUAGE 'plpgsql'
-AS $$
+AS $BODY$
+DECLARE currentTime timestamptz := current_timestamp;
 BEGIN
 
-INSERT INTO events.events(id,source, subject, type,cloudevent)
-	VALUES ($1, $2, $3, $4, $5);
+INSERT INTO events.events(id, source, subject, type, "time", cloudevent)
+	VALUES ($1, $2, $3, $4, currentTime,  substring($5 from 1 for length($5) -1)  || ', "time": "' || currentTime || '"}');
+	
 END;
-$$;
+$BODY$;
