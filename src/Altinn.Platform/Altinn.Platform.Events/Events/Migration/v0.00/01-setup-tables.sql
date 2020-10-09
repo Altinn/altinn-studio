@@ -1,6 +1,7 @@
 -- SCHEMA: events
 
 CREATE SCHEMA IF NOT EXISTS events
+AUTHORIZATION platform_events_admin;
 
 -- Table: events.events
 
