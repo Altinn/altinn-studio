@@ -245,13 +245,14 @@ namespace Altinn.App.Services.Implementation
         {
           Dictionary<string, Object> layouts = new Dictionary<string, object>();
 
-          // Get FormLayout.json if it exists (for backwards compatibility)
+          // Get FormLayout.json if it exists and return it (for backwards compatibility)
           string filedata = string.Empty;
           string fileName = _settings.AppBasePath + _settings.UiFolder + "FormLayout.json";
           if (File.Exists(fileName))
           {
             filedata = File.ReadAllText(fileName, Encoding.UTF8);
             layouts.Add("FormLayout", JsonConvert.DeserializeObject<object>(filedata));
+            return JsonConvert.SerializeObject(layouts);
           }
 
           string layoutsPath = _settings.AppBasePath + _settings.UiFolder + "layouts/";

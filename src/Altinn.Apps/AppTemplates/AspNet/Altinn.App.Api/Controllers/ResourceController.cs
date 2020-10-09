@@ -33,6 +33,9 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/resource/{id}")]
         public IActionResult Index(string org, string app, string id)
         {
+            if (id == "FormLayout.json") {
+                return Layouts(org, app);
+            }
             byte[] fileContent = _appResourceService.GetAppResource(org, app, id);
 
             if (fileContent != null)
