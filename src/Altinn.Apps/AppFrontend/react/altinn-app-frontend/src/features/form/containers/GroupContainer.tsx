@@ -287,7 +287,9 @@ export function GroupContainer({
                       color: 'black', padding: '0px', paddingLeft: '6px',
                     }} onClick={() => onClickEdit(repeatingGroupIndex)}
                   >
-                    {getLanguageFromKey('general.edit_alt', language)}
+                    {rowHasErrors ?
+                      getLanguageFromKey('general.edit_alt_error', language) :
+                      getLanguageFromKey('general.edit_alt', language)}
                     <i className={rowHasErrors ?
                       `ai ai-circle-exclamation ${classes.errorIcon}` :
                       `fa fa-editing-file ${classes.editIcon}`}
