@@ -118,13 +118,13 @@ export function validateEmptyFieldsForLayout(
 ) {
   const validations: any = {};
   let fieldsInGroup = [];
-  const groupsToCheck = formLayout.filter((component) => component.type === 'group');
+  const groupsToCheck = formLayout.filter((component) => component.type.toLowerCase() === 'group');
   groupsToCheck.forEach((groupComponent: ILayoutGroup) => {
     fieldsInGroup = fieldsInGroup.concat(groupComponent.children);
   });
   const fieldsToCheck = formLayout.filter((component) => {
     return (
-      component.type !== 'group'
+      component.type.toLowerCase() !== 'group'
         && !hiddenFields.includes(component.id)
         && (component as ILayoutComponent).required
         && !fieldsInGroup.includes(component.id)
