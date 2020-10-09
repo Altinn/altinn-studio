@@ -10,25 +10,35 @@ import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { getRepeatingGroups } from '../../../../utils/formLayout';
 import { IRuntimeState } from '../../../../types';
 import { IFormDataState } from '../../data/formDataReducer';
-import { ILayouts } from '../index';
+import { ILayoutComponent, ILayoutGroup, ILayouts } from '../index';
 
 const formDataSelector = (state: IRuntimeState) => state.formData;
 
 function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
   try {
-    const test: any = yield call(get, url);
+    const layoutResponse: any = yield call(get, url);
     const layouts: ILayouts = {};
     const navigationConfig: any = {};
-    const orderedLayoutKeys = Object.keys(test).sort();
-    const firstLayoutKey = orderedLayoutKeys[0];
+    let firstLayoutKey: string;
+    let repeatingGroups = {};
 
-    orderedLayoutKeys.forEach((key) => {
-      layouts[key] = test[key].data.layout;
-      navigationConfig[key] = test[key].data.navigation;
-    });
+    if (layoutResponse.data) {
+      layouts.FormLayout = layoutResponse.data.layout;
+      firstLayoutKey = 'FormLayout';
+    } else {
+      const formDataState: IFormDataState = yield select(formDataSelector);
+      const orderedLayoutKeys = Object.keys(layoutResponse).sort();
+      firstLayoutKey = orderedLayoutKeys[0];
 
-    const formDataState: IFormDataState = yield select(formDataSelector);
-    const repeatingGroups = getRepeatingGroups(test[firstLayoutKey].data.layout, formDataState.formData);
+      orderedLayoutKeys.forEach((key) => {
+        layouts[key] = layoutResponse[key].data.layout;
+        navigationConfig[key] = layoutResponse[key].data.navigation;
+        repeatingGroups = {
+          ...repeatingGroups,
+          ...getRepeatingGroups(layouts[key] as [ILayoutComponent|ILayoutGroup], formDataState.formData),
+        };
+      });
+    }
 
     yield call(Actions.fetchFormLayoutFulfilled, layouts, navigationConfig);
     // yield call(Actions.updateAutoSave, data.autoSave);
@@ -47,6 +57,6 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
     take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
   ]);
   const { org, app } = window as Window as IAltinnWindow;
-  const url = `${window.location.origin}/${org}/${app}/api/layouts`;
+  const url = `${window.location.origin}/${org}/${app}/api/resource/FormLayout.json`;
   yield call(fetchFormLayoutSaga, { url } as IFetchFormLayout);
 }
