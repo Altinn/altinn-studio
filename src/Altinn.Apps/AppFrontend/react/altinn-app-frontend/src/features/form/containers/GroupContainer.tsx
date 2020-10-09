@@ -77,7 +77,7 @@ const useStyles = makeStyles({
     backgroundColor: '#F9CAD3;',
   },
   errorIcon: {
-    fontSize: '1.5em',
+    fontSize: '2em',
     minWidth: '0px',
     minHeight: '0px',
     width: 'auto',
@@ -252,7 +252,9 @@ export function GroupContainer({
                     })}
                     <TableCell align='right' key={`delete-${repeatingGroupIndex}`}>
                       <IconButton style={{ color: 'black' }} onClick={() => onClickEdit(repeatingGroupIndex)}>
-                        {getLanguageFromKey('general.edit_alt', language)}
+                        {rowHasErrors ?
+                          getLanguageFromKey('general.edit_alt_error', language) :
+                          getLanguageFromKey('general.edit_alt', language)}
                         <i className={rowHasErrors ?
                           `ai ai-circle-exclamation a-icon ${classes.errorIcon} ${classes.editIcon}` :
                           `fa fa-editing-file ${classes.editIcon}`}
@@ -285,7 +287,9 @@ export function GroupContainer({
                       color: 'black', padding: '0px', paddingLeft: '6px',
                     }} onClick={() => onClickEdit(repeatingGroupIndex)}
                   >
-                    {getLanguageFromKey('general.edit_alt', language)}
+                    {rowHasErrors ?
+                      getLanguageFromKey('general.edit_alt_error', language) :
+                      getLanguageFromKey('general.edit_alt', language)}
                     <i className={rowHasErrors ?
                       `ai ai-circle-exclamation ${classes.errorIcon}` :
                       `fa fa-editing-file ${classes.editIcon}`}
