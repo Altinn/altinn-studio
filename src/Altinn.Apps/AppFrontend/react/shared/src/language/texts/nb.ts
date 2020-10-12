@@ -91,6 +91,7 @@ export function nb() {
       disabled: 'Deaktivert',
       edit: 'Endre',
       edit_alt: 'Rediger',
+      edit_alt_error: 'Rett feil her',
       enabled: 'Aktivert',
       error_message_with_colon: 'Feilmelding:',
       for: 'for',

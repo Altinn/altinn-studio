@@ -23,8 +23,8 @@ public class InstanceUtils {
     }
 
     for (Data data: instance.getData()) {
-      if (id.equals(data.getElementType())) {
-        list.add(data.getFileName());
+      if (id.equals(data.getDataType())) {
+        list.add(data.getFilename());
       }
     }
     return list;

@@ -91,6 +91,7 @@ export function en() {
       disabled: 'Disabled',
       edit: 'Edit',
       edit_alt: 'Edit',
+      edit_alt_error: 'Fix error here',
       enabled: 'Enabled',
       error_message_with_colon: 'Error message:',
       for: 'for',
