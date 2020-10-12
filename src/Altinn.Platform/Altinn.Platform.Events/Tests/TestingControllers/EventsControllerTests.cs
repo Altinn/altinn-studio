@@ -4,8 +4,7 @@ using System.Net.Http;
 using System.Text;
 using Altinn.Platform.Events.Controllers;
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Repository;
-
+using Altinn.Platform.Events.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,10 +54,10 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string responseId = Guid.NewGuid().ToString();
                 CloudEvent cloudEvent = GetCloudEvent();
 
-                Mock<IEventsRepository> eventsRepository = new Mock<IEventsRepository>();
-                eventsRepository.Setup(s => s.Create(It.IsAny<CloudEvent>())).ReturnsAsync(responseId);
+                Mock<IEventsService> eventsService = new Mock<IEventsService>();
+                eventsService.Setup(s => s.StoreCloudEvent(It.IsAny<CloudEvent>())).ReturnsAsync(responseId);
 
-                HttpClient client = GetTestClient(eventsRepository.Object);
+                HttpClient client = GetTestClient(eventsService.Object);
 
                 // Act
                 HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(cloudEvent), Encoding.UTF8, "application/json"));
@@ -86,9 +85,9 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 CloudEvent cloudEvent = GetCloudEvent();
                 cloudEvent.Subject = null;
 
-                Mock<IEventsRepository> eventsRepository = new Mock<IEventsRepository>();
+                Mock<IEventsService> eventsService = new Mock<IEventsService>();
 
-                HttpClient client = GetTestClient(eventsRepository.Object);
+                HttpClient client = GetTestClient(eventsService.Object);
 
                 // Act
                 HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(cloudEvent), Encoding.UTF8, "application/json"));
@@ -111,10 +110,10 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 // Arrange
                 string requestUri = $"{BasePath}/app";
                 CloudEvent cloudEvent = GetCloudEvent();
-
-                Mock<IEventsRepository> eventsRepository = new Mock<IEventsRepository>();
-                eventsRepository.Setup(er => er.Create(It.IsAny<CloudEvent>())).Throws(new Exception());
-                HttpClient client = GetTestClient(eventsRepository.Object);
+                string cloudEventAsString = JsonConvert.SerializeObject(cloudEvent);
+                Mock<IEventsService> eventsService = new Mock<IEventsService>();
+                eventsService.Setup(er => er.StoreCloudEvent(It.IsAny<CloudEvent>())).Throws(new Exception());
+                HttpClient client = GetTestClient(eventsService.Object);
 
                 // Act
                 HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(cloudEvent), Encoding.UTF8, "application/json"));
@@ -123,14 +122,14 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
             }
 
-            private HttpClient GetTestClient(IEventsRepository eventsRepository)
+            private HttpClient GetTestClient(IEventsService eventsService)
             {
                 Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
                 {
                     builder.ConfigureTestServices(services =>
                     {
-                        services.AddSingleton(eventsRepository);
+                        services.AddSingleton(eventsService);
                     });
                 }).CreateClient();
 
@@ -146,6 +145,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 cloudEvent.Source = new Uri("http://www.brreg.no/brg/something/232243423");
                 cloudEvent.Time = DateTime.Now;
                 cloudEvent.Subject = "/party/456456";
+                cloudEvent.Data = "something/extra";
                 return cloudEvent;
             }
         }
