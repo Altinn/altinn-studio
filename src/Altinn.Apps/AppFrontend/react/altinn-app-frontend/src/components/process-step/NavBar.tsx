@@ -8,11 +8,9 @@ export interface INavBarProps {
   showBackArrow?: boolean;
 }
 
-
 const NavBar = (props: INavBarProps) => {
   return (
     <div className='a-modal-navbar'>
-      {/* Hide this button for the time being, ref. issue https://github.com/altinn/altinn-studio/issues/2500 */}
       {props.showBackArrow &&
         <button
           type='button'
@@ -45,6 +43,6 @@ const NavBar = (props: INavBarProps) => {
       </button>
     </div>
   );
-}
+};
 
 export default NavBar;
