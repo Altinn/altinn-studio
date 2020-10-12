@@ -8,13 +8,13 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import { createStyles, IconButton, withStyles, WithStyles, Grid, Typography } from '@material-ui/core';
+import { createStyles, IconButton, withStyles, WithStyles, Grid } from '@material-ui/core';
 
 import '../styles/index.css';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
-import AltinnPopover from 'app-shared/components/molecules/AltinnPopoverSimple';
+import ErrorPopover from '../components/message/ErrorPopover';
 import { makeGetActiveFormContainer,
   makeGetLayoutComponentsSelector,
   makeGetLayoutContainerOrder,
@@ -59,8 +59,10 @@ export interface IContainerState {
   tmpContainer: ICreateFormContainer;
   tmpId: string;
   expanded: boolean;
-  editGroupIdError: string;
-  popopAnchor: React.RefObject<HTMLDivElement>;
+  groupIdError: string;
+  groupIdPopoverRef: React.RefObject<HTMLDivElement>;
+  tableHeadersError: string;
+  tableHeadersPopoverRef: React.RefObject<HTMLDivElement>;
 }
 
 const styles = createStyles({
@@ -124,17 +126,6 @@ const styles = createStyles({
     marginBottom: '1.2rem',
     border: '0.15rem solid #fff',
   },
-  createErrorPopoverRoot: {
-    backgroundColor: altinnTheme.altinnPalette.primary.redLight,
-  },
-  popoverErrorIcon: {
-    color: altinnTheme.altinnPalette.primary.red,
-    paddingTop: '0.8rem',
-  },
-  popoverTechnicalErrorText: {
-    fontSize: '1.4rem',
-    paddingTop: '0.5rem',
-  },
 });
 
 const validComponentId = /^[0-9a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$/;
@@ -162,8 +153,10 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       tmpContainer: JSON.parse(JSON.stringify(this.props.containers[this.props.id])) as unknown as ICreateFormContainer,
       tmpId: this.props.id,
       expanded: true,
-      editGroupIdError: null,
-      popopAnchor: React.createRef<HTMLDivElement>(),
+      groupIdError: null,
+      groupIdPopoverRef: React.createRef<HTMLDivElement>(),
+      tableHeadersError: null,
+      tableHeadersPopoverRef: React.createRef<HTMLDivElement>(),
     };
   }
 
@@ -233,11 +226,11 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     if (this.state.tmpId && this.state.tmpId !== this.props.id) {
       if (this.idAlreadyExist(this.state.tmpId)) {
         this.setState(() => ({
-          editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
+          groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
         }));
       } else if (!validComponentId.test(this.state.tmpId)) {
         this.setState(() => ({
-          editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
+          groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
         }));
       } else {
         FormDesignerActionDispatchers.updateFormContainer(this.state.tmpContainer, this.props.id);
@@ -247,7 +240,12 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           editMode: false,
         });
       }
+    } else if (this.state.tmpContainer.tableHeaders?.length === 0) {
+      this.setState({
+        tableHeadersError: getLanguageFromKey('ux_editor.modal_properties_group_table_headers_error', this.props.language),
+      });
     } else {
+      // No validations, save.
       FormDesignerActionDispatchers.updateFormContainer(this.state.tmpContainer, this.props.id);
       FormDesignerActionDispatchers.deleteActiveListAction();
       this.setState({
@@ -259,15 +257,15 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   public handleNewId = (event: any) => {
     if (this.idAlreadyExist(event.target.value) && event.target.value !== this.props.id) {
       this.setState(() => ({
-        editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
+        groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
       }));
     } else if (!validComponentId.test(event.target.value)) {
       this.setState(() => ({
-        editGroupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
+        groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
       }));
     } else {
       this.setState({
-        editGroupIdError: null,
+        groupIdError: null,
       });
     }
   }
@@ -279,7 +277,8 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
 
   public handleClosePopup = () => {
     this.setState({
-      editGroupIdError: null,
+      groupIdError: null,
+      tableHeadersError: null,
     });
   }
 
@@ -311,8 +310,13 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         // table headers is the same as children. We ignore the table header prop
         updatedContainer.tableHeaders = undefined;
       }
+      let errorMessage;
+      if (updatedContainer.tableHeaders?.length === 0) {
+        errorMessage = getLanguageFromKey('ux_editor.modal_properties_group_table_headers_error', this.props.language);
+      }
       return {
         tmpContainer: updatedContainer,
+        tableHeadersError: errorMessage,
       };
     });
   }
@@ -478,49 +482,12 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             inputFieldStyling={{ width: '100%', marginBottom: '24px' }}
             inputDescriptionStyling={{ marginTop: '24px' }}
           />
-          <div ref={this.state.popopAnchor} />
-          <AltinnPopover
-            anchorEl={this.state.editGroupIdError != null ? this.state.popopAnchor.current : null}
-            handleClose={this.handleClosePopup}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'left',
-            }}
-            paperProps={{
-              classes: {
-                root: this.props.classes.createErrorPopoverRoot,
-              },
-            }}
-          >
-            <Grid
-              container={true}
-              direction='row'
-              spacing={3}
-            >
-              <Grid
-                item={true}
-                xs={1}
-                style={{
-                  padding: 0,
-                }}
-              >
-                <i className={`${this.props.classes.popoverErrorIcon} ai ai-circle-exclamation`}/>
-              </Grid>
-              <Grid
-                item={true}
-                xs={11}
-                style={{
-                  padding: 0,
-                }}
-              >
-                <Typography
-                  className={this.props.classes.popoverTechnicalErrorText}
-                >
-                  {this.state.editGroupIdError}
-                </Typography>
-              </Grid>
-            </Grid>
-          </AltinnPopover>
+          <div ref={this.state.groupIdPopoverRef} />
+          <ErrorPopover
+            anchorEl={this.state.groupIdError ? this.state.groupIdPopoverRef.current : null}
+            onClose={this.handleClosePopup}
+            errorMessage={this.state.groupIdError}
+          />
         </Grid>
         <Grid item={true} xs={12}>
           <AltinnCheckBox
@@ -575,6 +542,12 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
                   </Grid>
                 );
               })}
+              <div ref={this.state.tableHeadersPopoverRef} />
+              <ErrorPopover
+                anchorEl={this.state.tableHeadersError ? this.state.tableHeadersPopoverRef.current : null}
+                onClose={this.handleClosePopup}
+                errorMessage={this.state.tableHeadersError}
+              />
             </Grid>
             }
           </Grid>

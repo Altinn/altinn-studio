@@ -43,11 +43,11 @@
     <Folder Include="Configuration\" />
     <Folder Include="TestingRepositories\" />
   </ItemGroup>
+  
+  </ItemGroup> -->
 
   <ItemGroup>
-    <None Include="..\Events\Configuration\UpdateItemTimestamp.js" Link="Configuration\UpdateItemTimestamp.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Content Include="..\Events\Migration\**" CopyToOutputDirectory="PreserveNewest" Link="Migration\%(RecursiveDir)%(Filename)%(Extension)"/>
   </ItemGroup>
 
   <ItemGroup>

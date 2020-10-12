@@ -111,6 +111,9 @@ namespace Altinn.Platform.Events
                         }
                     });
             services.AddSingleton<IEventsRepository, EventsRepository>();
+            services.Configure<PostgreSQLSettings>(Configuration.GetSection(nameof(PostgreSQLSettings)));
+            services.AddSingleton<IEventsService, EventsService>();
+            services.AddSingleton<IPostgresRepository, PostgresRepository>();
             services.AddSingleton(Configuration);
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
