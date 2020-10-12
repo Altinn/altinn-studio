@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<Skjema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" skjemanummer="1603" spesifikasjonsnummer="12392" blankettnummer="RF-1366" tittel="Endringsmelding" gruppeid="9785">
+  <Endringsmelding-grp-9786 gruppeid="9786">
+    <OversiktOverEndringene-grp-9788 gruppeid="9788">
+      <SkattemeldingEndringEtterFristPost-datadef-37130 orid="37130">Group1</SkattemeldingEndringEtterFristPost-datadef-37130>
+      <SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131 orid="37131">1</SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131>
+      <SkattemeldingEndringEtterFristNyttBelop-datadef-37132 orid="37132">10</SkattemeldingEndringEtterFristNyttBelop-datadef-37132>
+    </OversiktOverEndringene-grp-9788>
+    <OversiktOverEndringene-grp-9788 gruppeid="9788">
+      <SkattemeldingEndringEtterFristPost-datadef-37130 orid="37130">Group2</SkattemeldingEndringEtterFristPost-datadef-37130>
+      <SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131 orid="37131">2</SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131>
+      <SkattemeldingEndringEtterFristNyttBelop-datadef-37132 orid="37132">20</SkattemeldingEndringEtterFristNyttBelop-datadef-37132>
+    </OversiktOverEndringene-grp-9788>
+    <OversiktOverEndringene-grp-9788 gruppeid="9788">
+      <SkattemeldingEndringEtterFristPost-datadef-37130 orid="37130">Group3</SkattemeldingEndringEtterFristPost-datadef-37130>
+      <SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131 orid="37131">3</SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131>
+      <SkattemeldingEndringEtterFristNyttBelop-datadef-37132 orid="37132">30</SkattemeldingEndringEtterFristNyttBelop-datadef-37132>
+    </OversiktOverEndringene-grp-9788>
+  </Endringsmelding-grp-9786>
+  <En-grp>
+    <Et-felt>En verdi</Et-felt>
+  </En-grp>
+</Skjema>

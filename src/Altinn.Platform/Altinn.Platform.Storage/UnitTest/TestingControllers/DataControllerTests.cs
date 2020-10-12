@@ -115,7 +115,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
-
         /// <summary>
         /// Scenario:
         ///   Add data element to created instances.
@@ -125,7 +124,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Created 
         /// </summary>
         [Fact]
-        public async void Put_UpdateData_Ok()
+        public async void OverwriteData_UpdateData_Ok()
         {
             string dataPathWithData = $"{_versionPrefix}/instances/1337/649388f0-a2c0-4774-bd11-c870223ed819/data/11f7c994-6681-47a1-9626-fcf6c27308a5";
             HttpContent content = new StringContent("This is a blob file with updated data");
@@ -137,6 +136,19 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
+        [Fact]
+        public async void OverwriteData_DataElementDoesNotExist_ReturnsNotFound()
+        {
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/649388f0-a2c0-4774-bd11-c870223ed819/data/11111111-6681-47a1-9626-fcf6c27308a5";
+            HttpContent content = new StringContent("This is a blob file with updated data");
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
+            HttpResponseMessage response = await client.PutAsync($"{dataPathWithData}?dataType=default", content);
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
         /// <summary>
         /// Scenario:
         ///   Add data element to created instances.
@@ -146,7 +158,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         /// Created 
         /// </summary>
         [Fact]
-        public async void Put_UpdateData_Conflict()
+        public async void OverwriteData_UpdateData_Conflict()
         {
             string dataPathWithData = $"{_versionPrefix}/instances/1337/6aa47207-f089-4c11-9cb2-f00af6f66a47/data/24bfec2e-c4ce-4e82-8fa9-aa39da329fd5";
             HttpContent content = new StringContent("This is a blob file with updated data");
@@ -157,7 +169,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         }
-
 
         [Fact]
         public async void Delete_DataElement_Ok()
@@ -172,6 +183,18 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
         }
 
         [Fact]
+        public async void Delete_DataElementDoesNotExist_ReturnsNotFound()
+        {
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/649388f0-a2c0-4774-bd11-c870223ed819/data/11111111-6681-47a1-9626-fcf6c27308a5";
+           
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
+            HttpResponseMessage response = await client.DeleteAsync($"{dataPathWithData}");
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
         public async void Delete_DataElement_NotAuthorized()
         {
             string dataPathWithData = $"{_versionPrefix}/instances/1337/649388f0-a2c0-4774-bd11-c870223ed819/data/11f7c994-6681-47a1-9626-fcf6c27308a5";
@@ -183,7 +206,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
-
         [Fact]
         public async void Get_DataElement_Ok()
         {
@@ -194,6 +216,18 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Get_DataElementDoesNotExists_ReturnsNotFound()
+        {
+            string dataPathWithData = $"{_versionPrefix}/instances/1337/d91fd644-1028-4efd-924f-4ca187354514/data/11111111-8eed-4d1d-9d75-9239c40724e9";
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337, 1337, 3));
+            HttpResponseMessage response = await client.GetAsync($"{dataPathWithData}");
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]

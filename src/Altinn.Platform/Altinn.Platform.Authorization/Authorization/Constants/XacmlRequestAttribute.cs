@@ -16,9 +16,14 @@ namespace Altinn.Platform.Authorization.Constants
         public const string AppAttribute = "urn:altinn:app";
 
         /// <summary>
-        /// xacml string that represents isntance
+        /// xacml string that represents instanceid
         /// </summary>
         public const string InstanceAttribute = "urn:altinn:instance-id";
+
+        /// <summary>
+        /// xacm string that represents appresource
+        /// </summary>
+        public const string AppResourceAttribute = "urn:altinn:appresource";
 
         /// <summary>
         /// xacml string that represents task

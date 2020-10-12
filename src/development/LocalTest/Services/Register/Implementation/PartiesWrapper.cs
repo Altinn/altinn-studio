@@ -54,15 +54,15 @@ namespace LocalTest.Services.Register.Implementation
         public async Task<Party> LookupPartyBySSNOrOrgNo(string lookupValue)
         {
             string path = this._localPlatformSettings.LocalTestingStaticTestDataPath + "Register/Party";
-            string[] allPathsToOrgs = Directory.GetFiles(path);
+            string[] allPathsToParties = Directory.GetFiles(path);
 
-            foreach (string orgPath in allPathsToOrgs)
+            foreach (string partyPath in allPathsToParties)
             {
-                string content = File.ReadAllText(orgPath);
+                string content = File.ReadAllText(partyPath);
 
-                string targetOrgNbr = "\"orgNumber\": \"" + lookupValue +"\"";
-                string targetSSN = "\"ssn\": " + lookupValue;
-                if (content.Contains(targetOrgNbr) || content.Contains(targetSSN))
+                string targetOrgNbr = $"\"orgNumber\": \"{lookupValue}\"";
+                string targetSsn = $"\"ssn\": \"{lookupValue}\"";
+                if (content.Contains(targetOrgNbr) || content.Contains(targetSsn))
                 {
                     Party party = (Party)JsonConvert.DeserializeObject(content, typeof(Party));
                     return await Task.FromResult(party);

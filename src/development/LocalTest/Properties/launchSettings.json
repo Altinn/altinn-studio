@@ -11,6 +11,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
+      "launchUrl": "http://altinn3local.no/",
       "applicationUrl": "http://localhost:5101",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
@@ -19,7 +20,7 @@
     "LocalTest": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "authentication/swagger",
+      "launchUrl": "http://altinn3local.no/",
       "applicationUrl": "http://localhost:5101",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",

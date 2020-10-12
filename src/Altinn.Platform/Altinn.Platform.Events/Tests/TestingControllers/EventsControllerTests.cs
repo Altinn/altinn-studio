@@ -141,7 +141,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 CloudEvent cloudEvent = new CloudEvent();
                 cloudEvent.Id = Guid.NewGuid().ToString();
-                cloudEvent.Specversion = "1.0";
+                cloudEvent.SpecVersion = "1.0";
                 cloudEvent.Type = "instance.created";
                 cloudEvent.Source = new Uri("http://www.brreg.no/brg/something/232243423");
                 cloudEvent.Time = DateTime.Now;

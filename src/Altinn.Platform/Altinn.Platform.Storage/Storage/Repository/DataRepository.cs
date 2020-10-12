@@ -113,9 +113,15 @@ namespace Altinn.Platform.Storage.Repository
                         _sasTokenProvider.InvalidateSasToken(org);
 
                         return await DownloadToStreamAsync(org, blobStoragePath);
+                    case "BlobNotFound":
+                        _logger.LogWarning($"Unable to find a blob based on the given information - {org}: {blobStoragePath}");
+
+                        // Returning null because the blob does not exist.
+                        return null;
                     case "InvalidRange":
                         _logger.LogWarning($"Found possibly empty blob in storage for {org}: {blobStoragePath}");
 
+                        // Returning empty stream because the blob does exist, but it is empty.
                         return new MemoryStream();
                     default:
                         throw;
