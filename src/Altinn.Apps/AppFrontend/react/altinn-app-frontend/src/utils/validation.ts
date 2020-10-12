@@ -205,6 +205,8 @@ export function validateFormComponents(
       ...result,
     };
   });
+
+  return validations;
 }
 
 /*
