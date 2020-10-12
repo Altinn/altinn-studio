@@ -78,7 +78,7 @@ export default function (data) {
     res = instances.deleteInstanceById(runtimeToken, partyId, instanceId, "false");
     success = check(res, {
         "Soft DELETE Instance status is 200:": (r) => r.status === 200,
-        "Soft DELETE data set to the instance:": (r) => JSON.parse(r.body).status.softDeleted != null
+        "Soft DELETE date set to the instance:": (r) => JSON.parse(r.body).status.softDeleted != null
     });
     addErrorCount(success);
 

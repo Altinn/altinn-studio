@@ -102,7 +102,7 @@ export default function (data) {
     addErrorCount(success);
 
     //upload a valid attachment to an instance with App API
-    res = appData.postData(userRuntimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
+    res = appData.postData(orgRuntimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
     success = check(res, {
         "POST Upload attachment status is 201:": (r) => r.status === 201
     });
