@@ -20,7 +20,9 @@
 }
 
 .file-upload-invalid:focus {
-  outline-color: #E23B53;
+  border-style: solid !important;
+  outline-color: #E23B53 !important;
+  border-color: #E23B53 !important;
 }
 
 .file-upload:hover {
@@ -28,8 +30,8 @@
 }
 
 .file-upload:focus {
-  border-color: #0062ba !important;
-  border-style: solid !important;
+  border-color: #0062ba;
+  border-style: solid;
   outline: 2px solid #0062ba;
   outline-offset: 0px;
 }
