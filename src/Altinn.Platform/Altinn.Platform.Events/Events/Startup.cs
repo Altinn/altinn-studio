@@ -119,7 +119,7 @@ namespace Altinn.Platform.Events
 
             if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
             {
-                //NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
+                NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
 
                 ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
 
