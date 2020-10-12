@@ -81,9 +81,9 @@ namespace Altinn.Platform.Events
            });
 
             services.AddHealthChecks().AddCheck<HealthCheck>("events_health_check");
-            services.Configure<PostgresSettings>(Configuration.GetSection(nameof(PostgresSettings)));
-            services.AddSingleton<IEventsPostgresService, EventsPostgresService>();
-            services.AddSingleton<IEventsRepository, EventsRepository>();
+            services.Configure<PostgreSQLSettings>(Configuration.GetSection(nameof(PostgreSQLSettings)));
+            services.AddSingleton<IEventsService, EventsService>();
+            services.AddSingleton<IEventsPostgresRepository, EventsPostgresRepository>();
             services.AddSingleton(Configuration);
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))

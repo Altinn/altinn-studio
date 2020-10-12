@@ -1,54 +1,59 @@
 using System;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace Altinn.Platform.Events.Models
 {
     /// <summary>
     /// Class describing a CloudEvent
     /// </summary>
-    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class CloudEvent
     {
         /// <summary>
         /// Gets or sets the Id of the event
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [JsonPropertyName("id")]
         public string Id { get; set; }
 
         /// <summary>
         /// Gets or sets the Source of the event
         /// </summary>
-        [JsonProperty(PropertyName = "source")]
+        [JsonPropertyName("source")]
         public Uri Source { get; set; }
 
         /// <summary>
         /// Gets or sets the Specversion of the event
         /// </summary>
-        [JsonProperty(PropertyName = "specversion")]
+        [JsonPropertyName("specversion")]
         public string Specversion { get; set; }
 
         /// <summary>
         /// Gets or sets the Type of the event
         /// </summary>
-        [JsonProperty(PropertyName = "type")]
+        [JsonPropertyName("type")]
         public string Type { get; set; }
 
         /// <summary>
         /// Gets or sets the Subject of the event
         /// </summary>
-        [JsonProperty(PropertyName = "subject")]
+        [JsonPropertyName("subject")]
         public string Subject { get; set; }
-    
+
+        /// <summary>
+        /// Gets or sets the Subject of the event
+        /// </summary>
+        [JsonPropertyName("data")]
+        public string Data { get; set; }
+
         /// <summary>
         /// Gets or sets the Time of the event
         /// </summary>
-        [JsonProperty(PropertyName = "time")]
+        [JsonPropertyName("time")]
         public DateTime Time { get; set; }
 
         /// <summary>
         /// Gets or sets the alternativesubject of the event
         /// </summary>
-        [JsonProperty(PropertyName = "alternativesubject")]
+        [JsonPropertyName("alternativesubject")]
         public string Alternativesubject { get; set; }
     }
 }

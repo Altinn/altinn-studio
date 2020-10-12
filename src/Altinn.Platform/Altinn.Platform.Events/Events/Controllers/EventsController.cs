@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository;
@@ -17,7 +19,7 @@ namespace Altinn.Platform.Events.Controllers
     [ApiController]
     public class EventsController : ControllerBase
     {
-        private readonly IEventsPostgresService _postgresService;
+        private readonly IEventsService _postgresService;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -25,7 +27,7 @@ namespace Altinn.Platform.Events.Controllers
         /// </summary>
         /// <param name="postgresService">postgres service</param>
         /// <param name="logger">dependency injection of logger</param>
-        public EventsController(IEventsPostgresService postgresService, ILogger<EventsController> logger)
+        public EventsController(IEventsService postgresService, ILogger<EventsController> logger)
         {
             _logger = logger;
             _postgresService = postgresService;
@@ -34,13 +36,13 @@ namespace Altinn.Platform.Events.Controllers
         /// <summary>
         /// Inserts a new event.
         /// </summary>
-        /// <param name="cloudEvent">The event to store.</param>
         /// <returns>The application metadata object.</returns>
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
+
         public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
         {
             if (string.IsNullOrEmpty(cloudEvent.Source.OriginalString) || string.IsNullOrEmpty(cloudEvent.Specversion) ||
@@ -51,10 +53,8 @@ namespace Altinn.Platform.Events.Controllers
 
             try
             {
-                string cloudEventId = await _postgresService.StoreItemToPostgresDb(cloudEvent);
-
+                string cloudEventId = await _postgresService.StoreCloudEvent(cloudEvent);
                 _logger.LogInformation("Cloud Event successfully stored with id: {0}", cloudEventId);
-
                 return Created(cloudEvent.Subject, cloudEventId);
             }
             catch (Exception e)

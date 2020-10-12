@@ -9,12 +9,12 @@ namespace Altinn.Platform.Events.Repository
     /// </summary>
     public class PostgresDatabaseHandler
     {
-        private readonly PostgresSettings postgresSettings;
+        private readonly PostgreSQLSettings postgresSettings;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PostgresDatabaseHandler"/> class with the given <see cref="PostgresSettings"/>.
+        /// Initializes a new instance of the <see cref="PostgresDatabaseHandler"/> class with the given <see cref="PostgreSQLSettings"/>.
         /// </summary>
-        public PostgresDatabaseHandler(PostgresSettings postgresSettings)
+        public PostgresDatabaseHandler(PostgreSQLSettings postgresSettings)
         {
             this.postgresSettings = postgresSettings;
         }
@@ -25,7 +25,7 @@ namespace Altinn.Platform.Events.Repository
         public NpgsqlConnection GetConnection()
         {
             NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
-            return new NpgsqlConnection(postgresSettings.DefaultConnection);
+            return new NpgsqlConnection(postgresSettings.ConnectionString);
         }
     }
 }

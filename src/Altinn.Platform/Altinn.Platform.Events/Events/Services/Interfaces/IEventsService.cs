@@ -6,13 +6,13 @@ namespace Altinn.Platform.Events.Services.Interfaces
     /// <summary>
     /// Something smart
     /// </summary>
-    public interface IEventsPostgresService
+    public interface IEventsService
     {
         /// <summary>
         /// Stores a cloud event document to the events database.
         /// </summary>
         /// <param name="cloudEvent">The cloudEvent to be stored</param>
         /// <returns>Id for the created document</returns>
-        Task<string> StoreItemToPostgresDb(CloudEvent cloudEvent);
+        Task<string> StoreCloudEvent(CloudEvent cloudEvent);
     }
 }
