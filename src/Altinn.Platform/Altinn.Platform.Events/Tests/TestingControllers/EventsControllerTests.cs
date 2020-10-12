@@ -1,15 +1,20 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Events.Controllers;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository;
-
+using Altinn.Platform.Events.Tests.Mocks;
+using Altinn.Platform.Events.Tests.Mocks.Authentication;
+using Altinn.Platform.Events.Tests.Utils;
+using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-
+using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
@@ -51,6 +56,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Post_GivenValidCloudEvent_ReturnsStatusCreatedAndCorrectData()
             {
                 // Arrange
+                string token = PrincipalUtil.GetToken(1);
+
                 string requestUri = $"{BasePath}/app";
                 string responseId = Guid.NewGuid().ToString();
                 CloudEvent cloudEvent = GetCloudEvent();
@@ -59,9 +66,13 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 eventsRepository.Setup(s => s.Create(It.IsAny<CloudEvent>())).ReturnsAsync(responseId);
 
                 HttpClient client = GetTestClient(eventsRepository.Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+                httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(cloudEvent), Encoding.UTF8, "application/json");
+                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
                 // Act
-                HttpResponseMessage response = await client.PostAsync(requestUri, new StringContent(JsonConvert.SerializeObject(cloudEvent), Encoding.UTF8, "application/json"));
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
                 // Assert
                 Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -123,6 +134,128 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
             }
 
+            /// <summary>
+            /// Scenario:
+            ///   Get events without defined after or from in query.
+            /// Expected result:
+            ///   Returns HttpStatus BadRequest.
+            /// Success criteria:
+            ///   The response has correct status.
+            /// </summary>
+            [Fact]
+            public async void Get_MissingRequiredQueryParam_ReturnsBadRequest()
+            {
+                // Arrange
+                string token = PrincipalUtil.GetToken(1);
+                string expected = "\"From or after must be defined.\"";
+
+                string requestUri = $"{BasePath}/app/ttd/apps-test?size=5";
+                HttpClient client = GetTestClient(new Mock<IEventsRepository>().Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string actual = await response.Content.ReadAsStringAsync();
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                Assert.Equal(expected, actual);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Get events with negative size.
+            /// Expected result:
+            ///   Returns HttpStatus BadRequest.
+            /// Success criteria:
+            ///   The response has correct status.
+            /// </summary>
+            [Fact]
+            public async void Get_SizeIsLessThanZero_ReturnsBadRequest()
+            {
+                // Arrange
+                string token = PrincipalUtil.GetToken(1);
+                string expected = "\"Size must be a number larger that 0.\"";
+
+                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01&size=-5";
+                HttpClient client = GetTestClient(new Mock<IEventsRepository>().Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string actual = await response.Content.ReadAsStringAsync();
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                Assert.Equal(expected, actual);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Get events with  a valid set of query parameters
+            /// Expected result:
+            ///   Returns a list of events and a next header
+            /// Success criteria:
+            ///   The response has correct count. Next header is corrcect.
+            /// </summary>
+            [Fact]
+            public async void Get_ValidRequest_ReturnsListOfEventsAndNextUrl()
+            {
+                // Arrange
+                string token = PrincipalUtil.GetToken(1);
+
+                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01&party=12345";
+                Mock<IEventsRepository> eventsRepository = new Mock<IEventsRepository>();
+
+                HttpClient client = GetTestClient(eventsRepository.Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string actual = await response.Content.ReadAsStringAsync();
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Get events with  a an after parameter.
+            /// Expected result:
+            ///   NExt header contains new guid in after parameter
+            /// Success criteria:
+            ///   Next header is corrcect.
+            /// </summary>
+            [Fact]
+            public async void Get_AfterIncludedInQuery_ReturnsNextHeaderWithReplacesAfterParameter()
+            {
+                // Arrange
+                string token = PrincipalUtil.GetToken(1);
+
+                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01";
+                HttpClient client = GetTestClient(new Mock<IEventsRepository>().Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string actual = await response.Content.ReadAsStringAsync();
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            }
+
             private HttpClient GetTestClient(IEventsRepository eventsRepository)
             {
                 Program.ConfigureSetupLogging();
@@ -131,6 +264,10 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                     builder.ConfigureTestServices(services =>
                     {
                         services.AddSingleton(eventsRepository);
+
+                        // Set up mock authentication so that not well known endpoint is used
+                        services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
+                        services.AddSingleton<ISigningKeysResolver, SigningKeyResolverMock>();
                     });
                 }).CreateClient();
 

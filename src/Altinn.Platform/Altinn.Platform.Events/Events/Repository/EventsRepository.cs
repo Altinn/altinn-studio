@@ -1,10 +1,14 @@
-using System.IO;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-
+using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Services.Interfaces;
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Npgsql;
+using NpgsqlTypes;
 
 namespace Altinn.Platform.Events.Repository
 {
@@ -14,53 +18,95 @@ namespace Altinn.Platform.Events.Repository
     /// </summary>
     public class EventsRepository : IEventsRepository
     {
-        private readonly IEventsCosmosService _cosmosService;
-        private readonly string _triggerId = "trgUpdateItemTimestamp";
-        private readonly string _triggerPath = "./Configuration/UpdateItemTimestamp.js";
-        private readonly ILogger _logger;
-        private bool _triggersRegistered = false;
+        private readonly NpgsqlConnection _conn;
+        private readonly string insertEventSql = "call events.insert_event(@id, @source, @subject, @type, @cloudevent)";
+        private readonly string getEventSql = "select events.get(@_subject, @_after, @_from, @_to, @_type, @_source)";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsRepository"/> class.
         /// </summary>
-        /// <param name="cosmosService">the cosmos DB service</param>
-        /// <param name="logger">the logger</param>
-        public EventsRepository(IEventsCosmosService cosmosService, ILogger<EventsRepository> logger)
+        public EventsRepository(IOptions<PostgreSQLSettings> settings, ILogger<EventsRepository> logger)
         {
-            _cosmosService = cosmosService;
-            _logger = logger;
+            _conn = new NpgsqlConnection(string.Format(settings.Value.ConnectionString, settings.Value.EventsDbPwd));
         }
 
         /// <inheritdoc/>
         public async Task<string> Create(CloudEvent item)
         {
-            if (!_triggersRegistered)
+            item.Id = Guid.NewGuid().ToString();
+            try
             {
-                await EnsureTriggerIsPresent();
-            }
+                await _conn.OpenAsync();
 
-            string id = await _cosmosService.StoreItemtToEventsCollection(item);
-            return id;
+                NpgsqlCommand pgcom = new NpgsqlCommand(insertEventSql, _conn);
+                pgcom.Parameters.AddWithValue("id", item.Id);
+                pgcom.Parameters.AddWithValue("source", item.Source.OriginalString);
+                pgcom.Parameters.AddWithValue("subject", item.Subject);
+                pgcom.Parameters.AddWithValue("type", item.Type);
+                pgcom.Parameters.AddWithValue("cloudevent", JsonConvert.SerializeObject(item));
+
+                int res = await pgcom.ExecuteNonQueryAsync();
+                return item.Id;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($" EventsRepository // Create // Exception {JsonConvert.SerializeObject(e)}");
+                throw e;
+            }
+            finally
+            {
+                await _conn.CloseAsync();
+            }
         }
 
-        private async Task EnsureTriggerIsPresent()
+        /// <summary>
+        /// rhhr
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<CloudEvent>> Get(
+            string after,
+            DateTime? from,
+            DateTime? to,
+            int partyId,
+            List<string> source,
+            List<string> type,
+            int size = 50)
         {
-            if (!File.Exists(_triggerPath))
+            List<CloudEvent> searchResult = new List<CloudEvent>();
+            int index = 0;
+
+            try
             {
-                _logger.LogCritical($"Unable to find trigger function on path {_triggerPath}.");
-                return;
+                await _conn.OpenAsync();
+
+                NpgsqlCommand pgcom = new NpgsqlCommand(getEventSql, _conn);
+                pgcom.Parameters.AddWithValue("_subject", NpgsqlDbType.Varchar, partyId == 0 ? string.Empty : $"party/{partyId}");
+                pgcom.Parameters.AddWithValue("_after", NpgsqlDbType.Varchar, string.IsNullOrEmpty(after) ? string.Empty : after);
+                pgcom.Parameters.AddWithValue("_from", NpgsqlDbType.TimestampTz, (from == null) ? (object)DBNull.Value : from);
+                pgcom.Parameters.AddWithValue("_to", NpgsqlDbType.TimestampTz, (to == null) ? (object)DBNull.Value : to);
+                pgcom.Parameters.AddWithValue("_source", NpgsqlDbType.Array | NpgsqlDbType.Text, !source.Any() ? (object)DBNull.Value : source);
+                pgcom.Parameters.AddWithValue("_type", NpgsqlDbType.Array | NpgsqlDbType.Text, !type.Any() ? (object)DBNull.Value : type);
+
+                using (NpgsqlDataReader reader = pgcom.ExecuteReader())
+                {
+                    while (reader.Read() & index < size)
+                    {
+                        CloudEvent cloudEvent = JsonConvert.DeserializeObject<CloudEvent>(reader[0].ToString());
+                        searchResult.Add(cloudEvent);
+                        ++index;
+                    }
+                }
+
+                return searchResult;
             }
-
-            Trigger trigger = new Trigger();
-            trigger.Id = _triggerId;
-            trigger.Body = File.ReadAllText(_triggerPath);
-            trigger.TriggerOperation = TriggerOperation.Create;
-            trigger.TriggerType = TriggerType.Pre;
-
-            bool successful = await _cosmosService.StoreTrigger(trigger);
-            if (successful)
+            catch (Exception e)
             {
-                _triggersRegistered = true;
+                Console.WriteLine($" EventsRepository // Get // Exception {JsonConvert.SerializeObject(e)}");
+                throw e;
+            }
+            finally
+            {
+                await _conn.CloseAsync();
             }
         }
     }
