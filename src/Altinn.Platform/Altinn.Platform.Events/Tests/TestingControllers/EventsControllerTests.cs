@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Text;
 using Altinn.Platform.Events.Controllers;
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Repository;
 using Altinn.Platform.Events.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;

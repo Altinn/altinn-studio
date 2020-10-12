@@ -4,7 +4,7 @@ using Altinn.Platform.Events.Models;
 namespace Altinn.Platform.Events.Services.Interfaces
 {
     /// <summary>
-    /// Something smart
+    /// Interface to talk to the events service
     /// </summary>
     public interface IEventsService
     {

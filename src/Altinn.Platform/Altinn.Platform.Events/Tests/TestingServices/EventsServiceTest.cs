@@ -28,14 +28,38 @@ namespace Altinn.Platform.Events.Tests.TestingServices
         public async Task Create_EventSuccessfullyStored_IdReturned()
         {
             // Arrange
-            EventsService eventsService = new EventsService(new EventsPostgresRepositoryMock(), _loggerMock.Object);
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock(), _loggerMock.Object);
 
             // Act
             string actual = await eventsService.StoreCloudEvent(GetCloudEvent());
 
             // Assert
             Assert.NotEmpty(actual);
-        }     
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Store a cloud event in postgres DB when id is null.
+        /// Expected result:
+        ///   Returns the id of the newly created document.
+        /// Success criteria:
+        ///   The response is a non-empty string.
+        /// </summary>
+        [Fact]
+        public async Task Create_CheckIdCreatedByService_IdReturned()
+        {
+            // Arrange
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock(), _loggerMock.Object);
+
+            CloudEvent item = GetCloudEvent();
+            item.Id = null;
+
+            // Act
+            string actual = await eventsService.StoreCloudEvent(item);
+
+            // Assert
+            Assert.NotEmpty(actual);
+        }
 
         private CloudEvent GetCloudEvent()
         {

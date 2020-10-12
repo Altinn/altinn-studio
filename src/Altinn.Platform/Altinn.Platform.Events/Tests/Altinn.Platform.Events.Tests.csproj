@@ -41,13 +41,17 @@
 
   <ItemGroup>
     <Folder Include="Configuration\" />
-    <Folder Include="TestingRepositories\" />        
+    <Folder Include="TestingRepositories\" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <None Include="..\Events\Configuration\UpdateItemTimestamp.js" Link="Configuration\UpdateItemTimestamp.js">
+
+<!--   <ItemGroup>
+    <None Include="..\Events\Migration\v0.00\01-setup-tables.sql" Link="Migration\01-setup-tables.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup> -->
+
+  <ItemGroup>
+    <Content Include="..\Events\Migration\**" CopyToOutputDirectory="PreserveNewest" Link="Migration\%(RecursiveDir)%(Filename)%(Extension)"/>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
@@ -55,8 +59,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-     <NoWarn>$(NoWarn);1591</NoWarn>
-   </PropertyGroup>
-   
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
 </Project>

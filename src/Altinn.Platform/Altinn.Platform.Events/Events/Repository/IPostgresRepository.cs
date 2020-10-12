@@ -6,7 +6,7 @@ namespace Altinn.Platform.Events.Repository
     /// <summary>
     /// Interface to talk to the events repository
     /// </summary>
-    public interface IEventsPostgresRepository
+    public interface IPostgresRepository
     {
         /// <summary>
         /// Creates an cloud event in repository

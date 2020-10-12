@@ -87,7 +87,7 @@ namespace Altinn.Platform.Events
             services.AddHealthChecks().AddCheck<HealthCheck>("events_health_check");
             services.Configure<PostgreSQLSettings>(Configuration.GetSection(nameof(PostgreSQLSettings)));
             services.AddSingleton<IEventsService, EventsService>();
-            services.AddSingleton<IEventsPostgresRepository, EventsPostgresRepository>();
+            services.AddSingleton<IPostgresRepository, PostgresRepository>();
             services.AddSingleton(Configuration);
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
@@ -119,7 +119,7 @@ namespace Altinn.Platform.Events
 
             if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
             {
-                NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
+                //NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
 
                 ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
 

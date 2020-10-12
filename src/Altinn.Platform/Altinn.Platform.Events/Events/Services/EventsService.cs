@@ -8,17 +8,20 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.Platform.Events.Services
 {
     /// <summary>
-    /// Class that handles storing and retrieving data from Postgres Db
+    /// Handles events sevice. 
+    /// Notice when saving cloudevent:
+    /// - the id for the cloudevent is created by the app
+    /// - time is set to null, it will be created in the database
     /// </summary>
     public class EventsService : IEventsService
     {
-        private IEventsPostgresRepository _repository;
+        private IPostgresRepository _repository;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsService"/> class.
         /// </summary>
-        public EventsService(IEventsPostgresRepository repository, ILogger<EventsService> logger)
+        public EventsService(IPostgresRepository repository, ILogger<EventsService> logger)
         {
             _repository = repository;
             _logger = logger;
@@ -28,6 +31,7 @@ namespace Altinn.Platform.Events.Services
         public async Task<string> StoreCloudEvent(CloudEvent cloudEvent)
         {
             cloudEvent.Id = Guid.NewGuid().ToString();
+            cloudEvent.Time = null;
             return await _repository.Create(cloudEvent);
         }
     }
