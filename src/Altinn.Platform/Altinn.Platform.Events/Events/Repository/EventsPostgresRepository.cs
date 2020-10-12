@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Configuration;
@@ -11,6 +12,7 @@ namespace Altinn.Platform.Events.Repository
     /// <summary>
     /// Handles events repository. 
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class EventsPostgresRepository : IEventsPostgresRepository
     {
         private NpgsqlConnection _conn;
