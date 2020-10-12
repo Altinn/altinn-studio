@@ -69,7 +69,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
                 httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(cloudEvent), Encoding.UTF8, "application/json");
-                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+              //  httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -154,7 +154,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -217,7 +216,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
