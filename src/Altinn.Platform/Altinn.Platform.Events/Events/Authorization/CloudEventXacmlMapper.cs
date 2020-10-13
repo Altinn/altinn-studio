@@ -98,13 +98,13 @@ namespace Altinn.Platform.Events.Authorization
 
                 string[] paths = path.Split("/");
 
-                if (paths.Length == 3)
+                if (paths.Length == 6)
                 {
                     // This is the scenario for events related to a given instance
-                    string instanceId = paths[3];
+                    string instanceId = paths[4] + "/" + paths[5];
                     string instanceOwnerPartyId = cloudEvent.Subject.Split("/")[1];
-                    string org = paths[0];
-                    string app = paths[1];
+                    string org = paths[2];
+                    string app = paths[3];
 
                     if (!string.IsNullOrWhiteSpace(instanceId))
                     {
