@@ -40,19 +40,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\Events\Migration\**" CopyToOutputDirectory="PreserveNewest" Link="Migration\%(RecursiveDir)%(Filename)%(Extension)" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Configuration\**" />
-    <Compile Remove="TestingRepositories\**" />
-    <EmbeddedResource Remove="Configuration\**" />
-    <EmbeddedResource Remove="TestingRepositories\**" />
-    <None Remove="Configuration\**" />
-    <None Remove="TestingRepositories\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="jwtselfsignedcert.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
