@@ -22,17 +22,7 @@ namespace Altinn.Platform.Events.Tests.TestingUtils
         public void CreateSingleEventRequest()
         {
             // Arrange
-            List<Claim> claims = new List<Claim>();
-            string issuer = "www.altinn.no";
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, "1", ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, "UserOne", ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, "1", ClaimValueTypes.Integer32, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "Mock", ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
-
-            ClaimsIdentity identity = new ClaimsIdentity("mock");
-            identity.AddClaims(claims);
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            ClaimsPrincipal principal = GetPrincipal(1, 1);
 
             List<CloudEvent> cloudEvents = new List<CloudEvent>();
             CloudEvent cloudEvent = new CloudEvent()
@@ -49,6 +39,22 @@ namespace Altinn.Platform.Events.Tests.TestingUtils
             // Assert.
             Assert.NotNull(xacmlJsonProfile);
             Assert.Single(xacmlJsonProfile.Request.Resource);
+        }
+
+        private ClaimsPrincipal GetPrincipal(int userId, int partyId)
+        {
+            List<Claim> claims = new List<Claim>();
+            string issuer = "www.altinn.no";
+            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userId.ToString(), ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, "UserOne", ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId.ToString(), ClaimValueTypes.Integer32, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "Mock", ClaimValueTypes.String, issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
+
+            ClaimsIdentity identity = new ClaimsIdentity("mock");
+            identity.AddClaims(claims);
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            return principal;
         }
     }
 }
