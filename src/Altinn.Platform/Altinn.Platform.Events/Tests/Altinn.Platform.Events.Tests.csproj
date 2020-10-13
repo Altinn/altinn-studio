@@ -40,12 +40,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Configuration\" />
-    <Folder Include="TestingRepositories\" />
+    <Content Include="..\Events\Migration\**" CopyToOutputDirectory="PreserveNewest" Link="Migration\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\Events\Migration\**" CopyToOutputDirectory="PreserveNewest" Link="Migration\%(RecursiveDir)%(Filename)%(Extension)"/>
+    <Compile Remove="Configuration\**" />
+    <Compile Remove="TestingRepositories\**" />
+    <EmbeddedResource Remove="Configuration\**" />
+    <EmbeddedResource Remove="TestingRepositories\**" />
+    <None Remove="Configuration\**" />
+    <None Remove="TestingRepositories\**" />
   </ItemGroup>
 
   <ItemGroup>

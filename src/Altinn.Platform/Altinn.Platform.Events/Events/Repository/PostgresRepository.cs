@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -48,7 +48,7 @@ namespace Altinn.Platform.Events.Repository
                 pgcom.Parameters.AddWithValue("source", item.Source.OriginalString);
                 pgcom.Parameters.AddWithValue("subject", item.Subject);
                 pgcom.Parameters.AddWithValue("type", item.Type);
-                pgcom.Parameters.AddWithValue("cloudevent", SerializeCloudEvent(item));
+                pgcom.Parameters.AddWithValue("cloudevent", item.Serialize());
 
                 await pgcom.ExecuteNonQueryAsync();
 
@@ -87,8 +87,7 @@ namespace Altinn.Platform.Events.Repository
                 {
                     while (reader.Read() & index < size)
                     {
-                        // issues with serializer.. 
-                        CloudEvent cloudEvent = JsonConvert.DeserializeObject<CloudEvent>(reader[0].ToString());
+                        CloudEvent cloudEvent = CloudEvent.Deserialize(reader[0].ToString());
                         searchResult.Add(cloudEvent);
                         ++index;
                     }
@@ -98,18 +97,13 @@ namespace Altinn.Platform.Events.Repository
             }
             catch (Exception e)
             {
-                Console.WriteLine($" PostgresRepository // Get // Exception {System.Text.Json.JsonSerializer.Serialize(e)}");
+                Console.WriteLine($" PostgresRepository // Get // Exception {JsonSerializer.Serialize(e)}");
                 throw e;
             }
             finally
             {
                 await _conn.CloseAsync();
             }
-        }
-
-        private string SerializeCloudEvent(CloudEvent cloudEvent)
-        {
-            return System.Text.Json.JsonSerializer.Serialize(cloudEvent);
         }
     }
 }

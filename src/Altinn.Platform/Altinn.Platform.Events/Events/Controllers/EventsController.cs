@@ -17,6 +17,7 @@ namespace Altinn.Platform.Events.Controllers
     /// <summary>
     /// Provides operations for handling events
     /// </summary>
+    // [Authorize]
     [Route("events/api/v1/app")]
     public class EventsController : Controller
     {
@@ -41,6 +42,7 @@ namespace Altinn.Platform.Events.Controllers
         /// Inserts a new event.
         /// </summary>
         /// <returns>The application metadata object.</returns>
+        /// [Authorize(Policy = "PlatformAccess")]
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]

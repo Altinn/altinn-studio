@@ -66,12 +66,11 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Mock<IEventsService> eventsService = new Mock<IEventsService>();
                 eventsService.Setup(s => s.StoreCloudEvent(It.IsAny<CloudEvent>())).ReturnsAsync(responseId);
 
-                HttpClient client = GetTestClient(eventsRepository.Object);
+                HttpClient client = GetTestClient(eventsService.Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
                 httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(cloudEvent), Encoding.UTF8, "application/json");
               //  httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
-                HttpClient client = GetTestClient(eventsService.Object);
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -152,7 +151,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string expected = "\"From or after must be defined.\"";
 
                 string requestUri = $"{BasePath}/app/ttd/apps-test?size=5";
-                HttpClient client = GetTestClient(new Mock<IEventsRepository>().Object);
+                HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -182,7 +181,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string expected = "\"Size must be a number larger that 0.\"";
 
                 string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01&size=-5";
-                HttpClient client = GetTestClient(new Mock<IEventsRepository>().Object);
+                HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -212,7 +211,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string token = PrincipalUtil.GetToken(1);
 
                 string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01&party=12345";
-                Mock<IEventsRepository> eventsRepository = new Mock<IEventsRepository>();
+                Mock<IEventsService> eventsRepository = new Mock<IEventsService>();
 
                 HttpClient client = GetTestClient(eventsRepository.Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -242,7 +241,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string token = PrincipalUtil.GetToken(1);
 
                 string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01";
-                HttpClient client = GetTestClient(new Mock<IEventsRepository>().Object);
+                HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -256,7 +255,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             }
 
-            private HttpClient GetTestClient(IEventsRepository eventsRepository)
+            private HttpClient GetTestClient(IEventsService eventsService)
             {
                 Program.ConfigureSetupLogging();
                 HttpClient client = _factory.WithWebHostBuilder(builder =>
@@ -264,7 +263,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                     builder.ConfigureTestServices(services =>
                     {
                         services.AddSingleton(eventsService);
-                        services.AddSingleton(eventsRepository);
 
                         // Set up mock authentication so that not well known endpoint is used
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();

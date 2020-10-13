@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS events.events
     id character varying COLLATE pg_catalog."default" NOT NULL,
     source character varying COLLATE pg_catalog."default" NOT NULL,
     subject character varying COLLATE pg_catalog."default" NOT NULL,
-    "time" timestamptz  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "time" timestamptz  NOT NULL,
     type character varying COLLATE pg_catalog."default" NOT NULL,
     cloudevent text COLLATE pg_catalog."default" NOT NULL,
     CONSTRAINT events_pkey PRIMARY KEY (sequenceno)
@@ -29,11 +29,11 @@ CREATE OR REPLACE PROCEDURE events.insert_event(
 	cloudevent text)
 LANGUAGE 'plpgsql'
 AS $BODY$
-DECLARE currentTime timestamptz := current_timestamp;
+DECLARE currentTime character varying := to_char(current_timestamp at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS.USZ');
 BEGIN
 
 INSERT INTO events.events(id, source, subject, type, "time", cloudevent)
-	VALUES ($1, $2, $3, $4, currentTime,  substring($5 from 1 for length($5) -1)  || ', "time": "' || currentTime || '"}');
+	VALUES ($1, $2, $3, $4, to_timestamp(currentTime, 'YYYY-MM-DD"T"HH24:MI:SS.USZ'),  substring($5 from 1 for length($5) -1)  || ',"time": "' || currentTime || '"}');
 	
 END;
 $BODY$;

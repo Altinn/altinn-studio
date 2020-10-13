@@ -84,16 +84,48 @@ namespace Altinn.Platform.Events
             _logger.LogInformation("Startup // ConfigureServices");
 
             services.AddControllers().AddJsonOptions(options =>
-           {
-               options.JsonSerializerOptions.IgnoreNullValues = true;
-               options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-           });
+               {
+                   options.JsonSerializerOptions.IgnoreNullValues = true;
+                   options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+               });
 
+            services.AddMemoryCache();
             services.AddHealthChecks().AddCheck<HealthCheck>("events_health_check");
 
             services.AddSingleton(Configuration);
             services.Configure<PostgreSQLSettings>(Configuration.GetSection("PostgreSQLSettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+
+            services.AddSingleton<IAuthorizationHandler, AccessTokenHandler>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<ISigningKeysResolver, SigningKeysResolver>();
+
+            services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
+                  .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
+                  {
+                      GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
+                      options.JwtCookieName = generalSettings.JwtCookieName;
+                      options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
+                      options.TokenValidationParameters = new TokenValidationParameters
+                      {
+                          ValidateIssuerSigningKey = true,
+                          ValidateIssuer = false,
+                          ValidateAudience = false,
+                          RequireExpirationTime = true,
+                          ValidateLifetime = true,
+                          ClockSkew = TimeSpan.Zero
+                      };
+
+                      if (_env.IsDevelopment())
+                      {
+                          options.RequireHttpsMetadata = false;
+                      }
+                  });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("PlatformAccess", policy => policy.Requirements.Add(new AccessTokenRequirement()));
+            });
 
             services.AddSingleton<IEventsService, EventsService>();
             services.AddSingleton<IPostgresRepository, PostgresRepository>();
@@ -148,16 +180,6 @@ namespace Altinn.Platform.Events
                     });
             }
 
-            string authenticationEndpoint = string.Empty;
-            if (Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpoint") != null)
-            {
-                authenticationEndpoint = Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpoint");
-            }
-            else
-            {
-                authenticationEndpoint = Configuration["PlatformSettings:ApiAuthenticationEndpoint"];
-            }
-
             if (env.IsDevelopment() || env.IsStaging())
             {
                 app.UseDeveloperExceptionPage();
@@ -173,21 +195,6 @@ namespace Altinn.Platform.Events
             {
                 c.SwaggerEndpoint("/events/swagger/v1/swagger.json", "Altinn Platform Events API");
                 c.RoutePrefix = "events/swagger";
-            });
-
-            app.UseStaticFiles();
-            app.UseStatusCodePages(async context =>
-            {
-                var request = context.HttpContext.Request;
-                var response = context.HttpContext.Response;
-                string url = $"https://platform.{Configuration["GeneralSettings:Hostname"]}{request.Path.ToString()}";
-
-                // you may also check requests path to do this only for specific methods
-                // && request.Path.Value.StartsWith("/specificPath")
-                if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
-                {
-                    response.Redirect($"{authenticationEndpoint}authentication?goto={url}");
-                }
             });
 
             app.UseRouting();

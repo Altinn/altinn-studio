@@ -43,6 +43,7 @@ namespace Altinn.Platform.Events.Services
             string subject = partyId == 0 ? string.Empty : $"party/{partyId}";
             source = source.Any() ? source : null;
             type = type.Any() ? type : null;
+            after = after ?? string.Empty;
 
             return await _repository.Get(after, from, to, subject, source, type, size);
         }
