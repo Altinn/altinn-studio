@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Net;
 using System.Reflection;
 using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Services;

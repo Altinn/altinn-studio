@@ -8,13 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Migration\NewFolder\**" />
-    <Content Remove="Migration\NewFolder\**" />
-    <EmbeddedResource Remove="Migration\NewFolder\**" />
-    <None Remove="Migration\NewFolder\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Altinn.Common.AccessToken" Version="0.5.7" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.0.4-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.2.5" />
@@ -49,6 +42,7 @@
     <Folder Include="Migration\_erase\" />
     <Folder Include="Migration\_draft\" />
     <Folder Include="Migration\_init\" />
+    <Folder Include="Migration\_post\" />
     <Folder Include="Migration\_pre\" />
   </ItemGroup>
 

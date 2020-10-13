@@ -85,7 +85,7 @@ namespace Altinn.Platform.Events.Repository
 
                 using (NpgsqlDataReader reader = pgcom.ExecuteReader())
                 {
-                    while (reader.Read() & index < size)
+                    while (reader.Read() && index < size)
                     {
                         CloudEvent cloudEvent = CloudEvent.Deserialize(reader[0].ToString());
                         cloudEvent.Time = cloudEvent.Time.Value.ToUniversalTime();
@@ -99,7 +99,7 @@ namespace Altinn.Platform.Events.Repository
             catch (Exception e)
             {
                 Console.WriteLine($" PostgresRepository // Get // Exception {JsonSerializer.Serialize(e)}");
-                throw e;
+                throw;
             }
             finally
             {

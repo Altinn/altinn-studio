@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Events.Configuration;
@@ -102,7 +103,7 @@ namespace Altinn.Platform.Events.Controllers
 
                 if (events.Count > 0)
                 {
-                    string nextUri = $"{_eventsBaseUri}{Request.Path}?after={events.Last().Id}";
+                    StringBuilder nextUriBuilder = new StringBuilder($"{_eventsBaseUri}{Request.Path}?after={events.Last().Id}");
 
                     List<KeyValuePair<string, string>> queryCollection = Request.Query
                         .SelectMany(q => q.Value, (col, value) => new KeyValuePair<string, string>(col.Key, value))
@@ -111,10 +112,10 @@ namespace Altinn.Platform.Events.Controllers
 
                     foreach (KeyValuePair<string, string> queryParam in queryCollection)
                     {
-                        nextUri += $"&{queryParam.Key}={queryParam.Value}";
+                        nextUriBuilder.Append($"&{queryParam.Key}={queryParam.Value}");
                     }
 
-                    Response.Headers.Add("next", nextUri);
+                    Response.Headers.Add("next", nextUriBuilder.ToString());
                 }
 
                 return events;
