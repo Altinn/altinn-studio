@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services;
@@ -59,6 +61,52 @@ namespace Altinn.Platform.Events.Tests.TestingServices
 
             // Assert
             Assert.NotEmpty(actual);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Get instances based on from and party Id
+        /// Expected result:
+        ///   A single instance is returned.
+        /// Success criteria:
+        ///  PartyId is coverted to correct subject and matched in the repository.
+        /// </summary>
+        [Fact]
+        public async Task Get_QueryIncludesFromAndPartyId_RetrievesCorrectNumberOfEvents()
+        {
+            // Arrange
+            int expectedCount = 1;
+            string expectedSubject = "party/54321";
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock(2), _loggerMock.Object);
+
+            // Act
+            List<CloudEvent> actual = await eventsService.Get(string.Empty, new DateTime(2020, 06, 17), null, 54321, new List<string>() { }, new List<string>() { });
+
+            // Assert
+            Assert.Equal(expectedCount, actual.Count);
+            Assert.Equal(expectedSubject, actual.First().Subject);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Get instances based on after.
+        /// Expected result:
+        ///   A single instance is returned.
+        /// Success criteria:
+        ///  Passes on the after parameter to the repository.
+        /// </summary>
+        [Fact]
+        public async Task Get_QueryIncludesAfter_RetrievesCorrectNumberOfEvents()
+        {
+            // Arrange
+            int expectedCount = 3;
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock(2), _loggerMock.Object);
+
+            // Act
+            List<CloudEvent> actual = await eventsService.Get("e31dbb11-2208-4dda-a549-92a0db8c8808", null, null, 0, new List<string>() { }, new List<string>() { });
+
+            // Assert
+            Assert.Equal(expectedCount, actual.Count);
         }
 
         private CloudEvent GetCloudEvent()

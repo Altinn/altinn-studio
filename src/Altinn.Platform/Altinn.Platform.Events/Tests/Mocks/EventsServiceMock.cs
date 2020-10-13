@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Events.Tests.Models;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Events.Tests.Mocks
 {
@@ -15,7 +15,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
     {
         private int _eventsCollection;
 
-        public EventsServiceMock(int eventsCollection)
+        public EventsServiceMock(int eventsCollection = 1)
         {
             _eventsCollection = eventsCollection;
         }
@@ -27,8 +27,9 @@ namespace Altinn.Platform.Events.Tests.Mocks
             if (File.Exists(eventsPath))
             {
                 string content = File.ReadAllText(eventsPath);
-                List<EventsTableEntry> tableEntries = JsonSerializer.Deserialize<List<EventsTableEntry>>(content);
+                List<EventsTableEntry> tableEntries = JsonConvert.DeserializeObject<List<EventsTableEntry>>(content);
 
+                // logic for filtering on source and type not implemented.
                 IEnumerable<EventsTableEntry> filter = tableEntries;
 
                 if (!string.IsNullOrEmpty(after))
@@ -47,7 +48,6 @@ namespace Altinn.Platform.Events.Tests.Mocks
                     filter = filter.Where(te => te.Time <= to);
                 }
 
-
                 if (partyId > 0)
                 {
                     string subject = $"party/{partyId}";
@@ -58,6 +58,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
                     .Take(size)
                     .ToList();
 
+                result.ForEach(ce => ce.Time = ce.Time.Value.ToUniversalTime());
                 return Task.FromResult(result);
             }
 
