@@ -43,8 +43,6 @@
     <Folder Include="Configuration\" />
     <Folder Include="TestingRepositories\" />
   </ItemGroup>
-  
-  </ItemGroup> -->
 
   <ItemGroup>
     <Content Include="..\Events\Migration\**" CopyToOutputDirectory="PreserveNewest" Link="Migration\%(RecursiveDir)%(Filename)%(Extension)"/>

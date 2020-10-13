@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -17,9 +18,7 @@ namespace Altinn.Platform.Events.Controllers
     /// Provides operations for handling events
     /// </summary>
     [Route("events/api/v1/app")]
-    [ApiController]
-    [Authorize]
-    public class EventsController : ControllerBase
+    public class EventsController : Controller
     {
         private readonly IEventsService _eventsService;
         private readonly ILogger _logger;
@@ -29,8 +28,9 @@ namespace Altinn.Platform.Events.Controllers
         /// Initializes a new instance of the <see cref="EventsController"/> class
         /// </summary>
         /// <param name="eventsService">postgres service</param>
+        /// <param name="settings">the general settings</param>
         /// <param name="logger">dependency injection of logger</param>
-        public EventsController(IEventsService eventsService, ILogger<EventsController> logger)
+        public EventsController(IEventsService eventsService, IOptions<GeneralSettings> settings, ILogger<EventsController> logger)
         {
             _logger = logger;
             _eventsService = eventsService;
@@ -46,7 +46,6 @@ namespace Altinn.Platform.Events.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        [Authorize(Policy = "PlatformAccess")]
         public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
         {
             if (string.IsNullOrEmpty(cloudEvent.Source.OriginalString) || string.IsNullOrEmpty(cloudEvent.SpecVersion) ||
@@ -97,7 +96,7 @@ namespace Altinn.Platform.Events.Controllers
 
             try
             {
-                List<CloudEvent> events = await _repository.Get(after, from, to, party, source, type, size);
+                List<CloudEvent> events = await _eventsService.Get(after, from, to, party, source, type, size);
 
                 if (events.Count > 0)
                 {

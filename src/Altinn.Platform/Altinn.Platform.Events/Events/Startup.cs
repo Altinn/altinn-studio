@@ -2,15 +2,20 @@ using System;
 using System.IO;
 using System.Net;
 using System.Reflection;
-
+using Altinn.Common.AccessToken;
+using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Health;
 using Altinn.Platform.Events.Repository;
+using Altinn.Platform.Events.Repository.Interfaces;
+using Altinn.Platform.Events.Services;
+using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Telemetry;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -86,35 +91,12 @@ namespace Altinn.Platform.Events
 
             services.AddHealthChecks().AddCheck<HealthCheck>("events_health_check");
 
+            services.AddSingleton(Configuration);
             services.Configure<PostgreSQLSettings>(Configuration.GetSection("PostgreSQLSettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
 
-            services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
-                    .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
-                    {
-                        GeneralSettings generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
-                        options.JwtCookieName = generalSettings.JwtCookieName;
-                        options.MetadataAddress = generalSettings.OpenIdWellKnownEndpoint;
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuerSigningKey = true,
-                            ValidateIssuer = false,
-                            ValidateAudience = false,
-                            RequireExpirationTime = true,
-                            ValidateLifetime = true,
-                            ClockSkew = TimeSpan.Zero
-                        };
-
-                        if (_env.IsDevelopment())
-                        {
-                            options.RequireHttpsMetadata = false;
-                        }
-                    });
-            services.AddSingleton<IEventsRepository, EventsRepository>();
-            services.Configure<PostgreSQLSettings>(Configuration.GetSection(nameof(PostgreSQLSettings)));
             services.AddSingleton<IEventsService, EventsService>();
             services.AddSingleton<IPostgresRepository, PostgresRepository>();
-            services.AddSingleton(Configuration);
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {
