@@ -88,7 +88,7 @@ namespace Altinn.Platform.Events.Models
         /// <returns>Cloud event</returns>
         public static CloudEvent Deserialize(string jsonString)
         {
-            return JsonSerializer.Deserialize<CloudEvent>(jsonString);
+            return JsonSerializer.Deserialize<CloudEvent>(jsonString, new JsonSerializerOptions { });
         }
     }
 }

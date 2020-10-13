@@ -29,11 +29,15 @@ CREATE OR REPLACE PROCEDURE events.insert_event(
 	cloudevent text)
 LANGUAGE 'plpgsql'
 AS $BODY$
-DECLARE currentTime character varying := to_char(current_timestamp at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS.USZ');
+DECLARE currentTime timestamptz; 
+DECLARE currentTimeString character varying; 
 BEGIN
+  SET TIME ZONE UTC;
+  currentTime := NOW();
+  currentTimeString :=  to_char(currentTime, 'YYYY-MM-DD"T"HH24:MI:SS.USOF');
 
 INSERT INTO events.events(id, source, subject, type, "time", cloudevent)
-	VALUES ($1, $2, $3, $4, to_timestamp(currentTime, 'YYYY-MM-DD"T"HH24:MI:SS.USZ'),  substring($5 from 1 for length($5) -1)  || ',"time": "' || currentTime || '"}');
+	VALUES ($1, $2, $3, $4, currentTime,  substring($5 from 1 for length($5) -1)  || ',"time": "' || currentTimeString || '"}');
 	
 END;
 $BODY$;

@@ -88,6 +88,7 @@ namespace Altinn.Platform.Events.Repository
                     while (reader.Read() & index < size)
                     {
                         CloudEvent cloudEvent = CloudEvent.Deserialize(reader[0].ToString());
+                        cloudEvent.Time = cloudEvent.Time.Value.ToUniversalTime();
                         searchResult.Add(cloudEvent);
                         ++index;
                     }

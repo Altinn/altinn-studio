@@ -17,7 +17,7 @@ namespace Altinn.Platform.Events.Controllers
     /// <summary>
     /// Provides operations for handling events
     /// </summary>
-    // [Authorize]
+    [Authorize]
     [Route("events/api/v1/app")]
     public class EventsController : Controller
     {
@@ -42,7 +42,7 @@ namespace Altinn.Platform.Events.Controllers
         /// Inserts a new event.
         /// </summary>
         /// <returns>The application metadata object.</returns>
-        /// [Authorize(Policy = "PlatformAccess")]
+        [Authorize(Policy = "PlatformAccess")]
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -94,7 +94,7 @@ namespace Altinn.Platform.Events.Controllers
             if (size < 1)
             {
                 return BadRequest("Size must be a number larger that 0.");
-            }
+            } 
 
             try
             {

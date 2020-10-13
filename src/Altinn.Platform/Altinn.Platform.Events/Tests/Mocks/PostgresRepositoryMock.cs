@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Repository;
+using Altinn.Platform.Events.Repository.Interfaces;
 
 namespace Altinn.Platform.Events.Tests.Mocks
 {
@@ -14,6 +15,11 @@ namespace Altinn.Platform.Events.Tests.Mocks
         public Task<string> Create(CloudEvent cloudEvent)
         {
             return Task.FromResult(cloudEvent.Id);
+        }
+
+        public Task<List<CloudEvent>> Get(string after, DateTime? from, DateTime? to, string subject, List<string> source, List<string> type, int size)
+        {
+            throw new NotImplementedException();
         }
     }
 }
