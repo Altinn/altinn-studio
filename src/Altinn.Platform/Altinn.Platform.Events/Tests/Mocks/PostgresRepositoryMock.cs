@@ -64,13 +64,13 @@ namespace Altinn.Platform.Events.Tests.Mocks
 
                 if (source != null && source.Count > 0)
                 {
-                    // more logic to match all fancy cases.
+                    // requires more logic to match all fancy cases.
                     filter = filter.Where(te => source.Contains(te.Source.ToString()));
                 }
 
                 if (type != null && type.Count > 0)
                 {
-                    // more logic to match all fancy cases.
+                    // requires more logic to match all fancy cases.
                     filter = filter.Where(te => type.Contains(te.Type.ToString()));
                 }
 
