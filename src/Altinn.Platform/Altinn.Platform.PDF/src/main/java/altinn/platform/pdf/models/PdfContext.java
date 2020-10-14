@@ -6,7 +6,8 @@ import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.SortedMap;
+import java.util.HashMap;
+import java.util.TreeMap;
 
 @ApiModel(description = "The PDF context which the PDF is generated from.")
 public class PdfContext {
@@ -19,13 +20,13 @@ public class PdfContext {
   private FormLayout formLayout;
 
   @Nullable
-  public SortedMap<String, FormLayout> getFormLayouts() { return formLayouts; }
+  public TreeMap<String, FormLayout> getFormLayouts() { return formLayouts; }
 
-  public void setFormLayouts(@Nullable SortedMap<String, FormLayout> formLayouts) { this.formLayouts = formLayouts; }
+  public void setFormLayouts(@Nullable TreeMap<String, FormLayout> formLayouts) { this.formLayouts = formLayouts; }
 
   @ApiModelProperty(notes = "A dictionary of form layouts.")
   @Nullable
-  private SortedMap<String, FormLayout> formLayouts;
+  private TreeMap<String, FormLayout> formLayouts;
 
   @ApiModelProperty(notes = "The xml data file, note: must be base 64 encoded")
   @NotNull
