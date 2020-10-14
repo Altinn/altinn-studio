@@ -6,6 +6,7 @@ We love your input! We want to make contributing to this project as easy and tra
 - Discussing the current state of the code
 - Submitting a fix
 - Proposing new features
+- Coding and submitting new features (but please write a comment tagging @lvbachmann in the corresponding [issue(s)](https://github.com/Altinn/altinn-studio/issues) in our backlog before you do)
 
 ## We Develop with Github
 
@@ -38,7 +39,7 @@ We use GitHub issues to track public bugs. Report a bug by [opening a new issue]
 - Steps to reproduce
   - Be specific!
   - Give sample code if you can (and if relevant).
-  - Provide screenshots (if relevant). 
+  - Provide screenshots (if relevant).
 - What you expected would happen
 - What actually happens
 - Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)

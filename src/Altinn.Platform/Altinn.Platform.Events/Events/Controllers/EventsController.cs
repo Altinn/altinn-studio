@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Repository;
+using Altinn.Platform.Events.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -15,30 +15,30 @@ namespace Altinn.Platform.Events.Controllers
     [ApiController]
     public class EventsController : ControllerBase
     {
-        private readonly IEventsRepository _repository;
+        private readonly IEventsService _eventsService;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsController"/> class
         /// </summary>
-        /// <param name="repository">the events repository handler</param>
+        /// <param name="eventsService">postgres service</param>
         /// <param name="logger">dependency injection of logger</param>
-        public EventsController(IEventsRepository repository, ILogger<EventsController> logger)
+        public EventsController(IEventsService eventsService, ILogger<EventsController> logger)
         {
-            _repository = repository;
             _logger = logger;
+            _eventsService = eventsService;
         }
 
         /// <summary>
         /// Inserts a new event.
         /// </summary>
-        /// <param name="cloudEvent">The event to store.</param>
         /// <returns>The application metadata object.</returns>
         [HttpPost]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
+
         public async Task<ActionResult<string>> Post([FromBody] CloudEvent cloudEvent)
         {
             if (string.IsNullOrEmpty(cloudEvent.Source.OriginalString) || string.IsNullOrEmpty(cloudEvent.SpecVersion) ||
@@ -49,13 +49,8 @@ namespace Altinn.Platform.Events.Controllers
 
             try
             {
-                // Force cosmos to create id
-                cloudEvent.Id = null;
-
-                string cloudEventId = await _repository.Create(cloudEvent);
-
+                string cloudEventId = await _eventsService.StoreCloudEvent(cloudEvent);
                 _logger.LogInformation("Cloud Event successfully stored with id: {0}", cloudEventId);
-
                 return Created(cloudEvent.Subject, cloudEventId);
             }
             catch (Exception e)
