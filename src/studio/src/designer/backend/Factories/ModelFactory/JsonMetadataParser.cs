@@ -252,6 +252,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case BaseValueType.NonPositiveInteger:
                     classBuilder.AppendLine("[Range(Int32.MinValue,0" + errorMessage + ")]");
                     break;
+                case BaseValueType.NonNegativeInteger:
+                    classBuilder.AppendLine("[Range(0,Int32.MaxValue" + errorMessage + ")]");
+                    break;
                 case BaseValueType.PositiveInteger:
                     classBuilder.AppendLine("[Range(1,Int32.MaxValue" + errorMessage + ")]");
                     break;
