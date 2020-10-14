@@ -40,23 +40,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Configuration\" />
-    <Folder Include="TestingRepositories\" />
-  </ItemGroup>
-
-<!--   <ItemGroup>
-    <None Include="..\Events\Migration\v0.00\01-setup-tables.sql" Link="Migration\01-setup-tables.sql">
+    <None Update="jwtselfsignedcert.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup> -->
-
-  <ItemGroup>
-    <Content Include="..\Events\Migration\**" CopyToOutputDirectory="PreserveNewest" Link="Migration\%(RecursiveDir)%(Filename)%(Extension)"/>
+    <None Update="JWTValidationCert.cer">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ttd-org.pem">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ttd-org.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
 
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
