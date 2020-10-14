@@ -2,14 +2,14 @@ package altinn.platform.pdf.models;
 
 public class Data {
   private String id;
-  private String dataType;
+  private String elementType;
   private String contentType;
-  private String blobStoragePath;
-  private long size;
+  private String storageUrl;
+  private Integer fileSize;
   private Boolean isLocked;
-  private String created;
-  private String lastChanged;
-  private String filename;
+  private String createdDateTime;
+  private String lastChangedDateTime;
+  private String fileName;
 
   public String getId() {
     return id;
@@ -19,12 +19,12 @@ public class Data {
     this.id = id;
   }
 
-  public String getDataType() {
-    return dataType;
+  public String getElementType() {
+    return elementType;
   }
 
-  public void setDataType(String dataType) {
-    this.dataType = dataType;
+  public void setElementType(String elementType) {
+    this.elementType = elementType;
   }
 
   public String getContentType() {
@@ -35,18 +35,18 @@ public class Data {
     this.contentType = contentType;
   }
 
-  public String getBlobStoragePath() { return blobStoragePath; }
+  public String getStorageUrl() { return storageUrl; }
 
-  public void setBlobStoragePath(String blobStoragePath) {
-    this.blobStoragePath = blobStoragePath;
+  public void setStorageUrl(String storageUrl) {
+    this.storageUrl = storageUrl;
   }
 
-  public long getSize() {
-    return size;
+  public Integer getFileSize() {
+    return fileSize;
   }
 
-  public void setSize(long size) {
-    this.size = size;
+  public void setFileSize(Integer fileSize) {
+    this.fileSize = fileSize;
   }
 
   public Boolean getLocked() {
@@ -55,27 +55,27 @@ public class Data {
 
   public void setLocked(Boolean locked) { isLocked = locked; }
 
-  public String getCreated() {
-    return created;
+  public String getCreatedDateTime() {
+    return createdDateTime;
   }
 
-  public void setCreated(String created) {
-    this.created = created;
+  public void setCreatedDateTime(String createdDateTime) {
+    this.createdDateTime = createdDateTime;
   }
 
-  public String getLastChanged() {
-    return lastChanged;
+  public String getLastChangedDateTime() {
+    return lastChangedDateTime;
   }
 
-  public void setLastChanged(String lastChanged) {
-    this.lastChanged = lastChanged;
+  public void setLastChangedDateTime(String lastChangedDateTime) {
+    this.lastChangedDateTime = lastChangedDateTime;
   }
 
-  public String getFilename() {
-    return filename;
+  public String getFileName() {
+    return fileName;
   }
 
-  public void setFilename(String filename) {
-    this.filename = filename;
+  public void setFileName(String fileName) {
+    this.fileName = fileName;
   }
 }
