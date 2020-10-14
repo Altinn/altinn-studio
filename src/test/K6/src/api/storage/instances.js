@@ -3,9 +3,17 @@ import * as config from "../../config.js";
 import * as header from "../../buildrequestheaders.js"
 import { printResponseToConsole } from "../../errorcounter.js";
 
-//Api call to Storage:Instances to create an app instance and returns response
-export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, level2App, instanceJson) {
-    var appId = appOwner + "/" + level2App;
+/**
+ * Api call to Storage:Instances to create an app instance and returns response
+ * @param {*} altinnStudioRuntimeCookie token value to be sent in header for authentication
+ * @param {*} partyId party id of the user to whom instance is to be created
+ * @param {*} appOwner app owner name
+ * @param {*} appName app name
+ * @param {JSON} instanceJson instance json metadata sent in request body
+ * @returns {JSON} Json object including response headers, body, timings
+ */
+export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, appName, instanceJson) {
+    var appId = appOwner + "/" + appName;
     var endpoint = config.platformStorage["instances"] + "?appId=" + appId;
     var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, "platform");
     var requestbody = JSON.stringify(buildInstanceInputJson(instanceJson, appId, partyId));

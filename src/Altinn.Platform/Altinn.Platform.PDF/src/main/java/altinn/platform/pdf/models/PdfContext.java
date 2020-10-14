@@ -15,7 +15,7 @@ public class PdfContext {
   @NotNull
   private TextResources textResources;
 
-  @ApiModelProperty(notes = "The form layout json file.")
+  @ApiModelProperty(notes = "The form layout json file")
   private FormLayout formLayout;
 
   @Nullable

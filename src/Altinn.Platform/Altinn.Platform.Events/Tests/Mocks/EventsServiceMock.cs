@@ -2,34 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
-using Altinn.Platform.Events.Repository.Interfaces;
+using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Events.Tests.Models;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Events.Tests.Mocks
 {
-    /// <summary>
-    /// Class that mocks storing and retrieving documents from postgres DB.
-    /// </summary>
-    public class PostgresRepositoryMock : IPostgresRepository
+    public class EventsServiceMock : IEventsService
     {
         private int _eventsCollection;
 
-        public PostgresRepositoryMock(int eventsCollection = 1)
+        public EventsServiceMock(int eventsCollection = 1)
         {
             _eventsCollection = eventsCollection;
         }
 
-        /// <inheritdoc/>
-        public Task<string> Create(CloudEvent cloudEvent)
-        {
-            return Task.FromResult(cloudEvent.Id);
-        }
-
-        /// <inheritdoc/>
-        public Task<List<CloudEvent>> Get(string after, DateTime? from, DateTime? to, string subject, List<string> source, List<string> type, int size)
+        public Task<List<CloudEvent>> Get(string after, DateTime? from, DateTime? to, int partyId, List<string> source, List<string> type, int size)
         {
             string eventsPath = Path.Combine(GetEventsPath(), $@"{_eventsCollection}.json");
 
@@ -57,21 +48,10 @@ namespace Altinn.Platform.Events.Tests.Mocks
                     filter = filter.Where(te => te.Time <= to);
                 }
 
-                if (!string.IsNullOrEmpty(subject))
+                if (partyId > 0)
                 {
+                    string subject = $"party/{partyId}";
                     filter = filter.Where(te => te.Subject.Equals(subject));
-                }
-
-                if (source != null && source.Count > 0)
-                {
-                    // requires more logic to match all fancy cases.
-                    filter = filter.Where(te => source.Contains(te.Source.ToString()));
-                }
-
-                if (type != null && type.Count > 0)
-                {
-                    // requires more logic to match all fancy cases.
-                    filter = filter.Where(te => type.Contains(te.Type.ToString()));
                 }
 
                 List<CloudEvent> result = filter.Select(t => t.CloudEvent)
@@ -83,6 +63,11 @@ namespace Altinn.Platform.Events.Tests.Mocks
             }
 
             return null;
+        }
+
+        public Task<string> StoreCloudEvent(CloudEvent cloudEvent)
+        {
+            throw new NotImplementedException();
         }
 
         private string GetEventsPath()
