@@ -97,7 +97,7 @@ export function en() {
       for: 'for',
       label: 'Label',
       loading: 'Loading content',
-      next: 'Neste',
+      next: 'Next',
       no_options: 'No options available',
       optional: 'Optional',
       required: 'Required',

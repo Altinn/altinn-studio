@@ -19,12 +19,14 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
     const layoutResponse: any = yield call(get, url);
     const layouts: ILayouts = {};
     const navigationConfig: any = {};
+    let autoSave: boolean;
     let firstLayoutKey: string;
     let repeatingGroups = {};
 
     if (layoutResponse.data) {
       layouts.FormLayout = layoutResponse.data.layout;
       firstLayoutKey = 'FormLayout';
+      autoSave = layoutResponse.data.autoSave;
     } else {
       const formDataState: IFormDataState = yield select(formDataSelector);
       const orderedLayoutKeys = Object.keys(layoutResponse).sort();
@@ -33,6 +35,7 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
       orderedLayoutKeys.forEach((key) => {
         layouts[key] = layoutResponse[key].data.layout;
         navigationConfig[key] = layoutResponse[key].data.navigation;
+        autoSave = layoutResponse[key].data.autoSave;
         repeatingGroups = {
           ...repeatingGroups,
           ...getRepeatingGroups(layouts[key] as [ILayoutComponent|ILayoutGroup], formDataState.formData),
@@ -41,7 +44,7 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
     }
 
     yield call(Actions.fetchFormLayoutFulfilled, layouts, navigationConfig);
-    // yield call(Actions.updateAutoSave, data.autoSave);
+    yield call(Actions.updateAutoSave, autoSave);
     yield call(Actions.updateRepeatingGroupsFulfilled, repeatingGroups);
     yield call(Actions.updateCurrentView, firstLayoutKey);
   } catch (err) {
