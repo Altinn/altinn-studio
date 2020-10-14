@@ -6,15 +6,19 @@
 import { check } from "k6";
 import { addErrorCount } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
+import * as appData from "../../api/app/data.js"
 import * as appProcess from "../../api/app/process.js"
 import * as platformInstances from "../../api/storage/instances.js"
 import { deleteSblInstance } from "../../api/storage/messageboxinstances.js"
+import * as apps from "../../api/storage/applications.js"
 import * as setUpData from "../../setup.js";
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
+let instanceFormDataXml = open("../../data/" + level2App + ".xml");
+let pdfAttachment = open("../../data/test_file_pdf.pdf", "b");
 
 export const options = {
     thresholds: {
@@ -30,9 +34,14 @@ export function setup() {
     var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
     data.RuntimeToken = altinnStudioRuntimeCookie;
     setUpData.clearCookies();
+    var attachmentDataType = apps.getAppByName(altinnStudioRuntimeCookie, appOwner, level2App);
+    attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body);
+    data.attachmentDataType = attachmentDataType;
     var instanceId = appInstances.postInstance(altinnStudioRuntimeCookie, data["partyId"], appOwner, level2App);
+    var dataId = appData.findDataId(instanceId.body);
     instanceId = platformInstances.findInstanceId(instanceId.body);
     data.instanceId = instanceId;
+    data.dataId = dataId;
     return data;
 };
 
@@ -42,6 +51,8 @@ export default function (data) {
     const runtimeToken = data["RuntimeToken"];
     const partyId = data["partyId"];
     var instanceId = data["instanceId"];
+    var dataId = data["dataId"];
+    const attachmentDataType = data["attachmentDataType"];
 
     //Test to start process of an app instance again and verify response code to be 409
     var res = appProcess.postStartProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
@@ -66,6 +77,10 @@ export default function (data) {
     });
     addErrorCount(success);
 
+    //update instance date for completing the process of the instance
+    appData.putDataById(runtimeToken, partyId, instanceId, dataId, "default", instanceFormDataXml, appOwner, level2App);
+    appData.postData(runtimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, level2App);
+
     //Test to get next process of an app instance again and verify response code  to be 200
     res = appProcess.getNextProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
     success = check(res, {
@@ -77,6 +92,18 @@ export default function (data) {
     res = appProcess.getProcessHistory(runtimeToken, partyId, instanceId, appOwner, level2App);
     success = check(res, {
         "App GET Process history:": (r) => r.status === 200
+    });
+
+    //Test to complete the process of an app instance and verify the response code to be 200
+    res = appProcess.putCompleteProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
+    success = check(res, {
+        "App Complete instance process:": (r) => r.status === 200
+    });
+
+    //Test to complete an instance process again and check response code to be 409
+    res = appProcess.putCompleteProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
+    success = check(res, {
+        "App Complete instance process again status is 409:": (r) => r.status === 409
     });
 };
 
