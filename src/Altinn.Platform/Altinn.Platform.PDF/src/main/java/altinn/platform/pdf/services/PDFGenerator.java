@@ -71,6 +71,7 @@ public class PDFGenerator {
     this.outline = new PDDocumentOutline();
     this.pagesOutline = new PDOutlineItem();
     this.originalFormLayout = pdfContext.getFormLayout();
+    this.formLayouts = pdfContext.getFormLayouts();
     this.textResources = pdfContext.getTextResources();
     this.instance = pdfContext.getInstance();
     this.output = new ByteArrayOutputStream();
@@ -151,6 +152,7 @@ public class PDFGenerator {
       Iterator<FormLayout> iterator = formLayouts.values().iterator();
       while (iterator.hasNext()) {
         FormLayout layout = iterator.next();
+        originalFormLayout = layout;
         List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
         List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
         renderFormLayout(initializedLayout);
