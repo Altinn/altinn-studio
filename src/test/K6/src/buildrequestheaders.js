@@ -95,6 +95,23 @@ export function buildHeaderWithSubsKey(api) {
     return params;
 };
 
+/**
+ * 
+ * @param {*} altinnStudioRuntimeCookie Token to send in header as bearer token
+ * @param {String} api platform or app
+ * @returns {JSON} a JSON object with the header values for Authorization and content-type: multipart/formdata
+ */
+export function buildHearderWithRuntimeForMultipart(altinnStudioRuntimeCookie, api) {
+    var params = {
+        headers: {
+            "Authorization": "Bearer " + altinnStudioRuntimeCookie,
+            "Content-Type": 'multipart/form-data; boundary="abcdefg"'
+        }
+    };
+    params = addSubscriptionKey(params, subscriptionKey, api);
+    return params;
+};
+
 //Check if a string is a guid
 export function isGuid(stringToTest) {
     var regexGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
