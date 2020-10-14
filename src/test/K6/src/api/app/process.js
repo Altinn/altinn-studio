@@ -52,4 +52,4 @@ export function putCompleteProcess(altinnStudioRuntimeCookie, partyId, instaceId
     var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, "", "completeprocess");
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
     return http.put(endpoint, null, params);
-}
+};
