@@ -6,8 +6,6 @@ import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.HashMap;
-import java.util.TreeMap;
 
 @ApiModel(description = "The PDF context which the PDF is generated from.")
 public class PdfContext {
@@ -16,17 +14,9 @@ public class PdfContext {
   @NotNull
   private TextResources textResources;
 
-  @ApiModelProperty(notes = "The form layout json file.")
+  @ApiModelProperty(notes = "The form layout json file")
+  @NotNull
   private FormLayout formLayout;
-
-  @Nullable
-  public TreeMap<String, FormLayout> getFormLayouts() { return formLayouts; }
-
-  public void setFormLayouts(@Nullable TreeMap<String, FormLayout> formLayouts) { this.formLayouts = formLayouts; }
-
-  @ApiModelProperty(notes = "A dictionary of form layouts.")
-  @Nullable
-  private TreeMap<String, FormLayout> formLayouts;
 
   @ApiModelProperty(notes = "The xml data file, note: must be base 64 encoded")
   @NotNull
