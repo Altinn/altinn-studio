@@ -837,8 +837,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 appendToSchema.Type(JsonSchemaType.Integer);
             }
-            else if ("http://www.w3.org/2001/XMLSchema:positiveInteger".Equals(type)
-                     || "http://www.w3.org/2001/XMLSchema:nonNegativeInteger".Equals(type))
+            else if ("http://www.w3.org/2001/XMLSchema:positiveInteger".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.Integer);
+                SetMinimum(appendToSchema, 1);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:nonNegativeInteger".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.Integer);
                 SetMinimum(appendToSchema, 0);
