@@ -40,23 +40,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Configuration\" />
-    <Folder Include="TestingRepositories\" />        
-  </ItemGroup>
-  
-  <ItemGroup>
-    <None Include="..\Events\Configuration\UpdateItemTimestamp.js" Link="Configuration\UpdateItemTimestamp.js">
+    <None Update="jwtselfsignedcert.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="JWTValidationCert.cer">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ttd-org.pem">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ttd-org.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup>
-     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-     <NoWarn>$(NoWarn);1591</NoWarn>
-   </PropertyGroup>
-   
 </Project>
