@@ -39,6 +39,8 @@ namespace Altinn.Platform.Events.Tests.TestingUtils
             // Assert.
             Assert.NotNull(xacmlJsonProfile);
             Assert.Single(xacmlJsonProfile.Request.Resource);
+            Assert.Single(xacmlJsonProfile.Request.Action);
+            Assert.Single(xacmlJsonProfile.Request.AccessSubject);
         }
 
         private ClaimsPrincipal GetPrincipal(int userId, int partyId)
