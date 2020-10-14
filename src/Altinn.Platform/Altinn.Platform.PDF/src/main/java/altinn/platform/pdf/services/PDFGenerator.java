@@ -46,8 +46,8 @@ public class PDFGenerator {
   private TextResources textResources;
   private Instance instance;
   private Document formData;
-  private FormLayout formLayout;
-  private List<FormLayoutElement> initializedLayout;
+  private FormLayout originalFormLayout;
+  private Map<String, FormLayout> formLayouts;
   private Party party;
   private Party userParty;
   private UserProfile userProfile;
@@ -70,7 +70,8 @@ public class PDFGenerator {
     this.form = new PDAcroForm(this.document);
     this.outline = new PDDocumentOutline();
     this.pagesOutline = new PDOutlineItem();
-    this.formLayout = pdfContext.getFormLayout();
+    this.originalFormLayout = pdfContext.getFormLayout();
+    this.formLayouts = pdfContext.getFormLayouts();
     this.textResources = pdfContext.getTextResources();
     this.instance = pdfContext.getInstance();
     this.output = new ByteArrayOutputStream();
@@ -80,9 +81,6 @@ public class PDFGenerator {
     try {
       this.formData = FormUtils.parseXml(pdfContext.getData());
       this.textResources.setResources(parseTextResources(this.textResources.getResources(), this.formData));
-      // Initializes our form layout => remove components which are rendered as part of a group & setup initial data needed to generate the groups.
-      List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(this.formLayout.getData().getLayout());
-      this.initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
     } catch (Exception e) {
       BasicLogger.log(Level.SEVERE, e.toString());
     }
@@ -144,18 +142,49 @@ public class PDFGenerator {
     renderSubmittedBy();
 
     // Loop through all pdfLayout elements and draws them
-    for (FormLayoutElement element : initializedLayout) {
-      if (element.getType().equals("Button")) {
+    if (originalFormLayout != null) {
+      // Older versions of our PlatformService nuget package we supplied only one form layout. Have to be backwards compatible here.
+      List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(this.originalFormLayout.getData().getLayout());
+      List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
+      renderFormLayout(initializedLayout);
+    } else if (formLayouts != null) {
+      // contains a map of form layouts. Render each page and separate by a new page
+      Iterator<FormLayout> iterator = formLayouts.values().iterator();
+      while (iterator.hasNext()) {
+        FormLayout layout = iterator.next();
+        originalFormLayout = layout;
+        List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
+        List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
+        renderFormLayout(initializedLayout);
+        if (iterator.hasNext()) {
+          createNewPage();
+          yPoint = currentPage.getMediaBox().getHeight() - margin;
+        }
+      }
+    }
+
+    // close document and save
+    currentContent.close();
+    document.getDocumentCatalog().getMarkInfo().setMarked(true);
+    document.save(output);
+    document.close();
+    return output;
+  }
+
+  private void renderFormLayout(List<FormLayoutElement> formLayout) throws IOException {
+    for (FormLayoutElement element : formLayout) {
+      String componentType = element.getType();
+      if (componentType.equals("Button") || componentType.equalsIgnoreCase("NavigationButtons") ) {
         continue;
       }
-      if (element.getType().equalsIgnoreCase("group")) {
+      if (componentType.equalsIgnoreCase("group")) {
         // We have a group. Render child components.
         if (element.getMaxCount() > 0) {
           // repeating group => update data binding based on group count
           String groupBinding = element.getDataModelBindings().get("group");
           for (int groupIndex = 0; groupIndex < element.getCount(); groupIndex++) {
             for (String childId: element.getChildren()) {
-              FormLayoutElement childElement = formLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+              FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
               if (childElement == null) {
                 continue;
               }
@@ -175,7 +204,7 @@ public class PDFGenerator {
         } else {
           // not repeating => treat children as regular components
           for (String childId : element.getChildren()) {
-            FormLayoutElement childElement = formLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
+            FormLayoutElement childElement = originalFormLayout.getData().getLayout().stream().filter(formLayoutElement -> formLayoutElement.getId().equals(childId)).findFirst().orElse(null);
             if (childElement != null ) {
               renderLayoutElement(childElement);
             }
@@ -185,15 +214,7 @@ public class PDFGenerator {
         renderLayoutElement(element);
       }
     }
-
-    // close document and save
-    currentContent.close();
-    document.getDocumentCatalog().getMarkInfo().setMarked(true);
-    document.save(output);
-    document.close();
-    return output;
   }
-
 
   private void renderLayoutElement(FormLayoutElement element) throws IOException {
     // Render title
