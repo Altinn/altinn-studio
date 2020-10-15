@@ -49,15 +49,6 @@ export function getRepeatingGroups(formLayout: [ILayoutComponent | ILayoutGroup]
 
 export function getNextView(navOptions: ILayoutNavigation, layouts: ILayouts, currentView: string, goBack?: boolean) {
   let result;
-  try {
-    result = (window as any).customScripts.getNextView(currentView, goBack);
-    if (result) {
-      return result;
-    }
-  } catch {
-    console.warn('No such method...');
-  }
-
   if (navOptions) {
     if (goBack && navOptions.previous) {
       return navOptions.previous;
