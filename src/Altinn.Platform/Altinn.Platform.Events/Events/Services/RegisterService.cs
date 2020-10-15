@@ -18,7 +18,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Platform.Events.Services
 {
     /// <summary>
-    /// Register service
+    /// Handles register service
     /// </summary>
     public class RegisterService : IRegisterService
     {
@@ -70,8 +70,8 @@ namespace Altinn.Platform.Events.Services
             else
             {
                 string reason = await response.Content.ReadAsStringAsync();
-
                 _logger.LogError($"// RegisterService // PartyLookup // Failed to lookup party in platform register. Reason {reason}.");
+
                 throw await PlatformHttpException.CreateAsync(response);
             }
         }

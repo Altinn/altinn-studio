@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 namespace Altinn.Platform.Events.Services.Interfaces
 {
     /// <summary>
-    /// Interface
+    /// Interface to handle services exposed in Platform Register
     /// </summary>
     public interface IRegisterService
     {
