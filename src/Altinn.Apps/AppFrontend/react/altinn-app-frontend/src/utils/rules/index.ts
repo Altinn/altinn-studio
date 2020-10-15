@@ -2,14 +2,14 @@ import { IDataModelFieldElement } from 'src/types';
 import { IFormData } from '../../features/form/data/formDataReducer';
 import { IDataModelState } from '../../features/form/datamodel/formDatamodelReducer';
 import { IRuleConnections } from '../../features/form/dynamics';
-import { ILayout, ILayoutComponent } from '../../features/form/layout';
+import { ILayouts, ILayoutComponent } from '../../features/form/layout';
 import { IRuleModelFieldElement } from '../../features/form/rules';
 
 export function checkIfRuleShouldRun(
   ruleConnectionState: IRuleConnections,
   formDataState: IFormData,
   formDataModelState: IDataModelState,
-  layout: ILayout,
+  layouts: ILayouts,
   repeatingContainerId: string,
   lastUpdatedDataBinding: IDataModelFieldElement,
 ) {
@@ -67,22 +67,26 @@ export function checkIfRuleShouldRun(
           (element: IDataModelFieldElement) => element.dataBindingName === connectionDef.outParams.outParam0,
         );
         let updatedComponent: string;
-        layout.forEach((layoutElement) => {
-          if (layoutElement.type.toLowerCase() === 'group') {
-            return;
-          }
-          const layoutComponent = layoutElement as ILayoutComponent;
-          for (const dataBindingKey in layoutComponent.dataModelBindings) {
-            if (!dataBindingKey) {
-              continue;
+        Object.keys(layouts).forEach((id) => {
+          const layout = layouts[id];
+          layout.forEach((layoutElement) => {
+            if (layoutElement.type.toLowerCase() === 'group') {
+              return;
             }
-            if (layoutComponent.dataModelBindings[dataBindingKey] ===
-              connectionDef.outParams.outParam0) {
-              updatedComponent = layoutElement.id;
-              break;
+            const layoutComponent = layoutElement as ILayoutComponent;
+            for (const dataBindingKey in layoutComponent.dataModelBindings) {
+              if (!dataBindingKey) {
+                continue;
+              }
+              if (layoutComponent.dataModelBindings[dataBindingKey] ===
+                connectionDef.outParams.outParam0) {
+                updatedComponent = layoutElement.id;
+                break;
+              }
             }
-          }
+          });
         });
+
         if (!updatedDataBinding) {
           // Validation error on field that triggered the check?
         } else if (!updatedComponent) {

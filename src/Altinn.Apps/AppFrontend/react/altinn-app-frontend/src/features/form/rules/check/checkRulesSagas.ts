@@ -34,13 +34,13 @@ function* checkIfRuleShouldRunSaga({
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
     const formDataModelState: IDataModelState = yield select(selectFormdataModelConnection);
 
-    const currentLayout = formLayoutState.layouts[formLayoutState.uiConfig.currentView];
+    // const currentLayout = formLayoutState.layouts[formLayoutState.uiConfig.currentView];
 
     const rules: IResponse[] = checkIfRuleShouldRun(
       ruleConnectionState,
       formDataState,
       formDataModelState,
-      currentLayout,
+      formLayoutState.layouts,
       repeatingContainerId,
       lastUpdatedDataBinding,
     );
@@ -51,6 +51,7 @@ function* checkIfRuleShouldRunSaga({
         if (currentFormDataForField === rule.result) {
           return;
         }
+        console.log(rules);
 
         return call(FormDataActions.updateFormData, rule.dataBindingName, rule.result, rule.componentId);
       }
