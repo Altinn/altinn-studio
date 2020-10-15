@@ -19,5 +19,10 @@ namespace Altinn.Platform.Events.Configuration
         /// Name of the cookie for where JWT is stored
         /// </summary>
         public string JwtCookieName { get; set; }
+
+        /// <summary>
+        /// Name of the platform access token
+        /// </summary>
+        public string AccessTokenName { get; set; } = "PlatformAccessToken";
     }
 }

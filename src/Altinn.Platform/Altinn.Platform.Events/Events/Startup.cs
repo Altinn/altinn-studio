@@ -94,6 +94,7 @@ namespace Altinn.Platform.Events
             services.AddSingleton(Configuration);
             services.Configure<PostgreSQLSettings>(Configuration.GetSection("PostgreSQLSettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             services.AddSingleton<IAuthorizationHandler, AccessTokenHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -126,6 +127,7 @@ namespace Altinn.Platform.Events
                 options.AddPolicy("PlatformAccess", policy => policy.Requirements.Add(new AccessTokenRequirement()));
             });
 
+            services.AddHttpClient<IRegisterService, RegisterService>();
             services.AddSingleton<IEventsService, EventsService>();
             services.AddSingleton<IPostgresRepository, PostgresRepository>();
 

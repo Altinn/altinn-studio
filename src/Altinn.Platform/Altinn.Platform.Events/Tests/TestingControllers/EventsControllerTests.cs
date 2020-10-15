@@ -157,7 +157,9 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string requestUri = $"{BasePath}/app";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
 
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+                StringContent content = new StringContent(string.Empty);
+                content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -179,10 +181,13 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app";
+
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
 
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+                StringContent content = new StringContent(string.Empty);
+                content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);

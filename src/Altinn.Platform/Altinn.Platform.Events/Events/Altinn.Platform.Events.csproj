@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Altinn.Common.AccessToken" Version="0.5.7" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.0.4-alpha" />
+    <PackageReference Include="Altinn.Platform.SharedModels" Version="1.0.1" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.2.5" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
@@ -42,7 +43,6 @@
     <Folder Include="Migration\_erase\" />
     <Folder Include="Migration\_draft\" />
     <Folder Include="Migration\_init\" />
-    <Folder Include="Migration\_post\" />
     <Folder Include="Migration\_pre\" />
   </ItemGroup>
 
