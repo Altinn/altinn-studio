@@ -76,7 +76,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
         {
             // Arrange
             int expectedCount = 1;
-            string expectedSubject = "party/54321";
+            string expectedSubject = "/party/54321";
             EventsService eventsService = new EventsService(new PostgresRepositoryMock(2), _loggerMock.Object);
 
             // Act
