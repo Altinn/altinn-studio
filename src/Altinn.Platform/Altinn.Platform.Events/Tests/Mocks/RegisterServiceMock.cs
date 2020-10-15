@@ -15,7 +15,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
 {
     public class RegisterServiceMock : IRegisterService
     {
-        private int _partiesCollection;
+        private readonly int _partiesCollection;
 
         public RegisterServiceMock(int partiesCollection = 1)
         {

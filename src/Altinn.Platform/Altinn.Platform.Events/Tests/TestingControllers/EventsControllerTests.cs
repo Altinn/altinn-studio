@@ -67,8 +67,11 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 HttpClient client = GetTestClient(eventsService.Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
-                httpRequestMessage.Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json");
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+                {
+                    Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
+                };
+
                 httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
                 // Act
@@ -101,8 +104,11 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 HttpClient client = GetTestClient(eventsService.Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
-                httpRequestMessage.Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json");
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+                {
+                    Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
+                };
+
                 httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
                 // Act
@@ -131,8 +137,10 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 HttpClient client = GetTestClient(eventsService.Object);
 
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
-                httpRequestMessage.Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json");
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+                {
+                    Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
+                };
                 httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
                 // Act
@@ -480,14 +488,17 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             private CloudEvent GetCloudEvent()
             {
-                CloudEvent cloudEvent = new CloudEvent();
-                cloudEvent.Id = Guid.NewGuid().ToString();
-                cloudEvent.SpecVersion = "1.0";
-                cloudEvent.Type = "instance.created";
-                cloudEvent.Source = new Uri("http://www.brreg.no/brg/something/232243423");
-                cloudEvent.Time = DateTime.Now;
-                cloudEvent.Subject = "/party/456456";
-                cloudEvent.Data = "something/extra";
+                CloudEvent cloudEvent = new CloudEvent
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    SpecVersion = "1.0",
+                    Type = "instance.created",
+                    Source = new Uri("http://www.brreg.no/brg/something/232243423"),
+                    Time = DateTime.Now,
+                    Subject = "/party/456456",
+                    Data = "something/extra",
+                };
+
                 return cloudEvent;
             }
         }

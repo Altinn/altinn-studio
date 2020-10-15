@@ -109,14 +109,17 @@ namespace Altinn.Platform.Events.Tests.TestingServices
 
         private CloudEvent GetCloudEvent()
         {
-            CloudEvent cloudEvent = new CloudEvent();
-            cloudEvent.Id = Guid.NewGuid().ToString();
-            cloudEvent.SpecVersion = "1.0";
-            cloudEvent.Type = "instance.created";
-            cloudEvent.Source = new Uri("http://www.brreg.no/brg/something/232243423");
-            cloudEvent.Time = DateTime.Now;
-            cloudEvent.Subject = "/party/456456";
-            cloudEvent.Data = "something/extra";
+            CloudEvent cloudEvent = new CloudEvent
+            {
+                Id = Guid.NewGuid().ToString(),
+                SpecVersion = "1.0",
+                Type = "instance.created",
+                Source = new Uri("http://www.brreg.no/brg/something/232243423"),
+                Time = DateTime.Now,
+                Subject = "/party/456456",
+                Data = "something/extra",
+            };
+
             return cloudEvent;
         }
     }

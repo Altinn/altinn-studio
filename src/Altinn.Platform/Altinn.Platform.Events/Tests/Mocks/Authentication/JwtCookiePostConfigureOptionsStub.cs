@@ -35,10 +35,7 @@ namespace Altinn.Platform.Events.Tests.Mocks.Authentication
             }
 
             options.MetadataAddress += ".well-known/openid-configuration";
-            options.ConfigurationManager = new ConfigurationManagerStub(
-                options.MetadataAddress,
-                new OpenIdConnectConfigurationRetriever(),
-                new HttpDocumentRetriever());
+            options.ConfigurationManager = new ConfigurationManagerStub();
         }
     }
 }
