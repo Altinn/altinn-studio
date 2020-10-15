@@ -40,7 +40,7 @@ namespace Altinn.Platform.Events.Services
         /// <inheritdoc/>
         public async Task<List<CloudEvent>> Get(string after, DateTime? from, DateTime? to, int partyId, List<string> source, List<string> type, int size = 50)
         {
-            string subject = partyId == 0 ? string.Empty : $"party/{partyId}";
+            string subject = partyId == 0 ? string.Empty : $"/party/{partyId}";
             source = source.Any() ? source : null;
             type = type.Any() ? type : null;
             after = after ?? string.Empty;
