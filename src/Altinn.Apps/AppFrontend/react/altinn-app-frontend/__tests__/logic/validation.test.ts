@@ -8,7 +8,7 @@ import { ILayoutComponent } from '../../src/features/form/layout';
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
-  let mockLayout: any[];
+  let mockLayout: any;
   let mockReduxFormat: any;
   let mockLayoutState: any;
   let mockJsonSchema: any;
@@ -53,59 +53,69 @@ describe('>>> utils/validations.ts', () => {
       },
     };
 
-    mockLayout = [
-      {
-        type: 'Input',
-        id: 'componentId_1',
-        dataModelBindings: {
-          simpleBinding: 'dataModelField_1',
-        },
-        required: true,
+    mockLayout = {
+      FormLayout: [
+        {
+          type: 'Input',
+          id: 'componentId_1',
+          dataModelBindings: {
+            simpleBinding: 'dataModelField_1',
+          },
+          required: true,
+          readOnly: false,
+          textResourceBindings: {},
 
-      },
-      {
-        type: 'Input',
-        id: 'componentId_2',
-        dataModelBindings: {
-          customBinding: 'dataModelField_2',
         },
-      },
-      {
-        type: 'TextArea',
-        id: 'componentId_3',
-        dataModelBindings: {
-          simpleBinding: 'dataModelField_3',
+        {
+          type: 'Input',
+          id: 'componentId_2',
+          dataModelBindings: {
+            customBinding: 'dataModelField_2',
+          },
+          required: true,
+          readOnly: false,
+          textResourceBindings: {},
         },
-        required: true,
-      },
-      {
-        type: 'group',
-        id: 'group1',
-        dataModelBindings: {
-          simpleBinding: 'group_1',
+        {
+          type: 'TextArea',
+          id: 'componentId_3',
+          dataModelBindings: {
+            simpleBinding: 'dataModelField_3',
+          },
+          required: true,
+          readOnly: false,
+          textResourceBindings: {},
         },
-        maxCount: 3,
-        children: [
-          'componentId_4',
-        ],
-      },
-      {
-        type: 'Input',
-        id: 'componentId_4',
-        dataModelBindings: {
-          simpleBinding: 'group_1.dataModelField_4',
+        {
+          type: 'group',
+          id: 'group1',
+          dataModelBindings: {
+            simpleBinding: 'group_1',
+          },
+          maxCount: 3,
+          children: [
+            'componentId_4',
+          ],
         },
-        required: false,
-
-      },
-      {
-        type: 'FileUpload',
-        id: 'componentId_4',
-        dataModelBindings: {},
-        maxNumberOfAttachments: '3',
-        minNumberOfAttachments: '2',
-      },
-    ];
+        {
+          type: 'Input',
+          id: 'componentId_4',
+          dataModelBindings: {
+            simpleBinding: 'group_1.dataModelField_4',
+          },
+          required: false,
+          readOnly: false,
+          textResourceBindings: {},
+        },
+        {
+          type: 'FileUpload',
+          id: 'componentId_4',
+          dataModelBindings: {},
+          maxNumberOfAttachments: '3',
+          minNumberOfAttachments: '2',
+        },
+      ],
+    };
 
     mockFormAttachments = {
       attachments: {
@@ -118,7 +128,7 @@ describe('>>> utils/validations.ts', () => {
     };
 
     mockLayoutState = {
-      layout: mockLayout,
+      layouts: mockLayout,
       error: null,
     };
 
@@ -296,7 +306,7 @@ describe('>>> utils/validations.ts', () => {
   });
 
   it('+++ should map api response to redux format', () => {
-    const result = validation.mapApiValidationsToRedux(mockApiResponse.messages, mockLayoutState.layout);
+    const result = validation.mapApiValidationsToRedux(mockApiResponse.messages, mockLayoutState.layouts.FormLayout);
     expect(result).toEqual(mockReduxFormat);
   });
 
@@ -321,7 +331,7 @@ describe('>>> utils/validations.ts', () => {
     const componentSpesificValidations =
       validation.validateFormComponents(
         mockFormAttachments.attachments,
-        mockLayoutState.layout,
+        mockLayoutState.layouts,
         mockFormData,
         mockLanguage.language,
         [],
@@ -345,7 +355,7 @@ describe('>>> utils/validations.ts', () => {
     };
     const componentSpesificValidations = validation.validateFormComponents(
       mockFormAttachments.attachments,
-      mockLayoutState.layout,
+      mockLayoutState.layouts,
       mockFormData,
       mockLanguage.language,
       [],
@@ -364,15 +374,17 @@ describe('>>> utils/validations.ts', () => {
   });
 
   it('+++ validateFormComponents should not return error on fileUpload if its enough files', () => {
-    mockLayout = [
-      {
-        type: 'FileUpload',
-        id: 'componentId_4',
-        dataModelBindings: {},
-        maxNumberOfAttachments: '1',
-        minNumberOfAttachments: '0',
-      },
-    ];
+    mockLayout = {
+      FormLayout: [
+        {
+          type: 'FileUpload',
+          id: 'componentId_4',
+          dataModelBindings: {},
+          maxNumberOfAttachments: '1',
+          minNumberOfAttachments: '0',
+        },
+      ],
+    };
     const componentSpesificValidations =
       validation.validateFormComponents(
         mockFormAttachments.attachments,
@@ -388,15 +400,17 @@ describe('>>> utils/validations.ts', () => {
   });
 
   it('+++ validateFormComponents should not return error if element is hidden', () => {
-    mockLayout = [
-      {
-        type: 'FileUpload',
-        id: 'componentId_4',
-        dataModelBindings: {},
-        maxNumberOfAttachments: '1',
-        minNumberOfAttachments: '0',
-      },
-    ];
+    mockLayout = {
+      FormLayout: [
+        {
+          type: 'FileUpload',
+          id: 'componentId_4',
+          dataModelBindings: {},
+          maxNumberOfAttachments: '1',
+          minNumberOfAttachments: '0',
+        },
+      ],
+    };
     const componentSpesificValidations =
       validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockFormData, mockLanguage.language, ['componentId_4']);
 
@@ -427,7 +441,7 @@ describe('>>> utils/validations.ts', () => {
 
   it('+++ validateEmptyField should add error to validations if supplied field is required', () => {
     const validations = {};
-    const component = mockLayout.find((c) => c.id === 'componentId_3');
+    const component = mockLayout.FormLayout.find((c) => c.id === 'componentId_3');
     validation.validateEmptyField(
       mockFormData,
       component,
@@ -442,7 +456,7 @@ describe('>>> utils/validations.ts', () => {
 
   it('+++ data element validations should be mapped correctly to our redux format', () => {
     const mappedDataElementValidaitons =
-      validation.mapDataElementValidationToRedux(mockDataElementValidations, mockLayoutState.layout, []);
+      validation.mapDataElementValidationToRedux(mockDataElementValidations, mockLayoutState.layouts, []);
     expect(mappedDataElementValidaitons).toEqual(mockReduxFormat);
   });
 
@@ -450,7 +464,7 @@ describe('>>> utils/validations.ts', () => {
     const mockValidator = validation.createValidator(mockJsonSchema);
     const mockResult = validation.validateFormData(
       mockFormData,
-      mockLayoutState.layout,
+      mockLayoutState.layouts,
       mockValidator,
       mockLanguage.language,
     );
@@ -461,7 +475,7 @@ describe('>>> utils/validations.ts', () => {
     const mockValidator = validation.createValidator(mockJsonSchema);
     const mockResult = validation.validateFormData(
       mockValidFormData,
-      mockLayoutState.layout,
+      mockLayoutState.layouts,
       mockValidator,
       mockLanguage,
     );
@@ -473,7 +487,7 @@ describe('>>> utils/validations.ts', () => {
       dataModelField_1: 'abc',
     };
     const mockValidator = validation.createValidator(mockJsonSchema);
-    const mockResult = validation.validateFormData(data, mockLayoutState.layout, mockValidator, mockLanguage);
+    const mockResult = validation.validateFormData(data, mockLayoutState.layouts, mockValidator, mockLanguage);
     expect(mockResult.invalidDataTypes).toBeTruthy();
   });
 
