@@ -32,6 +32,5 @@ namespace Altinn.Platform.Events.Extensions
 
             return httpClient.SendAsync(request, CancellationToken.None);
         }
-      
     }
 }

@@ -156,17 +156,9 @@ namespace Altinn.Platform.Events.Controllers
 
         private ActionResult HandlePlatformHttpException(PlatformHttpException e)
         {
-            if (e.Response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                return Forbid();
-            }
-            else if (e.Response.StatusCode == HttpStatusCode.NotFound)
+            if (e.Response.StatusCode == HttpStatusCode.NotFound)
             {
                 return NotFound();
-            }
-            else if (e.Response.StatusCode == HttpStatusCode.Conflict)
-            {
-                return Conflict();
             }
             else
             {
