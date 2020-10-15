@@ -1,4 +1,4 @@
-# Contributing to Altinn Studio
+# Contributing to Altinn
 
 We love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
 
@@ -8,9 +8,9 @@ We love your input! We want to make contributing to this project as easy and tra
 - Proposing new features
 - Coding and submitting new features (but please write a comment tagging @lvbachmann in the corresponding [issue(s)](https://github.com/Altinn/altinn-studio/issues) in our backlog before you do)
 
-## We Develop with Github
+## We develop with GitHub
 
-We use github to host code, to track issues and feature requests, as well as accept pull requests.
+We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
 
 ## Pull Requests
 
@@ -25,13 +25,14 @@ Pull requests are the best way to propose changes to the codebase. We actively w
 
 ## Any contributions you make will be under the 3-Clause BSD License Software License
 
-In short, when you submit code changes, your submissions are understood to be under the same [3-Clause BSD License](https://opensource.org/licenses/BSD-3-Clause) that covers the project. Feel free to contact the maintainers if that's a concern.
+In short, when you submit code changes, your submissions are understood to be under the same liberal [3-Clause BSD License](https://github.com/Altinn/altinn-studio/blob/master/LICENSE.md) that covers the project. Feel free to contact the maintainers if that's a concern.
 
-## Report bugs using Github's [issues](https://github.com/Altinn/altinn-studio/issues)
+## Report bugs using GitHub issues
 
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](https://github.com/Altinn/altinn-studio/issues/new); it's that easy!
+We use GitHub [issues](https://github.com/Altinn/altinn-studio/issues) to track public bugs.
+Report a bug by [opening a new issue](https://github.com/Altinn/altinn-studio/issues/new); it's that easy!
 
-## Write bug reports with detail, background, and sample code
+### Write bug reports with detail, background, and sample code
 
 **Great Bug Reports** tend to have:
 
@@ -48,4 +49,4 @@ People *love* thorough bug reports. I'm not even kidding.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under its 3-Clause BSD License.
+By contributing, you agree that your contributions will be licensed under its [3-Clause BSD License](https://github.com/Altinn/altinn-studio/blob/master/LICENSE.md).

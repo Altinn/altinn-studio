@@ -3,7 +3,7 @@
     "sequenceno": 1,
     "id": "e31dbb11-2208-4dda-a549-92a0db8c7708",
     "source": "https://nav.apps.altinn.no/nav/app/instances/1234324/6fb3f738-6800-4f29-9f3e-1c66862656cd",
-    "subject": "party/12345",
+    "subject": "/party/12345",
     "time": "2020-10-13 11:50:29.463221+00",
     "type": "instance.deleted",
     "cloudEvent": {
@@ -11,7 +11,7 @@
       "source": "https://nav.apps.altinn.no/nav/app/instances/1234324/6fb3f738-6800-4f29-9f3e-1c66862656cd",
       "specversion": "1.x-wip",
       "type": "instance.deleted",
-      "subject": "party/567890",
+      "subject": "/party/12345",
       "alternativesubject": "/person/01038712345",
       "data": "data field",
       "time": "2020-10-13T11:50:29.463221+00"
@@ -21,7 +21,7 @@
     "sequenceno": 2,
     "id": "e31dbb11-2208-4dda-a549-92a0db8c8808",
     "source": "https://nav.apps.altinn.no/nav/app/instances/1234324/6fb3f738-6800-4f29-9f3e-1c66862656cd",
-    "subject": "party/12345",
+    "subject": "/party/12345",
     "time": "2020-10-13 12:50:29.463221+02",
     "type": "instance.restored",
     "cloudEvent": {
@@ -29,7 +29,7 @@
       "source": "https://nav.apps.altinn.no/nav/app/instances/1234324/6fb3f738-6800-4f29-9f3e-1c66862656cd",
       "specversion": "1.x-wip",
       "type": "instance.deleted",
-      "subject": "party/567890",
+      "subject": "/party/12345",
       "alternativesubject": "/person/01038712345",
       "data": "data field",
       "time": "2020-10-13T12:50:29.463221+00"
