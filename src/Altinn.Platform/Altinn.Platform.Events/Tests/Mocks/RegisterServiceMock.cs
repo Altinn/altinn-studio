@@ -42,7 +42,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
                 }
             }
 
-            return partyId > 0 ? partyId : throw await PlatformHttpException.CreateAsync(new HttpResponseMessage { StatusCode = System.Net.HttpStatusCode.NotFound });
+            return partyId > 0 ? partyId : throw await PlatformHttpException.CreateAsync(new HttpResponseMessage {Content = new StringContent(""), StatusCode = System.Net.HttpStatusCode.NotFound });
         }
 
         private string GetPartiesPath()

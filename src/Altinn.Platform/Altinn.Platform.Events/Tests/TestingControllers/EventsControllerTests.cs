@@ -207,12 +207,41 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status.
             /// </summary>
             [Fact]
-            public async void Get_MissingRequiredQueryParam_ReturnsBadRequest()
+            public async void Get_MissingRequiredFromOrAfterParam_ReturnsBadRequest()
             {
                 // Arrange
                 string expected = "\"From or after must be defined.\"";
 
                 string requestUri = $"{BasePath}/app/ttd/apps-test?size=5";
+                HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string actual = await response.Content.ReadAsStringAsync();
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                Assert.Equal(expected, actual);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Get events without defined party, unit or person
+            /// Expected result:
+            ///   Returns HttpStatus BadRequest.
+            /// Success criteria:
+            ///   The response has correct status.
+            /// </summary>
+            [Fact]
+            public async void Get_MissingRequiredSubjectParam_ReturnsBadRequest()
+            {
+                // Arrange
+                string expected = "\"Subject must be specified using either query params party or unit or header value person.\"";
+
+                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01&size=5";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
 
@@ -417,9 +446,10 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 // Arrange
                 string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708";
-                HttpClient client = GetTestClient(new EventsServiceMock());
 
+                HttpClient client = GetTestClient(new EventsServiceMock(1));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
                 httpRequestMessage.Headers.Add("Person", "16069412345");
 
