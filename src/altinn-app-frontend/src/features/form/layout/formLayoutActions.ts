@@ -1,18 +1,18 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { ILayoutComponent, ILayoutGroup } from './index';
+import { INavigationConfig } from 'src/types';
 import { store } from '../../../store';
 import * as FetchForm from './fetch/fetchFormLayoutActions';
 import * as UpdateFormLayout from './update/updateFormLayoutActions';
+import { ILayouts } from '.';
 
 export interface IFormLayoutActions extends ActionCreatorsMapObject {
   fetchFormLayout: (url: string) => FetchForm.IFetchFormLayout;
-  fetchFormLayoutFulfilled: (layout: any) => FetchForm.IFetchFormLayoutFulfilled;
+  fetchFormLayoutFulfilled: (layouts: ILayouts, navigationConfig: INavigationConfig)
+    => FetchForm.IFetchFormLayoutFulfilled;
   fetchFormLayoutRejected: (error: Error) => FetchForm.IFetchFormLayoutRejected;
   updateFocus: (currentComponentId: string, step?: number) => UpdateFormLayout.IUpdateFocus;
   updateFocusFulfilled: (focusComponentId: string) => UpdateFormLayout.IUpdateFocusFulfilled;
   updateFocusRejected: (error: Error) => UpdateFormLayout.IUpdateFocusRejected;
-  updateFormLayout: (formLayoutElement: ILayoutComponent | ILayoutGroup, index: number)
-    => UpdateFormLayout.IUpdateFormLayout;
   updateRepeatingGroups: (layoutElementId: string, remove?: boolean, index?: number)
     => UpdateFormLayout.IUpdateRepeatingGroups;
   updateRepeatingGroupsFulfilled: (repeatingGroups: any)
@@ -23,6 +23,7 @@ export interface IFormLayoutActions extends ActionCreatorsMapObject {
   updateAutoSave: (autoSave: boolean) => UpdateFormLayout.IUpdateAutoSave;
   updateAutoSaveFulfilled: (autoSave: boolean) => UpdateFormLayout.IUpdateAutoSaveFulfilled;
   updateAutoSaveRejected: (error: Error) => UpdateFormLayout.IUpdateAutoSaveRejected;
+  updateCurrentView: (newView: string) => UpdateFormLayout.IUpdateCurrentView;
 }
 
 const actions: IFormLayoutActions = {
@@ -32,7 +33,6 @@ const actions: IFormLayoutActions = {
   updateFocus: UpdateFormLayout.updateFocus,
   updateFocusFulfilled: UpdateFormLayout.updateFocusFulfilled,
   updateFocusRejected: UpdateFormLayout.updateFocusRejected,
-  updateFormLayout: UpdateFormLayout.updateFormLayout,
   updateRepeatingGroups: UpdateFormLayout.updateRepeatingGroups,
   updateRepeatingGroupsFulfilled: UpdateFormLayout.updateRepeatingGroupsFulfilled,
   updateRepeatingGroupsRejected: UpdateFormLayout.updateRepeatingGroupsRejected,
@@ -40,6 +40,7 @@ const actions: IFormLayoutActions = {
   updateAutoSave: UpdateFormLayout.updateAutoSave,
   updateAutoSaveFulfilled: UpdateFormLayout.updateAutoSaveFulfilled,
   updateAutoSaveRejected: UpdateFormLayout.updateAutoSaveRejected,
+  updateCurrentView: UpdateFormLayout.updateCurrentView,
 };
 
 const FormLayoutActions: IFormLayoutActions = bindActionCreators<any, any>(actions, store.dispatch);

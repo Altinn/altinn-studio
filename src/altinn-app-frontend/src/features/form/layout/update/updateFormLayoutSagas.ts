@@ -17,10 +17,11 @@ function* updateFocus({ currentComponentId, step }: IUpdateFocus): SagaIterator 
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
     if (currentComponentId) {
-      const currentComponentIndex = formLayoutState.layout
+      const layout = formLayoutState.layouts[formLayoutState.uiConfig.currentView];
+      const currentComponentIndex = layout
         .findIndex((component: ILayoutComponent) => component.id === currentComponentId);
       const focusComponentIndex = step ? currentComponentIndex + step : currentComponentIndex;
-      const focusComponentId = focusComponentIndex > 0 ? formLayoutState.layout[focusComponentIndex].id : null;
+      const focusComponentId = focusComponentIndex > 0 ? layout[focusComponentIndex].id : null;
       yield call(FormLayoutActions.updateFocusFulfilled, focusComponentId);
     } else {
       yield call(FormLayoutActions.updateFocusFulfilled, null);
@@ -58,8 +59,9 @@ function* updateRepeatingGroupsSaga({
     if (remove) {
       // Remove the form data associated with the group
       const formDataState: IFormDataState = yield select(selectFormData);
+      const layout = formLayoutState.layouts[formLayoutState.uiConfig.currentView];
       const updatedFormData = removeGroupData(formDataState.formData, index,
-        formLayoutState.layout, layoutElementId, formLayoutState.uiConfig.repeatingGroups[layoutElementId].count);
+        layout, layoutElementId, formLayoutState.uiConfig.repeatingGroups[layoutElementId].count);
 
       yield call(FormDataActions.fetchFormDataFulfilled, updatedFormData);
       yield call(FormDataActions.saveFormData);

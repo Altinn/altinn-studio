@@ -8,6 +8,8 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import { IParty, IInstance } from 'altinn-shared/types';
 import { returnUrlToMessagebox, getTextResourceByKey } from 'altinn-shared/utils';
 import { IRuntimeState, ProcessSteps, IValidations, ITextResource } from 'src/types';
+import { getNextView } from 'src/utils/formLayout';
+import FormLayoutActions from 'src/features/form/layout/formLayoutActions';
 import ErrorReport from '../../components/message/ErrorReport';
 import Header from '../../components/process-step/Header';
 import NavBar from '../../components/process-step/NavBar';
@@ -30,6 +32,21 @@ const ProcessStepComponent = (props) => {
   );
   const validations: IValidations = useSelector((state: IRuntimeState) => state.formValidations.validations);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const previousFormPage: string = useSelector(
+    (state: IRuntimeState) => getNextView(
+      state.formLayout.uiConfig.navigationConfig[state.formLayout.uiConfig.currentView],
+      state.formLayout.layouts,
+      state.formLayout.uiConfig.currentView,
+      true,
+    ),
+  );
+
+  const handleBackArrowButton = () => {
+    if (props.step === ProcessSteps.FormFilling) {
+      FormLayoutActions.updateCurrentView(previousFormPage);
+    }
+  };
+
   const handleModalCloseButton = () => {
     const origin = window.location.origin;
     if (window) {
@@ -68,7 +85,9 @@ const ProcessStepComponent = (props) => {
             />}
             <NavBar
               handleClose={handleModalCloseButton}
+              handleBack={handleBackArrowButton}
               language={language}
+              showBackArrow={!!previousFormPage && props.step === ProcessSteps.FormFilling}
             />
             <div className='a-modal-content-target'>
               <div className='a-page a-current-page'>

@@ -2,15 +2,14 @@ import { IDataModelFieldElement } from 'src/types';
 import { IFormData } from '../../features/form/data/formDataReducer';
 import { IDataModelState } from '../../features/form/datamodel/formDatamodelReducer';
 import { IRuleConnections } from '../../features/form/dynamics';
-import { ILayoutComponent } from '../../features/form/layout';
-import { ILayoutState } from '../../features/form/layout/formLayoutReducer';
+import { ILayouts, ILayoutComponent } from '../../features/form/layout';
 import { IRuleModelFieldElement } from '../../features/form/rules';
 
 export function checkIfRuleShouldRun(
   ruleConnectionState: IRuleConnections,
   formDataState: IFormData,
   formDataModelState: IDataModelState,
-  formLayoutState: ILayoutState,
+  layouts: ILayouts,
   repeatingContainerId: string,
   lastUpdatedDataBinding: IDataModelFieldElement,
 ) {
@@ -30,27 +29,30 @@ export function checkIfRuleShouldRun(
   /* const isPartOfRepeatingGroup: boolean = (repeating && dataModelGroup != null && index != null);
   const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`; */
   const rules: any[] = [];
-  for (const connection in ruleConnectionState) {
+  Object.keys(ruleConnectionState).forEach((connection) => {
     if (!connection) {
-      continue;
+      return;
     }
     const connectionDef = ruleConnectionState[connection];
     const functionToRun: string = connectionDef.selectedFunction;
     let shouldRunFunction = false;
-    for (const inputParam in connectionDef.inputParams) {
+
+    Object.keys(connectionDef.inputParams).forEach((inputParam) => {
       if (!inputParam) {
-        continue;
+        return;
       }
 
       if (connectionDef.inputParams[inputParam] === lastUpdatedDataBinding.dataBindingName) {
         shouldRunFunction = true;
       }
-    }
-    for (const outParam of Object.keys(connectionDef.outParams)) {
+    });
+
+    Object.keys(connectionDef.outParams).forEach((outParam) => {
       if (!outParam) {
         shouldRunFunction = false;
       }
-    }
+    });
+
     if (shouldRunFunction) {
       const objectToUpdate = (window as any).ruleHandlerHelper[functionToRun]();
       if (Object.keys(objectToUpdate).length >= 1) {
@@ -65,26 +67,26 @@ export function checkIfRuleShouldRun(
           (element: IDataModelFieldElement) => element.dataBindingName === connectionDef.outParams.outParam0,
         );
         let updatedComponent: string;
-        for (const component in formLayoutState.layout) {
-          if (!component) {
-            continue;
-          }
-          const layoutElement = formLayoutState.layout[component];
-          if (layoutElement.type.toLowerCase() === 'group') {
-            continue;
-          }
-          const layoutComponent = layoutElement as ILayoutComponent;
-          for (const dataBindingKey in layoutComponent.dataModelBindings) {
-            if (!dataBindingKey) {
-              continue;
+        Object.keys(layouts).forEach((id) => {
+          const layout = layouts[id];
+          layout.forEach((layoutElement) => {
+            if (layoutElement.type.toLowerCase() === 'group') {
+              return;
             }
-            if (layoutComponent.dataModelBindings[dataBindingKey] ===
-              connectionDef.outParams.outParam0) {
-              updatedComponent = layoutElement.id;
-              break;
+            const layoutComponent = layoutElement as ILayoutComponent;
+            for (const dataBindingKey in layoutComponent.dataModelBindings) {
+              if (!dataBindingKey) {
+                continue;
+              }
+              if (layoutComponent.dataModelBindings[dataBindingKey] ===
+                connectionDef.outParams.outParam0) {
+                updatedComponent = layoutElement.id;
+                break;
+              }
             }
-          }
-        }
+          });
+        });
+
         if (!updatedDataBinding) {
           // Validation error on field that triggered the check?
         } else if (!updatedComponent) {
@@ -104,7 +106,7 @@ export function checkIfRuleShouldRun(
         }
       }
     }
-  }
+  });
   return rules;
 }
 
