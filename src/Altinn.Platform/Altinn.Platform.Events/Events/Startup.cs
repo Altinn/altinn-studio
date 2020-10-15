@@ -190,7 +190,7 @@ namespace Altinn.Platform.Events
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                app.UseExceptionHandler("/events/api/v1/error");
             }
 
             app.UseSwagger(o => o.RouteTemplate = "events/swagger/{documentName}/swagger.json");
