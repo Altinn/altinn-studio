@@ -1,6 +1,5 @@
 /* eslint-disable no-undef */
 /* tslint:disable:jsx-wrap-multiline */
-import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
@@ -8,7 +7,6 @@ import { render, screen } from '@testing-library/react';
 import configureStore from 'redux-mock-store';
 import { getFormLayoutStateMock, getInitialStateMock } from '../../../__mocks__/mocks';
 import { NavigationButtons } from '../../../src/components/process-step/NavigationButtons';
-import { createStore } from 'redux';
 
 describe('>>> components/process-step/NavigationButton.tsx', () => {
   let mockStore;

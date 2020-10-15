@@ -51,7 +51,6 @@ function* checkIfRuleShouldRunSaga({
         if (currentFormDataForField === rule.result) {
           return;
         }
-        console.log(rules);
 
         return call(FormDataActions.updateFormData, rule.dataBindingName, rule.result, rule.componentId);
       }
