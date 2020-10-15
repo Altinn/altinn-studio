@@ -38,5 +38,12 @@ namespace Altinn.Platform.Events.Helpers
         {
             this.Response = response;
         }
+
+        /// <summary>
+        /// Add serialization info.
+        /// </summary>
+        protected PlatformHttpException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
     }
 }
