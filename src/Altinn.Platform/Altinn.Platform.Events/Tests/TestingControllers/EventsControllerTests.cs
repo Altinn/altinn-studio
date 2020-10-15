@@ -9,6 +9,7 @@ using System.Text.Json;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Events.Controllers;
+using Altinn.Platform.Events.Helpers;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Events.Tests.Mocks;
@@ -388,20 +389,45 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708&party=567890";
-                CloudEvent cloudEvent = GetCloudEvent();
                 Mock<IEventsService> eventsService = new Mock<IEventsService>();
                 eventsService.Setup(es => es.Get(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<List<string>>(), It.IsAny<List<string>>(), It.IsAny<int>())).Throws(new Exception());
                 HttpClient client = GetTestClient(eventsService.Object);
 
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-                httpRequestMessage.Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json");
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
                 // Assert
                 Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Get events events service throws exception.
+            /// Expected result:
+            ///   Next header contains new guid in after parameter
+            /// Success criteria:
+            ///   Next header is corrcect.
+            /// </summary>
+            [Fact]
+            public async void Get_RegisterServiceThrowsPlatformException_ReturnsNotFound()
+            {
+
+                // Arrange
+                string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708";
+                HttpClient client = GetTestClient(new EventsServiceMock());
+
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                httpRequestMessage.Headers.Add("Person", "16069412345");
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
             }
 
             private HttpClient GetTestClient(IEventsService eventsService)

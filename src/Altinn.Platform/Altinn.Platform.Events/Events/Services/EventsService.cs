@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository.Interfaces;
 using Altinn.Platform.Events.Services.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Events.Services
 {
