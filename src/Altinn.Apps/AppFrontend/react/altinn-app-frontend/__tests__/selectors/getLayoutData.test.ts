@@ -1,9 +1,8 @@
 /* tslint:disable:jsx-wrap-multiline */
 import 'jest';
-import { makeGetFocus, makeGetHidden, makeGetLayout, makeGetLayoutElement } from '../../src/selectors/getLayoutData';
+import { makeGetFocus, makeGetHidden } from '../../src/selectors/getLayoutData';
 
 describe('>>> selectors/getLayoutData.test.tsx', () => {
-
   let initialState: any;
   let mockProps: any;
   let mockPropsFocus: any;
@@ -12,8 +11,16 @@ describe('>>> selectors/getLayoutData.test.tsx', () => {
     initialState = {
       formLayout: {
         layout: [
-          { type: 'Input', id: 'mockId', hidden: false },
-          { type: 'FileUpload', id: 'mockId_2', hidden: false },
+          {
+            type: 'Input',
+            id: 'mockId',
+            hidden: false,
+          },
+          {
+            type: 'FileUpload',
+            id: 'mockId_2',
+            hidden: false,
+          },
         ],
         uiConfig: {
           focus: 'mockId',
@@ -45,18 +52,6 @@ describe('>>> selectors/getLayoutData.test.tsx', () => {
     mockPropsFocus = {
       id: 'mockId',
     };
-  });
-
-  it('+++ getLayout should return formLayout', () => {
-    const getLayout = makeGetLayout();
-    const result = getLayout(initialState);
-    expect(result).toEqual(initialState.formLayout.layout);
-  });
-
-  it('+++ getLayoutElement should return correct layout element', () => {
-    const getLayoutElement = makeGetLayoutElement();
-    const result = getLayoutElement(initialState, mockProps);
-    expect(result).toEqual(initialState.formLayout.layout[1]);
   });
 
   it('+++ getHidden should return correct hidden status for layout element', () => {

@@ -2,7 +2,7 @@ import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/util
 import moment from 'moment';
 import Ajv from 'ajv';
 import { IComponentValidations, IValidations, IComponentBindingValidation, ITextResource, IValidationResult, ISchemaValidator, IRepeatingGroups } from 'src/types';
-import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout';
+import { ILayouts, ILayoutComponent, ILayoutGroup, ILayout } from '../features/form/layout';
 import { IValidationIssue, Severity } from '../types';
 // eslint-disable-next-line import/no-cycle
 import { DatePickerMinDateDefault, DatePickerMaxDateDefault, DatePickerFormatDefault } from '../components/base/DatepickerComponent';
@@ -17,6 +17,7 @@ const JsonPointer = require('jsonpointer');
 export function createValidator(schema: any): ISchemaValidator {
   const ajv = new Ajv({ allErrors: true, coerceTypes: true });
   ajv.addFormat('year', /^[0-9]{4}$/);
+  ajv.addFormat('year-month', /^[0-9]{4}-(0[1-9]|1[0-2])$/);
   ajv.addSchema(schema, 'schema');
   const rootKey = Object.keys(schema.properties)[0];
   const rootElementPath = schema.properties[rootKey].$ref;
@@ -86,10 +87,29 @@ export const errorMessageKeys = {
   },
 };
 
+export function validateEmptyFields(
+  formData: any,
+  layouts: ILayouts,
+  language: any,
+  hiddenFields: string[],
+  repeatingGroups: IRepeatingGroups,
+) {
+  let validations = {};
+  Object.keys(layouts).forEach((id) => {
+    const result = validateEmptyFieldsForLayout(formData, layouts[id], language, hiddenFields, repeatingGroups);
+    validations = {
+      ...validations,
+      ...result,
+    };
+  });
+
+  return validations;
+}
+
 /*
   Fetches validations for fields without data
 */
-export function validateEmptyFields(
+export function validateEmptyFieldsForLayout(
   formData: any,
   formLayout: ILayout,
   language: any,
@@ -98,13 +118,13 @@ export function validateEmptyFields(
 ) {
   const validations: any = {};
   let fieldsInGroup = [];
-  const groupsToCheck = formLayout.filter((component) => component.type === 'group');
+  const groupsToCheck = formLayout.filter((component) => component.type.toLowerCase() === 'group');
   groupsToCheck.forEach((groupComponent: ILayoutGroup) => {
     fieldsInGroup = fieldsInGroup.concat(groupComponent.children);
   });
   const fieldsToCheck = formLayout.filter((component) => {
     return (
-      component.type !== 'group'
+      component.type.toLowerCase() !== 'group'
         && !hiddenFields.includes(component.id)
         && (component as ILayoutComponent).required
         && !fieldsInGroup.includes(component.id)
@@ -170,10 +190,29 @@ export function validateEmptyField(
   }
 }
 
+export function validateFormComponents(
+  attachments: any,
+  layouts: any,
+  formData: any,
+  language: any,
+  hiddenFields: string[],
+) {
+  let validations: any = {};
+  Object.keys(layouts).forEach((id) => {
+    const result = validateFormComponentsForLayout(attachments, layouts[id], formData, language, hiddenFields);
+    validations = {
+      ...validations,
+      ...result,
+    };
+  });
+
+  return validations;
+}
+
 /*
   Fetches component spesific validations
 */
-export function validateFormComponents(
+export function validateFormComponentsForLayout(
   attachments: any,
   formLayout: any,
   formData: any,
@@ -346,6 +385,17 @@ export function getSchemaPart(dataModelPath: string[], subSchema: any, mainSchem
     return localRootElement;
   }
 
+  if (subSchema.allOf) {
+    let tmpSchema: any = {};
+    subSchema.allOf.forEach((element) => {
+      tmpSchema = {
+        ...tmpSchema,
+        ...element,
+      };
+    });
+    return getSchemaPart(dataModelPath, tmpSchema, mainSchema);
+  }
+
   if (subSchema.$ref) {
     const ptr = JsonPointer.compile(subSchema.$ref.substr(1));
     return getSchemaPart(dataModelPath.slice(1), ptr.get(mainSchema), mainSchema);
@@ -354,10 +404,33 @@ export function getSchemaPart(dataModelPath: string[], subSchema: any, mainSchem
   return subSchema;
 }
 
+export function validateFormData(
+  formData: any,
+  layouts: ILayouts,
+  schemaValidator: ISchemaValidator,
+  language: any,
+): IValidationResult {
+  let validations: any = {};
+  let invalidDataTypes: boolean = false;
+
+  Object.keys(layouts).forEach((id) => {
+    const result = validateFormDataForLayout(formData, layouts[id], schemaValidator, language);
+    validations = {
+      ...validations,
+      ...result.validations,
+    };
+    if (!invalidDataTypes) {
+      invalidDataTypes = result.invalidDataTypes;
+    }
+  });
+
+  return { validations, invalidDataTypes };
+}
+
 /*
   Validates the entire formData and returns an IValidations object with validations mapped for all components
 */
-export function validateFormData(
+export function validateFormDataForLayout(
   formData: any,
   layout: ILayout,
   schemaValidator: ISchemaValidator,
@@ -563,7 +636,7 @@ export function mapApiValidationsToRedux(
 /* Function to map the new data element validations to our internal redux structure */
 export function mapDataElementValidationToRedux(
   validations: IValidationIssue[],
-  layout: ILayout,
+  layouts: ILayouts,
   textResources: ITextResource[],
 ) {
   const validationResult: IValidations = {};
@@ -575,8 +648,13 @@ export function mapDataElementValidationToRedux(
     const componentValidations: IComponentValidations = {};
     let component;
     let componentId;
-    if (layout) {
-      component = layout.find((layoutElement) => {
+    const layoutId = Object.keys(layouts).find((id) => {
+      const foundInLayout = layouts[id].find((c: ILayoutComponent) => Object.values(c.dataModelBindings)
+        .includes(validation.field));
+      return !!foundInLayout;
+    });
+    if (layoutId && layouts[layoutId]) {
+      component = layouts[layoutId].find((layoutElement) => {
         const componentCandidate = layoutElement as ILayoutComponent;
         let found = false;
         const match = matchLayoutComponent(validation.field, componentCandidate.id);

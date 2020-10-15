@@ -31,14 +31,14 @@ function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
     const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
     const validator = createValidator(schema);
     const model = convertDataBindingToModel(state.formData.formData);
-    const validationResult = validateFormData(model, state.formLayout.layout, validator, state.language.language);
+    const validationResult = validateFormData(model, state.formLayout.layouts, validator, state.language.language);
     let validations = validationResult.validations;
     const componentSpecificValidations =
-      validateFormComponents(state.attachments.attachments, state.formLayout.layout, state.formData.formData,
+      validateFormComponents(state.attachments.attachments, state.formLayout.layouts, state.formData.formData,
         state.language.language, state.formLayout.uiConfig.hiddenFields);
     const emptyFieldsValidations = validateEmptyFields(
       state.formData.formData,
-      state.formLayout.layout,
+      state.formLayout.layouts,
       state.language.language,
       state.formLayout.uiConfig.hiddenFields,
       state.formLayout.uiConfig.repeatingGroups,
@@ -72,7 +72,7 @@ function* submitFormSaga({ apiMode }: ISubmitDataAction): SagaIterator {
         // update validation state
         const layoutState: ILayoutState = yield select(LayoutSelector);
         const mappedValidations =
-          mapDataElementValidationToRedux(serverValidation, layoutState.layout, state.textResources.resources);
+          mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
         FormValidationActions.updateValidations(mappedValidations);
         if (serverValidation && serverValidation.length > 0) {
           // we have validation errors, should not be able to submit

@@ -2,47 +2,49 @@ import { ILayoutState } from '../src/features/form/layout/formLayoutReducer';
 
 export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): ILayoutState {
   const mockFormLayoutState: ILayoutState = {
-    layout: [
-      {
-        id: 'field1',
-        type: 'Input',
-        dataModelBindings: {
-          simple: 'Group.prop1',
+    layouts: {
+      FormLayout: [
+        {
+          id: 'field1',
+          type: 'Input',
+          dataModelBindings: {
+            simple: 'Group.prop1',
+          },
+          textResourceBindings: {
+            title: 'Title',
+          },
+          readOnly: false,
+          required: false,
+          disabled: false,
         },
-        textResourceBindings: {
-          title: 'Title',
+        {
+          id: 'field2',
+          type: 'Input',
+          dataModelBindings: {
+            simple: 'Group.prop2',
+          },
+          textResourceBindings: {
+            title: 'Title',
+          },
+          readOnly: false,
+          required: false,
+          disabled: false,
         },
-        readOnly: false,
-        required: false,
-        disabled: false,
-      },
-      {
-        id: 'field2',
-        type: 'Input',
-        dataModelBindings: {
-          simple: 'Group.prop2',
+        {
+          id: 'field3',
+          type: 'Input',
+          dataModelBindings: {
+            simple: 'Group.prop3',
+          },
+          textResourceBindings: {
+            title: 'Title',
+          },
+          readOnly: false,
+          required: false,
+          disabled: false,
         },
-        textResourceBindings: {
-          title: 'Title',
-        },
-        readOnly: false,
-        required: false,
-        disabled: false,
-      },
-      {
-        id: 'field3',
-        type: 'Input',
-        dataModelBindings: {
-          simple: 'Group.prop3',
-        },
-        textResourceBindings: {
-          title: 'Title',
-        },
-        readOnly: false,
-        required: false,
-        disabled: false,
-      },
-    ],
+      ],
+    },
     error: {
       message: null,
       name: null,
@@ -52,6 +54,8 @@ export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): IL
       focus: null,
       hiddenFields: [],
       repeatingGroups: null,
+      currentView: 'FormLayout',
+      navigationConfig: {},
     },
   };
 

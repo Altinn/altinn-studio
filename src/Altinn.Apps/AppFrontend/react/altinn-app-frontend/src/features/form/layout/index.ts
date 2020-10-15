@@ -1,3 +1,7 @@
+export interface ILayouts {
+  [id: string]: ILayout;
+}
+
 export interface ILayoutEntry {
   id: string;
   type?: string;
@@ -16,7 +20,7 @@ export interface ILayoutComponent extends ILayoutEntry {
   dataModelBindings: IDataModelBindings;
   isValid?: boolean;
   readOnly: boolean;
-  disabled: boolean;
+  disabled?: boolean;
   required: boolean;
   textResourceBindings: ITextResourceBindings;
   triggerValidation?: boolean;
@@ -73,6 +77,11 @@ declare enum InputFieldType {
 
 export interface IInputProps extends ILayoutComponent {
   inputType: InputFieldType;
+}
+
+export interface INavigationButtonProps extends ILayoutComponent {
+  next?: string;
+  previous?: string;
 }
 
 export interface IParagraphProps extends ILayoutComponent { }
