@@ -50,7 +50,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
 
                 if (partyId > 0)
                 {
-                    string subject = $"party/{partyId}";
+                    string subject = $"/party/{partyId}";
                     filter = filter.Where(te => te.Subject.Equals(subject));
                 }
 
