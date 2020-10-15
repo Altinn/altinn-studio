@@ -16,8 +16,6 @@ namespace Altinn.Platform.Events.Tests.TestingServices
     /// </summary>
     public class EventsServiceTest
     {
-        private readonly Mock<ILogger<EventsService>> _loggerMock = new Mock<ILogger<EventsService>>();
-
         /// <summary>
         /// Scenario:
         ///   Store a cloud event in postgres DB.
@@ -30,7 +28,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
         public async Task Create_EventSuccessfullyStored_IdReturned()
         {
             // Arrange
-            EventsService eventsService = new EventsService(new PostgresRepositoryMock(), _loggerMock.Object);
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock());
 
             // Act
             string actual = await eventsService.StoreCloudEvent(GetCloudEvent());
@@ -51,7 +49,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
         public async Task Create_CheckIdCreatedByService_IdReturned()
         {
             // Arrange
-            EventsService eventsService = new EventsService(new PostgresRepositoryMock(), _loggerMock.Object);
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock());
 
             CloudEvent item = GetCloudEvent();
             item.Id = null;
@@ -77,7 +75,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
             // Arrange
             int expectedCount = 1;
             string expectedSubject = "/party/54321";
-            EventsService eventsService = new EventsService(new PostgresRepositoryMock(2), _loggerMock.Object);
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock(2));
 
             // Act
             List<CloudEvent> actual = await eventsService.Get(string.Empty, new DateTime(2020, 06, 17), null, 54321, new List<string>() { }, new List<string>() { });
@@ -100,7 +98,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
         {
             // Arrange
             int expectedCount = 3;
-            EventsService eventsService = new EventsService(new PostgresRepositoryMock(2), _loggerMock.Object);
+            EventsService eventsService = new EventsService(new PostgresRepositoryMock(2));
 
             // Act
             List<CloudEvent> actual = await eventsService.Get("e31dbb11-2208-4dda-a549-92a0db8c8808", null, null, 0, new List<string>() { }, new List<string>() { });

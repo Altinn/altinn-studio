@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace Altinn.Platform.Events.Extensions
         /// <returns>A HttpResponseMessage</returns>
         public static Task<HttpResponseMessage> PostAsync(this HttpClient httpClient, string authorizationToken, string requestUri, HttpContent content, string platformAccessToken = null)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, new Uri(requestUri, UriKind.Relative));
             request.Headers.Add("Authorization", "Bearer " + authorizationToken);
             request.Content = content;
 

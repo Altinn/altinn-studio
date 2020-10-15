@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Altinn.Common.AccessToken.Services;
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Events.Controllers;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
@@ -207,7 +208,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             [Fact]
             public async void Get_MissingRequiredQueryParam_ReturnsBadRequest()
             {
-                // Arrange   
+                // Arrange
                 string expected = "\"From or after must be defined.\"";
 
                 string requestUri = $"{BasePath}/app/ttd/apps-test?size=5";
@@ -345,6 +346,37 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             /// <summary>
             /// Scenario:
+            ///   Get events identifying person in header.
+            /// Expected result:
+            ///   Successfully extracts person number from header for lookup.
+            /// Success criteria:
+            ///   Correct number of events are returned.
+            /// </summary>
+            [Fact]
+            public async void Get_PersonIncludedInHeader_ReturnsCorrectNumberOfEvents()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01";
+                int expectedCount = 2;
+
+                HttpClient client = GetTestClient(new EventsServiceMock(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                httpRequestMessage.Headers.Add("Person", "01017512345");
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string responseString = await response.Content.ReadAsStringAsync();
+                List<CloudEvent> actual = JsonSerializer.Deserialize<List<CloudEvent>>(responseString);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedCount, actual.Count);
+            }
+
+            /// <summary>
+            /// Scenario:
             ///   Get events events service throws exception.
             /// Expected result:
             ///   Next header contains new guid in after parameter
@@ -355,7 +387,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Get_ServiceThrowsException_ReturnsInternalServerError()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708";
+                string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708&party=567890";
                 CloudEvent cloudEvent = GetCloudEvent();
                 Mock<IEventsService> eventsService = new Mock<IEventsService>();
                 eventsService.Setup(es => es.Get(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<List<string>>(), It.IsAny<List<string>>(), It.IsAny<int>())).Throws(new Exception());
@@ -380,10 +412,12 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                     builder.ConfigureTestServices(services =>
                     {
                         services.AddSingleton(eventsService);
+                        services.AddSingleton<IRegisterService, RegisterServiceMock>();
 
                         // Set up mock authentication so that not well known endpoint is used
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                         services.AddSingleton<ISigningKeysResolver, SigningKeyResolverMock>();
+
                     });
                 }).CreateClient();
 

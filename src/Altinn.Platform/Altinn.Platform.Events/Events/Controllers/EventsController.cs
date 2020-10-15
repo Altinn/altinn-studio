@@ -33,9 +33,6 @@ namespace Altinn.Platform.Events.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsController"/> class
         /// </summary>
-        /// <param name="eventsService">postgres service</param>
-        /// <param name="settings">the general settings</param>
-        /// <param name="logger">dependency injection of logger</param>
         public EventsController(
             IEventsService eventsService,
             IRegisterService registerService,

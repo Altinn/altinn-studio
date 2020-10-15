@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Services;
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Health;
 using Altinn.Platform.Events.Repository;
@@ -99,6 +100,8 @@ namespace Altinn.Platform.Events
             services.AddSingleton<IAuthorizationHandler, AccessTokenHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<ISigningKeysResolver, SigningKeysResolver>();
+            services.AddSingleton<IAccessTokenGenerator, AccessTokenGenerator>();
+            services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                   .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>

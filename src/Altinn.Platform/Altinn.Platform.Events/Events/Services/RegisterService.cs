@@ -4,7 +4,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Events.Configuration;
+using Altinn.Platform.Events.Extensions;
 using Altinn.Platform.Events.Helpers;
 using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Register.Models;
@@ -23,19 +25,26 @@ namespace Altinn.Platform.Events.Services
         private readonly HttpClient _client;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly GeneralSettings _generalSettings;
+        private readonly IAccessTokenGenerator _accessTokenGenerator;
         private readonly ILogger<IRegisterService> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterService"/> class.
         /// </summary>
-        /// <param name="httpClient">http client</param>
-        public RegisterService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor, IOptions<GeneralSettings> generalSettings, IOptions<PlatformSettings> platformSettings, ILogger<IRegisterService> logger)
+        public RegisterService(
+            HttpClient httpClient,
+            IHttpContextAccessor httpContextAccessor,
+            IAccessTokenGenerator accessTokenGenerator,
+            IOptions<GeneralSettings> generalSettings,
+            IOptions<PlatformSettings> platformSettings,
+            ILogger<IRegisterService> logger)
         {
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiRegisterEndpoint);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _client = httpClient;
             _httpContextAccessor = httpContextAccessor;
             _generalSettings = generalSettings.Value;
+            _accessTokenGenerator = accessTokenGenerator;
             _logger = logger;
         }
 
@@ -47,21 +56,12 @@ namespace Altinn.Platform.Events.Services
             PartyLookup partyLookup = new PartyLookup() { Ssn = person, OrgNo = orgNo };
 
             string bearerToken = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _generalSettings.JwtCookieName);
-            string accessToken = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _generalSettings.AccessTokenName);
+            string accessToken = _accessTokenGenerator.GenerateAccessToken("platform", "events");
 
             StringContent content = new StringContent(JsonSerializer.Serialize(partyLookup));
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-            HttpRequestMessage request = new HttpRequestMessage
-            {
-                RequestUri = new Uri(endpointUrl, UriKind.Relative),
-                Method = HttpMethod.Post,
-                Content = content
-            };
 
-            request.Headers.Add("Authorization", "Bearer " + bearerToken);
-            request.Headers.Add("PlatformAccessToken", accessToken);
-
-            HttpResponseMessage response = await _client.SendAsync(request);
+            HttpResponseMessage response = await _client.PostAsync(bearerToken, endpointUrl, content, accessToken);
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 Party party = await response.Content.ReadAsAsync<Party>();
