@@ -103,18 +103,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
                 new Mock<ILogger<RegisterService>>().Object);
 
             // Act & Assert
-            try
-            {
-                int actual = await target.PartyLookup("16069412345", null);
-            }
-            catch (PlatformHttpException e)
-            {
-                Assert.NotNull(e);
-            }
-            catch (Exception)
-            {
-                throw new XunitException("Wrong exception type thrown.");
-            }
+            await Assert.ThrowsAsync<PlatformHttpException>(async () => { await target.PartyLookup("16069412345", null); });
         }
 
         private void InitializeMocks(HttpResponseMessage httpResponseMessage, Action<HttpRequestMessage> callback)
