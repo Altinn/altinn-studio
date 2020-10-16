@@ -22,13 +22,15 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
     let autoSave: boolean;
     let firstLayoutKey: string;
     let repeatingGroups = {};
+    const formDataState: IFormDataState = yield select(formDataSelector);
 
     if (layoutResponse.data) {
       layouts.FormLayout = layoutResponse.data.layout;
       firstLayoutKey = 'FormLayout';
       autoSave = layoutResponse.data.autoSave;
+      repeatingGroups = getRepeatingGroups(layouts[firstLayoutKey] as [ILayoutComponent|ILayoutGroup],
+        formDataState.formData);
     } else {
-      const formDataState: IFormDataState = yield select(formDataSelector);
       const orderedLayoutKeys = Object.keys(layoutResponse).sort();
       firstLayoutKey = orderedLayoutKeys[0];
 
