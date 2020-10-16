@@ -97,6 +97,7 @@ export function nb() {
       for: 'for',
       label: 'Navn',
       loading: 'Laster innhold',
+      next: 'Neste',
       no_options: 'Ingen alternativer tilgjenglig',
       optional: 'Valgfri',
       required: 'Obligatorisk',

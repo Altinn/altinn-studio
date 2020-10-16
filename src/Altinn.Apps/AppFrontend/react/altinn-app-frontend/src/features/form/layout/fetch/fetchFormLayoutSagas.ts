@@ -10,20 +10,43 @@ import QueueActions from '../../../../shared/resources/queue/queueActions';
 import { getRepeatingGroups } from '../../../../utils/formLayout';
 import { IRuntimeState } from '../../../../types';
 import { IFormDataState } from '../../data/formDataReducer';
+import { ILayoutComponent, ILayoutGroup, ILayouts } from '../index';
 
 const formDataSelector = (state: IRuntimeState) => state.formData;
 
 function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
   try {
-    const { data }: any = yield call(get, url);
-    const formDataState: IFormDataState = yield select(formDataSelector);
-    const repeatingGroups = getRepeatingGroups(data.layout, formDataState.formData);
-    yield call(
-      Actions.fetchFormLayoutFulfilled,
-      data.layout,
-    );
-    yield call(Actions.updateAutoSave, data.autoSave);
+    const layoutResponse: any = yield call(get, url);
+    const layouts: ILayouts = {};
+    const navigationConfig: any = {};
+    let autoSave: boolean;
+    let firstLayoutKey: string;
+    let repeatingGroups = {};
+
+    if (layoutResponse.data) {
+      layouts.FormLayout = layoutResponse.data.layout;
+      firstLayoutKey = 'FormLayout';
+      autoSave = layoutResponse.data.autoSave;
+    } else {
+      const formDataState: IFormDataState = yield select(formDataSelector);
+      const orderedLayoutKeys = Object.keys(layoutResponse).sort();
+      firstLayoutKey = orderedLayoutKeys[0];
+
+      orderedLayoutKeys.forEach((key) => {
+        layouts[key] = layoutResponse[key].data.layout;
+        navigationConfig[key] = layoutResponse[key].data.navigation;
+        autoSave = layoutResponse[key].data.autoSave;
+        repeatingGroups = {
+          ...repeatingGroups,
+          ...getRepeatingGroups(layouts[key] as [ILayoutComponent|ILayoutGroup], formDataState.formData),
+        };
+      });
+    }
+
+    yield call(Actions.fetchFormLayoutFulfilled, layouts, navigationConfig);
+    yield call(Actions.updateAutoSave, autoSave);
     yield call(Actions.updateRepeatingGroupsFulfilled, repeatingGroups);
+    yield call(Actions.updateCurrentView, firstLayoutKey);
   } catch (err) {
     yield call(Actions.fetchFormLayoutRejected, err);
     yield call(QueueActions.dataTaskQueueError, err);

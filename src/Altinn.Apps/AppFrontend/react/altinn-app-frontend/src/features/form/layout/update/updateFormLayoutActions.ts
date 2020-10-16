@@ -1,10 +1,7 @@
 import { Action } from 'redux';
-import { ILayoutComponent, ILayoutGroup } from '..';
-import {
-  UPDATE_FOCUS,
+import { UPDATE_FOCUS,
   UPDATE_FOCUS_FULFUILLED,
   UPDATE_FOCUS_REJECTED,
-  UPDATE_FORM_LAYOUT,
   UPDATE_REPEATING_GROUPS,
   UPDATE_REPEATING_GROUPS_FULFILLED,
   UPDATE_REPEATING_GROUPS_REJECTED,
@@ -12,7 +9,7 @@ import {
   UPDATE_AUTO_SAVE,
   UPDATE_AUTO_SAVE_FULFILLED,
   UPDATE_AUTO_SAVE_REJECTED,
-} from '../formLayoutActionTypes';
+  UPDATE_CURRENT_VIEW } from '../formLayoutActionTypes';
 
 export interface IUpdateFocus extends Action {
   currentComponentId: string;
@@ -25,11 +22,6 @@ export interface IUpdateFocusFulfilled extends Action {
 
 export interface IUpdateFocusRejected extends Action {
   error: Error;
-}
-
-export interface IUpdateFormLayout extends Action {
-  layoutElement: ILayoutGroup | ILayoutComponent;
-  index: number;
 }
 
 export interface IUpdateRepeatingGroups extends Action {
@@ -66,6 +58,10 @@ export interface IUpdateAutoSaveRejected extends Action {
   error: Error;
 }
 
+export interface IUpdateCurrentView extends Action {
+  newView: string;
+}
+
 export function updateHiddenComponents(componentsToHide: string[]): IUpdateHiddenComponents {
   return ({
     type: UPDATE_HIDDEN_COMPONENTS,
@@ -92,14 +88,6 @@ export function updateFocusRejected(error: Error): IUpdateFocusRejected {
   return ({
     type: UPDATE_FOCUS_REJECTED,
     error,
-  });
-}
-
-export function updateFormLayout(layoutElement: ILayoutComponent | ILayoutGroup, index: number): IUpdateFormLayout {
-  return ({
-    type: UPDATE_FORM_LAYOUT,
-    layoutElement,
-    index,
   });
 }
 
@@ -150,5 +138,12 @@ export function updateAutoSaveRejected(error: Error): IUpdateAutoSaveRejected {
   return ({
     type: UPDATE_AUTO_SAVE_REJECTED,
     error,
+  });
+}
+
+export function updateCurrentView(newView: string): IUpdateCurrentView {
+  return ({
+    type: UPDATE_CURRENT_VIEW,
+    newView,
   });
 }

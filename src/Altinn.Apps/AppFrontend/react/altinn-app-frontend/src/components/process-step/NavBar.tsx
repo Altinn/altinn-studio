@@ -4,18 +4,19 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 export interface INavBarProps {
   language: any;
   handleClose: (e: any) => void;
+  handleBack: (e: any) => void;
+  showBackArrow?: boolean;
 }
-
 
 const NavBar = (props: INavBarProps) => {
   return (
     <div className='a-modal-navbar'>
-      {/* Hide this button for the time being, ref. issue https://github.com/altinn/altinn-studio/issues/2500 */}
-      {/* {props.step === ProcessSteps.FormFilling &&
+      {props.showBackArrow &&
         <button
           type='button'
           className='a-modal-back a-js-tabable-popover'
           aria-label={getLanguageFromKey('general.back', props.language)}
+          onClick={props.handleBack}
         >
           <span className='ai-stack'>
             <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
@@ -25,7 +26,7 @@ const NavBar = (props: INavBarProps) => {
             {getLanguageFromKey('general.back', props.language)}
           </span>
         </button>
-      } */}
+      }
       <button
         type='button'
         className='a-modal-close a-js-tabable-popover'
@@ -42,6 +43,6 @@ const NavBar = (props: INavBarProps) => {
       </button>
     </div>
   );
-}
+};
 
 export default NavBar;

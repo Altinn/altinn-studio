@@ -23,7 +23,8 @@ export function* runSingleFieldValidationSaga({
     };
     const response: any = yield call(put, url, 'Validate', requestBody, config);
     if (response && response.validationResult) {
-      const validationErrors = mapApiValidationsToRedux(response.validationResult.messages, state.formLayout.layout);
+      const layout = state.formLayout.layouts[state.formLayout.uiConfig.currentView];
+      const validationErrors = mapApiValidationsToRedux(response.validationResult.messages, layout);
       yield call(Actions.runSingleFieldValidationFulfilled, validationErrors);
     }
   } catch (err) {

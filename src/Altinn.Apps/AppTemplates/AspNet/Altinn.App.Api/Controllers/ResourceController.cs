@@ -33,6 +33,9 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/resource/{id}")]
         public IActionResult Index(string org, string app, string id)
         {
+            if (id == "FormLayout.json") {
+                return Layouts(org, app);
+            }
             byte[] fileContent = _appResourceService.GetAppResource(org, app, id);
 
             if (fileContent != null)
@@ -115,6 +118,21 @@ namespace Altinn.App.Api.Controllers
         {
             string schema = _appResourceService.GetModelJsonSchema(id);
             return Ok(schema);
+        }
+
+        
+        /// <summary>
+        /// Get the form layout
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>A collection of FormLayout objects in JSON format.</returns>
+        /// </summary>
+        [HttpGet]
+        [Route("{org}/{app}/api/layouts")]
+        public ActionResult Layouts(string org, string app)
+        {
+          string layouts = _appResourceService.GetLayouts();
+          return Ok(layouts);
         }
     }
 }
