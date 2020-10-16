@@ -14,7 +14,7 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.15.0" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.0-alpha" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
