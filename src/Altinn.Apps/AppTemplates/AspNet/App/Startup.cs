@@ -14,6 +14,7 @@ using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
+using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.ApplicationInsights.Extensibility;
@@ -104,6 +105,10 @@ namespace Altinn.App
             services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
 
             services.ConfigureDataProtection();
+
+            // Configure Azure KeyVault services
+            services.AddSingleton<IKeyVault, KeyVaultAppSI>();
+            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(options =>
