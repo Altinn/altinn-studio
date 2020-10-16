@@ -42,7 +42,6 @@ namespace Altinn.Platform.Events.Tests.Mocks.Authentication
             throw new NotImplementedException();
         }
 
-
         private async Task<ICollection<SecurityKey>> GetSigningKeys()
         {
             List<SecurityKey> signingKeys = new List<SecurityKey>();

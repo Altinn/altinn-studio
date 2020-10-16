@@ -1,15 +1,14 @@
-using Altinn.Platform.Events.Helpers;
-using Altinn.Platform.Events.Services.Interfaces;
-using Altinn.Platform.Register.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
+
+using Altinn.Platform.Events.Helpers;
+using Altinn.Platform.Events.Services.Interfaces;
+using Altinn.Platform.Register.Models;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Events.Tests.Mocks
 {
@@ -42,7 +41,10 @@ namespace Altinn.Platform.Events.Tests.Mocks
                 }
             }
 
-            return partyId > 0 ? partyId : throw await PlatformHttpException.CreateAsync(new HttpResponseMessage {Content = new StringContent(""), StatusCode = System.Net.HttpStatusCode.NotFound });
+            return partyId > 0
+                ? partyId
+                : throw await PlatformHttpException.CreateAsync(new HttpResponseMessage
+                    { Content = new StringContent(string.Empty), StatusCode = System.Net.HttpStatusCode.NotFound });
         }
 
         private string GetPartiesPath()

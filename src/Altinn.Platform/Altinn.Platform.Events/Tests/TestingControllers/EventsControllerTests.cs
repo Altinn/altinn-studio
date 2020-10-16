@@ -291,7 +291,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(expected, actual);
             }
 
-
             /// <summary>
             /// Scenario:
             ///   Post a cloud event, without bearer token.
@@ -444,12 +443,11 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             /// Expected result:
             ///   Next header contains new guid in after parameter
             /// Success criteria:
-            ///   Next header is corrcect.
+            ///   Next header is correct.
             /// </summary>
             [Fact]
             public async void Get_RegisterServiceThrowsPlatformException_ReturnsNotFound()
             {
-
                 // Arrange
                 string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708";
 
@@ -479,7 +477,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                         // Set up mock authentication so that not well known endpoint is used
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                         services.AddSingleton<ISigningKeysResolver, SigningKeyResolverMock>();
-
                     });
                 }).CreateClient();
 

@@ -79,9 +79,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
         [Fact]
         public async Task PartyLookup_ResponseIsNotSuccessful_PlatformExceptioThrown()
         {
-
             // Arrange
-
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.NotFound,
