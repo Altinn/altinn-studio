@@ -67,11 +67,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 HttpClient client = GetTestClient(eventsService.Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
-                {
-                    Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
-                };
-
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+                httpRequestMessage.Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json");
                 httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
                 // Act
@@ -104,11 +101,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 HttpClient client = GetTestClient(eventsService.Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
-                {
-                    Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
-                };
-
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+                httpRequestMessage.Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json");
                 httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
                 // Act
@@ -137,10 +131,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 HttpClient client = GetTestClient(eventsService.Object);
 
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
-                {
-                    Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
-                };
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+                httpRequestMessage.Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json");
                 httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
                 // Act
@@ -165,9 +157,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string requestUri = $"{BasePath}/app";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
 
-                StringContent content = new StringContent(string.Empty);
-                content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -189,13 +179,10 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app";
-
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
 
-                StringContent content = new StringContent(string.Empty);
-                content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri) { Content = content };
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -213,41 +200,12 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status.
             /// </summary>
             [Fact]
-            public async void Get_MissingRequiredFromOrAfterParam_ReturnsBadRequest()
+            public async void Get_MissingRequiredQueryParam_ReturnsBadRequest()
             {
-                // Arrange
+                // Arrange   
                 string expected = "\"From or after must be defined.\"";
 
                 string requestUri = $"{BasePath}/app/ttd/apps-test?size=5";
-                HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
-
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-
-                // Act
-                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-                string actual = await response.Content.ReadAsStringAsync();
-
-                // Assert
-                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-                Assert.Equal(expected, actual);
-            }
-
-            /// <summary>
-            /// Scenario:
-            ///   Get events without defined party, unit or person
-            /// Expected result:
-            ///   Returns HttpStatus BadRequest.
-            /// Success criteria:
-            ///   The response has correct status.
-            /// </summary>
-            [Fact]
-            public async void Get_MissingRequiredSubjectParam_ReturnsBadRequest()
-            {
-                // Arrange
-                string expected = "\"Subject must be specified using either query params party or unit or header value person.\"";
-
-                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01&size=5";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
 
@@ -290,6 +248,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                 Assert.Equal(expected, actual);
             }
+
 
             /// <summary>
             /// Scenario:
@@ -381,37 +340,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             /// <summary>
             /// Scenario:
-            ///   Get events identifying person in header.
-            /// Expected result:
-            ///   Successfully extracts person number from header for lookup.
-            /// Success criteria:
-            ///   Correct number of events are returned.
-            /// </summary>
-            [Fact]
-            public async void Get_PersonIncludedInHeader_ReturnsCorrectNumberOfEvents()
-            {
-                // Arrange
-                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01";
-                int expectedCount = 2;
-
-                HttpClient client = GetTestClient(new EventsServiceMock(1));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
-
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-                httpRequestMessage.Headers.Add("Person", "01017512345");
-
-                // Act
-                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-                string responseString = await response.Content.ReadAsStringAsync();
-                List<CloudEvent> actual = JsonSerializer.Deserialize<List<CloudEvent>>(responseString);
-
-                // Assert
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.Equal(expectedCount, actual.Count);
-            }
-
-            /// <summary>
-            /// Scenario:
             ///   Get events events service throws exception.
             /// Expected result:
             ///   Next header contains new guid in after parameter
@@ -422,46 +350,21 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Get_ServiceThrowsException_ReturnsInternalServerError()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708&party=567890";
+                string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708";
+                CloudEvent cloudEvent = GetCloudEvent();
                 Mock<IEventsService> eventsService = new Mock<IEventsService>();
                 eventsService.Setup(es => es.Get(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<List<string>>(), It.IsAny<List<string>>(), It.IsAny<int>())).Throws(new Exception());
                 HttpClient client = GetTestClient(eventsService.Object);
 
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                httpRequestMessage.Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json");
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
                 // Assert
                 Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-            }
-
-            /// <summary>
-            /// Scenario:
-            ///   Get events events service throws exception.
-            /// Expected result:
-            ///   Next header contains new guid in after parameter
-            /// Success criteria:
-            ///   Next header is correct.
-            /// </summary>
-            [Fact]
-            public async void Get_RegisterServiceThrowsPlatformException_ReturnsNotFound()
-            {
-                // Arrange
-                string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708";
-
-                HttpClient client = GetTestClient(new EventsServiceMock(1));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
-
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-                httpRequestMessage.Headers.Add("Person", "16069412345");
-
-                // Act
-                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-
-                // Assert
-                Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
             }
 
             private HttpClient GetTestClient(IEventsService eventsService)
@@ -472,7 +375,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                     builder.ConfigureTestServices(services =>
                     {
                         services.AddSingleton(eventsService);
-                        services.AddSingleton<IRegisterService, RegisterServiceMock>();
 
                         // Set up mock authentication so that not well known endpoint is used
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
@@ -485,17 +387,14 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             private CloudEvent GetCloudEvent()
             {
-                CloudEvent cloudEvent = new CloudEvent
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    SpecVersion = "1.0",
-                    Type = "instance.created",
-                    Source = new Uri("http://www.brreg.no/brg/something/232243423"),
-                    Time = DateTime.Now,
-                    Subject = "/party/456456",
-                    Data = "something/extra",
-                };
-
+                CloudEvent cloudEvent = new CloudEvent();
+                cloudEvent.Id = Guid.NewGuid().ToString();
+                cloudEvent.SpecVersion = "1.0";
+                cloudEvent.Type = "instance.created";
+                cloudEvent.Source = new Uri("http://www.brreg.no/brg/something/232243423");
+                cloudEvent.Time = DateTime.Now;
+                cloudEvent.Subject = "/party/456456";
+                cloudEvent.Data = "something/extra";
                 return cloudEvent;
             }
         }

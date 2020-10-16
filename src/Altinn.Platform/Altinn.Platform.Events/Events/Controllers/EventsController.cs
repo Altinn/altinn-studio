@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Events.Configuration;
-using Altinn.Platform.Events.Exceptions;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +12,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
 
 namespace Altinn.Platform.Events.Controllers
 {
@@ -26,24 +23,20 @@ namespace Altinn.Platform.Events.Controllers
     public class EventsController : Controller
     {
         private readonly IEventsService _eventsService;
-        private readonly IRegisterService _registerService;
         private readonly ILogger _logger;
         private readonly string _eventsBaseUri;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsController"/> class
         /// </summary>
-        public EventsController(
-            IEventsService eventsService,
-            IRegisterService registerService,
-            IOptions<GeneralSettings> settings,
-            ILogger<EventsController> logger)
+        /// <param name="eventsService">postgres service</param>
+        /// <param name="settings">the general settings</param>
+        /// <param name="logger">dependency injection of logger</param>
+        public EventsController(IEventsService eventsService, IOptions<GeneralSettings> settings, ILogger<EventsController> logger)
         {
-            _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
-
-            _eventsService = eventsService;
-            _registerService = registerService;
             _logger = logger;
+            _eventsService = eventsService;
+            _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
         }
 
         /// <summary>
@@ -90,7 +83,6 @@ namespace Altinn.Platform.Events.Controllers
             [FromQuery] DateTime? from,
             [FromQuery] DateTime? to,
             [FromQuery] int party,
-            [FromQuery] string unit,
             [FromQuery] List<string> source,
             [FromQuery] List<string> type,
             [FromQuery] int size = 50)
@@ -103,27 +95,7 @@ namespace Altinn.Platform.Events.Controllers
             if (size < 1)
             {
                 return BadRequest("Size must be a number larger that 0.");
-            }
-
-            Request.Headers.TryGetValue("person", out StringValues headerValues);
-            string person = headerValues.FirstOrDefault();
-
-            if (string.IsNullOrEmpty(person) && string.IsNullOrEmpty(unit) && party <= 0)
-            {
-                return BadRequest("Subject must be specified using either query params party or unit or header value person.");
-            }
-
-            if (party <= 0)
-            {
-                try
-                {
-                    party = await _registerService.PartyLookup(unit, person);
-                }
-                catch (PlatformHttpException e)
-                {
-                    return HandlePlatformHttpException(e);
-                }
-            }
+            } 
 
             try
             {
@@ -151,18 +123,6 @@ namespace Altinn.Platform.Events.Controllers
             catch (Exception e)
             {
                 return StatusCode(500, $"Unable to get cloud events from database. {e}");
-            }
-        }
-
-        private ActionResult HandlePlatformHttpException(PlatformHttpException e)
-        {
-            if (e.Response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return NotFound();
-            }
-            else
-            {
-                return StatusCode(500, e);
             }
         }
     }

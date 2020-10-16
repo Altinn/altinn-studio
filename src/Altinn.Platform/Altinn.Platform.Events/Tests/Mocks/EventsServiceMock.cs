@@ -13,7 +13,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
 {
     public class EventsServiceMock : IEventsService
     {
-        private readonly int _eventsCollection;
+        private int _eventsCollection;
 
         public EventsServiceMock(int eventsCollection = 1)
         {
