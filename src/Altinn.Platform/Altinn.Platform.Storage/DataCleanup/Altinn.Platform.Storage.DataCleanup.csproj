@@ -6,7 +6,7 @@
     <ProjectGuid>{3F69C9C9-D602-490C-B2BA-A5FB27E363EE}</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.2.5" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="2.2.6" />
     <!--12.5.1 breaks authorization towards blob storage. 12.6.0 has not been tested. -->
     <PackageReference Include="Azure.Storage.Blobs" Version="12.4.4" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.15.0" />
