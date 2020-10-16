@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Events.Configuration;
-using Altinn.Platform.Events.Helpers;
+using Altinn.Platform.Events.Exceptions;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;

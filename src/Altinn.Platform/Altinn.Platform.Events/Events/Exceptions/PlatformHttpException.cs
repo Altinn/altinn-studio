@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
-namespace Altinn.Platform.Events.Helpers
+namespace Altinn.Platform.Events.Exceptions
 {
     /// <summary>
     /// Exception class to hold exceptions when talking to the platform REST services

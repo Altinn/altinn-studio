@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Events.Configuration;
-using Altinn.Platform.Events.Helpers;
+using Altinn.Platform.Events.Exceptions;
 using Altinn.Platform.Events.Services;
 using Altinn.Platform.Register.Models;
 using Microsoft.AspNetCore.Http;
