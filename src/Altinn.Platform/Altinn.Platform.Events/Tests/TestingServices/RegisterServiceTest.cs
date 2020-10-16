@@ -77,7 +77,7 @@ namespace Altinn.Platform.Events.Tests.TestingServices
         }
 
         [Fact]
-        public async Task PartyLookup_ResponseIsNotSuccessful_PlatformExceptioThrown()
+        public async Task PartyLookup_ResponseIsNotSuccessful_PlatformExceptionThrown()
         {
             // Arrange
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage

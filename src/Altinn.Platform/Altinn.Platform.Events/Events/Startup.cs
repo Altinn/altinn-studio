@@ -161,6 +161,15 @@ namespace Altinn.Platform.Events
         {
             _logger.LogInformation("Startup // Configure");
 
+            if (env.IsDevelopment() || env.IsStaging())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/events/api/v1/error");
+            }
+
             if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
             {
                 NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
@@ -182,15 +191,6 @@ namespace Altinn.Platform.Events
                         AutoCreateDatabase = false,
                         DebugTraceMode = true
                     });
-            }
-
-            if (env.IsDevelopment() || env.IsStaging())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/events/api/v1/error");
             }
 
             app.UseSwagger(o => o.RouteTemplate = "events/swagger/{documentName}/swagger.json");
