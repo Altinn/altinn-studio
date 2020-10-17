@@ -288,12 +288,12 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Get_ValidRequest_ReturnsListOfEventsAndNextUrl()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01&party=12345";
-                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=12345";
+                string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?from=2020-01-01&party=1337";
+                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/ttd/endring-av-navn-v2?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=1337";
                 int expectedCount = 2;
 
                 HttpClient client = GetTestClient(new EventsServiceMock(1));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337));
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
