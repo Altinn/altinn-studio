@@ -3,6 +3,9 @@ using System.IO;
 using System.Reflection;
 using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Services;
+using Altinn.Common.PEP.Clients;
+using Altinn.Common.PEP.Implementation;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Health;
 using Altinn.Platform.Events.Repository;
@@ -99,6 +102,8 @@ namespace Altinn.Platform.Events
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<ISigningKeysResolver, SigningKeysResolver>();
 
+            services.AddHttpClient<AuthorizationApiClient>();
+
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                   .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                   {
@@ -128,6 +133,7 @@ namespace Altinn.Platform.Events
 
             services.AddSingleton<IEventsService, EventsService>();
             services.AddSingleton<IPostgresRepository, PostgresRepository>();
+            services.AddSingleton<IPDP, PDPAppSI>();
 
             if (!string.IsNullOrEmpty(ApplicationInsightsKey))
             {

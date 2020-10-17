@@ -102,15 +102,18 @@ namespace Altinn.Platform.Events.Authorization
                 {
                     // This is the scenario for events related to a given instance
                     string instanceId = paths[4] + "/" + paths[5];
-                    string instanceOwnerPartyId = cloudEvent.Subject.Split("/")[1];
-                    string org = paths[2];
-                    string app = paths[3];
+                    string instanceOwnerPartyId = cloudEvent.Subject.Split("/")[2];
+                    string org = paths[1];
+                    string app = paths[2];
+                    string eventId = cloudEvent.Id;
 
                     if (!string.IsNullOrWhiteSpace(instanceId))
                     {
                         resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.InstanceId, instanceOwnerPartyId + "/" + instanceId, DefaultType, DefaultIssuer, true));
                     }
 
+                    resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.AppResource, "events", DefaultType, DefaultIssuer));
+                    resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.EventId, eventId, DefaultType, DefaultIssuer, true));
                     resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.PartyId, instanceOwnerPartyId, DefaultType, DefaultIssuer));
                     resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.OrgId, org, DefaultType, DefaultIssuer));
                     resourceCategory.Attribute.Add(DecisionHelper.CreateXacmlJsonAttribute(AltinnXacmlUrns.AppId, app, DefaultType, DefaultIssuer));

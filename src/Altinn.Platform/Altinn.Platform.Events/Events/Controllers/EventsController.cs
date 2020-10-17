@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Events.Authorization;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
@@ -25,6 +27,7 @@ namespace Altinn.Platform.Events.Controllers
         private readonly IEventsService _eventsService;
         private readonly ILogger _logger;
         private readonly string _eventsBaseUri;
+        private readonly AuthorizationHelper _authorizationHelper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsController"/> class
@@ -32,11 +35,12 @@ namespace Altinn.Platform.Events.Controllers
         /// <param name="eventsService">postgres service</param>
         /// <param name="settings">the general settings</param>
         /// <param name="logger">dependency injection of logger</param>
-        public EventsController(IEventsService eventsService, IOptions<GeneralSettings> settings, ILogger<EventsController> logger)
+        public EventsController(IEventsService eventsService, IOptions<GeneralSettings> settings, ILogger<EventsController> logger, IPDP pdp)
         {
             _logger = logger;
             _eventsService = eventsService;
             _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
+            _authorizationHelper = new AuthorizationHelper(pdp);
         }
 
         /// <summary>
@@ -100,6 +104,12 @@ namespace Altinn.Platform.Events.Controllers
             try
             {
                 List<CloudEvent> events = await _eventsService.Get(after, from, to, party, source, type, size);
+
+                if (events.Count > 0)
+                {
+                    // Authorizes the events.
+                    events = await _authorizationHelper.AuthorizeEvents(HttpContext.User, events);
+                }
 
                 if (events.Count > 0)
                 {
