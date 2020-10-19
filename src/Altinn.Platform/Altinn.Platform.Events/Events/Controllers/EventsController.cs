@@ -23,7 +23,7 @@ namespace Altinn.Platform.Events.Controllers
     /// </summary>
     [Authorize]
     [Route("events/api/v1/app")]
-    public class EventsController : Controller
+    public class EventsController : ControllerBase
     {
         private readonly IEventsService _eventsService;
         private readonly IRegisterService _registerService;
