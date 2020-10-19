@@ -21,7 +21,7 @@ namespace Altinn.Platform.Events.Controllers
     /// <summary>
     /// Provides operations for handling events
     /// </summary>
-    [Authorize]
+    /// [Authorize]
     [Route("events/api/v1/app")]
     public class EventsController : ControllerBase
     {
@@ -91,6 +91,7 @@ namespace Altinn.Platform.Events.Controllers
             [FromQuery] DateTime? to,
             [FromQuery] int party,
             [FromQuery] string unit,
+            [FromHeader] string person,
             [FromQuery] List<string> source,
             [FromQuery] List<string> type,
             [FromQuery] int size = 50)
@@ -104,9 +105,6 @@ namespace Altinn.Platform.Events.Controllers
             {
                 return BadRequest("Size must be a number larger that 0.");
             }
-
-            Request.Headers.TryGetValue("person", out StringValues headerValues);
-            string person = headerValues.FirstOrDefault();
 
             if (string.IsNullOrEmpty(person) && string.IsNullOrEmpty(unit) && party <= 0)
             {
