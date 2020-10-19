@@ -18,12 +18,6 @@ namespace Altinn.App.PlatformServices.Extensions
                 builder.SetBasePath(basePath);
                 builder.AddJsonFile(basePath + @"altinn-appsettings-secret/altinn-appsettings-secret.json", true, true);
             }
-            else
-            {
-                // local config
-                builder.AddJsonFile(Directory.GetCurrentDirectory() + @"/appsettings.json", true, true);
-            }
         }
-
     }
 }
