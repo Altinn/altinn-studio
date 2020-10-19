@@ -7,7 +7,7 @@ namespace Altinn.App.Services.Interface
     /// <summary>
     /// Interface for Key Vault service
     /// </summary>
-    public interface IKeyVault
+    public interface ISecrets
     {
         /// <summary>
         /// Gets a key from key vault.

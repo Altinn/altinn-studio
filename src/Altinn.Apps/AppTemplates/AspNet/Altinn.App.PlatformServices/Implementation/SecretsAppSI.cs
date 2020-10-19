@@ -16,19 +16,19 @@ namespace Altinn.App.PlatformServices.Implementation
     /// <summary>
     /// Class that handles integration with Azure Key Vault
     /// </summary>
-    public class KeyVaultAppSI : IKeyVault
+    public class SecretsAppSI : ISecrets
     {
         private readonly string _vaultUri;
         private readonly bool _useMock;
         private readonly AzureServiceTokenProvider _azureServiceTokenProvider;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KeyVaultAppSI"/> class with a client using the credentials from the key vault settings.
+        /// Initializes a new instance of the <see cref="SecretsAppSI"/> class with a client using the credentials from the key vault settings.
         /// </summary>
         /// <param name="keyVaultSettings">
         /// The <see cref="KeyVaultSettings"/> with information about the principal to use when getting secrets from a key vault.
         /// </param>
-        public KeyVaultAppSI(IOptions<KeyVaultSettings> keyVaultSettings)
+        public SecretsAppSI(IOptions<KeyVaultSettings> keyVaultSettings)
         {
             string _connectionString = $"RunAs=App;AppId={keyVaultSettings.Value.ClientId};" +
                                  $"TenantId={keyVaultSettings.Value.TenantId};" +

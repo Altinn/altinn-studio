@@ -63,6 +63,7 @@ namespace Altinn.App
 
             // Internal Application services
             services.AddSingleton<IAppResources, AppResourcesSI>();
+            services.AddSecretsAppSettings(Configuration, _env);
 
             // Services for Altinn Platform components
             services.AddTransient<IPDP, PDPAppSI>();
@@ -105,10 +106,6 @@ namespace Altinn.App
             services.Configure<AccessTokenSettings>(Configuration.GetSection("AccessTokenSettings"));
 
             services.ConfigureDataProtection();
-
-            // Configure Azure KeyVault services
-            services.AddSingleton<IKeyVault, KeyVaultAppSI>();
-            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(options =>
