@@ -18,7 +18,6 @@ namespace Altinn.App.PlatformServices.Implementation
     /// </summary>
     public class KeyVaultAppSI : IKeyVault
     {
-        private readonly string _connectionString;
         private readonly string _vaultUri;
         private readonly bool _useMock;
         private readonly AzureServiceTokenProvider _azureServiceTokenProvider;
@@ -31,9 +30,9 @@ namespace Altinn.App.PlatformServices.Implementation
         /// </param>
         public KeyVaultAppSI(IOptions<KeyVaultSettings> keyVaultSettings)
         {
-            _connectionString = $"RunAs=App;AppId={keyVaultSettings.Value.ClientId};" +
-                                $"TenantId={keyVaultSettings.Value.TenantId};" +
-                                $"AppKey={keyVaultSettings.Value.ClientSecret}";
+            string _connectionString = $"RunAs=App;AppId={keyVaultSettings.Value.ClientId};" +
+                                 $"TenantId={keyVaultSettings.Value.TenantId};" +
+                                 $"AppKey={keyVaultSettings.Value.ClientSecret}";
             _vaultUri = keyVaultSettings.Value.SecretUri;
             _useMock = !Directory.GetParent(Directory.GetCurrentDirectory()).FullName.Equals("/");
             _azureServiceTokenProvider = new AzureServiceTokenProvider(_connectionString);

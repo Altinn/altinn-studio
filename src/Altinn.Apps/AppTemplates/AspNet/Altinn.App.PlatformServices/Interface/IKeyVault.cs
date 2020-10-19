@@ -1,6 +1,5 @@
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.WebKey;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace Altinn.App.Services.Interface
