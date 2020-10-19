@@ -132,6 +132,15 @@ export interface IFormRadioButtonComponent extends IFormComponent {
 
 export interface IFormTextAreaComponent extends IFormComponent { }
 
+export interface ILayoutNavigation {
+  next?: string;
+  previous?: string;
+}
+
+export interface INavigationConfig {
+  [id: string]: ILayoutNavigation;
+}
+
 export interface IOption {
   label: string;
   value: any;
@@ -213,9 +222,11 @@ export interface IValidationIssue {
 
 export interface IUiConfig {
   autoSave: boolean;
+  currentView: string;
   focus: string;
   hiddenFields: string[];
   repeatingGroups?: IRepeatingGroups;
+  navigationConfig?: INavigationConfig;
 }
 
 export interface IValidationResult {

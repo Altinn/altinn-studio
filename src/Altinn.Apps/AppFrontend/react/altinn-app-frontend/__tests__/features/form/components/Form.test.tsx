@@ -72,21 +72,23 @@ describe('>>> features/form/components/Form.tsx', () => {
     ];
 
     mockLayout = getFormLayoutStateMock({
-      layout: [
-        {
-          id: mockGroupId,
-          type: 'group',
-          dataModelBindings: {
-            group: 'Group',
+      layouts: {
+        FormLayout: [
+          {
+            id: mockGroupId,
+            type: 'group',
+            dataModelBindings: {
+              group: 'Group',
+            },
+            maxCount: 3,
+            children: [
+              'field1',
+              'field2',
+              'field3',
+            ],
           },
-          maxCount: 3,
-          children: [
-            'field1',
-            'field2',
-            'field3',
-          ],
-        },
-      ].concat(mockComponents),
+        ].concat(mockComponents),
+      },
     });
 
     const initialState = getInitialStateMock({ formLayout: mockLayout });

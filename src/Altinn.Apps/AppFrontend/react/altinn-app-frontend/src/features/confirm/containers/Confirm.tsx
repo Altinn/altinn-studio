@@ -86,7 +86,6 @@ const Confirm = (props: IConfirmProps) => {
   const routeParams: any = props.match.params;
 
   const { instanceId } = window as Window as IAltinnWindow;
-  const layout = useSelector((state: IRuntimeState) => state.formLayout.layout);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
 
   const isLoading = (): boolean => (
@@ -138,7 +137,7 @@ const Confirm = (props: IConfirmProps) => {
   const onClickConfirm = () => {
     setIsSubmitting(true);
     get(getValidationUrl(instanceId)).then((data: any) => {
-      const mappedValidations = mapDataElementValidationToRedux(data, layout, textResources);
+      const mappedValidations = mapDataElementValidationToRedux(data, {}, textResources);
       FormValidationActions.updateValidations(mappedValidations);
       if (data.length === 0) {
         ProcessDispatcher.completeProcess();
