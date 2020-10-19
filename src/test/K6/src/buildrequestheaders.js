@@ -3,9 +3,9 @@ let environment = __ENV.env;
 let sblAccessSubscriptionKey = __ENV.sblaccesskey;
 
 //Function to determine the headers for a POST/PUT data based on dataType
-export function buildHeadersForData(dataType, altinnStudioRuntimeCookie, api) {
+export function buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, api) {
     var params = {};
-    if (isGuid(dataType)) {
+    if (isBinaryAttachment) {
         params = {
             headers: {
                 "Authorization": "Bearer " + altinnStudioRuntimeCookie,
