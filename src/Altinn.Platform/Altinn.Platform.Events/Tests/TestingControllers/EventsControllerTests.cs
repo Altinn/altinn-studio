@@ -218,7 +218,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 // Arrange
                 string expected = "\"From or after must be defined.\"";
 
-                string requestUri = $"{BasePath}/app/ttd/apps-test?size=5";
+                string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?size=5";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
 
@@ -247,7 +247,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 // Arrange
                 string expected = "\"Subject must be specified using either query params party or unit or header value person.\"";
 
-                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01&size=5";
+                string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?from=2020-01-01&size=5";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
 
@@ -274,7 +274,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Get_SizeIsLessThanZero_ReturnsBadRequest()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01&size=-5";
+                string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?from=2020-01-01&size=-5";
                 string expected = "\"Size must be a number larger that 0.\"";
 
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
@@ -303,7 +303,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Get_MissingBearerToken_ReturnsForbidden()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01&party=12345";
+                string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?from=2020-01-01&party=1337";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -327,8 +327,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Get_ValidRequest_ReturnsListOfEventsAndNextUrl()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01&party=12345";
-                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=12345";
+                string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?from=2020-01-01&party=1337";
+                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/ttd/endring-av-navn-v2?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=1337";
                 int expectedCount = 2;
 
                 HttpClient client = GetTestClient(new EventsServiceMock(1));
@@ -359,8 +359,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Get_AfterIncludedInQuery_ReturnsNextHeaderWithReplacesAfterParameter()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708&from=2020-01-01&party=12345";
-                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=12345";
+                string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?after=e31dbb11-2208-4dda-a549-92a0db8c7708&from=2020-01-01&party=1337";
+                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/ttd/endring-av-navn-v2?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=1337";
                 int expectedCount = 1;
 
                 HttpClient client = GetTestClient(new EventsServiceMock(1));
@@ -391,14 +391,14 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Get_PersonIncludedInHeader_ReturnsCorrectNumberOfEvents()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/ttd/apps-test?from=2020-01-01";
+                string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?from=2020-01-01";
                 int expectedCount = 2;
 
                 HttpClient client = GetTestClient(new EventsServiceMock(1));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-                httpRequestMessage.Headers.Add("Person", "01017512345");
+                httpRequestMessage.Headers.Add("Person", "01038712345");
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -422,7 +422,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Get_ServiceThrowsException_ReturnsInternalServerError()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708&party=567890";
+                string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?after=e31dbb11-2208-4dda-a549-92a0db8c7708&party=567890";
                 Mock<IEventsService> eventsService = new Mock<IEventsService>();
                 eventsService.Setup(es => es.Get(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<List<string>>(), It.IsAny<List<string>>(), It.IsAny<int>())).Throws(new Exception());
                 HttpClient client = GetTestClient(eventsService.Object);
@@ -449,7 +449,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void Get_RegisterServiceThrowsPlatformException_ReturnsNotFound()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708";
+                string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?after=e31dbb11-2208-4dda-a549-92a0db8c7708";
 
                 HttpClient client = GetTestClient(new EventsServiceMock(1));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));

@@ -78,10 +78,10 @@
     "childParties": null
   },
   {
-    "partyId": "12345",
+    "partyId": "1337",
     "partyTypeName": 1,
     "orgNumber": "null",
-    "ssn": "01017512345",
+    "ssn": "01038712345",
     "unitType": null,
     "name": "Ola Nordmann",
     "isDeleted": false,

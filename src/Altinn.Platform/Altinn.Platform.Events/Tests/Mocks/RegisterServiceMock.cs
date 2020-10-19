@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-using Altinn.Platform.Events.Helpers;
+using Altinn.Platform.Events.Exceptions;
 using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Register.Models;
 using Newtonsoft.Json;
