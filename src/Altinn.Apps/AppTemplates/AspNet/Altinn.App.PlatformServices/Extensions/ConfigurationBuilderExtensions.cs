@@ -11,8 +11,7 @@ namespace Altinn.App.PlatformServices.Extensions
             string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
 
             if (basePath == "/")
-            {
-                // docker container config
+            {                
                 builder.AddEnvironmentVariables();
 
                 builder.SetBasePath(basePath);
