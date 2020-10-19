@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>2.2.5</Version>
+    <Version>2.2.6</Version>
     <Description>Altinn.Platform.Storage.Interface is a package for models used by platform storage</Description>
     <PackageTags>Altinn Studio, Altinn.Platform, Altinn.Platform.Storage.Interface</PackageTags>
     <PackageId>Altinn.Platform.Storage.Interface</PackageId>
@@ -17,8 +17,8 @@
     <Authors>Altinn Platform Contributors</Authors>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <AssemblyVersion>2.2.5.0</AssemblyVersion>
-    <FileVersion>2.2.5.0</FileVersion>
+    <AssemblyVersion>2.2.6.0</AssemblyVersion>
+    <FileVersion>2.2.6.0</FileVersion>
     <RepositoryUrl>https://github.com/Altinn/altinn-studio</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
   </PropertyGroup>
@@ -29,7 +29,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.9" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 

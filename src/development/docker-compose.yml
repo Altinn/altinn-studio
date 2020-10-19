@@ -18,3 +18,13 @@ services:
       - NGINX_PORT=80
     build:
       context: ./loadbalancer
+  altinn_platform_pdf:
+    container_name: altinn-pdf
+    image: altinn-pdf:latest
+    restart: always
+    networks:
+      - altinntestlocal_network
+    ports:
+     - "5070:5070"
+    build:
+      context: ./../Altinn.Platform/Altinn.Platform.PDF/

@@ -77,5 +77,11 @@ namespace Altinn.App.Services.Interface
         /// <param name="optionId"></param>
         /// <returns></returns>
         List<AppOption> GetOptions(string optionId);
+
+        /// <summary>
+        /// Gets the layouts for the app.
+        /// </summary>
+        /// <returns>A dictionary of FormLayout objects serialized to JSON</returns>
+        string GetLayouts();
     }
 }

@@ -169,10 +169,29 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
       >
         <div
           className="MuiGrid-root MuiGrid-item"
-        />
+        >
+          <p
+            className="MuiTypography-root AltinnAppHeader-appHeaderText-3 MuiTypography-body1"
+          >
+            Ola Privatperson
+          </p>
+        </div>
         <div
           className="MuiGrid-root MuiGrid-item"
-        />
+        >
+          <i
+            className="fa fa-private-circle-big"
+            style={
+              Object {
+                "color": "#022F51",
+                "fontSize": 31,
+                "fontWeight": null,
+                "margin": "0px 0px 0px 5px",
+                "padding": null,
+              }
+            }
+          />
+        </div>
       </div>
     </div>
   </header>
@@ -247,7 +266,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
                       <span
                         className="a-iconText-text-large"
                       >
-                        Mock error report
+                        Det er feil i skjema
                       </span>
                     </h2>
                   </div>
@@ -270,7 +289,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
                     }
                   >
                     <span>
-                      form_filler.error_report_description
+                      Skjemaet inneholder feil eller mangler som hindrer oss fra å sende det inn. Når du har rettet feilene, kan du sende inn skjemaet på nytt.
                     </span>
                   </h4>
                 </div>
@@ -282,7 +301,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
           className="a-modal-navbar"
         >
           <button
-            aria-label="general.close_schema"
+            aria-label="Lukk skjema"
             className="a-modal-close a-js-tabable-popover"
             onClick={[Function]}
             type="button"
@@ -302,7 +321,7 @@ exports[`>>> containers/ProcessStep.tsx +++ should match snapshot 1`] = `
             <span
               className="hidden-button-text"
             >
-              general.close_schema
+              Lukk skjema
             </span>
           </button>
         </div>

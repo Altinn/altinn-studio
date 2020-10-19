@@ -4,7 +4,6 @@ import { IRuntimeState, IValidations, IUiConfig } from 'src/types';
 import { runConditionalRenderingRules } from '../../../../utils/conditionalRendering';
 import * as FormDataActionTypes from '../../data/formDataActionTypes';
 import { IFormData } from '../../data/formDataReducer';
-import { ILayout } from '../../layout';
 import FormLayoutActions from '../../layout/formLayoutActions';
 import * as FormLayoutActionTypes from '../../layout/formLayoutActionTypes';
 import FormValidationActions from '../../validation/validationActions';
@@ -15,7 +14,6 @@ import * as RulesActionTypes from '../../rules/rulesActionTypes';
 export const ConditionalRenderingSelector:
   (store: IRuntimeState) => any = (store: IRuntimeState) => store.formDynamics.conditionalRendering;
 export const FormDataSelector: (store: IRuntimeState) => IFormData = (store) => store.formData.formData;
-export const FormLayoutSelector: (store: IRuntimeState) => ILayout = (store) => store.formLayout.layout;
 export const UiConfigSelector: (store: IRuntimeState) => IUiConfig = (store) => store.formLayout.uiConfig;
 export const FormValidationSelector: (store: IRuntimeState) =>
   IValidations = (store) => store.formValidations.validations;
