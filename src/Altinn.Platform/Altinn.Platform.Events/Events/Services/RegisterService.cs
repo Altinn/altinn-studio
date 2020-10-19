@@ -70,7 +70,7 @@ namespace Altinn.Platform.Events.Services
             else
             {
                 string reason = await response.Content.ReadAsStringAsync();
-                _logger.LogError($"// RegisterService // PartyLookup // Failed to lookup party in platform register. Reason {reason}.");
+                _logger.LogError($"// RegisterService // PartyLookup // Failed to lookup party in platform register. Response {response}. \n Reason {reason}.");
 
                 throw await PlatformHttpException.CreateAsync(response);
             }

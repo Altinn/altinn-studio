@@ -162,6 +162,7 @@ namespace Altinn.Platform.Events.Controllers
             }
             else
             {
+                _logger.LogError($"// EventsController // HandlePlatformHttpException // Unexpected response from Altinn Platform. {e}");
                 return StatusCode(500, e);
             }
         }
