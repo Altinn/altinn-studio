@@ -1,6 +1,5 @@
-using System.IO;
+using Altinn.App.PlatformServices.Extensions;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace Altinn.App
@@ -18,23 +17,9 @@ namespace Altinn.App
              {
                  webBuilder.ConfigureAppConfiguration((hostingContext, configBuilder) =>
                  {
-                     LoadKeyVaultConfig(configBuilder);
-                     configBuilder.AddEnvironmentVariables();
-                     configBuilder.AddJsonFile(Directory.GetCurrentDirectory() + @"/appsettings.json", true, true);
+                     configBuilder.LoadAppConfig();
                  });
                  webBuilder.UseStartup<Startup>();
              });
-
-        public static void LoadKeyVaultConfig(IConfigurationBuilder configBuilder)
-        {
-            string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-
-            if (basePath == "/")
-            {
-                // On a pod/container where the app is located in an app folder on the root of the filesystem.
-                configBuilder.SetBasePath(basePath);
-                configBuilder.AddJsonFile(basePath + @"altinn-appsettings-secret/altinn-appsettings-secret.json", true, true);
-            }
-        }
     }
 }
