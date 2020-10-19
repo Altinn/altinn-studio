@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.App.PlatformServices.Extensions;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Events.Authorization;
@@ -91,6 +92,12 @@ namespace Altinn.Platform.Events.Controllers
             [FromQuery] List<string> type,
             [FromQuery] int size = 50)
         {
+            if (string.IsNullOrEmpty(HttpContext.User.GetOrg()))
+            {
+                // Only orgs can do a search based on. Alternative can be a service owner read in scope. Need to be added later
+                return StatusCode(401, "Only orgs can call this api");
+            }
+
             if (string.IsNullOrEmpty(after) && from == null)
             {
                 return BadRequest("From or after must be defined.");
@@ -99,7 +106,7 @@ namespace Altinn.Platform.Events.Controllers
             if (size < 1)
             {
                 return BadRequest("Size must be a number larger that 0.");
-            } 
+            }
 
             try
             {

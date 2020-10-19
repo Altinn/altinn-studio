@@ -209,7 +209,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 string requestUri = $"{BasePath}/app/ttd/apps-test?size=5";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
@@ -238,7 +238,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string expected = "\"Size must be a number larger that 0.\"";
 
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
@@ -293,7 +293,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 int expectedCount = 2;
 
                 HttpClient client = GetTestClient(new EventsServiceMock(1));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
@@ -381,7 +381,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   Next header is corrcect.
             /// </summary>
             [Fact]
-            public async void Get_AfterIncludedInQuery_ReturnsNextHeaderWithReplacesAfterParameter()
+            public async void Get_NotValidRequestForUser()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app/ttd/apps-test?after=e31dbb11-2208-4dda-a549-92a0db8c7708&from=2020-01-01&party=1337";
@@ -395,13 +395,9 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-                string responseString = await response.Content.ReadAsStringAsync();
-                List<CloudEvent> actual = JsonSerializer.Deserialize<List<CloudEvent>>(responseString);
 
                 // Assert
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.Equal(expectedCount, actual.Count);
-                Assert.Equal(expectedNext, response.Headers.GetValues("next").First());
+                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
             }
 
             /// <summary>
@@ -422,7 +418,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 eventsService.Setup(es => es.Get(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<List<string>>(), It.IsAny<List<string>>(), It.IsAny<int>())).Throws(new Exception());
                 HttpClient client = GetTestClient(eventsService.Object);
 
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
                 httpRequestMessage.Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json");
 
