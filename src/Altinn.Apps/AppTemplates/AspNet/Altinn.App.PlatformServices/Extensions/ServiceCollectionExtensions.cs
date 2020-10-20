@@ -10,7 +10,7 @@ namespace Altinn.App.PlatformServices.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static void AddSecretsAppSettings(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
+        public static void AddAppSecrets(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment env)
         {
             if (!env.IsDevelopment())
             {

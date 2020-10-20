@@ -63,7 +63,7 @@ namespace Altinn.App
 
             // Internal Application services
             services.AddSingleton<IAppResources, AppResourcesSI>();
-            services.AddSecretsAppSettings(Configuration, _env);
+            services.AddAppSecrets(Configuration, _env);
 
             // Services for Altinn Platform components
             services.AddTransient<IPDP, PDPAppSI>();
