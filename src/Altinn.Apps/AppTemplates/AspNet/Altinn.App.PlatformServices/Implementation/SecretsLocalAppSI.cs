@@ -17,7 +17,7 @@ namespace Altinn.App.PlatformServices.Implementation
         /// </inheritdoc>
         public async Task<byte[]> GetCertificateAsync(string certificateId)
         {
-            string path = Path.Combine(Directory.GetCurrentDirectory(), @"keyvault.json");
+            string path = Path.Combine(Directory.GetCurrentDirectory(), @"secrets.json");
             if (File.Exists(path))
             {
                 string jsonString = File.ReadAllText(path);
@@ -38,7 +38,7 @@ namespace Altinn.App.PlatformServices.Implementation
         /// </inheritdoc>
         public async Task<JsonWebKey> GetKeyAsync(string keyId)
         {
-            string path = Path.Combine(Directory.GetCurrentDirectory(), @"keyVault.json");
+            string path = Path.Combine(Directory.GetCurrentDirectory(), @"secrets.json");
             if (File.Exists(path))
             {
                 JObject keyVault = JObject.Parse(File.ReadAllText(path));
@@ -63,7 +63,7 @@ namespace Altinn.App.PlatformServices.Implementation
         /// </inheritdoc>
         public async Task<string> GetSecretAsync(string secretId)
         {
-            string path = Path.Combine(Directory.GetCurrentDirectory(), @"keyVault.json");
+            string path = Path.Combine(Directory.GetCurrentDirectory(), @"secrets.json");
             if (File.Exists(path))
             {
                 string jsonString = File.ReadAllText(path);
