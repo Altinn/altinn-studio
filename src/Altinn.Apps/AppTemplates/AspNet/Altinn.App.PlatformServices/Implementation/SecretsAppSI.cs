@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.App.Services.Interface;
 using AltinnCore.Authentication.Constants;
@@ -9,7 +6,6 @@ using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.KeyVault.WebKey;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 
 namespace Altinn.App.PlatformServices.Implementation
 {
