@@ -14,7 +14,6 @@ using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Implementation;
 using Altinn.Common.PEP.Interfaces;
-using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.ApplicationInsights.Extensibility;

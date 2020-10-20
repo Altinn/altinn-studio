@@ -27,7 +27,7 @@ namespace Altinn.App.PlatformServices.Implementation
                 if (token != null)
                 {
                     byte[] localCertBytes = Convert.FromBase64String(token.ToString());
-                    return localCertBytes;
+                    return await Task.FromResult(localCertBytes);
                 }
             }
 
@@ -47,7 +47,7 @@ namespace Altinn.App.PlatformServices.Implementation
                 if (token != null)
                 {
                     JsonWebKey key = JsonSerializer.Deserialize<JsonWebKey>(token.ToString());
-                    return key;
+                    return await Task.FromResult(key);
                 }
             }
 
@@ -72,7 +72,7 @@ namespace Altinn.App.PlatformServices.Implementation
                 return token != null ? token.ToString() : string.Empty;
             }
 
-            return string.Empty;
+            return await Task.FromResult(string.Empty);
         }
     }
 }

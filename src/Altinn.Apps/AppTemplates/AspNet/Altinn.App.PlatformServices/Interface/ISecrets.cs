@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Altinn.App.Services.Interface
 {
     /// <summary>
-    /// Interface for Key Vault service
+    /// Interface for secrets service
     /// </summary>
     public interface ISecrets
     {
