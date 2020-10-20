@@ -1,5 +1,6 @@
 using Altinn.App.PlatformServices.Extensions;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace Altinn.App
@@ -17,6 +18,7 @@ namespace Altinn.App
              {
                  webBuilder.ConfigureAppConfiguration((hostingContext, configBuilder) =>
                  {
+                     configBuilder.AddEnvironmentVariables();
                      configBuilder.LoadAppConfig();
                  });
                  webBuilder.UseStartup<Startup>();

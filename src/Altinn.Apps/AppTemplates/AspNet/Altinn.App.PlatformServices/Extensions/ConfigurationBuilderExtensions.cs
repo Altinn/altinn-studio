@@ -1,6 +1,6 @@
 using System.IO;
 using Microsoft.Extensions.Configuration;
-
+using Microsoft.Extensions.FileProviders;
 
 namespace Altinn.App.PlatformServices.Extensions
 {
@@ -9,16 +9,7 @@ namespace Altinn.App.PlatformServices.Extensions
         public static void LoadAppConfig(this IConfigurationBuilder builder)
         {
             builder.AddJsonFile(Directory.GetCurrentDirectory() + @"/appsettings.json", true, true);
-
-            string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-
-            if (basePath == "/")
-            {
-                builder.AddEnvironmentVariables();
-
-                builder.SetBasePath(basePath);
-                builder.AddJsonFile(basePath + @"altinn-appsettings-secret/altinn-appsettings-secret.json", true, true);
-            }
+            builder.AddJsonFile(new PhysicalFileProvider("/"), @"altinn-appsettings-secret/altinn-appsettings-secret.json", true, true);
         }
     }
 }
