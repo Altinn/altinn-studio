@@ -40,7 +40,8 @@ namespace Altinn.Platform.Events.Controllers
             IEventsService eventsService,
             IRegisterService registerService,
             IOptions<GeneralSettings> settings,
-            ILogger<EventsController> logger)
+            ILogger<EventsController> logger,
+            IPDP pdp)
         {
             _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
 
