@@ -181,9 +181,6 @@ namespace Altinn.Platform.Storage.Controllers
             List<InstanceEvent> result =
                 await _instanceEventRepository.ListInstanceEvents(instanceId, eventTypes, null, null);
 
-            // Exclude all events related to data elements
-            result = result.Where(r => string.IsNullOrEmpty(r.DataId)).ToList();
-
             return Ok(InstanceHelper.ConvertToSBLInstanceEvent(result));
         }
 
