@@ -19,7 +19,6 @@ namespace Altinn.App.PlatformServices.Implementation
     public class SecretsAppSI : ISecrets
     {
         private readonly string _vaultUri;
-        private readonly bool _useMock;
         private readonly AzureServiceTokenProvider _azureServiceTokenProvider;
 
         /// <summary>
@@ -34,32 +33,12 @@ namespace Altinn.App.PlatformServices.Implementation
                                  $"TenantId={keyVaultSettings.Value.TenantId};" +
                                  $"AppKey={keyVaultSettings.Value.ClientSecret}";
             _vaultUri = keyVaultSettings.Value.SecretUri;
-            _useMock = !Directory.GetParent(Directory.GetCurrentDirectory()).FullName.Equals("/");
             _azureServiceTokenProvider = new AzureServiceTokenProvider(_connectionString);
         }
 
         /// </inheritdoc>
         public async Task<byte[]> GetCertificateAsync(string certificateId)
-        {
-            if (_useMock)
-            {
-                string path = Path.Combine(Directory.GetCurrentDirectory(), @"keyvault.json");
-                if (File.Exists(path))
-                {
-                    string jsonString = File.ReadAllText(path);
-                    JObject keyVault = JObject.Parse(jsonString);
-                    keyVault.TryGetValue(certificateId, out JToken token);
-
-                    if (token != null)
-                    {
-                        byte[] localCertBytes = Convert.FromBase64String(token.ToString());
-                        return localCertBytes;
-                    }
-                }
-
-                return null;
-            }
-
+        {         
             using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
             CertificateBundle cert = await client.GetCertificateAsync(certificateId);
 
@@ -69,24 +48,6 @@ namespace Altinn.App.PlatformServices.Implementation
         /// </inheritdoc>
         public async Task<JsonWebKey> GetKeyAsync(string keyId)
         {
-            if (_useMock)
-            {
-                string path = Path.Combine(Directory.GetCurrentDirectory(), @"keyVault.json");
-                if (File.Exists(path))
-                {
-                    JObject keyVault = JObject.Parse(File.ReadAllText(path));
-                    keyVault.TryGetValue(keyId, out JToken token);
-
-                    if (token != null)
-                    {
-                        JsonWebKey key = JsonSerializer.Deserialize<JsonWebKey>(token.ToString());
-                        return key;
-                    }
-                }
-
-                return null;
-            }
-
             using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
             KeyBundle kb = await client.GetKeyAsync(_vaultUri, keyId);
 
@@ -103,20 +64,6 @@ namespace Altinn.App.PlatformServices.Implementation
         /// </inheritdoc>
         public async Task<string> GetSecretAsync(string secretId)
         {
-            if (_useMock)
-            {
-                string path = Path.Combine(Directory.GetCurrentDirectory(), @"keyVault.json");
-                if (File.Exists(path))
-                {
-                    string jsonString = File.ReadAllText(path);
-                    JObject keyVault = JObject.Parse(jsonString);
-                    keyVault.TryGetValue(secretId, out JToken token);
-                    return token != null ? token.ToString() : string.Empty;
-                }
-
-                return string.Empty;
-            }
-
             using KeyVaultClient client = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(_azureServiceTokenProvider.KeyVaultTokenCallback));
             SecretBundle sb = await client.GetSecretAsync(_vaultUri, secretId);
 
