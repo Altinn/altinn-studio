@@ -74,7 +74,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                     Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
                 };
 
-                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "endring-av-navn-v2"));
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -84,6 +84,41 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 string content = response.Content.ReadAsStringAsync().Result;
                 Assert.Contains(responseId, content);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Post a valid CloudEvent instance.
+            /// Expected result:
+            ///   Returns HttpStatus Created and the Id for the instance.
+            /// Success criteria:
+            ///   The response has correct status and correct responseId.
+            /// </summary>
+            [Fact]
+            public async void Post_GivenValidCloudEvent_NotAuthorized()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/app";
+                string responseId = Guid.NewGuid().ToString();
+                CloudEvent cloudEvent = GetCloudEvent();
+
+                Mock<IEventsService> eventsService = new Mock<IEventsService>();
+                eventsService.Setup(s => s.StoreCloudEvent(It.IsAny<CloudEvent>())).ReturnsAsync(responseId);
+
+                HttpClient client = GetTestClient(eventsService.Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+                {
+                    Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
+                };
+
+                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "endring-av-navn-v3"));
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
             }
 
             /// <summary>
@@ -143,7 +178,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 {
                     Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
                 };
-                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "endring-av-navn-v2"));
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -462,7 +497,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                     Id = Guid.NewGuid().ToString(),
                     SpecVersion = "1.0",
                     Type = "instance.created",
-                    Source = new Uri("http://www.brreg.no/brg/something/232243423"),
+                    Source = new Uri("https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/232243423"),
                     Time = DateTime.Now,
                     Subject = "/party/456456",
                     Data = "something/extra",

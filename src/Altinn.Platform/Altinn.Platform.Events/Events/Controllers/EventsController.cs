@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.AccessToken.Configuration;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Events.Authorization;
 using Altinn.Platform.Events.Configuration;
@@ -32,6 +33,7 @@ namespace Altinn.Platform.Events.Controllers
         private readonly ILogger _logger;
         private readonly string _eventsBaseUri;
         private readonly AuthorizationHelper _authorizationHelper;
+        private readonly AccessTokenSettings _accessTokenSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsController"/> class
@@ -41,7 +43,8 @@ namespace Altinn.Platform.Events.Controllers
             IRegisterService registerService,
             IOptions<GeneralSettings> settings,
             ILogger<EventsController> logger,
-            IPDP pdp)
+            IPDP pdp,
+            IOptions<AccessTokenSettings> accessTokenSettings)
         {
             _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
 
@@ -51,6 +54,7 @@ namespace Altinn.Platform.Events.Controllers
             _eventsService = eventsService;
             _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
             _authorizationHelper = new AuthorizationHelper(pdp);
+            _accessTokenSettings = accessTokenSettings.Value;
         }
 
         /// <summary>
@@ -69,6 +73,13 @@ namespace Altinn.Platform.Events.Controllers
             string.IsNullOrEmpty(cloudEvent.Type) || string.IsNullOrEmpty(cloudEvent.Subject))
             {
                 return BadRequest("Missing parameter values: source, subject, type, id or time cannot be null");
+            }
+
+            var item = HttpContext.Items[_accessTokenSettings.AccessTokenHttpContextId];
+
+            if (!cloudEvent.Source.AbsolutePath.StartsWith("/" + item))
+            {
+                return StatusCode(401, item + " is not authorized to create events for " + cloudEvent.Source);
             }
 
             try
