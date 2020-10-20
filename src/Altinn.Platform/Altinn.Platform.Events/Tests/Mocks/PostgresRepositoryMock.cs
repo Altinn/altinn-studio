@@ -15,7 +15,7 @@ namespace Altinn.Platform.Events.Tests.Mocks
     /// </summary>
     public class PostgresRepositoryMock : IPostgresRepository
     {
-        private int _eventsCollection;
+        private readonly int _eventsCollection;
 
         public PostgresRepositoryMock(int eventsCollection = 1)
         {

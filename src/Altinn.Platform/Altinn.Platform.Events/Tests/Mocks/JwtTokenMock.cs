@@ -15,8 +15,6 @@ namespace Altinn.Platform.Events.Tests.Mocks
         /// <summary>
         /// Generates a token with a self signed certificate included in the integration test project.
         /// </summary>
-        /// <param name="principal">The claims principal to include in the token.</param>
-        /// <param name="tokenExipry">How long the token should be valid for.</param>
         /// <returns>A new token.</returns>
         public static string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExipry, string issuer = "UnitTest")
         {
@@ -38,8 +36,6 @@ namespace Altinn.Platform.Events.Tests.Mocks
 
         private static SigningCredentials GetSigningCredentials(string issuer)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.CodeBase).LocalPath);
-
             string certPath = "jwtselfsignedcert.pfx";
             if (!issuer.Equals("UnitTest"))
             {

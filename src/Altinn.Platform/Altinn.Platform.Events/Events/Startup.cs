@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using Altinn.Common.AccessToken;
 using Altinn.Common.AccessToken.Services;
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Health;
 using Altinn.Platform.Events.Repository;
@@ -94,10 +95,13 @@ namespace Altinn.Platform.Events
             services.AddSingleton(Configuration);
             services.Configure<PostgreSQLSettings>(Configuration.GetSection("PostgreSQLSettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             services.AddSingleton<IAuthorizationHandler, AccessTokenHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<ISigningKeysResolver, SigningKeysResolver>();
+            services.AddSingleton<IAccessTokenGenerator, AccessTokenGenerator>();
+            services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
 
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                   .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
@@ -126,6 +130,7 @@ namespace Altinn.Platform.Events
                 options.AddPolicy("PlatformAccess", policy => policy.Requirements.Add(new AccessTokenRequirement()));
             });
 
+            services.AddHttpClient<IRegisterService, RegisterService>();
             services.AddSingleton<IEventsService, EventsService>();
             services.AddSingleton<IPostgresRepository, PostgresRepository>();
 
@@ -156,6 +161,15 @@ namespace Altinn.Platform.Events
         {
             _logger.LogInformation("Startup // Configure");
 
+            if (env.IsDevelopment() || env.IsStaging())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/events/api/v1/error");
+            }
+
             if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
             {
                 NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
@@ -177,15 +191,6 @@ namespace Altinn.Platform.Events
                         AutoCreateDatabase = false,
                         DebugTraceMode = true
                     });
-            }
-
-            if (env.IsDevelopment() || env.IsStaging())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Error");
             }
 
             app.UseSwagger(o => o.RouteTemplate = "events/swagger/{documentName}/swagger.json");
