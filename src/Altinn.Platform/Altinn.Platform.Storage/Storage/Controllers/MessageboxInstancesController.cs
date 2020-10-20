@@ -164,7 +164,8 @@ namespace Altinn.Platform.Storage.Controllers
                 InstanceEventType.Deleted.ToString(),
                 InstanceEventType.Saved.ToString(),
                 InstanceEventType.Submited.ToString(),
-                InstanceEventType.Undeleted.ToString()
+                InstanceEventType.Undeleted.ToString(),
+                InstanceEventType.SubstatusUpdated.ToString()
             };
 
             if (string.IsNullOrEmpty(instanceId))

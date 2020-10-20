@@ -26,7 +26,7 @@ namespace Altinn.Platform.Events.Tests.Mocks.Authentication
                 options.CookieManager = new ChunkingCookieManager();
             }
 
-           if (!string.IsNullOrEmpty(options.MetadataAddress))
+            if (!string.IsNullOrEmpty(options.MetadataAddress))
             {
                 if (!options.MetadataAddress.EndsWith("/", StringComparison.Ordinal))
                 {
@@ -35,10 +35,7 @@ namespace Altinn.Platform.Events.Tests.Mocks.Authentication
             }
 
             options.MetadataAddress += ".well-known/openid-configuration";
-            options.ConfigurationManager = new ConfigurationManagerStub(
-                options.MetadataAddress,
-                new OpenIdConnectConfigurationRetriever(),
-                new HttpDocumentRetriever());
+            options.ConfigurationManager = new ConfigurationManagerStub();
         }
     }
 }

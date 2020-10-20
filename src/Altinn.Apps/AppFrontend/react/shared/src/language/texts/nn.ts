@@ -95,6 +95,7 @@ export function nn() {
       for: 'for',
       label: 'Namn',
       loading: 'Lastar innhald',
+      next: 'Neste',
       no_options: 'Ingen alternativ tilgjengleg',
       optional: 'Valfri',
       required: 'Obligatorisk',

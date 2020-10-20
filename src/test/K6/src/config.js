@@ -135,6 +135,9 @@ export function buildAppApiUrls(instanceOwnerId, instanceId, dataId, type) {
         case "substatus":
             value = "/instances/" + instanceOwnerId + "/" + instanceId + "/substatus";
             break;
+        case "completeprocess":
+            value = "/instances/" + instanceOwnerId + "/" + instanceId + "/process/completeprocess";
+            break;
     };
     return value;
 };

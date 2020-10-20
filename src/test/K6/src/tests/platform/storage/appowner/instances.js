@@ -94,4 +94,12 @@ export default function (data) {
         "Instance sub status is updated:": (r) => JSON.parse(r.body).status.substatus != null
     });
     addErrorCount(success);
+
+    //Test to hard delete an instance by id from storage and validate the response
+    res = instances.deleteInstanceById(runtimeToken, partyId, instanceId, "true");
+    success = check(res, {
+        "Hard Delete Instance by Id status is 200:": (r) => r.status === 200,
+        "Hard deleted date is set to instance:": (r) => JSON.parse(r.body).status.hardDeleted != null
+    });
+    addErrorCount(success);
 };
