@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -8,7 +7,6 @@ using Altinn.Common.PEP.Constants;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Events.Models;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Events.Authorization
 {
@@ -23,7 +21,6 @@ namespace Altinn.Platform.Events.Authorization
         /// Initializes a new instance of the <see cref="AuthorizationHelper"/> class.
         /// </summary>
         /// <param name="pdp">The policy decision point</param>
-        /// <param name="logger">The logger to use by the class.</param>
         public AuthorizationHelper(IPDP pdp)
         {
             _pdp = pdp;
