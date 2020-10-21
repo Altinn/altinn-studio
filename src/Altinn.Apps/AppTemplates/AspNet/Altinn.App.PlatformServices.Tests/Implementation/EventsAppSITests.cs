@@ -9,6 +9,8 @@ using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Implementation;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Interface;
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Http;
@@ -28,6 +30,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         private readonly Mock<IOptions<GeneralSettings>> generalSettingsOptions;
         private readonly Mock<HttpMessageHandler> handlerMock;
         private readonly Mock<IHttpContextAccessor> contextAccessor;
+        private readonly Mock<IAccessTokenGenerator> accessTokenGeneratorMock;
+        private readonly Mock<IAppResources> appResourcesMock;
 
         public EventsAppSITests()
         {
@@ -36,6 +40,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             generalSettingsOptions = new Mock<IOptions<GeneralSettings>>();
             handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             contextAccessor = new Mock<IHttpContextAccessor>();
+            accessTokenGeneratorMock = new Mock<IAccessTokenGenerator>();
+            appResourcesMock = new Mock<IAppResources>();
         }
 
         [Fact]
@@ -68,6 +74,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 platformSettingsOptions.Object,
                 contextAccessor.Object,
                 httpClient,
+                accessTokenGeneratorMock.Object,
+                appResourcesMock.Object,
                 appSettingsOptions.Object,
                 generalSettingsOptions.Object);
 
@@ -120,6 +128,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 platformSettingsOptions.Object,
                 contextAccessor.Object,
                 httpClient,
+                accessTokenGeneratorMock.Object,
+                appResourcesMock.Object,
                 appSettingsOptions.Object,
                 generalSettingsOptions.Object);
 
@@ -167,6 +177,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 platformSettingsOptions.Object,
                 contextAccessor.Object,
                 httpClient,
+                accessTokenGeneratorMock.Object,
+                appResourcesMock.Object,
                 appSettingsOptions.Object,
                 generalSettingsOptions.Object);
 
@@ -210,6 +222,11 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             appSettingsOptions.Setup(s => s.CurrentValue).Returns(appSettings);
 
             contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
+
+            accessTokenGeneratorMock.Setup(at => at.GenerateAccessToken(It.IsAny<string>(), It.IsAny<string>())).Returns("dummy access token");
+
+            Application app = new Application { Id = "ttd/best-app", Org = "ttd" };
+            appResourcesMock.Setup(ar => ar.GetApplication()).Returns(app);
 
             handlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>(
