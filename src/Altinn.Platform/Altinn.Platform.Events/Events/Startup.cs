@@ -96,6 +96,7 @@ namespace Altinn.Platform.Events
             services.Configure<PostgreSQLSettings>(Configuration.GetSection("PostgreSQLSettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
+            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
 
             services.AddSingleton<IAuthorizationHandler, AccessTokenHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
