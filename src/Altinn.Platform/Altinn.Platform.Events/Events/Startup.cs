@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using Altinn.Common.AccessToken;
+using Altinn.Common.AccessToken.Configuration;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Events.Configuration;
