@@ -45,9 +45,6 @@ namespace Altinn.Platform.Events.Controllers
             IPDP pdp,
             IOptions<AccessTokenSettings> accessTokenSettings)
         {
-            _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
-
-            _eventsService = eventsService;
             _registerService = registerService;
             _logger = logger;
             _eventsService = eventsService;

@@ -32,7 +32,7 @@ namespace Altinn.Platform.Events.Authorization
 
             if (user == null)
             {
-                throw new ArgumentNullException("user");
+                throw new ArgumentNullException(nameof(user));
             }
 
             XacmlJsonRequest request = new XacmlJsonRequest
