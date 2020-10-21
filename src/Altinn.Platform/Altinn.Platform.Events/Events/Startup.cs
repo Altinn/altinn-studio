@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using Altinn.Common.AccessToken;
+using Altinn.Common.AccessToken.Configuration;
 using Altinn.Common.AccessToken.Services;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Events.Configuration;
@@ -96,6 +97,7 @@ namespace Altinn.Platform.Events
             services.Configure<PostgreSQLSettings>(Configuration.GetSection("PostgreSQLSettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
+            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
 
             services.AddSingleton<IAuthorizationHandler, AccessTokenHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
