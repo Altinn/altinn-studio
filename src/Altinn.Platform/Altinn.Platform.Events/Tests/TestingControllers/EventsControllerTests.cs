@@ -393,7 +393,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct count. Next header is corrcect.
             /// </summary>
             [Fact]
-            public async void Get_ValidRequest_ForTTD_ReturnsListOfEventsAndNextUrl()
+            public async void Get_ValidRequest_ForTTD_ReturnsNextHeaderWithReplacesAfterParameter()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?after=e31dbb11-2208-4dda-a549-92a0db8c7708&from=2020-01-01&party=1337";
