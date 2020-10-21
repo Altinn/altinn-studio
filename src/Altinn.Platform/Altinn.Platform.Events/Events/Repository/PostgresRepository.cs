@@ -19,7 +19,7 @@ namespace Altinn.Platform.Events.Repository
     [ExcludeFromCodeCoverage]
     public class PostgresRepository : IPostgresRepository
     {
-        private NpgsqlConnection _conn;
+        private readonly NpgsqlConnection _conn;
         private readonly ILogger _logger;
         private readonly string insertEventSql = "call events.insert_event(@id, @source, @subject, @type, @cloudevent)";
         private readonly string getEventSql = "select events.get(@_subject, @_after, @_from, @_to, @_type, @_source)";

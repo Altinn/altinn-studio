@@ -4,7 +4,7 @@ namespace Altinn.Platform.Events.Configuration
     /// Configuration object used to hold general settings for the events application.
     /// </summary>
     public class GeneralSettings
-    {       
+    {
         /// <summary>
         /// Hostname
         /// </summary>

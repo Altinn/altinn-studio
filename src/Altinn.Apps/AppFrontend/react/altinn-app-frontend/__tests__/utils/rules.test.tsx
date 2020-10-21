@@ -2,7 +2,6 @@
 /* eslint-disable no-undef */
 import 'jest';
 import { IFormData } from '../../src/features/form/data/formDataReducer';
-import { ILayoutComponent } from '../../src/features/form/layout';
 import { IDataModelFieldElement } from '../../src/types';
 import { checkIfRuleShouldRun, getRuleModelFields } from '../../src/utils/rules';
 
@@ -15,7 +14,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
   let mockLastUpdatedDataBinding: IDataModelFieldElement;
   let mockRuleHandlerHelper;
   let mockRuleHandlerObject;
-  let mockLayout: ILayoutComponent[];
+  let mockLayout: any;
 
   beforeEach(() => {
     mockRuleHandlerHelper = {
@@ -33,44 +32,46 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
         return obj.a + obj.b + obj.c;
       },
     };
-    mockLayout = [
-      {
-        type: 'Input',
-        dataModelBindings: { simpleBinding: 'mockDataModelBinding1' },
-        disabled: false,
-        id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
-        readOnly: false,
-        required: false,
-        textResourceBindings: { title: 'ServiceName' },
-      },
-      {
-        dataModelBindings: { simpleBinding: 'mockDataModelBinding2' },
-        disabled: false,
-        id: 'd48096d4-7365-4392-b745-b7e4c8c933e6',
-        readOnly: false,
-        required: false,
-        textResourceBindings: { title: 'ServiceName' },
-        type: 'Input',
-      },
-      {
-        dataModelBindings: { simpleBinding: 'mockDataModelBinding3' },
-        disabled: false,
-        id: '1d61265e-66a4-48c6-800a-a77c50a8ca41',
-        readOnly: false,
-        required: false,
-        textResourceBindings: { title: 'ServiceName' },
-        type: 'Input',
-      },
-      {
-        dataModelBindings: { simpleBinding: 'mockDataModelBinding4' },
-        disabled: false,
-        id: '69fa4c53-6c04-490c-aadb-98a47b145a82',
-        readOnly: false,
-        required: false,
-        textResourceBindings: { title: 'ServiceName' },
-        type: 'Input',
-      },
-    ];
+    mockLayout = {
+      FormLayout: [
+        {
+          type: 'Input',
+          dataModelBindings: { simpleBinding: 'mockDataModelBinding1' },
+          disabled: false,
+          id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
+          readOnly: false,
+          required: false,
+          textResourceBindings: { title: 'ServiceName' },
+        },
+        {
+          dataModelBindings: { simpleBinding: 'mockDataModelBinding2' },
+          disabled: false,
+          id: 'd48096d4-7365-4392-b745-b7e4c8c933e6',
+          readOnly: false,
+          required: false,
+          textResourceBindings: { title: 'ServiceName' },
+          type: 'Input',
+        },
+        {
+          dataModelBindings: { simpleBinding: 'mockDataModelBinding3' },
+          disabled: false,
+          id: '1d61265e-66a4-48c6-800a-a77c50a8ca41',
+          readOnly: false,
+          required: false,
+          textResourceBindings: { title: 'ServiceName' },
+          type: 'Input',
+        },
+        {
+          dataModelBindings: { simpleBinding: 'mockDataModelBinding4' },
+          disabled: false,
+          id: '69fa4c53-6c04-490c-aadb-98a47b145a82',
+          readOnly: false,
+          required: false,
+          textResourceBindings: { title: 'ServiceName' },
+          type: 'Input',
+        },
+      ],
+    };
     mockRuleConnectionState = {
       'fc4136a0-73c3-11e9-acee-8f5155710498':
       {
@@ -113,7 +114,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
     };
     mockFormLayoutState = {
       error: null,
-      layout: mockLayout,
+      layouts: mockLayout,
     };
     mockRepeatingContainerId = null; // Should be tests on repeating groups when it's implemented
     mockLastUpdatedDataBinding = {
@@ -145,7 +146,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       mockRuleConnectionState,
       mockFormDataState,
       mockFormDataModelState,
-      mockFormLayoutState,
+      mockFormLayoutState.layouts,
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
@@ -178,7 +179,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       mockRuleConnectionState,
       mockFormDataState,
       mockFormDataModelState,
-      mockFormLayoutState,
+      mockFormLayoutState.layouts,
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
@@ -191,7 +192,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       mockRuleConnectionState,
       mockFormDataState,
       mockFormDataModelState,
-      mockFormLayoutState,
+      mockFormLayoutState.layouts,
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
@@ -200,31 +201,33 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
   it('+++ no dataBindingkey, no rules ', () => {
     mockFormLayoutState = {
       error: null,
-      layout: [
-        {
-          type: 'Input',
-          dataModelBindings: {},
-          disabled: false,
-          id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
-          readOnly: false,
-          required: false,
-          textResourceBindings: { title: 'ServiceName' },
-        },
-        {
-          type: 'Input',
-          dataModelBindings: {},
-          id: 'd48096d4-7365-4392-b745-b7e4c8c933e6',
-          readOnly: false,
-          required: false,
-          textResourceBindings: { title: 'ServiceName' },
-        },
-      ],
+      layouts: {
+        FormLayout: [
+          {
+            type: 'Input',
+            dataModelBindings: {},
+            disabled: false,
+            id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
+            readOnly: false,
+            required: false,
+            textResourceBindings: { title: 'ServiceName' },
+          },
+          {
+            type: 'Input',
+            dataModelBindings: {},
+            id: 'd48096d4-7365-4392-b745-b7e4c8c933e6',
+            readOnly: false,
+            required: false,
+            textResourceBindings: { title: 'ServiceName' },
+          },
+        ],
+      },
     };
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
       mockFormDataModelState,
-      mockFormLayoutState,
+      mockFormLayoutState.layouts,
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
@@ -233,13 +236,15 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
   it('+++ if no components, no rules ', () => {
     mockFormLayoutState = {
       error: null,
-      layout: [],
+      layouts: {
+        FormLayout: [],
+      },
     };
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
       mockFormDataModelState,
-      mockFormLayoutState,
+      mockFormLayoutState.layouts,
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
@@ -257,7 +262,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       },
       mockFormDataState,
       mockFormDataModelState,
-      mockFormLayoutState,
+      mockFormLayoutState.layouts,
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
@@ -279,7 +284,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       },
       mockFormDataState,
       mockFormDataModelState,
-      mockFormLayoutState,
+      mockFormLayoutState.layouts,
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
@@ -288,18 +293,22 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
   it('+++ if container the function should continue ', () => {
     mockFormLayoutState = {
       error: null,
-      layout: [{
-        id: 'mockId',
-        type: 'container',
-        hidden: false,
-        children: {},
-      }],
+      layouts: {
+        FormLayout: [
+          {
+            id: 'mockId',
+            type: 'container',
+            hidden: false,
+            children: {},
+          },
+        ],
+      },
     };
     const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
       mockFormDataModelState,
-      mockFormLayoutState,
+      mockFormLayoutState.layouts,
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );

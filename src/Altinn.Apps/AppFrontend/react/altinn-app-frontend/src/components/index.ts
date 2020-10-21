@@ -11,6 +11,7 @@ import { InputComponent } from './base/InputComponent';
 import { ParagraphComponent } from './base/ParagraphComponent';
 import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
 import { TextAreaComponent } from './base/TextAreaComponent';
+import { NavigationButtons as NavigationButtonsComponent } from './process-step/NavigationButtons';
 
 export interface IComponent {
   name: string;
@@ -34,6 +35,7 @@ export enum ComponentTypes {
   Button,
   Container,
   AddressComponent,
+  NavigationButtons,
 }
 
 export const textComponents: IComponent[] = [
@@ -115,6 +117,11 @@ export const schemaComponents: IComponent[] = [
     name: 'Button',
     Tag: ButtonComponent,
     Type: ComponentTypes.Button,
+  },
+  {
+    name: 'NavigationButtons',
+    Tag: NavigationButtonsComponent,
+    Type: ComponentTypes.NavigationButtons,
   },
 ];
 

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Repository.Interfaces;
 using Altinn.Platform.Events.Services.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Events.Services
 {
@@ -17,16 +16,14 @@ namespace Altinn.Platform.Events.Services
     /// </summary>
     public class EventsService : IEventsService
     {
-        private IPostgresRepository _repository;
-        private readonly ILogger _logger;
+        private readonly IPostgresRepository _repository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsService"/> class.
         /// </summary>
-        public EventsService(IPostgresRepository repository, ILogger<EventsService> logger)
+        public EventsService(IPostgresRepository repository)
         {
             _repository = repository;
-            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -43,7 +40,7 @@ namespace Altinn.Platform.Events.Services
             string subject = partyId == 0 ? string.Empty : $"/party/{partyId}";
             source = source.Any() ? source : null;
             type = type.Any() ? type : null;
-            after = after ?? string.Empty;
+            after ??= string.Empty;
 
             return await _repository.Get(after, from, to, subject, source, type, size);
         }

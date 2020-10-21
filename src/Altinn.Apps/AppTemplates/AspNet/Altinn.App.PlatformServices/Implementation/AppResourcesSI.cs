@@ -240,5 +240,33 @@ namespace Altinn.App.Services.Implementation
                 return null;
             }
         }
+
+        public string GetLayouts()
+        {
+          Dictionary<string, Object> layouts = new Dictionary<string, object>();
+
+          // Get FormLayout.json if it exists and return it (for backwards compatibility)
+          string filedata = string.Empty;
+          string fileName = _settings.AppBasePath + _settings.UiFolder + "FormLayout.json";
+          if (File.Exists(fileName))
+          {
+            filedata = File.ReadAllText(fileName, Encoding.UTF8);
+            layouts.Add("FormLayout", JsonConvert.DeserializeObject<object>(filedata));
+            return JsonConvert.SerializeObject(layouts);
+          }
+
+          string layoutsPath = _settings.AppBasePath + _settings.UiFolder + "layouts/";
+          if (Directory.Exists(layoutsPath))
+          {
+            foreach(string file in Directory.GetFiles(layoutsPath))
+            {
+              string data = File.ReadAllText(file, Encoding.UTF8);
+              string name = file.Replace(layoutsPath, "").Replace(".json", "");
+              layouts.Add(name, JsonConvert.DeserializeObject<object>(data));
+            }
+          }
+
+          return JsonConvert.SerializeObject(layouts);
+        }
     }
 }

@@ -9,9 +9,16 @@ import { renderGenericComponent } from '../../../utils/layout';
 
 export function Form() {
   const [filteredLayout, setFilteredLayout] = React.useState<any[]>([]);
+  const [currentLayout, setCurrentLayout] = React.useState<string>();
 
-  const layout: ILayout = useSelector((state: IRuntimeState) => state.formLayout.layout);
+  const currentView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
+  const layout: ILayout =
+    useSelector((state: IRuntimeState) => state.formLayout.layouts[state.formLayout.uiConfig.currentView]);
   const hiddenComponents: string[] = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.hiddenFields);
+
+  React.useEffect(() => {
+    setCurrentLayout(currentView);
+  }, [currentView]);
 
   React.useEffect(() => {
     let componentsToRender: any[] = layout;
@@ -72,7 +79,7 @@ export function Form() {
 
   return (
     <Grid container={true}>
-      {filteredLayout && filteredLayout.map(renderLayoutComponent)}
+      {currentView === currentLayout && filteredLayout && filteredLayout.map(renderLayoutComponent)}
     </Grid>
   );
 }
