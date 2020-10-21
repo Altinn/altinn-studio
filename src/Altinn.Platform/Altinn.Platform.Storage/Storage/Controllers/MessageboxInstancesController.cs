@@ -179,10 +179,12 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Unable to perform query.");
             }
 
-            List<InstanceEvent> result =
+            List<InstanceEvent> allInstanceEvents =
                 await _instanceEventRepository.ListInstanceEvents(instanceId, eventTypes, null, null);
 
-            return Ok(InstanceHelper.ConvertToSBLInstanceEvent(result));
+            List<InstanceEvent> filteredInstanceEvents = InstanceEventHelper.RemoveDuplicateEvents(allInstanceEvents);
+
+            return Ok(InstanceHelper.ConvertToSBLInstanceEvent(filteredInstanceEvents));
         }
 
         /// <summary>

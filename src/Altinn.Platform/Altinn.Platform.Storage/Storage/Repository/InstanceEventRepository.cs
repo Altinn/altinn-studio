@@ -24,8 +24,7 @@ namespace Altinn.Platform.Storage.Repository
 
         private readonly Uri _collectionUri;
         private readonly string _databaseId;
-
-        private static DocumentClient _client;
+        private readonly DocumentClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventRepository"/> class
