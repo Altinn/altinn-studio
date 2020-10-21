@@ -19,10 +19,11 @@ namespace Altinn.Platform.Storage.Repository
     /// </summary>
     public class InstanceEventRepository : IInstanceEventRepository
     {
+        private const string CollectionId = "instanceEvents";
+        private const string PartitionKey = "/instanceId";
+
         private readonly Uri _collectionUri;
         private readonly string _databaseId;
-        private readonly string _collectionId = "instanceEvents";
-        private readonly string _partitionKey = "/instanceId";
 
         private static DocumentClient _client;
 
@@ -34,12 +35,12 @@ namespace Altinn.Platform.Storage.Repository
         {
             var database = new CosmosDatabaseHandler(cosmosSettings.Value);
 
-            _client = database.CreateDatabaseAndCollection(_collectionId);
+            _client = database.CreateDatabaseAndCollection(CollectionId);
             _collectionUri = database.CollectionUri;
             Uri databaseUri = database.DatabaseUri;
             _databaseId = database.DatabaseName;
 
-            DocumentCollection documentCollection = database.CreateDocumentCollection(_collectionId, _partitionKey);
+            DocumentCollection documentCollection = database.CreateDocumentCollection(CollectionId, PartitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 databaseUri,
@@ -63,7 +64,7 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<InstanceEvent> GetOneEvent(string instanceId, Guid eventGuid)
         {
             string cosmosId = eventGuid.ToString();
-            Uri uri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, cosmosId);
+            Uri uri = UriFactory.CreateDocumentUri(_databaseId, CollectionId, cosmosId);
 
             InstanceEvent theEvent = await _client
             .ReadDocumentAsync<InstanceEvent>(
@@ -84,6 +85,7 @@ namespace Altinn.Platform.Storage.Repository
             {
                 EnableCrossPartitionQuery = false,
                 MaxItemCount = 100,
+                PartitionKey = new PartitionKey(instanceId)
             };
 
             IQueryable<InstanceEvent> query = _client
@@ -129,9 +131,10 @@ namespace Altinn.Platform.Storage.Repository
 
                 foreach (InstanceEvent instanceEvent in instanceEvents)
                 {
-                    Uri docUri = UriFactory.CreateDocumentUri(_databaseId, _collectionId, instanceEvent.Id.ToString());
+                    Uri docUri = UriFactory.CreateDocumentUri(_databaseId, CollectionId, instanceEvent.Id.ToString());
                     await _client.DeleteDocumentAsync(
-                        docUri, new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
+                        docUri,
+                        new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
                     deletedEventsCount++;
                 }
 
