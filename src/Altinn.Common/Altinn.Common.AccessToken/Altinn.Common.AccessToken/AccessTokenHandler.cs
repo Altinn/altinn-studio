@@ -70,9 +70,7 @@ namespace Altinn.Common.AccessToken
             bool isValid = false;
             try
             {
-                _logger.LogWarning("Validating token");
                 isValid = await ValidateAccessToken(tokens[0]);
-                _logger.LogWarning("Token is validated");
             }
             catch (Exception ex)
             {
@@ -166,6 +164,7 @@ namespace Altinn.Common.AccessToken
                 if (claim.Type.Equals(AccessTokenClaimTypes.App))
                 {
                     appClaim = claim.Value;
+                    break;
                 }
             }
 

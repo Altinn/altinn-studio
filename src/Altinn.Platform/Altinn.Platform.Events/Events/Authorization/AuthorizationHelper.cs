@@ -32,9 +32,9 @@ namespace Altinn.Platform.Events.Authorization
         /// <summary>
         /// Authorizes and filters events based on authorization
         /// </summary>
-        /// <param name="consumer">The vent consumer</param>
+        /// <param name="consumer">The event consumer</param>
         /// <param name="cloudEvents">The list of events</param>
-        /// <returns></returns>
+        /// <returns>A list of authorized events</returns>
         public async Task<List<CloudEvent>> AuthorizeEvents(ClaimsPrincipal consumer, List<CloudEvent> cloudEvents)
         {
             XacmlJsonRequestRoot xacmlJsonRequest = CloudEventXacmlMapper.CreateMultiDecisionRequest(consumer, cloudEvents);

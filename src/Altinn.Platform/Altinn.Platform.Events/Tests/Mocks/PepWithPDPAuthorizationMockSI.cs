@@ -21,7 +21,7 @@ using Altinn.Platform.Storage.UnitTest.Constants;
 using Authorization.Platform.Authorization.Models;
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.UnitTest.Mocks
+namespace Altinn.Platform.Events.UnitTest.Mocks
 {
     public class PepWithPDPAuthorizationMockSI : IPDP
     {
@@ -159,38 +159,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
         {
             XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
             XacmlResourceAttributes resourceAttributes = GetResourceAttributeValues(resourceContextAttributes);
-
-            bool resourceAttributeComplete = false;
-
-            if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.TaskValue))
-            {
-                // The resource attributes are complete
-                resourceAttributeComplete = true;
-            }
-            else if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
-                string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
-                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
-                string.IsNullOrEmpty(resourceAttributes.TaskValue))
-            {
-                // The resource attributes are complete
-                resourceAttributeComplete = true;
-            }
-            else if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
-            !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
-            !string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
-            !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
-            !string.IsNullOrEmpty(resourceAttributes.AppResourceValue) &&
-            resourceAttributes.AppResourceValue.Equals("events"))
-            {
-                // The resource attributes are complete
-                resourceAttributeComplete = true;
-            }
-
+           
             await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
         }
 
