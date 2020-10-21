@@ -15,7 +15,6 @@ namespace Altinn.Platform.Events.Authorization
     /// </summary>
     public static class CloudEventXacmlMapper
     {
-        private const string XacmlResourceActionId = "urn:oasis:names:tc:xacml:1.0:action:action-id";
         private const string DefaultIssuer = "Altinn";
         private const string DefaultType = "string";
         private const string SubjectId = "s";
