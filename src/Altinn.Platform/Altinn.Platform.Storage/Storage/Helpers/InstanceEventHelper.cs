@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -36,7 +37,20 @@ namespace Altinn.Platform.Storage.Helpers
                     continue;
                 }
 
-                if (currentInstanceEvent.EventType != nextInstanceEvent.EventType)
+                bool sameEvent = false;
+
+                DateTime currentDateTime = currentInstanceEvent.Created ?? DateTime.UtcNow.AddMilliseconds(-1);
+                DateTime nextDateTime = nextInstanceEvent.Created ?? DateTime.UtcNow;
+
+                if (nextDateTime - currentDateTime > TimeSpan.FromSeconds(1))
+                {
+                    if (currentInstanceEvent.EventType == "Created" && nextInstanceEvent.EventType == "Saved")
+                    {
+                        sameEvent = true;
+                    }
+                }
+
+                if (!sameEvent && currentInstanceEvent.EventType != nextInstanceEvent.EventType)
                 {
                     finalResult.Add(currentInstanceEvent);
                     continue;
