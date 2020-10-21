@@ -88,11 +88,11 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             /// <summary>
             /// Scenario:
-            ///   Post a valid CloudEvent instance.
+            ///   Post a valid CloudEvent instance but with a non matching access token.
             /// Expected result:
-            ///   Returns HttpStatus Created and the Id for the instance.
+            ///   Returns HttpStatus not authorized
             /// Success criteria:
-            ///   The response has correct status and correct responseId.
+            ///   The request is not authorized
             /// </summary>
             [Fact]
             public async void Post_GivenValidCloudEvent_NotAuthorized()

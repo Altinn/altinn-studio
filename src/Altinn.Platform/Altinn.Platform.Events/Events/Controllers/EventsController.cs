@@ -152,7 +152,6 @@ namespace Altinn.Platform.Events.Controllers
 
                 if (events.Count > 0)
                 {
-                    // Authorizes the events.
                     events = await _authorizationHelper.AuthorizeEvents(HttpContext.User, events);
                 }
 
