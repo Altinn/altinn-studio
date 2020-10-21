@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using AltinnCore.Authentication.Constants;
 
-namespace Altinn.App.PlatformServices.Extensions
+namespace Altinn.Platorm.Events.Extensions
 {
     /// <summary>
     /// Extensions for claimsprincial

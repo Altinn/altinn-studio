@@ -46,7 +46,6 @@ namespace Altinn.Platform.Events.Authorization
                 if (DecisionHelper.ValidateDecisionResult(result, consumer))
                 {
                     string eventId = string.Empty;
-                    string actiontype = string.Empty;
 
                     // Loop through all attributes in Category from the response
                     foreach (XacmlJsonCategory category in result.Category)
@@ -64,12 +63,7 @@ namespace Altinn.Platform.Events.Authorization
 
                     // Find the instance that has been validated to add it to the list of authorized instances.
                     CloudEvent authorizedEvent = cloudEvents.First(i => i.Id == eventId);
-
-                    // Checks if the instance has already been authorized
-                    if (!authorizedEventsList.Any(i => i.Id.Equals(authorizedEvent.Id))) 
-                    {
-                        authorizedEventsList.Add(authorizedEvent);
-                    }
+                    authorizedEventsList.Add(authorizedEvent);
                 }
             }
 

@@ -14,7 +14,7 @@ using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Events.Tests.Mocks;
 using Altinn.Platform.Events.Tests.Mocks.Authentication;
 using Altinn.Platform.Events.Tests.Utils;
-using Altinn.Platform.Storage.UnitTest.Mocks;
+using Altinn.Platform.Events.UnitTest.Mocks;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
