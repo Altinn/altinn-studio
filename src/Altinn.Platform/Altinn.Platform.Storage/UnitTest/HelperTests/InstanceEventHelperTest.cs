@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Xunit;
@@ -60,7 +61,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
         }
 
         [Fact]
-        public void RemoveDuplicateEvents_GivenListWithTwoUniqueEventsOnEventType_ReturnsListWithSameTwoEvents()
+        public void RemoveDuplicateEvents_GivenListWithTwoUniqueEventsOnEventType_ReturnsListWithoutCreatedEvent()
         {
             // Arrange
             List<InstanceEvent> instanceEvents = new List<InstanceEvent>
@@ -76,7 +77,6 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             Assert.NotNull(actual);
             Assert.Collection(
                 actual,
-                item => Assert.Equal("Created", item.EventType),
                 item => Assert.Equal("Saved", item.EventType));
         }
 
@@ -95,11 +95,13 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
 
             // Assert
             Assert.NotNull(actual);
-            Assert.Single(actual);
+            Assert.Collection(
+                actual,
+                item => Assert.Equal("33", item.DataId));
         }
 
         [Fact]
-        public void RemoveDuplicateEvents_GivenListWithTwoConsecutiveSaveEventsFromSameUserOnDifferentData_ReturnsListWithTwoEvent()
+        public void RemoveDuplicateEvents_GivenListWithTwoConsecutiveSaveEventsFromSameUserOnDifferentData_ReturnsWithSingleEvent()
         {
             // Arrange
             List<InstanceEvent> instanceEvents = new List<InstanceEvent>
@@ -115,7 +117,6 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             Assert.NotNull(actual);
             Assert.Collection(
                 actual,
-                item => Assert.Equal("1", item.DataId),
                 item => Assert.Equal("2", item.DataId));
         }
 
@@ -201,94 +202,94 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
                 new InstanceEvent // Instance created by user
                 {
                     Created = now.AddDays(-6),
-                    EventType = "Created",
+                    EventType = InstanceEventType.Created.ToString(),
                     User = new PlatformUser { UserId = 12 }
                 },
-                new InstanceEvent // Data element created by user
+                new InstanceEvent // Data element created by user, removed
                 {
                     Created = now.AddDays(-6).AddMilliseconds(1),
-                    EventType = "Created",
+                    EventType = InstanceEventType.Created.ToString(),
                     User = new PlatformUser { UserId = 12 },
                     DataId = "33"
                 },
-                new InstanceEvent // Data element saved by user
+                new InstanceEvent // Data element saved by user, duplicate of next, data id ignored
                 {
                     Created = now.AddDays(-6).AddMilliseconds(2),
-                    EventType = "Saved",
+                    EventType = InstanceEventType.Saved.ToString(),
                     User = new PlatformUser { UserId = 12 },
                     DataId = "33"
                 },
-                new InstanceEvent // Instance saved by user
+                new InstanceEvent // Instance saved by user, duplicate of next, data id ignored
                 {
                     Created = now.AddDays(-6).AddMilliseconds(3),
-                    EventType = "Saved",
+                    EventType = InstanceEventType.Saved.ToString(),
                     User = new PlatformUser { UserId = 12 }
                 },
-                new InstanceEvent // Data element saved by user, duplicate of next
+                new InstanceEvent // Data element saved by user, duplicate of next, data id ignored
                 {
                     Created = now.AddDays(-5),
-                    EventType = "Saved",
+                    EventType = InstanceEventType.Saved.ToString(),
                     User = new PlatformUser { UserId = 12 },
                     DataId = "33"
                 },
-                new InstanceEvent // Data element saved by user
+                new InstanceEvent // Data element saved by user, duplicate of next, data id ignored
                 {
                     Created = now.AddDays(-5).AddMinutes(3),
-                    EventType = "Saved",
+                    EventType = InstanceEventType.Saved.ToString(),
                     User = new PlatformUser { UserId = 12 },
                     DataId = "33"
                 },
-                new InstanceEvent // Instance saved by user
+                new InstanceEvent // Instance saved by user, duplicate of next (created removed), data id ignored
                 {
                     Created = now.AddDays(-4),
-                    EventType = "Saved",
+                    EventType = InstanceEventType.Saved.ToString(),
                     User = new PlatformUser { UserId = 12 }
                 },
-                new InstanceEvent // Data element created by user
+                new InstanceEvent // Data element created by user, removed
                 {
                     Created = now.AddDays(-4).AddMilliseconds(1),
-                    EventType = "Created",
+                    EventType = InstanceEventType.Created.ToString(),
                     User = new PlatformUser { UserId = 12 },
                     DataId = "35"
                 },
                 new InstanceEvent // Data element saved by user, duplicate of next
                 {
                     Created = now.AddDays(-4).AddMilliseconds(1),
-                    EventType = "Saved",
+                    EventType = InstanceEventType.Saved.ToString(),
                     User = new PlatformUser { UserId = 12 },
                     DataId = "35"
                 },
                 new InstanceEvent // Data element saved by user
                 {
                     Created = now.AddDays(-4).AddMinutes(12),
-                    EventType = "Saved",
+                    EventType = InstanceEventType.Saved.ToString(),
                     User = new PlatformUser { UserId = 12 },
                     DataId = "35"
                 },
-                new InstanceEvent // Data element created by org
+                new InstanceEvent // Data element created by org, removed
                 {
                     Created = now.AddDays(-1),
-                    EventType = "Created",
+                    EventType = InstanceEventType.Created.ToString(),
                     User = new PlatformUser { OrgId = "ttd" },
                     DataId = "37"
                 },
                 new InstanceEvent // Data element saved by org
                 {
                     Created = now.AddDays(-1).AddMilliseconds(2),
-                    EventType = "Saved",
+                    EventType = InstanceEventType.Saved.ToString(),
                     User = new PlatformUser { OrgId = "ttd" },
                     DataId = "37"
                 },
                 new InstanceEvent // Instance saved by user
                 {
                     Created = now.AddMilliseconds(-1),
-                    EventType = "Saved",
+                    EventType = InstanceEventType.Saved.ToString(),
                     User = new PlatformUser { UserId = 12 }
                 },
                 new InstanceEvent // User submitted 
                 {
                     Created = now,
-                    EventType = "Submited", // TYPO!? oh noes... (this was copied from at22)
+                    EventType = InstanceEventType.Submited.ToString(),
                     User = new PlatformUser { UserId = 12 }
                 }
             };
@@ -298,7 +299,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
 
             // Assert
             Assert.NotNull(actual);
-            Assert.Equal(12, actual.Count);
+            Assert.Equal(5, actual.Count);
         }
     }
 }

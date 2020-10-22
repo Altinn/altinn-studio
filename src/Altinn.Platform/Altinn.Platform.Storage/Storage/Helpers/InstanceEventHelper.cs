@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Helpers
@@ -20,13 +21,21 @@ namespace Altinn.Platform.Storage.Helpers
         /// <returns>A sorted and filtered list of instance events.</returns>
         public static List<InstanceEvent> RemoveDuplicateEvents(List<InstanceEvent> originalList)
         {
-            List<InstanceEvent> orderedEnumerable = originalList.OrderBy(ie => ie.Created).ToList();
+            List<InstanceEvent> orderedEnumerable =
+                originalList
+                    .Where(ie =>
+                        string.IsNullOrEmpty(ie.DataId) ||
+                        ie.EventType.Equals(
+                            InstanceEventType.Saved.ToString(),
+                            StringComparison.InvariantCultureIgnoreCase))
+                    .OrderBy(ie => ie.Created).ToList();
 
             List<InstanceEvent> finalResult = new List<InstanceEvent>();
 
             for (int i = 0; i < orderedEnumerable.Count; i++)
             {
                 InstanceEvent currentInstanceEvent = orderedEnumerable[i];
+
                 InstanceEvent nextInstanceEvent =
                     i + 1 < orderedEnumerable.Count ? orderedEnumerable[i + 1] : null;
 
@@ -37,20 +46,7 @@ namespace Altinn.Platform.Storage.Helpers
                     continue;
                 }
 
-                bool sameEvent = false;
-
-                DateTime currentDateTime = currentInstanceEvent.Created ?? DateTime.UtcNow.AddMilliseconds(-1);
-                DateTime nextDateTime = nextInstanceEvent.Created ?? DateTime.UtcNow;
-
-                if (nextDateTime - currentDateTime > TimeSpan.FromSeconds(1))
-                {
-                    if (currentInstanceEvent.EventType == "Created" && nextInstanceEvent.EventType == "Saved")
-                    {
-                        sameEvent = true;
-                    }
-                }
-
-                if (!sameEvent && currentInstanceEvent.EventType != nextInstanceEvent.EventType)
+                if (currentInstanceEvent.EventType != nextInstanceEvent.EventType)
                 {
                     finalResult.Add(currentInstanceEvent);
                     continue;
@@ -68,14 +64,6 @@ namespace Altinn.Platform.Storage.Helpers
                 {
                     // Events caused by different actors should be kept as separate events.
                     finalResult.Add(currentInstanceEvent);
-                    continue;
-                }
-
-                if (currentInstanceEvent.DataId != nextInstanceEvent.DataId)
-                {
-                    // Events related to different data elements or instance should be separate events.
-                    finalResult.Add(currentInstanceEvent);
-                    continue;
                 }
             }
 
