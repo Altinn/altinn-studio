@@ -62,7 +62,7 @@ namespace Altinn.App.Services.Implementation
 
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(_appResource.GetApplication().Org, _appResource.GetApplication().Id));
+            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(_appResource.GetApplication().Org, _appResource.GetApplication().Id.Split("/")[1]));
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 person = await response.Content.ReadAsAsync<Person>();

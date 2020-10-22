@@ -91,7 +91,7 @@ namespace Altinn.App.Services.Implementation
 
             string endpointUrl = $"parties/{partyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
-            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id));
+            HttpResponseMessage response = await _client.GetAsync(token, endpointUrl, _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id.Split("/")[1]));
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 party = await response.Content.ReadAsAsync<Party>();
@@ -123,7 +123,7 @@ namespace Altinn.App.Services.Implementation
             };
 
             request.Headers.Add("Authorization", "Bearer " + token);
-            request.Headers.Add("PlatformAccessToken", _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id));
+            request.Headers.Add("PlatformAccessToken", _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id.Split("/")[1]));
 
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.OK)
