@@ -7,12 +7,14 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Altinn.Common.AccessToken.Services;
+using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Events.Controllers;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Events.Tests.Mocks;
 using Altinn.Platform.Events.Tests.Mocks.Authentication;
 using Altinn.Platform.Events.Tests.Utils;
+using Altinn.Platform.Events.UnitTest.Mocks;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -72,7 +74,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                     Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
                 };
 
-                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "endring-av-navn-v2"));
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -82,6 +84,41 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 string content = response.Content.ReadAsStringAsync().Result;
                 Assert.Contains(responseId, content);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Post a valid CloudEvent instance but with a non matching access token.
+            /// Expected result:
+            ///   Returns HttpStatus not authorized
+            /// Success criteria:
+            ///   The request is not authorized
+            /// </summary>
+            [Fact]
+            public async void Post_GivenValidCloudEvent_NotAuthorized()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/app";
+                string responseId = Guid.NewGuid().ToString();
+                CloudEvent cloudEvent = GetCloudEvent();
+
+                Mock<IEventsService> eventsService = new Mock<IEventsService>();
+                eventsService.Setup(s => s.StoreCloudEvent(It.IsAny<CloudEvent>())).ReturnsAsync(responseId);
+
+                HttpClient client = GetTestClient(eventsService.Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri)
+                {
+                    Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
+                };
+
+                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "endring-av-navn-v3"));
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
             }
 
             /// <summary>
@@ -141,7 +178,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 {
                     Content = new StringContent(cloudEvent.Serialize(), Encoding.UTF8, "application/json")
                 };
-                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
+                httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "endring-av-navn-v2"));
 
                 // Act
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -220,7 +257,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?size=5";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
@@ -249,7 +286,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
                 string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?from=2020-01-01&size=5";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
@@ -278,7 +315,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string expected = "\"Size must be a number larger that 0.\"";
 
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
@@ -332,7 +369,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 int expectedCount = 2;
 
                 HttpClient client = GetTestClient(new EventsServiceMock(1));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
@@ -349,14 +386,14 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             /// <summary>
             /// Scenario:
-            ///   Get events with  a an after parameter.
+            ///   TTD org Get events with  a valid set of query parameters
             /// Expected result:
-            ///   Next header contains new guid in after parameter
+            ///   Returns a list of events and a next header
             /// Success criteria:
-            ///   Next header is corrcect.
+            ///   The response has correct count. Next header is corrcect.
             /// </summary>
             [Fact]
-            public async void Get_AfterIncludedInQuery_ReturnsNextHeaderWithReplacesAfterParameter()
+            public async void Get_ValidRequest_ForTTD_ReturnsNextHeaderWithReplacesAfterParameter()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?after=e31dbb11-2208-4dda-a549-92a0db8c7708&from=2020-01-01&party=1337";
@@ -364,7 +401,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 int expectedCount = 1;
 
                 HttpClient client = GetTestClient(new EventsServiceMock(1));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
@@ -377,37 +414,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 Assert.Equal(expectedCount, actual.Count);
                 Assert.Equal(expectedNext, response.Headers.GetValues("next").First());
-            }
-
-            /// <summary>
-            /// Scenario:
-            ///   Get events identifying person in header.
-            /// Expected result:
-            ///   Successfully extracts person number from header for lookup.
-            /// Success criteria:
-            ///   Correct number of events are returned.
-            /// </summary>
-            [Fact]
-            public async void Get_PersonIncludedInHeader_ReturnsCorrectNumberOfEvents()
-            {
-                // Arrange
-                string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?from=2020-01-01";
-                int expectedCount = 2;
-
-                HttpClient client = GetTestClient(new EventsServiceMock(1));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
-
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-                httpRequestMessage.Headers.Add("Person", "01038712345");
-
-                // Act
-                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-                string responseString = await response.Content.ReadAsStringAsync();
-                List<CloudEvent> actual = JsonSerializer.Deserialize<List<CloudEvent>>(responseString);
-
-                // Assert
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.Equal(expectedCount, actual.Count);
             }
 
             /// <summary>
@@ -427,7 +433,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 eventsService.Setup(es => es.Get(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<List<string>>(), It.IsAny<List<string>>(), It.IsAny<int>())).Throws(new Exception());
                 HttpClient client = GetTestClient(eventsService.Object);
 
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
                 // Act
@@ -452,7 +458,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?after=e31dbb11-2208-4dda-a549-92a0db8c7708";
 
                 HttpClient client = GetTestClient(new EventsServiceMock(1));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
                 httpRequestMessage.Headers.Add("Person", "16069412345");
@@ -477,6 +483,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                         // Set up mock authentication so that not well known endpoint is used
                         services.AddSingleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptionsStub>();
                         services.AddSingleton<ISigningKeysResolver, SigningKeyResolverMock>();
+                        services.AddSingleton<IPDP, PepWithPDPAuthorizationMockSI>();
                     });
                 }).CreateClient();
 
@@ -490,7 +497,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                     Id = Guid.NewGuid().ToString(),
                     SpecVersion = "1.0",
                     Type = "instance.created",
-                    Source = new Uri("http://www.brreg.no/brg/something/232243423"),
+                    Source = new Uri("https://ttd.apps.altinn.no/ttd/endring-av-navn-v2/232243423"),
                     Time = DateTime.Now,
                     Subject = "/party/456456",
                     Data = "something/extra",
