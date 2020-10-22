@@ -367,6 +367,180 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
             }
 
+            /// <summary>
+            /// Scenario:
+            ///   Get events without defined after or from in query.
+            /// Expected result:
+            ///   Returns HttpStatus BadRequest.
+            /// Success criteria:
+            ///   The response has correct status.
+            /// </summary>
+            [Fact]
+            public async void GetForParties_MissingRequiredQueryParam_ReturnsBadRequest()
+            {
+                // Arrange   
+                string expected = "\"From or after must be defined.\"";
+
+                string requestUri = $"{BasePath}/app/party/12345?size=5";
+                HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string actual = await response.Content.ReadAsStringAsync();
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                Assert.Equal(expected, actual);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Get events with negative size.
+            /// Expected result:
+            ///   Returns HttpStatus BadRequest.
+            /// Success criteria:
+            ///   The response has correct status.
+            /// </summary>
+            [Fact]
+            public async void GetForParties_SizeIsLessThanZero_ReturnsBadRequest()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/app/party/12345?from=2020-01-01&size=-5";
+                string expected = "\"Size must be a number larger that 0.\"";
+
+                HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string actual = await response.Content.ReadAsStringAsync();
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                Assert.Equal(expected, actual);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Get events without subject (pary, unit or person).
+            /// Expected result:
+            ///   Returns HttpStatus BadRequest.
+            /// Success criteria:
+            ///   The response has correct status.
+            /// </summary>
+            [Fact]
+            public async void GetForParties_MissingSubject_ReturnsBadRequest()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/app/party/12345?from=2020-01-01&size=5";
+                string expected = "\"Subject must be specified using either query params party or unit or header value person.\"";
+
+                HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string actual = await response.Content.ReadAsStringAsync();
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                Assert.Equal(expected, actual);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Get events without org when app is defined.
+            /// Expected result:
+            ///   Returns HttpStatus BadRequest.
+            /// Success criteria:
+            ///   The response has correct status.
+            /// </summary>
+            [Fact]
+            public async void GetForParties_MissingOrgWhenAppIsDefined_ReturnsBadRequest()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/app/party/12345?from=2020-01-01&party=12345&app=apps-test&size=5";
+                string expected = "\"Query param org must be defined when query parameter app is defined.\"";
+
+                HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string actual = await response.Content.ReadAsStringAsync();
+
+                // Assert
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+                Assert.Equal(expected, actual);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Post a cloud event, without bearer token.
+            /// Expected result:
+            ///   Returns HttpStatus Unauthorized.
+            /// Success criteria:
+            ///   The response has correct status.
+            /// </summary>
+            [Fact]
+            public async void GetForParties_MissingBearerToken_ReturnsForbidden()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/app/party/12345?from=2020-01-01&party=12345&app=apps-test&size=5";
+                HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Get events with  a valid set of query parameters
+            /// Expected result:
+            ///   Returns a list of events and a next header
+            /// Success criteria:
+            ///   The response has correct count. Next header is corrcect.
+            /// </summary>
+            [Fact]
+            public async void GetForParties_ValidRequest_ReturnsListOfEventsAndNextUrl()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/app/party/12345?from=2020-01-01&party=12345&size=5";
+                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/party/12345?after=e31dbb11-2208-4dda-a549-92a0db8c0008&from=2020-01-01&party=12345&size=5";
+
+                int expectedCount = 4;
+
+                HttpClient client = GetTestClient(new EventsServiceMock(2));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string responseString = await response.Content.ReadAsStringAsync();
+                List<CloudEvent> actual = JsonSerializer.Deserialize<List<CloudEvent>>(responseString);
+
+                string test = response.Headers.GetValues("next").First();
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedCount, actual.Count);
+                Assert.Equal(expectedNext, response.Headers.GetValues("next").First());
+            }
+
             private HttpClient GetTestClient(IEventsService eventsService)
             {
                 Program.ConfigureSetupLogging();

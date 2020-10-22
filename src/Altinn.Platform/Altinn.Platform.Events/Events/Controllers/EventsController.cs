@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Events.Configuration;
+using Altinn.Platform.Events.Exceptions;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -12,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 namespace Altinn.Platform.Events.Controllers
 {
@@ -23,20 +26,24 @@ namespace Altinn.Platform.Events.Controllers
     public class EventsController : Controller
     {
         private readonly IEventsService _eventsService;
+        private readonly IRegisterService _registerService;
         private readonly ILogger _logger;
         private readonly string _eventsBaseUri;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsController"/> class
         /// </summary>
-        /// <param name="eventsService">postgres service</param>
-        /// <param name="settings">the general settings</param>
-        /// <param name="logger">dependency injection of logger</param>
-        public EventsController(IEventsService eventsService, IOptions<GeneralSettings> settings, ILogger<EventsController> logger)
+        public EventsController(
+            IEventsService eventsService,
+            IRegisterService registerService,
+            IOptions<GeneralSettings> settings,
+            ILogger<EventsController> logger)
         {
-            _logger = logger;
-            _eventsService = eventsService;
             _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
+
+            _eventsService = eventsService;
+            _registerService = registerService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -89,13 +96,14 @@ namespace Altinn.Platform.Events.Controllers
         {
             if (string.IsNullOrEmpty(after) && from == null)
             {
+                _logger.LogInformation(DateTime.Now.ToString());
                 return BadRequest("From or after must be defined.");
             }
 
             if (size < 1)
             {
                 return BadRequest("Size must be a number larger that 0.");
-            } 
+            }
 
             try
             {
@@ -123,6 +131,112 @@ namespace Altinn.Platform.Events.Controllers
             catch (Exception e)
             {
                 return StatusCode(500, $"Unable to get cloud events from database. {e}");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a set of events based on query parameters.
+        /// </summary>
+        [HttpGet("party/{partyId}")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Produces("application/json")]
+        public async Task<ActionResult<List<CloudEvent>>> GetForParties(
+            [FromHeader] string person,
+            [FromQuery] string after,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to,
+            [FromQuery] int party,
+            [FromQuery] string unit,
+            [FromQuery] string org,
+            [FromQuery] string app,
+            [FromQuery] List<string> type,
+            [FromQuery] int size = 50)
+        {
+            _logger.LogInformation("test");
+            if (string.IsNullOrEmpty(after) && from == null)
+            {
+                return BadRequest("From or after must be defined.");
+            }
+
+            if (size < 1)
+            {
+                return BadRequest("Size must be a number larger that 0.");
+            }
+
+            /* Request.Headers.TryGetValue("person", out StringValues headerValues);
+            string person = headerValues.FirstOrDefault(); */
+
+            if (string.IsNullOrEmpty(person) && string.IsNullOrEmpty(unit) && party <= 0)
+            {
+                return BadRequest("Subject must be specified using either query params party or unit or header value person.");
+            }
+
+            List<string> source = new List<string>();
+            if (!string.IsNullOrEmpty(app))
+            {
+                if (string.IsNullOrEmpty(org))
+                {
+                    return BadRequest("Query param org must be defined when query parameter app is defined.");
+                }
+                else
+                {
+                    source.Add($"%/{org}/{app}%");
+                }
+            }
+
+            if (party <= 0)
+            {
+                try
+                {
+                    _logger.LogInformation("Person: " + person);
+                    party = await _registerService.PartyLookup(unit, person);
+                }
+                catch (PlatformHttpException e)
+                {
+                    return HandlePlatformHttpException(e);
+                }
+            }
+
+            try
+            {
+                List<CloudEvent> events = await _eventsService.Get(after, from, to, party, source, type, size);
+
+                if (events.Count > 0)
+                {
+                    StringBuilder nextUriBuilder = new StringBuilder($"{_eventsBaseUri}{Request.Path}?after={events.Last().Id}");
+
+                    List<KeyValuePair<string, string>> queryCollection = Request.Query
+                        .SelectMany(q => q.Value, (col, value) => new KeyValuePair<string, string>(col.Key, value))
+                        .Where(q => q.Key != "after")
+                        .ToList();
+
+                    foreach (KeyValuePair<string, string> queryParam in queryCollection)
+                    {
+                        nextUriBuilder.Append($"&{queryParam.Key}={queryParam.Value}");
+                    }
+
+                    Response.Headers.Add("next", nextUriBuilder.ToString());
+                }
+
+                return events;
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Unable to get cloud events from database. {e}");
+            }
+        }
+
+        private ActionResult HandlePlatformHttpException(PlatformHttpException e)
+        {
+            if (e.Response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return StatusCode(500, e);
             }
         }
     }
