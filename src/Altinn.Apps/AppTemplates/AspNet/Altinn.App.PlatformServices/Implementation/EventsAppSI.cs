@@ -84,7 +84,7 @@ namespace Altinn.App.PlatformServices.Implementation
                 AlternativeSubject = alternativeSubject,
                 Time = DateTime.UtcNow,
                 SpecVersion = "1.0",
-                Source = new Uri($"https://{_generalSettings.HostName}/{instance.AppId}/instances/{instance.Id}")
+                Source = new Uri($"https://{instance.Org}.apps.{_generalSettings.HostName}/{instance.AppId}/instances/{instance.Id}")
             };
 
             string accessToken = _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id);

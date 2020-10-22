@@ -24,8 +24,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-using Moq;
-
 namespace App.IntegrationTestsRef.Utils
 {
     public static class SetupUtil
