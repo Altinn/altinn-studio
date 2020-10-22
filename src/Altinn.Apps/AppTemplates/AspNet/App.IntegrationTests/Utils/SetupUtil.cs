@@ -7,11 +7,11 @@ using System.Linq;
 using Altinn.App;
 using Altinn.App.IntegrationTests;
 using Altinn.App.IntegrationTests.Mocks.Authentication;
-using Altinn.Platform.Authentication.Maskinporten;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
-using Altinn.App.PlatformServices.Interface;
+using Altinn.Platform.Authentication.Maskinporten;
 
 using AltinnCore.Authentication.JwtCookie;
 using App.IntegrationTests.Mocks.Services;
