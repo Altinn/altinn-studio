@@ -178,28 +178,25 @@ namespace Altinn.Platform.Events
                 app.UseExceptionHandler("/events/api/v1/error");
             }
 
-            if (Configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
-            {
-                NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
+            NpgsqlLogManager.Provider = new ConsoleLoggingProvider(NpgsqlLogLevel.Trace, true, true);
 
-                ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
+            ConsoleTraceService traceService = new ConsoleTraceService { IsDebugEnabled = true };
 
-                string connectionString = string.Format(
-                    Configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
-                    Configuration.GetValue<string>("PostgreSQLSettings:EventsDbAdminPwd"));
+            string connectionString = string.Format(
+                Configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
+                Configuration.GetValue<string>("PostgreSQLSettings:EventsDbAdminPwd"));
 
-                app.UseYuniql(
-                    new PostgreSqlDataService(traceService),
-                    new PostgreSqlBulkImportService(traceService),
-                    traceService,
-                    new Yuniql.AspNetCore.Configuration
-                    {
-                        WorkspacePath = Path.Combine(Environment.CurrentDirectory, Configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
-                        ConnectionString = connectionString,
-                        AutoCreateDatabase = false,
-                        DebugTraceMode = true
-                    });
-            }
+            app.UseYuniql(
+                new PostgreSqlDataService(traceService),
+                new PostgreSqlBulkImportService(traceService),
+                traceService,
+                new Yuniql.AspNetCore.Configuration
+                {
+                    WorkspacePath = Path.Combine(Environment.CurrentDirectory, Configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
+                    ConnectionString = connectionString,
+                    AutoCreateDatabase = false,
+                    DebugTraceMode = true
+                });
 
             app.UseSwagger(o => o.RouteTemplate = "events/swagger/{documentName}/swagger.json");
 
