@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -17,26 +19,27 @@ namespace Altinn.Platform.Storage.Repository
     /// </summary>
     public class InstanceEventRepository : IInstanceEventRepository
     {
+        private const string CollectionId = "instanceEvents";
+        private const string PartitionKey = "/instanceId";
+
         private readonly Uri _collectionUri;
-        private readonly string databaseId;
-        private readonly string _collectionId = "instanceEvents";
-        private readonly string partitionKey = "/instanceId";
-        private static DocumentClient _client;
+        private readonly string _databaseId;
+        private readonly DocumentClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventRepository"/> class
         /// </summary>
-        /// <param name="cosmosettings">the configuration settings for cosmos database</param>
-        public InstanceEventRepository(IOptions<AzureCosmosSettings> cosmosettings)
+        /// <param name="cosmosSettings">The configuration settings for cosmos database</param>
+        public InstanceEventRepository(IOptions<AzureCosmosSettings> cosmosSettings)
         {
-            var database = new CosmosDatabaseHandler(cosmosettings.Value);
+            var database = new CosmosDatabaseHandler(cosmosSettings.Value);
 
-            _client = database.CreateDatabaseAndCollection(_collectionId);
+            _client = database.CreateDatabaseAndCollection(CollectionId);
             _collectionUri = database.CollectionUri;
             Uri databaseUri = database.DatabaseUri;
-            databaseId = database.DatabaseName;
+            _databaseId = database.DatabaseName;
 
-            DocumentCollection documentCollection = database.CreateDocumentCollection(_collectionId, partitionKey);
+            DocumentCollection documentCollection = database.CreateDocumentCollection(CollectionId, PartitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 databaseUri,
@@ -48,74 +51,66 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<InstanceEvent> InsertInstanceEvent(InstanceEvent item)
         {
-            try
-            {
-                ResourceResponse<Document> response = await _client.CreateDocumentAsync(_collectionUri, item);
-                Document document = response.Resource;
+            ResourceResponse<Document> response = await _client.CreateDocumentAsync(_collectionUri, item);
+            Document document = response.Resource;
 
-                InstanceEvent instanceEvent = JsonConvert.DeserializeObject<InstanceEvent>(document.ToString());
+            InstanceEvent instanceEvent = JsonConvert.DeserializeObject<InstanceEvent>(document.ToString());
 
-                return instanceEvent;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return instanceEvent;
         }
 
         /// <inheritdoc/>
         public async Task<InstanceEvent> GetOneEvent(string instanceId, Guid eventGuid)
         {
             string cosmosId = eventGuid.ToString();
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, _collectionId, cosmosId);
+            Uri uri = UriFactory.CreateDocumentUri(_databaseId, CollectionId, cosmosId);
 
             InstanceEvent theEvent = await _client
             .ReadDocumentAsync<InstanceEvent>(
                 uri,
                 new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
 
-            return theEvent;           
+            return theEvent;
         }
 
         /// <inheritdoc/>
-        public async Task<List<InstanceEvent>> ListInstanceEvents(string instanceId, string[] eventTypes, DateTime? fromDateTime, DateTime? toDateTime)
+        public async Task<List<InstanceEvent>> ListInstanceEvents(
+            string instanceId,
+            string[] eventTypes,
+            DateTime? fromDateTime,
+            DateTime? toDateTime)
         {
-            try
+            FeedOptions feedOptions = new FeedOptions
             {
-                FeedOptions feedOptions = new FeedOptions
-                {
-                    EnableCrossPartitionQuery = false, // should not be required or noes it not matter?
-                    MaxItemCount = 100,
-                };
+                EnableCrossPartitionQuery = false,
+                MaxItemCount = 100,
+                PartitionKey = new PartitionKey(instanceId)
+            };
 
-                IQueryable<InstanceEvent> query = _client
-                    .CreateDocumentQuery<InstanceEvent>(_collectionUri, feedOptions)
-                    .Where(i => i.InstanceId == instanceId);             
+            IQueryable<InstanceEvent> query = _client
+                .CreateDocumentQuery<InstanceEvent>(_collectionUri, feedOptions)
+                .Where(i => i.InstanceId == instanceId);
 
-                if (eventTypes != null && eventTypes.Count() > 0)
-                {
-                    query = query.Where(i => eventTypes.Contains(i.EventType));
-                }
-
-                if (fromDateTime.HasValue)
-                {
-                    query = query.Where(i => i.Created > fromDateTime);
-                }
-
-                if (toDateTime.HasValue)
-                {
-                    query = query.Where(i => i.Created < toDateTime);
-                }
-
-                FeedResponse<InstanceEvent> result = await query.AsDocumentQuery().ExecuteNextAsync<InstanceEvent>();
-
-                List<InstanceEvent> instanceEvents = result.ToList<InstanceEvent>();
-                return instanceEvents;
-            }
-            catch (Exception ex)
+            if (eventTypes != null && eventTypes.Any())
             {
-                throw ex;
+                query = query.Where(i => eventTypes.Contains(i.EventType));
             }
+
+            if (fromDateTime.HasValue)
+            {
+                query = query.Where(i => i.Created > fromDateTime);
+            }
+
+            if (toDateTime.HasValue)
+            {
+                query = query.Where(i => i.Created < toDateTime);
+            }
+
+            FeedResponse<InstanceEvent> result = await query.AsDocumentQuery().ExecuteNextAsync<InstanceEvent>();
+
+            List<InstanceEvent> instanceEvents = result.ToList();
+
+            return instanceEvents;
         }
 
         /// <inheritdoc/>
@@ -130,12 +125,15 @@ namespace Altinn.Platform.Storage.Repository
                    .AsDocumentQuery();
 
                 FeedResponse<InstanceEvent> result = await query.ExecuteNextAsync<InstanceEvent>();
-                List<InstanceEvent> instanceEvents = result.ToList<InstanceEvent>();
+
+                List<InstanceEvent> instanceEvents = result.ToList();
 
                 foreach (InstanceEvent instanceEvent in instanceEvents)
                 {
-                    Uri docUri = UriFactory.CreateDocumentUri(databaseId, _collectionId, instanceEvent.Id.ToString());
-                    await _client.DeleteDocumentAsync(docUri, new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
+                    Uri docUri = UriFactory.CreateDocumentUri(_databaseId, CollectionId, instanceEvent.Id.ToString());
+                    await _client.DeleteDocumentAsync(
+                        docUri,
+                        new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
                     deletedEventsCount++;
                 }
 
