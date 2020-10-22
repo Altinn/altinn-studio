@@ -24,6 +24,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 using Moq;
+using Altinn.App.PlatformServices.Interface;
 
 namespace App.IntegrationTestsRef.Utils
 {
