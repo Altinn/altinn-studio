@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
@@ -18,7 +19,7 @@ using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.App.Services.Implementation
+namespace Altinn.App.PlatformServices.Implementation
 {
     /// <summary>
     /// Represents an implementation of <see cref="IEvents"/> that acts as a client for the platform Events component.
