@@ -10,6 +10,7 @@ using Altinn.App.IntegrationTests.Mocks.Authentication;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
+using Altinn.App.PlatformServices.Interface;
 using Altinn.Platform.Authentication.Maskinporten;
 
 using AltinnCore.Authentication.JwtCookie;
@@ -22,9 +23,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Mvc.Testing;
-
-using Moq;
-using Altinn.App.PlatformServices.Interface;
 
 namespace App.IntegrationTestsRef.Utils
 {
