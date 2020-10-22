@@ -1,16 +1,13 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Altinn.Platform.Storage.UnitTest.Utils
 {
     public static class RequestTracker
     {
-
         private static Dictionary<string, List<object>> _tracker = new Dictionary<string, List<object>>();
 
-        private static readonly object dataLock = new object();
+        private static readonly object DataLock = new object();
 
         public static int GetRequestCount(string requestKey)
         {
@@ -22,10 +19,9 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
             return 0;
         }
 
-
         public static void AddRequest(string requestKey, object request)
         {
-            lock (dataLock)
+            lock (DataLock)
             {
                 if (!_tracker.ContainsKey(requestKey))
                 {
@@ -38,7 +34,7 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
 
         public static void Clear()
         {
-            lock (dataLock)
+            lock (DataLock)
             {
                 _tracker = new Dictionary<string, List<object>>();
             }

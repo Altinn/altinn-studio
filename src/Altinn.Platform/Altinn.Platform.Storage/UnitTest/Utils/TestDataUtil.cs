@@ -9,7 +9,7 @@ namespace Altinn.Platform.Storage.UnitTest.Utils
 {
     public class TestDataUtil
     {
-        public static readonly object dataLock = new object();
+        public static readonly object DataLock = new object();
 
         public static Instance GetInstance(int instanceOwnerId, Guid instanceGuid)
         {
