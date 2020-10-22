@@ -4,11 +4,14 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-
+using Altinn.Common.AccessToken.Configuration;
+using Altinn.Common.PEP.Interfaces;
+using Altinn.Platform.Events.Authorization;
 using Altinn.Platform.Events.Configuration;
 using Altinn.Platform.Events.Exceptions;
 using Altinn.Platform.Events.Models;
 using Altinn.Platform.Events.Services.Interfaces;
+using Altinn.Platorm.Events.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,12 +26,14 @@ namespace Altinn.Platform.Events.Controllers
     /// </summary>
     [Authorize]
     [Route("events/api/v1/app")]
-    public class EventsController : Controller
+    public class EventsController : ControllerBase
     {
         private readonly IEventsService _eventsService;
         private readonly IRegisterService _registerService;
         private readonly ILogger _logger;
         private readonly string _eventsBaseUri;
+        private readonly AuthorizationHelper _authorizationHelper;
+        private readonly AccessTokenSettings _accessTokenSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EventsController"/> class
@@ -37,13 +42,16 @@ namespace Altinn.Platform.Events.Controllers
             IEventsService eventsService,
             IRegisterService registerService,
             IOptions<GeneralSettings> settings,
-            ILogger<EventsController> logger)
+            ILogger<EventsController> logger,
+            IPDP pdp,
+            IOptions<AccessTokenSettings> accessTokenSettings)
         {
-            _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
-
-            _eventsService = eventsService;
             _registerService = registerService;
             _logger = logger;
+            _eventsService = eventsService;
+            _eventsBaseUri = $"https://platform.{settings.Value.Hostname}";
+            _authorizationHelper = new AuthorizationHelper(pdp);
+            _accessTokenSettings = accessTokenSettings.Value;
         }
 
         /// <summary>
@@ -62,6 +70,13 @@ namespace Altinn.Platform.Events.Controllers
             string.IsNullOrEmpty(cloudEvent.Type) || string.IsNullOrEmpty(cloudEvent.Subject))
             {
                 return BadRequest("Missing parameter values: source, subject, type, id or time cannot be null");
+            }
+
+            var item = HttpContext.Items[_accessTokenSettings.AccessTokenHttpContextId];
+
+            if (!cloudEvent.Source.AbsolutePath.StartsWith("/" + item))
+            {
+                return StatusCode(401, item + " is not authorized to create events for " + cloudEvent.Source);
             }
 
             try
@@ -90,10 +105,18 @@ namespace Altinn.Platform.Events.Controllers
             [FromQuery] DateTime? from,
             [FromQuery] DateTime? to,
             [FromQuery] int party,
+            [FromQuery] string unit,
+            [FromHeader] string person,
             [FromQuery] List<string> source,
             [FromQuery] List<string> type,
             [FromQuery] int size = 50)
         {
+            if (string.IsNullOrEmpty(HttpContext.User.GetOrg()))
+            {
+                // Only orgs can do a search based on. Alternative can be a service owner read in scope. Need to be added later
+                return StatusCode(401, "Only orgs can call this api");
+            }
+
             if (string.IsNullOrEmpty(after) && from == null)
             {
                 _logger.LogInformation(DateTime.Now.ToString());
@@ -165,9 +188,6 @@ namespace Altinn.Platform.Events.Controllers
                 return BadRequest("Size must be a number larger that 0.");
             }
 
-            /* Request.Headers.TryGetValue("person", out StringValues headerValues);
-            string person = headerValues.FirstOrDefault(); */
-
             if (string.IsNullOrEmpty(person) && string.IsNullOrEmpty(unit) && party <= 0)
             {
                 return BadRequest("Subject must be specified using either query params party or unit or header value person.");
@@ -205,6 +225,11 @@ namespace Altinn.Platform.Events.Controllers
 
                 if (events.Count > 0)
                 {
+                    events = await _authorizationHelper.AuthorizeEvents(HttpContext.User, events);
+                }
+
+                if (events.Count > 0)
+                {
                     StringBuilder nextUriBuilder = new StringBuilder($"{_eventsBaseUri}{Request.Path}?after={events.Last().Id}");
 
                     List<KeyValuePair<string, string>> queryCollection = Request.Query
@@ -236,6 +261,7 @@ namespace Altinn.Platform.Events.Controllers
             }
             else
             {
+                _logger.LogError($"// EventsController // HandlePlatformHttpException // Unexpected response from Altinn Platform. {e}");
                 return StatusCode(500, e);
             }
         }

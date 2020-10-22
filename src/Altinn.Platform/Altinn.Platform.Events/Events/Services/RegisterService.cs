@@ -56,7 +56,7 @@ namespace Altinn.Platform.Events.Services
             PartyLookup partyLookup = new PartyLookup() { Ssn = person, OrgNo = orgNo };
 
             string bearerToken = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _generalSettings.JwtCookieName);
-            string accessToken = string.Empty;//_accessTokenGenerator.GenerateAccessToken("platform", "events");
+            string accessToken = _accessTokenGenerator.GenerateAccessToken("platform", "events");
 
             StringContent content = new StringContent(JsonSerializer.Serialize(partyLookup));
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
@@ -70,7 +70,7 @@ namespace Altinn.Platform.Events.Services
             else
             {
                 string reason = await response.Content.ReadAsStringAsync();
-                _logger.LogError($"// RegisterService // PartyLookup // Failed to lookup party in platform register. Reason {reason}.");
+                _logger.LogError($"// RegisterService // PartyLookup // Failed to lookup party in platform register. Response {response}. \n Reason {reason}.");
 
                 throw await PlatformHttpException.CreateAsync(response);
             }
