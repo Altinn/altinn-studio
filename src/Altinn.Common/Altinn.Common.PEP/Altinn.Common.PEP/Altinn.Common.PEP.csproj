@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>true</IsPackable>
-    <AssemblyVersion>1.0.36.0</AssemblyVersion>
-    <FileVersion>1.0.36.0</FileVersion>
-    <Version>1.0.36-alpha</Version>
+    <AssemblyVersion>1.0.37.0</AssemblyVersion>
+    <FileVersion>1.0.37.0</FileVersion>
+    <Version>1.0.37-alpha</Version>
     <LangVersion>latest</LangVersion>
     <Description>Policy Enforcement Point for Attribute based authoirzation using Altinn.Authorization.ABAC in ASP.Net core 3.0 web aps.</Description>
   </PropertyGroup>
