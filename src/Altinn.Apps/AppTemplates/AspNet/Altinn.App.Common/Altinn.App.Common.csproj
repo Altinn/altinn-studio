@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>1.2.3-alpha</Version>
+    <Version>1.2.3</Version>
     <Authors>Altinn</Authors>
     <Company>Altinn</Company>
     <Description>Package with common functionality for Altinn Apps created in Altinn Studio</Description>
