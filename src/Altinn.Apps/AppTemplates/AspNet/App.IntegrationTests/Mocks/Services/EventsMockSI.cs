@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Altinn.App.PlatformServices.Interface;
+using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace App.IntegrationTests.Mocks.Services

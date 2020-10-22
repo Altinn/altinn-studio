@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
 
-namespace Altinn.App.PlatformServices.Interface
+namespace Altinn.App.Services.Interface
 {
     /// <summary>
     /// Interface describing client implementations for the Events component in the Altinn 3 platform.

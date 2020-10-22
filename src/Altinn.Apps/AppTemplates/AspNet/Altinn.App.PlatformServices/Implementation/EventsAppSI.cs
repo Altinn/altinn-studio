@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 using Altinn.App.PlatformServices.Extensions;
 using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.PlatformServices.Interface;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
@@ -19,7 +18,7 @@ using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.App.PlatformServices.Implementation
+namespace Altinn.App.Services.Implementation
 {
     /// <summary>
     /// Represents an implementation of <see cref="IEvents"/> that acts as a client for the platform Events component.
@@ -84,7 +83,7 @@ namespace Altinn.App.PlatformServices.Implementation
                 AlternativeSubject = alternativeSubject,
                 Time = DateTime.UtcNow,
                 SpecVersion = "1.0",
-                Source = new Uri($"https://{_generalSettings.HostName}/{instance.AppId}/instances/{instance.Id}")
+                Source = new Uri($"https://{instance.Org}.apps.{_generalSettings.HostName}/{instance.AppId}/instances/{instance.Id}")
             };
 
             string accessToken = _accessTokenGenerator.GenerateAccessToken(_appResources.GetApplication().Org, _appResources.GetApplication().Id);

@@ -6,9 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.PlatformServices.Implementation;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Storage.Interface.Models;
@@ -51,6 +51,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Instance instance = new Instance
             {
                 AppId = "ttd/best-app",
+                Org = "ttd",
                 InstanceOwner = new InstanceOwner
                 {
                     OrganisationNumber = "org",
@@ -93,7 +94,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Assert.NotNull(actualEvent);
             Assert.Equal("/party/123", actualEvent.Subject);
             Assert.Equal("/organisation/org", actualEvent.AlternativeSubject);
-            Assert.Contains("at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
+            Assert.Contains("ttd.apps.at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
 
             handlerMock.VerifyAll();
         }
@@ -105,6 +106,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Instance instance = new Instance
             {
                 AppId = "ttd/best-app",
+                Org = "ttd",
                 InstanceOwner = new InstanceOwner
                 {
                     PersonNumber = "43234123",
@@ -147,7 +149,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Assert.NotNull(actualEvent);
             Assert.Equal("/party/321", actualEvent.Subject);
             Assert.Equal("/person/43234123", actualEvent.AlternativeSubject);
-            Assert.Contains("at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
+            Assert.Contains("ttd.apps.at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
 
             handlerMock.VerifyAll();
         }
@@ -158,6 +160,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             // Arrange
             Instance instance = new Instance
             {
+                Org = "ttd",
                 InstanceOwner = new InstanceOwner { OrganisationNumber = "org" }
             };
 

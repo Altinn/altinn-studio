@@ -3,8 +3,6 @@ using System;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
 using Altinn.App.PlatformServices.Extensions;
-using Altinn.App.PlatformServices.Implementation;
-using Altinn.App.PlatformServices.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
