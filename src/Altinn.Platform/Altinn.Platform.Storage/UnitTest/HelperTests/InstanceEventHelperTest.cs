@@ -301,5 +301,29 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             Assert.NotNull(actual);
             Assert.Equal(5, actual.Count);
         }
+
+        [Fact]
+        public void RemoveDuplicateEvents_GivenListWithDataCreatedAfterFormSaved_ReturnsTwoEvents()
+        {
+            // Arrange
+            List<InstanceEvent> instanceEvents = new List<InstanceEvent>
+            {
+                new InstanceEvent { EventType = "Created", User = new PlatformUser { UserId = 12 } },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "33" },
+                new InstanceEvent { EventType = "Saved", User = new PlatformUser { UserId = 12 }, DataId = "33" },
+                new InstanceEvent { EventType = "Created", User = new PlatformUser { UserId = 12 }, DataId = "44" }
+            };
+
+            // Act
+            List<InstanceEvent> actual = InstanceEventHelper.RemoveDuplicateEvents(instanceEvents);
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Equal(2, actual.Count);
+            Assert.Collection(
+                actual,
+                item => Assert.Equal(InstanceEventType.Created.ToString(), item.EventType),
+                item => Assert.Equal(InstanceEventType.Saved.ToString(), item.EventType));
+        }
     }
 }

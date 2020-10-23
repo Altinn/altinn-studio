@@ -21,6 +21,13 @@ namespace Altinn.Platform.Storage.Helpers
         /// <returns>A sorted and filtered list of instance events.</returns>
         public static List<InstanceEvent> RemoveDuplicateEvents(List<InstanceEvent> originalList)
         {
+            originalList.Where(ie => !string.IsNullOrEmpty(ie.DataId) && ie.EventType.Equals(InstanceEventType.Created.ToString()))
+                        .All(x =>
+                        {
+                            x.EventType = InstanceEventType.Saved.ToString();
+                            return true;
+                        });
+
             List<InstanceEvent> orderedEnumerable =
                 originalList
                     .Where(ie =>
