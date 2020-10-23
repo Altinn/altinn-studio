@@ -351,12 +351,11 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
         }
 
-
             /// <summary>
             /// Test case: Org user requests to get multiple instances from one of their apps.
             /// Expected: List of instances is returned.
             /// </summary>
-            [Fact]
+        [Fact]
             public async void GetMany_OrgRequestsAllAppInstancesAlternativeScope_Ok()
             {
                 // Arrange
