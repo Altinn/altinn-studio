@@ -297,7 +297,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// <param name="requiredScope">Requiered scope.</param>
         /// <param name="user">Claim principal from http context.</param>
         /// <returns>true if the given ClaimsPrincipal or on of its identities have contains the given scope.</returns>
-        public bool ContainsRequiredScope(string requiredScope, ClaimsPrincipal user)
+        public bool ContainsRequiredScope(List<string> requiredScope, ClaimsPrincipal user)
         {
             string contextScope = user.Identities?
                .FirstOrDefault(i => i.AuthenticationType != null && i.AuthenticationType.Equals("AuthenticationTypes.Federation"))
@@ -307,9 +307,15 @@ namespace Altinn.Platform.Storage.Helpers
 
             contextScope ??= user.Claims.Where(c => c.Type.Equals("scope")).Select(c => c.Value).FirstOrDefault();
 
-            if (!string.IsNullOrWhiteSpace(contextScope) && contextScope.Contains(requiredScope, StringComparison.InvariantCultureIgnoreCase))
-            {
-                return true;
+            if (!string.IsNullOrWhiteSpace(contextScope))
+            { 
+                foreach (string scope in requiredScope)
+                {
+                    if (contextScope.Contains(scope, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
             }
 
             return false;

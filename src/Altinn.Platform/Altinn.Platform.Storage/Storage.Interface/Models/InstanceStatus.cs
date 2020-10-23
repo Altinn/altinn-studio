@@ -43,6 +43,9 @@ namespace Altinn.Platform.Storage.Interface.Models
         public Substatus Substatus { get; set; }
     }
 
+    /// <summary>
+    /// The read status
+    /// </summary>
     public enum ReadStatus
     {
         /// <summary>
@@ -61,6 +64,9 @@ namespace Altinn.Platform.Storage.Interface.Models
         UpdatedSinceLastReview
     }
 
+    /// <summary>
+    /// The substatus
+    /// </summary>
     public class Substatus
     {
         /// <summary>
