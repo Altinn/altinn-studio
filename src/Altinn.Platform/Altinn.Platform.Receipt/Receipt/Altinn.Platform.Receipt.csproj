@@ -17,27 +17,34 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.9" />
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.15.0" />
     <PackageReference Include="JWTCookieAuthentication" Version="2.4.1-alpha" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <AdditionalFiles Include="..\..\..\..\stylecop.json">
+      <Link>stylecop.json</Link>
+    </AdditionalFiles>
   </ItemGroup>
 
-  <Target Name="AfterPublishScript" AfterTargets="Publish">
-	  <MakeDir Directories="$(PublishDir)Languages" Condition="!Exists('$(PublishDir)Languages')" />
-	  <Copy SourceFiles="@(CoreLanguage)" DestinationFolder="$(PublishDir)Languages" />
-  </Target>
-
-  <Target Name="AfterPublishScript" AfterTargets="Publish">
-	  <MakeDir Directories="$(PublishDir)Languages" Condition="!Exists('$(PublishDir)Languages')" />
-	  <Copy SourceFiles="@(CoreLanguage)" DestinationFolder="$(PublishDir)Languages" />
-  </Target>
-
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp3.1\Altinn.Platform.Receipt.xml</DocumentationFile>
+  <Target Name="AfterPublishScript" AfterTargets="Publish">
+    <MakeDir Directories="$(PublishDir)Languages" Condition="!Exists('$(PublishDir)Languages')" />
+    <Copy SourceFiles="@(CoreLanguage)" DestinationFolder="$(PublishDir)Languages" />
+  </Target>
+
+  <Target Name="AfterPublishScript" AfterTargets="Publish">
+    <MakeDir Directories="$(PublishDir)Languages" Condition="!Exists('$(PublishDir)Languages')" />
+    <Copy SourceFiles="@(CoreLanguage)" DestinationFolder="$(PublishDir)Languages" />
+  </Target>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 </Project>
