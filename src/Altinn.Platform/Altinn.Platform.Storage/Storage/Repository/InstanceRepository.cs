@@ -225,7 +225,7 @@ namespace Altinn.Platform.Storage.Repository
                             }
                             else
                             {
-                                queryBuilder = queryBuilder.Where(i => i.Process.Ended == null);
+                                queryBuilder = queryBuilder.Where(i => i.Process.CurrentTask != null);
                             }
 
                             break;
