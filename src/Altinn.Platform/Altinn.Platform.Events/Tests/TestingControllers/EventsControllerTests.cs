@@ -452,7 +452,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status.
             /// </summary>
             [Fact]
-            public async void GetForParties_MissingRequiredQueryParam_ReturnsBadRequest()
+            public async void GetForParty_MissingRequiredQueryParam_ReturnsBadRequest()
             {
                 // Arrange   
                 string expected = "\"From or after must be defined.\"";
@@ -481,7 +481,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status.
             /// </summary>
             [Fact]
-            public async void GetForParties_SizeIsLessThanZero_ReturnsBadRequest()
+            public async void GetForParty_SizeIsLessThanZero_ReturnsBadRequest()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&size=-5";
@@ -510,7 +510,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status.
             /// </summary>
             [Fact]
-            public async void GetForParties_MissingSubject_ReturnsBadRequest()
+            public async void GetForParty_MissingSubject_ReturnsBadRequest()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&size=5";
@@ -539,7 +539,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status.
             /// </summary>
             [Fact]
-            public async void GetForParties_MissingOrgWhenAppIsDefined_ReturnsBadRequest()
+            public async void GetForParty_MissingOrgWhenAppIsDefined_ReturnsBadRequest()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&party=1337&app=apps-test&size=5";
@@ -568,7 +568,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct status.
             /// </summary>
             [Fact]
-            public async void GetForParties_MissingBearerToken_ReturnsForbidden()
+            public async void GetForParty_MissingBearerToken_ReturnsForbidden()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&party=1337&app=apps-test&size=5";
@@ -592,7 +592,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct count. Next header is corrcect.
             /// </summary>
             [Fact]
-            public async void GetForParties_ValidRequestParyId_ReturnsListOfEventsAndNextUrl()
+            public async void GetForParty_ValidRequestParyId_ReturnsListOfEventsAndNextUrl()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&party=1337&size=5";
@@ -625,7 +625,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   The response has correct count. Next header is corrcect.
             /// </summary>
             [Fact]
-            public async void GetForParties_ValidRequestPerson_ReturnsListOfEventsAndNextUrl()
+            public async void GetForParty_ValidRequestPerson_ReturnsListOfEventsAndNextUrl()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&size=5";
@@ -695,7 +695,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             ///   Next header is corrcect.
             /// </summary>
             [Fact]
-            public async void GetForParties_ServiceThrowsException_ReturnsInternalServerError()
+            public async void GetForParty_ServiceThrowsException_ReturnsInternalServerError()
             {
                 // Arrange
                 string requestUri = $"{BasePath}/app/party/1337?after=e31dbb11-2208-4dda-a549-92a0db8c7708&party=1337";

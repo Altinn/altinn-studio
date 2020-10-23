@@ -17,7 +17,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
 
 namespace Altinn.Platform.Events.Controllers
 {
@@ -175,12 +174,12 @@ namespace Altinn.Platform.Events.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
         public async Task<ActionResult<List<CloudEvent>>> GetForParty(
-            [FromHeader] string person,
             [FromQuery] string after,
             [FromQuery] DateTime? from,
             [FromQuery] DateTime? to,
             [FromQuery] int party,
             [FromQuery] string unit,
+            [FromHeader] string person,
             [FromQuery] string org,
             [FromQuery] string app,
             [FromQuery] List<string> type,
