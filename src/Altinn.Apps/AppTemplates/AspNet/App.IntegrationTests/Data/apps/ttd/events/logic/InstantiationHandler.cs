@@ -1,10 +1,12 @@
-using System;
 using System.Threading.Tasks;
+
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.ttd.events
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class InstantiationHandler
     {
@@ -14,39 +16,19 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
         /// <summary>
         /// Set up access to profile and register services
         /// </summary>
-        /// <param name="profileService"></param>
-        /// <param name="registerService"></param>
+        /// <param name="profileService">The profile service</param>
+        /// <param name="registerService">The register service</param>
         public InstantiationHandler(IProfile profileService, IRegister registerService)
         {
             _profileService = profileService;
             _registerService = registerService;
         }
 
-        /// <summary>
-        /// Run validations related to instantiation
-        /// </summary>
-        /// <example>
-        /// if ([some condition])
-        /// {
-        ///     return new ValidationResult("[error message]");
-        /// }
-        /// return null;
-        /// </example>
-        /// <param name="instance"></param>
-        /// <returns>The validation result object (null if no errors) </returns>
         public async Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
             return await Task.FromResult((InstantiationValidationResult)null);
         }
 
-        /// <summary>
-        /// Run events related to instantiation
-        /// </summary>
-        /// <remarks>
-        /// For example custom prefill.
-        /// </remarks>
-        /// <param name="instance">The instance object</param>
-        /// <param name="data">The data created</param>
         public async Task DataCreation(Instance instance, object data)
         {
             if (data.GetType() == typeof(Skjema))

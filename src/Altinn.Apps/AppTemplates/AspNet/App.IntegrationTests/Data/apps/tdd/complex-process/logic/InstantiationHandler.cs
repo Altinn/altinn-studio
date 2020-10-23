@@ -1,40 +1,24 @@
+using System.Threading.Tasks;
+
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using System.Threading.Tasks;
-// using Altinn.App.Models; // Uncomment this line to refer to app model(s)
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class InstantiationHandler
     {
         private IProfile _profileService;
         private IRegister _registerService;
 
-        /// <summary>
-        /// Set up access to profile and register services
-        /// </summary>
-        /// <param name="profileService"></param>
-        /// <param name="registerService"></param>
         public InstantiationHandler(IProfile profileService, IRegister registerService)
         {
             _profileService = profileService;
             _registerService = registerService;
         }
 
-        /// <summary>
-        /// Run validations related to instantiation
-        /// </summary>
-        /// <example>
-        /// if ([some condition])
-        /// {
-        ///     return new ValidationResult("[error message]");
-        /// }
-        /// return null;
-        /// </example>
-        /// <param name="instance"></param>
-        /// <param name="validationResults"></param>
-        /// <returns>The validation result object (null if no errors) </returns>
         public async Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
             return await Task.FromResult((InstantiationValidationResult)null);

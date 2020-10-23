@@ -11,7 +11,9 @@ using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.ttd.events
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class AltinnApp : AppBase, IAltinnApp
     {
@@ -78,14 +80,6 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.events
             return await _instantiationHandler.RunInstantiationValidation(instance);
         }
 
-        /// <summary>
-        /// Is called to run custom instantiation events defined by app developer.
-        /// </summary>
-        /// <remarks>
-        /// Instantiation events include validation and data manipulation (custom prefill)
-        /// </remarks>
-        /// <param name="instance">The data to perform calculations on</param>
-        /// <returns>Task to indicate when calculation is completed</returns>
         public override async Task RunDataCreation(Instance instance, object data)
         {
             await _instantiationHandler.DataCreation(instance, data);

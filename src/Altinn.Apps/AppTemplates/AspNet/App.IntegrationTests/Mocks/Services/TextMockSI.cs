@@ -11,11 +11,6 @@ namespace App.IntegrationTestsRef.Mocks.Services
 {
     public class TextMockSI : IText
     {
-        public TextMockSI()
-        {
-
-        }
-
         public Task<TextResource> GetText(string org, string app, string language)
         {
             TextResource textResource = null;
@@ -39,5 +34,4 @@ namespace App.IntegrationTestsRef.Mocks.Services
             return Path.Combine(unitTestFolder, @"..\..\..\Data\apps\", org + @"\", app + @$"\config\texts\resource.{language}.json");
         }
     }
-    
 }

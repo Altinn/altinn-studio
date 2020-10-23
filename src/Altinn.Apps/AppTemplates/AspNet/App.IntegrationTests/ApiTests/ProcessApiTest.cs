@@ -1,6 +1,6 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -47,7 +47,6 @@ namespace App.IntegrationTests.ApiTests
             string responseContent = await response.Content.ReadAsStringAsync();
             ProcessState processState= (ProcessState)JsonConvert.DeserializeObject(responseContent, typeof(ProcessState));
 
-
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
         }
@@ -71,7 +70,6 @@ namespace App.IntegrationTests.ApiTests
             string responseContent = await response.Content.ReadAsStringAsync();
 
             List<string> events = (List<string>)JsonConvert.DeserializeObject(responseContent, typeof(List<string>));
-
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Single(events);
@@ -97,7 +95,7 @@ namespace App.IntegrationTests.ApiTests
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
         }
 
-                [Fact]
+        [Fact]
         public async Task Proceess_Start_With_Prefill_OK()
         {
             TestDataUtil.DeleteInstanceAndData("tdd", "endring-av-navn", 1337, new System.Guid("26233fb5-a9f2-45d4-90b1-f6d93ad40713"));
@@ -219,7 +217,6 @@ namespace App.IntegrationTests.ApiTests
 
             Assert.NotNull(status.Ended);
             Assert.Null(status.CurrentTask);
-
 
             httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, $"{instancePath}");
             response = await client.SendAsync(httpRequestMessage);

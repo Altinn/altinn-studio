@@ -1,15 +1,16 @@
-using Altinn.App.IntegrationTests;
-using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+
+using Altinn.App.IntegrationTests;
+using Altinn.Platform.Storage.Interface.Models;
+using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Utils;
+
+using Newtonsoft.Json;
 using Xunit;
 
 namespace App.IntegrationTestsRef.AppBase
@@ -57,8 +58,7 @@ namespace App.IntegrationTestsRef.AppBase
             Assert.NotNull(process.CurrentTask);
             Assert.Equal("Task_1", process.CurrentTask.ElementId);
         }
-
-
+        
         [Fact]
         public async void OnTaskStart_DataElementIsCreated()
         {
@@ -124,7 +124,6 @@ namespace App.IntegrationTestsRef.AppBase
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-
             Instance instance = await CreateInstance();
             string instancePath = $"/tdd/endring-av-navn/instances/{instance.Id}";
 
@@ -164,7 +163,6 @@ namespace App.IntegrationTestsRef.AppBase
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
 
             StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");

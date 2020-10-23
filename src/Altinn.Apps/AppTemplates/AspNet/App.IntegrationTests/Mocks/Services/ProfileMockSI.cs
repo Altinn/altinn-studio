@@ -1,14 +1,12 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.Platform.Profile.Models;
 using App.IntegrationTests.Mocks.Services;
+
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace App.IntegrationTestsRef.Mocks.Services
 {
@@ -34,7 +32,6 @@ namespace App.IntegrationTestsRef.Mocks.Services
             user.Party = await _registerService.GetParty(user.PartyId);
             return user;
         }
-
 
         private string GetProfilePath(int userId)
         {
