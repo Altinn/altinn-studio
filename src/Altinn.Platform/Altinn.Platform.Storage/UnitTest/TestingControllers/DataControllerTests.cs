@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -91,8 +90,6 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
-
-
 
         /// <summary>
         /// Scenario:

@@ -75,7 +75,7 @@ namespace Altinn.Platform.Storage.Helpers
             foreach (InstanceEvent instanceEvent in instanceEvents)
             {
                 simpleEvents.Add(
-                    new SblInstanceEvent()
+                    new SblInstanceEvent
                     {
                         Id = instanceEvent.Id,
                         User = instanceEvent.User,

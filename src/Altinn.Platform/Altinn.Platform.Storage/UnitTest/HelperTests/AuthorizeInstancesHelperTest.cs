@@ -18,21 +18,20 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
 {
     public class AuthorizeInstancesHelperTest
     {
-        private const string org = "tdd";
-        private const string app = "test-applikasjon-1";
-        private const string urnName = "urn:name";
-        private const string urnAuthLv = "urn:altinn:authlevel";
-        private const string urnUserId = "urn:altinn:userid";
+        private const string Org = "tdd";
+        private const string App = "test-applikasjon-1";
+        private const string UrnName = "urn:name";
+        private const string UrnAuthLv = "urn:altinn:authlevel";
+        private const string UrnUserId = "urn:altinn:userid";
 
         private readonly AuthorizationHelper _authzHelper;
-        private readonly IPDP _pdp;
         private readonly Mock<IInstanceRepository> _instanceRepository = new Mock<IInstanceRepository>();
 
         public AuthorizeInstancesHelperTest()
         {
-            _pdp = new PepWithPDPAuthorizationMockSI(_instanceRepository.Object);
+            IPDP pdp = new PepWithPDPAuthorizationMockSI(_instanceRepository.Object);
 
-            _authzHelper = new AuthorizationHelper(_pdp, Mock.Of<ILogger<AuthorizationHelper>>());
+            _authzHelper = new AuthorizationHelper(pdp, Mock.Of<ILogger<AuthorizationHelper>>());
         }
 
         /// <summary>
@@ -56,9 +55,10 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             Assert.Equal(3, requestRoot.Request.Resource.Count());
             Assert.Equal(4, requestRoot.Request.Resource.First().Attribute.Count());
             Assert.Equal(6, requestRoot.Request.MultiRequests.RequestReference.Count());
-            foreach (var refrenceId in requestRoot.Request.MultiRequests.RequestReference)
+
+            foreach (var referenceId in requestRoot.Request.MultiRequests.RequestReference)
             {
-                Assert.Equal(3, refrenceId.ReferenceId.Count());
+                Assert.Equal(3, referenceId.ReferenceId.Count());
             }
         }
 
@@ -87,6 +87,7 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             // Arrange
             List<MessageBoxInstance> expected = new List<MessageBoxInstance>();
             List<Instance> instances = new List<Instance>();
+
             // Act
             List<MessageBoxInstance> actual = await _authzHelper.AuthorizeMesseageBoxInstances(CreateUserClaims(3), instances);
 
@@ -94,21 +95,17 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
             Assert.Equal(expected, actual);
         }
 
-
         private ClaimsPrincipal CreateUserClaims(int userId)
         {
             // Create the user
             List<Claim> claims = new List<Claim>();
 
             // type, value, valuetype, issuer
-            claims.Add(new Claim(urnName, "Ola", "string", "org"));
-            claims.Add(new Claim(urnAuthLv, "2", "string", "org"));
-            claims.Add(new Claim(urnUserId, $"{userId}", "string", "org"));
+            claims.Add(new Claim(UrnName, "Ola", "string", "org"));
+            claims.Add(new Claim(UrnAuthLv, "2", "string", "org"));
+            claims.Add(new Claim(UrnUserId, $"{userId}", "string", "org"));
 
-            ClaimsPrincipal user = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                        claims
-                    ));
+            ClaimsPrincipal user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
             return user;
         }
@@ -131,8 +128,8 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
                     {
                         PartyId = "1000"
                     },
-                    AppId = org + "/" + app,
-                    Org = org
+                    AppId = Org + "/" + App,
+                    Org = Org
                 },
                 new Instance
                 {
@@ -141,8 +138,8 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
                     {
                         PartyId = "1002"
                     },
-                    AppId = org + "/" + app,
-                    Org = org
+                    AppId = Org + "/" + App,
+                    Org = Org
                 },
                 new Instance
                 {
@@ -151,8 +148,8 @@ namespace Altinn.Platform.Storage.UnitTest.HelperTests
                     {
                         PartyId = "1000"
                     },
-                    AppId = org + "/" + app,
-                    Org = org
+                    AppId = Org + "/" + App,
+                    Org = Org
                 }
             };
 

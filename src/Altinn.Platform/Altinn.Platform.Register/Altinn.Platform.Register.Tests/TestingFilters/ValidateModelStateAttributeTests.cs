@@ -17,7 +17,7 @@ namespace Altinn.Platform.Register.Tests.TestingFilters
 {
     public class ValidateModelStateAttributeTests
     {
-        private ValidateModelStateAttribute target;        
+        private readonly ValidateModelStateAttribute _target;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ValidateModelStateAttributeTests"/> class.
@@ -25,10 +25,9 @@ namespace Altinn.Platform.Register.Tests.TestingFilters
         /// <remarks>
         /// With Xunit the entire test class is initialized again for every test method.
         /// </remarks>
-        /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>
         public ValidateModelStateAttributeTests()
         {
-            target = new ValidateModelStateAttribute();
+            _target = new ValidateModelStateAttribute();
         }
 
         [Fact]
@@ -41,7 +40,7 @@ namespace Altinn.Platform.Register.Tests.TestingFilters
             ActionExecutingContext context = CreateActionExecutingContext(modelState, new NotFoundResult());
 
             // Act
-            target.OnActionExecuting(context);
+            _target.OnActionExecuting(context);
 
             // Assert
             Assert.IsType<NotFoundResult>(context.Result);
@@ -57,7 +56,7 @@ namespace Altinn.Platform.Register.Tests.TestingFilters
             ActionExecutingContext context = CreateActionExecutingContext(modelState);
 
             // Act
-            target.OnActionExecuting(context);
+            _target.OnActionExecuting(context);
 
             // Assert
             Assert.IsType<BadRequestObjectResult>(context.Result);
@@ -72,7 +71,7 @@ namespace Altinn.Platform.Register.Tests.TestingFilters
             ActionExecutingContext context = CreateActionExecutingContext(modelState);
 
             // Act
-            target.OnActionExecuting(context);
+            _target.OnActionExecuting(context);
 
             // Assert
             Assert.Null(context.Result);
@@ -85,13 +84,10 @@ namespace Altinn.Platform.Register.Tests.TestingFilters
                     Mock.Of<HttpContext>(),
                     Mock.Of<RouteData>(),
                     Mock.Of<ActionDescriptor>(),
-                    modelState
-                ),
+                    modelState),
                 new List<IFilterMetadata>(),
                 new Dictionary<string, object>(),
-                new Mock<Controller>().Object);
-
-            context.Result = result;
+                new Mock<Controller>().Object) { Result = result };
 
             return context;
         }

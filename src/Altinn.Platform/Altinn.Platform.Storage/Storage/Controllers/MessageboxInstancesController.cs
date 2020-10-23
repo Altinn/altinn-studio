@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.Platform.Storage.Controllers
 {
     /// <summary>
-    /// Implements endpoints related to messagebox instances
+    /// Implements endpoints specifically for the Altinn II message box.
     /// </summary>
     [Route("storage/api/v1/sbl/instances")]
     [ApiController]
@@ -93,13 +93,14 @@ namespace Altinn.Platform.Storage.Controllers
                 allInstances.ForEach(i => i.DueBefore = null);
             }
 
-            List<MessageBoxInstance> autorizedInstances = await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
-            List<string> appIds = autorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
+            List<MessageBoxInstance> authorizedInstances =
+                await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, allInstances);
+            List<string> appIds = authorizedInstances.Select(i => InstanceHelper.GetAppId(i)).Distinct().ToList();
 
             List<TextResource> texts = await _textRepository.Get(appIds, languageId);
-            InstanceHelper.ReplaceTextKeys(autorizedInstances, texts, languageId);
+            InstanceHelper.ReplaceTextKeys(authorizedInstances, texts, languageId);
 
-            return Ok(autorizedInstances);
+            return Ok(authorizedInstances);
         }
 
         /// <summary>
@@ -111,7 +112,10 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>list of instances</returns>
         [Authorize]
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
-        public async Task<ActionResult> GetMessageBoxInstance(int instanceOwnerPartyId, Guid instanceGuid, [FromQuery] string language)
+        public async Task<ActionResult> GetMessageBoxInstance(
+            int instanceOwnerPartyId,
+            Guid instanceGuid,
+            [FromQuery] string language)
         {
             string[] acceptedLanguages = { "en", "nb", "nn" };
             string languageId = "nb";
@@ -130,7 +134,9 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound($"Could not find instance {instanceId}");
             }
 
-            List<MessageBoxInstance> authorizedInstanceList = await _authorizationHelper.AuthorizeMesseageBoxInstances(HttpContext.User, new List<Instance> { instance });
+            List<MessageBoxInstance> authorizedInstanceList =
+                await _authorizationHelper.AuthorizeMesseageBoxInstances(
+                    HttpContext.User, new List<Instance> { instance });
             if (authorizedInstanceList.Count <= 0)
             {
                 return Forbid();
@@ -158,7 +164,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromRoute] Guid instanceGuid)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
-            string[] eventTypes = new string[]
+            string[] eventTypes =
             {
                 InstanceEventType.Created.ToString(),
                 InstanceEventType.Deleted.ToString(),
@@ -173,20 +179,20 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Unable to perform query.");
             }
 
-            List<InstanceEvent> result = await _instanceEventRepository.ListInstanceEvents(instanceId, eventTypes, null, null);
+            List<InstanceEvent> allInstanceEvents =
+                await _instanceEventRepository.ListInstanceEvents(instanceId, eventTypes, null, null);
 
-            // filtering out Create & delete data element event
-            result = result.Where(r => string.IsNullOrEmpty(r.DataId) || r.EventType.Equals(InstanceEventType.Saved)).ToList();
+            List<InstanceEvent> filteredInstanceEvents = InstanceEventHelper.RemoveDuplicateEvents(allInstanceEvents);
 
-            return Ok(InstanceHelper.ConvertToSBLInstanceEvent(result));
+            return Ok(InstanceHelper.ConvertToSBLInstanceEvent(filteredInstanceEvents));
         }
 
         /// <summary>
-        /// Undelete a soft deleted instance
+        /// Restore a soft deleted instance
         /// </summary>
         /// <param name="instanceOwnerPartyId">instance owner</param>
         /// <param name="instanceGuid">instance id</param>
-        /// <returns>True if the instance was undeleted.</returns>
+        /// <returns>True if the instance was restored.</returns>
         [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_DELETE)]
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/undelete")]
         public async Task<ActionResult> Undelete(int instanceOwnerPartyId, Guid instanceGuid)

@@ -6,7 +6,7 @@ namespace Altinn.Platform.Storage.Interface.Enums
     public enum InstanceEventType
     {
         /// <summary>
-        /// Unkown instance event.
+        /// Unknown instance event.
         /// </summary>
         None,
 
@@ -48,21 +48,29 @@ namespace Altinn.Platform.Storage.Interface.Enums
         /// <summary>
         /// Instance process start event.
         /// </summary>
+#pragma warning disable SA1300 // Element should begin with upper-case letter
         process_StartEvent,
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 
         /// <summary>
         /// Instance process end event.
         /// </summary>
+#pragma warning disable SA1300 // Element should begin with upper-case letter
         process_EndEvent,
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 
         /// <summary>
         /// Instance process task started event.
         /// </summary>
+#pragma warning disable SA1300 // Element should begin with upper-case letter
         process_StartTask,
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 
         /// <summary>
         /// Instance process task ended event.
         /// </summary>
+#pragma warning disable SA1300 // Element should begin with upper-case letter
         process_EndTask
+#pragma warning restore SA1300 // Element should begin with upper-case letter
     }
 }
