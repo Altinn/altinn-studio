@@ -1,16 +1,12 @@
-using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
+
+using Altinn.App.PlatformServices.Helpers;
+using Altinn.App.Services.Interface;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace App.IntegrationTests.Mocks.Services
 {
@@ -25,7 +21,6 @@ namespace App.IntegrationTests.Mocks.Services
             };
 
             throw await PlatformHttpException.CreateAsync(response);
-
         }
 
         /// <inheritdoc />

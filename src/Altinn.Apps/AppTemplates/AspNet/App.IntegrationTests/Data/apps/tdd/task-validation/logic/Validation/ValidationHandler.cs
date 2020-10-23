@@ -1,10 +1,13 @@
+using System;
+
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using System;
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.task_validation
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class ValidationHandler
     {
@@ -15,22 +18,8 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.task_validation
             _httpContextAccessor = httpContextAccessor;
         }
 
-        /// <summary>
-        /// Handles all custom validations that are not covered by the data model validation.
-        /// </summary>
-        /// <remarks>
-        /// Validations that fail should be handled by updating the validation result object,
-        /// see example.
-        /// </remarks>
-        /// <param name="validationResults">Object to contain any validation results</param>
-        /// <example>
-        ///  if ([some condition]) {
-        ///      validationResults.Add(new ValidationResult([error message], new List<string>() { [affected field id] } ));
-        ///  }
-        /// </example>
         public void ValidateData(object data, ModelStateDictionary validationResults)
         {
-
         }
 
         public void ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
@@ -44,6 +33,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.task_validation
                     {
                         validationResults.AddModelError("skjema", "Task 1 should have been completed within 48 hours. Send in is no longer available.");
                     }
+
                     break;
                 default:
                     break;

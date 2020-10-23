@@ -6,14 +6,16 @@ using Altinn.App.Common.Models;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class AltinnApp : AppBase, IAltinnApp
     {
-
         public AltinnApp(IAppResources appResourcesService, ILogger<AltinnApp> logger, IData dataService, IProcess processService, IPDF pdfService, IPrefill prefillService) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
         {
         }
@@ -44,36 +46,17 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.platform_fails
             await Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Run validation event to perform custom validations
-        /// </summary>
-        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
-        /// <returns>Value indicating if the form is valid or not</returns>
         public override Task<bool> RunCalculation(object data)
         {
             return Task.FromResult(false);
         }
 
-        /// <summary>
-        /// Run validation event to perform custom validations
-        /// </summary>
-        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
-        /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
             await Task.CompletedTask;
             return null;
         }
 
-        /// <summary>
-        /// Is called to run custom instantiation events defined by app developer.
-        /// </summary>
-        /// <remarks>
-        /// Instantiation events include validation and data manipulation (custom prefill)
-        /// </remarks>
-        /// <param name="instance">The data to perform calculations on</param>
-        /// <param name="validationResults">Object containing any validation errors/warnings</param>
-        /// <returns>Task to indicate when calculation is completed</returns>
         public override async Task RunDataCreation(Instance instance, object data)
         {
             await Task.CompletedTask;

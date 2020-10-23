@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
 using System.Linq;
+using System.Net.Http;
 
 using Altinn.App;
 using Altinn.App.IntegrationTests;
@@ -12,17 +12,17 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Authentication.Maskinporten;
-
 using AltinnCore.Authentication.JwtCookie;
+
 using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTestsRef.Data.apps.tdd.sirius.services;
 using App.IntegrationTestsRef.Mocks.Services;
 
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace App.IntegrationTestsRef.Utils
 {
@@ -91,7 +91,7 @@ namespace App.IntegrationTestsRef.Utils
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.contributer_restriction.AltinnApp>();
                             break;
                         case "sirius":
-                            services.AddSingleton<ISiriusApi, SiriusAPImock>();
+                            services.AddSingleton<ISiriusApi, SiriusAPI>();
                             services.AddSingleton<IAltinnApp, IntegrationTests.Mocks.Apps.tdd.sirius.App>();
                             break;
                         case "events":

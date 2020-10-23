@@ -1,17 +1,19 @@
-using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+
+using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models;
+using Altinn.Platform.Storage.Interface.Models;
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
+
+using Newtonsoft.Json;
 
 namespace App.IntegrationTests.Mocks.Services
 {
@@ -51,9 +53,9 @@ namespace App.IntegrationTests.Mocks.Services
             XmlSerializer serializer = new XmlSerializer(type);
             try
             {
-                using FileStream SourceStream = File.Open(dataPath, FileMode.OpenOrCreate);
+                using FileStream sourceStream = File.Open(dataPath, FileMode.OpenOrCreate);
 
-                return serializer.Deserialize(SourceStream);
+                return serializer.Deserialize(sourceStream);
             }
             catch
             {
@@ -67,8 +69,7 @@ namespace App.IntegrationTests.Mocks.Services
             string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
             Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
             DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType, ContentType = request.ContentType };
-
-       
+            
             if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(dataPath));
@@ -117,7 +118,6 @@ namespace App.IntegrationTests.Mocks.Services
 
             try
             {
-
                 Directory.CreateDirectory(dataPath + @"blob");
 
                 using (Stream stream = File.Open(dataPath + @"blob\" + dataGuid.ToString(), FileMode.Create, FileAccess.ReadWrite))
@@ -131,7 +131,6 @@ namespace App.IntegrationTests.Mocks.Services
 
                 sw.Write(jsonData.ToString());
                 sw.Close();
-
             }
             catch
             {
@@ -169,10 +168,11 @@ namespace App.IntegrationTests.Mocks.Services
             string instancePath = Path.Combine(GetInstancePath(), org + @"\" + app + @"\" + instanceOwnerId + @"\" + instanceId.ToString() + ".json");
             if (File.Exists(instancePath))
             {
-                string content = System.IO.File.ReadAllText(instancePath);
+                string content = File.ReadAllText(instancePath);
                 Instance instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
                 return instance;
             }
+
             return null;
         }
 
@@ -191,7 +191,7 @@ namespace App.IntegrationTests.Mocks.Services
 
             foreach (string file in files)
             {
-                string content = System.IO.File.ReadAllText(Path.Combine(path, file));
+                string content = File.ReadAllText(Path.Combine(path, file));
                 DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
                 dataElements.Add(dataElement);
             }
@@ -202,7 +202,6 @@ namespace App.IntegrationTests.Mocks.Services
         public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream)
         {
             Application app = _applicationService.GetApplication();
-
 
             Guid dataGuid = Guid.NewGuid();
             string dataPath = GetDataPath(app.Org, app.Id.Split("/")[1], Convert.ToInt32(instanceId.Split("/")[0]), new Guid(instanceId.Split("/")[1]));

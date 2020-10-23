@@ -34,7 +34,7 @@ using Xunit;
 
 namespace App.IntegrationTestsRef.EndToEndTests
 {
-    public class EndToEndTest : IClassFixture<WebApplicationFactory<Startup>>
+    public class EndToEndTests : IClassFixture<WebApplicationFactory<Startup>>
     {
         private readonly WebApplicationFactory<Startup> _factory;
 
@@ -49,7 +49,7 @@ namespace App.IntegrationTestsRef.EndToEndTests
         private readonly Dictionary<string, DataElement> dataElements = new Dictionary<string, DataElement>();
         private readonly Dictionary<string, object> dataBlobs = new Dictionary<string, object>();
 
-        public EndToEndTest(WebApplicationFactory<Startup> factory)
+        public EndToEndTests(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
         }
@@ -78,7 +78,8 @@ namespace App.IntegrationTestsRef.EndToEndTests
             // Act
             string url = $"/{org}/{app}/instances/";
 
-            HttpResponseMessage response = await client.PostAsync(url,
+            HttpResponseMessage response = await client.PostAsync(
+                url,
                 new StringContent(template.ToString(), Encoding.UTF8, "application/json"));
 
             // Assert
@@ -167,7 +168,8 @@ namespace App.IntegrationTestsRef.EndToEndTests
             Thread.Sleep(new TimeSpan(0, 0, 12));
             response = await client.GetAsync(url);
             responseContent = await response.Content.ReadAsStringAsync();
-            messages = (List<ValidationIssue>) JsonConvert.DeserializeObject(responseContent,
+            messages = (List<ValidationIssue>) JsonConvert.DeserializeObject(
+                responseContent,
                 typeof(List<ValidationIssue>));
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -239,9 +241,11 @@ namespace App.IntegrationTestsRef.EndToEndTests
                 });
 
             Mock<IData> dataService = new Mock<IData>();
-            dataService.Setup(s =>
-                    s.InsertFormData(It.IsAny<Instance>(), It.IsAny<string>(), It.IsAny<It.IsAnyType>(),
-                        It.IsAny<Type>()))
+            dataService.Setup(s => s.InsertFormData(
+                    It.IsAny<Instance>(),
+                    It.IsAny<string>(),
+                    It.IsAny<It.IsAnyType>(),
+                    It.IsAny<Type>()))
                 .ReturnsAsync((Instance parentInstance, string dataType, dynamic originalElement, Type type) =>
                 {
                     Guid dataGuid = Guid.NewGuid();
@@ -256,8 +260,13 @@ namespace App.IntegrationTestsRef.EndToEndTests
 
                     return dataElements[dataGuid.ToString()];
                 });
-            dataService.Setup(s => s.GetFormData(It.IsAny<Guid>(), It.IsAny<Type>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<int>(), It.IsAny<Guid>()))
+            dataService.Setup(s => s.GetFormData(
+                    It.IsAny<Guid>(),
+                    It.IsAny<Type>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>()))
                 .ReturnsAsync((Guid dataGuid, Type dataType, string appOwner, string appName, int partyId, Guid dataId) =>
                     {
                         return dataBlobs[dataId.ToString()];

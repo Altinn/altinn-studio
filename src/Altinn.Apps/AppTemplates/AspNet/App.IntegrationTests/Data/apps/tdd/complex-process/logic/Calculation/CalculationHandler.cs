@@ -1,8 +1,9 @@
 using System;
 using System.Threading.Tasks;
-//using Altinn.App.Models; // <-- Uncomment this line to refer to app model(s)
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic.Calculation
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class CalculationHandler
     {
