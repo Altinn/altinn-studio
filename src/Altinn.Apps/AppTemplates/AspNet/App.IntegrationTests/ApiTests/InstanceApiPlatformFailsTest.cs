@@ -1,21 +1,18 @@
-using Altinn.App.IntegrationTests;
-using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
-using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
+
+using Altinn.App.IntegrationTests;
+using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Utils;
+
 using Xunit;
 
 namespace App.IntegrationTestsRef.ApiTests
 {
     public class InstanceApiPlatformFailsTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
-
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
 
         public InstanceApiPlatformFailsTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
@@ -23,10 +20,6 @@ namespace App.IntegrationTestsRef.ApiTests
             _factory = factory;
         }
 
-        /// <summary>
-        /// Test that verifies Get for a existing instance
-        /// </summary>
-        /// <returns></returns>
         [Fact]
         public async Task Instance_Get_FailsOK()
         {

@@ -1,10 +1,9 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace App.IntegrationTestsRef.Mocks.Services
 {

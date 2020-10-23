@@ -1,19 +1,24 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Threading.Tasks;
-using Altinn.App.Services.Interface;
-using Microsoft.Extensions.Logging;
-using Altinn.App.Services.Implementation;
+
 using Altinn.App.Common.Enums;
+using Altinn.App.Common.Models;
+using Altinn.App.Services.Implementation;
+using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.App.Common.Models;
-using App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic;
-using App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic.Validation;
-using App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic.Calculation;
-using Microsoft.AspNetCore.Http;
 
+using App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic;
+using App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic.Calculation;
+using App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic.Validation;
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
+
+#pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class App : AppBase, IAltinnApp
     {
@@ -32,8 +37,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
             IRegister registerService,
             IPrefill prefillService,
             IInstance instanceService,
-            IHttpContextAccessor accessor
-            ) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
+            IHttpContextAccessor accessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler(instanceService);
@@ -71,11 +75,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
             return await Task.FromResult(true);
         }
 
-        /// <summary>
-        /// Run validation event to perform custom validations
-        /// </summary>
-        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
-        /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
             await _validationHandler.ValidateData(data, validationResults);
@@ -104,10 +103,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process
             return await _instantiationHandler.RunInstantiationValidation(instance);
         }
 
-        /// <summary>
-        /// Is called to run data creation (custom prefill) defined by app developer.
-        /// </summary>
-        /// <param name="instance">The data to perform data creation on</param>
         public override async Task RunDataCreation(Instance instance, object data)
         {
             await _instantiationHandler.DataCreation(instance, data);

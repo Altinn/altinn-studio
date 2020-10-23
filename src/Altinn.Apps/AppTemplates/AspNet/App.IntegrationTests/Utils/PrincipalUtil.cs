@@ -1,16 +1,14 @@
-using Altinn.App.IntegrationTests;
-using AltinnCore.Authentication.Constants;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
-using System.Text;
+
+using Altinn.App.IntegrationTests;
+using AltinnCore.Authentication.Constants;
 
 namespace App.IntegrationTests.Utils
 {
     public static class PrincipalUtil
     {
-
-
         public static string GetToken(int userId, int authenticationLevel = 2)
         {
             List<Claim> claims = new List<Claim>();
