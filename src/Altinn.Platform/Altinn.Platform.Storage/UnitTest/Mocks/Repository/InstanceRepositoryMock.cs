@@ -55,7 +55,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 foreach (string instancePath in instancesFiles)
                 {
                     Instance instance = null;
-                    lock (TestDataUtil.dataLock)
+                    lock (TestDataUtil.DataLock)
                     {
                         string content = File.ReadAllText(instancePath);
                         instance = (Instance)JsonConvert.DeserializeObject(content, typeof(Instance));
@@ -112,17 +112,14 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
             InstanceQueryResponse response = new InstanceQueryResponse();
             List<Instance> instances = new List<Instance>();
 
-
             string instancesPath = GetInstancesPath();
 
             if (queryParams.ContainsKey("appId"))
             {
                 string appId = queryParams.GetValueOrDefault("appId").ToString();
 
-
                 if (Directory.Exists(instancesPath))
                 {
-
                     string[] files = Directory.GetFiles(instancesPath, "*.json", SearchOption.AllDirectories);
 
                     foreach (var file in files)
@@ -188,7 +185,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 return Task.FromResult(instance);
             }
 
-            throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));
+            throw CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
         }
 
         public Task<Instance> Update(Instance instance)

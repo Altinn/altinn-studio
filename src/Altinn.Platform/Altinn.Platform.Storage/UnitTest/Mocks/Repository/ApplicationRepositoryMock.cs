@@ -31,7 +31,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         {
             Dictionary<string, Dictionary<string, string>> appTitles = new Dictionary<string, Dictionary<string, string>>();
 
-            foreach(string appId in appIds)
+            foreach (string appId in appIds)
             {
                 Application app = GetTestApplication(appId.Split("/")[0], appId.Split("/")[1]);
                 appTitles.Add(app.Id, app.Title);
@@ -59,6 +59,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 Application application = (Application)JsonConvert.DeserializeObject(content, typeof(Application));
                 return application;
             }
+
             return null;
         }
 
