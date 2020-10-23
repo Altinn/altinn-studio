@@ -457,7 +457,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 // Arrange   
                 string expected = "\"From or after must be defined.\"";
 
-                string requestUri = $"{BasePath}/app/party/12345?size=5";
+                string requestUri = $"{BasePath}/app/party/1337?size=5";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
 
@@ -484,7 +484,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParties_SizeIsLessThanZero_ReturnsBadRequest()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/12345?from=2020-01-01&size=-5";
+                string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&size=-5";
                 string expected = "\"Size must be a number larger that 0.\"";
 
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
@@ -513,7 +513,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParties_MissingSubject_ReturnsBadRequest()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/12345?from=2020-01-01&size=5";
+                string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&size=5";
                 string expected = "\"Subject must be specified using either query params party or unit or header value person.\"";
 
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
@@ -542,7 +542,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParties_MissingOrgWhenAppIsDefined_ReturnsBadRequest()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/12345?from=2020-01-01&party=12345&app=apps-test&size=5";
+                string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&party=1337&app=apps-test&size=5";
                 string expected = "\"Query param org must be defined when query parameter app is defined.\"";
 
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
@@ -571,7 +571,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParties_MissingBearerToken_ReturnsForbidden()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/12345?from=2020-01-01&party=12345&app=apps-test&size=5";
+                string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&party=1337&app=apps-test&size=5";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -601,7 +601,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 int expectedCount = 2;
 
                 HttpClient client = GetTestClient(new EventsServiceMock(1));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337));
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
@@ -609,8 +609,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
                 string responseString = await response.Content.ReadAsStringAsync();
                 List<CloudEvent> actual = JsonSerializer.Deserialize<List<CloudEvent>>(responseString);
-
-                string test = response.Headers.GetValues("next").First();
 
                 // Assert
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -647,6 +645,39 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 string responseString = await response.Content.ReadAsStringAsync();
                 List<CloudEvent> actual = JsonSerializer.Deserialize<List<CloudEvent>>(responseString);
 
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedCount, actual.Count);
+                Assert.Equal(expectedNext, response.Headers.GetValues("next").First());
+            }
+
+            /// <summary>
+            /// Scenario:
+            ///   Get events with  a valid set of query parameters
+            /// Expected result:
+            ///   Returns a list of events and a next header
+            /// Success criteria:
+            ///   The response has correct count. Next header is corrcect.
+            /// </summary>
+            [Fact]
+            public async void GetForParty_ValidRequestPartyIdAndAfter_ReturnsNextHeaderWithReplacesAfterParameter()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/app/party/1337?after=e31dbb11-2208-4dda-a549-92a0db8c7708&from=2020-01-01&party=1337&size=5";
+                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/party/1337?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=1337&size=5";
+
+                int expectedCount = 1;
+
+                HttpClient client = GetTestClient(new EventsServiceMock(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337));
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string responseString = await response.Content.ReadAsStringAsync();
+                List<CloudEvent> actual = JsonSerializer.Deserialize<List<CloudEvent>>(responseString);
+
                 string test = response.Headers.GetValues("next").First();
 
                 // Assert
@@ -672,7 +703,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 eventsService.Setup(es => es.Get(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<List<string>>(), It.IsAny<List<string>>(), It.IsAny<int>())).Throws(new Exception());
                 HttpClient client = GetTestClient(eventsService.Object);
 
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337));
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
                 // Act

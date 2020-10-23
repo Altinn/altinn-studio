@@ -186,7 +186,6 @@ namespace Altinn.Platform.Events.Controllers
             [FromQuery] List<string> type,
             [FromQuery] int size = 50)
         {
-            _logger.LogInformation("test");
             if (string.IsNullOrEmpty(after) && from == null)
             {
                 return BadRequest("From or after must be defined.");
