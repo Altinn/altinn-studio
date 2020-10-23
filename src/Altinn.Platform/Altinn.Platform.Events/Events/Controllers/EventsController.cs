@@ -100,7 +100,7 @@ namespace Altinn.Platform.Events.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        public async Task<ActionResult<List<CloudEvent>>> Get(
+        public async Task<ActionResult<List<CloudEvent>>> GetForOrg(
             [FromQuery] string after,
             [FromQuery] DateTime? from,
             [FromQuery] DateTime? to,
@@ -119,7 +119,6 @@ namespace Altinn.Platform.Events.Controllers
 
             if (string.IsNullOrEmpty(after) && from == null)
             {
-                _logger.LogInformation(DateTime.Now.ToString());
                 return BadRequest("From or after must be defined.");
             }
 
@@ -128,9 +127,19 @@ namespace Altinn.Platform.Events.Controllers
                 return BadRequest("Size must be a number larger that 0.");
             }
 
+            if (string.IsNullOrEmpty(person) && string.IsNullOrEmpty(unit) && party <= 0)
+            {
+                return BadRequest("Subject must be specified using either query params party or unit or header value person.");
+            }
+
             try
             {
                 List<CloudEvent> events = await _eventsService.Get(after, from, to, party, source, type, size);
+
+                if (events.Count > 0)
+                {
+                    events = await _authorizationHelper.AuthorizeEvents(HttpContext.User, events);
+                }
 
                 if (events.Count > 0)
                 {
@@ -165,7 +174,7 @@ namespace Altinn.Platform.Events.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        public async Task<ActionResult<List<CloudEvent>>> GetForParties(
+        public async Task<ActionResult<List<CloudEvent>>> GetForParty(
             [FromHeader] string person,
             [FromQuery] string after,
             [FromQuery] DateTime? from,
@@ -210,7 +219,6 @@ namespace Altinn.Platform.Events.Controllers
             {
                 try
                 {
-                    _logger.LogInformation("Person: " + person);
                     party = await _registerService.PartyLookup(unit, person);
                 }
                 catch (PlatformHttpException e)
