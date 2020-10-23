@@ -37,7 +37,7 @@ namespace Altinn.Platform.Storage.Controllers
     [ApiController]
     public class InstancesController : ControllerBase
     {
-        private List<string> instanceReadScope = new List<string>()
+        private readonly List<string> instanceReadScope = new List<string>()
         {
             "altinn:instances.read",
             "altinn:serviceowner/instances.read"

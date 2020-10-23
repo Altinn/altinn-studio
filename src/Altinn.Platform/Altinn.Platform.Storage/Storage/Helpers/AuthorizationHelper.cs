@@ -307,11 +307,14 @@ namespace Altinn.Platform.Storage.Helpers
 
             contextScope ??= user.Claims.Where(c => c.Type.Equals("scope")).Select(c => c.Value).FirstOrDefault();
 
-            foreach (string scope in requiredScope)
-            {
-                if (!string.IsNullOrWhiteSpace(contextScope) && contextScope.Contains(scope, StringComparison.InvariantCultureIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(contextScope))
+            { 
+                foreach (string scope in requiredScope)
                 {
-                    return true;
+                    if (contextScope.Contains(scope, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return true;
+                    }
                 }
             }
 

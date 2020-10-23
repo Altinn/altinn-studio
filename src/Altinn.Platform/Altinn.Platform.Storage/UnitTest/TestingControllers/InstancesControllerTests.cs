@@ -356,36 +356,36 @@ namespace Altinn.Platform.Storage.UnitTest.TestingControllers
             /// Expected: List of instances is returned.
             /// </summary>
         [Fact]
-            public async void GetMany_OrgRequestsAllAppInstancesAlternativeScope_Ok()
-            {
-                // Arrange
-                string requestUri = $"{BasePath}?appId=ttd/complete-test";
+        public async void GetMany_OrgRequestsAllAppInstancesAlternativeScope_Ok()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}?appId=ttd/complete-test";
 
-                HttpClient client = GetTestClient();
-                string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:serviceowner/instances.read");
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpClient client = GetTestClient();
+            string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:serviceowner/instances.read");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                int expectedNoInstances = 4;
+            int expectedNoInstances = 4;
 
-                // Act
-                HttpResponseMessage response = await client.GetAsync(requestUri);
-                string json = await response.Content.ReadAsStringAsync();
-                InstanceQueryResponse queryResponse = JsonConvert.DeserializeObject<InstanceQueryResponse>(json);
+            // Act
+            HttpResponseMessage response = await client.GetAsync(requestUri);
+            string json = await response.Content.ReadAsStringAsync();
+            InstanceQueryResponse queryResponse = JsonConvert.DeserializeObject<InstanceQueryResponse>(json);
 
-                // Assert
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
-            }
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(expectedNoInstances, queryResponse.TotalHits);
+        }
 
-            /// <summary>
-            /// Test case: Org user requests to get all instances linked to their org.
-            /// Expected: List of instances is returned.
-            /// </summary>
-            [Fact]
-            public async void GetMany_OrgRequestsAllInstances_Ok()
-            {
-                // Arrange
-                string requestUri = $"{BasePath}?org=ttd";
+        /// <summary>
+        /// Test case: Org user requests to get all instances linked to their org.
+        /// Expected: List of instances is returned.
+        /// </summary>
+        [Fact]
+        public async void GetMany_OrgRequestsAllInstances_Ok()
+        {
+            // Arrange
+            string requestUri = $"{BasePath}?org=ttd";
 
             HttpClient client = GetTestClient();
             string token = PrincipalUtil.GetOrgToken("ttd", scope: "altinn:instances.read");
