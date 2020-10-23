@@ -125,10 +125,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
             return await _instantiationHandler.RunInstantiationValidation(instance);
         }
 
-        /// <summary>
-        /// Is called to run data creation (custom prefill) defined by app developer.
-        /// </summary>
-        /// <param name="instance">The data to perform data creation on</param>
         public override async Task RunDataCreation(Instance instance, object data)
         {
             await _instantiationHandler.DataCreation(instance, data);
