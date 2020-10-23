@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.AccessToken" Version="0.5.8" />
+    <PackageReference Include="Altinn.Common.AccessToken" Version="0.5.10" />
     <PackageReference Include="Altinn.Platform.Models" Version="1.0.4-alpha" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.0" />
