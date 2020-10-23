@@ -1,15 +1,18 @@
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Common.PEP.Authorization;
-using Altinn.Common.PEP.Constants;
-using Altinn.Common.PEP.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Routing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
+
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Authorization;
+using Altinn.Common.PEP.Constants;
+using Altinn.Common.PEP.Models;
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Routing;
+
 using static Altinn.Authorization.ABAC.Constants.XacmlConstants;
 
 namespace Altinn.Common.PEP.Helpers
@@ -50,6 +53,13 @@ namespace Altinn.Common.PEP.Helpers
             return jsonRequest;
         }
 
+        /// <summary>
+        /// Create a new <see cref="XacmlJsonRequestRoot"/> to represent a decision request.
+        /// </summary>
+        /// <param name="context">The current <see cref="AuthorizationHandlerContext"/></param>
+        /// <param name="requirement">The access requirements</param>
+        /// <param name="routeData">The route data from a request.</param>
+        /// <returns>A decision request</returns>
         public static XacmlJsonRequestRoot CreateDecisionRequest(AuthorizationHandlerContext context, AppAccessRequirement requirement, RouteData routeData)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
@@ -81,12 +91,31 @@ namespace Altinn.Common.PEP.Helpers
             return jsonRequest;
         }
 
+        /// <summary>
+        /// Create a new <see cref="XacmlJsonCategory"/> with a list of subject attributes based on the given claims.
+        /// </summary>
+        /// <param name="claims">The list of claims</param>
+        /// <returns>A populated subject category</returns>
         public static XacmlJsonCategory CreateSubjectCategory(IEnumerable<Claim> claims)
         {
             XacmlJsonCategory subjectAttributes = new XacmlJsonCategory();
             subjectAttributes.Attribute = CreateSubjectAttributes(claims);
 
             return subjectAttributes;
+        }
+
+        /// <summary>
+        /// Create a new <see cref="XacmlJsonCategory"/> attribute of type Action with the given action type
+        /// </summary>
+        /// <param name="actionType">The action type</param>
+        /// <param name="includeResult">A value indicating whether the value should be included in the result.</param>
+        /// <returns>The created category</returns>
+        public static XacmlJsonCategory CreateActionCategory(string actionType, bool includeResult = false)
+        {
+            XacmlJsonCategory actionAttributes = new XacmlJsonCategory();
+            actionAttributes.Attribute = new List<XacmlJsonAttribute>();
+            actionAttributes.Attribute.Add(CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType, DefaultType, DefaultIssuer, includeResult));
+            return actionAttributes;
         }
 
         private static List<XacmlJsonAttribute> CreateSubjectAttributes(IEnumerable<Claim> claims)
@@ -103,14 +132,6 @@ namespace Altinn.Common.PEP.Helpers
             }
 
             return attributes;
-        }
-
-        public static XacmlJsonCategory CreateActionCategory(string actionType, bool includeResult = false)
-        {
-            XacmlJsonCategory actionAttributes = new XacmlJsonCategory();
-            actionAttributes.Attribute = new List<XacmlJsonAttribute>();
-            actionAttributes.Attribute.Add(CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType, DefaultType, DefaultIssuer, includeResult));
-            return actionAttributes;
         }
 
         private static XacmlJsonCategory CreateResourceCategory(string org, string app, string instanceOwnerPartyId, string instanceGuid, bool includeResult = false)
@@ -141,6 +162,15 @@ namespace Altinn.Common.PEP.Helpers
             return resourceCategory;
         }
 
+        /// <summary>
+        /// Create a new <see cref="XacmlJsonAttribute"/> with the given values.
+        /// </summary>
+        /// <param name="attributeId">The attribute id</param>
+        /// <param name="value">The attribute value</param>
+        /// <param name="dataType">The datatype for the attribute value</param>
+        /// <param name="issuer">The issuer</param>
+        /// <param name="includeResult">A value indicating whether the value should be included in the result.</param>
+        /// <returns>A new created attribute</returns>
         public static XacmlJsonAttribute CreateXacmlJsonAttribute(string attributeId, string value, string dataType, string issuer, bool includeResult = false)
         {
             XacmlJsonAttribute xacmlJsonAttribute = new XacmlJsonAttribute();

@@ -1,6 +1,7 @@
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 
 namespace Altinn.Common.PEP.Interfaces
 {
@@ -17,6 +18,7 @@ namespace Altinn.Common.PEP.Interfaces
         /// Change this to a better one???????
         /// </summary>
         /// <param name="xacmlJsonRequest">The Xacml Json Request</param>
+        /// <param name="user">The claims principal</param>
         /// <returns>Returns true if request is permitted and false if not</returns>
         Task<bool> GetDecisionForUnvalidateRequest(XacmlJsonRequestRoot xacmlJsonRequest, ClaimsPrincipal user);
     }

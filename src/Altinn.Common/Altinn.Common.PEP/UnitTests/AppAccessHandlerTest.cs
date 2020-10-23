@@ -1,17 +1,19 @@
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Common.PEP.Configuration;
-using Altinn.Common.PEP.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Moq;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Configuration;
+using Altinn.Common.PEP.Interfaces;
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
 using Xunit;
 
 namespace Altinn.Common.PEP.Authorization
@@ -84,6 +86,7 @@ namespace Altinn.Common.PEP.Authorization
             AuthorizationHandlerContext context = CreateAuthorizationHandlerContext();
             _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(CreateHttpContext());
             XacmlJsonResponse response = CreateResponse(XacmlContextDecision.Permit.ToString());
+
             // Add extra result
             response.Response.Add(new XacmlJsonResult());
             _pdpMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>())).Returns(Task.FromResult(response));
@@ -186,10 +189,7 @@ namespace Altinn.Common.PEP.Authorization
             claims.Add(new Claim("urn:name", "Ola", "string", "org"));
             claims.Add(new Claim("urn:altinn:authlevel", "2", "string", "org"));
 
-            ClaimsPrincipal user = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                        claims
-                    ));
+            ClaimsPrincipal user = new ClaimsPrincipal(new ClaimsIdentity(claims));
 
             return user;
         }
@@ -210,6 +210,7 @@ namespace Altinn.Common.PEP.Authorization
             // Create response 
             XacmlJsonResponse response = new XacmlJsonResponse();
             response.Response = new List<XacmlJsonResult>();
+
             // Set result to premit
             XacmlJsonResult result = new XacmlJsonResult();
             result.Decision = decision;
@@ -240,12 +241,11 @@ namespace Altinn.Common.PEP.Authorization
         {
             AppAccessRequirement requirement = new AppAccessRequirement("read");
             ClaimsPrincipal user = CreateUser();
-            Document resource = new Document();
+            Document resource = default(Document);
             AuthorizationHandlerContext context = new AuthorizationHandlerContext(
                 new[] { requirement },
                 user,
-                resource
-                );
+                resource);
             return context;
         }
     }
