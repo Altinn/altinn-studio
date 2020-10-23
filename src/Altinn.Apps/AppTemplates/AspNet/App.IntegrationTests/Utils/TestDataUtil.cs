@@ -27,7 +27,7 @@ namespace App.IntegrationTests.Utils
 
         public static void DeleteInstanceAndData(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
-           DeleteDataForInstance(org, app, instanceOwnerId, instanceGuid);
+            DeleteDataForInstance(org, app, instanceOwnerId, instanceGuid);
 
             string instancePath = GetInstancePath(org, app, instanceOwnerId, instanceGuid);
             if (File.Exists(instancePath))
@@ -50,8 +50,6 @@ namespace App.IntegrationTests.Utils
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @".json");
         }
-
-
 
         private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {

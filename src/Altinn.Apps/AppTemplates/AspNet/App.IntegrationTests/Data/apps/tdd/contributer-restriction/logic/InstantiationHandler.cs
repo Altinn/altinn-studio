@@ -3,37 +3,21 @@ using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.contributer_restriction
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class InstantiationHandler
     {
         private IProfile _profileService;
         private IRegister _registerService;
 
-        /// <summary>
-        /// Set up access to profile and register services
-        /// </summary>
-        /// <param name="profileService"></param>
-        /// <param name="registerService"></param>
         public InstantiationHandler(IProfile profileService, IRegister registerService)
         {
             _profileService = profileService;
             _registerService = registerService;
         }
 
-        /// <summary>
-        /// Run validations related to instantiation
-        /// </summary>
-        /// <example>
-        /// if ([some condition])
-        /// {
-        ///     return new ValidationResult("[error message]");
-        /// }
-        /// return null;
-        /// </example>
-        /// <param name="instance"></param>
-        /// <param name="validationResults"></param>
-        /// <returns>The validation result object (null if no errors) </returns>
         public InstantiationValidationResult RunInstantiationValidation(Instance instance)
         {
             DateTime now = DateTime.Now;

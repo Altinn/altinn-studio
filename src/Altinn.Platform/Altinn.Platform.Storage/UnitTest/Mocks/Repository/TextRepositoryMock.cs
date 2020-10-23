@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-
 
 namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
 {
@@ -64,6 +64,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         {
             throw new NotImplementedException();
         }
+
         private string GetTextId(string org, string app, string language)
         {
             return $"{org}-{app}-{language}";

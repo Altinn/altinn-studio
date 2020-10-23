@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
 using Xunit;
@@ -13,12 +13,6 @@ namespace Altinn.Platform.Storage.UnitTest
     /// </summary>
     public class InstanceHelperTest
     {
-
-        public InstanceHelperTest()
-        {
-
-        }
-
         /// <summary>
         /// Scenario: Converting list containing a single instance whith id {instanceOwner}/{instanceGuid}
         /// Expected: The instance is converted to a message box instance
@@ -70,7 +64,8 @@ namespace Altinn.Platform.Storage.UnitTest
             // Arrange
             string lastChangedBy = TestData.UserId_1;
             Instance instance = TestData.Instance_1_1;
-            instance.Data = new List<DataElement>() {
+            instance.Data = new List<DataElement>()
+            {
                 new DataElement()
                 {
                     LastChanged = Convert.ToDateTime("2019-08-21T19:19:22.2135489Z"),
@@ -205,4 +200,3 @@ namespace Altinn.Platform.Storage.UnitTest
         }
     }
 }
-

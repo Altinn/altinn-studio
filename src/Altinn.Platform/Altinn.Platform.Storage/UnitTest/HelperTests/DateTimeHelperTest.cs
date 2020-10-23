@@ -6,7 +6,6 @@ namespace Altinn.Platform.Storage.UnitTest
 {
     public class DateTimeHelperTest
     {
-
         [Fact]
         public void ParseDateTest()
         {

@@ -1,5 +1,7 @@
 using System;
 using System.Net;
+using System.Threading.Tasks;
+
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Receipt.Configuration;
 using Altinn.Platform.Receipt.Health;
@@ -148,11 +150,11 @@ namespace Altinn.Platform.Receipt
             }
 
             app.UseStaticFiles();
-            app.UseStatusCodePages(async context =>
+            app.UseStatusCodePages(context =>
             {
                 var request = context.HttpContext.Request;
                 var response = context.HttpContext.Response;
-                string url = $"https://platform.{Configuration["GeneralSettings:Hostname"]}{request.Path.ToString()}";
+                string url = $"https://platform.{Configuration["GeneralSettings:Hostname"]}{request.Path}";
 
                 // you may also check requests path to do this only for specific methods
                 // && request.Path.Value.StartsWith("/specificPath")
@@ -160,6 +162,8 @@ namespace Altinn.Platform.Receipt
                 {
                     response.Redirect($"{authenticationEndpoint}authentication?goto={url}");
                 }
+
+                return Task.CompletedTask;
             });
 
             app.UseRouting();

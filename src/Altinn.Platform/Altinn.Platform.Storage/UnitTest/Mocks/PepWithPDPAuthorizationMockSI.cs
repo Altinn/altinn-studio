@@ -31,13 +31,13 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
     {
         private readonly IInstanceRepository _instanceService;
 
-        private readonly string OrgAttributeId = "urn:altinn:org";
+        private readonly string _orgAttributeId = "urn:altinn:org";
 
-        private readonly string AppAttributeId = "urn:altinn:app";
+        private readonly string _appAttributeId = "urn:altinn:app";
 
-        private readonly string UserAttributeId = "urn:altinn:userid";
+        private readonly string _userAttributeId = "urn:altinn:userid";
 
-        private readonly string AltinnRoleAttributeId = "urn:altinn:rolecode";
+        private readonly string _altinnRoleAttributeId = "urn:altinn:rolecode";
 
         public PepWithPDPAuthorizationMockSI(IInstanceRepository instanceService)
         {
@@ -147,6 +147,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
                     }
                 }
             }
+
             return instanceId;
         }
 
@@ -155,7 +156,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
             return DecisionHelper.ValidatePdpDecision(response.Response, user);
         }
-
 
         public async Task<XacmlContextRequest> Enrich(XacmlContextRequest request)
         {
@@ -199,7 +199,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
             }
-
 
             if (!resourceAttributeComplete)
             {
@@ -263,7 +262,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
             foreach (XacmlAttribute xacmlAttribute in subjectContextAttributes.Attributes)
             {
-                if (xacmlAttribute.AttributeId.OriginalString.Equals(UserAttributeId))
+                if (xacmlAttribute.AttributeId.OriginalString.Equals(_userAttributeId))
                 {
                     subjectUserId = Convert.ToInt32(xacmlAttribute.AttributeValues.First().Value);
                 }
@@ -278,7 +277,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }
-
 
         private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
         {
@@ -322,7 +320,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
         private XacmlAttribute GetRoleAttribute(List<Role> roles)
         {
-            XacmlAttribute attribute = new XacmlAttribute(new Uri(AltinnRoleAttributeId), false);
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(_altinnRoleAttributeId), false);
             foreach (Role role in roles)
             {
                 attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), role.Value));
@@ -368,7 +366,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
                 {
                     foreach (XacmlAttribute asd in attr.Attributes)
                     {
-                        if (asd.AttributeId.OriginalString.Equals(OrgAttributeId))
+                        if (asd.AttributeId.OriginalString.Equals(_orgAttributeId))
                         {
                             foreach (var asff in asd.AttributeValues)
                             {
@@ -377,7 +375,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
                             }
                         }
 
-                        if (asd.AttributeId.OriginalString.Equals(AppAttributeId))
+                        if (asd.AttributeId.OriginalString.Equals(_appAttributeId))
                         {
                             foreach (var asff in asd.AttributeValues)
                             {
@@ -391,7 +389,6 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks
 
             return GetAltinnAppsPolicyPath(org, app);
         }
-
 
         public static XacmlPolicy ParsePolicy(string policyDocumentTitle, string policyPath)
         {

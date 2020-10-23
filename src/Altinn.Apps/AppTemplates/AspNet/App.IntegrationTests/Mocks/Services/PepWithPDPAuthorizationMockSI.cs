@@ -1,3 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Xml;
+
 using Altinn.App.Services.Interface;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
@@ -6,18 +14,12 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Configuration;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Platform.Storage.Interface.Models;
+
 using App.IntegrationTestsRef.Constants;
 using App.IntegrationTestsRef.Models;
+
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace App.IntegrationTests.Mocks.Services
 {
@@ -27,28 +29,27 @@ namespace App.IntegrationTests.Mocks.Services
 
         private readonly PepSettings _pepSettings;
 
-        private readonly string OrgAttributeId = "urn:altinn:org";
+        private const string OrgAttributeId = "urn:altinn:org";
 
-        private readonly string AppAttributeId = "urn:altinn:app";
+        private const string AppAttributeId = "urn:altinn:app";
 
-        private readonly string InstanceAttributeId = "urn:altinn:instance-id";
+        private const string InstanceAttributeId = "urn:altinn:instance-id";
 
-        private readonly string TaskAttributeId = "urn:altinn:task";
+        private const string TaskAttributeId = "urn:altinn:task";
 
-        private readonly string EndEventAttributeId = "urn:altinn:end-event";
+        private const string EndEventAttributeId = "urn:altinn:end-event";
 
-        private readonly string PartyAttributeId = "urn:altinn:partyid";
+        private const string PartyAttributeId = "urn:altinn:partyid";
 
-        private readonly string UserAttributeId = "urn:altinn:userid";
+        private const string UserAttributeId = "urn:altinn:userid";
 
-        private readonly string AltinnRoleAttributeId = "urn:altinn:rolecode";
+        private const string AltinnRoleAttributeId = "urn:altinn:rolecode";
 
         public PepWithPDPAuthorizationMockSI(IInstance instanceService, IOptions<PepSettings> pepSettings)
         {
             this._instanceService = instanceService;
             _pepSettings = pepSettings.Value;
         }
-
 
         public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
@@ -76,7 +77,6 @@ namespace App.IntegrationTests.Mocks.Services
             XacmlJsonResponse response = await GetDecisionForRequest(xacmlJsonRequest);
             return DecisionHelper.ValidatePdpDecision(response.Response, user);
         }
-
 
         public async Task<XacmlContextRequest> Enrich(XacmlContextRequest request)
         {
@@ -120,7 +120,6 @@ namespace App.IntegrationTests.Mocks.Services
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
             }
-
 
             if (!resourceAttributeComplete)
             {
@@ -200,7 +199,6 @@ namespace App.IntegrationTests.Mocks.Services
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }
 
-
         private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
         {
             XacmlResourceAttributes resourceAttributes = new XacmlResourceAttributes();
@@ -244,6 +242,7 @@ namespace App.IntegrationTests.Mocks.Services
         private XacmlAttribute GetPartyAttribute(Instance instance)
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(PartyAttributeId), false);
+
             // When Party attribute is missing from input it is good to return it so PEP can get this information
             attribute.IncludeInResult = true;
             attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.InstanceOwner.PartyId));
@@ -320,7 +319,6 @@ namespace App.IntegrationTests.Mocks.Services
 
             return GetAltinnAppsPolicyPath(org, app);
         }
-
 
         public static XacmlPolicy ParsePolicy(string policyDocumentTitle, string policyPath)
         {

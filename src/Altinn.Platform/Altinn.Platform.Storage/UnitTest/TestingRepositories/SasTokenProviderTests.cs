@@ -151,7 +151,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
             List<Task> tasks = new List<Task>();
             for (int i = 0; i < 5; i++)
             {
-                Task task1 = Task.Run(async delegate
+                Task task1 = Task.Run(async () =>
                 {
                     mre.WaitOne();
                     await target.GetSasToken(org_ttd);
@@ -159,7 +159,7 @@ namespace Altinn.Platform.Storage.UnitTest.TestingRepositories
 
                 tasks.Add(task1);
 
-                Task task2 = Task.Run(async delegate
+                Task task2 = Task.Run(async () =>
                 {
                     mre.WaitOne();
                     await target.GetSasToken(org_brg);

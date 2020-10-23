@@ -118,7 +118,6 @@ namespace App.IntegrationTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-
             StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
 
@@ -199,7 +198,6 @@ namespace App.IntegrationTests
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
 
             StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
             content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
@@ -581,7 +579,8 @@ namespace App.IntegrationTests
                     Label = "Substatus.Approved.Label",
                     Description = "Substatus.Approved.Description"
                 }),
-                Encoding.UTF8, "application/json");
+                Encoding.UTF8,
+                "application/json");
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);

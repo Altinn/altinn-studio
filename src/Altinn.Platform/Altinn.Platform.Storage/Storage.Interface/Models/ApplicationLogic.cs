@@ -13,18 +13,18 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// this data type when the task referred by taskId starts.
         /// </summary>
         [JsonProperty(PropertyName = "autoCreate")]
-        public bool? AutoCreate;
+        public bool? AutoCreate { get; set; }
 
         /// <summary>
         /// Gets or sets the class type to instantiate when creating an instance of this data type.
         /// </summary>
         [JsonProperty(PropertyName = "classRef")]
-        public string ClassRef;
+        public string ClassRef { get; set; }
 
         /// <summary>
         /// Gets or sets the name and path to the data type schema.
         /// </summary>
         [JsonProperty(PropertyName = "schemaRef")]
-        public string SchemaRef;
+        public string SchemaRef { get; set; }
     }
 }

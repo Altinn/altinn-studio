@@ -35,7 +35,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
         {
             DataElement dataElement = null;
 
-            lock (TestDataUtil.dataLock)
+            lock (TestDataUtil.DataLock)
             {
                 string elementPath = Path.Combine(GetDataElementsPath(), dataElementId.ToString() + ".json");
                 if (File.Exists(elementPath))
@@ -50,7 +50,7 @@ namespace Altinn.Platform.Storage.UnitTest.Mocks.Repository
                 return await Task.FromResult(dataElement);
             }
 
-            throw (CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound));
+            throw CreateDocumentClientExceptionForTesting("Not Found", HttpStatusCode.NotFound);
         }
 
         public async Task<List<DataElement>> ReadAll(Guid instanceGuid)

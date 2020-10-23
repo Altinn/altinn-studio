@@ -1,22 +1,27 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using Altinn.App.Services.Interface;
-using Microsoft.Extensions.Logging;
-using Altinn.App.Services.Implementation;
+
 using Altinn.App.Common.Enums;
+using Altinn.App.Common.Models;
+using Altinn.App.Services.Implementation;
+using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.App.Common.Models;
-using App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic;
-using App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic.Validation;
-using App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic.Calculation;
-using Microsoft.AspNetCore.Http;
-using App.IntegrationTestsRef.Data.apps.tdd.sirius.services;
-using System.Linq;
-using System.IO;
 
+using App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic;
+using App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic.Calculation;
+using App.IntegrationTests.Mocks.Apps.tdd.sirius.AppLogic.Validation;
+using App.IntegrationTestsRef.Data.apps.tdd.sirius.services;
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
+
+#pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class App : AppBase, IAltinnApp
     {
@@ -38,8 +43,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
             IPrefill prefillService,
             IInstance instanceService,
             ISiriusApi siriusService,
-            IHttpContextAccessor accessor
-            ) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
+            IHttpContextAccessor accessor) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler(instanceService);
@@ -79,11 +83,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
             return await Task.FromResult(true);
         }
 
-        /// <summary>
-        /// Run validation event to perform custom validations
-        /// </summary>
-        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
-        /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
         {
             await _validationHandler.ValidateData(data, validationResults);
@@ -100,10 +99,11 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
                     bool isValidNæring = await _siriusApi.IsValidNæring(næringsStream);
                     if(!isValidNæring)
                     {
-                        validationResults.AddModelError("", "invalid.næring");
+                        validationResults.AddModelError(string.Empty, "invalid.næring");
                     }
                 }
             }
+
             await _validationHandler.ValidateTask(instance, taskId, validationResults);
         }
 
@@ -125,10 +125,6 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
             return await _instantiationHandler.RunInstantiationValidation(instance);
         }
 
-        /// <summary>
-        /// Is called to run data creation (custom prefill) defined by app developer.
-        /// </summary>
-        /// <param name="instance">The data to perform data creation on</param>
         public override async Task RunDataCreation(Instance instance, object data)
         {
             await _instantiationHandler.DataCreation(instance, data);
