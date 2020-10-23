@@ -15,23 +15,10 @@ namespace Altinn.Platform.Register.Tests.Mocks.Authentication
     /// </summary>
     public class ConfigurationManagerStub : IConfigurationManager<OpenIdConnectConfiguration>
     {
-        /// <summary>
-        /// Initializes a new instance of <see cref="ConfigurationManagerStub" />
-        /// </summary>
-        /// <param name="metadataAddress">The address to obtain configuration.</param>
-        /// <param name="configRetriever">The <see cref="IConfigurationRetriever{OpenIdConnectConfiguration}" /></param>
-        /// <param name="docRetriever">The <see cref="IDocumentRetriever" /> that reaches out to obtain the configuration.</param>
-        public ConfigurationManagerStub(
-            string metadataAddress,
-            IConfigurationRetriever<OpenIdConnectConfiguration> configRetriever,
-            IDocumentRetriever docRetriever)
-        {
-        }
-
         /// <inheritdoc />
         public async Task<OpenIdConnectConfiguration> GetConfigurationAsync(CancellationToken cancel)
         {
-            ICollection<SecurityKey> signingKeys = await GetSigningKeys(string.Empty);
+            ICollection<SecurityKey> signingKeys = await GetSigningKeys();
 
             OpenIdConnectConfiguration configuration = new OpenIdConnectConfiguration();
             foreach (var securityKey in signingKeys)
@@ -48,8 +35,7 @@ namespace Altinn.Platform.Register.Tests.Mocks.Authentication
             throw new NotImplementedException();
         }
 
-
-        private async Task<ICollection<SecurityKey>> GetSigningKeys(string url)
+        private async Task<ICollection<SecurityKey>> GetSigningKeys()
         {
             List<SecurityKey> signingKeys = new List<SecurityKey>();
 

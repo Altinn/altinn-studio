@@ -1,21 +1,16 @@
-using Altinn.Common.AccessToken.Services;
-using Microsoft.IdentityModel.Tokens;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
+
+using Altinn.Common.AccessToken.Services;
+
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Platform.Register.Tests.Mocks
 {
     public class SigningKeyResolverMock: ISigningKeysResolver
     {
-        public SigningCredentials GetSigningCredentials()
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<IEnumerable<SecurityKey>> GetSigningKeys(string issuer)
         {
             List<SecurityKey> signingKeys = new List<SecurityKey>();
