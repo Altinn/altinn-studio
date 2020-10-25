@@ -585,6 +585,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             return fileData;
         }
+        
+        /// <inheritdoc/>
+        public string GetJsonFormLayouts(string org, string app)
+        {
+            Dictionary<string, object> layouts = new Dictionary<string, dynamic>();
+
+            // Get FormLayout.json if it exists and return it (for backwards compatibility)
+            string filedata = string.Empty;
+            string formLayoutPath = _settings.GetFormLayoutPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            if (File.Exists(formLayoutPath))
+            {
+                filedata = File.ReadAllText(formLayoutPath, Encoding.UTF8);
+                layouts.Add("FormLayout", JsonConvert.DeserializeObject<object>(filedata));
+                return JsonConvert.SerializeObject(layouts);
+            }
+
+            string formLayoutsPath = _settings.GetFormLayoutsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            if (Directory.Exists(formLayoutsPath))
+            {
+                foreach (string file in Directory.GetFiles(formLayoutsPath))
+                {
+                    string data = File.ReadAllText(file, Encoding.UTF8);
+                    string name = file.Replace(_settings.GetFormLayoutsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), string.Empty).Replace(".json", string.Empty);
+                    layouts.Add(name, JsonConvert.DeserializeObject<object>(data));
+                }
+            }
+
+            return JsonConvert.SerializeObject(layouts);
+        }
 
         /// <summary>
         /// Get the Json third party components from disk
@@ -678,13 +707,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resource">The content of the resource file</param>
+        /// <param name="formLayouts">The form layouts to save</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveJsonFormLayout(string org, string app, string resource)
+        public bool SaveFormLayouts(string org, string app, string formLayouts)
         {
-            string filePath = _settings.GetFormLayoutPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, resource, Encoding.UTF8);
+            Dictionary<string, object> dict = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayouts);
+            foreach (KeyValuePair<string, dynamic> entry in dict)
+            {
+                string filePath = _settings.GetFormLayoutPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), entry.Key);
+                new FileInfo(filePath).Directory.Create();
+                File.WriteAllText(filePath, entry.Value.ToString(), Encoding.UTF8);
+            }
 
             return true;
         }

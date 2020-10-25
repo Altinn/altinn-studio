@@ -105,3 +105,23 @@ export const UPDATE_APPLICATION_METADATA_REJECTED: string = `${moduleName}.UPDAT
 export const UPDATE_CONTAINER_ID: string = `${moduleName}.UPDATE_CONTAINER_ID`;
 export const UPDATE_CONTAINER_ID_FULFILLED: string = `${moduleName}.UPDATE_CONTAINER_ID_FULFILLED`;
 export const UPDATE_CONTAINER_ID_REJECTED: string = `${moduleName}.UPDATE_CONTAINER_ID_REJECTED`;
+
+// Update selecetd layout actions
+export const UPDATE_SELECTED_LAYOUT: string = `${moduleName}.UPDATE_SELECTED_LAYOUT`;
+export const UPDATE_SELECTED_LAYOUT_FULFILLED: string = `${moduleName}.UPDATE_SELECTED_LAYOUT_FULFILLED`;
+export const UPDATE_SELECTED_LAYOUT_REJECTED: string = `${moduleName}.UPDATE_SELECTED_LAYOUT_REJECTED`;
+
+// Add layout actions
+export const ADD_LAYOUT: string = `${moduleName}.ADD_LAYOUT_ACTION`;
+export const ADD_LAYOUT_FULFILLED: string = `${moduleName}.ADD_LAYOUT_FULFILLED`;
+export const ADD_LAYOUT_REJECTED: string = `${moduleName}.ADD_LAYOUT_REJECTED`;
+
+// Delete layout actions
+export const DELETE_LAYOUT: string = `${moduleName}.DELETE_LAYOUT_ACTION`;
+export const DELETE_LAYOUT_FULFILLED: string = `${moduleName}.DELTE_LAYOUT_FULFILLED`;
+export const DELETE_LAYOUT_REJECTED: string = `${moduleName}.DELETE_LAYOUT_REJECTED`;
+
+// Update layout name actions
+export const UPDATE_LAYOUT_NAME: string = `${moduleName}.UPDATE_LAYOUT_NAME`;
+export const UPDATE_LAYOUT_NAME_FULFILLED: string = `${moduleName}.UPDATE_LAYOUT_NAME_FULFILLED`;
+export const UPDATE_LAYOUT_NAME_REJECTED: string = `${moduleName}.UPDATE_LAYOUT_NAME_REJECTED`;

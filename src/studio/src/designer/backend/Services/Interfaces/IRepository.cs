@@ -357,6 +357,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         string GetJsonFormLayout(string org, string app);
 
         /// <summary>
+        /// Get the form layouts from disk
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>Returns the json object as a string</returns>
+        string GetJsonFormLayouts(string org, string app);
+
+        /// <summary>
         /// Get the Json third party components from disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -377,9 +385,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resource">The content of the resource file</param>
+        /// <param name="formLayouts">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        bool SaveJsonFormLayout(string org, string app, string resource);
+        bool SaveFormLayouts(string org, string app, string formLayouts);
 
         /// <summary>
         /// Save the JSON third party components to disk

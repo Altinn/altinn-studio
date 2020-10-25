@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
@@ -51,7 +52,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         public ActionResult GetFormLayout(string org, string app)
         {
-            return Content(_repository.GetJsonFormLayout(org, app), "text/plain", Encoding.UTF8);
+            return Content(_repository.GetJsonFormLayouts(org, app), "text/plain", Encoding.UTF8);
         }
 
         /// <summary>
@@ -102,7 +103,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         public ActionResult SaveFormLayout([FromBody] dynamic jsonData, string org, string app)
         {
-            _repository.SaveJsonFormLayout(org, app, jsonData.ToString());
+            _repository.SaveFormLayouts(org, app, jsonData.ToString());
 
             return Json(new
             {

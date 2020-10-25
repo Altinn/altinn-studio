@@ -166,6 +166,14 @@ declare global {
   }
 
   export interface IFormDesignerLayout {
+    layouts: IFormLayouts;
+  }
+
+  export interface IFormLayouts {
+    [id: string]: IFormLayout;
+  }
+
+  export interface IFormLayout {
     components: IFormDesignerComponent;
     containers: IFormDesignerContainer;
     order: IFormLayoutOrder;

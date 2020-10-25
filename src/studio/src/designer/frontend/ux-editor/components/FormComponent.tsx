@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { createStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -173,12 +174,12 @@ const makeMapStateToProps = () => {
     classes: props.classes,
     sendListToParent: props.sendListToParent,
     singleSelected: props.singleSelected,
-    component: state.formDesigner.layout.components[props.id],
+    component: state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id],
     order: GetLayoutOrderSelector(state),
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
       (element) => element.dataBindingName ===
-        state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding,
+        state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id].dataModelBindings.simpleBinding,
     ),
     validationErrors: null,
     textResources: state.appData.textResources.resources,

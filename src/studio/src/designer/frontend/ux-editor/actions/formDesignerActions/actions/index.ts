@@ -17,3 +17,7 @@ export * from './addApplicationMetadata';
 export * from './deleteApplicationMetadata';
 export * from './updateApplicationMetadata';
 export * from './updateContainerId';
+export * from './updateSelectedLayout';
+export * from './addLayout';
+export * from './deleteLayout';
+export * from './updateLayoutName';

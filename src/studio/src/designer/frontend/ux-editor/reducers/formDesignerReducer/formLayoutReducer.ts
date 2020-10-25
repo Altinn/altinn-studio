@@ -1,3 +1,5 @@
+/* eslint-disable import/no-cycle */
+/* eslint-disable max-len */
 /* eslint-disable prefer-object-spread */
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
@@ -12,12 +14,11 @@ export interface IFormLayoutState extends IFormDesignerLayout {
   unSavedChanges: boolean;
   activeContainer: string;
   activeList: any;
+  selectedLayout: string;
 }
 
 const initialState: IFormLayoutState = {
-  components: {},
-  containers: {},
-  order: {},
+  layouts: {},
   fetching: false,
   fetched: false,
   error: null,
@@ -25,6 +26,7 @@ const initialState: IFormLayoutState = {
   unSavedChanges: false,
   activeContainer: '',
   activeList: [],
+  selectedLayout: 'default',
 };
 
 const formLayoutReducer: Reducer<IFormLayoutState> = (
@@ -59,14 +61,18 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         callback(component, id);
       }
       return update<IFormLayoutState>(state, {
-        components: {
-          [id]: {
-            $set: component,
-          },
-        },
-        order: {
-          [containerId]: {
-            $splice: [[position, 0, id]],
+        layouts: {
+          [state.selectedLayout]: {
+            components: {
+              [id]: {
+                $set: component,
+              },
+            },
+            order: {
+              [containerId]: {
+                $splice: [[position, 0, id]],
+              },
+            },
           },
         },
       });
@@ -87,84 +93,104 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       }
       if (!baseContainerId) {
         return update<IFormLayoutState>(state, {
-          containers: {
-            [id]: {
-              $set: container,
-            },
-          },
-          order: {
-            [id]: {
-              $set: [],
+          layouts: {
+            [state.selectedLayout]: {
+              containers: {
+                [id]: {
+                  $set: container,
+                },
+              },
+              order: {
+                [id]: {
+                  $set: [],
+                },
+              },
             },
           },
         });
       }
       if (addToId && positionAfterId) {
         return update<IFormLayoutState>(state, {
-          containers: {
-            [id]: {
-              $set: container,
-            },
-          },
-          order: {
-            [id]: {
-              $set: [],
-            },
-            [addToId]: {
-              $push: [id],
-            },
-            [baseContainerId]: {
-              $splice: [[state.order[baseContainerId].indexOf(positionAfterId) + 1, 0, id]],
+          layouts: {
+            [state.selectedLayout]: {
+              containers: {
+                [id]: {
+                  $set: container,
+                },
+              },
+              order: {
+                [id]: {
+                  $set: [],
+                },
+                [addToId]: {
+                  $push: [id],
+                },
+                [baseContainerId]: {
+                  $splice: [[state.layouts[state.selectedLayout].order[baseContainerId].indexOf(positionAfterId) + 1, 0, id]],
+                },
+              },
             },
           },
         });
       }
       if (addToId) {
         return update<IFormLayoutState>(state, {
-          containers: {
-            [id]: {
-              $set: container,
-            },
-          },
-          order: {
-            [id]: {
-              $set: [],
-            },
-            [addToId]: {
-              $push: [id],
+          layouts: {
+            [state.selectedLayout]: {
+              containers: {
+                [id]: {
+                  $set: container,
+                },
+              },
+              order: {
+                [id]: {
+                  $set: [],
+                },
+                [addToId]: {
+                  $push: [id],
+                },
+              },
             },
           },
         });
       }
       if (!destinationIndex === false || destinationIndex === 0) {
         return update<IFormLayoutState>(state, {
-          containers: {
-            [id]: {
-              $set: container,
-            },
-          },
-          order: {
-            [id]: {
-              $set: [],
-            },
-            [baseContainerId]: {
-              $splice: [[destinationIndex, 0, id]],
+          layouts: {
+            [state.selectedLayout]: {
+              containers: {
+                [id]: {
+                  $set: container,
+                },
+              },
+              order: {
+                [id]: {
+                  $set: [],
+                },
+                [baseContainerId]: {
+                  $splice: [[destinationIndex, 0, id]],
+                },
+              },
             },
           },
         });
       }
       return update<IFormLayoutState>(state, {
-        containers: {
-          [id]: {
-            $set: container,
-          },
-        },
-        order: {
-          [id]: {
-            $set: [],
-          },
-          [baseContainerId]: {
-            $push: [id],
+        layouts: {
+          [state.selectedLayout]: {
+            containers: {
+              [id]: {
+                $set: container,
+              },
+            },
+            order: {
+              [id]: {
+                $set: [],
+              },
+              [baseContainerId]: {
+                $push: [id],
+              },
+            },
           },
         },
       });
@@ -181,12 +207,16 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     case FormDesignerActionTypes.DELETE_FORM_COMPONENT_FULFILLED: {
       const { id, containerId } = action as FormDesignerActions.IDeleteComponentActionFulfilled;
       return update<IFormLayoutState>(state, {
-        components: {
-          $unset: [id],
-        },
-        order: {
-          [containerId]: {
-            $splice: [[state.order[containerId].indexOf(id), 1]],
+        layouts: {
+          [state.selectedLayout]: {
+            components: {
+              $unset: [id],
+            },
+            order: {
+              [containerId]: {
+                $splice: [[state.layouts[state.selectedLayout].order[containerId].indexOf(id), 1]],
+              },
+            },
           },
         },
         unSavedChanges: {
@@ -209,11 +239,15 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       const { id, parentContainerId } = action as FormDesignerActions.IDeleteContainerActionFulfilled;
       if (!parentContainerId) {
         return update<IFormLayoutState>(state, {
-          containers: {
-            $unset: [id],
-          },
-          order: {
-            $unset: [id],
+          layouts: {
+            [state.selectedLayout]: {
+              containers: {
+                $unset: [id],
+              },
+              order: {
+                $unset: [id],
+              },
+            },
           },
           unSavedChanges: {
             $set: true,
@@ -224,14 +258,18 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         });
       }
       return update<IFormLayoutState>(state, {
-        containers: {
-          $unset: [id],
-        },
-        order: {
-          [parentContainerId]: {
-            $splice: [[state.order[parentContainerId].indexOf(id), 1]],
+        layouts: {
+          [state.selectedLayout]: {
+            containers: {
+              $unset: [id],
+            },
+            order: {
+              [parentContainerId]: {
+                $splice: [[state.layouts[state.selectedLayout].order[parentContainerId].indexOf(id), 1]],
+              },
+              $unset: [id],
+            },
           },
-          $unset: [id],
         },
         unSavedChanges: {
           $set: true,
@@ -299,9 +337,13 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     case FormDesignerActionTypes.UPDATE_FORM_COMPONENT_FULFILLED: {
       const { updatedComponent, id } = action as FormDesignerActions.IUpdateFormComponentActionFulfilled;
       return update<IFormLayoutState>(state, {
-        components: {
-          [id]: {
-            $apply: () => ({ ...updatedComponent }),
+        layouts: {
+          [state.selectedLayout]: {
+            components: {
+              [id]: {
+                $apply: () => ({ ...updatedComponent }),
+              },
+            },
           },
         },
         unSavedChanges: {
@@ -333,9 +375,13 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     case FormDesignerActionTypes.UPDATE_FORM_CONTAINER_FULFILLED: {
       const { updatedContainer, id } = action as FormDesignerActions.IUpdateFormContainerActionFulfilled;
       return update<IFormLayoutState>(state, {
-        containers: {
-          [id]: {
-            $apply: () => ({ ...updatedContainer }),
+        layouts: {
+          [state.selectedLayout]: {
+            containers: {
+              [id]: {
+                $apply: () => ({ ...updatedContainer }),
+              },
+            },
           },
         },
         unSavedChanges: {
@@ -369,14 +415,8 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         });
       }
       return update<IFormLayoutState>(state, {
-        components: {
-          $set: formLayout.components,
-        },
-        containers: {
-          $set: formLayout.containers,
-        },
-        order: {
-          $set: formLayout.order,
+        layouts: {
+          $set: formLayout,
         },
         fetching: {
           $set: false,
@@ -437,8 +477,12 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     case FormDesignerActionTypes.UPDATE_FORM_COMPONENT_ORDER_FULFILLED: {
       const { updatedOrder } = action as FormDesignerActions.IUpdateFormComponentOrderActionFulfilled;
       return update<IFormLayoutState>(state, {
-        order: {
-          $set: updatedOrder,
+        layouts: {
+          [state.selectedLayout]: {
+            order: {
+              $set: updatedOrder,
+            },
+          },
         },
       });
     }
@@ -446,24 +490,79 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       const { currentId, newId } = action as FormDesignerActions.IUpdateContainerIdFulfilled;
       return update<IFormLayoutState>(state, {
         // update component id
-        containers: (currentContainers) => {
-          const updatedContainers = Object.assign({}, currentContainers);
-          updatedContainers[newId] = updatedContainers[currentId];
-          delete updatedContainers[currentId];
-          return updatedContainers;
-        },
-        order: (currentOrder) => {
-          // update the container id in our base container
-          const updatedOrder = Object.assign({}, currentOrder);
-          const baseContainerId = Object.keys(updatedOrder)[0];
-          const baseContainerOrder = updatedOrder[baseContainerId];
-          const containerIndex = baseContainerOrder.indexOf(currentId);
-          baseContainerOrder[containerIndex] = newId;
+        layouts: {
+          [state.selectedLayout]: {
+            containers: (currentContainers) => {
+              const updatedContainers = Object.assign({}, currentContainers);
+              updatedContainers[newId] = updatedContainers[currentId];
+              delete updatedContainers[currentId];
+              return updatedContainers;
+            },
+            order: (currentOrder) => {
+              // update the container id in our base container
+              const updatedOrder = Object.assign({}, currentOrder);
+              const baseContainerId = Object.keys(updatedOrder)[0];
+              const baseContainerOrder = updatedOrder[baseContainerId];
+              const containerIndex = baseContainerOrder.indexOf(currentId);
+              baseContainerOrder[containerIndex] = newId;
 
-          // update id of the containers order array
-          updatedOrder[newId] = updatedOrder[currentId];
-          delete updatedOrder[currentId];
-          return updatedOrder;
+              // update id of the containers order array
+              updatedOrder[newId] = updatedOrder[currentId];
+              delete updatedOrder[currentId];
+              return updatedOrder;
+            },
+          },
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_SELECTED_LAYOUT_FULFILLED: {
+      const { selectedLayout } = action as FormDesignerActions.IUpdateSelectedLayoutFulfilledAction;
+      return update<IFormLayoutState>(state, {
+        selectedLayout: {
+          $set: selectedLayout,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_SELECTED_LAYOUT_REJECTED: {
+      const { error } = action as FormDesignerActions.IUpdateSelectedLayoutRejectedAction;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+    case FormDesignerActionTypes.DELETE_LAYOUT_FULFILLED: {
+      const { layout } = action as FormDesignerActions.IDeleteLayoutFulfilledAction;
+      return update<IFormLayoutState>(state, {
+        layouts: {
+          $unset: [layout],
+        },
+      });
+    }
+    case FormDesignerActionTypes.ADD_LAYOUT_FULFILLED: {
+      const { layouts } = action as FormDesignerActions.IAddLayoutFulfilledAction;
+      return update<IFormLayoutState>(state, {
+        layouts: {
+          $set: layouts,
+        },
+      });
+    }
+    case FormDesignerActionTypes.ADD_LAYOUT_REJECTED: {
+      const { error } = action as FormDesignerActions.IAddLayoutRejectedAction;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_LAYOUT_NAME_FULFILLED: {
+      const { oldName, newName } = action as FormDesignerActions.IUpdateLayoutNameFulfilledAction;
+      return update<IFormLayoutState>(state, {
+        layouts: (currentLayouts) => {
+          const updatedLayouts = Object.assign({}, currentLayouts);
+          updatedLayouts[newName] = updatedLayouts[oldName];
+          delete updatedLayouts[oldName];
+          return updatedLayouts;
         },
       });
     }

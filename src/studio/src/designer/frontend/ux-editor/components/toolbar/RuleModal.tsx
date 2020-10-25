@@ -1,22 +1,20 @@
-/* eslint-disable max-len */
-/* eslint-disable no-undef */
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { Typography } from '@material-ui/core';
-import { useSelector } from 'react-redux';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import ConditionalRenderingActionDispatchers from '../../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
-import { ConditionalRenderingComponent } from '../config/ConditionalRenderingComponent';
+import { useSelector } from 'react-redux';
+import RuleConnectionActionDispatchers from '../../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
+import { RuleComponent } from '../config/RuleComponent';
 import RuleButton from './RuleButton';
 
-export interface IConditionalRenderingModalProps {
+export interface IRuleModalProps {
   modalOpen: boolean;
   handleClose: () => void;
 }
 
-export default function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
+export default function RuleModal(props: IRuleModalProps) {
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const conditionalRendering = useSelector((state: IAppState) => state.serviceConfigurations.conditionalRendering);
+  const ruleConnection = useSelector((state: IAppState) => state.serviceConfigurations.ruleConnection);
   const language = useSelector((state: IAppState) => state.appData.language.language);
 
   function selectConnection(newSelectedConnectionId: string) {
@@ -30,19 +28,19 @@ export default function ConditionalRenderingModal(props: IConditionalRenderingMo
   }
 
   function handleSaveChange(newConnection: string) {
-    ConditionalRenderingActionDispatchers.addConditionalRendering(newConnection);
+    RuleConnectionActionDispatchers.addRuleConnection(newConnection);
     setSelectedConnectionId(null);
     props.handleClose();
   }
 
   function handleDeleteConnection(connectionId: string) {
-    ConditionalRenderingActionDispatchers.delConditionalRendering(connectionId);
+    RuleConnectionActionDispatchers.delRuleConnection(connectionId);
     setSelectedConnectionId(null);
     props.handleClose();
   }
 
-  function renderConditionRuleConnections(): JSX.Element {
-    if (!conditionalRendering || Object.getOwnPropertyNames(conditionalRendering).length === 0) {
+  function renderRuleConnections(): JSX.Element {
+    if (!ruleConnection || Object.getOwnPropertyNames(ruleConnection).length === 0) {
       return (
         <Typography variant='caption'>
           {getLanguageFromKey('right_menu.rules_empty', language)}
@@ -51,15 +49,16 @@ export default function ConditionalRenderingModal(props: IConditionalRenderingMo
     }
     return (
       <>
-        {Object.keys(conditionalRendering || {}).map((key: string) => (
+        {Object.keys(ruleConnection || {}).map((key: string) => (
           <RuleButton
-            text={conditionalRendering[key].selectedFunction}
+            text={ruleConnection[key].selectedFunction}
             onClick={() => selectConnection(key)}
           />
         ))}
       </>
     );
   }
+
   return (
     <>
       <Modal
@@ -67,24 +66,24 @@ export default function ConditionalRenderingModal(props: IConditionalRenderingMo
         onRequestClose={handleClose}
         className='react-modal a-modal-content-target a-page a-current-page modalPage'
         ariaHideApp={false}
-        overlayClassName='react-modal-overlay '
+        overlayClassName='react-modal-overlay'
       >
         {selectedConnectionId ?
-          <ConditionalRenderingComponent
+          <RuleComponent
             connectionId={selectedConnectionId}
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
             deleteConnection={handleDeleteConnection}
           />
           :
-          <ConditionalRenderingComponent
+          <RuleComponent
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
             deleteConnection={(connectionId: any) => handleDeleteConnection(connectionId)}
           />
         }
       </Modal>
-      {renderConditionRuleConnections()}
+      {renderRuleConnections()}
     </>
   );
 }

@@ -221,6 +221,44 @@ export interface IFormDesignerActionDispatchers
   updateContainerIdRejected: (
     error: Error,
   ) => FormDesignerActions.IUpdateContainerIdRejectedAction;
+  updateSelectedLayout: (
+    selectedLayout: string,
+  ) => FormDesignerActions.IUpdateSelectedLayoutAction;
+  updateSelectedLayoutFulfilled: (
+    selectedLayout: string,
+  ) => FormDesignerActions.IUpdateSelectedLayoutFulfilledAction;
+  updateSelectedLayoutRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateSelectedLayoutRejectedAction;
+  addLayout: (
+    layout: string
+  ) => FormDesignerActions.IAddLayoutAction;
+  addLayoutFulfilled: (
+    layouts: IFormLayouts
+  ) => FormDesignerActions.IAddLayoutFulfilledAction;
+  addLayoutRejected: (
+    error: Error,
+  ) => FormDesignerActions.IAddLayoutRejectedAction;
+  deleteLayout: (
+    layout: string
+  ) => FormDesignerActions.IDeleteLayoutAction;
+  deleteLayoutFulfilled: (
+    layout: string
+  ) => FormDesignerActions.IDeleteLayoutFulfilledAction;
+  deleteLayoutRejected: (
+    error: Error
+  ) => FormDesignerActions.IDeleteLayoutRejectedAction;
+  updateLayoutName: (
+    oldName: string,
+    newName: string,
+  ) => FormDesignerActions.IUpdateLayoutNameAction;
+  updateLayoutNameFulfilled: (
+    oldName: string,
+    newName: string,
+  ) => FormDesignerActions.IUpdateLayoutNameFulfilledAction;
+  updateLayoutNameRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateLayoutNameRejectedAction;
 }
 
 const actions: IFormDesignerActionDispatchers = {
@@ -299,6 +337,18 @@ const actions: IFormDesignerActionDispatchers = {
   updateContainerId: FormDesignerActions.updateContainerId,
   updateContainerIdFulfilled: FormDesignerActions.updateContainerIdFulfilled,
   updateContainerIdRejected: FormDesignerActions.updateContainerIdRejected,
+  updateSelectedLayout: FormDesignerActions.updateSelectedLayout,
+  updateSelectedLayoutFulfilled: FormDesignerActions.updateSelectedLayoutFulfilled,
+  updateSelectedLayoutRejected: FormDesignerActions.updateSelectedLayoutRejected,
+  addLayout: FormDesignerActions.addLayout,
+  addLayoutFulfilled: FormDesignerActions.addLayoutFulfilled,
+  addLayoutRejected: FormDesignerActions.addLayoutRejected,
+  deleteLayout: FormDesignerActions.deleteLayout,
+  deleteLayoutFulfilled: FormDesignerActions.deleteLayoutFulfilled,
+  deleteLayoutRejected: FormDesignerActions.deleteLayoutRejected,
+  updateLayoutName: FormDesignerActions.updateLayoutName,
+  updateLayoutNameFulfilled: FormDesignerActions.updateLayoutNameFulfilled,
+  updateLayoutNameRejected: FormDesignerActions.updateLayoutNameRejected,
 };
 
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<

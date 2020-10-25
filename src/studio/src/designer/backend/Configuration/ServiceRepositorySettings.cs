@@ -27,6 +27,11 @@ namespace Altinn.Studio.Designer.Configuration
         public const string FORMLAYOUT_RESOURCE_FOLDER_NAME = "App/ui/";
 
         /// <summary>
+        /// Constant for the location of form layouts
+        /// </summary>
+        public const string FORMLAYOUTS_RESOURCE_FOLDER_NAME = "App/ui/layouts";
+
+        /// <summary>
         /// Constant for the location of language resource files
         /// </summary>
         public const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
@@ -395,6 +400,50 @@ namespace Altinn.Studio.Designer.Configuration
             }
 
             return $"{RepositoryLocation}/{developer}{org}/{app}/{FormLayoutJSONFileName}";
+        }
+
+        /// <summary>
+        /// Method that returns the path to the form layout file
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="formLayoutName">The form layout name</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetFormLayoutPath(string org, string app, string developer, string formLayoutName)
+        {
+            org = org.AsFileName();
+            app = app.AsFileName();
+            developer = developer.AsFileName();
+            formLayoutName = formLayoutName.AsFileName();
+
+            if (developer != null)
+            {
+                developer += "/";
+            }
+
+            return $"{RepositoryLocation}/{developer}{org}/{app}/{FORMLAYOUTS_RESOURCE_FOLDER_NAME}/{formLayoutName}.json";
+        }
+
+        /// <summary>
+        /// Method that returns the path to the form layouts 
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">The current developer</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetFormLayoutsPath(string org, string app, string developer)
+        {
+            org = org.AsFileName();
+            app = app.AsFileName();
+            developer = developer.AsFileName();
+
+            if (developer != null)
+            {
+                developer += "/";
+            }
+
+            return $"{RepositoryLocation}/{developer}{org}/{app}/{FORMLAYOUTS_RESOURCE_FOLDER_NAME}/";
         }
 
         /// <summary>
