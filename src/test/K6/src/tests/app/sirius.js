@@ -2,19 +2,21 @@
   Create and archive instances of Sirius app (app with 3 task process - data, confirm and feedback)
   data, confirm - end user
   feedback - app owner
+  test wait for time sent in wait variable (value in seconds) before attachment is uploaded and instance archived
+  by the app owner
   Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and deployed RF-0002 app
   [
-	{
-		"username": "",
-		"password": "",
-		"partyid": ""
+    {
+        "username": "",
+        "password": "",
+        "partyid": ""
     }
   ]
   example: k6 run -i 20 --duration 1m --logformat raw --console-output=./src/data/instances.csv src/tests/app/sirius.js 
-  -e env=test -e org=ttd -e level2app=sirius -e subskey=*** -e maskinporten=token
+  -e env=test -e org=ttd -e level2app=sirius -e subskey=*** -e maskinporten=token -e wait=5
 */
 
-import { check } from "k6";
+import { check, sleep } from "k6";
 import { addErrorCount, printResponseToConsole } from "../../errorcounter.js";
 import * as appInstances from "../../api/app/instances.js"
 import * as apps from "../../api/storage/applications.js"
@@ -28,6 +30,7 @@ import * as setUpData from "../../setup.js";
 const appOwner = __ENV.org;
 const appName = __ENV.level2app;
 const environment = (__ENV.env).toLowerCase();
+const waitBeforeArchiving = __ENV.wait;
 const fileName = "users_" + environment + ".json";
 const maskinPortenToken = __ENV.maskinporten;
 let instanceFormDataXml = open("../../data/" + appName + ".xml");
@@ -72,7 +75,7 @@ export default function (data) {
 
     const aspxauthCookie = setUpData.authenticateUser(userSSN, userPwd);
     const userRuntimeToken = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
-    setUpData.clearCookies();    
+    setUpData.clearCookies();
 
     //Test to create an instance with App api and validate the response
     res = appInstances.postInstance(userRuntimeToken, partyId, appOwner, appName);
@@ -97,13 +100,13 @@ export default function (data) {
     addErrorCount(success);
     printResponseToConsole("Edit Form Data by Id:", success, res);
 
-     //upload a upload attachment to an instance with App API
-     res = appData.postData(userRuntimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, appName);
-     success = check(res, {
-         "Upload attachment in data stage status is 201:": (r) => r.status === 201
-     });
-     addErrorCount(success);
-     printResponseToConsole("Upload attachment in data stage:", success, res);
+    //upload a upload attachment to an instance with App API
+    res = appData.postData(userRuntimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, appName);
+    success = check(res, {
+        "Upload attachment in data stage status is 201:": (r) => r.status === 201
+    });
+    addErrorCount(success);
+    printResponseToConsole("Upload attachment in data stage:", success, res);
 
     //Test to get validate instance and verify that validation of instance is ok
     res = appInstances.getValidateInstance(userRuntimeToken, partyId, instanceId, appOwner, appName);
@@ -111,7 +114,7 @@ export default function (data) {
         "Validate Instance validation OK:": (r) => r.body && (JSON.parse(r.body)).length === 0
     });
     addErrorCount(success);
-    printResponseToConsole("Validate Instance validation OK:", success, res);    
+    printResponseToConsole("Validate Instance validation OK:", success, res);
 
     //Test to move the process of an app instance to the confirm stage and verify response code to be 200
     res = appProcess.putNextProcess(userRuntimeToken, partyId, instanceId, null, appOwner, appName);
@@ -135,7 +138,7 @@ export default function (data) {
         "Validate Instance in confirm stage validation OK:": (r) => r.body && (JSON.parse(r.body)).length === 0
     });
     addErrorCount(success);
-    printResponseToConsole("Validate Instance in confirm stage validation OK:", success, res);    
+    printResponseToConsole("Validate Instance in confirm stage validation OK:", success, res);
 
     //Test to move the process of an app instance to the Feedback stage and verify response code to be 200
     res = appProcess.putNextProcess(userRuntimeToken, partyId, instanceId, null, appOwner, appName);
@@ -144,6 +147,44 @@ export default function (data) {
     });
     addErrorCount(success);
     printResponseToConsole("Move process to Feedback stage:", success, res);
+
+
+    /**
+     * Send get process api call every second for first ten times until waitBeforeArchiving is reached
+     * 11th to 20th time, send get process api call with doubling time interval until waitBeforeArchiving is reached
+     * 2s, 4s, 8s, 16s, etc.,
+     */
+    if (waitBeforeArchiving != null && waitBeforeArchiving > 0) {
+        var sleptSeconds = 0;
+        for (var i = 1; i <= 10; i++) {
+            res = appProcess.getCurrentProcess(userRuntimeToken, partyId, instanceId, appOwner, appName);
+            success = check(res, {
+                "Get Current process status is 200:": (r) => r.status === 200
+            });
+            addErrorCount(success);
+            printResponseToConsole("Get Current process:", success, res);
+
+            sleep(1);
+            sleptSeconds = sleptSeconds + 1;
+            if (sleptSeconds == waitBeforeArchiving) break;
+        };
+        if (waitBeforeArchiving > 10) {
+            var stepSleepCounter = 1;
+            for (var i = 11; i <= 20; i++) {
+                res = appProcess.getCurrentProcess(userRuntimeToken, partyId, instanceId, appOwner, appName);
+                success = check(res, {
+                    "Get Current process status is 200:": (r) => r.status === 200
+                });
+                addErrorCount(success);
+                printResponseToConsole("Get Current process:", success, res);
+
+                stepSleepCounter = stepSleepCounter * 2;
+                sleep(stepSleepCounter);
+                sleptSeconds = sleptSeconds + stepSleepCounter;
+                if (sleptSeconds >= waitBeforeArchiving) break;
+            };
+        };
+    };
 
     //upload a upload attachment as app owner in feedback stage of the instance and verify response
     res = appData.postData(orgRuntimeToken, partyId, instanceId, feedbackAttachmentDataType, pdfAttachment, appOwner, appName);
