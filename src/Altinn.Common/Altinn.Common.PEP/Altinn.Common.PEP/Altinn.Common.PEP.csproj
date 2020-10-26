@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -8,6 +8,8 @@
     <Version>1.0.37-alpha</Version>
     <LangVersion>latest</LangVersion>
     <Description>Policy Enforcement Point for Attribute based authoirzation using Altinn.Authorization.ABAC in ASP.Net core 3.0 web aps.</Description>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{92f10f90-79c5-459f-8238-0ec4d02aa93c}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
