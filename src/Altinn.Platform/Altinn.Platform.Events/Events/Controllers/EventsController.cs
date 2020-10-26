@@ -131,7 +131,7 @@ namespace Altinn.Platform.Events.Controllers
                 return BadRequest("Subject must be specified using either query params party or unit or header value person.");
             }
 
-            return await HandleEvents(after, from, to, party, source, type, size);
+            return await RetrieveAndAuthorizeEvents(after, from, to, party, source, type, size);
         }
 
         /// <summary>
@@ -194,10 +194,10 @@ namespace Altinn.Platform.Events.Controllers
                 }
             }
 
-            return await HandleEvents(after, from, to, party, source, type, size);
+            return await RetrieveAndAuthorizeEvents(after, from, to, party, source, type, size);
         }
 
-        private async Task<ActionResult<List<CloudEvent>>> HandleEvents(string after, DateTime? from, DateTime? to, int party, List<string> source, List<string> type, int size)
+        private async Task<ActionResult<List<CloudEvent>>> RetrieveAndAuthorizeEvents(string after, DateTime? from, DateTime? to, int party, List<string> source, List<string> type, int size)
         {
             try
             {
