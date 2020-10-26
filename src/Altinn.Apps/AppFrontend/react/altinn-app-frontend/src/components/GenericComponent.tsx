@@ -12,7 +12,7 @@ import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
 import { IDataModelBindings, ITextResourceBindings } from '../features/form/layout';
 import RuleActions from '../features/form/rules/rulesActions';
-import ValidationActions from '../features/form/validation/validationActions'
+import ValidationActions from '../features/form/validation/validationActions';
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
 import Label from '../features/form/components/Label';
