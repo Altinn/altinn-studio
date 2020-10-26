@@ -1,4 +1,4 @@
-import {Triggers} from '../../../types';
+import { Triggers } from '../../../types';
 
 export interface ILayouts {
   [id: string]: ILayout;

@@ -23,19 +23,19 @@ export function* runSingleFieldValidationSaga({
     },
   };
 
-  try{
-  const serverValidation: any = yield call(get, url, options);
-  const mappedValidations =
+  try {
+    const serverValidation: any = yield call(get, url, options);
+    const mappedValidations =
       mapDataElementValidationToRedux(serverValidation, state.formLayout.layouts, state.textResources.resources);
-      FormValidationActions.updateValidations(mappedValidations);
-      yield call(Actions.runSingleFieldValidationFulfilled, mappedValidations)
+    FormValidationActions.updateValidations(mappedValidations);
+    yield call(Actions.runSingleFieldValidationFulfilled, mappedValidations)
   }
   catch (err) {
       yield call(Actions.runSingleFieldValidationRejected, err);
   }
-}
+};
 
 export function* watchRunSingleFieldValidationSaga(): SagaIterator {
   yield takeLatest(ActionTypes.RUN_SINGLE_FIELD_VALIDATION, runSingleFieldValidationSaga);
   yield take(FormDataActions.UPDATE_FORM_DATA_FULFILLED);
-}
+};
