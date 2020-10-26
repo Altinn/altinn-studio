@@ -99,7 +99,7 @@ namespace Altinn.Platform.Events.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Produces("application/json")]
-        public async Task<ActionResult<List<CloudEvent>>> Get(
+        public async Task<ActionResult<List<CloudEvent>>> GetForOrg(
             [FromQuery] string after,
             [FromQuery] DateTime? from,
             [FromQuery] DateTime? to,
@@ -131,6 +131,57 @@ namespace Altinn.Platform.Events.Controllers
                 return BadRequest("Subject must be specified using either query params party or unit or header value person.");
             }
 
+            return await RetrieveAndAuthorizeEvents(after, from, to, party, source, type, size);
+        }
+
+        /// <summary>
+        /// Retrieves a set of events based on query parameters.
+        /// </summary>
+        [HttpGet("party/{partyId}")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Produces("application/json")]
+        public async Task<ActionResult<List<CloudEvent>>> GetForParty(
+            [FromQuery] string after,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to,
+            [FromQuery] int party,
+            [FromQuery] string unit,
+            [FromHeader] string person,
+            [FromQuery] string org,
+            [FromQuery] string app,
+            [FromQuery] List<string> type,
+            [FromQuery] int size = 50)
+        {
+            if (string.IsNullOrEmpty(after) && from == null)
+            {
+                return BadRequest("From or after must be defined.");
+            }
+
+            if (size < 1)
+            {
+                return BadRequest("Size must be a number larger that 0.");
+            }
+
+            if (string.IsNullOrEmpty(person) && string.IsNullOrEmpty(unit) && party <= 0)
+            {
+                return BadRequest("Subject must be specified using either query params party or unit or header value person.");
+            }
+
+            List<string> source = new List<string>();
+            if (!string.IsNullOrEmpty(app))
+            {
+                if (string.IsNullOrEmpty(org))
+                {
+                    return BadRequest("Query param org must be defined when query parameter app is defined.");
+                }
+                else
+                {
+                    source.Add($"%/{org}/{app}%");
+                }
+            }
+
             if (party <= 0)
             {
                 try
@@ -143,6 +194,11 @@ namespace Altinn.Platform.Events.Controllers
                 }
             }
 
+            return await RetrieveAndAuthorizeEvents(after, from, to, party, source, type, size);
+        }
+
+        private async Task<ActionResult<List<CloudEvent>>> RetrieveAndAuthorizeEvents(string after, DateTime? from, DateTime? to, int party, List<string> source, List<string> type, int size)
+        {
             try
             {
                 List<CloudEvent> events = await _eventsService.Get(after, from, to, party, source, type, size);

@@ -116,7 +116,7 @@ namespace Altinn.Platform.Events.UnitTest.Mocks
         {
             decisionRequest = await Enrich(decisionRequest);
 
-             XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
+            XacmlPolicy policy = await GetPolicyAsync(decisionRequest);
 
             PolicyDecisionPoint pdp = new PolicyDecisionPoint();
             XacmlContextResponse xacmlContextResponse = pdp.Authorize(decisionRequest, policy);
@@ -159,7 +159,7 @@ namespace Altinn.Platform.Events.UnitTest.Mocks
         {
             XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
             XacmlResourceAttributes resourceAttributes = GetResourceAttributeValues(resourceContextAttributes);
-           
+
             await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
         }
 
