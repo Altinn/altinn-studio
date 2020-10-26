@@ -12,8 +12,8 @@ namespace Altinn.Common.PEP.Authorization
         /// <summary>
         /// Initializes a new instance of the <see cref="ClaimAccessRequirement"/> class
         /// </summary>
-        ///<param name="claimType">The claim type.</param>
-        ///<param name="claimValue">The claim value</param>
+        /// <param name="claimType">The claim type.</param>
+        /// <param name="claimValue">The claim value</param>
         public ClaimAccessRequirement(string claimType, string claimValue)
         {
             this.ClaimType = claimType;
@@ -21,7 +21,7 @@ namespace Altinn.Common.PEP.Authorization
         }
 
         /// <summary>
-        /// Gets or sets the claimdId for the required claim
+        /// Gets or sets the claim type for the required claim
         /// </summary>
         public string ClaimType { get; set; }
 
