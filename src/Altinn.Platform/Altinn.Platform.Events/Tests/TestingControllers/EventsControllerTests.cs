@@ -688,6 +688,39 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
 
             /// <summary>
             /// Scenario:
+            ///   Get events with  a valid set of query parameters, patyId as input
+            /// Expected result:
+            ///   Returns a list of events and a next header
+            /// Success criteria:
+            ///   The response has correct count. Next header is corrcect.
+            /// </summary>
+            [Fact]
+            public async void GetForParty_ValidRequestParyId_ReturnsListOfEventsAndNextUrlTest()
+            {
+                // Arrange
+                string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&party=1337&org=ttd&app=endring-av-navn-v2&size=5";
+                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/party/1337?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=1337&org=ttd&app=endring-av-navn-v2&size=5";
+
+                int expectedCount = 2;
+
+                HttpClient client = GetTestClient(new EventsServiceMock(1));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1337));
+
+                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+
+                // Act
+                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+                string responseString = await response.Content.ReadAsStringAsync();
+                List<CloudEvent> actual = JsonSerializer.Deserialize<List<CloudEvent>>(responseString);
+
+                // Assert
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal(expectedCount, actual.Count);
+                Assert.Equal(expectedNext, response.Headers.GetValues("next").First());
+            }
+
+            /// <summary>
+            /// Scenario:
             ///   Get events events service throws exception.
             /// Expected result:
             ///   Next header contains new guid in after parameter

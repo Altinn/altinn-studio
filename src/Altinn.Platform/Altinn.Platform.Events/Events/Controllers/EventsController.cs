@@ -131,38 +131,7 @@ namespace Altinn.Platform.Events.Controllers
                 return BadRequest("Subject must be specified using either query params party or unit or header value person.");
             }
 
-            try
-            {
-                List<CloudEvent> events = await _eventsService.Get(after, from, to, party, source, type, size);
-
-                if (events.Count > 0)
-                {
-                    events = await _authorizationHelper.AuthorizeEvents(HttpContext.User, events);
-                }
-
-                if (events.Count > 0)
-                {
-                    StringBuilder nextUriBuilder = new StringBuilder($"{_eventsBaseUri}{Request.Path}?after={events.Last().Id}");
-
-                    List<KeyValuePair<string, string>> queryCollection = Request.Query
-                        .SelectMany(q => q.Value, (col, value) => new KeyValuePair<string, string>(col.Key, value))
-                        .Where(q => q.Key != "after")
-                        .ToList();
-
-                    foreach (KeyValuePair<string, string> queryParam in queryCollection)
-                    {
-                        nextUriBuilder.Append($"&{queryParam.Key}={queryParam.Value}");
-                    }
-
-                    Response.Headers.Add("next", nextUriBuilder.ToString());
-                }
-
-                return events;
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Unable to get cloud events from database. {e}");
-            }
+            return await HandleEvents(after, from, to, party, source, type, size);
         }
 
         /// <summary>
@@ -225,6 +194,11 @@ namespace Altinn.Platform.Events.Controllers
                 }
             }
 
+            return await HandleEvents(after, from, to, party, source, type, size);
+        }
+
+        private async Task<ActionResult<List<CloudEvent>>> HandleEvents(string after, DateTime? from, DateTime? to, int party, List<string> source, List<string> type, int size)
+        {
             try
             {
                 List<CloudEvent> events = await _eventsService.Get(after, from, to, party, source, type, size);
