@@ -5,6 +5,9 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 
 namespace Altinn.Common.PEP.Interfaces
 {
+    /// <summary>
+    /// This interface describes the minimum set of methods for any implementation of a Policy Decision Point.
+    /// </summary>
     public interface IPDP
     {
         /// <summary>

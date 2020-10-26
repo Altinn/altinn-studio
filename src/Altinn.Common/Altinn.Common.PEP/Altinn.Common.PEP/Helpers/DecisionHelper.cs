@@ -17,6 +17,9 @@ using static Altinn.Authorization.ABAC.Constants.XacmlConstants;
 
 namespace Altinn.Common.PEP.Helpers
 {
+    /// <summary>
+    /// Represents a collection of helper methods for creating a decision request
+    /// </summary>
     public static class DecisionHelper
     {
         private const string ParamInstanceOwnerPartyId = "instanceOwnerPartyId";
@@ -190,6 +193,12 @@ namespace Altinn.Common.PEP.Helpers
             return regex.Match(value).Success;
         }
 
+        /// <summary>
+        /// Validate the response from PDP
+        /// </summary>
+        /// <param name="results">The response to validate</param>
+        /// <param name="user">The <see cref="ClaimsPrincipal"/></param>
+        /// <returns>true or false, valid or not</returns>
         public static bool ValidatePdpDecision(List<XacmlJsonResult> results, ClaimsPrincipal user)
         {
             if (results == null)
@@ -211,6 +220,12 @@ namespace Altinn.Common.PEP.Helpers
             return ValidateDecisionResult(results.First(), user);
         }
 
+        /// <summary>
+        /// Validate the response from PDP
+        /// </summary>
+        /// <param name="results">The response to validate</param>
+        /// <param name="user">The <see cref="ClaimsPrincipal"/></param>
+        /// <returns>The result of the validation</returns>
         public static EnforcementResult ValidatePdpDecisionDetailed(List<XacmlJsonResult> results, ClaimsPrincipal user)
         {
             if (results == null)
@@ -232,6 +247,12 @@ namespace Altinn.Common.PEP.Helpers
             return ValidateDecisionResultDetailed(results.First(), user);
         }
 
+        /// <summary>
+        /// Validate the response from PDP
+        /// </summary>
+        /// <param name="result">The response to validate</param>
+        /// <param name="user">The <see cref="ClaimsPrincipal"/></param>
+        /// <returns>true or false, valid or not</returns>
         public static bool ValidateDecisionResult(XacmlJsonResult result, ClaimsPrincipal user)
         {
             // Checks that the result is nothing else than "permit"
@@ -263,6 +284,12 @@ namespace Altinn.Common.PEP.Helpers
             return true;
         }
 
+        /// <summary>
+        /// Validate the response from PDP
+        /// </summary>
+        /// <param name="result">The response to validate</param>
+        /// <param name="user">The <see cref="ClaimsPrincipal"/></param>
+        /// <returns>The result of the validation</returns>
         public static EnforcementResult ValidateDecisionResultDetailed(XacmlJsonResult result, ClaimsPrincipal user)
         {
             // Checks that the result is nothing else than "permit"
