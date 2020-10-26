@@ -34,7 +34,7 @@ export interface IGenericComponentProps {
   componentValidations?: IComponentValidations;
   readOnly: boolean;
   required: boolean;
-  triggers: string[];
+  triggers?: string[];
 }
 
 export function GenericComponent(props: IGenericComponentProps) {
