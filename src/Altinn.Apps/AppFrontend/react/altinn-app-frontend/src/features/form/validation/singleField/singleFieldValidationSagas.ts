@@ -1,35 +1,41 @@
-import { AxiosRequestConfig } from 'axios';
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
+import { AxiosRequestConfig } from 'axios';
 import { IRuntimeStore } from 'src/types';
-import { convertDataBindingToModel } from '../../../../utils/databindings';
-import { put } from '../../../../utils/networking';
-import { mapApiValidationsToRedux } from '../../../../utils/validation';
+import { IRuntimeState } from 'src/types';
+import { get } from '../../../../utils/networking';
+import { mapDataElementValidationToRedux } from '../../../../utils/validation';
 import Actions from '../validationActions';
 import { IRunSingleFieldValidationAction } from './singleFieldValidationActions';
 import * as ActionTypes from '../validationActionTypes';
+import { getValidationUrl } from 'src/utils/urlHelper';
+import { ILayoutState } from '../../layout/formLayoutReducer';
+import FormValidationActions from '../validationActions';
 
 export function* runSingleFieldValidationSaga({
-  url,
   dataModelBinding,
 }: IRunSingleFieldValidationAction): SagaIterator {
-  const state: IRuntimeStore = yield select();
-  try {
-    const requestBody = convertDataBindingToModel(state.formData.formData);
-    const config: AxiosRequestConfig = {
+    const state: IRuntimeState = yield select();
+    const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
+    const layoutState: ILayoutState = yield select(LayoutSelector);
+    const url = getValidationUrl(state.instanceData.instance.id);
+
+    const options: AxiosRequestConfig = {
       headers: {
         ValidationTriggerField: dataModelBinding,
       },
     };
-    const response: any = yield call(put, url, 'Validate', requestBody, config);
-    if (response && response.validationResult) {
-      const layout = state.formLayout.layouts[state.formLayout.uiConfig.currentView];
-      const validationErrors = mapApiValidationsToRedux(response.validationResult.messages, layout);
-      yield call(Actions.runSingleFieldValidationFulfilled, validationErrors);
+
+    try{
+    const serverValidation: any = yield call(get, url, options);
+    const mappedValidations =
+        mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
+        FormValidationActions.updateValidations(mappedValidations);
+        yield call(Actions.runSingleFieldValidationFulfilled, mappedValidations)
     }
-  } catch (err) {
-    yield call(Actions.runSingleFieldValidationRejected, err);
-  }
+  catch(err){
+      yield call(Actions.runSingleFieldValidationRejected, err);
+    }
 }
 
 export function* watchRunSingleFieldValidationSaga(): SagaIterator {

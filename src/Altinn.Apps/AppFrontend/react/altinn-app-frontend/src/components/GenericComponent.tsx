@@ -12,6 +12,7 @@ import FormDataActions from '../features/form/data/formDataActions';
 import { IFormData } from '../features/form/data/formDataReducer';
 import { IDataModelBindings, ITextResourceBindings } from '../features/form/layout';
 import RuleActions from '../features/form/rules/rulesActions';
+import ValidationActions from '../features/form/validation/validationActions'
 import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
 import Label from '../features/form/components/Label';
@@ -33,6 +34,7 @@ export interface IGenericComponentProps {
   componentValidations?: IComponentValidations;
   readOnly: boolean;
   required: boolean;
+  triggers: string[];
 }
 
 export function GenericComponent(props: IGenericComponentProps) {
@@ -76,13 +78,10 @@ export function GenericComponent(props: IGenericComponentProps) {
 
     const dataModelField = props.dataModelBindings[key];
     FormDataActions.updateFormData(dataModelField, value, props.id);
-    // Disable single field validation, enable when supported server-side
-    // const component = layoutElement as ILayoutComponent;
-    // if (component && component.triggerValidation) {
-    //   const { org, app, instanceId } = window as Window as IAltinnWindow;
-    //   const url = `${window.location.origin}/${org}/${app}/instances/${instanceId}`;
-    //   ValidationActions.runSingleFieldValidation(url, dataModelField);
-    // }
+    if (props.triggers && props.triggers.includes("validation")) {
+      ValidationActions.runSingleFieldValidation(dataModelField);
+    }
+
     const dataModelElement = dataModel.find(
       (element) => element.dataBindingName === props.dataModelBindings[key],
     );

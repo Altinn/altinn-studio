@@ -2,7 +2,6 @@ import { Action } from 'redux';
 import * as ActionTypes from '../validationActionTypes';
 
 export interface IRunSingleFieldValidationAction extends Action {
-  url: string;
   dataModelBinding?: string;
 }
 
@@ -15,12 +14,10 @@ export interface IRunSingleFieldValidationActionFulfilled extends Action {
 }
 
 export function runSingleFieldValidationAction(
-  url: string,
   dataModelBinding?: string,
 ): IRunSingleFieldValidationAction {
   return {
     type: ActionTypes.RUN_SINGLE_FIELD_VALIDATION,
-    url,
     dataModelBinding,
   };
 }

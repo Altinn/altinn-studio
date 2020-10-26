@@ -23,7 +23,7 @@ export interface ILayoutComponent extends ILayoutEntry {
   disabled?: boolean;
   required: boolean;
   textResourceBindings: ITextResourceBindings;
-  triggerValidation?: boolean;
+  triggers: string[];
 }
 export interface IDataModelBindings {
   [id: string]: string;
