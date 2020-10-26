@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useSelector, shallowEqual } from 'react-redux';
 import { getTextResourceByKey } from 'altinn-shared/utils';
-import { IDataModelFieldElement, ITextResource } from 'src/types';
+import { IDataModelFieldElement, ITextResource, Triggers } from 'src/types';
 import { IComponentValidations } from 'src/types';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 // eslint-disable-next-line import/no-cycle
@@ -34,7 +34,7 @@ export interface IGenericComponentProps {
   componentValidations?: IComponentValidations;
   readOnly: boolean;
   required: boolean;
-  triggers?: string[];
+  triggers?: Triggers[];
 }
 
 export function GenericComponent(props: IGenericComponentProps) {
@@ -78,7 +78,7 @@ export function GenericComponent(props: IGenericComponentProps) {
 
     const dataModelField = props.dataModelBindings[key];
     FormDataActions.updateFormData(dataModelField, value, props.id);
-    if (props.triggers && props.triggers.includes("validation")) {
+    if (props.triggers && props.triggers.includes(Triggers.Validation)) {
       ValidationActions.runSingleFieldValidation(dataModelField);
     }
 

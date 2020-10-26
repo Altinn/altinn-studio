@@ -238,3 +238,7 @@ export enum Severity {
   Warning = 2,
   Informational = 3,
 }
+
+export enum Triggers {
+  Validation = 'validation',
+}

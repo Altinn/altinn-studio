@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
+import { call, select, take, takeLatest } from 'redux-saga/effects';
 import { AxiosRequestConfig } from 'axios';
 import { IRuntimeStore } from 'src/types';
 import { IRuntimeState } from 'src/types';
@@ -11,13 +11,12 @@ import * as ActionTypes from '../validationActionTypes';
 import { getValidationUrl } from 'src/utils/urlHelper';
 import { ILayoutState } from '../../layout/formLayoutReducer';
 import FormValidationActions from '../validationActions';
+import FormDataActions from '../../data/formDataActions';
 
 export function* runSingleFieldValidationSaga({
   dataModelBinding,
 }: IRunSingleFieldValidationAction): SagaIterator {
     const state: IRuntimeState = yield select();
-    const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
-    const layoutState: ILayoutState = yield select(LayoutSelector);
     const url = getValidationUrl(state.instanceData.instance.id);
 
     const options: AxiosRequestConfig = {
@@ -29,7 +28,7 @@ export function* runSingleFieldValidationSaga({
     try{
     const serverValidation: any = yield call(get, url, options);
     const mappedValidations =
-        mapDataElementValidationToRedux(serverValidation, layoutState.layouts, state.textResources.resources);
+        mapDataElementValidationToRedux(serverValidation, state.formLayout.layouts, state.textResources.resources);
         FormValidationActions.updateValidations(mappedValidations);
         yield call(Actions.runSingleFieldValidationFulfilled, mappedValidations)
     }
@@ -40,4 +39,5 @@ export function* runSingleFieldValidationSaga({
 
 export function* watchRunSingleFieldValidationSaga(): SagaIterator {
   yield takeLatest(ActionTypes.RUN_SINGLE_FIELD_VALIDATION, runSingleFieldValidationSaga);
+  yield take(FormDataActions.UPDATE_FORM_DATA_FULFILLED);
 }
