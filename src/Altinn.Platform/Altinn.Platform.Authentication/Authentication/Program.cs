@@ -14,33 +14,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Authentication
 {
-    /// <summary>
-    /// This is the main method for running this asp.net core application
-    /// </summary>
     public class Program
     {
         private static ILogger _logger;
 
-        /// <summary>
-        /// Default protected constructor
-        /// </summary>
         protected Program()
         {
         }
 
-        /// <summary>
-        /// The main method
-        /// </summary>
-        /// <param name="args">The Arguments</param>
         public static void Main(string[] args)
         {
             ConfigureSetupLogging();
             CreateWebHostBuilder(args).Build().Run();
         }
 
-        /// <summary>
-        /// Configure logging for setting up application. Temporary
-        /// </summary>
         public static void ConfigureSetupLogging()
         {
             // Setup logging for the web host creation
@@ -56,11 +43,6 @@ namespace Altinn.Platform.Authentication
             _logger = logFactory.CreateLogger<Program>();
         }
 
-        /// <summary>
-        /// Configure the configuration builder
-        /// </summary>
-        /// <param name="args">arguments for creating build configuration</param>
-        /// <returns>The web host builder</returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
