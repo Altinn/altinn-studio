@@ -88,7 +88,7 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
           }
         </Typography>
         <Typography classes={{ root: classNames(this.props.classes.informationPanelLink) }}>
-          <a href='https://docs.altinn.studio/teknologi/altinnstudio/solutions/altinn-studio/functional/build-app/ui-designer/components/' target='_blank'>{this.props.language.ux_editor.information_more_info_link}</a>
+          <a href='https://docs.altinn.studio/teknologi/altinnstudio/solutions/altinn-studio/functional/build-app/ui-designer/components/'>{this.props.language.ux_editor.information_more_info_link}</a>
         </Typography>
       </Popover>
     );
