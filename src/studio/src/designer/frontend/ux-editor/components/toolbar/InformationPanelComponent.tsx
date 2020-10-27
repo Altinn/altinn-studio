@@ -91,9 +91,10 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
           <a
             href='https://docs.altinn.studio/teknologi/altinnstudio/solutions/altinn-studio/functional/build-app/ui-designer/components/'
             target='_blank'
-            rel='noopener noreferrer'>
-          {this.props.language.ux_editor.information_more_info_link}
-          </a>        
+            rel='noopener noreferrer'
+          >
+            {this.props.language.ux_editor.information_more_info_link}
+          </a>
         </Typography>
       </Popover>
     );
