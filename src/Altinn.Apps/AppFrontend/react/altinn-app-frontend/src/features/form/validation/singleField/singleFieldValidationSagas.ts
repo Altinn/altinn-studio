@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { all, call, select, take, takeLatest } from 'redux-saga/effects';
+import {  call, select, takeLatest } from 'redux-saga/effects';
 import { AxiosRequestConfig } from 'axios';
 import { IRuntimeState } from 'src/types';
 import { getValidationUrl } from 'src/utils/urlHelper';
@@ -9,7 +9,6 @@ import Actions from '../validationActions';
 import { IRunSingleFieldValidationAction } from './singleFieldValidationActions';
 import * as ActionTypes from '../validationActionTypes';
 import FormValidationActions from '../validationActions';
-import FormDataActions from '../../data/formDataActions';
 
 export function* runSingleFieldValidationSaga({
 }: IRunSingleFieldValidationAction): SagaIterator {
