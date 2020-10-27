@@ -12,14 +12,14 @@ import FormValidationActions from '../validationActions';
 import FormDataActions from '../../data/formDataActions';
 
 export function* runSingleFieldValidationSaga({
-  dataModelBinding,
 }: IRunSingleFieldValidationAction): SagaIterator {
   const state: IRuntimeState = yield select();
   const url = getValidationUrl(state.instanceData.instance.id);
 
+  if(state.formValidations.currentSingleFieldValidation){
   const options: AxiosRequestConfig = {
     headers: {
-      ValidationTriggerField: dataModelBinding,
+      ValidationTriggerField: state.formValidations.currentSingleFieldValidation,
     },
   };
 
@@ -33,12 +33,13 @@ export function* runSingleFieldValidationSaga({
   catch (err) {
       yield call(Actions.runSingleFieldValidationRejected, err);
   }
+  finally {
+    yield call(Actions.setCurrentDataModelBinding, null);
+  }
+}
 };
 
-export function* watchRunSingleFieldValidationSaga(): SagaIterator {
 
-  yield all([
-    takeLatest(ActionTypes.RUN_SINGLE_FIELD_VALIDATION, runSingleFieldValidationSaga),
-    take(FormDataActions.UPDATE_FORM_DATA_FULFILLED)
-  ])
+export function* watchRunSingleFieldValidationSaga(): SagaIterator {
+  yield  takeLatest(ActionTypes.RUN_SINGLE_FIELD_VALIDATION, runSingleFieldValidationSaga);
 };

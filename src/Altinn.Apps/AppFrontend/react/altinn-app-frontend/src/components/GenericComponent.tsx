@@ -77,10 +77,11 @@ export function GenericComponent(props: IGenericComponentProps) {
     }
 
     const dataModelField = props.dataModelBindings[key];
-    FormDataActions.updateFormData(dataModelField, value, props.id);
     if (props.triggers && props.triggers.includes(Triggers.Validation)) {
-      ValidationActions.runSingleFieldValidation(dataModelField);
+      ValidationActions.setCurrentDataModelBinding(dataModelField);
     }
+
+    FormDataActions.updateFormData(dataModelField, value, props.id);
 
     const dataModelElement = dataModel.find(
       (element) => element.dataBindingName === props.dataModelBindings[key],

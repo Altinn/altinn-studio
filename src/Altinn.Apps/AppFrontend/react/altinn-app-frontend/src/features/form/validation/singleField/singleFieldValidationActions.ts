@@ -2,7 +2,6 @@ import { Action } from 'redux';
 import * as ActionTypes from '../validationActionTypes';
 
 export interface IRunSingleFieldValidationAction extends Action {
-  dataModelBinding?: string;
 }
 
 export interface IRunSingleFieldValidationActionRejected extends Action {
@@ -13,11 +12,23 @@ export interface IRunSingleFieldValidationActionFulfilled extends Action {
   validations: any;
 }
 
+export interface ISetCurrentDataModelBindingAction extends Action {
+  dataModelBinding?: string;
+}
+
 export function runSingleFieldValidationAction(
   dataModelBinding?: string,
 ): IRunSingleFieldValidationAction {
   return {
     type: ActionTypes.RUN_SINGLE_FIELD_VALIDATION,
+  };
+}
+
+export function setCurrentDataModelBindingAction(
+  dataModelBinding?: string,
+): ISetCurrentDataModelBindingAction {
+  return {
+    type: ActionTypes.SET_CURRENT_DATA_MODEL_BINDING,
     dataModelBinding,
   };
 }
