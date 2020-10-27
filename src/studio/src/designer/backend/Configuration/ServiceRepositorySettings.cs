@@ -69,7 +69,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Constant for the name of the layout setting file
         /// </summary>
-        public const string LAYOUT_SETTING_FILE = "settings.json";
+        public const string LAYOUT_SETTING_FILE = "Settings.json";
 
         /// <summary>
         /// Constant for the location of app logic files

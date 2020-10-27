@@ -572,7 +572,7 @@ export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
 export function* saveFormLayoutSettingSaga(): SagaIterator {
   try {
     const layoutOrder = yield select((state: IAppState) => state.formDesigner.layout.layoutOrder);
-    yield call(post, getSaveLayoutSettingsUrl(), { order: layoutOrder });
+    yield call(post, getSaveLayoutSettingsUrl(), { pages: { order: layoutOrder } });
   } catch (err) {
     console.error(err);
   }

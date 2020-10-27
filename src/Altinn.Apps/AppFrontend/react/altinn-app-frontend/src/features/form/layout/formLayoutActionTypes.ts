@@ -30,3 +30,7 @@ export const UPDATE_AUTO_SAVE_FULFILLED: string = `${moduleName}.UPDATE_AUTO_SAV
 export const UPDATE_AUTO_SAVE_REJECTED: string = `${moduleName}.UPDATE_AUTO_SAVE_REJECTED`;
 
 export const UPDATE_CURRENT_VIEW: string = `${moduleName}.UPDATE_CURRENT_VIEW`;
+
+export const FETCH_FORM_LAYOUT_SETTINGS: string = `${moduleName}.FETCH_FORM_LAYOUT_SETTINGS`;
+export const FETCH_FORM_LAYOUT_SETTINGS_FULFILLED: string = `${moduleName}.FETCH_FORM_LAYOUT_SETTINGS_FULFILLED`;
+export const FETCH_FORM_LAYOUT_SETTINGS_REJECTED: string = `${moduleName}.FETCH_FORM_LAYOUT_SETTINGS_REJECTED`;

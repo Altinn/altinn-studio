@@ -96,9 +96,13 @@ export function PageElement({
     }
   }
 
+  function pageNameExists(candidateName: string): boolean {
+    return layoutOrder.some((pageName: string) => pageName.toLowerCase() === candidateName.toLowerCase());
+  }
+
   function handleOnChange(event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
     const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
-    if (layoutOrder.indexOf(newNameCandidate) !== -1) {
+    if (pageNameExists(newNameCandidate)) {
       setErrorMessage(getLanguageFromKey('right_menu.pages_error_unique', language));
     } else if (!newNameCandidate) {
       setErrorMessage(getLanguageFromKey('right_menu.pages_error_empty', language));
@@ -117,6 +121,10 @@ export function PageElement({
         FormDesignerActionDispatchers.updateLayoutName(name, newName);
         setEditMode(false);
       }
+    }
+    if (event.key === 'Escape') {
+      setEditMode(false);
+      setNewName('');
     }
   }
 
@@ -158,7 +166,7 @@ export function PageElement({
           {editMode &&
             <InlineTextField
               onBlur={handleOnBlur}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               onChange={handleOnChange}
               defaultValue={name}
               error={Boolean(errorMessage)}
