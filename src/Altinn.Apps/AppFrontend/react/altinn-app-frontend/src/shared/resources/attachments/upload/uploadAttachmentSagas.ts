@@ -33,12 +33,9 @@ export function* uploadAttachmentSaga(
 
     if (!file.type) {
       contentType = `application/octet-stream`;
-    }
-    else if (file.name.toLowerCase().endsWith('.csv')) {
+    } else if (file.name.toLowerCase().endsWith('.csv')) {
       contentType = 'text/csv';
-    }
-    else
-    {
+    } else {
       contentType = file.type;
     }
 
