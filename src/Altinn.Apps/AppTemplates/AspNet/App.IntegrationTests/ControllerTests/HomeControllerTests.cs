@@ -1,15 +1,14 @@
-using Altinn.App.IntegrationTests;
-using App.IntegrationTests.Mocks.Services;
-using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+
+using Altinn.App.IntegrationTests;
+using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Utils;
+
 using Xunit;
 
 namespace App.IntegrationTests.ControllerTests
@@ -22,7 +21,6 @@ namespace App.IntegrationTests.ControllerTests
         {
             _factory = factory;
         }
-
 
         [Fact]
         public async Task GetHome_OK()
@@ -46,12 +44,10 @@ namespace App.IntegrationTests.ControllerTests
             Assert.StartsWith("XSR", cookieHeaders.ElementAt(1));
         }
 
-
         [Fact]
         public async Task GetHomeWithInstanceId_OK()
         {
             string token = PrincipalUtil.GetToken(1337);
-
 
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);

@@ -12,14 +12,29 @@ namespace Altinn.Platform.Storage.Interface.Models
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ProcessHistoryItem
     {
+        /// <summary>
+        /// The event type
+        /// </summary>
         public string EventType { get; set; }
 
+        /// <summary>
+        /// The element id
+        /// </summary>
         public string ElementId { get; set; }
 
+        /// <summary>
+        /// The occured
+        /// </summary>
         public DateTime? Occured { get; set; }
 
+        /// <summary>
+        /// The start time
+        /// </summary>
         public DateTime? Started { get; set; }
 
+        /// <summary>
+        /// The end time for process
+        /// </summary>
         public DateTime? Ended { get; set; }
 
     }

@@ -17,19 +17,21 @@ describe('>>> components/GenericComponent.tsx', () => {
   beforeAll(() => {
     const createStore = configureStore();
     const formLayout = getFormLayoutStateMock({
-      layout: [
-        {
-          type: 'Input',
-          id: 'mockId',
-          dataModelBindings: {
-            simpleBiding: 'mockDataBinding',
+      layouts: {
+        FormLayout: [
+          {
+            type: 'Input',
+            id: 'mockId',
+            dataModelBindings: {
+              simpleBiding: 'mockDataBinding',
+            },
+            readOnly: false,
+            required: false,
+            disabled: false,
+            textResourceBindings: {},
           },
-          readOnly: false,
-          required: false,
-          disabled: false,
-          textResourceBindings: {},
-        },
-      ],
+        ],
+      },
     });
 
     const formData = getFormDataStateMock({

@@ -25,7 +25,7 @@ function* updateFormDataSaga({
     );
     const schema = state.formDataModel.schemas[currentDataTaskDataTypeId];
     const validator = createValidator(schema);
-    const component = getLayoutComponentById(componentId, state.formLayout.layout);
+    const component = getLayoutComponentById(componentId, state.formLayout.layouts);
     const fieldWithoutIndex = getKeyWithoutIndex(field);
 
     const focus = state.formLayout.uiConfig.focus;

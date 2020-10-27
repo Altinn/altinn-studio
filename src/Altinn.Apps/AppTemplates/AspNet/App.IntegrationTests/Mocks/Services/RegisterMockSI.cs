@@ -1,11 +1,12 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
+
 using Newtonsoft.Json;
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace App.IntegrationTests.Mocks.Services
 {
@@ -13,14 +14,16 @@ namespace App.IntegrationTests.Mocks.Services
     {
         private readonly IDSF _dsfService;
         private readonly IER _erService;
+
         public RegisterMockSI(IDSF dsfService, IER erService)
         {
             _dsfService = dsfService;
             _erService = erService;
         }
-        public IDSF DSF { get {return _dsfService;} }
 
-        public IER ER { get {return _erService;} }
+        public IDSF DSF => _dsfService;
+
+        public IER ER => _erService;
 
         public async Task<Party> GetParty(int partyId)
         {
@@ -42,6 +45,7 @@ namespace App.IntegrationTests.Mocks.Services
 
                 return party;
             }
+
             return null;
         }
 
@@ -62,7 +66,6 @@ namespace App.IntegrationTests.Mocks.Services
             }
 
             return Task.FromResult(new Party());
-           
         }
 
         private string GetPartyPath(int partyId)

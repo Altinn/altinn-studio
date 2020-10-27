@@ -83,17 +83,17 @@ namespace UnitTests
 
             ClaimsPrincipal user = new ClaimsPrincipal(
                 new ClaimsIdentity(
-                    new List<Claim>{
+                    new List<Claim>
+                    {
                         new Claim("urn:altinn:scope", scopeClaim, "string", "org"),
-                        new Claim("urn:altinn:org", "brg", "string", "org")},
-        "AuthenticationTypes.Federation"
-                ));
+                        new Claim("urn:altinn:org", "brg", "string", "org")
+                    },
+                    "AuthenticationTypes.Federation"));
 
             AuthorizationHandlerContext context = new AuthorizationHandlerContext(
                 new[] { requirement },
                 user,
-                new Document()
-            );
+                default(Document));
             return context;
         }
     }

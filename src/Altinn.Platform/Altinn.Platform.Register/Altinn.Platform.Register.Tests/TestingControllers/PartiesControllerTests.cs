@@ -6,10 +6,12 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-using Altinn.Platform.Register.Tests.Utils;
+using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Register.Services.Interfaces;
+using Altinn.Platform.Register.Tests.Mocks;
 using Altinn.Platform.Register.Tests.Mocks.Authentication;
+using Altinn.Platform.Register.Tests.Utils;
 using AltinnCore.Authentication.JwtCookie;
 
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -19,9 +21,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
-using Microsoft.IdentityModel.Tokens;
-using Altinn.Common.AccessToken.Services;
-using Altinn.Platform.Register.Tests.Mocks;
 
 namespace Altinn.Platform.Register.Tests.TestingControllers
 {
@@ -126,8 +125,8 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
 
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookUp), Encoding.UTF8, "application/json");
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/register/api/v1/parties/lookup");
-            httpRequestMessage.Content = requestBody;
+            HttpRequestMessage httpRequestMessage =
+                new HttpRequestMessage(HttpMethod.Post, "/register/api/v1/parties/lookup") { Content = requestBody };
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
             // Act
@@ -143,25 +142,24 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             string token = PrincipalUtil.GetToken(1);
 
             // Arrange
-            string Ssn = "27108775284";
+            string ssn = "27108775284";
 
             Mock<IParties> partiesService = new Mock<IParties>();
-            partiesService.Setup(s => s.LookupPartyBySSNOrOrgNo(It.Is<string>(p => p == Ssn))).ReturnsAsync((Party)null);
+            partiesService.Setup(s => s.LookupPartyBySSNOrOrgNo(It.Is<string>(p => p == ssn))).ReturnsAsync((Party)null);
 
             HttpClient client = GetTestClient(partiesService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            PartyLookup lookUp = new PartyLookup { Ssn = Ssn }; 
+            PartyLookup lookUp = new PartyLookup { Ssn = ssn }; 
 
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookUp), Encoding.UTF8, "application/json");
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/register/api/v1/parties/lookup");
-            httpRequestMessage.Content = requestBody;
+            HttpRequestMessage httpRequestMessage =
+                new HttpRequestMessage(HttpMethod.Post, "/register/api/v1/parties/lookup") { Content = requestBody };
             httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-
 
             // Assert
             partiesService.VerifyAll();
@@ -175,31 +173,29 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             string token = PrincipalUtil.GetToken(1);
 
             // Arrange
-            string OrgNo = "555000103";
+            string orgNo = "555000103";
 
             Party party = new Party
             {
-                OrgNumber = OrgNo
+                OrgNumber = orgNo
             };
 
             Mock<IParties> partiesService = new Mock<IParties>();
-            partiesService.Setup(s => s.LookupPartyBySSNOrOrgNo(It.Is<string>(p => p == OrgNo))).ReturnsAsync(party);
+            partiesService.Setup(s => s.LookupPartyBySSNOrOrgNo(It.Is<string>(p => p == orgNo))).ReturnsAsync(party);
 
             HttpClient client = GetTestClient(partiesService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-          
 
-            PartyLookup lookUp = new PartyLookup { OrgNo = OrgNo }; 
+            PartyLookup lookUp = new PartyLookup { OrgNo = orgNo }; 
 
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookUp), Encoding.UTF8, "application/json");
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/register/api/v1/parties/lookup");
-            httpRequestMessage.Content = requestBody;
-            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd","unittest"));
+            HttpRequestMessage httpRequestMessage =
+                new HttpRequestMessage(HttpMethod.Post, "/register/api/v1/parties/lookup") { Content = requestBody };
+            httpRequestMessage.Headers.Add("PlatformAccessToken", PrincipalUtil.GetAccessToken("ttd", "unittest"));
 
             // Act
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            // HttpResponseMessage response = await client.PostAsync("/register/api/v1/parties/lookup", requestBody);
 
             // Assert
             partiesService.VerifyAll();
@@ -217,14 +213,14 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             string token = PrincipalUtil.GetExpiredToken();
 
             // Arrange
-            string OrgNo = "555000103";
+            string orgNo = "555000103";
 
             Mock<IParties> partiesService = new Mock<IParties>();
 
             HttpClient client = GetTestClient(partiesService.Object);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            PartyLookup lookUp = new PartyLookup { OrgNo = OrgNo }; 
+            PartyLookup lookUp = new PartyLookup { OrgNo = orgNo }; 
 
             StringContent requestBody = new StringContent(JsonSerializer.Serialize(lookUp), Encoding.UTF8, "application/json");
 
@@ -234,7 +230,6 @@ namespace Altinn.Platform.Register.Tests.TestingControllers
             // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
-
 
         [Fact]
         public async Task GetParty_MissingAccessToken_ReturnsForbidden()

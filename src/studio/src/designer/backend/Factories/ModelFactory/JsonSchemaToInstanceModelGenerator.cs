@@ -765,9 +765,13 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     case JsonSchemaType.Integer:
                         {
                             double? minimum = jSchema.Minimum();
-                            if (minimum == 0.0)
+                            if (minimum > 0.0)
                             {
                                 return "positiveInteger";
+                            }
+                            else if (minimum == 0.0)
+                            {
+                                return "nonNegativeInteger";
                             }
                             else
                             {

@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    ///Represents the an event related to an instance.
+    /// Represents the an event related to an instance.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class InstanceEvent
@@ -51,7 +51,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// The user who triggered the event.
         /// </summary>
         [JsonProperty(PropertyName = "user")]
-        public PlatformUser User;
+        public PlatformUser User { get; set; }
 
         /// <summary>
         /// More information about the process event.

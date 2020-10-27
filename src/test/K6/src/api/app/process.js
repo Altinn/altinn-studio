@@ -9,9 +9,10 @@ export function postStartProcess(altinnStudioRuntimeCookie, partyId, instaceId, 
     return http.post(endpoint, null, params);
 };
 
-//Api call to App Api:Process to move process of an app instance to a specific process element and returns response
+//Api call to App Api:Process to move process of an app instance to a specific process element if sent of next task in process and returns response
 export function putNextProcess(altinnStudioRuntimeCookie, partyId, instaceId, processElement, appOwner, appName) {
-    var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, "", "process") + "/next?elementId=" + processElement;
+    var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, "", "process");
+    endpoint += (processElement !=null) ? "/next?elementId=" + processElement :  "/next";
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
     params.timeout = 120000;
     return http.put(endpoint, null, params);
@@ -37,4 +38,19 @@ export function getProcessHistory(altinnStudioRuntimeCookie, partyId, instaceId,
     var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, "", "process") + "/history";
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
     return http.get(endpoint, params);
+};
+
+/**
+ * Api call to App Api:Process to complete the instance process and returns response
+ * @param {*} altinnStudioRuntimeCookie token to authenticate the api request
+ * @param {*} partyId partyid of the user
+ * @param {*} instaceId instance guid
+ * @param {*} appOwner name of the app owner
+ * @param {*} appName name of the app to which the instance belongs
+ * @returns {JSON} response body, headers and timings
+ */
+export function putCompleteProcess(altinnStudioRuntimeCookie, partyId, instaceId, appOwner, appName) {
+    var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, "", "completeprocess");
+    var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
+    return http.put(endpoint, null, params);
 };

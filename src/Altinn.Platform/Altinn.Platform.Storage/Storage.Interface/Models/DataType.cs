@@ -16,7 +16,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Gets or sets the data type id.
         /// It must be unique within the scope of an application. Logical name of the schema of which data elements should be validated against.
         /// Should be in lower case and can only contain letters, dash and numbers. No space or slashes are allowed.
-        /// Examples are: main, subschema-x, cv, attachement
+        /// Examples are: main, subschema-x, cv, attachment
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
@@ -86,6 +86,6 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Leaving field empty means that this data element should not have it's own grouping and will be grouped with other binary attachments that do not have defined a grouping.
         /// </remarks>
         [JsonProperty(PropertyName = "grouping")]
-        public string Grouping { get; set;}
+        public string Grouping { get; set; }
     }
 }

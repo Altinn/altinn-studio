@@ -1,11 +1,8 @@
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 
-using Altinn.App.Services.Interface;
-
+#pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class CalculationHandler
     {
@@ -16,19 +13,6 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
             _httpContextAccessor = httpContextAccessor;
         }
 
-        /// <summary>
-        /// Handles all custom validations that are not covered by the data model validation.
-        /// </summary>
-        /// <remarks>
-        /// Validations that fail should be handled by updating the validation result object,
-        /// see example.
-        /// </remarks>
-        /// <param name="validationResults">Object to contain any validation results</param>
-        /// <example>
-        ///  if ([some condition]) {
-        ///      validationResults.Add(new ValidationResult([error message], new List<string>() { [affected field id] } ));
-        ///  }
-        /// </example>
         public bool Calculate(object instance)
         {
             bool changed = false;

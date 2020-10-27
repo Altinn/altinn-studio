@@ -6,13 +6,15 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
+import { AltinnAppTheme } from 'altinn-shared/theme';
 import ProcessStep from '../../src/shared/containers/ProcessStep';
-import { ProcessSteps } from '../../src/types';
-import {AltinnAppTheme} from 'altinn-shared/theme';
+import { ProcessSteps, IRuntimeState } from '../../src/types';
+import { getInitialStateMock } from '../../__mocks__/mocks';
 
 describe('>>> containers/ProcessStep.tsx', () => {
   let mockHeader: string;
   let mockStore: any;
+  let mockInitialState: IRuntimeState;
 
   beforeAll(() => {
     window.matchMedia = jest.fn().mockImplementation((query) => {
@@ -29,17 +31,7 @@ describe('>>> containers/ProcessStep.tsx', () => {
   beforeEach(() => {
     mockHeader = 'mock-service-name';
     const createStore = configureStore();
-    const initialState = {
-      language: {
-        language: {
-          form_filler: {
-            error_report_header: 'Mock error report',
-          },
-        },
-      },
-      textResources: {
-        resources: null
-      },
+    mockInitialState = getInitialStateMock({
       formValidations: {
         validations: {
           'mock-component-id': {
@@ -49,47 +41,11 @@ describe('>>> containers/ProcessStep.tsx', () => {
             },
           },
         },
-      },
-      profile: {
+        invalidDataTypes: null,
         error: null,
-        profile: {
-          party: {
-            person: {
-              firstName: 'Ola',
-              middleName: null,
-              lastName: 'Privatperson',
-            },
-            organisation: null,
-          },
-        },
       },
-      organisationMetaData: {
-        allOrgs: null,
-      },
-      applicationMetadata: {
-        applicationMetadata: null,
-      },
-      instanceData: {
-        instance: {
-          instanceOwner: {
-            partyId: '12345',
-          }
-        },
-      },
-      party: {
-        parties: [
-          {
-            partyId: '12345',
-            name: 'Ola Privatperson',
-            ssn: '01017512345',
-          }
-        ],
-      },
-      formData: {
-        hasSubmitted: false,
-      },
-    };
-    mockStore = createStore(initialState);
+    });
+    mockStore = createStore(mockInitialState);
   });
 
   it('+++ should match snapshot', () => {
@@ -113,8 +69,9 @@ describe('>>> containers/ProcessStep.tsx', () => {
           <ProcessStep
             header={mockHeader}
             step={ProcessSteps.FormFilling}
-            children={<div id='mockFormFiller' />}
-          />
+          >
+            <div id='mockFormFiller' />
+          </ProcessStep>
         </Provider>
       </MemoryRouter>,
     );
@@ -135,9 +92,8 @@ describe('>>> containers/ProcessStep.tsx', () => {
 
     expect(
       wrapper
-      .find('AltinnAppHeader').prop('headerBackgroundColor'))
-      .toBe(AltinnAppTheme.altinnPalette.primary.blue);
-
+        .find('AltinnAppHeader').prop('headerBackgroundColor'),
+    ).toBe(AltinnAppTheme.altinnPalette.primary.blue);
   });
 
   it('+++ the background color should be lightGreen if step is "Archive"', () => {
@@ -153,15 +109,13 @@ describe('>>> containers/ProcessStep.tsx', () => {
     );
 
     expect(
-      wrapper
-      .find('AltinnAppHeader').prop('headerBackgroundColor'))
-      .toBe(AltinnAppTheme.altinnPalette.primary.greenLight);
-
+      wrapper.find('AltinnAppHeader').prop('headerBackgroundColor'),
+    ).toBe(AltinnAppTheme.altinnPalette.primary.greenLight);
   });
 
   it('+++ should map validations if there are any and create error report', () => {
     const createStore = configureStore();
-    const newState = {
+    const newState = getInitialStateMock({
       language: {
         language: {
           form_filler: {
@@ -169,9 +123,7 @@ describe('>>> containers/ProcessStep.tsx', () => {
             placeholder_user: 'OLA PRIVATPERSON',
           },
         },
-      },
-      textResources: {
-        resources: null
+        error: null,
       },
       formValidations: {
         validations: {
@@ -181,23 +133,10 @@ describe('>>> containers/ProcessStep.tsx', () => {
             },
           },
         },
+        invalidDataTypes: null,
+        error: null,
       },
-      profile: {
-        profile: null,
-      },
-      organisationMetaData: {
-        allOrgs: null,
-      },
-      applicationMetadata: {
-        applicationMetadata: null,
-      },
-      instanceData: {
-        instance: null,
-      },
-      formData: {
-        hasSubmitted: false,
-      },
-    };
+    });
     mockStore = createStore(newState);
     const wrapper = mount(
       <MemoryRouter>
@@ -214,37 +153,7 @@ describe('>>> containers/ProcessStep.tsx', () => {
 
   it('+++ should hide error report when there are no validation errors', () => {
     const createStore = configureStore();
-    const newState = {
-      language: {
-        language: {
-          form_filler: {
-            error_report_header: 'Mock error report',
-            placeholder_user: 'OLA PRIVATPERSON',
-          },
-        },
-      },
-      textResources: {
-        resources: null
-      },
-      formValidations: {
-        validations: {},
-      },
-      profile: {
-        profile: null,
-      },
-      organisationMetaData: {
-        allOrgs: null,
-      },
-      applicationMetadata: {
-        applicationMetadata: null,
-      },
-      instanceData: {
-        instance: null,
-      },
-      formData: {
-        hasSubmitted: false,
-      },
-    };
+    const newState = getInitialStateMock();
     mockStore = createStore(newState);
     const wrapper = mount(
       <MemoryRouter>

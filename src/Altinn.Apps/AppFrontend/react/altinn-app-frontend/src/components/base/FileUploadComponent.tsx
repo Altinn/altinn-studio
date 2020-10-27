@@ -68,7 +68,7 @@ export function FileUploadComponent(props: IFileUploadProps) {
     }
 
     if (action.type === 'add') {
-      return action.value;
+      return state.concat(action.value);
     }
 
     if (action.type === 'delete') {
@@ -158,9 +158,6 @@ export function FileUploadComponent(props: IFileUploadProps) {
           }
         });
       }
-    }
-    if (totalAttachments <= props.maxNumberOfAttachments) {
-      dispatch({ type: 'add', value: newFiles });
     }
     setValidations(tmpValidations);
   };

@@ -9,6 +9,9 @@ using Altinn.App.PlatformServices.Helpers;
 using Altinn.App.PlatformServices.Implementation;
 using Altinn.App.PlatformServices.Models;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Implementation;
+using Altinn.App.Services.Interface;
+using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Http;
@@ -28,6 +31,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         private readonly Mock<IOptions<GeneralSettings>> generalSettingsOptions;
         private readonly Mock<HttpMessageHandler> handlerMock;
         private readonly Mock<IHttpContextAccessor> contextAccessor;
+        private readonly Mock<IAccessTokenGenerator> accessTokenGeneratorMock;
+        private readonly Mock<IAppResources> appResourcesMock;
 
         public EventsAppSITests()
         {
@@ -36,6 +41,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             generalSettingsOptions = new Mock<IOptions<GeneralSettings>>();
             handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             contextAccessor = new Mock<IHttpContextAccessor>();
+            accessTokenGeneratorMock = new Mock<IAccessTokenGenerator>();
+            appResourcesMock = new Mock<IAppResources>();
         }
 
         [Fact]
@@ -45,6 +52,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Instance instance = new Instance
             {
                 AppId = "ttd/best-app",
+                Org = "ttd",
                 InstanceOwner = new InstanceOwner
                 {
                     OrganisationNumber = "org",
@@ -68,6 +76,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 platformSettingsOptions.Object,
                 contextAccessor.Object,
                 httpClient,
+                accessTokenGeneratorMock.Object,
+                appResourcesMock.Object,
                 appSettingsOptions.Object,
                 generalSettingsOptions.Object);
 
@@ -85,7 +95,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Assert.NotNull(actualEvent);
             Assert.Equal("/party/123", actualEvent.Subject);
             Assert.Equal("/organisation/org", actualEvent.AlternativeSubject);
-            Assert.Contains("at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
+            Assert.Contains("ttd.apps.at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
 
             handlerMock.VerifyAll();
         }
@@ -97,6 +107,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Instance instance = new Instance
             {
                 AppId = "ttd/best-app",
+                Org = "ttd",
                 InstanceOwner = new InstanceOwner
                 {
                     PersonNumber = "43234123",
@@ -120,6 +131,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 platformSettingsOptions.Object,
                 contextAccessor.Object,
                 httpClient,
+                accessTokenGeneratorMock.Object,
+                appResourcesMock.Object,
                 appSettingsOptions.Object,
                 generalSettingsOptions.Object);
 
@@ -137,7 +150,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             Assert.NotNull(actualEvent);
             Assert.Equal("/party/321", actualEvent.Subject);
             Assert.Equal("/person/43234123", actualEvent.AlternativeSubject);
-            Assert.Contains("at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
+            Assert.Contains("ttd.apps.at22.altinn.cloud/ttd/best-app/instances", actualEvent.Source.OriginalString);
 
             handlerMock.VerifyAll();
         }
@@ -148,6 +161,7 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             // Arrange
             Instance instance = new Instance
             {
+                Org = "ttd",
                 InstanceOwner = new InstanceOwner { OrganisationNumber = "org" }
             };
 
@@ -167,6 +181,8 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
                 platformSettingsOptions.Object,
                 contextAccessor.Object,
                 httpClient,
+                accessTokenGeneratorMock.Object,
+                appResourcesMock.Object,
                 appSettingsOptions.Object,
                 generalSettingsOptions.Object);
 
@@ -210,6 +226,11 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             appSettingsOptions.Setup(s => s.CurrentValue).Returns(appSettings);
 
             contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
+
+            accessTokenGeneratorMock.Setup(at => at.GenerateAccessToken(It.IsAny<string>(), It.IsAny<string>())).Returns("dummy access token");
+
+            Application app = new Application { Id = "ttd/best-app", Org = "ttd" };
+            appResourcesMock.Setup(ar => ar.GetApplication()).Returns(app);
 
             handlerMock.Protected()
                 .Setup<Task<HttpResponseMessage>>(

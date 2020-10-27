@@ -1,7 +1,9 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Configuration;
+using Altinn.Common.AccessToken.Constants;
 using Altinn.Common.AccessToken.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -68,9 +70,7 @@ namespace Altinn.Common.AccessToken
             bool isValid = false;
             try
             {
-                _logger.LogWarning("Validating token");
                 isValid = await ValidateAccessToken(tokens[0]);
-                _logger.LogWarning("Token is validated");
             }
             catch (Exception ex)
             {
@@ -118,7 +118,8 @@ namespace Altinn.Common.AccessToken
             SecurityToken validatedToken;
             try
             {
-                validator.ValidateToken(token, validationParameters, out validatedToken);
+                ClaimsPrincipal prinicpal = validator.ValidateToken(token, validationParameters, out validatedToken);
+                SetAccessTokenCredential(validatedToken.Issuer, prinicpal);
                 return true;
             }
             catch (Exception ex)
@@ -153,6 +154,21 @@ namespace Altinn.Common.AccessToken
             }
 
             return StringValues.Empty;
+        }
+
+        private void SetAccessTokenCredential(string issuer, ClaimsPrincipal claimsPrincipal)
+        {
+            string appClaim = string.Empty;
+            foreach (Claim claim in claimsPrincipal.Claims)
+            {
+                if (claim.Type.Equals(AccessTokenClaimTypes.App))
+                {
+                    appClaim = claim.Value;
+                    break;
+                }
+            }
+
+            _httpContextAccessor.HttpContext.Items.Add(_accessTokenSettings.AccessTokenHttpContextId, issuer + "/" + appClaim);
         }
     }
 }

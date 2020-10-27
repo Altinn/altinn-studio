@@ -1,16 +1,18 @@
+using System;
+using System.Threading.Tasks;
+
 using Altinn.App.Common.Enums;
 using Altinn.App.Common.Models;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     public class AltinnApp : AppBase, IAltinnApp
     {
@@ -64,7 +66,7 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
         /// <summary>
         /// Run validation event to perform custom validations
         /// </summary>
-        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
+        /// <param name="data">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task<bool> RunCalculation(object data)
         {
@@ -75,7 +77,7 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
         /// <summary>
         /// Run validation event to perform custom validations
         /// </summary>
-        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
+        /// <param name="instance">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task<Altinn.App.Services.Models.Validation.InstantiationValidationResult> RunInstantiationValidation(Instance instance)
         {
@@ -90,7 +92,7 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
         /// Instantiation events include validation and data manipulation (custom prefill)
         /// </remarks>
         /// <param name="instance">The data to perform calculations on</param>
-        /// <param name="validationResults">Object containing any validation errors/warnings</param>
+        /// <param name="data">Object containing any validation errors/warnings</param>
         /// <returns>Task to indicate when calculation is completed</returns>
         public override async Task RunDataCreation(Instance instance, object data)
         {

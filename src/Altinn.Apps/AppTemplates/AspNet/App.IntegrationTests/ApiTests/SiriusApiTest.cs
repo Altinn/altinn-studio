@@ -1,11 +1,3 @@
-using Altinn.App.Common.Enums;
-using Altinn.App.IntegrationTests;
-using Altinn.App.Services.Models.Validation;
-using Altinn.Common.PEP.Models;
-using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,9 +6,18 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Xunit;
-using App.IntegrationTests.Mocks.Apps.tdd.sirius;
 using System.Xml.Serialization;
+
+using Altinn.App.IntegrationTests;
+using Altinn.App.Services.Models.Validation;
+using Altinn.Platform.Storage.Interface.Models;
+
+using App.IntegrationTests.Mocks.Apps.tdd.sirius;
+using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Utils;
+
+using Newtonsoft.Json;
+using Xunit;
 
 namespace App.IntegrationTests
 {
@@ -28,9 +29,6 @@ namespace App.IntegrationTests
         {
             _factory = factory;
         }
-
-
-
 
         [Fact]
         public async Task Instance_Post_InstansiateWithoutAddingData()
@@ -77,15 +75,11 @@ namespace App.IntegrationTests
             Assert.NotNull(instance);
             Assert.Equal("1337", instance.InstanceOwner.PartyId);
 
-
             // Get Data from Instance
             HttpRequestMessage httpRequestMessageGetData = new HttpRequestMessage(HttpMethod.Get, "/tdd/sirius/instances/" + instance.Id + "/data/" + instance.Data[0].Id);
-            {
-            };
 
             HttpResponseMessage responseData = await client.SendAsync(httpRequestMessageGetData);
             string responseContentData = await responseData.Content.ReadAsStringAsync();
-
 
             Skjema siriusMainForm = (Skjema)JsonConvert.DeserializeObject(responseContentData, typeof(Skjema));
 
@@ -107,7 +101,6 @@ namespace App.IntegrationTests
             string næringsppgave = File.ReadAllText("Data/Files/data-element.xml");
 
             byte[] byteArray = Encoding.UTF8.GetBytes(næringsppgave);
-            //byte[] byteArray = Encoding.ASCII.GetBytes(contents);
             MemoryStream næringsoppgavestream = new MemoryStream(byteArray);
 
             StreamContent streamContentNæring = new StreamContent(næringsoppgavestream);
@@ -117,12 +110,10 @@ namespace App.IntegrationTests
             HttpResponseMessage postresponseNæring = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=næringsoppgave", streamContentNæring);
             DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(await postresponseNæring.Content.ReadAsStringAsync(), typeof(DataElement));
 
-
             // Add skattemelding.xml
             string skattemelding = File.ReadAllText("Data/Files/data-element.xml");
 
             byte[] byteArraySkattemelding = Encoding.UTF8.GetBytes(næringsppgave);
-            //byte[] byteArray = Encoding.ASCII.GetBytes(contents);
             MemoryStream skattemeldingstream = new MemoryStream(byteArraySkattemelding);
 
             StreamContent streamContentSkattemelding = new StreamContent(skattemeldingstream);
@@ -140,7 +131,6 @@ namespace App.IntegrationTests
             Assert.Empty(messages);
             TestDataUtil.DeleteInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
         }
-
 
         /// <summary>
         /// This test verifies that you can instansiate sirius app and add næringsoppgave and skattemdling
@@ -165,15 +155,11 @@ namespace App.IntegrationTests
             Assert.NotNull(instance);
             Assert.Equal("1337", instance.InstanceOwner.PartyId);
 
-
             // Get Data from Instance
             HttpRequestMessage httpRequestMessageGetData = new HttpRequestMessage(HttpMethod.Get, "/tdd/sirius/instances/" + instance.Id + "/data/" + instance.Data[0].Id);
-            {
-            };
 
             HttpResponseMessage responseData = await client.SendAsync(httpRequestMessageGetData);
             string responseContentData = await responseData.Content.ReadAsStringAsync();
-
 
             Skjema siriusMainForm = (Skjema)JsonConvert.DeserializeObject(responseContentData, typeof(Skjema));
 
@@ -195,7 +181,7 @@ namespace App.IntegrationTests
             string næringsppgave = File.ReadAllText("Data/Files/data-element.xml");
 
             byte[] byteArray = Encoding.UTF8.GetBytes(næringsppgave);
-            //byte[] byteArray = Encoding.ASCII.GetBytes(contents);
+
             MemoryStream næringsoppgavestream = new MemoryStream(byteArray);
 
             StreamContent streamContentNæring = new StreamContent(næringsoppgavestream);
@@ -215,8 +201,6 @@ namespace App.IntegrationTests
             TestDataUtil.DeleteInstanceAndData("tdd", "sirius", 1337, new Guid(instance.Id.Split('/')[1]));
         }
 
-
-
         /// <summary>
         /// This test to the following.
         /// It instansiates a new instance of app/sirus for party with id 1337
@@ -228,7 +212,6 @@ namespace App.IntegrationTests
         {
             // Gets JWT token. In production this would be given from authentication component when exchanging a ID porten token.
             string token = PrincipalUtil.GetToken(1337);
-
 
             // Setup client and calls Instance controller on the App that instansiates a new instances of the app
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "sirius");
@@ -245,11 +228,8 @@ namespace App.IntegrationTests
             Assert.NotNull(instance);
             Assert.Equal("1337", instance.InstanceOwner.PartyId);
 
-
             // Get Data from the main form
             HttpRequestMessage httpRequestMessageGetData = new HttpRequestMessage(HttpMethod.Get, "/tdd/sirius/instances/" + instance.Id + "/data/" + instance.Data[0].Id);
-            {
-            };
 
             HttpResponseMessage responseData = await client.SendAsync(httpRequestMessageGetData);
             string responseContentData = await responseData.Content.ReadAsStringAsync();
@@ -274,6 +254,7 @@ namespace App.IntegrationTests
             string næringsppgave = File.ReadAllText("Data/Files/data-element.xml");
 
             byte[] byteArray = Encoding.UTF8.GetBytes(næringsppgave);
+
             //byte[] byteArray = Encoding.ASCII.GetBytes(contents);
             MemoryStream næringsoppgavestream = new MemoryStream(byteArray);
 
@@ -284,11 +265,11 @@ namespace App.IntegrationTests
             HttpResponseMessage postresponseNæring = await client.PostAsync("/tdd/sirius/instances/" + instance.Id + "/data/?datatype=næringsoppgave", streamContentNæring);
             DataElement dataElementNæring = (DataElement)JsonConvert.DeserializeObject(await postresponseNæring.Content.ReadAsStringAsync(), typeof(DataElement));
 
-
             // Add skattemelding.xml
             string skattemelding = File.ReadAllText("Data/Files/data-element.xml");
 
             byte[] byteArraySkattemelding = Encoding.UTF8.GetBytes(skattemelding);
+
             //byte[] byteArray = Encoding.ASCII.GetBytes(contents);
             MemoryStream skattemeldingstream = new MemoryStream(byteArraySkattemelding);
 

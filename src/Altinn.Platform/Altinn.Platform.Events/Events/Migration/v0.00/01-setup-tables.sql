@@ -1,7 +1,7 @@
 -- SCHEMA: events
 
 CREATE SCHEMA IF NOT EXISTS events
-    AUTHORIZATION postgres;
+AUTHORIZATION platform_events_admin;
 
 -- Table: events.events
 
@@ -11,16 +11,13 @@ CREATE TABLE IF NOT EXISTS events.events
     id character varying COLLATE pg_catalog."default" NOT NULL,
     source character varying COLLATE pg_catalog."default" NOT NULL,
     subject character varying COLLATE pg_catalog."default" NOT NULL,
-    "time" timestamptz  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "time" timestamptz  NOT NULL,
     type character varying COLLATE pg_catalog."default" NOT NULL,
     cloudevent text COLLATE pg_catalog."default" NOT NULL,
     CONSTRAINT events_pkey PRIMARY KEY (sequenceno)
 )
 
 TABLESPACE pg_default;
-
-ALTER TABLE events.events
-    OWNER to postgres;
 
 -- Procecure: insert_event
 
@@ -32,11 +29,15 @@ CREATE OR REPLACE PROCEDURE events.insert_event(
 	cloudevent text)
 LANGUAGE 'plpgsql'
 AS $BODY$
-DECLARE currentTime timestamptz := current_timestamp;
+DECLARE currentTime timestamptz; 
+DECLARE currentTimeString character varying; 
 BEGIN
+  SET TIME ZONE UTC;
+  currentTime := NOW();
+  currentTimeString :=  to_char(currentTime, 'YYYY-MM-DD"T"HH24:MI:SS.USOF');
 
 INSERT INTO events.events(id, source, subject, type, "time", cloudevent)
-	VALUES ($1, $2, $3, $4, currentTime,  substring($5 from 1 for length($5) -1)  || ', "time": "' || currentTime || '"}');
+	VALUES ($1, $2, $3, $4, currentTime,  substring($5 from 1 for length($5) -1)  || ',"time": "' || currentTimeString || '"}');
 	
 END;
 $BODY$;

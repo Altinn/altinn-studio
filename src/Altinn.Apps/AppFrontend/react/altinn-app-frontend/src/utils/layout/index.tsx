@@ -1,15 +1,21 @@
 import * as React from 'react';
 import { Grid } from '@material-ui/core';
-import { ILayout, ILayoutComponent } from '../../features/form/layout';
+import { ILayouts, ILayoutComponent } from '../../features/form/layout';
 // eslint-disable-next-line import/no-cycle
 import { GenericComponent } from '../../components/GenericComponent';
 
-export function getLayoutComponentById(id: string, layout: ILayout): ILayoutComponent {
-  const component: ILayoutComponent = layout.find((element) => {
-    // Check against provided id, with potential -{index} postfix.
-    const match = matchLayoutComponent(id, element.id);
-    return match && match.length > 0;
-  }) as ILayoutComponent;
+export function getLayoutComponentById(id: string, layouts: ILayouts): ILayoutComponent {
+  let component: ILayoutComponent;
+  Object.keys(layouts).forEach((layoutId) => {
+    if (!component) {
+      component = layouts[layoutId].find((element) => {
+        // Check against provided id, with potential -{index} postfix.
+        const match = matchLayoutComponent(id, element.id);
+        return match && match.length > 0;
+      }) as ILayoutComponent;
+    }
+  });
+
   return component;
 }
 

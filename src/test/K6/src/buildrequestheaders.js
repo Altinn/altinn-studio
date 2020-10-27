@@ -3,9 +3,9 @@ let environment = __ENV.env;
 let sblAccessSubscriptionKey = __ENV.sblaccesskey;
 
 //Function to determine the headers for a POST/PUT data based on dataType
-export function buildHeadersForData(dataType, altinnStudioRuntimeCookie, api) {
+export function buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, api) {
     var params = {};
-    if (isGuid(dataType)) {
+    if (isBinaryAttachment) {
         params = {
             headers: {
                 "Authorization": "Bearer " + altinnStudioRuntimeCookie,
@@ -91,6 +91,23 @@ export function buildHeaderWithRuntimeAsCookie(altinnStudioRuntimeCookie, api) {
 //Function to build a request header only with subscription key
 export function buildHeaderWithSubsKey(api) {
     var params = {};
+    params = addSubscriptionKey(params, subscriptionKey, api);
+    return params;
+};
+
+/**
+ * 
+ * @param {*} altinnStudioRuntimeCookie Token to send in header as bearer token
+ * @param {String} api platform or app
+ * @returns {JSON} a JSON object with the header values for Authorization and content-type: multipart/formdata
+ */
+export function buildHearderWithRuntimeForMultipart(altinnStudioRuntimeCookie, api) {
+    var params = {
+        headers: {
+            "Authorization": "Bearer " + altinnStudioRuntimeCookie,
+            "Content-Type": 'multipart/form-data; boundary="abcdefg"'
+        }
+    };
     params = addSubscriptionKey(params, subscriptionKey, api);
     return params;
 };

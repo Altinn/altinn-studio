@@ -40,7 +40,7 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
 
             Assert.Equal("974760673", orgNumber);
 
-            Organisation organisation = await orgRepo.GetOrganisationByOrg("nb");
+            Organisation organisation = await orgRepo.GetOrganisationByOrg("nbib");
 
             Assert.Equal("National Library of Norway", organisation.Name["en"]);
         }

@@ -1,4 +1,3 @@
-using System;
 using Altinn.Platform.Storage.Helpers;
 using Xunit;
 
@@ -6,7 +5,6 @@ namespace Altinn.Platform.Storage.UnitTest
 {
     public class LanguageHelperTest
     {
-
         [Theory]
         [InlineData("nb", true)]
         [InlineData("en", true)]

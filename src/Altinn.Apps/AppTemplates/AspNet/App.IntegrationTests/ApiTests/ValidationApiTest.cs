@@ -37,8 +37,6 @@ namespace App.IntegrationTestsRef.ApiTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/0fc98a23-fe31-4ef5-8fb9-dd3f479354cd/validate");
-            {
-            };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -68,8 +66,6 @@ namespace App.IntegrationTestsRef.ApiTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/16314483-65f3-495a-aaec-79445b4edb0b/validate");
-            {
-            };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -96,8 +92,6 @@ namespace App.IntegrationTestsRef.ApiTests
             HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "custom-validation");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/custom-validation/instances/1337/46133fb5-a9f2-45d4-90b1-f6d93ad40713/validate");
-            {
-            };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();
@@ -127,8 +121,6 @@ namespace App.IntegrationTestsRef.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             string url = "/tdd/custom-validation/instances/1337/16314483-65f3-495a-aaec-79445b4edb0b/data/b862f944-3f04-45e3-b445-6bbd09f65ad5/validate";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
-            {
-            };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = await response.Content.ReadAsStringAsync();

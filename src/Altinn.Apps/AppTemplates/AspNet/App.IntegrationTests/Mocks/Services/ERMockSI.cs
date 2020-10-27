@@ -1,29 +1,26 @@
 using System;
 using System.IO;
-using System.Net.Http;
 using System.Threading.Tasks;
+
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Register.Models;
+
 using Newtonsoft.Json;
 
 namespace App.IntegrationTests.Mocks.Services
 {
     public class ERMockSI : IER
     {
-        public ERMockSI()
-        {
-
-        }
-
         public Task<Organization> GetOrganization(string OrgNr)
         {
             string orgPath = GetOrganizationPath(OrgNr);
             if (File.Exists(orgPath))
             {
-                string content = System.IO.File.ReadAllText(orgPath);
+                string content = File.ReadAllText(orgPath);
                 Organization org = JsonConvert.DeserializeObject<Organization>(content);
                 return Task.FromResult(org);
             }
+
             return null;
         }
 

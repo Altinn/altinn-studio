@@ -3,6 +3,9 @@ using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Interface.Models
 {
+    /// <summary>
+    /// Represents a set of texts on a specified language.
+    /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class TextResource
     {
@@ -21,7 +24,6 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// <summary>
         /// Gets or sets the language. Should be a two letter ISO name.
         /// </summary>
-        /// <value></value>
         [JsonProperty(PropertyName= "language")]
         public string Language {get; set;}
 
@@ -33,6 +35,9 @@ namespace Altinn.Platform.Storage.Interface.Models
 
     }
 
+    /// <summary>
+    /// Represents the actual texts identified by the key.
+    /// </summary>
     public class TextResourceElement
     {
         /// <summary>
@@ -42,28 +47,31 @@ namespace Altinn.Platform.Storage.Interface.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// gets or sets the value
+        /// Gets or sets the value
         /// </summary>
         [JsonProperty(PropertyName = "value")]
         public string Value { get; set; }
 
         /// <summary>
-        /// gets or sets the variables
+        /// Gets or sets the variables
         /// </summary>
         [JsonProperty(PropertyName = "variables")]
         public List<TextResourceVariable> Variables { get; set; }
     }
 
+    /// <summary>
+    /// Represents a replacement variable if any element in the text should be replaced.
+    /// </summary>
     public class TextResourceVariable
     {
         /// <summary>
-        /// gets or sets the key
+        /// Gets or sets the key
         /// </summary>
         [JsonProperty(PropertyName = "key")]
         public string Key { get; set; }
 
         /// <summary>
-        /// gets or sets the dataSource
+        /// Gets or sets the dataSource
         /// </summary>
         [JsonProperty(PropertyName = "dataSource")]
         public string DataSource { get; set; }

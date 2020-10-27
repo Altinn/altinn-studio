@@ -4,10 +4,13 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
+
+using Altinn.Common.AccessToken.Services;
 using Altinn.Platform.Register.Models;
-using Altinn.Platform.Register.Tests.Utils;
 using Altinn.Platform.Register.Services.Interfaces;
+using Altinn.Platform.Register.Tests.Mocks;
 using Altinn.Platform.Register.Tests.Mocks.Authentication;
+using Altinn.Platform.Register.Tests.Utils;
 
 using AltinnCore.Authentication.JwtCookie;
 
@@ -16,10 +19,9 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+
 using Moq;
 using Xunit;
-using Altinn.Common.AccessToken.Services;
-using Altinn.Platform.Register.Tests.Mocks;
 
 namespace Altinn.Platform.Register.Tests.TestingControllers
 {

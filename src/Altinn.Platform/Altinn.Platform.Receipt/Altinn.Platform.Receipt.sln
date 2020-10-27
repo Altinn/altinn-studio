@@ -5,11 +5,6 @@ VisualStudioVersion = 16.0.29403.142
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Receipt", "Receipt\Altinn.Platform.Receipt.csproj", "{3E337964-095D-467D-ABD3-964798848144}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{50ECB4A9-429E-4E37-9AE9-1DD829B67FB1}"
-	ProjectSection(SolutionItems) = preProject
-		Altinn3.ruleset = Altinn3.ruleset
-	EndProjectSection
-EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Receipt.Tests", "Tests\Altinn.Platform.Receipt.Tests.csproj", "{BFF2B21B-629E-4952-A021-F7CDCB3DAF08}"

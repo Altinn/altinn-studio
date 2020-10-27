@@ -8,7 +8,7 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class EventsMockSI : IEvents
     {
-        public static List<(string eventType, Instance instance)> Requests = new List<(string, Instance)>();
+        public static List<(string eventType, Instance instance)> Requests { get; set; } = new List<(string, Instance)>();
 
         public Task<string> AddEvent(string eventType, Instance instance)
         {

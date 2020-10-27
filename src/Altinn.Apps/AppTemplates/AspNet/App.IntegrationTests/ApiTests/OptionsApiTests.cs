@@ -1,12 +1,14 @@
-using Altinn.App.Common.Models;
-using Altinn.App.IntegrationTests;
-using App.IntegrationTests.Utils;
-using App.IntegrationTestsRef.Utils;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+
+using Altinn.App.Common.Models;
+using Altinn.App.IntegrationTests;
+using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Utils;
+
+using Newtonsoft.Json;
 using Xunit;
 
 namespace App.IntegrationTestsRef.ApiTests
@@ -37,7 +39,6 @@ namespace App.IntegrationTestsRef.ApiTests
             List<AppOption> options = JsonConvert.DeserializeObject<List<AppOption>>(responseContent);
             Assert.Equal(7, options.Count);
         }
-
 
         [Fact]
         public async Task GetCarBrands()
