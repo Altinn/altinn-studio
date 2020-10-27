@@ -59,7 +59,7 @@ const ValidationReducer: Reducer<IValidationState> = (
       return update<IValidationState>(state, {
         currentSingleFieldValidation: {
           $set: dataModelBinding,
-        }
+        },
       });
     }
 
