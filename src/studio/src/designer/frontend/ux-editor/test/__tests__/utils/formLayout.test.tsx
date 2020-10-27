@@ -113,11 +113,11 @@ describe('>>> utils/formLayout', () => {
 
     expect(convertedLayout.components).toEqual(mockResult.components);
   });
-  it('+++ convertFromLayoutToInternalFormat should return empty IFormDesignerLayout if no formLayout', () => {
+  it('+++ convertFromLayoutToInternalFormat should initiate an form layout with a base container', () => {
     const convertedLayout = convertFromLayoutToInternalFormat(null);
-    expect(convertedLayout).toEqual({
-      containers: {}, components: {}, order: {},
-    });
+    expect(Object.keys(convertedLayout.containers).length).toEqual(1);
+    expect(Object.keys(convertedLayout.components).length).toEqual(0);
+    expect(Object.keys(convertedLayout.order).length).toEqual(1);
   });
   it('+++ convertInternalToLayoutFormat should convert to correct format', () => {
     const convertedLayout = convertInternalToLayoutFormat(mockInternal);

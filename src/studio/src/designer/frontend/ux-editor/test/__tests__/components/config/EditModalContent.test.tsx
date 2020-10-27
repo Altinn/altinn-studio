@@ -73,7 +73,7 @@ describe('>>> containers/EditModalContent', () => {
         />
       </Provider>,
     );
-    expect(mountedEditModalContent.find('input').length).toBe(3);
+    expect(mountedEditModalContent.find('input').length).toBe(5);
   });
   it('+++ should return header spesific content when type header', () => {
     mockComponent = {
