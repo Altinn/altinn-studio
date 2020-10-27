@@ -147,3 +147,7 @@ export interface IParty {
   organisation?: IOrganisation;
   childParties: IParty[];
 }
+
+export interface ILayoutSettings {
+  order: [];
+}

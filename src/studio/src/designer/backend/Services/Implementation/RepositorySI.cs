@@ -722,6 +722,42 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return true;
         }
 
+        /// <inheritdoc />
+        public bool DeleteFormLayout(string org, string app, string formLayout)
+        {
+            string filePath = _settings.GetFormLayoutPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), formLayout);
+            bool deleted = false;
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+                deleted = true;
+            }
+
+            return deleted;
+        }
+        
+        /// <inheritdoc />
+        public bool SaveLayoutSettings(string org, string app, string setting)
+        {
+            string filePath = _settings.GetLayoutSettingPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            new FileInfo(filePath).Directory.Create();
+            File.WriteAllText(filePath, setting, Encoding.UTF8);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public string GetLayoutSettings(string org, string app)
+        {
+            string filePath = _settings.GetLayoutSettingPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string filedata = null;
+            if (File.Exists(filePath))
+            {
+                filedata = File.ReadAllText(filePath, Encoding.UTF8);
+            }
+
+            return filedata;
+        }
+
         /// <summary>
         /// Save rule handler file to disk
         /// </summary>

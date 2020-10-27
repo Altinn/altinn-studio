@@ -21,3 +21,5 @@ export * from './updateSelectedLayout';
 export * from './addLayout';
 export * from './deleteLayout';
 export * from './updateLayoutName';
+export * from './updateLayoutOrder';
+export * from './fetchLayoutSettings';

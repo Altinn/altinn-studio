@@ -15,6 +15,7 @@ export interface IFormLayoutState extends IFormDesignerLayout {
   activeContainer: string;
   activeList: any;
   selectedLayout: string;
+  layoutOrder: string[];
 }
 
 const initialState: IFormLayoutState = {
@@ -27,6 +28,7 @@ const initialState: IFormLayoutState = {
   activeContainer: '',
   activeList: [],
   selectedLayout: 'default',
+  layoutOrder: [],
 };
 
 const formLayoutReducer: Reducer<IFormLayoutState> = (
@@ -418,6 +420,9 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         layouts: {
           $set: formLayout,
         },
+        layoutOrder: {
+          $set: Object.keys(formLayout),
+        },
         fetching: {
           $set: false,
         },
@@ -537,6 +542,25 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         layouts: {
           $unset: [layout],
         },
+        layoutOrder: (currentOrder) => {
+          const newOrder = [...currentOrder];
+          newOrder.splice(newOrder.indexOf(layout), 1);
+          return newOrder;
+        },
+        selectedLayout: (currentSelected) => {
+          if (currentSelected !== layout) {
+            return currentSelected;
+          }
+          return state.layoutOrder[0];
+        },
+      });
+    }
+    case FormDesignerActionTypes.DELETE_LAYOUT_REJECTED: {
+      const { error } = action as FormDesignerActions.IDeleteLayoutRejectedAction;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
       });
     }
     case FormDesignerActionTypes.ADD_LAYOUT_FULFILLED: {
@@ -544,6 +568,9 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       return update<IFormLayoutState>(state, {
         layouts: {
           $set: layouts,
+        },
+        layoutOrder: {
+          $set: Object.keys(layouts),
         },
       });
     }
@@ -563,6 +590,64 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           updatedLayouts[newName] = updatedLayouts[oldName];
           delete updatedLayouts[oldName];
           return updatedLayouts;
+        },
+        layoutOrder: (currentLayoutOrder) => {
+          const newOrder = [...currentLayoutOrder];
+          newOrder[newOrder.indexOf(oldName)] = newName;
+          return newOrder;
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_LAYOUT_NAME_REJECTED: {
+      const { error } = action as FormDesignerActions.IUpdateSelectedLayoutRejectedAction;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_LAYOUT_ORDER_FULFILLED: {
+      const { layout, direction } = action as FormDesignerActions.IUpdateLayoutOrderFulfilledAction;
+      return update<IFormLayoutState>(state, {
+        layoutOrder: (currentOrder) => {
+          const newOrder = [...currentOrder];
+          const currentIndex = currentOrder.indexOf(layout);
+          let destination: number;
+          if (direction === 'up') {
+            destination = currentIndex - 1;
+          } else if (direction === 'down') {
+            destination = currentIndex + 1;
+          }
+          newOrder.splice(currentIndex, 1);
+          newOrder.splice(destination, 0, layout);
+          return newOrder;
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_LAYOUT_ORDER_REJECTED: {
+      const { error } = action as FormDesignerActions.IUpdateLayoutOrderRejectedAction;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+    case FormDesignerActionTypes.FETCH_LAYOUT_SETTINGS_FULFILLED: {
+      const { settings } = action as FormDesignerActions.IFetchLayoutSettingsFulfilledAction;
+      return update<IFormLayoutState>(state, {
+        layoutOrder: (currentLayoutOrder) => {
+          if (!settings || !settings.order) {
+            return currentLayoutOrder;
+          }
+          return settings.order;
+        },
+      });
+    }
+    case FormDesignerActionTypes.FETCH_LAYOUT_SETTINGS_REJECTED: {
+      const { error } = action as FormDesignerActions.IFetchLayoutSettingsRejectedAction;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
         },
       });
     }

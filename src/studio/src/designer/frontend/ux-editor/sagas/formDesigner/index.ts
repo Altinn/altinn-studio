@@ -18,7 +18,10 @@ import { watchAddActiveFormContainerSaga,
   watchUpdateSelectedLayoutSaga,
   watchDeleteLayoutSaga,
   watchAddLayoutSaga,
-  watchUpdateLayoutNameSaga } from './formDesignerSagas';
+  watchUpdateLayoutNameSaga,
+  watchUpdateLayoutOrderSaga,
+  watchFetchFormLayoutSettingSaga,
+  watchSaveFormLayoutSettingSaga } from './formDesignerSagas';
 
 // tslint:disable-next-line:space-before-function-paren
 export default function* (): SagaIterator {
@@ -41,4 +44,7 @@ export default function* (): SagaIterator {
   yield fork(watchDeleteLayoutSaga);
   yield fork(watchAddLayoutSaga);
   yield fork(watchUpdateLayoutNameSaga);
+  yield fork(watchUpdateLayoutOrderSaga);
+  yield fork(watchFetchFormLayoutSettingSaga);
+  yield fork(watchSaveFormLayoutSettingSaga);
 }

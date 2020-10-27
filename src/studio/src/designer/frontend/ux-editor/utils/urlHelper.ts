@@ -1,6 +1,21 @@
-export const getSaveFormLayoutUrl = (): string => {
+export const getSaveFormLayoutsUrl = (): string => {
   const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
-  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/SaveFormLayout`;
+  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/SaveFormLayouts`;
+};
+
+export const getDeleteForLayoutUrl = (layout: string): string => {
+  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
+  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/DeleteFormLayout/${layout}`;
+};
+
+export const getLayoutSettingsUrl = (): string => {
+  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
+  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/GetLayoutSettings`;
+};
+
+export const getSaveLayoutSettingsUrl = (): string => {
+  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
+  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/SaveLayoutSettings`;
 };
 
 export const getSaveServiceConfigurationUrl = (): string => {

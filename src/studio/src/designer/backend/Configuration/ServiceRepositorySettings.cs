@@ -67,6 +67,11 @@ namespace Altinn.Studio.Designer.Configuration
         public const string RULE_CONFIG_FILE_NAME = "RuleConfiguration.json";
 
         /// <summary>
+        /// Constant for the name of the layout setting file
+        /// </summary>
+        public const string LAYOUT_SETTING_FILE = "settings.json";
+
+        /// <summary>
         /// Constant for the location of app logic files
         /// </summary>
         public const string APPLOGIC_FOLDER_NAME = "App/logic/";
@@ -477,6 +482,18 @@ namespace Altinn.Studio.Designer.Configuration
         public string GetRuleHandlerPath(string org, string app, string developer)
         {
             return GetServicePath(org, app, developer) + FORMLAYOUT_RESOURCE_FOLDER_NAME + RuleHandlerFileName;
+        }
+
+        /// <summary>
+        /// Get the path to the layout setttings file
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
+        /// <returns>The full path</returns>
+        public string GetLayoutSettingPath(string org, string app, string developer)
+        {
+            return GetServicePath(org, app, developer) + FORMLAYOUT_RESOURCE_FOLDER_NAME + LAYOUT_SETTING_FILE;
         }
         
         /// <summary>

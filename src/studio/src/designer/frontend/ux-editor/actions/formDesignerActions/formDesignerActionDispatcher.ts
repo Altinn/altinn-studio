@@ -1,3 +1,4 @@
+import { ILayoutSettings } from 'app-shared/types';
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as FormDesignerActions from './actions';
@@ -259,6 +260,24 @@ export interface IFormDesignerActionDispatchers
   updateLayoutNameRejected: (
     error: Error,
   ) => FormDesignerActions.IUpdateLayoutNameRejectedAction;
+  updateLayoutOrder: (
+    layout: string,
+    direction: 'up' | 'down',
+  ) => FormDesignerActions.IUpdateLayoutOrderAction;
+  updateLayoutOrderFulfilled: (
+    layout: string,
+    direction: 'up' | 'down',
+  ) => FormDesignerActions.IUpdateLayoutOrderFulfilledAction;
+  updateLayoutOrderRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateLayoutOrderRejectedAction;
+  fetchLayoutSettings: () => Action;
+  fetchLayoutSettingsFulfilled: (
+    settings: ILayoutSettings,
+  ) => FormDesignerActions.IFetchLayoutSettingsFulfilledAction;
+  fetchLayoutSettingsRejected: (
+    error: Error,
+  ) => FormDesignerActions.IFetchLayoutSettingsRejectedAction;
 }
 
 const actions: IFormDesignerActionDispatchers = {
@@ -349,6 +368,12 @@ const actions: IFormDesignerActionDispatchers = {
   updateLayoutName: FormDesignerActions.updateLayoutName,
   updateLayoutNameFulfilled: FormDesignerActions.updateLayoutNameFulfilled,
   updateLayoutNameRejected: FormDesignerActions.updateLayoutNameRejected,
+  updateLayoutOrder: FormDesignerActions.updateLayoutOrder,
+  updateLayoutOrderFulfilled: FormDesignerActions.updateLayoutOrderFulfilled,
+  updateLayoutOrderRejected: FormDesignerActions.updateLayoutOrderRejected,
+  fetchLayoutSettings: FormDesignerActions.fetchLayoutSettings,
+  fetchLayoutSettingsFulfilled: FormDesignerActions.fetchLayoutSettingsFulfilled,
+  fetchLayoutSettingsRejected: FormDesignerActions.fetchLayoutSettingsRejected,
 };
 
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<

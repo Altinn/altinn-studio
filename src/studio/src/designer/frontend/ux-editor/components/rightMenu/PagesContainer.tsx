@@ -1,25 +1,21 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { Button, Grid, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, MenuProps, TextField, TextFieldProps, Typography, withStyles } from '@material-ui/core';
-import { getLanguageFromKey } from 'app-shared/utils/language';
+import { Button, Grid, IconButton, ListItemIcon, ListItemText, makeStyles, Menu, MenuItem, MenuProps, TextField, TextFieldProps, Typography, withStyles } from '@material-ui/core';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
+import ConfirmModal from './ConfirmModal';
 
 export default function PagesContainer() {
-  const layouts: IFormLayouts = useSelector((state: IAppState) => state.formDesigner.layout.layouts);
+  const layoutOrder: string[] = useSelector((state: IAppState) => state.formDesigner.layout.layoutOrder);
 
   return (
     <Grid
       container={true}
     >
-      {Object.keys(layouts || {}).map((layoutName: string, index: number) => {
+      {layoutOrder.map((layout: string) => {
         return (
-          <Grid item={true} xs={12}>
-            <PageElement
-              name={layoutName}
-              pageNumber={index + 1}
-            />
-          </Grid>
+          <PageElement name={layout} key={layout}/>
         );
       })}
     </Grid>
@@ -28,17 +24,41 @@ export default function PagesContainer() {
 
 export interface IPageElementProps {
   name: string;
-  pageNumber: number;
 }
+
+const useStyles = makeStyles({
+  ellipsisButton: {
+    marginLeft: '1.2rem',
+    visibility: 'hidden',
+  },
+  mainButton: {
+    width: '100%',
+    fontSize: '1.4rem',
+    fontWeight: 400,
+    textTransform: 'unset',
+    '&:hover #ellipsis-button': {
+      visibility: 'visible',
+    },
+    '&:focus #ellipsis-button': {
+      visibility: 'visible',
+    },
+  },
+});
 
 export function PageElement({
   name,
-  pageNumber: index,
 }: IPageElementProps) {
   const language = useSelector((state: IAppState) => state.appData.language.language);
   const selectedLayout = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
+  const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutOrder);
   const [editMode, setEditMode] = React.useState<boolean>(false);
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [errorMessage, setErrorMessage] = React.useState<string>('');
+  const [newName, setNewName] = React.useState<string>('');
+  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [deleteAnchorEl, setDeleteAnchorEl] = React.useState<null | Element>(null);
+  const disableUp = (layoutOrder.indexOf(name) === 0);
+  const disableDown = (layoutOrder.indexOf(name) === (layoutOrder.length - 1));
+  const classes = useStyles();
 
   function onPageClick() {
     if (selectedLayout !== name) {
@@ -48,37 +68,72 @@ export function PageElement({
 
   function onPageSettingsClick(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     event.stopPropagation();
-    setAnchorEl(event.currentTarget);
+    setMenuAnchorEl(event.currentTarget);
   }
 
   function onMenuClose(event: React.SyntheticEvent) {
     event.stopPropagation();
-    setAnchorEl(null);
+    setMenuAnchorEl(null);
   }
 
   function onMenuItemClick(event: React.SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') {
     event.stopPropagation();
     if (action === 'delete') {
-      FormDesignerActionDispatchers.deleteLayout(name);
+      setDeleteAnchorEl(event.currentTarget);
     } else if (action === 'edit') {
       setEditMode(true);
+    } else if (action === 'up' || action === 'down') {
+      FormDesignerActionDispatchers.updateLayoutOrder(name, action);
     }
-    setAnchorEl(null);
+    setMenuAnchorEl(null);
   }
 
   function handleOnBlur(event: any) {
-    setEditMode(false);
-    FormDesignerActionDispatchers.updateLayoutName(name, event.target.value.trim());
+    event.stopPropagation();
+    if (!errorMessage) {
+      setEditMode(false);
+      FormDesignerActionDispatchers.updateLayoutName(name, event.target.value.trim());
+    }
+  }
+
+  function handleOnChange(event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
+    const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
+    if (layoutOrder.indexOf(newNameCandidate) !== -1) {
+      setErrorMessage(getLanguageFromKey('right_menu.pages_error_unique', language));
+    } else if (!newNameCandidate) {
+      setErrorMessage(getLanguageFromKey('right_menu.pages_error_empty', language));
+    } else if (newNameCandidate.length >= 30) {
+      setErrorMessage(getLanguageFromKey('right_menu.pages_error_length', language));
+    } else {
+      setErrorMessage('');
+      setNewName(newNameCandidate);
+    }
+  }
+
+  function handleKeyPress(event: any) {
+    event.stopPropagation();
+    if (event.key === 'Enter') {
+      if (!errorMessage) {
+        FormDesignerActionDispatchers.updateLayoutName(name, newName);
+        setEditMode(false);
+      }
+    }
+  }
+
+  function handleConfirmDeleteClose(event?: React.SyntheticEvent) {
+    event?.stopPropagation();
+    setDeleteAnchorEl(null);
+  }
+
+  function handleConfirmDelete(event?: React.SyntheticEvent) {
+    event?.stopPropagation();
+    setDeleteAnchorEl(null);
+    FormDesignerActionDispatchers.deleteLayout(name);
   }
 
   return (
     <Button
-      style={{
-        width: '100%',
-        fontSize: '1.4rem',
-        fontWeight: 400,
-        textTransform: 'unset',
-      }}
+      className={classes.mainButton}
       onClick={onPageClick}
     >
       <Grid
@@ -99,9 +154,16 @@ export function PageElement({
           xs={9}
           style={{ textAlign: 'left', paddingLeft: '1.2rem' }}
         >
-          {!editMode && `${getLanguageFromKey('right_menu.page', language)} ${index} - ${name}`}
+          {!editMode && name}
           {editMode &&
-            <InlineTextField onBlur={handleOnBlur} />
+            <InlineTextField
+              onBlur={handleOnBlur}
+              onKeyPress={handleKeyPress}
+              onChange={handleOnChange}
+              defaultValue={name}
+              error={Boolean(errorMessage)}
+              helperText={errorMessage}
+            />
           }
         </Grid>
         <Grid
@@ -110,24 +172,26 @@ export function PageElement({
         >
           <IconButton
             onClick={onPageSettingsClick}
-            style={{ marginLeft: '1.0rem' }}
+            className={classes.ellipsisButton}
+            id='ellipsis-button'
+            style={menuAnchorEl ? { visibility: 'visible' } : {}}
           >
             <i className='fa fa-ellipsismenu' style={{ width: 'auto' }}/>
           </IconButton>
         </Grid>
       </Grid>
       <PageMenu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
+        anchorEl={menuAnchorEl}
+        open={Boolean(menuAnchorEl)}
         onClose={onMenuClose}
       >
-        <MenuItem onClick={(event) => onMenuItemClick(event, 'up')}>
+        <MenuItem onClick={(event) => onMenuItemClick(event, 'up')} disabled={disableUp}>
           <MenuItemContent
             text={getLanguageFromKey('right_menu.page_menu_up', language)}
             iconClass='fa fa-arrowup'
           />
         </MenuItem>
-        <MenuItem onClick={(event) => onMenuItemClick(event, 'down')}>
+        <MenuItem onClick={(event) => onMenuItemClick(event, 'down')} disabled={disableDown}>
           <MenuItemContent
             text={getLanguageFromKey('right_menu.page_menu_down', language)}
             iconClass='fa fa-arrowdown'
@@ -146,6 +210,17 @@ export function PageElement({
           />
         </MenuItem>
       </PageMenu>
+      <ConfirmModal
+        anchorEl={deleteAnchorEl}
+        open={Boolean(deleteAnchorEl)}
+        header={getLanguageFromKey('right_menu.page_delete_header', language)}
+        description={getParsedLanguageFromKey('right_menu.page_delete_information', language, [name])}
+        confirmText={getLanguageFromKey('right_menu.page_delete_confirm', language)}
+        cancelText={getLanguageFromKey('right_menu.page_delete_cancel', language)}
+        onClose={handleConfirmDeleteClose}
+        onCancel={handleConfirmDeleteClose}
+        onConfirm={handleConfirmDelete}
+      />
     </Button>
   );
 }
@@ -172,7 +247,8 @@ export function MenuItemContent({ text, iconClass }: IMenuItemContent) {
 
 export const InlineTextField = (props: TextFieldProps) => (
   <TextField
-    inputProps={{ style: { fontSize: '14px' }}}
+    inputProps={{ style: { fontSize: '14px' } }}
+    FormHelperTextProps={{ style: { fontSize: '12px' } }}
     {...props}
   />
 );

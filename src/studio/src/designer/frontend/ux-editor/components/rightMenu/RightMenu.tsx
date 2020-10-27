@@ -1,13 +1,13 @@
 import { Grid, IconButton, makeStyles, createMuiTheme, Typography } from '@material-ui/core';
 import * as React from 'react';
-import altinnTheme from '../../theme/altinnStudioTheme';
-import RuleModal from '../../../ux-editor/components/toolbar/RuleModal';
-import ConditionalRenderingModal from '../../../ux-editor/components/toolbar/ConditionalRenderingModal';
-import { LogicMode } from '../../../ux-editor/containers/FormDesigner';
-import { getLanguageFromKey } from '../../utils/language';
-import PagesContainer from '../../../ux-editor/components/rightMenu/PagesContainer';
-import FormDesignerActionDispatchers from '../../../ux-editor/actions/formDesignerActions/formDesignerActionDispatcher';
-const uuid = require('uuid/v4');
+import { useSelector } from 'react-redux';
+import altinnTheme from '../../../shared/theme/altinnStudioTheme';
+import RuleModal from '../toolbar/RuleModal';
+import ConditionalRenderingModal from '../toolbar/ConditionalRenderingModal';
+import { LogicMode } from '../../containers/FormDesigner';
+import { getLanguageFromKey } from '../../../shared/utils/language';
+import PagesContainer from './PagesContainer';
+import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -82,6 +82,7 @@ export interface IRightMenuProps {
 export default function RightMenu(props: IRightMenuProps) {
   const [conditionalModalOpen, setConditionalModalOpen] = React.useState<boolean>(false);
   const [ruleModalOpen, setRuleModalOpen] = React.useState<boolean>(false);
+  const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutOrder);
   const classes = useStyles();
 
   function handleModalChange(type: 'conditionalRendering' | 'rules') {
@@ -93,10 +94,8 @@ export default function RightMenu(props: IRightMenuProps) {
   }
 
   function handleAddPage() {
-    const guid: string = uuid();
-    const name: string = guid.substring(0, 4);
+    const name = getLanguageFromKey('right_menu.page', props.language) + (layoutOrder.length + 1);
     FormDesignerActionDispatchers.addLayout(name);
-    FormDesignerActionDispatchers.updateSelectedLayout(name);
   }
 
   return (

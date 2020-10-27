@@ -101,7 +101,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        public ActionResult SaveFormLayout([FromBody] dynamic jsonData, string org, string app)
+        public ActionResult SaveFormLayouts([FromBody] dynamic jsonData, string org, string app)
         {
             _repository.SaveFormLayouts(org, app, jsonData.ToString());
 
@@ -110,6 +110,53 @@ namespace Altinn.Studio.Designer.Controllers
                 Success = true,
                 Message = "Skjema lagret",
             });
+        }
+
+        /// <summary>
+        /// Delete a form layout
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="id">The form layout to be deleted</param>
+        /// <returns>A success message if the save was successful</returns>
+        [HttpDelete]
+        public ActionResult DeleteFormLayout(string org, string app, string id)
+        {
+            _repository.DeleteFormLayout(org, app, id);
+
+            return Json(new
+            {
+                Success = true,
+                Message = "Skjema slettet",
+            });
+        }
+
+        /// <summary>
+        /// Saves the layout settings
+        /// </summary>
+        /// <param name="jsonData">The data to be saved</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>A success message if the save was successful</returns>
+        public ActionResult SaveLayoutSettings([FromBody] dynamic jsonData, string org, string app)
+        {
+            _repository.SaveLayoutSettings(org, app, jsonData.ToString());
+            return Json(new
+            {
+                Success = true,
+                Message = "Setting lagret",
+            });
+        }
+
+        /// <summary>
+        /// Gets the layout settings
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The content of the settings file</returns>
+        public ActionResult GetLayoutSettings(string org, string app)
+        {
+            return Content(_repository.GetLayoutSettings(org, app), "application/json", Encoding.UTF8);
         }
 
         /// <summary>

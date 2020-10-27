@@ -390,6 +390,32 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         bool SaveFormLayouts(string org, string app, string formLayouts);
 
         /// <summary>
+        /// Removes a form layout from disk
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="formLayout">The form layout to be deleted</param>
+        /// <returns>A boolean indicating if deleting was ok</returns>
+        bool DeleteFormLayout(string org, string app, string formLayout);
+
+        /// <summary>
+        /// Saves a layout setting file on disk
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="setting">The content of the setting file</param>
+        /// <returns>A boolean indicating if save was ok</returns>
+        bool SaveLayoutSettings(string org, string app, string setting);
+
+        /// <summary>
+        /// Gets the layout settings
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The content as string</returns>
+        string GetLayoutSettings(string org, string app);
+
+        /// <summary>
         /// Save the JSON third party components to disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

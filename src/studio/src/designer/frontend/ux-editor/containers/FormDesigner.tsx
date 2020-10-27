@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import { createStyles, Drawer, Grid, Theme, Typography, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -5,9 +6,9 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { connect } from 'react-redux';
 import FileEditor from 'app-shared/file-editor/FileEditor';
-import RightMenu from 'app-shared/navigation/drawer/RightMenu';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
+import RightMenu from '../components/rightMenu/RightMenu';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';

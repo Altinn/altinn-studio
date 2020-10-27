@@ -7,14 +7,16 @@ import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import * as SharedNetwork from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
+import { ILayoutSettings } from 'app-shared/types';
 import * as FormDesignerActions from '../../actions/formDesignerActions/actions';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { convertFromLayoutToInternalFormat, convertInternalToLayoutFormat } from '../../utils/formLayout';
-import { get, post } from '../../utils/networking';
-import { getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getSaveFormLayoutUrl, getUpdateApplicationMetadataUrl } from '../../utils/urlHelper';
-import { IAddLayoutAction, IDeleteLayoutAction, IUpdateContainerIdAction, IUpdateLayoutNameAction, IUpdateSelectedLayoutAction } from '../../actions/formDesignerActions/actions';
+import { deleteCall, get, post } from '../../utils/networking';
+import { getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getDeleteForLayoutUrl, getSaveFormLayoutsUrl, getLayoutSettingsUrl, getUpdateApplicationMetadataUrl, getSaveLayoutSettingsUrl } from '../../utils/urlHelper';
+import { IAddLayoutAction, IDeleteLayoutAction, IUpdateContainerIdAction, IUpdateLayoutNameAction, IUpdateLayoutOrderAction, IUpdateSelectedLayoutAction } from '../../actions/formDesignerActions/actions';
+import { ComponentTypes } from '../../components';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
 
@@ -66,7 +68,7 @@ function* addFormComponentSaga({
       containerId,
       callback,
     );
-    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutsUrl);
     yield call(
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
@@ -121,7 +123,7 @@ function* addFormContainerSaga({
       callback,
       destinationIndex,
     );
-    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutsUrl);
     yield call(
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
@@ -150,7 +152,7 @@ function* deleteFormComponentSaga({
       }
     });
     yield call(FormDesignerActionDispatchers.deleteFormComponentFulfilled, id, containerId);
-    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutsUrl);
     yield call(
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
@@ -182,7 +184,7 @@ function* deleteFormContainerSaga({
       yield call(FormDesignerActionDispatchers.deleteFormComponentFulfilled, componentId, id);
     }
     yield call(FormDesignerActionDispatchers.deleteFormContainerFulfilled, id);
-    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutsUrl);
     yield call(
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
@@ -261,10 +263,13 @@ function* saveFormLayoutSaga({
 }
 
 export function* watchSaveFormLayoutSaga(): SagaIterator {
-  yield takeLatest(
+  yield takeLatest([
     FormDesignerActionTypes.SAVE_FORM_LAYOUT,
-    saveFormLayoutSaga,
-  );
+    FormDesignerActionTypes.UPDATE_LAYOUT_NAME_FULFILLED,
+    FormDesignerActionTypes.DELETE_LAYOUT_FULFILLED,
+    FormDesignerActionTypes.ADD_LAYOUT_FULFILLED,
+  ],
+  saveFormLayoutSaga);
 }
 
 function* updateDataModelBindingSaga({
@@ -302,7 +307,7 @@ function* updateFormComponentSaga({
       updatedComponent,
       id,
     );
-    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutsUrl);
     yield call(
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
@@ -341,7 +346,7 @@ export function* updateFormContainerSaga({
     );
     yield call(
       FormDesignerActionDispatchers.saveFormLayout,
-      getSaveFormLayoutUrl(),
+      getSaveFormLayoutsUrl(),
     );
   } catch (err) {
     yield call(FormDesignerActionDispatchers.updateFormContainerRejected, err);
@@ -361,7 +366,7 @@ export function* updateFormComponentOrderSaga({
   try {
     yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
       updatedOrder);
-    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutsUrl);
     yield call(
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
@@ -464,7 +469,7 @@ export function* watchUpdateApplicationMetadataSaga(): SagaIterator {
 export function* updateContainerIdSaga({ currentId, newId }: IUpdateContainerIdAction): SagaIterator {
   try {
     yield call(FormDesignerActionDispatchers.updateContainerIdFulfilled, currentId, newId);
-    yield call(FormDesignerActionDispatchers.saveFormLayout, getSaveFormLayoutUrl());
+    yield call(FormDesignerActionDispatchers.saveFormLayout, getSaveFormLayoutsUrl());
   } catch (error) {
     yield call(FormDesignerActionDispatchers.updateContainerIdRejected, error);
   }
@@ -483,12 +488,13 @@ export function* watchUpdateSelectedLayoutSaga(): SagaIterator {
 }
 
 export function* deleteLayoutSaga({ layout }: IDeleteLayoutAction): SagaIterator {
-  yield call(FormDesignerActionDispatchers.deleteLayoutFulfilled, layout);
-  const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
-  yield call(FormDesignerActionDispatchers.saveFormLayout, saveFormLayoutUrl);
-  const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
-  const newSelected = Object.keys(layouts)[0] || '';
-  yield call(FormDesignerActionDispatchers.updateSelectedLayout, newSelected);
+  try {
+    yield call(FormDesignerActionDispatchers.deleteLayoutFulfilled, layout);
+    const deleteLayoutUrl: string = yield call(getDeleteForLayoutUrl, layout);
+    yield call(deleteCall, deleteLayoutUrl);
+  } catch (error) {
+    yield call(FormDesignerActionDispatchers.deleteLayoutRejected, error);
+  }
 }
 
 export function* watchDeleteLayoutSaga(): SagaIterator {
@@ -496,10 +502,29 @@ export function* watchDeleteLayoutSaga(): SagaIterator {
 }
 
 export function* addLayoutSaga({ layout }: IAddLayoutAction): SagaIterator {
-  const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
-  const layoutsCopy = JSON.parse(JSON.stringify(layouts));
-  layoutsCopy[layout] = convertFromLayoutToInternalFormat(null);
-  yield call(FormDesignerActionDispatchers.addLayoutFulfilled, layoutsCopy);
+  try {
+    const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
+    const layoutsCopy = JSON.parse(JSON.stringify(layouts));
+    if (Object.keys(layoutsCopy).indexOf(layout) !== -1) {
+      throw Error('Layout allready exists');
+    }
+    layoutsCopy[layout] = convertFromLayoutToInternalFormat(null);
+
+    yield call(FormDesignerActionDispatchers.addLayoutFulfilled, layoutsCopy);
+    yield call(FormDesignerActionDispatchers.updateSelectedLayout, layout);
+    if (Object.keys(layoutsCopy).length > 1) {
+      const NavigationButtonComponent = {
+        type: 'NavigationButtons',
+        componentType: ComponentTypes.NavigationButtons,
+        textResourceBindings: {},
+        dataModelBindings: {},
+      };
+      yield call(FormDesignerActionDispatchers.addFormComponent, NavigationButtonComponent, 0, Object.keys(layoutsCopy[layout].containers)[0]);
+    }
+  } catch (error) {
+    console.error(error);
+    yield call(FormDesignerActionDispatchers.addLayoutRejected, error);
+  }
 }
 
 export function* watchAddLayoutSaga(): SagaIterator {
@@ -507,10 +532,57 @@ export function* watchAddLayoutSaga(): SagaIterator {
 }
 
 export function* updateLayoutNameSaga({ oldName, newName }: IUpdateLayoutNameAction): SagaIterator {
-  yield call(FormDesignerActionDispatchers.updateLayoutNameFulfilled, oldName, newName);
-  yield call(FormDesignerActionDispatchers.updateSelectedLayout, newName);
+  try {
+    yield call(FormDesignerActionDispatchers.updateLayoutNameFulfilled, oldName, newName);
+    yield call(FormDesignerActionDispatchers.updateSelectedLayout, newName);
+  } catch (error) {
+    yield call(FormDesignerActionDispatchers.updateLayoutNameRejected, error);
+  }
 }
 
 export function* watchUpdateLayoutNameSaga(): SagaIterator {
   yield takeLatest(FormDesignerActionTypes.UPDATE_LAYOUT_NAME, updateLayoutNameSaga);
+}
+
+export function* updateLayoutOrderSaga({ layout, direction }: IUpdateLayoutOrderAction): SagaIterator {
+  try {
+    yield call(FormDesignerActionDispatchers.updateLayoutOrderFulfilled, layout, direction);
+  } catch (error) {
+    yield call(FormDesignerActionDispatchers.updateLayoutOrderRejected, error);
+  }
+}
+
+export function* watchUpdateLayoutOrderSaga(): SagaIterator {
+  yield takeLatest(FormDesignerActionTypes.UPDATE_LAYOUT_ORDER, updateLayoutOrderSaga);
+}
+
+export function* fetchFormLayoutSettingSaga(): SagaIterator {
+  try {
+    const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl());
+    yield call(FormDesignerActionDispatchers.fetchLayoutSettingsFulfilled, settings);
+  } catch (error) {
+    yield call(FormDesignerActionDispatchers.fetchLayoutSettingsRejected, error);
+  }
+}
+
+export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
+  yield takeLatest(FormDesignerActionTypes.FETCH_FORM_LAYOUT_FULFILLED, fetchFormLayoutSettingSaga);
+}
+
+export function* saveFormLayoutSettingSaga(): SagaIterator {
+  try {
+    const layoutOrder = yield select((state: IAppState) => state.formDesigner.layout.layoutOrder);
+    yield call(post, getSaveLayoutSettingsUrl(), { order: layoutOrder });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export function* watchSaveFormLayoutSettingSaga(): SagaIterator {
+  yield takeLatest([
+    FormDesignerActionTypes.UPDATE_LAYOUT_ORDER_FULFILLED,
+    FormDesignerActionTypes.DELETE_LAYOUT_FULFILLED,
+    FormDesignerActionTypes.UPDATE_LAYOUT_NAME_FULFILLED,
+    FormDesignerActionTypes.ADD_LAYOUT_FULFILLED,
+  ], saveFormLayoutSettingSaga);
 }

@@ -125,3 +125,13 @@ export const DELETE_LAYOUT_REJECTED: string = `${moduleName}.DELETE_LAYOUT_REJEC
 export const UPDATE_LAYOUT_NAME: string = `${moduleName}.UPDATE_LAYOUT_NAME`;
 export const UPDATE_LAYOUT_NAME_FULFILLED: string = `${moduleName}.UPDATE_LAYOUT_NAME_FULFILLED`;
 export const UPDATE_LAYOUT_NAME_REJECTED: string = `${moduleName}.UPDATE_LAYOUT_NAME_REJECTED`;
+
+// Update layout order actions
+export const UPDATE_LAYOUT_ORDER: string = `${moduleName}.UPDATE_LAYOUT_ORDER`;
+export const UPDATE_LAYOUT_ORDER_FULFILLED: string = `${moduleName}.UPDATE_LAYOUT_ORDER_FULFILLED`;
+export const UPDATE_LAYOUT_ORDER_REJECTED: string = `${moduleName}.UPDATE_LAYOUT_ORDER_REJECTED`;
+
+// Fetch layout setting actions
+export const FETCH_LAYOUT_SETTINGS: string = `${moduleName}.FETCH_LAYOUT_SETTINGS`;
+export const FETCH_LAYOUT_SETTINGS_FULFILLED: string = `${moduleName}.FETCH_LAYOUT_SETTINGS_FULFILLED`;
+export const FETCH_LAYOUT_SETTINGS_REJECTED: string = `${moduleName}.FETCH_LAYOUT_SETTINGS_REJECTED`;
