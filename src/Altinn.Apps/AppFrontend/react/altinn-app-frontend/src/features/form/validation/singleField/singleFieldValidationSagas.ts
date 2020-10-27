@@ -16,7 +16,7 @@ export function* runSingleFieldValidationSaga({
   const state: IRuntimeState = yield select();
   const url = getValidationUrl(state.instanceData.instance.id);
 
-  if(state.formValidations.currentSingleFieldValidation){
+  if (state.formValidations.currentSingleFieldValidation) {
   const options: AxiosRequestConfig = {
     headers: {
       ValidationTriggerField: state.formValidations.currentSingleFieldValidation,
@@ -28,14 +28,11 @@ export function* runSingleFieldValidationSaga({
     const mappedValidations =
       mapDataElementValidationToRedux(serverValidation, state.formLayout.layouts, state.textResources.resources);
     FormValidationActions.updateValidations(mappedValidations);
-    yield call(Actions.runSingleFieldValidationFulfilled, mappedValidations)
-  }
+    yield call(Actions.runSingleFieldValidationFulfilled, mappedValidations); }
   catch (err) {
-      yield call(Actions.runSingleFieldValidationRejected, err);
-  }
+      yield call(Actions.runSingleFieldValidationRejected, err); }
   finally {
-    yield call(Actions.setCurrentDataModelBinding, null);
-  }
+    yield call(Actions.setCurrentDataModelBinding, null); }
 }
 };
 
