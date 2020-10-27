@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<SkattemeldingApp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <partsreferanse>123</partsreferanse>
+  <inntektsaar>2010</inntektsaar>
+  <innsendingstype>komplett</innsendingstype>
+  <opprettingstidspunkt>2000-10-10T12:00:00+02:00</opprettingstidspunkt>
+  <endringstidspunkt xsi:nil="true" />
+</SkattemeldingApp>
