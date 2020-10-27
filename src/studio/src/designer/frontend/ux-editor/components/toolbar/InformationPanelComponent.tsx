@@ -12,7 +12,6 @@ import {
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom';
 import { ComponentTypes } from '..';
 import { getComponentHelperTextByComponentType, getComponentTitleByComponentType } from '../../utils/language';
 
