@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.ModelMetadatalModels;
-using Newtonsoft.Json.Linq;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
@@ -14,24 +14,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     public class JsonMetadataParser
     {
         private ModelMetadata _serviceMetadata;
-
-        /// <summary>
-        /// Creates the model from JSON
-        /// </summary>
-        /// <param name="metadata">The JSON</param>
-        /// <returns>C# code</returns>
-        public string CreateModelFromJson(JObject metadata)
-        {
-            string rootName = string.Empty;
-            Dictionary<string, string> classes = new Dictionary<string, string>();
-
-            JProperty rootProperty = metadata.Children<JProperty>().First();
-            rootName = rootProperty.Name;
-
-            //// CreateModelFromJsonRecursive(rootProperty.Children<JObject>().First(), classes, rootName);
-
-            return string.Empty;
-        }
 
         /// <summary>
         /// Create Model from ServiceMetadata object
@@ -46,31 +28,18 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             CreateModelFromMetadataRecursive(classes, serviceMetadata.Elements.Values.First(el => el.ParentElement == null));
 
-            foreach (KeyValuePair<string, ElementMetadata> group in serviceMetadata.Elements.Where(e => e.Value.Type == ElementType.Group))
-            {
-                StringBuilder classBuilder = new StringBuilder();
-                classBuilder.AppendLine("public class " + group.Value.Name + "{");
-
-                foreach (KeyValuePair<string, ElementMetadata> childElement in serviceMetadata.Elements.Where(e => e.Value.ParentElement == group.Value.ID))
-                {
-                }
-
-                classBuilder.AppendLine("}");
-            }
-
-            var writer = new StringBuilder()
+            StringBuilder writer = new StringBuilder()
                 .AppendLine("using System;")
                 .AppendLine("using System.Collections.Generic;")
+                .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using System.Linq;")
                 .AppendLine("using System.Text.Json.Serialization;")
                 .AppendLine("using System.Threading.Tasks;")
                 .AppendLine("using System.Xml.Serialization;")
-                .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
                 .AppendLine("using Newtonsoft.Json;")
                 .AppendLine("namespace " + string.Format(CodeGeneration.AppNamespaceTemplate + ".Models"))
                 .AppendLine("{")
-                ////Append all classes
                 .Append(string.Concat(classes.Values))
                 .AppendLine("}");
 
@@ -92,7 +61,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             StringBuilder classBuilder = new StringBuilder();
-            classBuilder.AppendLine("public class " + parentElement.TypeName + "{");
+            classBuilder.AppendLine("  public class " + parentElement.TypeName + "{");
 
             foreach (KeyValuePair<string, ElementMetadata> element in _serviceMetadata.Elements.Where(ele => ele.Value.ParentElement == parentElement.ID))
             {
@@ -100,7 +69,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
                 if (element.Value.Type == ElementType.Field)
                 {
-                    string dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType.Value);
+                    string dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType);
 
                     WriteRestrictionAnnotations(classBuilder, element.Value);
                     if (element.Value.IsTagContent)
@@ -119,11 +88,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
                     if (element.Value.MaxOccurs > 1)
                     {
-                        classBuilder.AppendLine("public List<" + dataType + "> " + element.Value.Name + " { get; set; }");
+                        classBuilder.AppendLine("    public List<" + dataType + "> " + element.Value.Name + " { get; set; }\n");
                     }
                     else
                     {
-                        classBuilder.AppendLine("public " + dataType + (dataType == "string" ? string.Empty : nullableString) + " " + element.Value.Name + " { get; set; }");
+                        classBuilder.AppendLine("    public " + dataType + (dataType == "string" ? string.Empty : nullableString) + " " + element.Value.Name + " { get; set; }\n");
                     }
                 }
                 else if (element.Value.Type == ElementType.Group)
@@ -138,14 +107,14 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
                     if (element.Value.MaxOccurs > 1)
                     {
-                        classBuilder.AppendLine("public List<" + element.Value.TypeName + "> " + element.Value.Name + " { get; set; }");
+                        classBuilder.AppendLine("    public List<" + element.Value.TypeName + "> " + element.Value.Name + " { get; set; }\n");
                     }
                     else
                     {
-                        classBuilder.AppendLine("public " + element.Value.TypeName + " " + element.Value.Name + " { get; set; }");
+                        classBuilder.AppendLine("    public " + element.Value.TypeName + " " + element.Value.Name + " { get; set; }\n");
                     }
 
-                    referredTypes.Add(element.Value);                             
+                    referredTypes.Add(element.Value);
                 }
                 else if (element.Value.Type == ElementType.Attribute)
                 {
@@ -163,21 +132,21 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                         classBuilder.AppendLine("    [BindNever]");
                         if (dataType.Equals("string"))
                         {
-                            classBuilder.AppendLine("public  " + dataType + " " + element.Value.Name + " {get; set; } = \"" + element.Value.FixedValue + "\";");
+                            classBuilder.AppendLine("    public  " + dataType + " " + element.Value.Name + " {get; set; } = \"" + element.Value.FixedValue + "\";\n");
                         }
                         else
                         {
-                            classBuilder.AppendLine("public " + dataType + " " + element.Value.Name + " {get; set;} = " + element.Value.FixedValue + ";");
+                            classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " {get; set;} = " + element.Value.FixedValue + ";\n");
                         }
                     }
                     else
                     {
-                        classBuilder.AppendLine("public " + dataType + " " + element.Value.Name + " { get; set; }");
+                        classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " { get; set; }\n");
                     }
                 }
             }
 
-            classBuilder.AppendLine("}");
+            classBuilder.AppendLine("  }");
 
             if (!classes.ContainsKey(parentElement.TypeName))
             {
@@ -204,23 +173,29 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 if (element.Restrictions.ContainsKey("minLength"))
                 {
-                    classBuilder.AppendLine("[MinLength(" + element.Restrictions["minLength"].Value + errorMessage + ")]");
+                    classBuilder.AppendLine("    [MinLength(" + element.Restrictions["minLength"].Value + errorMessage + ")]");
                 }
 
                 if (element.Restrictions.ContainsKey("maxLength"))
                 {
-                    classBuilder.AppendLine("[MaxLength(" + element.Restrictions["maxLength"].Value + errorMessage + ")]");
+                    classBuilder.AppendLine("    [MaxLength(" + element.Restrictions["maxLength"].Value + errorMessage + ")]");
                 }
 
                 if (element.Restrictions.ContainsKey("minInclusive") && element.Restrictions.ContainsKey("maxInclusive"))
                 {
-                    classBuilder.AppendLine("[Range(" + element.Restrictions["minInclusive"].Value + ", " + element.Restrictions["maxInclusive"].Value + errorMessage + ")]");
+                    classBuilder.AppendLine("    [Range(" + element.Restrictions["minInclusive"].Value + ", " + element.Restrictions["maxInclusive"].Value + errorMessage + ")]");
+                    hasRange = true;
+                }
+
+                if (element.Restrictions.ContainsKey("minimum") && element.Restrictions.ContainsKey("maximum"))
+                {
+                    classBuilder.AppendLine("    [Range(" + element.Restrictions["minimum"].Value + ", " + element.Restrictions["maximum"].Value + errorMessage + ")]");
                     hasRange = true;
                 }
 
                 if (element.Restrictions.ContainsKey("pattern"))
                 {
-                    classBuilder.AppendLine("[RegularExpression(@\"" + element.Restrictions["pattern"].Value + "\"" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [RegularExpression(@\"" + element.Restrictions["pattern"].Value + "\"" + errorMessage + ")]");
                 }
             }
 
@@ -236,49 +211,46 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             switch (element.XsdValueType.Value)
             {
-                // case BaseValueType.Decimal:
-                //    classBuilder.AppendLine("[Range(Decimal.MinValue,Decimal.MaxValue)]");
-                //    break;
                 case BaseValueType.Double:
-                    classBuilder.AppendLine("[Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.Int:
                 case BaseValueType.Integer:
-                    classBuilder.AppendLine("[Range(Int32.MinValue,Int32.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [Range(Int32.MinValue,Int32.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.NegativeInteger:
-                    classBuilder.AppendLine("[Range(Int32.MinValue,-1" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [Range(Int32.MinValue,-1" + errorMessage + ")]");
                     break;
                 case BaseValueType.NonPositiveInteger:
-                    classBuilder.AppendLine("[Range(Int32.MinValue,0" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [Range(Int32.MinValue,0" + errorMessage + ")]");
                     break;
                 case BaseValueType.NonNegativeInteger:
-                    classBuilder.AppendLine("[Range(0,Int32.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [Range(0,Int32.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.PositiveInteger:
-                    classBuilder.AppendLine("[Range(1,Int32.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [Range(1,Int32.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.GYear:
-                    classBuilder.AppendLine("[RegularExpression(@\"^[0-9]{4}$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [RegularExpression(@\"^[0-9]{4}$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.GYearMonth:
-                    classBuilder.AppendLine("[RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.GMonth:
-                    classBuilder.AppendLine("[RegularExpression(@\"^0[1-9]|1[0-2]$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [RegularExpression(@\"^0[1-9]|1[0-2]$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.GDay:
-                    classBuilder.AppendLine("[RegularExpression(@\"^0[1-9]|[1,2][0-9]|3[0,1]$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [RegularExpression(@\"^0[1-9]|[1,2][0-9]|3[0,1]$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.Time:
-                    classBuilder.AppendLine("[RegularExpression(@\"^([0,1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9](Z|(\\+|-)([0,1][0-9]|[2][0-3]):[0-5][0-9])?$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [RegularExpression(@\"^([0,1][0-9]|[2][0-3]):[0-5][0-9]:[0-5][0-9](Z|(\\+|-)([0,1][0-9]|[2][0-3]):[0-5][0-9])?$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.TimePeriod:
-                    classBuilder.AppendLine("[RegularExpression(@\"^-?P([0-9]*Y)?([0-9]*M)?([0-9]*D)?(T([0-9]*H)?([0-9]*M)?([0-9]*S)?)?$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [RegularExpression(@\"^-?P([0-9]*Y)?([0-9]*M)?([0-9]*D)?(T([0-9]*H)?([0-9]*M)?([0-9]*S)?)?$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.Date:
-                  classBuilder.AppendLine("[RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1,2][0-9]|3[0,1])$\"" + errorMessage + ")]");
-                  break;
+                    classBuilder.AppendLine("    [RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1,2][0-9]|3[0,1])$\"" + errorMessage + ")]");
+                    break;
             }   
         }
 
@@ -320,29 +292,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             throw new NotImplementedException();
-        }
-
-        private void CreateModelFromJsonRecursive(JObject currentObject, Dictionary<string, string> classes, string rootName)
-        {
-            //// Get basic stuff
-            //   iscomplex
-            //   typename
-            //   propertyname
-            //   restrictions
-            ////
-
-            foreach (var child in currentObject.Children<JProperty>())
-            {
-                classes.Add(child.Name, "TODO");
-
-                JObject childObject = child.Children<JObject>().FirstOrDefault();
-
-                if (childObject != null)
-                {
-                    // Magic
-                    CreateModelFromJsonRecursive(childObject, classes, rootName);
-                }
-            }
         }
     }
 }
