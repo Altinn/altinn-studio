@@ -110,19 +110,19 @@ function* saveFormDataSaga(): SagaIterator {
       yield call(put, dataElementUrl(defaultDataElementGuid), model);
     } catch (err) {
       if (err.response && err.response.status === 303) {
-        yield call(FormDataActions.fetchFormData, dataElementUrl(err.response.data.id));
+        yield call (FormDataActions.fetchFormData, dataElementUrl(err.response.data.id));
       } else {
         throw err;
       }
     }
 
-    if(state.formValidations.currentSingleFieldValidation){
-      yield call(FormValidationActions.runSingleFieldValidation);
+    if (state.formValidations.currentSingleFieldValidation) {
+      yield call (FormValidationActions.runSingleFieldValidation);
     }
 
-    yield call(FormDataActions.submitFormDataFulfilled);
+    yield call (FormDataActions.submitFormDataFulfilled);
   } catch (err) {
-    console.error(err);
+    console.error (err);
     yield call(FormDataActions.submitFormDataRejected, err);
   }
 }

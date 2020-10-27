@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import {  call, select, takeLatest } from 'redux-saga/effects';
+import { call, select, takeLatest } from 'redux-saga/effects';
 import { AxiosRequestConfig } from 'axios';
 import { IRuntimeState } from 'src/types';
 import { getValidationUrl } from 'src/utils/urlHelper';
@@ -10,15 +10,14 @@ import { IRunSingleFieldValidationAction } from './singleFieldValidationActions'
 import * as ActionTypes from '../validationActionTypes';
 import FormValidationActions from '../validationActions';
 
-export function* runSingleFieldValidationSaga({
-}: IRunSingleFieldValidationAction): SagaIterator {
+export function* runSingleFieldValidationSaga(): SagaIterator {
   const state: IRuntimeState = yield select();
   const url = getValidationUrl(state.instanceData.instance.id);
 
   if (state.formValidations.currentSingleFieldValidation) {
-  const options: AxiosRequestConfig = {
-    headers: {
-      ValidationTriggerField: state.formValidations.currentSingleFieldValidation,
+    const options: AxiosRequestConfig = {
+      headers: {
+        ValidationTriggerField: state.formValidations.currentSingleFieldValidation,
     },
   };
 
@@ -33,9 +32,9 @@ export function* runSingleFieldValidationSaga({
   finally {
     yield call(Actions.setCurrentDataModelBinding, null); }
 }
-};
+}
 
 
 export function* watchRunSingleFieldValidationSaga(): SagaIterator {
   yield  takeLatest(ActionTypes.RUN_SINGLE_FIELD_VALIDATION, runSingleFieldValidationSaga);
-};
+}

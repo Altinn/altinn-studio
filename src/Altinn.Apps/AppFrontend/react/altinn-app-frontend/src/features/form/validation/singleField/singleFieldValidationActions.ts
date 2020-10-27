@@ -16,9 +16,7 @@ export interface ISetCurrentDataModelBindingAction extends Action {
   dataModelBinding?: string;
 }
 
-export function runSingleFieldValidationAction(
-  dataModelBinding?: string,
-): IRunSingleFieldValidationAction {
+export function runSingleFieldValidationAction(): IRunSingleFieldValidationAction {
   return {
     type: ActionTypes.RUN_SINGLE_FIELD_VALIDATION,
   };
