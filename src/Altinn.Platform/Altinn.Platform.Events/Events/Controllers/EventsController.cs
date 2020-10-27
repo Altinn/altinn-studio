@@ -131,6 +131,18 @@ namespace Altinn.Platform.Events.Controllers
                 return BadRequest("Subject must be specified using either query params party or unit or header value person.");
             }
 
+            if (party <= 0)
+            {
+                try
+                {
+                    party = await _registerService.PartyLookup(unit, person);
+                }
+                catch (PlatformHttpException e)
+                {
+                    return HandlePlatformHttpException(e);
+                }
+            }
+
             return await RetrieveAndAuthorizeEvents(after, from, to, party, source, type, size);
         }
 
