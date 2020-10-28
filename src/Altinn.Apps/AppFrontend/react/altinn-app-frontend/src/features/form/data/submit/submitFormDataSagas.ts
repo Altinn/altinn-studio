@@ -116,6 +116,10 @@ function* saveFormDataSaga(): SagaIterator {
       }
     }
 
+    if (state.formValidations.currentSingleFieldValidation) {
+      yield call(FormValidationActions.runSingleFieldValidation);
+    }
+
     yield call(FormDataActions.submitFormDataFulfilled);
   } catch (err) {
     console.error(err);
