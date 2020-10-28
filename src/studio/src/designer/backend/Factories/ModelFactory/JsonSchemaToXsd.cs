@@ -678,7 +678,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
             else if (type.Value == JsonSchemaType.Integer)
             {
-                if (minValue != null && minValue == 0.0)
+                if (minValue != null && minValue == 1)
                 {
                     content.BaseTypeName = new XmlQualifiedName("positiveInteger", XML_SCHEMA_NS);
                 }
@@ -714,7 +714,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             if (maxValue != null || maxExclusiveValue != null)
             {
                 if (maxValue != null)
-                {                    
+                {                
                     XmlSchemaMaxInclusiveFacet maxInclusiveFacet = new XmlSchemaMaxInclusiveFacet
                     {
                         Value = FormatDouble((double)maxValue),
