@@ -1,17 +1,20 @@
 /* 
-    Test script to platform events api with user token
-    Command: docker-compose run k6 run src/tests/platform/events/events.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+    Test script to platform events api with app owner token
+    Command: docker-compose run k6 run src/tests/platform/appowner/events.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
+    -e maskinpoten=***
 */
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";
 import * as events from "../../../api/platform/events.js"
 import * as appInstances from "../../../api/app/instances.js"
 import * as setUpData from "../../../setup.js";
+import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const appName = __ENV.level2app;
+const maskinPortenToken = __ENV.maskinporten;
 
 export const options = {
     thresholds: {
@@ -26,13 +29,16 @@ export function setup() {
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
     var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, appName);
     setUpData.clearCookies();
+
+    //Get org token
+    altinnStudioRuntimeCookie = convertMaskinPortenToken(maskinPortenToken, "true");
+    data.RuntimeToken = altinnStudioRuntimeCookie;
     var instance = appInstances.postInstance(altinnStudioRuntimeCookie, data["partyId"], appOwner, appName);
     data.instanceId = JSON.parse(instance.body).id;
-    data.RuntimeToken = altinnStudioRuntimeCookie;
     return data;
 };
 
-//Test for platform events and validate response
+//Test for platform events as app owner and validate response
 export default function (data) {
     const partyId = data["partyId"];
     const runtimeToken = data["RuntimeToken"];
@@ -42,13 +48,6 @@ export default function (data) {
     var from = new Date();
     from.setHours(0, 0, 0);
     from = from.toISOString();
-
-    //Test to post events and assert that response is 403
-    res = events.postEvents(runtimeToken);
-    success = check(res, {
-        "POST Events status is 403:": (r) => r.status === 403
-    });
-    addErrorCount(success);
 
     //Test to get events from today based on party id, app and org
     eventsFilter = {
@@ -68,10 +67,18 @@ export default function (data) {
     });
     addErrorCount(success);
 
-    //Test to get events api by org and app name and check that a person cannot use the api
-    res = events.getEvents(runtimeToken, appOwner, appName, "");
+    //Test to get events api by org and app name and check response
+    eventsFilter = {
+        "party": partyId,
+        "from": from
+    };
+    res = events.getEvents(runtimeToken, appOwner, appName, eventsFilter);
     success = check(res, {
-        "GET Today's Events by org app name status is 401:": (r) => r.status === 401
+        "GET Today's Events by org app name status is 200:": (r) => r.status === 200,
+        "GET Today's Events lists only events for party": (r) => {
+            var events = r.json();
+            return events.every(event => event.subject.includes(partyId));
+        }
     });
     addErrorCount(success);
 };
