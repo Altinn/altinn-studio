@@ -231,6 +231,7 @@ function* fetchFormLayoutSaga({
           itemType: 'CONTAINER',
         });
     }
+    yield call(FormDesignerActionDispatchers.deleteActiveListActionFulfilled);
   } catch (err) {
     console.error(err);
     yield call(FormDesignerActionDispatchers.fetchFormLayoutRejected, err);
