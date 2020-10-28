@@ -15,5 +15,5 @@ export const RUN_SINGLE_FIELD_VALIDATION: string = `${moduleName}.${runSingleFie
 export const RUN_SINGLE_FIELD_VALIDATION_FULFILLED: string = `${moduleName}.${runSingleFieldValidation}_FULFILLED`;
 export const RUN_SINGLE_FIELD_VALIDATION_REJECTED: string = `${moduleName}.${runSingleFieldValidation}_REJECTED`;
 
-const setCurrentDataModelBindingAction: string = 'SET_CURRENT_DATA_MODEL_BINDING';
-export const SET_CURRENT_DATA_MODEL_BINDING: string = `${moduleName}.${setCurrentDataModelBindingAction}`;
+const setCurrentSingleFieldValidationAction: string = 'SET_CURRENT_SINGLE_FIELD_VALIDATION';
+export const SET_CURRENT_SINGLE_FIELD_VALIDATION: string = `${moduleName}.${setCurrentSingleFieldValidationAction}`;

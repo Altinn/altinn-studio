@@ -78,7 +78,7 @@ export function GenericComponent(props: IGenericComponentProps) {
 
     const dataModelField = props.dataModelBindings[key];
     if (props.triggers && props.triggers.includes(Triggers.Validation)) {
-      ValidationActions.setCurrentDataModelBinding(dataModelField);
+      ValidationActions.setCurrentSingleFieldValidation(dataModelField);
     }
 
     FormDataActions.updateFormData(dataModelField, value, props.id);

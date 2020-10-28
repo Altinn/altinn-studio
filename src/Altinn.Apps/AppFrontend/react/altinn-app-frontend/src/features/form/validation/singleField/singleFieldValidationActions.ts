@@ -12,7 +12,7 @@ export interface IRunSingleFieldValidationActionFulfilled extends Action {
   validations: any;
 }
 
-export interface ISetCurrentDataModelBindingAction extends Action {
+export interface ISetCurrentSingleFieldValidationAction extends Action {
   dataModelBinding?: string;
 }
 
@@ -22,11 +22,11 @@ export function runSingleFieldValidationAction(): IRunSingleFieldValidationActio
   };
 }
 
-export function setCurrentDataModelBindingAction(
+export function setCurrentSingleFieldValidationAction(
   dataModelBinding?: string,
-): ISetCurrentDataModelBindingAction {
+): ISetCurrentSingleFieldValidationAction {
   return {
-    type: ActionTypes.SET_CURRENT_DATA_MODEL_BINDING,
+    type: ActionTypes.SET_CURRENT_SINGLE_FIELD_VALIDATION,
     dataModelBinding,
   };
 }

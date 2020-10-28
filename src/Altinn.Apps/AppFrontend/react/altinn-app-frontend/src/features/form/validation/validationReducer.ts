@@ -2,7 +2,7 @@ import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IValidations } from 'src/types';
 import { IUpdateComponentValidations } from './component/componentValidationsActions';
-import { IRunSingleFieldValidationActionFulfilled, ISetCurrentDataModelBindingAction } from './singleField/singleFieldValidationActions';
+import { IRunSingleFieldValidationActionFulfilled, ISetCurrentSingleFieldValidationAction } from './singleField/singleFieldValidationActions';
 import * as ActionTypes from './validationActionTypes';
 import { IUpdateValidations } from './update/updateValidationsActions';
 
@@ -54,8 +54,8 @@ const ValidationReducer: Reducer<IValidationState> = (
         },
       });
     }
-    case ActionTypes.SET_CURRENT_DATA_MODEL_BINDING: {
-      const { dataModelBinding } = action as ISetCurrentDataModelBindingAction;
+    case ActionTypes.SET_CURRENT_SINGLE_FIELD_VALIDATION: {
+      const { dataModelBinding } = action as ISetCurrentSingleFieldValidationAction;
       return update<IValidationState>(state, {
         currentSingleFieldValidation: {
           $set: dataModelBinding,

@@ -29,7 +29,7 @@ export function* runSingleFieldValidationSaga(): SagaIterator {
     } catch (err) {
       yield call(Actions.runSingleFieldValidationRejected, err);
     } finally {
-      yield call(Actions.setCurrentDataModelBinding, null);
+      yield call(Actions.setCurrentSingleFieldValidation, null);
     }
   }
 }
