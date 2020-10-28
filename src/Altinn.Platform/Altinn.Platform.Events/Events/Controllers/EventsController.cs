@@ -149,7 +149,7 @@ namespace Altinn.Platform.Events.Controllers
         /// <summary>
         /// Retrieves a set of events based on query parameters.
         /// </summary>
-        [HttpGet("party/{partyId}")]
+        [HttpGet("party")]
         [Consumes("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

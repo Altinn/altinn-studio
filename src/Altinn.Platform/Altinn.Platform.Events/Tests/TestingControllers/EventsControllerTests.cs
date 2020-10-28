@@ -457,7 +457,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 // Arrange   
                 string expected = "\"From or after must be defined.\"";
 
-                string requestUri = $"{BasePath}/app/party/1337?size=5";
+                string requestUri = $"{BasePath}/app/party?size=5";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
 
@@ -484,7 +484,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParty_SizeIsLessThanZero_ReturnsBadRequest()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&size=-5";
+                string requestUri = $"{BasePath}/app/party?from=2020-01-01&size=-5";
                 string expected = "\"Size must be a number larger that 0.\"";
 
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
@@ -513,7 +513,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParty_MissingSubject_ReturnsBadRequest()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&size=5";
+                string requestUri = $"{BasePath}/app/party?from=2020-01-01&size=5";
                 string expected = "\"Subject must be specified using either query params party or unit or header value person.\"";
 
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
@@ -542,7 +542,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParty_MissingOrgWhenAppIsDefined_ReturnsBadRequest()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&party=1337&app=apps-test&size=5";
+                string requestUri = $"{BasePath}/app/party?from=2020-01-01&party=1337&app=apps-test&size=5";
                 string expected = "\"Query param org must be defined when query parameter app is defined.\"";
 
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
@@ -571,7 +571,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParty_MissingBearerToken_ReturnsForbidden()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&party=1337&app=apps-test&size=5";
+                string requestUri = $"{BasePath}/app/party?from=2020-01-01&party=1337&app=apps-test&size=5";
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
 
                 HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -595,8 +595,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParty_ValidRequestParyId_ReturnsListOfEventsAndNextUrl()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&party=1337&size=5";
-                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/party/1337?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=1337&size=5";
+                string requestUri = $"{BasePath}/app/party?from=2020-01-01&party=1337&size=5";
+                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/party?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=1337&size=5";
 
                 int expectedCount = 2;
 
@@ -628,8 +628,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParty_ValidRequestPerson_ReturnsListOfEventsAndNextUrl()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&size=5";
-                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/party/1337?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&size=5";
+                string requestUri = $"{BasePath}/app/party?from=2020-01-01&size=5";
+                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/party?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&size=5";
 
                 int expectedCount = 2;
 
@@ -663,8 +663,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParty_ValidRequestPartyIdAndAfter_ReturnsNextHeaderWithReplacesAfterParameter()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/1337?after=e31dbb11-2208-4dda-a549-92a0db8c7708&from=2020-01-01&party=1337&size=5";
-                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/party/1337?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=1337&size=5";
+                string requestUri = $"{BasePath}/app/party?after=e31dbb11-2208-4dda-a549-92a0db8c7708&from=2020-01-01&party=1337&size=5";
+                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/party?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=1337&size=5";
 
                 int expectedCount = 1;
 
@@ -698,8 +698,8 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParty_ValidRequestParyId_ReturnsListOfEventsAndNextUrlTest()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/1337?from=2020-01-01&party=1337&org=ttd&app=endring-av-navn-v2&size=5";
-                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/party/1337?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=1337&org=ttd&app=endring-av-navn-v2&size=5";
+                string requestUri = $"{BasePath}/app/party?from=2020-01-01&party=1337&org=ttd&app=endring-av-navn-v2&size=5";
+                string expectedNext = $"https://platform.localhost:5080/events/api/v1/app/party?after=e31dbb11-2208-4dda-a549-92a0db8c8808&from=2020-01-01&party=1337&org=ttd&app=endring-av-navn-v2&size=5";
 
                 int expectedCount = 2;
 
@@ -731,7 +731,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
             public async void GetForParty_ServiceThrowsException_ReturnsInternalServerError()
             {
                 // Arrange
-                string requestUri = $"{BasePath}/app/party/1337?after=e31dbb11-2208-4dda-a549-92a0db8c7708&party=1337";
+                string requestUri = $"{BasePath}/app/party?after=e31dbb11-2208-4dda-a549-92a0db8c7708&party=1337";
                 Mock<IEventsService> eventsService = new Mock<IEventsService>();
                 eventsService.Setup(es => es.Get(It.IsAny<string>(), It.IsAny<DateTime?>(), It.IsAny<DateTime?>(), It.IsAny<int>(), It.IsAny<List<string>>(), It.IsAny<List<string>>(), It.IsAny<int>())).Throws(new Exception());
                 HttpClient client = GetTestClient(eventsService.Object);
