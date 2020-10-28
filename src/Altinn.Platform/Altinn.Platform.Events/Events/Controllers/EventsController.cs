@@ -116,7 +116,34 @@ namespace Altinn.Platform.Events.Controllers
                 return StatusCode(401, "Only orgs can call this api");
             }
 
-            return await RetrieveAndAuthorizeEvents(after, from, to, party, unit, person, source, type, size);
+            if (string.IsNullOrEmpty(after) && from == null)
+            {
+                return BadRequest("From or after must be defined.");
+            }
+
+            if (size < 1)
+            {
+                return BadRequest("Size must be a number larger that 0.");
+            }
+
+            if (string.IsNullOrEmpty(person) && string.IsNullOrEmpty(unit) && party <= 0)
+            {
+                return BadRequest("Subject must be specified using either query params party or unit or header value person.");
+            }
+
+            if (party <= 0)
+            {
+                try
+                {
+                    party = await _registerService.PartyLookup(unit, person);
+                }
+                catch (PlatformHttpException e)
+                {
+                    return HandlePlatformHttpException(e);
+                }
+            }
+
+            return await RetrieveAndAuthorizeEvents(after, from, to, party, source, type, size);
         }
 
         /// <summary>
@@ -137,11 +164,6 @@ namespace Altinn.Platform.Events.Controllers
             [FromQuery] List<string> source,
             [FromQuery] List<string> type,
             [FromQuery] int size = 50)
-        {
-            return await RetrieveAndAuthorizeEvents(after, from, to, party, unit, person, source, type, size);
-        }
-
-        private async Task<ActionResult<List<CloudEvent>>> RetrieveAndAuthorizeEvents(string after, DateTime? from, DateTime? to, int party, string unit, string person, List<string> source, List<string> type, int size)
         {
             if (string.IsNullOrEmpty(after) && from == null)
             {
@@ -170,6 +192,11 @@ namespace Altinn.Platform.Events.Controllers
                 }
             }
 
+            return await RetrieveAndAuthorizeEvents(after, from, to, party, source, type, size);
+        }
+
+        private async Task<ActionResult<List<CloudEvent>>> RetrieveAndAuthorizeEvents(string after, DateTime? from, DateTime? to, int party, List<string> source, List<string> type, int size)
+        {
             try
             {
                 List<CloudEvent> events = await _eventsService.Get(after, from, to, party, source, type, size);
