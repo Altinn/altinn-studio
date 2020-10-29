@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import altinnTheme from '../../../shared/theme/altinnStudioTheme';
 import RuleModal from '../toolbar/RuleModal';
 import ConditionalRenderingModal from '../toolbar/ConditionalRenderingModal';
-import { LogicMode } from '../../containers/FormDesigner';
 import { getLanguageFromKey } from '../../../shared/utils/language';
 import PagesContainer from './PagesContainer';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';

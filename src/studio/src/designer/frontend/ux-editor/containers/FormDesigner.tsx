@@ -27,8 +27,6 @@ export interface IFormDesignerProps extends IFormDesignerProvidedProps {
   selectedLayout: string;
 }
 
-export type LogicMode = 'Calculation' | 'Dynamics' | 'Validation' | null;
-
 export interface IFormDesignerState {
   codeEditorOpen: boolean;
   codeEditorMode: LogicMode;

@@ -255,4 +255,6 @@ declare global {
     key: string;
     dataSource: string;
   }
+
+  export type LogicMode = 'Calculation' | 'Dynamics' | 'Validation' | null;
 }
