@@ -225,6 +225,7 @@ function* fetchFormLayoutSaga({
     );
 
     yield call(FormDesignerActionDispatchers.updateSelectedLayout, Object.keys(convertedLayouts)[0]);
+    yield call(FormDesignerActionDispatchers.deleteActiveListActionFulfilled);
   } catch (err) {
     console.error(err);
     yield call(FormDesignerActionDispatchers.fetchFormLayoutRejected, err);
