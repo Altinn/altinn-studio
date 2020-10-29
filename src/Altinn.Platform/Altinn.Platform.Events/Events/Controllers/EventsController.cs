@@ -126,20 +126,17 @@ namespace Altinn.Platform.Events.Controllers
                 return BadRequest("Size must be a number larger that 0.");
             }
 
-            if (!string.IsNullOrEmpty(person) || !string.IsNullOrEmpty(unit) || party > 0)
+            if ((!string.IsNullOrEmpty(person) || !string.IsNullOrEmpty(unit)) && party <= 0)
             {
-                if (party <= 0)
+                try
                 {
-                    try
-                    {
-                        party = await _registerService.PartyLookup(unit, person);
-                    }
-                    catch (PlatformHttpException e)
-                    {
-                        return HandlePlatformHttpException(e);
-                    }
+                    party = await _registerService.PartyLookup(unit, person);
                 }
-            }          
+                catch (PlatformHttpException e)
+                {
+                    return HandlePlatformHttpException(e);
+                }
+            }
 
             return await RetrieveAndAuthorizeEvents(after, from, to, party, source, type, size);
         }
