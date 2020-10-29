@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
+using System.Xml.Serialization;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
 using Manatee.Json.Schema;
@@ -40,6 +41,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 ElementFormDefault = XmlSchemaForm.Qualified,
                 AttributeFormDefault = XmlSchemaForm.Unqualified,
             };
+
+            XmlSerializerNamespaces namespaces = new XmlSerializerNamespaces();
+            namespaces.Add("xsd", "http://www.w3.org/2001/XMLSchema");
+            xsdSchema.Namespaces = namespaces;
 
             xsdSchema.Namespaces.Add("brreg", BRREG_NS);
 
