@@ -137,7 +137,7 @@ const LayoutReducer: Reducer<ILayoutState> = (
     }
 
     case ActionTypes.FETCH_FORM_LAYOUT_SETTINGS_REJECTED: {
-      const { error } = action as IFetchFormLayoutSettingsRejected; 
+      const { error } = action as IFetchFormLayoutSettingsRejected;
       return update<ILayoutState>(state, {
         error: {
           $set: error,

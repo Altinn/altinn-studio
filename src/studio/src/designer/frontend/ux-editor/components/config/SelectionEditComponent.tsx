@@ -6,9 +6,9 @@ import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
+import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
 // eslint-disable-next-line import/no-cycle
 import { renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
-import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
 
 const styles = createStyles({
   formComponentsBtn: {

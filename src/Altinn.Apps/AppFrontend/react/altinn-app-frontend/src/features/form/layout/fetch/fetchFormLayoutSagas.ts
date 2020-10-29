@@ -1,6 +1,7 @@
-import { Saga, SagaIterator } from 'redux-saga';
+import { SagaIterator } from 'redux-saga';
 import { call, all, take, select, takeLatest } from 'redux-saga/effects';
 import { IAltinnWindow } from 'altinn-shared/types';
+import { getLayoutSettingsUrl } from 'src/utils/urlHelper';
 import { get } from '../../../../utils/networking';
 import Actions from '../formLayoutActions';
 import { IFetchFormLayout } from './fetchFormLayoutActions';
@@ -11,7 +12,6 @@ import { getRepeatingGroups } from '../../../../utils/formLayout';
 import { ILayoutSettings, IRuntimeState } from '../../../../types';
 import { IFormDataState } from '../../data/formDataReducer';
 import { ILayoutComponent, ILayoutGroup, ILayouts } from '../index';
-import { getLayoutSettingsUrl } from 'src/utils/urlHelper';
 
 const formDataSelector = (state: IRuntimeState) => state.formData;
 
@@ -34,7 +34,7 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
         formDataState.formData);
     } else {
       // If there exist a defiend layoutout order in settings.json we use that, otherwise we sort alphabetically
-      const orderedLayoutKeys = layoutOrder ? layoutOrder : Object.keys(layoutResponse).sort();
+      const orderedLayoutKeys = layoutOrder || Object.keys(layoutResponse).sort();
       firstLayoutKey = orderedLayoutKeys[0];
 
       orderedLayoutKeys.forEach((key) => {
@@ -75,6 +75,7 @@ export function* fetchFormLayoutSettingsSaga(): SagaIterator {
     const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl());
     yield call(Actions.fetchFormLayoutSettingsFulfilled, settings);
   } catch (error) {
+    // TODO: yield fulfilled if 404!
     yield call(Actions.fetchFormLayoutSettingsRejected, error);
   }
 }

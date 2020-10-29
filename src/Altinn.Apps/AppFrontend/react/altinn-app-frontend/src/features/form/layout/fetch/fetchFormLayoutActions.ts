@@ -52,19 +52,19 @@ export interface IFetchFormLayoutSettingsRejected extends Action {
 export function fetchFormLayoutSettings(): Action {
   return {
     type: actionTypes.FETCH_FORM_LAYOUT_SETTINGS,
-  }
+  };
 }
 
 export function fetchFormLayoutSettingsFulfilled(settings: ILayoutSettings): IFetchFormLayoutSettingsFulfilled {
   return {
     type: actionTypes.FETCH_FORM_LAYOUT_SETTINGS_FULFILLED,
     settings,
-  }
+  };
 }
 
 export function fetchFormLayoutSettingsRejected(error: Error): IFetchFormLayoutSettingsRejected {
   return {
     type: actionTypes.FETCH_FORM_LAYOUT_SETTINGS_REJECTED,
     error,
-  }
+  };
 }

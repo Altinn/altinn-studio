@@ -599,7 +599,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       });
     }
     case FormDesignerActionTypes.UPDATE_LAYOUT_NAME_REJECTED: {
-      const { error } = action as FormDesignerActions.IUpdateSelectedLayoutRejectedAction;
+      const { error } = action as FormDesignerActions.IUpdateLayoutNameRejectedAction;
       return update<IFormLayoutState>(state, {
         error: {
           $set: error,
