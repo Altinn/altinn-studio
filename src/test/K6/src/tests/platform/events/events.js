@@ -53,17 +53,15 @@ export default function (data) {
     //Test to get events from today based on party id, app and org
     eventsFilter = {
         "party": partyId,
-        "from": from,
-        "org": appOwner,
-        "app": appName
+        "from": from
     };
     res = events.getEventsByparty(runtimeToken, eventsFilter);
     success = check(res, {
         "GET Today's Events based on party status is 200:": (r) => r.status === 200,
         "GET Today's Events based on party count greater than 0:": (r) => JSON.parse(r.body).length > 0,
-        "GET Today's Events lists only events for app": (r) => {
+        "GET Today's Events lists only events for party": (r) => {
             var events = r.json();
-            return events.every(event => event.source.includes(appName));
+            return events.every(event => event.subject.includes(partyId));
         }
     });
     addErrorCount(success);
