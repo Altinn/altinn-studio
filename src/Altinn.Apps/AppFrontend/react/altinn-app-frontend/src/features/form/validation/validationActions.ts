@@ -11,12 +11,14 @@ export interface IFormValidationActions extends ActionCreatorsMapObject {
     ComponentValidation.IUpdateComponentValidations;
   updateComponentValidationsFulfilled: () => Action;
   updateComponentValidationsRejected: (error: Error) => ComponentValidation.IUpdateComponentValidationsRejected;
-  runSingleFieldValidation: (url: string, dataModelBinding?: string)
+  runSingleFieldValidation: ()
     => SingleFieldValidationActions.IRunSingleFieldValidationAction;
   runSingleFieldValidationFulfilled: (validationErrors: any)
     => SingleFieldValidationActions.IRunSingleFieldValidationActionFulfilled;
   runSingleFieldValidationRejected: (error: Error)
     => SingleFieldValidationActions.IRunSingleFieldValidationActionRejected;
+  setCurrentSingleFieldValidation: (dataModelBinding?: string)
+    => SingleFieldValidationActions.ISetCurrentSingleFieldValidationAction;
 }
 
 const actions: IFormValidationActions = {
@@ -27,6 +29,7 @@ const actions: IFormValidationActions = {
   runSingleFieldValidation: SingleFieldValidationActions.runSingleFieldValidationAction,
   runSingleFieldValidationFulfilled: SingleFieldValidationActions.runSingleFieldValidationActionFulfilled,
   runSingleFieldValidationRejected: SingleFieldValidationActions.runSingleFieldValidationActionRejected,
+  setCurrentSingleFieldValidation: SingleFieldValidationActions.setCurrentSingleFieldValidationAction,
 };
 
 const FormValidationActions: IFormValidationActions = bindActionCreators<any, any>(actions, store.dispatch);

@@ -161,8 +161,7 @@ namespace Altinn.Platform.Events.Controllers
             [FromQuery] int party,
             [FromQuery] string unit,
             [FromHeader] string person,
-            [FromQuery] string org,
-            [FromQuery] string app,
+            [FromQuery] List<string> source,
             [FromQuery] List<string> type,
             [FromQuery] int size = 50)
         {
@@ -179,19 +178,6 @@ namespace Altinn.Platform.Events.Controllers
             if (string.IsNullOrEmpty(person) && string.IsNullOrEmpty(unit) && party <= 0)
             {
                 return BadRequest("Subject must be specified using either query params party or unit or header value person.");
-            }
-
-            List<string> source = new List<string>();
-            if (!string.IsNullOrEmpty(app))
-            {
-                if (string.IsNullOrEmpty(org))
-                {
-                    return BadRequest("Query param org must be defined when query parameter app is defined.");
-                }
-                else
-                {
-                    source.Add($"%/{org}/{app}%");
-                }
             }
 
             if (party <= 0)
