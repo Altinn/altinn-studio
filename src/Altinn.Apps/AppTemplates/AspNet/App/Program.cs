@@ -18,7 +18,7 @@ namespace Altinn.App
                 {
                     webBuilder.ConfigureAppConfiguration((hostingContext, configBuilder) =>
                     {
-                        configBuilder.LoadAppConfig(args);
+                        configBuilder.LoadAppConfig();
                     });
                     webBuilder.UseStartup<Startup>();
                 });
