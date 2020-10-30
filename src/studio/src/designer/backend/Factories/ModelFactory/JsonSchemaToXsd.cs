@@ -21,6 +21,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     {
         private const string XML_SCHEMA_NS = "http://www.w3.org/2001/XMLSchema";
         private const string BRREG_NS = "http://www.brreg.no/or";
+        private const string SERES_NS = "http://seres.no/xsd/forvaltningsdata";
 
         private XmlDocument xmlDocument = new XmlDocument();
 
@@ -38,13 +39,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             XmlSchema xsdSchema = new XmlSchema
             {
-                ElementFormDefault = XmlSchemaForm.Qualified,
                 AttributeFormDefault = XmlSchemaForm.Unqualified,
+                ElementFormDefault = XmlSchemaForm.Qualified,
             };
 
             xsdSchema.Namespaces = GetDefaultW3CNamespaceWithXSDPrefix();
 
-            xsdSchema.Namespaces.Add("brreg", BRREG_NS);
+            // xsdSchema.Namespaces.Add("brreg", BRREG_NS);
+
+            AddCustomNameSpaces(xsdSchema, jSchema);
 
             AddInfo(xsdSchema, jSchema);
 
@@ -859,6 +862,38 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             XmlSerializerNamespaces defaultNamespaces = new XmlSerializerNamespaces();
             defaultNamespaces.Add("xsd", XML_SCHEMA_NS);
             return defaultNamespaces;
+        }
+
+        private void AddCustomNameSpaces(XmlSchema xsdSchema, JsonSchema jsonSchema)
+        {
+            Dictionary<string, JsonSchema> definitions = GetterExtensions.Definitions(jsonSchema);
+
+            if (definitions != null)
+            {
+                foreach (KeyValuePair<string, JsonSchema> def in definitions)
+                {
+                    JsonSchema jSchema = def.Value;
+                    string name = def.Key;
+
+                    if (jSchema == JsonSchema.Empty && jSchema.Properties() != null)
+                    {
+                        Dictionary<string, JsonSchema> props = jSchema.Properties();
+                        foreach (KeyValuePair<string, JsonSchema> property in props)
+                        {
+                            JsonSchema schemaProp = property.Value;
+                            string nameProp = property.Key;
+
+                            if (nameProp.Equals("dataFormatProvider"))
+                            {
+                                if (schemaProp.Const().String.Equals("SERES"))
+                                {
+                                    xsdSchema.Namespaces.Add("seres", SERES_NS);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
