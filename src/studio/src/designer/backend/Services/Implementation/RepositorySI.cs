@@ -705,7 +705,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             File.Move(curFilePath, newFilePath);
-                return true;
+            return true;
         }
 
         /// <inheritdoc />
