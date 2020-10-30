@@ -196,7 +196,7 @@ namespace Altinn.App.Services.Implementation
         
         public string GetLayoutSettings()
         {
-            string filename = _settings.AppBasePath + _settings.UiFolder + _settings.FormLayoutSettingsFileName;
+            string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
             string filedata = null;
             if (File.Exists(filename))
             {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Newtonsoft.Json;
@@ -399,13 +400,7 @@ namespace Altinn.Studio.Designer.Configuration
             org = org.AsFileName();
             app = app.AsFileName();
             developer = developer.AsFileName();
-
-            if (developer != null)
-            {
-                developer += "/";
-            }
-
-            return $"{RepositoryLocation}/{developer}{org}/{app}/{FormLayoutJSONFileName}";
+            return Path.Join(RepositoryLocation, developer, app, FormLayoutJSONFileName);
         }
 
         /// <summary>
@@ -421,13 +416,7 @@ namespace Altinn.Studio.Designer.Configuration
             org = org.AsFileName();
             app = app.AsFileName();
             developer = developer.AsFileName();
-
-            if (developer != null)
-            {
-                developer += "/";
-            }
-
-            return $"{RepositoryLocation}/{developer}{org}/{app}/{UI_RESOURCE_FOLDER_NAME}/{FORMLAYOUTS_RESOURCE_FOLDER_NAME}/{formLayout}.json";
+            return Path.Join(RepositoryLocation, developer, org, app, UI_RESOURCE_FOLDER_NAME, FORMLAYOUTS_RESOURCE_FOLDER_NAME, formLayout + ".json");
         }
 
         /// <summary>
@@ -481,7 +470,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetRuleHandlerPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + UI_RESOURCE_FOLDER_NAME + RuleHandlerFileName;
+            return Path.Join(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, RuleHandlerFileName);
         }
 
         /// <summary>
@@ -493,7 +482,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path</returns>
         public string GetLayoutSettingPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + UI_RESOURCE_FOLDER_NAME + LAYOUT_SETTING_FILE;
+            return Path.Join(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, LAYOUT_SETTING_FILE);
         }
         
         /// <summary>
