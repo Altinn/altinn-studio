@@ -694,18 +694,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
         
         /// <inheritdoc />
-        public bool UpdateFormLayoutName(string org, string app, string oldName, string newName)
+        public bool UpdateFormLayoutName(string org, string app, string currentName, string newName)
         {   
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string oldFilePath = _settings.GetFormLayoutPath(org, app, developer, oldName);
+            string curFilePath = _settings.GetFormLayoutPath(org, app, developer, currentName);
             string newFilePath = _settings.GetFormLayoutPath(org, app, developer, newName);
-            if (File.Exists(newFilePath) || !File.Exists(oldFilePath))
+            if (File.Exists(newFilePath) || !File.Exists(curFilePath))
             {
                 return false;
             }
 
-            File.Move(oldFilePath, newFilePath);
-            return true;
+            File.Move(curFilePath, newFilePath);
+                return true;
         }
 
         /// <inheritdoc />

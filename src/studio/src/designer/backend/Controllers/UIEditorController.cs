@@ -123,7 +123,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpDelete]
         public ActionResult DeleteFormLayout(string org, string app, string id)
         {
-            if(_repository.DeleteFormLayout(org, app, id))
+            if (_repository.DeleteFormLayout(org, app, id))
             {
                 return Json(new
                 {

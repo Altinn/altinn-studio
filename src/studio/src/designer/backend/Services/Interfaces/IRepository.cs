@@ -382,9 +382,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <returns>A boolean indicating if saving was ok</returns>
         bool SaveFormLayout(string org, string app, string formLayout, string content);
 
-        ///<summary>
+        /// <summary>
         /// Updates a formlayout json name
-        ///</summary>
+        /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="currentName">Current form layout name</param>

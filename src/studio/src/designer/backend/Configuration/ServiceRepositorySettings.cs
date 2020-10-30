@@ -400,7 +400,7 @@ namespace Altinn.Studio.Designer.Configuration
             org = org.AsFileName();
             app = app.AsFileName();
             developer = developer.AsFileName();
-            return Path.Join(RepositoryLocation, developer, app, FormLayoutJSONFileName);
+            return Path.Join(RepositoryLocation, developer, org, app, FormLayoutJSONFileName);
         }
 
         /// <summary>
