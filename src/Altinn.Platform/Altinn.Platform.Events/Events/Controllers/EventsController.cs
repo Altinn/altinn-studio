@@ -126,12 +126,7 @@ namespace Altinn.Platform.Events.Controllers
                 return BadRequest("Size must be a number larger that 0.");
             }
 
-            if (string.IsNullOrEmpty(person) && string.IsNullOrEmpty(unit) && party <= 0)
-            {
-                return BadRequest("Subject must be specified using either query params party or unit or header value person.");
-            }
-
-            if (party <= 0)
+            if ((!string.IsNullOrEmpty(person) || !string.IsNullOrEmpty(unit)) && party <= 0)
             {
                 try
                 {
