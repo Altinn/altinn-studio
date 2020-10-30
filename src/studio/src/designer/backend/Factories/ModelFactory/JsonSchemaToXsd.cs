@@ -45,8 +45,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             xsdSchema.Namespaces = GetDefaultW3CNamespaceWithXSDPrefix();
 
-            // xsdSchema.Namespaces.Add("brreg", BRREG_NS);
-
             AddCustomNameSpaces(xsdSchema, jSchema);
 
             AddInfo(xsdSchema, jSchema);
@@ -875,7 +873,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     JsonSchema jSchema = def.Value;
                     string name = def.Key;
 
-                    if (jSchema == JsonSchema.Empty && jSchema.Properties() != null)
+                    if (jSchema != JsonSchema.Empty && jSchema.Properties() != null)
                     {
                         Dictionary<string, JsonSchema> props = jSchema.Properties();
                         foreach (KeyValuePair<string, JsonSchema> property in props)
