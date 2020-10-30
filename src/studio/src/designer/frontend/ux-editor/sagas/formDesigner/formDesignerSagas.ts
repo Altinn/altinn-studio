@@ -8,6 +8,7 @@ import { call, select, takeLatest } from 'redux-saga/effects';
 import * as SharedNetwork from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { ILayoutSettings } from 'app-shared/types';
+import Axios from 'axios';
 import * as FormDesignerActions from '../../actions/formDesignerActions/actions';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
@@ -17,7 +18,6 @@ import { deleteCall, get, post } from '../../utils/networking';
 import { getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getDeleteForLayoutUrl, getSaveFormLayoutUrl, getLayoutSettingsUrl, getUpdateApplicationMetadataUrl, getSaveLayoutSettingsUrl, getUpdateFormLayoutNameUrl } from '../../utils/urlHelper';
 import { IAddLayoutAction, IDeleteLayoutAction, IUpdateContainerIdAction, IUpdateLayoutNameAction, IUpdateLayoutOrderAction, IUpdateSelectedLayoutAction } from '../../actions/formDesignerActions/actions';
 import { ComponentTypes } from '../../components';
-import Axios from 'axios';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
 
