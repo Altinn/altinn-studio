@@ -42,6 +42,7 @@ namespace Designer.Tests.Factories.ModelFactory
             FileStream file = new FileStream(xsdName + ".new", FileMode.Create, FileAccess.ReadWrite);
             XmlTextWriter xwriter = new XmlTextWriter(file, new UTF8Encoding());
             xwriter.Formatting = Formatting.Indented;
+            xwriter.WriteStartDocument(false);
             xmlschema.Write(xwriter);
 
             // Assert
