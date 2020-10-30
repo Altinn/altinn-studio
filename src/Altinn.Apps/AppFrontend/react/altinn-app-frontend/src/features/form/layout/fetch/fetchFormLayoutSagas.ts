@@ -75,8 +75,12 @@ export function* fetchFormLayoutSettingsSaga(): SagaIterator {
     const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl());
     yield call(Actions.fetchFormLayoutSettingsFulfilled, settings);
   } catch (error) {
-    // TODO: yield fulfilled if 404!
-    yield call(Actions.fetchFormLayoutSettingsRejected, error);
+    if (error?.response?.status === 404) {
+      // We accept that the app does not have a settings.json as this is not default
+      yield call(Actions.fetchFormLayoutSettingsFulfilled, null);
+    } else {
+      yield call(Actions.fetchFormLayoutSettingsRejected, error);
+    }
   }
 }
 

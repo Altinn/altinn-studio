@@ -99,11 +99,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="jsonData">The code list data to save</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="id">The name of the form layout to be saved.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        public ActionResult SaveFormLayouts([FromBody] dynamic jsonData, string org, string app)
+        public ActionResult SaveFormLayout([FromBody] dynamic jsonData, string org, string app, string id)
         {
-            _repository.SaveFormLayouts(org, app, jsonData.ToString());
+            _repository.SaveFormLayout(org, app, id, jsonData.ToString());
 
             return Json(new
             {
@@ -122,12 +123,37 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpDelete]
         public ActionResult DeleteFormLayout(string org, string app, string id)
         {
-            _repository.DeleteFormLayout(org, app, id);
+            if(_repository.DeleteFormLayout(org, app, id))
+            {
+                return Json(new
+                {
+                    Success = true,
+                    Message = "Skjema slettet",
+                });
+            }
 
             return Json(new
             {
-                Success = true,
-                Message = "Skjema slettet",
+                Success = false,
+                Message = "Ikke slettet",
+            });
+        }
+
+        /// <summary>
+        /// Update a form layout name
+        /// </summary>
+        /// <param name="newName">The new name of the form layout.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="id">The current name of the form layuout</param>
+        /// <returns>A success message if the save was successful</returns>
+        [HttpPost]
+        public ActionResult UpdateFormLayoutName([FromBody] string newName, string org, string app, string id)
+        {
+            bool success = _repository.UpdateFormLayoutName(org, app, id, newName);
+            return Json(new
+            {
+                Success = success,
             });
         }
 

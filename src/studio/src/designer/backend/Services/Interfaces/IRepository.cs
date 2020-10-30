@@ -349,14 +349,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         byte[] GetServiceResource(string org, string app, string resource);
 
         /// <summary>
-        /// Get the Json form model from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the json object as a string</returns>
-        string GetJsonFormLayout(string org, string app);
-
-        /// <summary>
         /// Get the form layouts from disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -385,9 +377,20 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="formLayouts">The content of the resource file</param>
+        /// <param name="formLayout">The form layout name</param>
+        /// <param name="content">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        bool SaveFormLayouts(string org, string app, string formLayouts);
+        bool SaveFormLayout(string org, string app, string formLayout, string content);
+
+        ///<summary>
+        /// Updates a formlayout json name
+        ///</summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="currentName">Current form layout name</param>
+        /// <param name="newName">The new form layout name</param>
+        /// <returns>A boolean indicating if updating was ok</returns>
+        bool UpdateFormLayoutName(string org, string app, string currentName, string newName);
 
         /// <summary>
         /// Removes a form layout from disk

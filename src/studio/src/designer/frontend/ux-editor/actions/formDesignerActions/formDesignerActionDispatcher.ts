@@ -100,7 +100,7 @@ export interface IFormDesignerActionDispatchers
   generateRepeatingGroupsAction: () => IGenerateRepeatingGroupsAction;
   generateRepeatingGroupsActionFulfilled: () => IGenerateRepeatingGroupsActionFulfilled;
   generateRepeatingGroupsActionRejected: (error: Error) => IGenerateRepeatingGroupsActionRejected;
-  saveFormLayout: (url: string) => FormDesignerActions.ISaveFormLayoutAction;
+  saveFormLayout: () => Action;
   saveFormLayoutFulfilled: () => Action;
   saveFormLayoutRejected: (
     error: Error,

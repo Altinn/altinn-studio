@@ -5,7 +5,7 @@ import altinnTheme from '../../../shared/theme/altinnStudioTheme';
 import RuleModal from '../toolbar/RuleModal';
 import ConditionalRenderingModal from '../toolbar/ConditionalRenderingModal';
 import { getLanguageFromKey } from '../../../shared/utils/language';
-import PagesContainer from './PagesContainer';
+import PagesContainer from './pages/PagesContainer';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 
 const theme = createMuiTheme(altinnTheme);

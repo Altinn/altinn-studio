@@ -1,26 +1,12 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { Button, Grid, IconButton, ListItemIcon, ListItemText, makeStyles, Menu, MenuItem, MenuProps, TextField, TextFieldProps, Typography, withStyles } from '@material-ui/core';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import * as React from 'react';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useSelector } from 'react-redux';
-import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
-import ConfirmModal from './ConfirmModal';
-
-export default function PagesContainer() {
-  const layoutOrder: string[] = useSelector((state: IAppState) => state.formDesigner.layout.layoutOrder);
-
-  return (
-    <Grid
-      container={true}
-    >
-      {layoutOrder.map((layout: string) => {
-        return (
-          <PageElement name={layout} key={layout}/>
-        );
-      })}
-    </Grid>
-  );
-}
+import { Button, Grid, IconButton, makeStyles, MenuItem, TextField, TextFieldProps } from '@material-ui/core';
+import FormDesignerActionDispatchers from '../../../actions/formDesignerActions/formDesignerActionDispatcher';
+import ConfirmModal from '../ConfirmModal';
+import { MenuItemContent } from './PageMenuItem';
+import PageMenu from './PageMenu';
 
 export interface IPageElementProps {
   name: string;
@@ -45,7 +31,7 @@ const useStyles = makeStyles({
   },
 });
 
-export function PageElement({
+export default function PageElement({
   name,
 }: IPageElementProps) {
   const language = useSelector((state: IAppState) => state.appData.language.language);
@@ -233,26 +219,6 @@ export function PageElement({
   );
 }
 
-export interface IMenuItemContent {
-  text: string;
-  iconClass: string;
-}
-
-export function MenuItemContent({ text, iconClass }: IMenuItemContent) {
-  return (
-    <>
-      <MenuItemIcon>
-        <i className={iconClass} />
-      </MenuItemIcon>
-      <ListItemText disableTypography={true}>
-        <Typography variant='caption'>
-          {text}
-        </Typography>
-      </ListItemText>
-    </>
-  );
-}
-
 export const InlineTextField = (props: TextFieldProps) => (
   <TextField
     inputProps={{ style: { fontSize: '14px' } }}
@@ -260,29 +226,3 @@ export const InlineTextField = (props: TextFieldProps) => (
     {...props}
   />
 );
-
-export const PageMenu = withStyles({
-  paper: {
-    border: '1px solid #d3d4d5',
-  },
-})((props: MenuProps) => (
-  <Menu
-    elevation={0}
-    getContentAnchorEl={null}
-    anchorOrigin={{
-      vertical: 'bottom',
-      horizontal: 'center',
-    }}
-    transformOrigin={{
-      vertical: 'top',
-      horizontal: 'center',
-    }}
-    {...props}
-  />
-));
-
-export const MenuItemIcon = withStyles({
-  root: {
-    minWidth: '3.0rem',
-  },
-})(ListItemIcon);

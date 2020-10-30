@@ -1,6 +1,11 @@
-export const getSaveFormLayoutsUrl = (): string => {
+export const getSaveFormLayoutUrl = (layoutName: string): string => {
   const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
-  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/SaveFormLayouts`;
+  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/SaveFormLayout/${layoutName}`;
+};
+
+export const getUpdateFormLayoutNameUrl = (layoutName: string): string => {
+  const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
+  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}/UIEditor/UpdateFormLayoutName/${layoutName}`;
 };
 
 export const getDeleteForLayoutUrl = (layout: string): string => {
