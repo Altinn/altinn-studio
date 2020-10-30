@@ -1,4 +1,4 @@
-import { IOption } from 'src/types';
+import { IOption, Triggers } from '../../../types';
 
 export interface ILayouts {
   [id: string]: ILayout;
@@ -25,7 +25,7 @@ export interface ILayoutComponent extends ILayoutEntry {
   disabled?: boolean;
   required: boolean;
   textResourceBindings: ITextResourceBindings;
-  triggerValidation?: boolean;
+  triggers?: Triggers[];
 }
 export interface IDataModelBindings {
   [id: string]: string;

@@ -20,7 +20,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void AsJsonSchema_ConvertXsdToJsonSchema_CorrectNumberOfPropertiesAndDefinitions()
         {
             // Arrange
-            XmlReader xsdReader = XmlReader.Create(LoadTestData("Designer.Tests._TestData.xsd.melding-1603-12392.xsd"));
+            XmlReader xsdReader = XmlReader.Create(LoadTestData("Designer.Tests._TestData.Model.Xsd.melding-1603-12392.xsd"));
             XsdToJsonSchema target = new XsdToJsonSchema(xsdReader);
 
             // Act

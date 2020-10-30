@@ -29,6 +29,7 @@ describe('>>> components/GenericComponent.tsx', () => {
             required: false,
             disabled: false,
             textResourceBindings: {},
+            triggers:[]
           },
         ],
       },
@@ -68,6 +69,7 @@ describe('>>> components/GenericComponent.tsx', () => {
           dataModelBindings={{}}
           readOnly={false}
           required={false}
+          triggers={[]}
         />
       </Provider>);
     expect(wrapper.exists('#mockId')).toBe(true);
