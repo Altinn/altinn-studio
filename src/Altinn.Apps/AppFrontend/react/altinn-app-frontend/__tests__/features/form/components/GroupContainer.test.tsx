@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-undef */
 /* tslint:disable:jsx-wrap-multiline */
 import 'jest';
@@ -14,7 +15,9 @@ import { ILayoutGroup } from '../../../../src/features/form/layout';
 describe('>>> features/form/components/Group.tsx', () => {
   let mockStore: any;
   let mockLayout: any;
+  let mockData: any;
   let mockComponents: any;
+  let mockTextResources: any;
   let mockContainer: ILayoutGroup;
 
   beforeAll(() => {
@@ -71,6 +74,20 @@ describe('>>> features/form/components/Group.tsx', () => {
         required: false,
         disabled: false,
       },
+      {
+        id: 'field4',
+        type: 'Checkboxes',
+        dataModelBindings: {
+          simpleBinding: 'some-group.checkboxBinding',
+        },
+        textResourceBindings: {
+          title: 'Title4',
+        },
+        readOnly: false,
+        required: false,
+        disabled: false,
+        options: [{ value: 'option.value', label: 'option.label' }],
+      },
     ];
 
     mockLayout = {
@@ -85,6 +102,7 @@ describe('>>> features/form/components/Group.tsx', () => {
             'field1',
             'field2',
             'field3',
+            'field4',
           ],
         },
       ].concat(mockComponents),
@@ -105,6 +123,7 @@ describe('>>> features/form/components/Group.tsx', () => {
         'field1',
         'field2',
         'field3',
+        'field4',
       ],
       maxCount: 8,
       dataModelBindings: {
@@ -112,7 +131,17 @@ describe('>>> features/form/components/Group.tsx', () => {
       },
     };
 
-    const initialState = getInitialStateMock({ formLayout: mockLayout });
+    mockData = {
+      formData: {
+        'some-group[1].checkboxBinding': 'option.value',
+      },
+    };
+
+    mockTextResources = {
+      resources: [{ id: 'option.label', value: 'Value to be shown' }],
+    };
+
+    const initialState = getInitialStateMock({ formLayout: mockLayout, formData: mockData, textResources: mockTextResources});
     mockStore = createStore(initialState);
   });
 
@@ -183,5 +212,20 @@ describe('>>> features/form/components/Group.tsx', () => {
     );
     const addButton = utils.queryByText('Legg til ny');
     expect(addButton).toBeNull();
+  });
+
+  it('+++ should show option label when displaying selection components', async () => {
+    const utils = render(
+      <Provider store={mockStore}>
+        <GroupContainer
+          components={mockComponents}
+          container={mockContainer}
+          id='mock-container-id'
+          key='testKey'
+        />
+      </Provider>,
+    );
+    const item = await utils.findByText('Value to be shown');
+    expect(item).not.toBeNull();
   });
 });
