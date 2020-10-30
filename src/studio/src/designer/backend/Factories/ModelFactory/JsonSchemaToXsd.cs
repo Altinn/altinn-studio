@@ -42,9 +42,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 AttributeFormDefault = XmlSchemaForm.Unqualified,
             };
 
-            XmlSerializerNamespaces namespaces = new XmlSerializerNamespaces();
-            namespaces.Add("xsd", "http://www.w3.org/2001/XMLSchema");
-            xsdSchema.Namespaces = namespaces;
+            xsdSchema.Namespaces = GetDefaultW3CNamespaceWithXSDPrefix();
 
             xsdSchema.Namespaces.Add("brreg", BRREG_NS);
 
@@ -56,6 +54,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             if (!string.IsNullOrEmpty(title) || !string.IsNullOrEmpty(description))
             {
                 XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+                annotation.Namespaces = GetDefaultW3CNamespaceWithXSDPrefix();
+
                 AddTitleAndDescriptionAnnotations(jSchema, annotation);
 
                 xsdSchema.Items.Add(annotation);
@@ -152,7 +152,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         private XmlSchemaDocumentation CreateSimpleDocumentation(string type, string description)
         {            
             XmlSchemaDocumentation documentation = new XmlSchemaDocumentation();
-            
+         
             XmlNode[] nodes = { xmlDocument.CreateTextNode(description) };
             documentation.Markup = nodes;
             documentation.Source = type;
@@ -166,6 +166,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             if (info != null)
             {
                 XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+                annotation.Namespaces = GetDefaultW3CNamespaceWithXSDPrefix();
                 XmlSchemaDocumentation documentation = new XmlSchemaDocumentation();
                 annotation.Items.Add(documentation);
 
@@ -173,7 +174,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 JsonObject infoObject = info.ToJson(new JsonSerializer()).Object;
                 foreach (string attributeName in infoObject.Keys)
                 {
-                    XmlElement attrElement = xmlDocument.CreateElement("xs", "attribute", XML_SCHEMA_NS);
+                    XmlElement attrElement = xmlDocument.CreateElement("xsd", "attribute", XML_SCHEMA_NS);
                     attrElement.SetAttribute("name", attributeName);
                     attrElement.SetAttribute("fixed", infoObject.TryGetString(attributeName));
 
@@ -851,6 +852,13 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             return "Unknown";
+        }
+
+        private XmlSerializerNamespaces GetDefaultW3CNamespaceWithXSDPrefix()
+        {
+            XmlSerializerNamespaces defaultNamespaces = new XmlSerializerNamespaces();
+            defaultNamespaces.Add("xsd", XML_SCHEMA_NS);
+            return defaultNamespaces;
         }
     }
 }
