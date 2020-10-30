@@ -127,6 +127,9 @@ namespace Altinn.Platform.Events.Controllers
                 return BadRequest("Size must be a number larger that 0.");
             }
 
+            List<string> source = new List<string>();
+            source.Add($"%{org}/{app}%");
+
             if ((!string.IsNullOrEmpty(person) || !string.IsNullOrEmpty(unit)) && party <= 0)
             {
                 try
