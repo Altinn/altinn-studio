@@ -67,7 +67,7 @@ export default function (data) {
     addErrorCount(success);
 
     //Test to get events api by org and app name and check that a person cannot use the api
-    res = events.getEvents(runtimeToken, appOwner, appName, "");
+    res = events.getEvents(runtimeToken, appOwner, appName, null);
     success = check(res, {
         "GET Today's Events by org app name status is 401:": (r) => r.status === 401
     });

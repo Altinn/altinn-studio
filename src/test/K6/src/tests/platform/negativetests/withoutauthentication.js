@@ -83,7 +83,7 @@ export default function (data) {
   addErrorCount(success);
 
   //Test to get Events by party  without authentication and validate the response code to have 401
-  res = events.getEventsByparty(null, "");
+  res = events.getEventsByparty(null, null);
   success = check(res, {
     "GET Events by party status is 401:": (r) => r.status === 401
   });
