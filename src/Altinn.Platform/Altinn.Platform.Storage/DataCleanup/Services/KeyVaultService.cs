@@ -1,10 +1,8 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.Models;
-using Microsoft.Azure.Services.AppAuthentication;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 
 namespace Altinn.Platform.Storage.DataCleanup.Services
 {
@@ -18,13 +16,10 @@ namespace Altinn.Platform.Storage.DataCleanup.Services
         /// <inheritdoc/>
         public async Task<string> GetSecretAsync(string vaultUri, string secretId)
         {
-                // The AzureServiceTokenProvider has its own internal static collection of principals based on the connection string.
-                AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider();
-                KeyVaultClient keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+            SecretClient secretClient = new SecretClient(new Uri(vaultUri), new DefaultAzureCredential());
+            KeyVaultSecret secret = await secretClient.GetSecretAsync(secretId);
 
-                SecretBundle sb = await keyVaultClient.GetSecretAsync(vaultUri, secretId);
-
-                return sb.Value;
+            return secret.Value;
         }
     }
 }
