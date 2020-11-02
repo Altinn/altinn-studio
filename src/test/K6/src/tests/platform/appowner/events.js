@@ -49,6 +49,13 @@ export default function (data) {
     from.setHours(0, 0, 0);
     from = from.toISOString();
 
+    //Test to post events and assert that response is 403
+    res = events.postEvents(runtimeToken);
+    success = check(res, {
+        "POST Events status is 403:": (r) => r.status === 403
+    });
+    addErrorCount(success);
+
     //Test to get events from today based on party id, app and org
     eventsFilter = {
         "party": partyId,
@@ -66,8 +73,7 @@ export default function (data) {
     addErrorCount(success);
 
     //Test to get events api by org and app name and check response
-    eventsFilter = {
-        "party": partyId,
+    eventsFilter = {        
         "from": from
     };
     res = events.getEvents(runtimeToken, appOwner, appName, eventsFilter);
