@@ -10,6 +10,7 @@ import * as authz from "../../../api/platform/authorization.js";
 import * as register from "../../../api/platform/register.js";
 import * as instances from "../../../api/storage/instances.js"
 import * as sbl from "../../../api/storage/messageboxinstances.js"
+import * as events from "../../../api/platform/events.js"
 import * as setUpData from "../../../setup.js";
 
 const userName = __ENV.username;
@@ -78,6 +79,13 @@ export default function (data) {
   res = sbl.getSblInstanceById(null, partyId, instanceId);
   success = check(res, {
     "GET SBL Instance by Id status is 401:": (r) => r.status === 401
+  });
+  addErrorCount(success);
+
+  //Test to get Events by party  without authentication and validate the response code to have 401
+  res = events.getEventsByparty(null, null);
+  success = check(res, {
+    "GET Events by party status is 401:": (r) => r.status === 401
   });
   addErrorCount(success);
 

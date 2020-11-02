@@ -9,15 +9,14 @@
 */
 
 import { check } from "k6";
-import { printResponseToConsole } from "../../../../errorcounter.js";
-import * as storageInstances from "../../../../api/storage/instances.js"
-import { convertMaskinPortenToken } from "../../../../api/platform/authentication.js"
-import * as setUpData from "../../../../setup.js";
+import { printResponseToConsole } from "../../../errorcounter.js";
+import * as storageInstances from "../../../api/storage/instances.js"
+import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
+import * as setUpData from "../../../setup.js";
 import Papa from "https://jslib.k6.io/papaparse/5.1.1/index.js";
 
-
 const maskinPortenToken = __ENV.maskinporten;
-const instancesCsvFile = open("../../../../data/instances.csv");
+const instancesCsvFile = open("../../../data/instances.csv");
 const instancesArray = (Papa.parse(instancesCsvFile)).data; //parsing csv using papaparse
 const instancesCount = instancesArray.length;
 const maxVus = parseInt(__ENV.vus);

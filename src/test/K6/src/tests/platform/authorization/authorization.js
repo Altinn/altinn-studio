@@ -1,6 +1,6 @@
 /* 
   Test data required: test app with uploaded policy in blob, username and password, deployed app that requires level 2 login (reference app: ttd/apps-test)
-  Command: docker-compose run k6 run src/tests/platform/authorization/authorization.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e testapp=*** -e level2app=***
+  Command: docker-compose run k6 run src/tests/platform/authorization/authorization.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
 */
 import { check } from "k6";
 import { addErrorCount } from "../../../errorcounter.js";
@@ -10,8 +10,7 @@ import * as setUpData from "../../../setup.js";
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
-const testappName = __ENV.testapp;
-const level2App = __ENV.level2app;
+const appName = __ENV.level2app;
 let policyFile = open("../../../data/policy.xml", "b");
 let pdpInputJson = open("../../../data/pdpinput.json");
 
@@ -26,7 +25,7 @@ export const options = {
 export function setup() {
   var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
   var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
-  var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
+  var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, appName);
   data.RuntimeToken = altinnStudioRuntimeCookie;
   return data;
 };
@@ -56,7 +55,7 @@ export default function (data) {
   addErrorCount(success);
 
   //Test Platform: Authorization: Upload app policy to storage    
-  res = authz.postPolicy(policyFile, appOwner, testappName, runtimeToken);
+  res = authz.postPolicy(policyFile, appOwner, appName, runtimeToken);
   success = check(res, {
     "POST Policy Status is 403:": (r) => r.status === 403
   });
@@ -69,7 +68,7 @@ export default function (data) {
     "Action": ["read"],
     "Resource": ["urn:altinn:app", "urn:altinn:org"]
   };
-  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask);
+  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, userId, partyId, altinnTask);
   success = check(res, {
     "Get PDP Decision for appOwner Status is 200:": (r) => r.status === 200,
     "Get PDP Decision for appOwner Decision is Permit:": (r) => (JSON.parse(r.body)).response[0].decision === "Permit"
@@ -84,7 +83,7 @@ export default function (data) {
     "Resource": ["urn:altinn:app", "urn:altinn:org"]
   };
   altinnTask = "";
-  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask);
+  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, userId, partyId, altinnTask);
   success = check(res, {
     "Get PDP Decision for appOwner Status is 200:": (r) => r.status === 200,
     "Get PDP Decision for appOwner Decision is NotApplicable:": (r) => (JSON.parse(r.body)).response[0].decision === "NotApplicable"
@@ -99,10 +98,25 @@ export default function (data) {
     "Resource": ["urn:altinn:app", "urn:altinn:org", "urn:altinn:partyid", "urn:altinn:task"]
   };
   altinnTask = "Task_1";
-  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, testappName, userId, partyId, altinnTask);
+  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, userId, partyId, altinnTask);
   success = check(res, {
     "Get PDP Decision for User Status is 200:": (r) => r.status === 200,
     "Get PDP Decision for User Decision is Permit:": (r) => (JSON.parse(r.body)).response[0].decision === "Permit"
+  });
+  addErrorCount(success);
+
+  //Test Platform: Authorization: Get a decision from PDP with user details for reading events
+  //and validate response to have Permit
+  jsonPermitData = {
+    "AccessSubject": ["urn:altinn:userid"],
+    "Action": ["read"],
+    "Resource": ["urn:altinn:app", "urn:altinn:org", "urn:altinn:partyid", "urn:altinn:appresource"]
+  };
+  altinnTask = "";
+  res = authz.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, userId, partyId, altinnTask);
+  success = check(res, {
+    "Get PDP Decision for reading events is 200:": (r) => r.status === 200,
+    "Get PDP Decision for reading events is Permit:": (r) => (JSON.parse(r.body)).response[0].decision === "Permit"
   });
   addErrorCount(success);
 };

@@ -12,21 +12,21 @@
 */
 
 import { check } from "k6";
-import * as apps from "../../../../api/storage/applications.js"
-import * as instances from "../../../../api/storage/instances.js"
-import * as instanceData from "../../../../api/storage/data.js"
-import * as setUpData from "../../../../setup.js";
-import { convertMaskinPortenToken } from "../../../../api/platform/authentication.js"
-import { addErrorCount } from "../../../../errorcounter.js";
+import * as apps from "../../../api/storage/applications.js"
+import * as instances from "../../../api/storage/instances.js"
+import * as instanceData from "../../../api/storage/data.js"
+import * as setUpData from "../../../setup.js";
+import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
+import { addErrorCount } from "../../../errorcounter.js";
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
 const maskinPortenToken = __ENV.maskinporten;
-let instanceJson = open("../../../../data/instance.json");
-let instanceFormDataXml = open("../../../../data/" + level2App + ".xml");
-let pdfAttachment = open("../../../../data/test_file_pdf.pdf", "b");
+let instanceJson = open("../../../data/instance.json");
+let instanceFormDataXml = open("../../../data/" + level2App + ".xml");
+let pdfAttachment = open("../../../data/test_file_pdf.pdf", "b");
 
 export const options = {
     thresholds: {
@@ -39,10 +39,10 @@ export const options = {
 export function setup() {
     var aspxauthCookie = setUpData.authenticateUser(userName, userPassword);
     var altinnStudioRuntimeCookie = setUpData.getAltinnStudioRuntimeToken(aspxauthCookie);
+    setUpData.clearCookies();
     var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
     altinnStudioRuntimeCookie = convertMaskinPortenToken(maskinPortenToken, "true");
     data.RuntimeToken = altinnStudioRuntimeCookie;
-    setUpData.clearCookies();
     var attachmentDataType = apps.getAppByName(altinnStudioRuntimeCookie, appOwner, level2App);
     attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body);
     data.attachmentDataType = attachmentDataType;
@@ -51,7 +51,6 @@ export function setup() {
     data.instanceId = instanceId;
     return data;
 };
-
 
 //Tests for platform Storage: Instance Data for an appowner
 export default function (data) {
