@@ -86,6 +86,9 @@ function buildPdpJson(pdpInputJson, jsonPermitData, appOwner, testappName, userI
             case "urn:altinn:task":
                 value = altinnTask;
                 break;
+            case "urn:altinn:appresource":
+                value = "events";
+                break;
         };
         pdpInputJson.Request.Resource[0].Attribute[i].AttributeId = resource[i];
         pdpInputJson.Request.Resource[0].Attribute[i].Value = value;

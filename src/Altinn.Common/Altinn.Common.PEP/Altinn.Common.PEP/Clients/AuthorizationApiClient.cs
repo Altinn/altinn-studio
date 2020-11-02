@@ -1,8 +1,3 @@
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Common.PEP.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.Net;
@@ -11,14 +6,30 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Configuration;
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+
 namespace Altinn.Common.PEP.Clients
 {
+    /// <summary>
+    /// Represents a form of types HttpClient for communication with the Authorization platform service.
+    /// </summary>
     public class AuthorizationApiClient
     {
         private const string SubscriptionKeyHeaderName = "Ocp-Apim-Subscription-Key";
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initialize a new instance of the <see cref="AuthorizationApiClient"/> class.
+        /// </summary>
+        /// <param name="client">A HttpClient provided by the built in HttpClientFactory.</param>
+        /// <param name="platformSettings">The current platform settings</param>
+        /// <param name="logger">A logger provided by the built in LoggerFactory.</param>
         public AuthorizationApiClient(HttpClient client, IOptions<PlatformSettings> platformSettings, ILogger<AuthorizationApiClient> logger)
         {
             _httpClient = client;
@@ -28,6 +39,11 @@ namespace Altinn.Common.PEP.Clients
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
+        /// <summary>
+        /// Method for performing authorization.
+        /// </summary>
+        /// <param name="xacmlJsonRequest">An authorization request.</param>
+        /// <returns>The result of the authorization request.</returns>
         public async Task<XacmlJsonResponse> AuthorizeRequest(XacmlJsonRequestRoot xacmlJsonRequest)
         {
             XacmlJsonResponse xacmlJsonResponse = null;

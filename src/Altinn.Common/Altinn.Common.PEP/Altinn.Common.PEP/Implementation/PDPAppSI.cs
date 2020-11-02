@@ -1,12 +1,13 @@
+using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
+
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Clients;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace Altinn.Common.PEP.Implementation
 {
@@ -19,13 +20,11 @@ namespace Altinn.Common.PEP.Implementation
         private readonly AuthorizationApiClient _authorizationApiClient;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AuthorizationAppSI"/> class
+        /// Initializes a new instance of the <see cref="PDPAppSI"/> class
         /// </summary>
-        /// <param name="httpClientAccessor">The Http client accessor</param>
         /// <param name="logger">the handler for logger service</param>
-        public PDPAppSI(
-                ILogger<PDPAppSI> logger,
-                AuthorizationApiClient authorizationApiClient)
+        /// <param name="authorizationApiClient">A typed Http client accessor</param>
+        public PDPAppSI(ILogger<PDPAppSI> logger, AuthorizationApiClient authorizationApiClient)
         {
             _logger = logger;
             _authorizationApiClient = authorizationApiClient;

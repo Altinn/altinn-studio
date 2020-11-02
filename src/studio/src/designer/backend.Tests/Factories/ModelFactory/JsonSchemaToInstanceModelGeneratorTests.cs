@@ -1,12 +1,14 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Xml;
+
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
+
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
+
 using Xunit;
 
 namespace Designer.Tests.Factories.ModelFactory
@@ -17,7 +19,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void GetModelMetadata_LoadSchema()
         {
             // Arrange
-            JsonSchema testData = LoadTestData("Designer.Tests._TestData.JsonSchema.melding-1603-12392.json");
+            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.melding-1603-12392.json");
 
             JsonSchemaToInstanceModelGenerator target =
                 new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
@@ -33,7 +35,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void GetModelMetadata_RepeatingGroupHasCorrectDataBinding()
         {
             // Arrange
-            JsonSchema testData = LoadTestData("Designer.Tests._TestData.JsonSchema.melding-1603-12392.json");
+            JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.melding-1603-12392.json");
 
             JsonSchemaToInstanceModelGenerator target =
                 new JsonSchemaToInstanceModelGenerator("parse", "test", testData);

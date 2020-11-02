@@ -2,6 +2,9 @@ using System.Collections.Generic;
 
 namespace Altinn.Common.PEP.Models
 {
+    /// <summary>
+    /// Represents the result of an authorization enforcement
+    /// </summary>
     public class EnforcementResult
     {
         /// <summary>

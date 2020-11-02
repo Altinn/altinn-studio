@@ -108,7 +108,6 @@ namespace Altinn.Platform.Profile
                     builder.AddFilter("Microsoft", LogLevel.Warning);
                     builder.AddFilter("System", LogLevel.Warning);
                     builder.AddConsole();
-                    builder.AddEventLog();
                 }
             })
                 .UseStartup<Startup>();

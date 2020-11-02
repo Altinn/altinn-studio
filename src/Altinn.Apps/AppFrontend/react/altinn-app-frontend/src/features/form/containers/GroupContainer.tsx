@@ -9,10 +9,10 @@ import { useSelector } from 'react-redux';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
 import ErrorPaper from 'src/components/message/ErrorPaper';
-import { ILayoutComponent, ILayoutGroup } from '../layout';
+import { ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from '../layout';
 import { renderGenericComponent } from '../../../utils/layout';
 import FormLayoutActions from '../layout/formLayoutActions';
-import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations } from '../../../types';
+import { IRuntimeState, ITextResource, IRepeatingGroups, IValidations, IOption } from '../../../types';
 import { IFormData } from '../data/formDataReducer';
 
 export interface IGroupProps {
@@ -138,6 +138,7 @@ export function GroupContainer({
   const repeatingGroups: IRepeatingGroups = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups);
   const formData: IFormData = useSelector((state: IRuntimeState) => state.formData.formData);
   const [editIndex, setEditIndex] = React.useState<number>(-1);
+  const options = useSelector((state: IRuntimeState) => state.optionState.options);
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
   const getRepeatingGroupIndex = (containerId: string) => {
     if (repeatingGroups && repeatingGroups[containerId]) {
@@ -170,6 +171,16 @@ export function GroupContainer({
   const getFormDataForComponent = (component: ILayoutComponent, index: number): string => {
     const dataModelBinding = (component.type === 'AddressComponent') ? component.dataModelBindings?.address : component.dataModelBindings?.simpleBinding;
     const replaced = dataModelBinding.replace(container.dataModelBindings.group, `${container.dataModelBindings.group}[${index}]`);
+    if (component.type === 'Dropdown' || component.type === 'Checkboxes' || component.type === 'RadioButtons') {
+      const selectionComponent = component as ISelectionComponentProps;
+      let label: string;
+      if (selectionComponent?.options) {
+        label = selectionComponent.options.find((option: IOption) => option.value === formData[replaced])?.label;
+      } else if (selectionComponent.optionsId) {
+        label = options[selectionComponent.optionsId].find((option: IOption) => option.value === formData[replaced])?.label;
+      }
+      return getTextResourceByKey(label, textResources);
+    }
     return formData[replaced] || '';
   };
 

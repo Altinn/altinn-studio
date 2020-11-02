@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.IO;
-using System.Threading.Tasks;
+
 using AltinnCore.Authentication.Constants;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
@@ -114,7 +115,6 @@ namespace Altinn.Platform.Events
                     builder.AddFilter("Microsoft", LogLevel.Warning);
                     builder.AddFilter("System", LogLevel.Warning);
                     builder.AddConsole();
-                    builder.AddEventLog();
                 }
             });
 

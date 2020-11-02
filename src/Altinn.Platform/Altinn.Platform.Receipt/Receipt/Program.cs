@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using System.Threading.Tasks;
+
 using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -114,7 +114,6 @@ namespace Altinn.Platform.Receipt
                     builder.AddFilter("Microsoft", LogLevel.Warning);
                     builder.AddFilter("System", LogLevel.Warning);
                     builder.AddConsole();
-                    builder.AddEventLog();
                 }
             });
 

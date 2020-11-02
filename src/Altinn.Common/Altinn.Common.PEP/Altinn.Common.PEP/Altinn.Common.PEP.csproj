@@ -8,11 +8,32 @@
     <Version>1.0.37-alpha</Version>
     <LangVersion>latest</LangVersion>
     <Description>Policy Enforcement Point for Attribute based authoirzation using Altinn.Authorization.ABAC in ASP.Net core 3.0 web aps.</Description>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{92f10f90-79c5-459f-8238-0ec4d02aa93c}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.3-alpha" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.9" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)'=='Debug'">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <AdditionalFiles Include="..\..\..\..\stylecop.json">
+      <Link>stylecop.json</Link>
+    </AdditionalFiles>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <CodeAnalysisRuleSet>..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
 
 </Project>

@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "schema.json",
+  "type": "object",
+  "properties": {
+    "TotalDigitsTest": {
+      "$ref": "#/definitions/TotalDigitsTest"
+    },
+    "Name": {
+      "$ref": "#/definitions/Name"
+    },
+    "Value": {
+      "$ref": "#/definitions/Value"
+    }
+  },
+  "definitions": {
+    "TotalDigitsTest": {
+      "properties": {
+        "Name": {
+          "$ref": "#/definitions/Name"
+        },
+        "Value": {
+          "$ref": "#/definitions/Value"
+        }
+      },
+      "required": [
+        "Name",
+        "Value"
+      ]
+    },
+    "Name": {
+      "$ref": "#/definitions/RestrictedText"
+    },
+    "RestrictedText": {
+      "minLength": 1,
+      "maxLength": 20,
+      "type": "string"
+    },
+    "Value": {
+      "$ref": "#/definitions/RestrictedInt"
+    },
+    "RestrictedInt": {
+      "minimum": -7.766279631452242E+18,
+      "maximum": 7.766279631452242E+18,
+      "type": "integer"
+    }
+  }
+}

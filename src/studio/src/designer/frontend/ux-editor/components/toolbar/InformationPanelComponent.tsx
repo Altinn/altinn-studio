@@ -12,7 +12,6 @@ import {
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom';
 import { ComponentTypes } from '..';
 import { getComponentHelperTextByComponentType, getComponentTitleByComponentType } from '../../utils/language';
 
@@ -89,7 +88,13 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
           }
         </Typography>
         <Typography classes={{ root: classNames(this.props.classes.informationPanelLink) }}>
-          <Link to={'/designsystem'}>{this.props.language.ux_editor.information_more_info_link}</Link>
+          <a
+            href='https://docs.altinn.studio/teknologi/altinnstudio/solutions/altinn-studio/functional/build-app/ui-designer/components/'
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            {this.props.language.ux_editor.information_more_info_link}
+          </a>
         </Typography>
       </Popover>
     );

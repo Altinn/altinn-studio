@@ -1,21 +1,23 @@
+using System;
+using System.Collections.Generic;
+using System.Security.Claims;
+
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Constants;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Models;
-using System;
-using System.Collections.Generic;
-using System.Security.Claims;
+
 using Xunit;
 
 namespace UnitTests
 {
     public class DecisionHelperTest
     {
-        private const string org = "Altinn";
-        private const string app = "App";
-        private const string actionType = "read";
-        private const int partyId = 1000;
+        private const string Org = "Altinn";
+        private const string App = "App";
+        private const string ActionType = "read";
+        private const int PartyId = 1000;
 
         /// <summary>
         /// Test case: Send attributes and creates request out of it 
@@ -25,7 +27,7 @@ namespace UnitTests
         public void CreateXacmlJsonRequest_TC01()
         {
             // Arrange & Act
-            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateDecisionRequest(org, app, CreateUserClaims(false), actionType, partyId, null);
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateDecisionRequest(Org, App, CreateUserClaims(false), ActionType, PartyId, null);
             XacmlJsonRequest request = requestRoot.Request;
 
             // Assert
@@ -42,7 +44,7 @@ namespace UnitTests
         public void CreateXacmlJsonRequest_TC02()
         {
             // Arrange & Act
-            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateDecisionRequest(org, app, CreateUserClaims(true), actionType, partyId, null);
+            XacmlJsonRequestRoot requestRoot = DecisionHelper.CreateDecisionRequest(Org, App, CreateUserClaims(true), ActionType, PartyId, null);
             XacmlJsonRequest request = requestRoot.Request;
 
             // Assert
@@ -85,6 +87,7 @@ namespace UnitTests
             XacmlJsonResult xacmlJsonResult = new XacmlJsonResult();
             xacmlJsonResult.Decision = XacmlContextDecision.Permit.ToString();
             response.Response.Add(xacmlJsonResult);
+
             // Add obligation to result with a minimum authentication level attribute
             XacmlJsonObligationOrAdvice obligation = new XacmlJsonObligationOrAdvice();
             obligation.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
@@ -117,6 +120,7 @@ namespace UnitTests
             XacmlJsonResult xacmlJsonResult = new XacmlJsonResult();
             xacmlJsonResult.Decision = XacmlContextDecision.Permit.ToString();
             response.Response.Add(xacmlJsonResult);
+
             // Add obligation to result with a minimum authentication level attribute
             XacmlJsonObligationOrAdvice obligation = new XacmlJsonObligationOrAdvice();
             obligation.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
@@ -222,6 +226,7 @@ namespace UnitTests
             XacmlJsonResult xacmlJsonResult = new XacmlJsonResult();
             xacmlJsonResult.Decision = XacmlContextDecision.Permit.ToString();
             response.Response.Add(xacmlJsonResult);
+
             // Add obligation to result with a minimum authentication level attribute
             XacmlJsonObligationOrAdvice obligation = new XacmlJsonObligationOrAdvice();
             obligation.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
@@ -258,11 +263,7 @@ namespace UnitTests
                 claims.Add(new Claim("a", "a", "string", "a"));
             }
 
-            ClaimsPrincipal user = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                        claims
-                    ));
-
+            ClaimsPrincipal user = new ClaimsPrincipal(new ClaimsIdentity(claims));
             return user;
         }
     }

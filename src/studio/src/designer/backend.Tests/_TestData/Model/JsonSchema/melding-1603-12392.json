@@ -1,0 +1,430 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "schema.json",
+  "type": "object",
+  "properties": {
+    "Skjema": {
+      "texts": {
+        "LEDE": {
+          "NOB": "RF-1366 Endringsmelding for formues- og inntektsskatt 2019"
+        }
+      },
+      "$ref": "#/definitions/Skjema"
+    },
+    "Endringsmelding-grp-9786": {
+      "texts": {
+        "LEDE": {
+          "NOB": "Endringsmelding"
+        }
+      },
+      "$ref": "#/definitions/Endringsmelding-grp-9786"
+    },
+    "Avgiver-grp-9787": {
+      "texts": {
+        "LEDE": {
+          "NOB": "Avgiver"
+        }
+      },
+      "$ref": "#/definitions/Avgiver-grp-9787"
+    },
+    "OppgavegiverNavn-datadef-68": {
+      "texts": {
+        "DEF": {
+          "NOB": "Navn på oppgavegiver",
+          "NON": "Namn på oppgåvegjevar"
+        }
+      },
+      "$ref": "#/definitions/OppgavegiverNavn-datadef-68"
+    },
+    "OppgavegiverFodselsnummer-datadef-26": {
+      "texts": {
+        "DEF": {
+          "NOB": "Fødselsnummer til oppgavegiveren"
+        }
+      },
+      "$ref": "#/definitions/OppgavegiverFodselsnummer-datadef-26"
+    },
+    "KontaktpersonEPost-datadef-27688": {
+      "texts": {
+        "DEF": {
+          "NOB": "E-postadressen til kontaktperson"
+        }
+      },
+      "$ref": "#/definitions/KontaktpersonEPost-datadef-27688"
+    },
+    "KontaktpersonTelefonnummer-datadef-3": {
+      "texts": {
+        "DEF": {
+          "NOB": "Kontaktpersonens telefonnummer"
+        }
+      },
+      "$ref": "#/definitions/KontaktpersonTelefonnummer-datadef-3"
+    },
+    "OversiktOverEndringene-grp-9788": {
+      "texts": {
+        "LEDE": {
+          "NOB": "Oversikt over endringene"
+        }
+      },
+      "$ref": "#/definitions/OversiktOverEndringene-grp-9788"
+    },
+    "SkattemeldingEndringEtterFristPost-datadef-37130": {
+      "$ref": "#/definitions/SkattemeldingEndringEtterFristPost-datadef-37130"
+    },
+    "SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131": {
+      "$ref": "#/definitions/SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131"
+    },
+    "SkattemeldingEndringEtterFristNyttBelop-datadef-37132": {
+      "$ref": "#/definitions/SkattemeldingEndringEtterFristNyttBelop-datadef-37132"
+    },
+    "SkattemeldingEndringEtterFristKommentar-datadef-37133": {
+      "$ref": "#/definitions/SkattemeldingEndringEtterFristKommentar-datadef-37133"
+    }
+  },
+  "definitions": {
+    "Skjema": {
+      "properties": {
+        "skjemanummer": {
+          "const": "1603",
+          "type": "integer",
+          "@xsdType": "XmlAttribute"
+        },
+        "spesifikasjonsnummer": {
+          "const": "12392",
+          "type": "integer",
+          "@xsdType": "XmlAttribute"
+        },
+        "blankettnummer": {
+          "const": "RF-1366",
+          "type": "string",
+          "@xsdType": "XmlAttribute"
+        },
+        "tittel": {
+          "const": "Endringsmelding",
+          "type": "string",
+          "@xsdType": "XmlAttribute"
+        },
+        "gruppeid": {
+          "const": "9785",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "etatid": {
+          "enum": [
+            "974761076"
+          ],
+          "type": "string",
+          "@xsdType": "XmlAttribute"
+        },
+        "Endringsmelding-grp-9786": {
+          "$ref": "#/definitions/Endringsmelding-grp-9786"
+        }
+      },
+      "required": [
+        "skjemanummer",
+        "spesifikasjonsnummer"
+      ],
+      "@xsdAnyAttribute": true
+    },
+    "Endringsmelding-grp-9786": {
+      "properties": {
+        "gruppeid": {
+          "const": "9786",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "Avgiver-grp-9787": {
+          "$ref": "#/definitions/Avgiver-grp-9787"
+        },
+        "OversiktOverEndringene-grp-9788": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 999,
+          "items": {
+            "$ref": "#/definitions/OversiktOverEndringene-grp-9788"
+          }
+        }
+      },
+      "required": [
+        "gruppeid"
+      ]
+    },
+    "Avgiver-grp-9787": {
+      "properties": {
+        "gruppeid": {
+          "const": "9787",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "OppgavegiverNavn-datadef-68": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Navn"
+            }
+          },
+          "$ref": "#/definitions/OppgavegiverNavn-datadef-68"
+        },
+        "OppgavegiverFodselsnummer-datadef-26": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Fødselsnummer"
+            }
+          },
+          "$ref": "#/definitions/OppgavegiverFodselsnummer-datadef-26"
+        },
+        "KontaktpersonEPost-datadef-27688": {
+          "texts": {
+            "LEDE": {
+              "NOB": "E-post"
+            }
+          },
+          "$ref": "#/definitions/KontaktpersonEPost-datadef-27688"
+        },
+        "KontaktpersonTelefonnummer-datadef-3": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Telefonnummer"
+            }
+          },
+          "$ref": "#/definitions/KontaktpersonTelefonnummer-datadef-3"
+        }
+      },
+      "required": [
+        "gruppeid"
+      ]
+    },
+    "OppgavegiverNavn-datadef-68": {
+      "properties": {
+        "orid": {
+          "const": "68",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst175-repformat-8",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": [
+        "orid",
+        "value"
+      ]
+    },
+    "Tekst175-repformat-8": {
+      "minLength": 1,
+      "maxLength": 175,
+      "type": "string"
+    },
+    "OppgavegiverFodselsnummer-datadef-26": {
+      "properties": {
+        "orid": {
+          "const": "26",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst1111Modulus11-repformat-18",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": [
+        "orid",
+        "value"
+      ]
+    },
+    "Tekst1111Modulus11-repformat-18": {
+      "texts": {
+        "FEIL": {
+          "NOB": "Ugyldig fødselsnummer",
+          "NON": "Ugyldig fødselsnummer"
+        }
+      },
+      "minLength": 11,
+      "maxLength": 11,
+      "type": "string"
+    },
+    "KontaktpersonEPost-datadef-27688": {
+      "properties": {
+        "orid": {
+          "const": "27688",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst45-repformat-150",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": [
+        "orid",
+        "value"
+      ]
+    },
+    "Tekst45-repformat-150": {
+      "minLength": 1,
+      "maxLength": 45,
+      "type": "string"
+    },
+    "KontaktpersonTelefonnummer-datadef-3": {
+      "properties": {
+        "orid": {
+          "const": "3",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst13-repformat-12",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": [
+        "orid",
+        "value"
+      ]
+    },
+    "Tekst13-repformat-12": {
+      "minLength": 1,
+      "maxLength": 13,
+      "type": "string"
+    },
+    "OversiktOverEndringene-grp-9788": {
+      "properties": {
+        "gruppeid": {
+          "const": "9788",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "SkattemeldingEndringEtterFristPost-datadef-37130": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Post i RF-1030 Skattemelding for formues- og inntektsskatt som skal  endres"
+            }
+          },
+          "$ref": "#/definitions/SkattemeldingEndringEtterFristPost-datadef-37130"
+        },
+        "SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Endre fra"
+            }
+          },
+          "$ref": "#/definitions/SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131"
+        },
+        "SkattemeldingEndringEtterFristNyttBelop-datadef-37132": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Endre til"
+            }
+          },
+          "$ref": "#/definitions/SkattemeldingEndringEtterFristNyttBelop-datadef-37132"
+        },
+        "SkattemeldingEndringEtterFristKommentar-datadef-37133": {
+          "texts": {
+            "LEDE": {
+              "NOB": "Kommentar"
+            }
+          },
+          "$ref": "#/definitions/SkattemeldingEndringEtterFristKommentar-datadef-37133"
+        }
+      },
+      "required": [
+        "gruppeid"
+      ]
+    },
+    "SkattemeldingEndringEtterFristPost-datadef-37130": {
+      "properties": {
+        "orid": {
+          "const": "37130",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst35-repformat-3",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": [
+        "orid",
+        "value"
+      ]
+    },
+    "Tekst35-repformat-3": {
+      "minLength": 1,
+      "maxLength": 35,
+      "type": "string"
+    },
+    "SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131": {
+      "properties": {
+        "orid": {
+          "const": "37131",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/BelopHeltall15-repformat-37",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": [
+        "orid",
+        "value"
+      ]
+    },
+    "BelopHeltall15-repformat-37": {
+      "minimum": -999999999999999,
+      "maximum": 999999999999999,
+      "type": "integer"
+    },
+    "SkattemeldingEndringEtterFristNyttBelop-datadef-37132": {
+      "properties": {
+        "orid": {
+          "const": "37132",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/BelopHeltall15-repformat-37",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": [
+        "orid",
+        "value"
+      ]
+    },
+    "SkattemeldingEndringEtterFristKommentar-datadef-37133": {
+      "properties": {
+        "orid": {
+          "const": "37133",
+          "type": "integer",
+          "minimum": 0,
+          "@xsdType": "XmlAttribute"
+        },
+        "value": {
+          "$ref": "#/definitions/Tekst500-repformat-166",
+          "@xsdType": "XmlSimpleContentExtension"
+        }
+      },
+      "required": [
+        "orid",
+        "value"
+      ]
+    },
+    "Tekst500-repformat-166": {
+      "minLength": 1,
+      "maxLength": 500,
+      "type": "string"
+    }
+  }
+}
