@@ -72,6 +72,7 @@ export default function PageElement({
       setDeleteAnchorEl(event.currentTarget);
     } else if (action === 'edit') {
       setEditMode(true);
+      setNewName(name);
     } else if (action === 'up' || action === 'down') {
       FormDesignerActionDispatchers.updateLayoutOrder(name, action);
     }
@@ -80,9 +81,9 @@ export default function PageElement({
 
   function handleOnBlur(event: any) {
     event.stopPropagation();
-    if (!errorMessage) {
-      setEditMode(false);
-      FormDesignerActionDispatchers.updateLayoutName(name, event.target.value.trim());
+    setEditMode(false);
+    if (!errorMessage && name !== newName) {
+      FormDesignerActionDispatchers.updateLayoutName(name, newName);
     }
   }
 
@@ -107,7 +108,7 @@ export default function PageElement({
   function handleKeyPress(event: any) {
     event.stopPropagation();
     if (event.key === 'Enter') {
-      if (!errorMessage) {
+      if (!errorMessage && name !== newName) {
         FormDesignerActionDispatchers.updateLayoutName(name, newName);
         setEditMode(false);
       }
