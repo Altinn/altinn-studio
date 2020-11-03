@@ -290,10 +290,18 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       component.textResourceBindings.title = undefined;
       (component as any).textResourceId = undefined;
       component.customType = undefined;
+      (component as any).showBackButton = true;
+      component.textResourceBindings.next = 'next';
+      component.textResourceBindings.back = 'back';
       component.componentType = ComponentTypes.NavigationButtons;
     } else if (selected.value === 'Button') {
       component.type = 'Button';
-      component.componentType = ComponentTypes.NavigationButtons;
+      component.componentType = ComponentTypes.Button;
+      component.textResourceBindings.next = undefined;
+      component.textResourceBindings.back = undefined;
+      (component as any).showPrev = undefined;
+      (component as any).showBackButton = undefined;
+      component.textResourceBindings.title = getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language);
     }
     this.setState({
       component,

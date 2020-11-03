@@ -471,7 +471,8 @@ export function* watchDeleteLayoutSaga(): SagaIterator {
 
 export function* addLayoutSaga({ layout }: IAddLayoutAction): SagaIterator {
   try {
-    const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
+    const layouts: IFormLayouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
+    const layoutOrder: string[] = yield select((state: IAppState) => state.formDesigner.layout.layoutOrder);
     const layoutsCopy = JSON.parse(JSON.stringify(layouts));
     if (Object.keys(layoutsCopy).indexOf(layout) !== -1) {
       throw Error('Layout allready exists');
@@ -484,10 +485,22 @@ export function* addLayoutSaga({ layout }: IAddLayoutAction): SagaIterator {
       const NavigationButtonComponent = {
         type: 'NavigationButtons',
         componentType: ComponentTypes.NavigationButtons,
-        textResourceBindings: {},
+        textResourceBindings: {
+          next: 'next',
+          back: 'back',
+        },
         dataModelBindings: {},
+        showBackButton: true,
       };
       yield call(FormDesignerActionDispatchers.addFormComponent, NavigationButtonComponent, 0, Object.keys(layoutsCopy[layout].containers)[0]);
+      const firstPageKey = layoutOrder[0];
+      const firstPage = layouts[firstPageKey];
+      yield call(FormDesignerActionDispatchers.updateSelectedLayout, firstPageKey);
+      const hasNaviagtionButton = Object.keys(firstPage.components).some((component: string) => firstPage.components[component].type === 'NavigationButtons');
+      if (!hasNaviagtionButton) {
+        yield call(FormDesignerActionDispatchers.addFormComponent, NavigationButtonComponent, Object.keys(layoutsCopy[firstPageKey].components).length, Object.keys(layoutsCopy[firstPageKey].containers)[0]);
+      }
+      yield call(FormDesignerActionDispatchers.updateSelectedLayout, layout);
     }
   } catch (error) {
     console.error(error);
