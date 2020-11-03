@@ -17,6 +17,7 @@ export function* startInitialDataTaskQueue(): SagaIterator {
   );
 
   yield call(FormDataActions.fetchFormDataInitial);
+  yield call(FormLayoutActions.fetchFormLayoutSettings);
 
   yield call(
     QueueActions.startInitialDataTaskQueueFulfilled,

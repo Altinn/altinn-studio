@@ -2,7 +2,7 @@ import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IUiConfig } from 'src/types';
 import { ILayouts } from './index';
-import { IFetchFormLayoutFulfilled, IFetchFormLayoutRejected } from './fetch/fetchFormLayoutActions';
+import { IFetchFormLayoutFulfilled, IFetchFormLayoutRejected, IFetchFormLayoutSettingsFulfilled, IFetchFormLayoutSettingsRejected } from './fetch/fetchFormLayoutActions';
 import * as ActionTypes from './formLayoutActionTypes';
 import { IUpdateFocusFulfilled,
   IUpdateHiddenComponents,
@@ -26,6 +26,7 @@ const initialState: ILayoutState = {
     repeatingGroups: {},
     currentView: 'FormLayout',
     navigationConfig: {},
+    layoutOrder: null,
   },
 };
 
@@ -117,6 +118,29 @@ const LayoutReducer: Reducer<ILayoutState> = (
           currentView: {
             $set: newView,
           },
+        },
+      });
+    }
+
+    case ActionTypes.FETCH_FORM_LAYOUT_SETTINGS_FULFILLED: {
+      const { settings } = action as IFetchFormLayoutSettingsFulfilled;
+      return update<ILayoutState>(state, {
+        uiConfig: {
+          layoutOrder: (currentLayoutOrder) => {
+            if (!settings || !settings.pages || !settings.pages.order) {
+              return currentLayoutOrder;
+            }
+            return settings.pages.order;
+          },
+        },
+      });
+    }
+
+    case ActionTypes.FETCH_FORM_LAYOUT_SETTINGS_REJECTED: {
+      const { error } = action as IFetchFormLayoutSettingsRejected;
+      return update<ILayoutState>(state, {
+        error: {
+          $set: error,
         },
       });
     }
