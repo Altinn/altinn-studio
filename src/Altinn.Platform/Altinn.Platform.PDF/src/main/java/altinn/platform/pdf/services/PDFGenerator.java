@@ -47,6 +47,7 @@ public class PDFGenerator {
   private Instance instance;
   private Document formData;
   private FormLayout originalFormLayout;
+  private LayoutSettings layoutSettings;
   private Map<String, FormLayout> formLayouts;
   private Party party;
   private Party userParty;
@@ -78,6 +79,7 @@ public class PDFGenerator {
     this.party = pdfContext.getParty();
     this.userParty = pdfContext.getUserParty();
     this.userProfile = pdfContext.getUserProfile();
+    this.layoutSettings = pdfContext.getLayoutSettings();
     try {
       this.formData = FormUtils.parseXml(pdfContext.getData());
       this.textResources.setResources(parseTextResources(this.textResources.getResources(), this.formData));
@@ -149,16 +151,32 @@ public class PDFGenerator {
       renderFormLayout(initializedLayout);
     } else if (formLayouts != null) {
       // contains a map of form layouts. Render each page and separate by a new page
-      Iterator<FormLayout> iterator = formLayouts.values().iterator();
-      while (iterator.hasNext()) {
-        FormLayout layout = iterator.next();
-        originalFormLayout = layout;
-        List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
-        List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
-        renderFormLayout(initializedLayout);
-        if (iterator.hasNext()) {
-          createNewPage();
-          yPoint = currentPage.getMediaBox().getHeight() - margin;
+      if (layoutSettings != null && layoutSettings.getPages() != null && layoutSettings.getPages().getOrder() != null) {
+        // The app developer has specified the order on a page => render pages in accordance
+        List<String> order = layoutSettings.getPages().getOrder();
+        for (String layoutKey: order) {
+          FormLayout layout = formLayouts.get(layoutKey);
+          originalFormLayout = layout;
+          List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
+          List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
+          renderFormLayout(initializedLayout);
+          if (order.indexOf(layoutKey) < order.size()) {
+            createNewPage();
+            yPoint = currentPage.getMediaBox().getHeight() - margin;
+          }
+        }
+      } else {
+        Iterator<FormLayout> iterator = formLayouts.values().iterator();
+        while (iterator.hasNext()) {
+          FormLayout layout = iterator.next();
+          originalFormLayout = layout;
+          List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
+          List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
+          renderFormLayout(initializedLayout);
+          if (iterator.hasNext()) {
+            createNewPage();
+            yPoint = currentPage.getMediaBox().getHeight() - margin;
+          }
         }
       }
     }
