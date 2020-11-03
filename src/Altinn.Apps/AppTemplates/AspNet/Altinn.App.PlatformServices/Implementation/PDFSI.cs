@@ -104,10 +104,13 @@ namespace Altinn.App.Services.Implementation
 
             string textResourcesString = JsonConvert.SerializeObject(textResource);
 
+            string layoutSettings = _appResourcesService.GetLayoutSettings();
+
             PDFContext pdfContext = new PDFContext
             {
                 Data = encodedXml,
                 FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsString),
+                LayoutSettings = JsonConvert.DeserializeObject<object>(layoutSettings),
                 TextResources = JsonConvert.DeserializeObject(textResourcesString),
                 Party = await _registerService.GetParty(instanceOwnerId),
                 Instance = instance,
