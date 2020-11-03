@@ -9,11 +9,11 @@
 */
 
 import { check } from "k6";
-import { addErrorCount, printResponseToConsole } from "../../../../errorcounter.js";
-import * as storageInstances from "../../../../api/storage/instances.js"
-import * as storageData from "../../../../api/storage/data.js"
-import { convertMaskinPortenToken } from "../../../../api/platform/authentication.js"
-import * as setUpData from "../../../../setup.js";
+import { addErrorCount, printResponseToConsole } from "../../../errorcounter.js";
+import * as storageInstances from "../../../api/storage/instances.js"
+import * as storageData from "../../../api/storage/data.js"
+import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
+import * as setUpData from "../../../setup.js";
 
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
