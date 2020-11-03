@@ -636,10 +636,10 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       const { settings } = action as FormDesignerActions.IFetchLayoutSettingsFulfilledAction;
       return update<IFormLayoutState>(state, {
         layoutOrder: (currentLayoutOrder) => {
-          if (!settings || !settings.order) {
+          if (!settings || !settings.pages || !settings.pages.order) {
             return currentLayoutOrder;
           }
-          return settings.order;
+          return settings.pages.order;
         },
       });
     }

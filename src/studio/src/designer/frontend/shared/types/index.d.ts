@@ -149,5 +149,9 @@ export interface IParty {
 }
 
 export interface ILayoutSettings {
+  pages: IPagesSettings;
+}
+
+export interface IPagesSettings {
   order: [];
 }
