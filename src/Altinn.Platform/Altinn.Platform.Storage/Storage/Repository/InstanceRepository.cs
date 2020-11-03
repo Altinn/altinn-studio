@@ -366,7 +366,6 @@ namespace Altinn.Platform.Storage.Repository
         private IQueryable<Instance> QueryBuilderExcludeConfirmedBy(IQueryable<Instance> queryBuilder, string queryValue)
         {
             return queryBuilder.Where(i =>
-                i.CompleteConfirmations == null ||
 
                 // A slightly more readable variant would be to use All( != ), but All() isn't supported.
                 !i.CompleteConfirmations.Any(cc => cc.StakeholderId == queryValue));
