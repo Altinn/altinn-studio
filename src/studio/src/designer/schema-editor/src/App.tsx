@@ -1,21 +1,14 @@
 import * as React from 'react';
-import logo from './logo.svg';
+import { Provider } from 'react-redux';
 import './App.css';
-import { SchemaEditor } from './schemaEditor';
-import { dataMock } from './mockData';
-import {updateObject} from './utils';
+import SchemaEditor from './schemaEditor';
+import { store } from './redux/store';
 
 function App() {
-  const onChange = (value: string, path: string) => {
-    console.log(`${path}: ${value}`)
-    updateObject(dataMock, path, value);
-    console.log('Data mock: ', dataMock);
-  }
-
   return (
-    <div className="App">
-      <SchemaEditor data={dataMock} onChange={onChange}/>
-    </div>
+    <Provider store={store}>
+      <SchemaEditor />
+    </Provider>
   );
 }
 

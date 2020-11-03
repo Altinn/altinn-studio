@@ -3,68 +3,8 @@ import SvgIcon, { SvgIconProps } from '@material-ui/core/SvgIcon';
 import { TransitionProps } from '@material-ui/core/transitions';
 import Collapse from '@material-ui/core/Collapse';
 import { useSpring, animated } from 'react-spring/web.cjs'; // web.cjs is required for IE 11 support
-import { SchemaItem } from './SchemaItem';
-import { InputField } from './components/InputField';
-import { TreeItem } from '@material-ui/lab';
 
 const JsonPointer = require('jsonpointer');
-
-// export function buildTreeView(subSchema: any, mainSchema: any, rootElement: string): JSX.Element {
-//   if (subSchema.properties)
-//   {
-//     const propertyTreeItems: any[] = [];
-//     Object.keys(subSchema.properties).forEach((key: string) => {
-//       const localRootElement = subSchema.properties[key];
-//       if (localRootElement.$ref) {
-//         const childSchemaPtr = JsonPointer.compile(localRootElement.$ref.substr(1));
-//         propertyTreeItems.push(
-//           <SchemaItem schemaPath={`${rootElement}/${key}`} nodeId={key} label={key}>
-//             {buildTreeView(childSchemaPtr.get(mainSchema), mainSchema, localRootElement.$ref)}
-//           </SchemaItem>
-//         );
-//       } else if (localRootElement.items && localRootElement.items.$ref) {
-//         const childSchemaPtr = JsonPointer.compile(localRootElement.items.$ref.substr(1));
-//         propertyTreeItems.push(
-//           <SchemaItem schemaPath={`${rootElement}/${key}`} nodeId={key} label={key}>
-//             {buildTreeView(childSchemaPtr.get(mainSchema), mainSchema, localRootElement.items.$ref)}
-//           </SchemaItem>
-//         );
-//       } else {
-//         propertyTreeItems.push(
-//           <div>
-//             {Object.keys(localRootElement).map((element: string) => {
-//               return (
-//                 <SchemaItem schemaPath={`${rootElement}`} nodeId={rootElement} label={rootElement}>
-//                   <InputField label={element} value={localRootElement[element]} />
-//                 </SchemaItem>
-//               );
-//             })}
-//           </div>
-//         )
-//       }
-//     });
-//     return (
-//       <SchemaItem schemaPath={`${rootElement}`} nodeId={rootElement} label={rootElement}>
-//         {propertyTreeItems}
-//       </SchemaItem>
-//     )
-//   }
-
-//   if (subSchema.$ref) {
-//     const ptr = JsonPointer.compile(subSchema.$ref.substr(1));
-//     return buildTreeView(ptr.get(mainSchema), mainSchema, subSchema.$ref);
-//   }
-  
-//   return (
-//     <div>
-//       {Object.keys(subSchema).map((element: string) => {
-//         return (
-//             <InputField label={element} value={subSchema[element]} />
-//         );
-//       })}
-//     </div>
-//   )
-// }
 
 export function updateObject(obj: any, path: string, value: string) {
   if (path.startsWith('#')) {
@@ -74,34 +14,95 @@ export function updateObject(obj: any, path: string, value: string) {
   JsonPointer.set(obj, path, value);
 }
 
-export function buildSimpleTreeView(schema: any, currentPath: string, onChangeFunc: (value: string, key: string) => void): any[] {
-  const schemaItems: any[] = [];
-  console.log('currentPath: ', currentPath);
+export function createDataArray(
+  schema: any,
+  schemaPath: string,
+  uiPath: string,
+  mainSchema?: any,
+  requiredArray?: string[]
+): any[] {
+  const result: any[] = [];
+  mainSchema = mainSchema || schema;
+  let path = schemaPath.startsWith('#') ? schemaPath.substr(1) : schemaPath;
+  const required = requiredArray || schema.required;
   Object.keys(schema).forEach((key) => {
     if (typeof schema[key] === 'object' && schema[key] !== null) {
-      schemaItems.push(
-        <SchemaItem
-          schemaPath={`${currentPath}/${key}`}
-          nodeId={`${currentPath}/${key}`}
-          label={key}
-        >
-          {buildSimpleTreeView(schema[key], `${currentPath}/${key}`, onChangeFunc)}
-        </SchemaItem>
-      )
+      if (key === 'properties') {
+        const propArray = createDataArray(
+          schema[key], `${schemaPath}/${key}`, uiPath, mainSchema, required);
+        propArray.forEach((property) => {
+          result.push(property);
+        })
+      } else if (key !== 'definitions' && key !== 'required') {
+        result.push({
+          id: key,
+          uiPath,
+          schemaPath: path || '/',
+          value: createDataArray(
+            schema[key], `${schemaPath}/${key}`, `${uiPath}/${key}`, mainSchema),
+          $ref: schema[key].$ref || undefined,
+          requiredPath: required && required.find((k: string) => k === key) ?
+          schemaPath.replace('properties', 'required') : undefined,
+        });
+      }
     } else {
-      schemaItems.push(
-        <div>
-          <InputField
-            value={schema[key]}
-            label={key}
-            fullPath={`${currentPath}/${key}`}
-            onChange={onChangeFunc}/>
-        </div>
-      )
+      if (key === '$ref') {
+        const refPath = schema[key].startsWith('#') ? schema[key].substr(1) : schema[key];
+        const subSchema = JsonPointer.get(mainSchema, refPath);
+        const content = createDataArray(subSchema, schema[key], uiPath, mainSchema);
+        content.forEach((item) => {
+          result.push(item);
+        });
+      } else {
+        result.push({
+          id: key,
+          uiPath,
+          schemaPath: path || '/',
+          value: schema[key],
+        });
+      }
     }
   });
 
-  return schemaItems;
+  return result;
+}
+
+export function getUiSchemaItem(schema: any[], pathArray: string[], index: number): any {
+  const pathSegment = pathArray[index];
+  console.log('path segment: ', pathSegment);
+  const item = schema.find((schemaItem) => schemaItem.id === pathSegment);
+  console.log('item: ', item);
+  if (item && Array.isArray(item.value) && index < pathArray.length - 1) {
+    return getUiSchemaItem(item.value, pathArray, ++index);
+  }
+
+  return item;
+}
+
+export function buildJsonSchema(uiSchema: any[], result: any): any {
+  const test = {};
+  uiSchema.forEach((item) => {
+    console.log(item.id);
+    const path = item.schemaPath.endsWith('/') ? `${item.schemaPath}${item.id}` : `${item.schemaPath}/${item.id}`;
+    let itemToSet: any;
+    if (item.$ref) {
+      itemToSet = {
+        $ref: item.$ref
+      }
+      JsonPointer.set(result, path, itemToSet);
+    }
+
+    if (item.requiredPath) {
+      JsonPointer.set(result, `${item.requiredPath}/-`, item.id);
+    }
+
+    if (Array.isArray(item.value)) {
+      buildJsonSchema(item.value, result);
+    } else {
+      JsonPointer.set(result, path, item.value);
+      JsonPointer.set(test, path, item.value);
+    }
+  });
 }
 
 export function MinusSquare(props: SvgIconProps) {
