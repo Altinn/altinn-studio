@@ -110,7 +110,10 @@ export default function RightMenu(props: IRightMenuProps) {
           {getLanguageFromKey('right_menu.pages', props.language)}
         </Grid>
         <Grid item={true} xs={2}>
-          <IconButton className={classes.addIcon} onClick={handleAddPage}>
+          <IconButton
+            className={classes.addIcon} onClick={handleAddPage}
+            aria-label={getLanguageFromKey('right_menu.pages_add_alt', props.language)}
+          >
             <i className='fa fa-plus'/>
           </IconButton>
         </Grid>
@@ -167,7 +170,10 @@ export default function RightMenu(props: IRightMenuProps) {
           {getLanguageFromKey('right_menu.rules_calculations', props.language)}
         </Grid>
         <Grid item={true} xs={2}>
-          <IconButton className={classes.addIcon} onClick={() => handleModalChange('rules')}>
+          <IconButton
+            className={classes.addIcon} onClick={() => handleModalChange('rules')}
+            aria-label={getLanguageFromKey('right_menu.rules_calculations_add_alt', props.language)}
+          >
             <i className='fa fa-plus'/>
           </IconButton>
         </Grid>
@@ -188,7 +194,10 @@ export default function RightMenu(props: IRightMenuProps) {
           {getLanguageFromKey('right_menu.rules_conditional_rendering', props.language)}
         </Grid>
         <Grid item={true} xs={2}>
-          <IconButton className={classes.addIcon} onClick={() => handleModalChange('conditionalRendering')}>
+          <IconButton
+            className={classes.addIcon} onClick={() => handleModalChange('conditionalRendering')}
+            aria-label={getLanguageFromKey('right_menu.rules_conditional_rendering_add_alt', props.language)}
+          >
             <i className='fa fa-plus'/>
           </IconButton>
         </Grid>

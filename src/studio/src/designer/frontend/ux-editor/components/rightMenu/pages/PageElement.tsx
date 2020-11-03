@@ -28,6 +28,10 @@ const useStyles = makeStyles({
     '&:focus #ellipsis-button': {
       visibility: 'visible',
     },
+    '&:focus-within #ellipsis-button': {
+      visibility: 'visible',
+    },
+
   },
 });
 
