@@ -4,9 +4,9 @@ import io.swagger.annotations.ApiModel;
 
 @ApiModel(description = "Layout settings")
 public class LayoutSettings {
-  private PagesSettings page;
+  private PagesSettings pages;
 
-  public PagesSettings getPage() { return page; }
+  public PagesSettings getPages() { return pages; }
 
-  public void setPage(PagesSettings page) { this.page = page; }
+  public void setPages(PagesSettings pages) { this.pages = pages; }
 }
