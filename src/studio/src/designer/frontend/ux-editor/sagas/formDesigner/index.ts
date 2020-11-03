@@ -14,7 +14,14 @@ import { watchAddActiveFormContainerSaga,
   watchUpdateFormComponentOrderSaga,
   watchUpdateFormComponentSaga,
   watchUpdateContainerIdSaga,
-  watchUpdateContainerSaga } from './formDesignerSagas';
+  watchUpdateContainerSaga,
+  watchUpdateSelectedLayoutSaga,
+  watchDeleteLayoutSaga,
+  watchAddLayoutSaga,
+  watchUpdateLayoutNameSaga,
+  watchUpdateLayoutOrderSaga,
+  watchFetchFormLayoutSettingSaga,
+  watchSaveFormLayoutSettingSaga } from './formDesignerSagas';
 
 // tslint:disable-next-line:space-before-function-paren
 export default function* (): SagaIterator {
@@ -33,4 +40,11 @@ export default function* (): SagaIterator {
   yield fork(watchUpdateApplicationMetadataSaga);
   yield fork(watchUpdateContainerSaga);
   yield fork(watchUpdateContainerIdSaga);
+  yield fork(watchUpdateSelectedLayoutSaga);
+  yield fork(watchDeleteLayoutSaga);
+  yield fork(watchAddLayoutSaga);
+  yield fork(watchUpdateLayoutNameSaga);
+  yield fork(watchUpdateLayoutOrderSaga);
+  yield fork(watchFetchFormLayoutSettingSaga);
+  yield fork(watchSaveFormLayoutSettingSaga);
 }

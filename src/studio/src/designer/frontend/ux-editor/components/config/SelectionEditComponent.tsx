@@ -6,6 +6,7 @@ import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
+import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
 // eslint-disable-next-line import/no-cycle
 import { renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 
@@ -74,6 +75,8 @@ export interface ISelectionEditComponentProvidedProps {
   handleAddOption: () => void;
   handlePreselectedOptionChange: (event: any) => void;
   handleDataModelChange: (selectedDataModelElement: any) => void;
+  handleRequiredChange: (event: any, checked: boolean) => void;
+  handleReadOnlyChange: (event: any, checked: boolean) => void;
 }
 
 export interface ISelectionEditComponentProps extends ISelectionEditComponentProvidedProps {
@@ -137,6 +140,25 @@ export class SelectionEditComponent
             this.props.textResources,
             this.props.language,
             this.props.component.textResourceBindings.description)}
+          <Grid
+            item={true} xs={12}
+            style={{ marginTop: '18px' }}
+          >
+            <AltinnCheckBox
+              checked={this.props.component.readOnly}
+              onChangeFunction={this.props.handleReadOnlyChange}
+            />
+            {this.props.language.ux_editor.modal_configure_read_only}
+          </Grid>
+          <Grid
+            item={true} xs={12}
+          >
+            <AltinnCheckBox
+              checked={this.props.component.required}
+              onChangeFunction={this.props.handleRequiredChange}
+            />
+            {this.props.language.ux_editor.modal_configure_required}
+          </Grid>
           <AltinnRadioGroup
             onChange={this.handleRadioButtonChange}
             value={this.state.radioButtonSelection}

@@ -1,3 +1,4 @@
+import { ILayoutSettings } from 'app-shared/types';
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as FormDesignerActions from './actions';
@@ -99,7 +100,7 @@ export interface IFormDesignerActionDispatchers
   generateRepeatingGroupsAction: () => IGenerateRepeatingGroupsAction;
   generateRepeatingGroupsActionFulfilled: () => IGenerateRepeatingGroupsActionFulfilled;
   generateRepeatingGroupsActionRejected: (error: Error) => IGenerateRepeatingGroupsActionRejected;
-  saveFormLayout: (url: string) => FormDesignerActions.ISaveFormLayoutAction;
+  saveFormLayout: () => Action;
   saveFormLayoutFulfilled: () => Action;
   saveFormLayoutRejected: (
     error: Error,
@@ -221,6 +222,62 @@ export interface IFormDesignerActionDispatchers
   updateContainerIdRejected: (
     error: Error,
   ) => FormDesignerActions.IUpdateContainerIdRejectedAction;
+  updateSelectedLayout: (
+    selectedLayout: string,
+  ) => FormDesignerActions.IUpdateSelectedLayoutAction;
+  updateSelectedLayoutFulfilled: (
+    selectedLayout: string,
+  ) => FormDesignerActions.IUpdateSelectedLayoutFulfilledAction;
+  updateSelectedLayoutRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateSelectedLayoutRejectedAction;
+  addLayout: (
+    layout: string
+  ) => FormDesignerActions.IAddLayoutAction;
+  addLayoutFulfilled: (
+    layouts: IFormLayouts
+  ) => FormDesignerActions.IAddLayoutFulfilledAction;
+  addLayoutRejected: (
+    error: Error,
+  ) => FormDesignerActions.IAddLayoutRejectedAction;
+  deleteLayout: (
+    layout: string
+  ) => FormDesignerActions.IDeleteLayoutAction;
+  deleteLayoutFulfilled: (
+    layout: string
+  ) => FormDesignerActions.IDeleteLayoutFulfilledAction;
+  deleteLayoutRejected: (
+    error: Error
+  ) => FormDesignerActions.IDeleteLayoutRejectedAction;
+  updateLayoutName: (
+    oldName: string,
+    newName: string,
+  ) => FormDesignerActions.IUpdateLayoutNameAction;
+  updateLayoutNameFulfilled: (
+    oldName: string,
+    newName: string,
+  ) => FormDesignerActions.IUpdateLayoutNameFulfilledAction;
+  updateLayoutNameRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateLayoutNameRejectedAction;
+  updateLayoutOrder: (
+    layout: string,
+    direction: 'up' | 'down',
+  ) => FormDesignerActions.IUpdateLayoutOrderAction;
+  updateLayoutOrderFulfilled: (
+    layout: string,
+    direction: 'up' | 'down',
+  ) => FormDesignerActions.IUpdateLayoutOrderFulfilledAction;
+  updateLayoutOrderRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateLayoutOrderRejectedAction;
+  fetchLayoutSettings: () => Action;
+  fetchLayoutSettingsFulfilled: (
+    settings: ILayoutSettings,
+  ) => FormDesignerActions.IFetchLayoutSettingsFulfilledAction;
+  fetchLayoutSettingsRejected: (
+    error: Error,
+  ) => FormDesignerActions.IFetchLayoutSettingsRejectedAction;
 }
 
 const actions: IFormDesignerActionDispatchers = {
@@ -299,6 +356,24 @@ const actions: IFormDesignerActionDispatchers = {
   updateContainerId: FormDesignerActions.updateContainerId,
   updateContainerIdFulfilled: FormDesignerActions.updateContainerIdFulfilled,
   updateContainerIdRejected: FormDesignerActions.updateContainerIdRejected,
+  updateSelectedLayout: FormDesignerActions.updateSelectedLayout,
+  updateSelectedLayoutFulfilled: FormDesignerActions.updateSelectedLayoutFulfilled,
+  updateSelectedLayoutRejected: FormDesignerActions.updateSelectedLayoutRejected,
+  addLayout: FormDesignerActions.addLayout,
+  addLayoutFulfilled: FormDesignerActions.addLayoutFulfilled,
+  addLayoutRejected: FormDesignerActions.addLayoutRejected,
+  deleteLayout: FormDesignerActions.deleteLayout,
+  deleteLayoutFulfilled: FormDesignerActions.deleteLayoutFulfilled,
+  deleteLayoutRejected: FormDesignerActions.deleteLayoutRejected,
+  updateLayoutName: FormDesignerActions.updateLayoutName,
+  updateLayoutNameFulfilled: FormDesignerActions.updateLayoutNameFulfilled,
+  updateLayoutNameRejected: FormDesignerActions.updateLayoutNameRejected,
+  updateLayoutOrder: FormDesignerActions.updateLayoutOrder,
+  updateLayoutOrderFulfilled: FormDesignerActions.updateLayoutOrderFulfilled,
+  updateLayoutOrderRejected: FormDesignerActions.updateLayoutOrderRejected,
+  fetchLayoutSettings: FormDesignerActions.fetchLayoutSettings,
+  fetchLayoutSettingsFulfilled: FormDesignerActions.fetchLayoutSettingsFulfilled,
+  fetchLayoutSettingsRejected: FormDesignerActions.fetchLayoutSettingsRejected,
 };
 
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<

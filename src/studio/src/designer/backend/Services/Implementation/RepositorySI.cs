@@ -566,24 +566,35 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             return filedata;
         }
-
-        /// <summary>
-        /// Get the Json form model from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the json object as a string</returns>
-        public string GetJsonFormLayout(string org, string app)
+        
+        /// <inheritdoc/>
+        public string GetJsonFormLayouts(string org, string app)
         {
-            string filePath = _settings.GetFormLayoutPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string fileData = null;
+            Dictionary<string, object> layouts = new Dictionary<string, dynamic>();
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
-            if (File.Exists(filePath))
+            // If FormLayout.json exists in app/ui => move it to app/ui/layouts (for backwards comp)
+            string filedata = string.Empty;
+            string formLayoutPath = _settings.GetFormLayoutPath(org, app, developer);
+            if (File.Exists(formLayoutPath))
             {
-                fileData = File.ReadAllText(filePath, Encoding.UTF8);
+                filedata = File.ReadAllText(formLayoutPath, Encoding.UTF8);
+                DeleteOldFormLayoutJson(org, app, developer);
+                SaveFormLayout(org, app, "FormLayout",  filedata);
             }
 
-            return fileData;
+            string formLayoutsPath = _settings.GetFormLayoutsPath(org, app, developer);
+            if (Directory.Exists(formLayoutsPath))
+            {
+                foreach (string file in Directory.GetFiles(formLayoutsPath))
+                {
+                    string data = File.ReadAllText(file, Encoding.UTF8);
+                    string name = file.Replace(_settings.GetFormLayoutsPath(org, app, developer), string.Empty).Replace(".json", string.Empty);
+                    layouts.Add(name, JsonConvert.DeserializeObject<object>(data));
+                }
+            }
+
+            return JsonConvert.SerializeObject(layouts);
         }
 
         /// <summary>
@@ -673,20 +684,64 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return fileData;
         }
 
-        /// <summary>
-        /// Save the JSON form layout to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resource">The content of the resource file</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveJsonFormLayout(string org, string app, string resource)
+        /// <inheritdoc />
+        public bool SaveFormLayout(string org, string app, string formLayout, string content)
         {
-            string filePath = _settings.GetFormLayoutPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string filePath = _settings.GetFormLayoutPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), formLayout);
             new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, resource, Encoding.UTF8);
-
+            File.WriteAllText(filePath, content, Encoding.UTF8);
             return true;
+        }
+        
+        /// <inheritdoc />
+        public bool UpdateFormLayoutName(string org, string app, string currentName, string newName)
+        {   
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string curFilePath = _settings.GetFormLayoutPath(org, app, developer, currentName);
+            string newFilePath = _settings.GetFormLayoutPath(org, app, developer, newName);
+            if (File.Exists(newFilePath) || !File.Exists(curFilePath))
+            {
+                return false;
+            }
+
+            File.Move(curFilePath, newFilePath);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public bool DeleteFormLayout(string org, string app, string formLayout)
+        {
+            string filePath = _settings.GetFormLayoutPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), formLayout);
+            bool deleted = false;
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+                deleted = true;
+            }
+
+            return deleted;
+        }
+        
+        /// <inheritdoc />
+        public bool SaveLayoutSettings(string org, string app, string setting)
+        {
+            string filePath = _settings.GetLayoutSettingPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            new FileInfo(filePath).Directory.Create();
+            File.WriteAllText(filePath, setting, Encoding.UTF8);
+            return true;
+        }
+
+        /// <inheritdoc />
+        public string GetLayoutSettings(string org, string app)
+        {
+            string filePath = _settings.GetLayoutSettingPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string filedata = null;
+            if (File.Exists(filePath))
+            {
+                filedata = File.ReadAllText(filePath, Encoding.UTF8);
+            }
+
+            return filedata;
         }
 
         /// <summary>
@@ -1802,6 +1857,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return dataTypeId;
+        }
+
+        private void DeleteOldFormLayoutJson(string org, string app, string developer)
+        {
+            string path = _settings.GetFormLayoutPath(org, app, developer);
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
         }
 
         private class ResourceWrapper

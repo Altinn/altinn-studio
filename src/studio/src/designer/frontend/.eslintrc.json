@@ -142,6 +142,7 @@
     "react/jsx-one-expression-per-line": "off",
     "react/jsx-fragments": "off",
     "arrow-body-style": "off",
+    "no-undef": "off",
     "import/no-extraneous-dependencies": [
       "warn",
       {

@@ -56,6 +56,7 @@ export function getFormLayoutStateMock(customStates?: Partial<ILayoutState>): IL
       repeatingGroups: null,
       currentView: 'FormLayout',
       navigationConfig: {},
+      layoutOrder: [],
     },
   };
 

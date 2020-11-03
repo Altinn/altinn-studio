@@ -193,6 +193,17 @@ namespace Altinn.App.Services.Implementation
 
             return filedata;
         }
+        
+        public string GetLayoutSettings()
+        {
+            string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
+            string filedata = null;
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
+            }
+            return filedata;
+        }
 
         public string GetClassRefForLogicDataType(string dataType)
         {

@@ -24,7 +24,8 @@ export enum ComponentTypes {
   Button,
   Container,
   AddressComponent,
-  Group
+  Group,
+  NavigationButtons,
 }
 
 export const componentIcons: IComponentIcon = {
@@ -40,6 +41,7 @@ export const componentIcons: IComponentIcon = {
   Button: 'fa fa-button',
   AddressComponent: 'fa fa-address',
   Group: 'fa fa-group',
+  NavigationButtons: 'fa fa-button',
 };
 
 export const textComponents: IComponent[] = [

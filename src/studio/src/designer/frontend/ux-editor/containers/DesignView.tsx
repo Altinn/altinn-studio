@@ -241,8 +241,9 @@ const mapsStateToProps = (
   state: IAppState,
 ): IDesignerPreviewProps => {
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
+  const selectedLayout = state.formDesigner.layout.selectedLayout;
   return {
-    layoutOrder: JSON.parse(JSON.stringify(state.formDesigner.layout.order)),
+    layoutOrder: JSON.parse(JSON.stringify(state.formDesigner.layout.layouts[selectedLayout]?.order || {})),
     order: GetLayoutOrderSelector(state),
     activeList: state.formDesigner.layout.activeList,
   };

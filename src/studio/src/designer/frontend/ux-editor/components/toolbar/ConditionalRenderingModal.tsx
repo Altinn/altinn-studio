@@ -1,146 +1,90 @@
+/* eslint-disable max-len */
+/* eslint-disable no-undef */
 import * as React from 'react';
 import * as Modal from 'react-modal';
-import { connect } from 'react-redux';
+import { Typography } from '@material-ui/core';
+import { useSelector } from 'react-redux';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import ConditionalRenderingActionDispatchers from '../../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
 import { ConditionalRenderingComponent } from '../config/ConditionalRenderingComponent';
+import RuleButton from './RuleButton';
 
 export interface IConditionalRenderingModalProps {
-  conditionalRendering: any;
-  language: any;
-}
-
-export interface IConditionalRenderingModalState {
   modalOpen: boolean;
-  selectedConnectionId: string;
+  handleClose: () => void;
 }
 
-class ConditionalRenderingModal extends React.Component<IConditionalRenderingModalProps,
-  IConditionalRenderingModalState> {
-  public state = {
-    modalOpen: false,
-    selectedConnectionId: null as any,
-  };
+export default function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
+  const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
+  const conditionalRendering = useSelector((state: IAppState) => state.serviceConfigurations.conditionalRendering);
+  const language = useSelector((state: IAppState) => state.appData.language.language);
 
-  /**
-   * Method for adding a new conneciton and opening the modal
-   */
-  public createNewConnection = () => {
-    this.setState({ modalOpen: !this.state.modalOpen });
+  function selectConnection(newSelectedConnectionId: string) {
+    setSelectedConnectionId(newSelectedConnectionId);
+    props.handleClose();
   }
 
-  /**
-   * Method for selecting an existing connection
-   */
-  public selectConnection = (selectedConnectionId: any) => {
-    this.setState({
-      modalOpen: !this.state.modalOpen,
-      selectedConnectionId,
-    });
+  function handleClose() {
+    setSelectedConnectionId(null);
+    props.handleClose();
   }
 
-  /**
-   * Method for closing the modal
-   */
-  public handleCloseModal = () => {
-    this.setState({
-      modalOpen: !this.state.modalOpen,
-      selectedConnectionId: null,
-    });
-  }
-
-  /**
-   * Method for handling saving changes made to a connection
-   */
-  public handleSaveChange = (newConnection: any): void => {
+  function handleSaveChange(newConnection: string) {
     ConditionalRenderingActionDispatchers.addConditionalRendering(newConnection);
-    this.handleCloseModal();
+    setSelectedConnectionId(null);
+    props.handleClose();
   }
 
-  /**
-   * Method for deleting an existing connection
-   */
-  public handleDeleteConnection = (connectionId: any): void => {
+  function handleDeleteConnection(connectionId: string) {
     ConditionalRenderingActionDispatchers.delConditionalRendering(connectionId);
-    this.handleCloseModal();
+    setSelectedConnectionId(null);
+    props.handleClose();
   }
 
-  /**
-   * Method for rendering all the exsisting conditional rendering rule connections
-   */
-  public renderConditionRuleConnections = (): JSX.Element => {
-    if (!this.props.conditionalRendering || Object.getOwnPropertyNames(this.props.conditionalRendering).length === 0) {
-      return null;
+  function renderConditionRuleConnections(): JSX.Element {
+    if (!conditionalRendering || Object.getOwnPropertyNames(conditionalRendering).length === 0) {
+      return (
+        <Typography variant='caption'>
+          {getLanguageFromKey('right_menu.rules_empty', language)}
+        </Typography>
+      );
     }
     return (
       <>
-        {Object.keys(this.props.conditionalRendering).map((key: any, index: number) => (
-          <div className='a-topTasks' key={index}>
-            <button
-              type='button'
-              className='a-btn a-btn-icon a-btn-transparentWhite'
-              onClick={this.selectConnection.bind(this, key)}
-            >
-              <i className='fa fa-settings a-btn-icon-symbol' />
-              <span className='a-btn-icon-text'>
-                {this.props.conditionalRendering[key].selectedFunction}
-              </span>
-            </button>
-          </div>
+        {Object.keys(conditionalRendering || {}).map((key: string) => (
+          <RuleButton
+            text={conditionalRendering[key].selectedFunction}
+            onClick={() => selectConnection(key)}
+          />
         ))}
       </>
     );
   }
-
-  /**
-   * Method for rendering existing connections and button for creating new once
-   */
-  public render(): JSX.Element {
-    return (
-      <>
-        <p className='a-fontSizeS mt-2 mb-1'>
-          {this.props.language.ux_editor.conditional_rendering_connection_header}
-        </p>
-        <button
-          type='button'
-          className='a-btn a-btn-action a-fullWidthBtn a-btnBigger'
-          onClick={this.createNewConnection}
-        >
-          <i className='fa fa-plus a-blue' onClick={this.createNewConnection} />
-          <span className='a-fontSizeXS'>
-            {this.props.language.general.add_connection}
-          </span>
-        </button>
-        <Modal
-          isOpen={this.state.modalOpen}
-          onRequestClose={this.handleCloseModal}
-          className='react-modal a-modal-content-target a-page a-current-page modalPage'
-          ariaHideApp={false}
-          overlayClassName='react-modal-overlay '
-        >
-          {this.state.selectedConnectionId ?
-            <ConditionalRenderingComponent
-              connectionId={this.state.selectedConnectionId}
-              saveEdit={this.handleSaveChange}
-              cancelEdit={this.handleCloseModal}
-              deleteConnection={this.handleDeleteConnection}
-            />
-            :
-            <ConditionalRenderingComponent
-              saveEdit={this.handleSaveChange}
-              cancelEdit={this.handleCloseModal}
-              deleteConnection={(connectionId: any) => this.handleDeleteConnection(connectionId)}
-            />
-          }
-        </Modal>
-        {this.renderConditionRuleConnections()}
-      </>
-    );
-  }
+  return (
+    <>
+      <Modal
+        isOpen={props.modalOpen}
+        onRequestClose={handleClose}
+        className='react-modal a-modal-content-target a-page a-current-page modalPage'
+        ariaHideApp={false}
+        overlayClassName='react-modal-overlay '
+      >
+        {selectedConnectionId ?
+          <ConditionalRenderingComponent
+            connectionId={selectedConnectionId}
+            saveEdit={handleSaveChange}
+            cancelEdit={handleClose}
+            deleteConnection={handleDeleteConnection}
+          />
+          :
+          <ConditionalRenderingComponent
+            saveEdit={handleSaveChange}
+            cancelEdit={handleClose}
+            deleteConnection={(connectionId: any) => handleDeleteConnection(connectionId)}
+          />
+        }
+      </Modal>
+      {renderConditionRuleConnections()}
+    </>
+  );
 }
-
-const mapStateToProps: (state: IAppState) => IConditionalRenderingModalProps = (state: IAppState) => ({
-  conditionalRendering: state.serviceConfigurations.conditionalRendering,
-  language: state.appData.language.language,
-});
-
-export const ConditionalRenderingModalComponent = connect(mapStateToProps)(ConditionalRenderingModal);

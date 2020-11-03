@@ -18,7 +18,7 @@ export async function get(url: string, options?: any): Promise<any> {
 
 export async function post(
   url: string,
-  options?: AxiosRequestConfig,
+  options?: any,
 ): Promise<any> {
   try {
     const response: AxiosResponse = await axios.post(url, options ? options : null);
@@ -40,6 +40,11 @@ export async function put(
   } catch (err) {
     throw err;
   }
+}
+
+export async function deleteCall(url: string): Promise<any> {
+  const response: AxiosResponse = await axios.delete(url);
+  return response?.data;
 }
 
 export function checkIfAxiosError(error: Error): boolean {
