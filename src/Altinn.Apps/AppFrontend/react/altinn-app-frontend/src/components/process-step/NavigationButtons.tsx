@@ -54,8 +54,6 @@ export function NavigationButtons(props: INavigationButtons) {
   };
 
   const OnClickNext = () => {
-    console.log('click next');
-    console.log
     const goToView = next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
     if (goToView) {
       FormLayoutActions.updateCurrentView(goToView);
