@@ -24,7 +24,7 @@ export const SchemaEditor = ({ setValue }: any) => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  const dataArray = useSelector((state: ISchemaState) => state.uiSchema);
+  const rootItem = useSelector((state: ISchemaState) => state.uiSchema[0]);
   const data = useSelector((state: ISchemaState) => state.schema);
   const root = useSelector((state: ISchemaState) => state.rootName);
   
@@ -42,6 +42,7 @@ export const SchemaEditor = ({ setValue }: any) => {
 
   return (
     <>
+    {rootItem &&
     <div className={classes.root}>
       <button onClick={onClickSetJsonSchema}>CLICK ME</button>
     <TreeView
@@ -51,15 +52,12 @@ export const SchemaEditor = ({ setValue }: any) => {
       defaultExpandIcon={<ArrowRightIcon />}
     >
       <SchemaItem
-        content={dataArray}
-        labelText={root}
-        nodeId={root}
-        schemaPath={`#/definitions/${root}`}
-        uiPath='/'
+        item={rootItem}
+        nodeId={rootItem.id}
       />
     </TreeView>
     {/* <button onClick={stringify}>Stringify</button> */}
-    </div>
+    </div>}
     </>
   )
 }

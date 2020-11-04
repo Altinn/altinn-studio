@@ -3,8 +3,8 @@ import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import Typography from '@material-ui/core/Typography';
 import { InputField } from './components/InputField';
-import { setKey, setValue, addItem, addProperty } from './features/editor/schemaEditorSlice';
-import { useDispatch } from 'react-redux';
+import { setKey, setValue, addField, addProperty, ISchemaState } from './features/editor/schemaEditorSlice';
+import { useDispatch, useSelector } from 'react-redux';
 
 declare module 'csstype' {
   interface Properties {
@@ -14,15 +14,7 @@ declare module 'csstype' {
 }
 
 type StyledTreeItemProps = TreeItemProps & {
-  bgColor?: string;
-  color?: string;
-  labelInfo?: string;
-  labelText: string;
-  schemaPath: string;
-  uiPath: string;
-  content: any[];
-  setValue?: any;
-  typeRef?: string;
+  item: any
 };
 
 const useStyles = makeStyles({
@@ -44,79 +36,109 @@ const useStyles = makeStyles({
   typeRef: {
     fontSize: 16,
     paddingRight: 24,
+  },
+  buttonRoot: {
+    backgroundColor: 'white',
+    border: '1px solid black',
+    borderRadius: 5,
+    marginLeft: 12,
+    width: 90,
+    textAlign: 'center',
+    fontSize: 12,
+    '&:hover': {
+      backgroundColor: '#1EAEF7',
+      color: 'white',
+    }
+  },
+  button: {
+    background: 'none',
+    border: 'none',
   }
 });
 
 function SchemaItem(props: StyledTreeItemProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const { labelText, labelInfo, color, bgColor, ...other } = props;
+  const {item, ...other} = props;
+  const { id, $ref, value, properties } = item;
 
-  const onAddChildClick = (event: any) => {
+  const refItem = useSelector((state: ISchemaState) => state.uiSchema.find((i) => i.id === $ref));
+  //const propertyItems: any[] = useSelector((state: ISchemaState) => state.uiSchema.filter((i) => properties.find((p: any) => p.id === i.id) !== undefined));
+
+  const onAddPropertyClick = (event: any) => {
     dispatch(addProperty({
-      path: props.uiPath,
-      key: 'newProp',
-      value: 'value'}));
+      path: id,
+      newKey: 'newProp',}));
     event.stopPropagation();
   }
 
-  const onAddSiblingClick = (event: any) => {
-    dispatch(addItem({
-      path: `${props.uiPath.replace(`/${labelText}`, '')}`,
-      addAfter: labelText,
-      newKey: 'test',
+  const onAddFieldClick = (event: any) => {
+    dispatch(addField({
+      path: id,
+      key: 'key',
+      value: 'value'
     }));
     event.preventDefault();
   }
 
-  const onChangeValue = (path: string, value: any) => {
-    dispatch(setValue({path, value}));
+  const onChangeValue = (path: string, value: any, key?: string) => {
+    dispatch(setValue({path, value, key}));
   }
 
   const onChangeKey = (path: string, oldKey: string, newKey: string) => {
     dispatch(setKey({path, oldKey, newKey}))
   }
 
+  console.log(`ID: ${id}, ref: `, $ref, refItem)
+
   return (
     <TreeItem
       label={
         <div className={classes.labelRoot}>
           <Typography className={classes.label} variant='body1'>
-            {labelText}
+            {props.item.displayText || id}
           </Typography>
-          {props.typeRef &&
+          {/* {props.typeRef &&
             <Typography className={classes.typeRef} variant='body1'>
               {` :  ${props.typeRef.replace('#/definitions/', '')}`}
             </Typography>
+          } */}
+          {!refItem && 
+          <>
+            <Typography className={classes.buttonRoot} variant="button" color="inherit">
+            <button className={classes.button} title='Add' onClick={onAddPropertyClick}>Add property</button>
+          </Typography>
+          <Typography className={classes.buttonRoot} variant="button" color="inherit">
+            <button className={classes.button} title='AddSib' onClick={onAddFieldClick}>Add field</button>
+          </Typography>
+          </>
           }
-          <Typography variant="button" color="inherit">
-            <button title='Add' onClick={onAddChildClick}>Add</button>
-          </Typography>
-          <Typography variant="button" color="inherit">
-            <button title='AddSib' onClick={onAddSiblingClick}>Add s</button>
-          </Typography>
         </div>
       }
       {...other}
     >
-      {props.content.map((item: any) => {
-        if (Array.isArray(item.value)) {
-          return (
-            <SchemaItem
-              labelText={item.id}
-              schemaPath={`${item.schemaPath}/${item.id}`}
-              uiPath={`${item.uiPath}/${item.id}`}
-              nodeId={`${item.uiPath}/${item.id}`}
-              content={item.value}
-              typeRef={item.$ref}
-            />
-          );
-        }
+      {refItem && 
+        <SchemaItem
+          item={refItem}
+          nodeId={refItem.id}
+        />
+      }
+      {properties && properties.length > 0 && properties.map((property: any) => {
+        return (
+          <SchemaItem
+            item={property}
+            nodeId={property.id}
+          />
+        )
+      })
+
+      }
+      {value && Array.isArray(value) && value.map((item: any) => {
         return (
           <InputField
             value={item.value}
-            label={item.id}
-            fullPath={`${item.uiPath}/${item.id}`}
+            label={item.key}
+            fullPath={`${id}`}
             onChangeValue={onChangeValue}
             onChangeKey={onChangeKey}
           />
