@@ -1,20 +1,13 @@
 import { Action } from 'redux';
 import * as ActionTypes from '../../formDesignerActionTypes';
 
-export interface ISaveFormLayoutAction extends Action {
-  url: string;
-}
-
 export interface ISaveFormLayoutRejectedAction extends Action {
   error: Error;
 }
 
-export function saveFormLayoutAction(
-  url: string,
-): ISaveFormLayoutAction {
+export function saveFormLayoutAction(): Action {
   return {
     type: ActionTypes.SAVE_FORM_LAYOUT,
-    url,
   };
 }
 

@@ -119,3 +119,7 @@ export const getOptionsUrl = (optionsId: string) => {
 export function getJsonSchemaUrl() {
   return `${window.location.origin}/${org}/${app}/api/jsonschema/`;
 }
+
+export function getLayoutSettingsUrl() {
+  return `${window.location.origin}/${org}/${app}/api/layoutsettings`;
+}

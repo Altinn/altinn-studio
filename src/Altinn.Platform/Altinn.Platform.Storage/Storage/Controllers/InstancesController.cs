@@ -99,6 +99,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="created">Created time.</param>
         /// <param name="visibleAfter">The visible after date time.</param>
         /// <param name="dueBefore">The due before date time.</param>
+        /// <param name="excludeConfirmedBy">A string that will hide instances already confirmed by stakeholder.</param>
         /// <param name="continuationToken">Continuation token.</param>
         /// <param name="size">The page size.</param>
         /// <returns>List of all instances for given instance owner.</returns>
@@ -120,6 +121,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string created,
             [FromQuery(Name = "visibleAfter")] string visibleAfter,
             [FromQuery] string dueBefore,
+            [FromQuery] string excludeConfirmedBy,
             string continuationToken,
             int? size)
         {

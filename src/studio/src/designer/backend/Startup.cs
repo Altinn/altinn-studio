@@ -176,7 +176,7 @@ namespace Altinn.Studio.Designer
                     defaults: new { controller = "Config" },
                     constraints: new
                     {
-                        controller = "Codelist|Config",
+                        controller = "Config|Datamodels",
                     });
 
                 endpoints.MapControllerRoute(

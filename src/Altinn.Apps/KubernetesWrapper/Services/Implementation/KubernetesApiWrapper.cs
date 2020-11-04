@@ -47,7 +47,7 @@ namespace KubernetesWrapper.Services.Implementation
             bool? watch,
             string pretty)
         {
-            V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, timeoutSeconds, watch, pretty);
+            V1DeploymentList deployments = await _client.ListNamespacedDeploymentAsync("default", allowWatchBookmarks, continueParameter, fieldSelector, labelSelector, limit, resourceVersion, null, timeoutSeconds, watch, pretty);
             IList<Deployment> mappedDeployments = MapDeployments(deployments.Items);
             return mappedDeployments;
         }
