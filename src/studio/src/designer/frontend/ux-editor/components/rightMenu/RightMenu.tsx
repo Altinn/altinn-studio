@@ -11,37 +11,13 @@ import FormDesignerActionDispatchers from '../../actions/formDesignerActions/for
 const theme = createMuiTheme(altinnTheme);
 
 const useStyles = makeStyles({
-  drawer: {
-    flexShrink: 0,
-  },
-  drawerHeader: {
-    display: 'flex',
-    alignContent: 'flex-start',
-  },
-  hidden: {
-    visibility: 'hidden',
-  },
-  paper: {
-    background: altinnTheme.altinnPalette.primary.greyLight,
-    position: 'relative',
-    top: 0,
-    height: '100vh',
-  },
-  scrollable: {
-    overflowY: 'scroll',
-    height: 'inherit',
-    marginTop: '0px',
-    maxHeight: `calc(100vh - 110px)`,
-    minHeight: `calc(100vh - 110px)`,
-  },
   main: {
     overflowY: 'scroll',
     overflowX: 'hidden',
     height: 'inherit',
     marginTop: '0px',
     borderLeft: '1px solid #C9C9C9',
-    maxHeight: `calc(100vh - 110px)`,
-    minHeight: `calc(100vh - 110px)`,
+    paddingBottom: '8.0rem',
   },
   headerSection: {
     paddingLeft: '1.2rem',

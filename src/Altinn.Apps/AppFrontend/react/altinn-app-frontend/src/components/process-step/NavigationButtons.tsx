@@ -27,7 +27,7 @@ export function NavigationButtons(props: INavigationButtons) {
   const [disableBack, setDisableBack] = React.useState<boolean>(false);
   const [disableNext, setDisableNext] = React.useState<boolean>(false);
   const currentView = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.currentView);
-  const orderedLayoutKeys = useSelector((state: IRuntimeState) => Object.keys(state.formLayout.layouts));
+  const orderedLayoutKeys = useSelector((state: IRuntimeState) => state.formLayout.uiConfig.layoutOrder);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const { next, previous } = useSelector(
@@ -54,6 +54,8 @@ export function NavigationButtons(props: INavigationButtons) {
   };
 
   const OnClickNext = () => {
+    console.log('click next');
+    console.log
     const goToView = next || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
     if (goToView) {
       FormLayoutActions.updateCurrentView(goToView);
