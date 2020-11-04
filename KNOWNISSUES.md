@@ -5,7 +5,7 @@ Det er noen kjente feil og svakheter i løsningen.
 ## Større svakheter
 
 - Dagens app-struktur er endret for å optimalisere for lokal utvikling. Applikasjoner lagd på gammel applikasjonsstruktur vil ikke fungere. Som en konsekvens er muligheten for å teste i Studio fjernet. [Se hvilke muligheter som finnes for test](https://altinn.github.io/docs/altinn-studio/testing/)
-- Enkelte funksjonaliteter har vesentlige feil som ikke vil bli rettet innenfor MVP. Vi anbefaler at myke valideringer og datovelgeren *ikke* tas i bruk i en produksjonssatt tjeneste før disse feilene er rettet.
+- Enkelte funksjonaliteter har vesentlige feil som ikke vil bli rettet innenfor MVP. Vi anbefaler at myke valideringer *ikke* tas i bruk i en produksjonssatt tjeneste før disse feilene er rettet.
 
 ## Mindre svakheter som er verdt å nevne
 
