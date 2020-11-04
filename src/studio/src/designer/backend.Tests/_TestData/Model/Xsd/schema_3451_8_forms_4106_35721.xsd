@@ -1,0 +1,619 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema targetNamespace="http://seres.no/xsd/StatistiskSentralbyrå/RA-0700_M/2013" elementFormDefault="qualified" attributeFormDefault="unqualified"
+  xmlns="http://seres.no/xsd/StatistiskSentralbyrå/RA-0700_M/2013"
+  xmlns:seres="http://seres.no/xsd/forvaltningsdata"
+  xmlns:kodebib="http://kodebibliotek.brreg.no/xsd/kodebibliotek"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import namespace="http://seres.no/xsd/forvaltningsdata" schemaLocation="seres.xsd" />
+  <xsd:import namespace="http://kodebibliotek.brreg.no/xsd/kodebibliotek" schemaLocation="kodebibliotek.xsd" />
+  <xsd:attribute name="dataFormatProvider" type="xsd:string" />
+  <xsd:attribute name="dataFormatId" type="xsd:string" />
+  <xsd:attribute name="dataFormatVersion" type="xsd:string" />
+  <xsd:element name="melding" type="RA-0700_M" />
+  <xsd:complexType name="RA-0700_M" seres:elementtype="Meldingsmodell" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Meldingsmodell/RA-0700_M/492694">
+    <xsd:sequence>
+      <xsd:element name="InternInformasjon" type="InternInformasjon" />
+      <xsd:element name="KontaktpersonOgKommentarfelt" type="KontaktpersonOgKommentarfelt" />
+      <xsd:element name="ForetakOgVirksomhetsopplysninger" type="ForetakOgVirksomhetsopplysninger" />
+      <xsd:element name="Oppgavebyrde" type="Oppgavebyrde" />
+      <xsd:element name="StatusVirksomhetAlene" type="StatusVirksomhetAlene" />
+      <xsd:element name="Skjemadata" type="Skjemadata" />
+    </xsd:sequence>
+    <xsd:attribute ref="dataFormatProvider" fixed="SERES" use="required" />
+    <xsd:attribute ref="dataFormatId" fixed="4106" use="required" />
+    <xsd:attribute ref="dataFormatVersion" fixed="35721" use="required" />
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="InternInformasjon" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/InternInformasjon/479039">
+    <xsd:sequence>
+      <xsd:element name="periodeFritekst" minOccurs="0" nillable="true" type="Tekst_50" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/periode/479038" seres:elementtype="Dataegenskap" />
+      <xsd:element name="rapportPeriode" minOccurs="0" nillable="true" type="Tidsrom" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/rapportPeriode/479037" seres:elementtype="Dataegenskap" />
+      <xsd:element name="raNummer" type="Tekst" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/raNummer/479036" seres:elementtype="Dataegenskap" />
+      <xsd:element name="delRegNummer" minOccurs="0" nillable="true" type="Tekst" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/delRegNummer/479035" seres:elementtype="Dataegenskap" />
+      <xsd:element name="enhetstype" minOccurs="0" nillable="true" type="StatistiskeEnhetstyper" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/enhetstype/492114" seres:elementtype="Dataegenskap" />
+      <xsd:element name="identnummerEnhet" minOccurs="0" nillable="true" type="Tekst_30" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/enhetsIdentNummer/492113" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst_50" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst50/479312">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="50" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="Tidsrom" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Datakomplekstype/Tidsrom/476091" seres:elementtype="Datakomplekstype">
+    <xsd:sequence>
+      <xsd:element name="fomDato" type="Dato" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/fomDato/476090" />
+      <xsd:element name="tomDato" type="Dato" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/tomDato/476089" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Dato" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Dato/479008">
+    <xsd:restriction base="xsd:date" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Tekst" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst/476104">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="StatistiskeEnhetstyper" seres:elementtype="Datakodeutvalg" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Datakodeutvalg/StatistiskeEnhetstyper/492035">
+    <xsd:restriction base="xsd:token">
+      <xsd:maxLength value="4" />
+      <xsd:enumeration value="Aksjonær" />
+      <xsd:enumeration value="ADRE" />
+      <xsd:enumeration value="Arbeidskonflikt" />
+      <xsd:enumeration value="Avfallsanlegg" />
+      <xsd:enumeration value="Avløpsanlegg" />
+      <xsd:enumeration value="BEDR" />
+      <xsd:enumeration value="BOLI" />
+      <xsd:enumeration value="BYGG" />
+      <xsd:enumeration value="Familie" />
+      <xsd:enumeration value="Fiskefartøy" />
+      <xsd:enumeration value="FRTK" />
+      <xsd:enumeration value="Grunneiendom" />
+      <xsd:enumeration value="HUSH" />
+      <xsd:enumeration value="Internettabonnement" />
+      <xsd:enumeration value="Kjøretøy" />
+      <xsd:enumeration value="Kurs" />
+      <xsd:enumeration value="Landbrukseiendom" />
+      <xsd:enumeration value="Offentlig forvaltning" />
+      <xsd:enumeration value="PERS" />
+      <xsd:enumeration value="Sak" />
+      <xsd:enumeration value="Skip" />
+      <xsd:enumeration value="Skogareal" />
+      <xsd:enumeration value="Tinglyst omsetning" />
+      <xsd:enumeration value="Arbeidsforhold" />
+      <xsd:enumeration value="Dyr" />
+      <xsd:enumeration value="Kommune" />
+      <xsd:enumeration value="Luftfartøy" />
+      <xsd:enumeration value="Matrikkel" />
+      <xsd:enumeration value="Region" />
+      <xsd:enumeration value="RepresentativVareOgTjeneste" />
+      <xsd:enumeration value="Ulykke" />
+      <xsd:enumeration value="Valg" />
+      <xsd:enumeration value="Veganlegg" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Tekst_30" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst_30/492116">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="30" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="KontaktpersonOgKommentarfelt" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/KontaktpersonOgKommentarfelt/487843">
+    <xsd:sequence>
+      <xsd:element name="kommentar" minOccurs="0" nillable="true" type="Kommentar" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/kommentar/487842" seres:elementtype="Dataegenskap" />
+      <xsd:element name="kontaktperson" minOccurs="0" nillable="true" type="Kontaktperson" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/kontaktperson/487841" seres:elementtype="Relasjonsegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Kommentar" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Kommentar/4721">
+    <xsd:restriction base="xsd:token">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="2000" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="Kontaktperson" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/Kontaktperson/476088">
+    <xsd:sequence>
+      <xsd:element name="epostadresse" minOccurs="0" nillable="true" type="Epost" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/epostadresse/476085" seres:elementtype="Dataegenskap" />
+      <xsd:element name="telefon" minOccurs="0" nillable="true" type="TelefonnummerLandkode" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/telefon/479407" seres:elementtype="Dataegenskap" />
+      <xsd:element name="navn" minOccurs="0" nillable="true" type="NavnSomToken" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/navn/489943" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Epost" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Epost/476105">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="TelefonnummerLandkode" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Datakomplekstype/TelefonnummerLandkode/479411" seres:elementtype="Datakomplekstype">
+    <xsd:sequence>
+      <xsd:element name="landkodePrefiks" type="LandkodePrefiks" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/landkodePrefiks/479410" />
+      <xsd:element name="telefonnummer" type="Telefonnummer" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/telefonnummer/479409" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="LandkodePrefiks" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/LandkodePrefiks/479408">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="2" />
+      <xsd:maxLength value="6" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Telefonnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Telefonnummer/476103">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="13" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="NavnSomToken" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/NavnSomToken/488179">
+    <xsd:restriction base="xsd:token" />
+  </xsd:simpleType>
+  <xsd:complexType name="ForetakOgVirksomhetsopplysninger" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/ForetakOgVirksomhetsopplysninger/492169">
+    <xsd:sequence>
+      <xsd:element name="foretak" minOccurs="0" nillable="true" type="Foretak" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/foretak/492168" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="virksomhet" minOccurs="0" nillable="true" type="Virksomhet" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/virksomhet/492167" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="organisasjonsnummerKontekst" minOccurs="0" nillable="true" type="Organisasjonsnummer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/organisasjonsnummerKontekst/492166" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Foretak" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/Foretak/492157">
+    <xsd:sequence>
+      <xsd:element name="organisasjonsnummerForetak" minOccurs="0" nillable="true" type="Organisasjonsnummer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/organisasjonsnummerForetak/492156" seres:elementtype="Dataegenskap" />
+      <xsd:element name="navnForetak" minOccurs="0" nillable="true" type="Tekst" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/navnForetak/492155" seres:elementtype="Dataegenskap" />
+      <xsd:element name="adresseForetak" minOccurs="0" nillable="true" type="Besoeksadresse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/postadresseForetak/492453" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Organisasjonsnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Organisasjonsnummer/476107">
+    <xsd:restriction base="xsd:string">
+      <xsd:length value="9" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="Besoeksadresse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Datakomplekstype/Besøksadresse/486194" seres:elementtype="Datakomplekstype">
+    <xsd:sequence>
+      <xsd:element name="gateadresse" type="Tekst200" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/gateadresse/486193" />
+      <xsd:element name="postnummer" type="Postnummer" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/postnummer/486192" />
+      <xsd:element name="poststed" type="Tekst100" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/poststed/486191" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst200" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst200/491779">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="200" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Postnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Postnummer/4733">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Tekst100" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst100/479311">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="100" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="Virksomhet" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/Virksomhet/492153">
+    <xsd:sequence>
+      <xsd:element name="organisasjonsnummerVirksomhet" minOccurs="0" nillable="true" type="Organisasjonsnummer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/organisasjonsnummerVirksomhet/492152" seres:elementtype="Dataegenskap" />
+      <xsd:element name="navnVirksomhet" minOccurs="0" nillable="true" type="NavnString" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/navnVirksomhet/492151" seres:elementtype="Dataegenskap" />
+      <xsd:element name="adresseVirksomhet" minOccurs="0" nillable="true" type="Besoeksadresse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/forretningsadresseVirksomhet/492452" seres:elementtype="Dataegenskap" />
+      <xsd:element name="avdeling" minOccurs="0" nillable="true" type="NavnString" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/avdeling/492150" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="NavnString" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Navn/4722">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="200" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="Oppgavebyrde" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/Oppgavebyrde/492705">
+    <xsd:sequence>
+      <xsd:element name="visOppgavebyrdeJaNeiPrefill" minOccurs="0" nillable="true" type="SvaralternativJaNei" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/visOppgavebyrdeJaNeiPrefill/492910" seres:elementtype="Dataegenskap" />
+      <xsd:element name="antallPersonerHjelp" minOccurs="0" nillable="true" type="AntallMedNull" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/antallPersonerHjelp/492704" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fikkHjelpAvAndre" minOccurs="0" nillable="true" type="SvaralternativJaNei" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fikkHjelpAvAndre/492703" seres:elementtype="Dataegenskap" />
+      <xsd:element name="harSamletInformasjon" minOccurs="0" nillable="true" type="SvaralternativJaNei" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/harSamletInformasjon/492702" seres:elementtype="Dataegenskap" />
+      <xsd:element name="tidsbrukSamleInformasjon" minOccurs="0" nillable="true" type="Tidsbruk" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tidsbrukSamleInformasjon/492701" seres:elementtype="Dataegenskap" />
+      <xsd:element name="tidsbrukSelveSkjemautfyllingen" minOccurs="0" nillable="true" type="Tidsbruk" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tidsbrukSelveSkjemautfyllingen/492700" seres:elementtype="Dataegenskap" />
+      <xsd:element name="tidsbrukTotalHjelpAvAndre" minOccurs="0" nillable="true" type="Tidsbruk" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tidsbrukTotalHjelpAvAndre/492699" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="SvaralternativJaNei" seres:elementtype="Datakodeutvalg" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Datakodeutvalg/SvaralternativJaNei/492036">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="ja" />
+      <xsd:enumeration value="nei" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="AntallMedNull" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/AntallMedNull/477092">
+    <xsd:restriction base="xsd:nonNegativeInteger" />
+  </xsd:simpleType>
+  <xsd:complexType name="Tidsbruk" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Datakomplekstype/Tidsbruk/487647" seres:elementtype="Datakomplekstype">
+    <xsd:sequence>
+      <xsd:element name="AntallTimer" type="AntallMedNull" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/AntallTimer/487646" />
+      <xsd:element name="AntallMinutter" type="AntallMedNull" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/AntallMinutter/487645" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="StatusVirksomhetAlene" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/StatusVirksomhet/487610">
+    <xsd:sequence>
+      <xsd:element name="statusVirksomhet" minOccurs="0" nillable="true" type="StatusVirksomhet" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/StatusVirksomhet/487609" seres:elementtype="Relasjonsegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="StatusVirksomhet" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/StatusVirksomhet/487608">
+    <xsd:sequence>
+      <xsd:element name="driftsstatusVirksomhet" minOccurs="0" nillable="true" type="Driftsstatus" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/StatusVirksomhet/487607" seres:elementtype="Dataegenskap" />
+      <xsd:element name="datoNedlagt" minOccurs="0" nillable="true" type="MaanedAArMedDato" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/datoNedlagt/487213" seres:elementtype="Dataegenskap" />
+      <xsd:element name="datoSolgt" minOccurs="0" nillable="true" type="MaanedAArMedDato" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/datoSolgt/487212" seres:elementtype="Dataegenskap" />
+      <xsd:element name="nyttForetak" minOccurs="0" nillable="true" type="NyttForetak" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/nyttForetak/488732" seres:elementtype="Relasjonsegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Driftsstatus" seres:elementtype="Datakodeutvalg" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Datakodeutvalg/Driftsstatus/487216">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="iDrift" />
+      <xsd:enumeration value="underOppbygging" />
+      <xsd:enumeration value="kunRegistrertForBeskyttelse" />
+      <xsd:enumeration value="midlertidigUteAvDrift" />
+      <xsd:enumeration value="nedlagt" />
+      <xsd:enumeration value="solgt" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="MaanedAArMedDato" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Datakomplekstype/MånedÅrMedDato/490351" seres:elementtype="Datakomplekstype">
+    <xsd:sequence>
+      <xsd:element name="maaned" type="MaanedTall" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/måned/490350" />
+      <xsd:element name="aar" type="PositivtHeltallMaks4sifferUtenNull" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/år/490349" />
+      <xsd:element name="ekteDato" type="Dato" minOccurs="0" nillable="true" seres:elementtype="DataTypeegenskap" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/ekteDato/490348" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="MaanedTall" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Måned/4728">
+    <xsd:restriction base="xsd:positiveInteger">
+      <xsd:totalDigits value="2" />
+      <xsd:minInclusive value="1" />
+      <xsd:maxInclusive value="12" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="PositivtHeltallMaks4sifferUtenNull" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/DataenkelttypePositivtHeltallMaks4siffer/477993">
+    <xsd:restriction base="xsd:positiveInteger">
+      <xsd:totalDigits value="4" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="NyttForetak" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/NyttForetak/488730">
+    <xsd:sequence>
+      <xsd:element name="nyttForetakNavn" minOccurs="0" nillable="true" type="Tekst100" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/nyttForetakNavn/488729" seres:elementtype="Dataegenskap" />
+      <xsd:element name="nyttForetakOrgNr" minOccurs="0" nillable="true" type="Organisasjonsnummer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/nyttForetakOrgNr/488728" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Skjemadata" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/Skjemadata/492689">
+    <xsd:sequence>
+      <xsd:element name="skogbruk" minOccurs="0" nillable="true" type="Svaralternativ" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/skogbruk/492687" seres:elementtype="Dataegenskap" />
+      <xsd:element name="Tilleggsnaeringer" minOccurs="0" nillable="true" type="Tilleggsnaeringer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/Tilleggsnæringer/492686" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="tillIkke" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tillIkke/493070" seres:elementtype="Dataegenskap" />
+      <xsd:element name="harAnnenDriftsleder" minOccurs="0" nillable="true" type="Svaralternativ" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/driftsleder/492685" seres:elementtype="Dataegenskap" />
+      <xsd:element name="Driftsleder" minOccurs="0" nillable="true" type="Driftsleder" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/Driftsleder/492684" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerPersonligHusdyr" minOccurs="0" nillable="true" type="ArbeidstimerPersonligHusdyr" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerPersonligHusdyr/493032" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerPersonligSkogbruk" minOccurs="0" nillable="true" type="ArbeidstimerPersonligSkogbruk" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerPersonligSkogbruk/493031" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerPersonligTillegg" minOccurs="0" nillable="true" type="ArbeidstimerPersonligTillegg" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerPersonligTillegg/493030" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerPersonligUtenom" minOccurs="0" nillable="true" type="ArbeidstimerPersonligUtenom" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerPersonligUtenom/493029" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="annenFam" minOccurs="0" nillable="true" type="Svaralternativ" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/annenFam/492682" seres:elementtype="Dataegenskap" />
+      <xsd:element name="ArbeidstimerFamilieHusdyr" minOccurs="0" nillable="true" type="ArbeidstimerFamilieHusdyr" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerFamilieHusdyr/493028" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerFamilieSkogbruk" minOccurs="0" nillable="true" type="ArbeidstimerFamileSkogbruk" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerFamilieSkogbruk/493027" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerFamilieTillegg" minOccurs="0" nillable="true" type="ArbeidstimerFamilieTillegg" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerFamilieTillegg/493026" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerFamilieUtenom" minOccurs="0" nillable="true" type="ArbeidstimerFamilieUtenom" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerFamilieUtenom/493025" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="annenFast" minOccurs="0" nillable="true" type="Svaralternativ" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/annenFast/492680" seres:elementtype="Dataegenskap" />
+      <xsd:element name="annenArb" minOccurs="0" nillable="true" type="Svaralternativ" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/annenArb/492679" seres:elementtype="Dataegenskap" />
+      <xsd:element name="ArbeidstimerFastHusdyr" minOccurs="0" nillable="true" type="ArbeidstimerFastHusdyr" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerFastHusdyr/493024" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerFastSkogbruk" minOccurs="0" nillable="true" type="ArbeidstimerFastSkogbruk" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerFastSkogbruk/493023" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerFastTillegg" minOccurs="0" nillable="true" type="ArbeidstimerFastTillegg" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerFastTillegg/493022" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="annenTil" minOccurs="0" nillable="true" type="Svaralternativ" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/annenTil/492677" seres:elementtype="Dataegenskap" />
+      <xsd:element name="ArbeidstimerTilfHusdyr" minOccurs="0" nillable="true" type="ArbeidstimerTilfHusdyr" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerTilfHusdyr/493021" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerTilfSkogbruk" minOccurs="0" nillable="true" type="ArbeidstimerTilfSkogbruk" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerTilfSkogbruk/493020" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerTilfTillegg" minOccurs="0" nillable="true" type="ArbeidstimerTilfTillegg" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerTilfTillegg/493019" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="alderD" minOccurs="0" nillable="true" type="PositivtHeltallMaks3sifferUtenNull" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/alderD/492675" seres:elementtype="Dataegenskap" />
+      <xsd:element name="ArbeidstimerDeltagerHusdyr" minOccurs="0" nillable="true" type="ArbeidstimerDeltagerHusdyr" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerDeltagerHusdyr/493018" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerDeltagerSkogbruk" minOccurs="0" nillable="true" type="ArbeidstimerDeltagerSkogbruk" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerDeltagerSkogbruk/493017" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerDeltagerTillegg" minOccurs="0" nillable="true" type="ArbeidstimerDeltagerTillegg" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerDeltagerTillegg/493016" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="ArbeidstimerDeltagerUtenom" minOccurs="0" nillable="true" type="ArbeidstimerDeltagerUtenom" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerDeltagerUtenom/493015" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="annenSelvst" minOccurs="0" nillable="true" type="Svaralternativ" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/annenSelvst/492673" seres:elementtype="Dataegenskap" />
+      <xsd:element name="ArbeidstimerNaeringsdrivende" minOccurs="0" nillable="true" type="ArbeidstimerNaeringsdrivende" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/ArbeidstimerNæringsdrivende/492672" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="vanning" minOccurs="0" nillable="true" type="Svaralternativ" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/vanning/492671" seres:elementtype="Dataegenskap" />
+      <xsd:element name="Vanningsanlegg" minOccurs="0" nillable="true" type="Vanningsanlegg" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/Vanningsanlegg/492670" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="MaskinerEid" minOccurs="0" nillable="true" type="MaskinerEid" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/MaskinerEid/492669" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="maskinLeid" minOccurs="0" nillable="true" type="Svaralternativ" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/maskinLeid/492668" seres:elementtype="Dataegenskap" />
+      <xsd:element name="MaskinerLeid" minOccurs="0" nillable="true" type="MaskinerLeid" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/MaskinerLeid/492667" seres:elementtype="Relasjonsegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Svaralternativ" seres:elementtype="Datakodeutvalg" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Datakodeutvalg/Svaralternativ/13653">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="2" />
+      <xsd:enumeration value="1" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="Tilleggsnaeringer" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/Tilleggsnæringer/492666">
+    <xsd:sequence>
+      <xsd:element name="till1Uten" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till1Uten/492665" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till1Innen" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till1Innen/492664" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till10" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till10/492663" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till8" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till8/492662" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till9" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till9/492661" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till7" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till7/492660" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till3" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till3/492659" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till2" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till2/492658" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till13" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till13/492657" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till15" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till15/492655" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till4" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till4/492656" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till5" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till5/492654" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till6" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till6/492653" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till21" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till21/492652" seres:elementtype="Dataegenskap" />
+      <xsd:element name="till20" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/till20/493069" seres:elementtype="Dataegenskap" />
+      <xsd:element name="spesifisert" minOccurs="0" nillable="true" type="Tekst100" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/spesifisert/493068" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="BooleanTrueFalse" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/BooleanTrueFalse/478366">
+    <xsd:restriction base="xsd:boolean" />
+  </xsd:simpleType>
+  <xsd:complexType name="Driftsleder" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/Driftsleder/492648">
+    <xsd:sequence>
+      <xsd:element name="driftsFam" minOccurs="0" nillable="true" type="Svaralternativ" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/driftsFam/492647" seres:elementtype="Dataegenskap" />
+      <xsd:element name="kjonnD" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/kjonnD/492646" seres:elementtype="Dataegenskap" />
+      <xsd:element name="alderD" minOccurs="0" nillable="true" type="PositivtHeltallMaks2sifferUtenNull" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/alderD/492645" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Kjoenn" seres:elementtype="Datakodeutvalg" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Datakodeutvalg/Kjønn/494370">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="1" />
+      <xsd:enumeration value="2" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="PositivtHeltallMaks2sifferUtenNull" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/DataenkelttypePositivtHeltallMaks2siffer/477996">
+    <xsd:restriction base="xsd:positiveInteger">
+      <xsd:totalDigits value="2" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="ArbeidstimerPersonligHusdyr" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerPersonligHusdyr/493012">
+    <xsd:sequence>
+      <xsd:element name="brukerDri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/brukerDri/493011" seres:elementtype="Dataegenskap" />
+      <xsd:element name="ektefDri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/ektefDri/493010" seres:elementtype="Dataegenskap" />
+      <xsd:element name="driftslDri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/driftslDri/493009" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="PositivtHeltallMedNullMaks4siffer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/PositivtHeltallMedNullMaks4siffer/494109">
+    <xsd:restriction base="xsd:nonNegativeInteger">
+      <xsd:totalDigits value="4" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="ArbeidstimerPersonligSkogbruk" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerPersonligSkogbruk/493008">
+    <xsd:sequence>
+      <xsd:element name="brukerSko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/brukerSko/493007" seres:elementtype="Dataegenskap" />
+      <xsd:element name="ektefSko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/ektefSko/493006" seres:elementtype="Dataegenskap" />
+      <xsd:element name="driftslSko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/driftslSko/493005" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerPersonligTillegg" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerPersonligTillegg/493004">
+    <xsd:sequence>
+      <xsd:element name="brukerTil" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/brukerTil/493003" seres:elementtype="Dataegenskap" />
+      <xsd:element name="ektefTil" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/ektefTil/493002" seres:elementtype="Dataegenskap" />
+      <xsd:element name="driftslTil" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/driftslTil/493001" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerPersonligUtenom" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerPersonligUtenom/493000">
+    <xsd:sequence>
+      <xsd:element name="brukerUten" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/brukerUten/492999" seres:elementtype="Dataegenskap" />
+      <xsd:element name="ektefUten" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/ektefUten/492998" seres:elementtype="Dataegenskap" />
+      <xsd:element name="driftslUten" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/driftslUten/492997" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerFamilieHusdyr" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerFamilieHusdyr/492993">
+    <xsd:sequence>
+      <xsd:element name="fammedl1Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl1Kjonn/492630" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl1Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl1Dri/492629" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl2Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl2Kjonn/492625" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl2Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl2Dri/492624" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl3Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl3Kjonn/492620" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl3Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl3Dri/492619" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl4Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl4Kjonn/492615" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl4Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl4Dri/492614" seres:elementtype="Dataegenskap" />
+      <xsd:element name="Fammedl5Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/Fammedl5Kjonn/492610" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl5Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl5Dri/492609" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedlmannDri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedlmannDri/492992" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedlkvinneDri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedlkvinneDri/492991" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerFamileSkogbruk" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerFamileSkogbruk/492990">
+    <xsd:sequence>
+      <xsd:element name="fammedl1Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl1Sko/492628" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl2Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl2Sko/492623" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl3Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl3Sko/492618" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl4Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl4Sko/492613" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl5Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl5Sko/492608" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedlmannSko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedlmannSko/492604" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedlkvinneSko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedlkvinneSko/492989" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerFamilieTillegg" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerFamilieTillegg/492988">
+    <xsd:sequence>
+      <xsd:element name="fammedl1Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl1Til/492627" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl2Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl2Til/492622" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl3Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl3Til/492617" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl4Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl4Til/492612" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl5Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl5Til/492607" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedlmannTil" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedlmannTil/492603" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedlkvinneTil" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedlkvinneTil/492987" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerFamilieUtenom" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerFamilieUtenom/492986">
+    <xsd:sequence>
+      <xsd:element name="fammedl1Ute" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl1Ute/492626" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl2Ute" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl2Ute/492621" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl3Ute" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl3Ute/492616" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl4Ute" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl4Ute/492611" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedl5Ute" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedl5Ute/492606" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedlmannUte" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedlmannUte/492602" seres:elementtype="Dataegenskap" />
+      <xsd:element name="fammedlkvinneUte" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fammedlkvinneUte/492985" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerFastHusdyr" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerFastHusdyr/492984">
+    <xsd:sequence>
+      <xsd:element name="pers1Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers1Kjonn/492596" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers1Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers1Dri/492595" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers2Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers2Kjonn/492592" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers2Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers2Dri/492591" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers3Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers3Kjonn/492588" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers3Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers3Dri/492587" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers4Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers4Kjonn/492584" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers4Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers4Dri/492583" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers5Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers5Kjonn/492580" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers5Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers5Dri/492579" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers6Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers6Kjonn/492576" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers6Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers6Dri/492575" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers7Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers7Kjonn/492572" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers7Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers7Dri/492571" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers8Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers8Kjonn/492568" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers8Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers8Dri/492567" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers9Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers9Kjonn/492564" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers9Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers9Dri/492563" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers10Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers10Kjonn/492560" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers10Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers10Dri/492559" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers11Kjonn" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers11Kjonn/492556" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers11Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers11Dri/492555" seres:elementtype="Dataegenskap" />
+      <xsd:element name="persmannDri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/persmannDri/492552" seres:elementtype="Dataegenskap" />
+      <xsd:element name="perskvinneDri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/perskvinneDri/492983" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerFastSkogbruk" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerFastSkogbruk/492982">
+    <xsd:sequence>
+      <xsd:element name="pers1Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers1Sko/492594" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers2Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers2Sko/492590" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers3Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers3Sko/492586" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers4Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers4Sko/492582" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers5Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers5Sko/492578" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers6Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers6Sko/492574" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers7Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers7Sko/492570" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers8Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers8Sko/492566" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers9Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers9Sko/492562" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers10Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers10Sko/492558" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers11Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers11Sko/492554" seres:elementtype="Dataegenskap" />
+      <xsd:element name="persmannSko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/persmannSko/492551" seres:elementtype="Dataegenskap" />
+      <xsd:element name="perskvinneSko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/perskvinneSko/492981" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerFastTillegg" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerFastTillegg/492980">
+    <xsd:sequence>
+      <xsd:element name="pers1Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers1Til/492593" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers2Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/per2Til/492589" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers3Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers3Til/492585" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers4Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers4Til/492581" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers5Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers5Til/492577" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers6Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers6Til/492573" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers7Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers7Til/492569" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers8Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers8Til/492565" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers9Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers9Til/492561" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers10Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers10Til/492557" seres:elementtype="Dataegenskap" />
+      <xsd:element name="pers11Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/pers11Til/492553" seres:elementtype="Dataegenskap" />
+      <xsd:element name="persmannTil" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/persmannTil/492550" seres:elementtype="Dataegenskap" />
+      <xsd:element name="perskvinneTil" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/perskvinneTil/492979" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerTilfHusdyr" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerTilfHusdyr/492978">
+    <xsd:sequence>
+      <xsd:element name="tilfmAnt" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks3siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tilfmAnt/492545" seres:elementtype="Dataegenskap" />
+      <xsd:element name="tilfmDri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks6siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tilfmDri/492544" seres:elementtype="Dataegenskap" />
+      <xsd:element name="tilfkAnt" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks3siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tilfkAnt/492977" seres:elementtype="Dataegenskap" />
+      <xsd:element name="tilfkDri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks6siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tilfkDri/492976" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="PositivtHeltallMedNullMaks3siffer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/PositivtHeltallMedNullMaks3siffer/494110">
+    <xsd:restriction base="xsd:nonNegativeInteger">
+      <xsd:totalDigits value="3" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="PositivtHeltallMedNullMaks6siffer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/PositivtHeltallMedNullMaks6siffer/494107">
+    <xsd:restriction base="xsd:nonNegativeInteger">
+      <xsd:totalDigits value="6" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="ArbeidstimerTilfSkogbruk" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerTilfSkogbruk/492975">
+    <xsd:sequence>
+      <xsd:element name="tilfmSko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tilfmSko/492543" seres:elementtype="Dataegenskap" />
+      <xsd:element name="tilfkSko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tilfkSko/492974" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerTilfTillegg" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerTilfTillegg/492973">
+    <xsd:sequence>
+      <xsd:element name="tilfmTil" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tilfmTil/492542" seres:elementtype="Dataegenskap" />
+      <xsd:element name="tilfkTil" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tilfkTil/492972" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="PositivtHeltallMaks3sifferUtenNull" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/DataenkelttypePositivtHeltallMaks3siffer/477995">
+    <xsd:restriction base="xsd:positiveInteger">
+      <xsd:totalDigits value="3" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="ArbeidstimerDeltagerHusdyr" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerDeltagerHusdyr/492971">
+    <xsd:sequence>
+      <xsd:element name="kjonnD" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/kjonnD/492514" seres:elementtype="Dataegenskap" />
+      <xsd:element name="driftslDri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/driftslDri/492513" seres:elementtype="Dataegenskap" />
+      <xsd:element name="kjonnDel1" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/kjonnDel1/492509" seres:elementtype="Dataegenskap" />
+      <xsd:element name="del1Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/del1Dri/492508" seres:elementtype="Dataegenskap" />
+      <xsd:element name="kjonnDel2" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/kjonnDel2/492505" seres:elementtype="Dataegenskap" />
+      <xsd:element name="del2Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/del2Dri/492504" seres:elementtype="Dataegenskap" />
+      <xsd:element name="kjonnDel3" minOccurs="0" nillable="true" type="Kjoenn" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/kjonnDel3/492501" seres:elementtype="Dataegenskap" />
+      <xsd:element name="del3Dri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/del3Dri/492500" seres:elementtype="Dataegenskap" />
+      <xsd:element name="delmannDri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/delmannDri/492497" seres:elementtype="Dataegenskap" />
+      <xsd:element name="delkvinneDri" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/delkvinneDri/492970" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerDeltagerSkogbruk" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerDeltagerSkogbruk/492969">
+    <xsd:sequence>
+      <xsd:element name="driftsSko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/driftsSko/492512" seres:elementtype="Dataegenskap" />
+      <xsd:element name="del1Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/del1Sko/492507" seres:elementtype="Dataegenskap" />
+      <xsd:element name="del2Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/del2Sko/492968" seres:elementtype="Dataegenskap" />
+      <xsd:element name="del3Sko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/del3Sko/492499" seres:elementtype="Dataegenskap" />
+      <xsd:element name="delmannSko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/delmannSko/492496" seres:elementtype="Dataegenskap" />
+      <xsd:element name="delkvinneSko" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/delkvinneSko/492967" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerDeltagerTillegg" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerDeltagerTillegg/492966">
+    <xsd:sequence>
+      <xsd:element name="driftsTil" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/driftsTil/492511" seres:elementtype="Dataegenskap" />
+      <xsd:element name="del1Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/del1Til/492506" seres:elementtype="Dataegenskap" />
+      <xsd:element name="del2Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/del2Til/492502" seres:elementtype="Dataegenskap" />
+      <xsd:element name="del3Til" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/del3Til/492965" seres:elementtype="Dataegenskap" />
+      <xsd:element name="delmanTil" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/delmanTil/492495" seres:elementtype="Dataegenskap" />
+      <xsd:element name="delkvinneTil" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/delkvinneTil/492964" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerDeltagerUtenom" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerDeltagerUtenom/492963">
+    <xsd:sequence>
+      <xsd:element name="driftslUten" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/driftslUten/492962" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArbeidstimerNaeringsdrivende" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/ArbeidstimerNæringsdrivende/492537">
+    <xsd:sequence>
+      <xsd:element name="snVedli" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks5siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/snVedli/492536" seres:elementtype="Dataegenskap" />
+      <xsd:element name="snNyanl" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks5siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/snNyanl/492535" seres:elementtype="Dataegenskap" />
+      <xsd:element name="snGroft" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks5siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/snGroft/492534" seres:elementtype="Dataegenskap" />
+      <xsd:element name="snLopen" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks5siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/snLopen/492533" seres:elementtype="Dataegenskap" />
+      <xsd:element name="snService" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks5siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/snService/492532" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="PositivtHeltallMedNullMaks5siffer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/PositivtHeltallMedNullMaks5siffer/494108">
+    <xsd:restriction base="xsd:nonNegativeInteger">
+      <xsd:totalDigits value="5" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="Vanningsanlegg" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/Vanningsanlegg/492531">
+    <xsd:sequence>
+      <xsd:element name="vanArea" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/vanArea/492530" seres:elementtype="Dataegenskap" />
+      <xsd:element name="van12" minOccurs="0" nillable="true" type="PositivtHeltallMedNullMaks4siffer" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/van12/492529" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="MaskinerEid" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/MaskinerEid/492528">
+    <xsd:sequence>
+      <xsd:element name="traktorEid" minOccurs="0" nillable="true" type="DesimaltallMaks1Maks2Siff" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/traktorEid/492527" seres:elementtype="Dataegenskap" />
+      <xsd:element name="tohjulEid" minOccurs="0" nillable="true" type="DesimaltallMaks1Maks2Siff" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tohjulEid/492526" seres:elementtype="Dataegenskap" />
+      <xsd:element name="treskerEid" minOccurs="0" nillable="true" type="DesimaltallMaks1Maks2Siff" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/treskerEid/492525" seres:elementtype="Dataegenskap" />
+      <xsd:element name="potetoppEid" minOccurs="0" nillable="true" type="DesimaltallMaks1Maks2Siff" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/potetoppEid/492524" seres:elementtype="Dataegenskap" />
+      <xsd:element name="grasEid" minOccurs="0" nillable="true" type="DesimaltallMaks1Maks2Siff" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/grasEid/492523" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="DesimaltallMaks1Maks2Siff" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/DesimaltallMaks1Maks2Siff/491902">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:totalDigits value="2" />
+      <xsd:fractionDigits value="1" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="MaskinerLeid" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/MaskinerLeid/492522">
+    <xsd:sequence>
+      <xsd:element name="traktorLeid" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/traktorLeid/492521" seres:elementtype="Dataegenskap" />
+      <xsd:element name="tohjulLeid" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tohjulLeid/492520" seres:elementtype="Dataegenskap" />
+      <xsd:element name="treskerLeid" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/treskerLeid/492519" seres:elementtype="Dataegenskap" />
+      <xsd:element name="potetoppLeid" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/potetoppLeid/492518" seres:elementtype="Dataegenskap" />
+      <xsd:element name="grasLeid" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/grasLeid/492517" seres:elementtype="Dataegenskap" />
+      <xsd:element name="andreMaskiner" minOccurs="0" nillable="true" type="BooleanTrueFalse" seres:guid="http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/andreMaskiner/492516" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

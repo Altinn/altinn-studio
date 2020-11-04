@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Schema;
+using System.Xml.Serialization;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
 using Manatee.Json.Schema;
@@ -20,6 +21,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     {
         private const string XML_SCHEMA_NS = "http://www.w3.org/2001/XMLSchema";
         private const string BRREG_NS = "http://www.brreg.no/or";
+        private const string SERES_NS = "http://seres.no/xsd/forvaltningsdata";
 
         private XmlDocument xmlDocument = new XmlDocument();
 
@@ -37,11 +39,13 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             XmlSchema xsdSchema = new XmlSchema
             {
-                ElementFormDefault = XmlSchemaForm.Qualified,
                 AttributeFormDefault = XmlSchemaForm.Unqualified,
+                ElementFormDefault = XmlSchemaForm.Qualified,
             };
 
-            xsdSchema.Namespaces.Add("brreg", BRREG_NS);
+            xsdSchema.Namespaces = GetDefaultW3CNamespaceWithXSDPrefix();
+
+            AddCustomNameSpaces(xsdSchema, jSchema);
 
             AddInfo(xsdSchema, jSchema);
 
@@ -51,6 +55,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             if (!string.IsNullOrEmpty(title) || !string.IsNullOrEmpty(description))
             {
                 XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+                annotation.Namespaces = GetDefaultW3CNamespaceWithXSDPrefix();
+
                 AddTitleAndDescriptionAnnotations(jSchema, annotation);
 
                 xsdSchema.Items.Add(annotation);
@@ -65,12 +71,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     XmlSchemaElement rootElement = new XmlSchemaElement
                     {
                         Name = property.Key,
-                        SchemaTypeName = GetTypeName(property.Value),                        
+                        SchemaTypeName = GetTypeName(property.Value),
                     };
                     AddAnnotations(rootElement, property.Value);
                     xsdSchema.Items.Add(rootElement);
                 }
-            }            
+            }
 
             // Handle all definitions
             Dictionary<string, JsonSchema> definitions = GetterExtensions.Definitions(jSchema);
@@ -80,7 +86,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 {
                     ExtractProperties(xsdSchema, def.Key, def.Value);
                 }
-            }            
+            }
 
             return xsdSchema;
         }
@@ -145,9 +151,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         }
 
         private XmlSchemaDocumentation CreateSimpleDocumentation(string type, string description)
-        {            
+        {
             XmlSchemaDocumentation documentation = new XmlSchemaDocumentation();
-            
+
             XmlNode[] nodes = { xmlDocument.CreateTextNode(description) };
             documentation.Markup = nodes;
             documentation.Source = type;
@@ -161,6 +167,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             if (info != null)
             {
                 XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+                annotation.Namespaces = GetDefaultW3CNamespaceWithXSDPrefix();
                 XmlSchemaDocumentation documentation = new XmlSchemaDocumentation();
                 annotation.Items.Add(documentation);
 
@@ -168,7 +175,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 JsonObject infoObject = info.ToJson(new JsonSerializer()).Object;
                 foreach (string attributeName in infoObject.Keys)
                 {
-                    XmlElement attrElement = xmlDocument.CreateElement("xs", "attribute", XML_SCHEMA_NS);
+                    XmlElement attrElement = xmlDocument.CreateElement("xsd", "attribute", XML_SCHEMA_NS);
                     attrElement.SetAttribute("name", attributeName);
                     attrElement.SetAttribute("fixed", infoObject.TryGetString(attributeName));
 
@@ -201,9 +208,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                             {
                                 return ExtractBaseTypeNameFromFormat(format);
                             }
-                            
+
                             return new XmlQualifiedName("string", XML_SCHEMA_NS);
-                        }                        
+                        }
 
                     case JsonSchemaType.Integer:
                         return new XmlQualifiedName("integer", XML_SCHEMA_NS);
@@ -226,10 +233,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                             }
 
                             return null;
-                        }                   
+                        }
                 }
 
-                return null;                
+                return null;
             }
 
             return null;
@@ -245,8 +252,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     Name = name,
                 };
 
-                xsdSchema.Items.Add(complexType);                
-            }          
+                xsdSchema.Items.Add(complexType);
+            }
             else if (jSchema.Properties() != null || jSchema.AllOf() != null || jSchema.OneOf() != null)
             {
                 if (SimpleContent(jSchema))
@@ -258,12 +265,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 {
                     XmlSchemaComplexType complexType = ExtractComplexType(name, jSchema);
                     xsdSchema.Items.Add(complexType);
-                }                
+                }
             }
             else
             {
-                XmlSchemaSimpleType simpleType = ExtractSimpleType(name, jSchema);                                
-                xsdSchema.Items.Add(simpleType);               
+                XmlSchemaSimpleType simpleType = ExtractSimpleType(name, jSchema);
+                xsdSchema.Items.Add(simpleType);
             }
         }
 
@@ -279,12 +286,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             XmlSchemaSimpleContent simpleContent = new XmlSchemaSimpleContent();
             XmlSchemaSimpleContentExtension extension = new XmlSchemaSimpleContentExtension();
-            simpleContent.Content = extension;            
-           
+            simpleContent.Content = extension;
             foreach (KeyValuePair<string, JsonSchema> item in jSchema.Properties())
-            {               
+            {
                 if (item.Key.Equals("value") || HasSimpleContentAnnotation(item.Value))
-                {                    
+                {
                     extension.BaseTypeName = new XmlQualifiedName(
                         ExtractTypeFromDefinitionReference(GetterExtensions.Ref(item.Value)));
                 }
@@ -301,6 +307,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             complexType.ContentModel = simpleContent;
+
+            AddUnhandledAttributes(jSchema, complexType);
+
             return complexType;
         }
 
@@ -361,7 +370,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 {
                     string reference = GetterExtensions.Ref(schema);
                     if (reference != null)
-                    {                        
+                    {
                         extension.BaseTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(reference));
                         XmlSchemaComplexContent content = new XmlSchemaComplexContent
                         {
@@ -373,7 +382,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     else if (schema.Properties() != null)
                     {
                         extension.Particle = ExtractAttributesAndElements(schema, complexType);
-                    }                    
+                    }
                 }
             }
             else
@@ -391,7 +400,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                         foreach (XmlSchemaObject item in propSequence.Items)
                         {
                             choice.Items.Add(item);
-                        }                        
+                        }
                     }
 
                     sequence.Items.Add(choice);
@@ -399,13 +408,13 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
                 // handle properties
                 XmlSchemaSequence propertySequence = ExtractAttributesAndElements(type, complexType);
-                
+
                 if (propertySequence != null && propertySequence.Items.Count > 0)
                 {
                     foreach (XmlSchemaObject item in propertySequence.Items)
                     {
-                        sequence.Items.Add(item);                        
-                    }                    
+                        sequence.Items.Add(item);
+                    }
                 }
 
                 if (sequence != null && sequence.Items.Count > 0)
@@ -413,6 +422,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     complexType.Particle = sequence;
                 }
             }
+
+            AddUnhandledAttributes(type, complexType);
 
             return complexType;
         }
@@ -489,7 +500,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     simpleType.Name = null;
                     attribute.SchemaType = simpleType;
                     attribute.SchemaTypeName = null;
-                }                
+                }
             }
 
             AddAnnotations(attribute, propertyType);
@@ -522,7 +533,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 XmlSchemaSimpleTypeRestriction simpleTypeRestriction = new XmlSchemaSimpleTypeRestriction
                 {
                     BaseTypeName = baseTypeName,
-                };                
+                };
 
                 XmlSchemaSimpleTypeRestriction stringFacets = ExtractStringFacets(jSchema);
                 if (stringFacets.Facets.Count > 0)
@@ -543,7 +554,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 }
 
                 simpleType.Content = simpleTypeRestriction;
-                
+
                 return simpleType;
             }
 
@@ -555,7 +566,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 XmlSchemaSimpleTypeRestriction noTypeSimpleType = ExtractStringFacets(jSchema);
                 noTypeSimpleType.BaseTypeName = null;
 
-                simpleType.Content = noTypeSimpleType;                 
+                simpleType.Content = noTypeSimpleType;
 
                 return simpleType;
             }
@@ -565,7 +576,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 simpleType.Content = ExtractStringFacets(jSchema);
             }
             else if (type.Value == JsonSchemaType.Number || type.Value == JsonSchemaType.Integer)
-            {                
+            {
                 simpleType.Content = ExtractNumberAndIntegerFacets(jSchema, type);
             }
             else if (type.Value == JsonSchemaType.Boolean)
@@ -583,12 +594,14 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 {
                     XmlSchemaSimpleTypeList theList = new XmlSchemaSimpleTypeList();
                     List<JsonSchema> items = GetterExtensions.Items(jSchema);
-                    string typeRef = GetterExtensions.Ref(items[0]);                    
+                    string typeRef = GetterExtensions.Ref(items[0]);
                     theList.ItemTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(typeRef));
 
                     simpleType.Content = theList;
-                }                
-            }           
+                }
+            }
+
+            AddUnhandledAttributes(jSchema, simpleType);
 
             return simpleType;
         }
@@ -678,14 +691,14 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
             else if (type.Value == JsonSchemaType.Integer)
             {
-                if (minValue != null && minValue == 0.0)
+                if (minValue != null && minValue == 1)
                 {
                     content.BaseTypeName = new XmlQualifiedName("positiveInteger", XML_SCHEMA_NS);
                 }
                 else
                 {
                     content.BaseTypeName = new XmlQualifiedName("integer", XML_SCHEMA_NS);
-                }                
+                }
             }
 
             if (minValue != null || minExclusiveValue != null)
@@ -699,7 +712,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     content.Facets.Add(facet);
                 }
                 else
-                {                    
+                {
                     XmlSchemaMinExclusiveFacet facet = new XmlSchemaMinExclusiveFacet
                     {
                         Value = FormatDouble((double)minExclusiveValue),
@@ -714,7 +727,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             if (maxValue != null || maxExclusiveValue != null)
             {
                 if (maxValue != null)
-                {                    
+                {
                     XmlSchemaMaxInclusiveFacet maxInclusiveFacet = new XmlSchemaMaxInclusiveFacet
                     {
                         Value = FormatDouble((double)maxValue),
@@ -722,7 +735,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     content.Facets.Add(maxInclusiveFacet);
                 }
                 else
-                {                    
+                {
                     XmlSchemaMaxExclusiveFacet maxExclusiveFacet = new XmlSchemaMaxExclusiveFacet
                     {
                         Value = FormatDouble((double)maxExclusiveValue),
@@ -742,7 +755,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         private XmlQualifiedName ExtractBaseTypeNameFromFormat(string format)
         {
             switch (format)
-            {                    
+            {
                 case "date":
                     return new XmlQualifiedName("date", XML_SCHEMA_NS);
 
@@ -768,13 +781,13 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     return new XmlQualifiedName("gYearMonth", XML_SCHEMA_NS);
 
                 case "time":
-                    return new XmlQualifiedName("time", XML_SCHEMA_NS);                                    
-                    
+                    return new XmlQualifiedName("time", XML_SCHEMA_NS);
+
                 case "email":
                     return new XmlQualifiedName("string", XML_SCHEMA_NS);
-                    
+
                 case "uri":
-                    return new XmlQualifiedName("anyUri", XML_SCHEMA_NS);                    
+                    return new XmlQualifiedName("anyUri", XML_SCHEMA_NS);
             }
 
             return new XmlQualifiedName("string", XML_SCHEMA_NS);
@@ -812,7 +825,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 foreach (JsonSchema schema in items)
                 {
                     string typeRef = GetterExtensions.Ref(schema);
-                    element.SchemaTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(typeRef));             
+                    element.SchemaTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(typeRef));
                 }
             }
 
@@ -835,7 +848,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 element.SchemaTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(reference));
             }
 
-            return element;            
+            AddUnhandledAttributes(propertyType, element);
+
+            return element;
         }
 
         private string ExtractTypeFromDefinitionReference(string reference)
@@ -846,6 +861,66 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             return "Unknown";
+        }
+
+        private XmlSerializerNamespaces GetDefaultW3CNamespaceWithXSDPrefix()
+        {
+            XmlSerializerNamespaces defaultNamespaces = new XmlSerializerNamespaces();
+            defaultNamespaces.Add("xsd", XML_SCHEMA_NS);
+            return defaultNamespaces;
+        }
+
+        private void AddCustomNameSpaces(XmlSchema xsdSchema, JsonSchema jsonSchema)
+        {
+            Dictionary<string, JsonSchema> definitions = GetterExtensions.Definitions(jsonSchema);
+
+            if (definitions != null)
+            {
+                foreach (KeyValuePair<string, JsonSchema> def in definitions)
+                {
+                    JsonSchema jSchema = def.Value;
+                    string name = def.Key;
+
+                    if (jSchema != JsonSchema.Empty && jSchema.Properties() != null)
+                    {
+                        Dictionary<string, JsonSchema> props = jSchema.Properties();
+                        foreach (KeyValuePair<string, JsonSchema> property in props)
+                        {
+                            JsonSchema schemaProp = property.Value;
+                            string nameProp = property.Key;
+
+                            if (nameProp.Equals("dataFormatProvider"))
+                            {
+                                if (schemaProp.Const().String.Equals("SERES"))
+                                {
+                                    xsdSchema.Namespaces.Add("seres", SERES_NS);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void AddUnhandledAttributes(JsonSchema jSchema, XmlSchemaAnnotated schemaAnnotated)
+        {
+            int i = 1;
+            List<XmlAttribute> list = list = new List<XmlAttribute>();
+            while (jSchema.OtherData.TryGetString("@xsdUnhandledAttribute" + i) != null)
+            {
+                string test = jSchema.OtherData.TryGetString("@xsdUnhandledAttribute" + i);
+                string[] values = test.Split("=");
+
+                XmlAttribute xmlAttribute = xmlDocument.CreateAttribute(values[0], SERES_NS);
+                xmlAttribute.Value = values[1];
+                list.Add(xmlAttribute);
+                i++;
+            }
+
+            if (list.Count > 0)
+            {
+                schemaAnnotated.UnhandledAttributes = list.ToArray();
+            }
         }
     }
 }
