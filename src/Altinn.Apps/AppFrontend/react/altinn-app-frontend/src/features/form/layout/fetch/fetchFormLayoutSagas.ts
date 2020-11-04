@@ -73,7 +73,6 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
 export function* fetchFormLayoutSettingsSaga(): SagaIterator {
   try {
     const settings: ILayoutSettings = yield call(get, getLayoutSettingsUrl());
-    console.log('settings', settings);
     yield call(Actions.fetchFormLayoutSettingsFulfilled, settings);
   } catch (error) {
     if (error?.response?.status === 404) {
