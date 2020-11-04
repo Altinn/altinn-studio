@@ -49,6 +49,9 @@ const LayoutReducer: Reducer<ILayoutState> = (
           navigationConfig: {
             $set: navigationConfig,
           },
+          layoutOrder: {
+            $set: Object.keys(layouts),
+          },
         },
         error: {
           $set: null,

@@ -64,7 +64,7 @@ describe('>>> components/process-step/NavigationButton.tsx', () => {
         focus: null,
         hiddenFields: [],
         repeatingGroups: null,
-        layoutOrder: [],
+        layoutOrder: ['layout1', 'layout2'],
         navigationConfig: {
           layout1: {
             next: 'layout2',
