@@ -28,18 +28,17 @@ namespace Altinn.Common.PEP.Authorization
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ClaimAccessRequirement requirement)
         {
             bool isAuthorized = false;
-            if(context.User != null && context.User.Claims != null)
+            if (context.User != null && context.User.Claims != null)
             {
                 foreach (Claim claim in context.User.Claims)
                 {
-                    if(claim.Type.Equals(requirement.ClaimType)
+                    if (claim.Type.Equals(requirement.ClaimType)
                         && claim.Value.Equals(requirement.ClaimValue))
                     {
                         isAuthorized = true;
                         break;
                     }
                 }
-
             }
 
             if (isAuthorized)

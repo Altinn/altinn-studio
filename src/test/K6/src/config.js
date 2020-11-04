@@ -65,6 +65,12 @@ export var platformStorage = {
     "messageBoxInstances": "https://platform." + baseUrl + "/storage/api/v1/sbl/instances",
 };
 
+//Platform events
+export var platformEvents = {
+    "events": "https://platform." + baseUrl + "/events/api/v1/app/",
+    "eventsByParty": "https://platform." + baseUrl + "/events/api/v1/app/party/"
+};
+
 //Function to build endpoints in storage with instanceOwnerId, instanceId, dataId, type
 //and returns the endpoint
 export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type) {

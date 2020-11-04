@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using System.Threading.Tasks;
+
 using AltinnCore.Authentication.Constants;
 
 using Microsoft.AspNetCore;
@@ -121,7 +121,6 @@ namespace Altinn.Platform.Register
                     builder.AddFilter("Microsoft", LogLevel.Warning);
                     builder.AddFilter("System", LogLevel.Warning);
                     builder.AddConsole();
-                    builder.AddEventLog();
                 }
             })
             .UseUrls("http://*:5020")

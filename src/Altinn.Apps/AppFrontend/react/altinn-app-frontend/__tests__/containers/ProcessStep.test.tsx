@@ -43,6 +43,7 @@ describe('>>> containers/ProcessStep.tsx', () => {
         },
         invalidDataTypes: null,
         error: null,
+        currentSingleFieldValidation: null,
       },
     });
     mockStore = createStore(mockInitialState);
@@ -135,6 +136,7 @@ describe('>>> containers/ProcessStep.tsx', () => {
         },
         invalidDataTypes: null,
         error: null,
+        currentSingleFieldValidation: null,
       },
     });
     mockStore = createStore(newState);

@@ -287,10 +287,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 TagAnyAttribute(complexTypeSchema);
             }
 
-            if(item.UnhandledAttributes != null) 
+            if (item.UnhandledAttributes != null) 
             {
                 int sequence = 1;
-                foreach(XmlAttribute attribute in item.UnhandledAttributes) 
+                foreach (XmlAttribute attribute in item.UnhandledAttributes) 
                 {
                     TagUnhandledAttribute(complexTypeSchema, attribute, sequence);
                     sequence++;

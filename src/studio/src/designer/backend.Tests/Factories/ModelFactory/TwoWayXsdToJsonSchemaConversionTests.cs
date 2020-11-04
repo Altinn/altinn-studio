@@ -40,8 +40,10 @@ namespace Designer.Tests.Factories.ModelFactory
             XmlSchema xmlschema = jsonSchemaToXsd.CreateXsd(actual);
 
             FileStream file = new FileStream(xsdName + ".new", FileMode.Create, FileAccess.ReadWrite);
-            XmlTextWriter xwriter = new XmlTextWriter(file, new UTF8Encoding());
+            XmlTextWriter xwriter = new XmlTextWriter(file, new UpperCaseUTF8Encoding());
             xwriter.Formatting = Formatting.Indented;
+            xwriter.WriteStartDocument(false);
+         
             xmlschema.Write(xwriter);
 
             // Assert

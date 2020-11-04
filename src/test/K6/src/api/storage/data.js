@@ -5,14 +5,16 @@ import * as header from "../../buildrequestheaders.js"
 //Api call to Platform:Storage to upload a data to an instance and returns the response
 export function postData(altinnStudioRuntimeCookie, partyId, instanceId, dataType, instanceData) {
     var endpoint = config.buildStorageUrls(partyId, instanceId, "", "instanceid") + "/data?dataType=" + dataType;
-    var params = header.buildHeadersForData(dataType, altinnStudioRuntimeCookie, "platform");
+    var isBinaryAttachment = (typeof data === "object") ? true : false;    
+    var params = header.buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, "platform");
     return http.post(endpoint, instanceData, params);
 };
 
 //Api call to Platform:Storage to upload a data to an instance and returns the response
 export function putData(altinnStudioRuntimeCookie, partyId, instanceId, dataId, dataType, instanceData) {
     var endpoint = config.buildStorageUrls(partyId, instanceId, dataId, "dataid");
-    var params = header.buildHeadersForData(dataType, altinnStudioRuntimeCookie, "platform");
+    var isBinaryAttachment = (typeof data === "object") ? true : false;    
+    var params = header.buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCookie, "platform");    
     return http.put(endpoint, instanceData, params);
 };
 
