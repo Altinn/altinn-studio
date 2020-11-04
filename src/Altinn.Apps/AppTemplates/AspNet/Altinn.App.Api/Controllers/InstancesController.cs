@@ -209,7 +209,7 @@ namespace Altinn.App.Api.Controllers
             {
                 InstanceOwner lookup = instanceTemplate.InstanceOwner;
 
-                if (lookup == null || lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null)
+                if (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null && lookup.PartyId == null))
                 {
                     return BadRequest("Error: instanceOwnerPartyId query parameter is empty and InstanceOwner is missing from instance template. You must populate instanceOwnerPartyId or InstanceOwner");
                 }

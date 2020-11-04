@@ -15,7 +15,9 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Services.Implementation
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Represents a service that provides access to information from ER.
+    /// </summary>
     public class RegisterERAppSI : IER
     {
         private readonly ILogger _logger;
@@ -35,7 +37,6 @@ namespace Altinn.App.Services.Implementation
         ///<param name="httpClient">The http client</param>
         ///<param name="appResources">The app resources service</param>
         ///<param name="accessTokenGenerator">The platform access token generator</param>
-
         public RegisterERAppSI(
             IOptions<PlatformSettings> platformSettings,
             ILogger<RegisterERAppSI> logger,
@@ -44,7 +45,6 @@ namespace Altinn.App.Services.Implementation
             HttpClient httpClient,
             IAppResources appResources,
             IAccessTokenGenerator accessTokenGenerator)
-
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;

@@ -1,11 +1,16 @@
 using System.Collections.Generic;
+
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+
 using Newtonsoft.Json;
 
 namespace Altinn.App.Services.Models
 {
+    /// <summary>
+    /// Represents a collection of all data required to generate a PDF
+    /// </summary>
     class PDFContext
     {
         /// <summary>

@@ -219,6 +219,7 @@ namespace Altinn.App.Services.Implementation
             throw await PlatformHttpException.CreateAsync(response);
         }
 
+        /// <inheritdoc />
         public async Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard)
         {
             string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}?hard={hard}";

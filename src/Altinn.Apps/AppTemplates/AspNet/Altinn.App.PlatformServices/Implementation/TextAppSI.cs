@@ -17,6 +17,9 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Services.Implementation
 {
+    /// <summary>
+    /// Represents a service that provide access to text resources.
+    /// </summary>
     public class TextAppSI : IText
     {
         private readonly ILogger _logger;
@@ -30,9 +33,12 @@ namespace Altinn.App.Services.Implementation
         /// Initializes a new instance of the <see cref="TextAppSI"/> class.
         /// </summary>
         /// <param name="settings">The app repository settings.</param>
+        /// <param name="platformSettings">The platform settings object from configuration.</param>
+        /// <param name="logger">A logger from the built in logger factory.</param>
+        /// <param name="httpContextAccessor">An object with access to the http context.</param>
         public TextAppSI(
             IOptions<AppSettings> settings,
-              IOptions<PlatformSettings> platformSettings,
+            IOptions<PlatformSettings> platformSettings,
             ILogger<TextAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,

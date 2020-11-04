@@ -88,6 +88,7 @@ namespace Altinn.App.Services.Implementation
             return fileContent;
         }
 
+        /// <inheritdoc />
         public byte[] GetText(string org, string app, string textResource)
         {
             byte[] fileContent = null;
@@ -100,6 +101,7 @@ namespace Altinn.App.Services.Implementation
             return fileContent;
         }
 
+        /// <inheritdoc />
         public Application GetApplication()
         {
             // Cache application metadata
@@ -116,6 +118,7 @@ namespace Altinn.App.Services.Implementation
                 {
                     filedata = File.ReadAllText(filename, Encoding.UTF8);
                 }
+
                 _application = JsonConvert.DeserializeObject<Application>(filedata);
                 return _application;
             }
@@ -125,7 +128,6 @@ namespace Altinn.App.Services.Implementation
                 return null;
             }
         }
-
 
         /// <inheritdoc/>
         public string GetModelMetaDataJSON(string org, string app)
@@ -182,6 +184,7 @@ namespace Altinn.App.Services.Implementation
             return fileContent;
         }
 
+        /// <inheritdoc />
         public string GetPrefillJson(string dataModelName = "ServiceModel")
         {
             string filename = _settings.AppBasePath + _settings.ModelsFolder + dataModelName + ".prefill.json";
@@ -193,7 +196,8 @@ namespace Altinn.App.Services.Implementation
 
             return filedata;
         }
-        
+
+        /// <inheritdoc />
         public string GetLayoutSettings()
         {
             string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
@@ -202,9 +206,11 @@ namespace Altinn.App.Services.Implementation
             {
                 filedata = File.ReadAllText(filename, Encoding.UTF8);
             }
+
             return filedata;
         }
 
+        /// <inheritdoc />
         public string GetClassRefForLogicDataType(string dataType)
         {
             Application application = GetApplication();
@@ -230,6 +236,7 @@ namespace Altinn.App.Services.Implementation
             return classRef;
         }
 
+        /// <inheritdoc />
         public List<AppOption> GetOptions(string optionId)
         {
             string filedata = string.Empty;
@@ -252,9 +259,10 @@ namespace Altinn.App.Services.Implementation
             }
         }
 
+        /// <inheritdoc />
         public string GetLayouts()
         {
-          Dictionary<string, Object> layouts = new Dictionary<string, object>();
+          Dictionary<string, object> layouts = new Dictionary<string, object>();
 
           // Get FormLayout.json if it exists and return it (for backwards compatibility)
           string filedata = string.Empty;
@@ -272,7 +280,7 @@ namespace Altinn.App.Services.Implementation
             foreach(string file in Directory.GetFiles(layoutsPath))
             {
               string data = File.ReadAllText(file, Encoding.UTF8);
-              string name = file.Replace(layoutsPath, "").Replace(".json", "");
+              string name = file.Replace(layoutsPath, string.Empty).Replace(".json", string.Empty);
               layouts.Add(name, JsonConvert.DeserializeObject<object>(data));
             }
           }

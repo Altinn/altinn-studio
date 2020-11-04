@@ -73,6 +73,7 @@ namespace Altinn.App.Services.Implementation
             return await InsertFormData<T>(instance, dataType, dataToSerialize, type);
         }
 
+        /// <inheritdoc />
         public async Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type)
         {
             string apiUrl = $"instances/{instance.Id}/data?dataType={dataType}";
@@ -275,6 +276,7 @@ namespace Altinn.App.Services.Implementation
             throw await PlatformHttpException.CreateAsync(response);
         }
 
+        /// <inheritdoc />
         public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string fileName, Stream stream)
         {
             string apiUrl = $"{_platformSettings.ApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
@@ -302,7 +304,6 @@ namespace Altinn.App.Services.Implementation
             _logger.LogError($"Storing attachment for instance {instanceId} failed with status code {response.StatusCode} - content {await response.Content.ReadAsStringAsync()}");
             throw await PlatformHttpException.CreateAsync(response);
         }
-
 
         /// <inheritdoc />
         public async Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)

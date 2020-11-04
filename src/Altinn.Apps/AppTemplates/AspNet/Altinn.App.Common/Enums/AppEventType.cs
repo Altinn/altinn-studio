@@ -43,7 +43,6 @@ namespace Altinn.App.Common.Enums
         /// <summary>
         /// Events that is triggered when a new app model is created. 
         /// </summary>
-        AppModelCreation = 8,
-
+        AppModelCreation = 8
     }
 }

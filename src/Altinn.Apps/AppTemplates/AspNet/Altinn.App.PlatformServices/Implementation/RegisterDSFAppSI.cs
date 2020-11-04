@@ -15,7 +15,9 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Services.Implementation
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Represents a service that provides access to information from DSF.
+    /// </summary>
     public class RegisterDSFAppSI : IDSF
     {
         private readonly ILogger _logger;
@@ -40,7 +42,8 @@ namespace Altinn.App.Services.Implementation
             IHttpContextAccessor httpContextAccessor,
             IOptionsMonitor<AppSettings> settings,
             HttpClient httpClient,
-            IAccessTokenGenerator accessTokenGenerator, IAppResources appResource)
+            IAccessTokenGenerator accessTokenGenerator,
+            IAppResources appResource)
         {
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;

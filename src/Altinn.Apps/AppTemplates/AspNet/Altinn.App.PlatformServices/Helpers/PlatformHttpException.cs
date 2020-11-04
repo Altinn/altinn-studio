@@ -16,6 +16,12 @@ namespace Altinn.App.PlatformServices.Helpers
         /// </summary>
         public HttpResponseMessage Response { get; }
 
+        /// <summary>
+        /// Create a new <see cref="PlatformHttpException"/> by reading the <see cref="HttpResponseMessage"/>
+        /// content asynchronously.
+        /// </summary>
+        /// <param name="response">The <see cref="HttpResponseMessage"/> to read.</param>
+        /// <returns>A new <see cref="PlatformHttpException"/>.</returns>
         public static async Task<PlatformHttpException> CreateAsync(HttpResponseMessage response)
         {
             string content = await response.Content.ReadAsStringAsync();
@@ -32,7 +38,6 @@ namespace Altinn.App.PlatformServices.Helpers
         {
             this.Response = response;
         }
-
 
         /// <summary>
         /// Add serialization info.

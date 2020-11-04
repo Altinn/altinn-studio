@@ -73,6 +73,5 @@ namespace Altinn.App.Common.Helpers
 
             dataElement.SelfLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
         }
-
     }
 }

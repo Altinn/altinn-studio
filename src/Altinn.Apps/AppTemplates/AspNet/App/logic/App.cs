@@ -1,20 +1,23 @@
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Threading.Tasks;
-using Altinn.App.Services.Interface;
-using Microsoft.Extensions.Logging;
-using Altinn.App.Services.Implementation;
-using Altinn.App.Common.Enums;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using Altinn.App.AppLogic.Validation;
+
 using Altinn.App.AppLogic.Calculation;
+using Altinn.App.AppLogic.Validation;
+using Altinn.App.Common.Enums;
+using Altinn.App.Common.Models;
+using Altinn.App.Services.Implementation;
+using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.App.Common.Models;
+
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.AppLogic
 {
+    /// <summary>
+    /// Represents the core logic of an App
+    /// </summary>
     public class App : AppBase, IAltinnApp
     {
         private readonly ILogger<App> _logger;
@@ -22,6 +25,17 @@ namespace Altinn.App.AppLogic
         private readonly CalculationHandler _calculationHandler;
         private readonly InstantiationHandler _instantiationHandler;
 
+        /// <summary>
+        /// Initialize a new instance of the <see cref="App"/> class.
+        /// </summary>
+        /// <param name="appResourcesService">A service with access to local resources.</param>
+        /// <param name="logger">A logger from the built in LoggingFactory.</param>
+        /// <param name="dataService">A service with access to data storage.</param>
+        /// <param name="processService">A service with access to the process.</param>
+        /// <param name="pdfService">A service with access to the PDF generator.</param>
+        /// <param name="profileService">A service with access to profile information.</param>
+        /// <param name="registerService">A service with access to register information.</param>
+        /// <param name="prefillService">A service with access to prefill mechanisms.</param>
         public App(
             IAppResources appResourcesService,
             ILogger<App> logger,
@@ -30,8 +44,13 @@ namespace Altinn.App.AppLogic
             IPDF pdfService,
             IProfile profileService,
             IRegister registerService,
-            IPrefill prefillService
-            ) : base(appResourcesService, logger, dataService, processService, pdfService, prefillService)
+            IPrefill prefillService) : base(
+                appResourcesService,
+                logger,
+                dataService,
+                processService,
+                pdfService,
+                prefillService)
         {
             _logger = logger;
             _validationHandler = new ValidationHandler();
@@ -39,6 +58,7 @@ namespace Altinn.App.AppLogic
             _instantiationHandler = new InstantiationHandler(profileService, registerService);
         }
 
+        /// <inheritdoc />
         public override object CreateNewAppModel(string classRef)
         {
             _logger.LogInformation($"CreateNewAppModel {classRef}");
@@ -47,6 +67,7 @@ namespace Altinn.App.AppLogic
             return Activator.CreateInstance(appType);
         }
 
+        /// <inheritdoc />
         public override Type GetAppModelType(string classRef)
         {
             _logger.LogInformation($"GetAppModelType {classRef}");
@@ -72,6 +93,7 @@ namespace Altinn.App.AppLogic
         /// <summary>
         /// Run data validation event to perform custom validations on data
         /// </summary>
+        /// <param name="data">An instance of the data to be validated.</param>
         /// <param name="validationResults">Object to contain any validation errors/warnings</param>
         /// <returns>Value indicating if the form is valid or not</returns>
         public override async Task RunDataValidation(object data, ModelStateDictionary validationResults)
@@ -82,8 +104,10 @@ namespace Altinn.App.AppLogic
         /// <summary>
         /// Run task validation event to perform custom validations on instance
         /// </summary>
-        /// <param name="validationResults">Object to contain any validation errors/warnings</param>
-        /// <returns>Value indicating if the form is valid or not</returns>
+        /// <param name="instance">A reference to the current instance.</param>
+        /// <param name="taskId">The name of the process step to validate based on.</param>
+        /// <param name="validationResults">Object to contain any validation errors/warnings.</param>
+        /// <returns>A task supporting the async await pattern.</returns>
         public override async Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
             await _validationHandler.ValidateTask(instance, taskId, validationResults);
@@ -116,6 +140,7 @@ namespace Altinn.App.AppLogic
            await _instantiationHandler.DataCreation(instance, data);
         }
 
+        /// <inheritdoc />
         public override Task<AppOptions> GetOptions(string id, AppOptions options)
         {
             return Task.FromResult(options);
@@ -129,7 +154,7 @@ namespace Altinn.App.AppLogic
         /// <returns></returns>
         public override async Task RunProcessTaskEnd(string taskId, Instance instance)
         {
-            return;
+            await Task.CompletedTask;
         }
     }
 }
