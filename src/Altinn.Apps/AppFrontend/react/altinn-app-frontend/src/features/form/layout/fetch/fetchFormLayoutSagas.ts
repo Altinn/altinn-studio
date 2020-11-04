@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, all, take, select, takeLatest } from 'redux-saga/effects';
+import { call, all, take, select } from 'redux-saga/effects';
 import { IAltinnWindow } from 'altinn-shared/types';
 import { getLayoutSettingsUrl } from 'src/utils/urlHelper';
 import { get } from '../../../../utils/networking';
