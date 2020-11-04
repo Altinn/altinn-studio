@@ -905,14 +905,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         private void AddUnhandledAttributes(JsonSchema jSchema, XmlSchemaAnnotated schemaAnnotated)
         {
             int i = 1;
-            List<XmlAttribute> list = null;
+            List<XmlAttribute> list = list = new List<XmlAttribute>();
             while (jSchema.OtherData.TryGetString("@xsdUnhandledAttribute" + i) != null)
             {
-                if (list == null)
-                {
-                    list = new List<XmlAttribute>();
-                }
-
                 string test = jSchema.OtherData.TryGetString("@xsdUnhandledAttribute" + i);
                 string[] values = test.Split("=");
 
@@ -922,7 +917,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 i++;
             }
 
-            if (list != null)
+            if (list.Count > 0)
             {
                 schemaAnnotated.UnhandledAttributes = list.ToArray();
             }
