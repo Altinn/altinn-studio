@@ -1,1 +1,0 @@
-{"id":"1337/648e110e-082a-4abe-b170-f52e00498ea7","instanceOwner":{"partyId":"1337","personNumber":"01039012345"},"appId":"tdd/custom-validation","org":"tdd","process":{"started":"2020-11-04T16:00:16.9352245Z","startEvent":"StartEvent_1","currentTask":{"flow":2,"started":"2020-11-04T16:00:16.935321Z","elementId":"Task_1","name":"Utfylling","altinnTaskType":"data"}},"data":[]}
