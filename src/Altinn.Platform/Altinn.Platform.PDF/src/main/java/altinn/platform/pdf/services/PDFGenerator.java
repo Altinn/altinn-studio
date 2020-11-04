@@ -160,7 +160,7 @@ public class PDFGenerator {
           List<FormLayoutElement> filteredLayout = FormUtils.getFilteredLayout(layout.getData().getLayout());
           List<FormLayoutElement> initializedLayout = FormUtils.setupRepeatingGroups(filteredLayout, this.formData);
           renderFormLayout(initializedLayout);
-          if (order.indexOf(layoutKey) < order.size()) {
+          if (order.indexOf(layoutKey) < (order.size() - 1)) {
             createNewPage();
             yPoint = currentPage.getMediaBox().getHeight() - margin;
           }

@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, all, take, select, takeLatest } from 'redux-saga/effects';
+import { call, all, take, select } from 'redux-saga/effects';
 import { IAltinnWindow } from 'altinn-shared/types';
 import { getLayoutSettingsUrl } from 'src/utils/urlHelper';
 import { get } from '../../../../utils/networking';
@@ -24,7 +24,6 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
     let firstLayoutKey: string;
     let repeatingGroups = {};
     const formDataState: IFormDataState = yield select(formDataSelector);
-    const layoutOrder: string[] = yield select((state: IRuntimeState) => state.formLayout.uiConfig.layoutOrder);
 
     if (layoutResponse.data) {
       layouts.FormLayout = layoutResponse.data.layout;
@@ -33,8 +32,7 @@ function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
       repeatingGroups = getRepeatingGroups(layouts[firstLayoutKey] as [ILayoutComponent|ILayoutGroup],
         formDataState.formData);
     } else {
-      // If there exist a defiend layoutout order in settings.json we use that, otherwise we sort alphabetically
-      const orderedLayoutKeys = layoutOrder || Object.keys(layoutResponse).sort();
+      const orderedLayoutKeys = Object.keys(layoutResponse).sort();
       firstLayoutKey = orderedLayoutKeys[0];
 
       orderedLayoutKeys.forEach((key) => {
@@ -63,7 +61,6 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
     take(ActionTypes.FETCH_FORM_LAYOUT),
     take(FormDataActionTypes.FETCH_FORM_DATA_INITIAL),
     take(FormDataActionTypes.FETCH_FORM_DATA_FULFILLED),
-    take(ActionTypes.FETCH_FORM_LAYOUT_SETTINGS_FULFILLED),
   ]);
   const { org, app } = window as Window as IAltinnWindow;
   const url = `${window.location.origin}/${org}/${app}/api/resource/FormLayout.json`;
@@ -85,5 +82,9 @@ export function* fetchFormLayoutSettingsSaga(): SagaIterator {
 }
 
 export function* watchFetchFormLayoutSettingsSaga(): SagaIterator {
-  yield takeLatest(ActionTypes.FETCH_FORM_LAYOUT_SETTINGS, fetchFormLayoutSettingsSaga);
+  yield all([
+    take(ActionTypes.FETCH_FORM_LAYOUT_SETTINGS),
+    take(ActionTypes.FETCH_FORM_LAYOUT_FULFILLED),
+  ]);
+  yield call(fetchFormLayoutSettingsSaga);
 }
