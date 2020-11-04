@@ -43,12 +43,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task UpdateTextResourcesAsync(string org, string app, string shortCommitId, EnvironmentModel environmentModel)
         {
             string textResourcesPath = GetTextResourceDirectoryPath();
-            List<GiteaFileContent> folder = await _giteaApiWrapper.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
+            List<FileSystemObject> folder = await _giteaApiWrapper.GetDirectoryAsync(org, app, textResourcesPath, shortCommitId);
             if (folder != null)
             {
                 folder.ForEach(async textResourceFromRepo =>
                 {
-                    GiteaFileContent populatedFile = await _giteaApiWrapper.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
+                    FileSystemObject populatedFile = await _giteaApiWrapper.GetFileAsync(org, app, textResourceFromRepo.Path, shortCommitId);
                     byte[] data = Convert.FromBase64String(populatedFile.Content);
                     TextResource content = data.Deserialize<TextResource>();
                     TextResource textResourceStorage = await GetTextResourceFromStorage(org, app, content.Language, environmentModel);

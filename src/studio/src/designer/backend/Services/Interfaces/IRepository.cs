@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Altinn.Platform.Storage.Interface.Models;
@@ -488,5 +489,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="dataModelName">the data model name</param>
         /// <returns></returns>
         string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel");
+
+        /// <summary>
+        /// Lists the content of a repository
+        /// </summary>
+        List<FileSystemObject> GetContents(string org, string repository, string path = "");
     }
 }

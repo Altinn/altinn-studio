@@ -42,13 +42,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string shortCommitId,
             EnvironmentModel deploymentEnvironment)
         {
-            GiteaFileContent policyFile = await GetAuthorizationPolicyFileFromGitea(org, app, shortCommitId);
+            FileSystemObject policyFile = await GetAuthorizationPolicyFileFromGitea(org, app, shortCommitId);
             byte[] data = Convert.FromBase64String(policyFile.Content);
             string policyFileContent = Encoding.UTF8.GetString(data);
             await _authorizationPolicyClient.SavePolicy(org, app, policyFileContent, deploymentEnvironment);
         }
 
-        private async Task<GiteaFileContent> GetAuthorizationPolicyFileFromGitea(string org, string app, string shortCommitId)
+        private async Task<FileSystemObject> GetAuthorizationPolicyFileFromGitea(string org, string app, string shortCommitId)
         {
             string policyFilePath = GetAuthorizationPolicyFilePath();
             return await _giteaApiWrapper.GetFileAsync(org, app, policyFilePath, shortCommitId);

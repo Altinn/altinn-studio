@@ -8,6 +8,7 @@ using System.Xml;
 using System.Xml.Linq;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Helpers.Extensions;
@@ -1786,6 +1787,87 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return filedata;
+        }
+
+        /// <inheritdoc/>
+        public List<FileSystemObject> GetContents(string org, string repository, string path = "")
+        {
+            List<FileSystemObject> contents = new List<FileSystemObject>();
+            string repositoryPath = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string contentPath = Path.Combine(repositoryPath, path);
+
+            // repository was not found
+            if (!Directory.Exists(repositoryPath))
+            {
+                return null;
+            }
+
+            if (File.Exists(contentPath))
+            {
+                FileSystemObject f = GetFileSystemObjectForFile(contentPath);
+                contents.Add(f);
+            }
+            else if (Directory.Exists(contentPath))
+            {
+                string[] dirs = Directory.GetDirectories(contentPath);
+                foreach (string directoryPath in dirs)
+                {
+                    FileSystemObject d = GetFileSystemObjectForDirectory(directoryPath);
+                    contents.Add(d);
+                }
+
+                string[] files = Directory.GetFiles(contentPath);
+                foreach (string filePath in files)
+                {
+                    FileSystemObject f = GetFileSystemObjectForFile(filePath);
+                    contents.Add(f);
+                }
+            }
+
+            // setting all paths relative to repository
+            contents.All(c =>
+            {
+                c.Path = Path.GetRelativePath(repositoryPath, c.Path).Replace("\\", "/");
+                return true;
+            });
+
+            return contents;
+        }
+
+        private FileSystemObject GetFileSystemObjectForFile(string path)
+        {
+            FileInfo fi = new FileInfo(path);
+            string encoding;
+
+            using (StreamReader sr = new StreamReader(path))
+            {
+                encoding = sr.CurrentEncoding.EncodingName;
+            }
+
+            FileSystemObject fso = new FileSystemObject()
+            {
+                Type = FileSystemObjectType.File.ToString(),
+                Name = fi.Name,
+                Encoding = encoding,
+                Path = fi.FullName,
+            };
+
+            return fso;
+        }
+
+        private FileSystemObject GetFileSystemObjectForDirectory(string path)
+        {
+            DirectoryInfo di = new DirectoryInfo(path);
+            FileSystemObject fso = new FileSystemObject()
+            {
+                Type = FileSystemObjectType.Dir.ToString(),
+                Name = di.Name,
+                Path = path,
+                Content = null,
+                Encoding = null
+            };
+
+            return fso;
         }
 
         private string GetModelName(string org, string app)
