@@ -28,6 +28,7 @@ namespace Altinn.Studio.Designer.Helpers
                     if (claim.Type.Equals(AltinnCoreClaimTypes.Developer))
                     {
                         userName = claim.Value;
+                        break;
                     }
                 }
             }

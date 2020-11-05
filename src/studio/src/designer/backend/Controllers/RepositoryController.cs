@@ -398,7 +398,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Gets the repository content
         /// </summary>
         [HttpGet]
-        [Route("/designer/api/v1/repositories/{org}/{repository}/contents/{path?}")]
+        [Route("/designer/api/v1/repositories/{org}/{repository}/contents")]
         public ActionResult Contents(string org, string repository, [FromQuery] string path = "")
         {
             List<FileSystemObject> contents = _repository.GetContents(org, repository, path);
@@ -408,7 +408,7 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest("User does not have a local clone of the repository.");
             }
 
-            return contents;
+            return Ok(contents);
         }
     }
 }

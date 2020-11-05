@@ -24,7 +24,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">the org owning the models repo</param>
         /// <param name="app">the model repos</param>
         /// <param name="id">The datamodel id</param>
-        /// <param name="version"></param>
+        /// <param name="version">The datamodel version</param>
         [Route("/designer/api/v1/{org}/{app}/[controller]/[Action]")]
         public async Task<IActionResult> UpdateDatamodel(string org, string app, string id, string version)
         {
