@@ -30,7 +30,6 @@ namespace Altinn.App.PlatformServices.Extensions
             {
                 services.AddSingleton<ISecrets, SecretsLocalAppSI>();
             }
-
         }
     }
 }

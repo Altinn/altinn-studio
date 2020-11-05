@@ -131,6 +131,5 @@ namespace Altinn.App.Services.Interface
         /// <param name="dataElement">The data element with values to update</param>
         /// <returns>the updated data element</returns>
         Task<DataElement> Update(Instance instance, DataElement dataElement);
-
     }
 }

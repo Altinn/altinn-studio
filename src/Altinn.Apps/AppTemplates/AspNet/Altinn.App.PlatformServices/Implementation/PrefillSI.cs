@@ -34,6 +34,8 @@ namespace Altinn.App.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="profile">The profile service</param>
         /// <param name="appResourcesService">The app's resource service</param>
+        /// <param name="registerService">A service with access to register data and register related logic.</param>
+        /// <param name="httpContextAccessor">A service with access to the http context.</param>
         public PrefillSI(
             ILogger<PrefillSI> logger,
             IProfile profile,

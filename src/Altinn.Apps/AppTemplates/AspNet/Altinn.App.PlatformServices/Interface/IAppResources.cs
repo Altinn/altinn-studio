@@ -53,8 +53,6 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Returns the application metadata for an application.
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The application  metadata for an application.</returns>
         Application GetApplication();
 

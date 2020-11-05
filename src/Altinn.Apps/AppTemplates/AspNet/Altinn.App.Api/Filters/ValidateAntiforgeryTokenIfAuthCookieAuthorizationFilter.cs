@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Api.Filters
@@ -17,18 +16,15 @@ namespace Altinn.App.Api.Filters
     public class ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter : IAsyncAuthorizationFilter, IAntiforgeryPolicy
     {
         private readonly IAntiforgery _antiforgery;
-        private readonly ILogger _logger;
         private readonly AppSettings _settings;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter"/> class.
         /// </summary>
         /// <param name="antiforgery">An accessor to the antiforgery system.</param>
-        /// <param name="loggerFactory">A logger factory from the service provider.</param>
         /// <param name="settings">A reference to the current app settings.</param>
         public ValidateAntiforgeryTokenIfAuthCookieAuthorizationFilter(
             IAntiforgery antiforgery,
-            ILoggerFactory loggerFactory,
             IOptionsMonitor<AppSettings> settings)
         {
             if (antiforgery == null)
@@ -37,21 +33,14 @@ namespace Altinn.App.Api.Filters
             }
 
             _antiforgery = antiforgery;
-            _logger = loggerFactory.CreateLogger(GetType());
             _settings = settings.CurrentValue;
         }
 
         /// <inheritdoc />
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             if (!context.IsEffectivePolicy<IAntiforgeryPolicy>(this))
             {
-                // _logger.NotMostEffectiveFilter(typeof(IAntiforgeryPolicy));
                 return;
             }
 
@@ -63,7 +52,6 @@ namespace Altinn.App.Api.Filters
                 }
                 catch (AntiforgeryValidationException)
                 {
-                   // _logger.AntiforgeryTokenInvalid(exception.Message, exception);
                     context.Result = new AntiforgeryValidationFailedResult();
                 }
             }

@@ -159,7 +159,6 @@ namespace Altinn.App.Services.Helpers
                     {
                       validParty = validChildParty;
                     }
-                    
                 }
             }
 

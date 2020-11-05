@@ -36,6 +36,8 @@ namespace Altinn.App.Services.Implementation
         /// <param name="platformSettings">The platform settings object from configuration.</param>
         /// <param name="logger">A logger from the built in logger factory.</param>
         /// <param name="httpContextAccessor">An object with access to the http context.</param>
+        /// <param name="httpClient">A HttpClient provided by the built in HttpClientFactory.</param>
+        /// <param name="memoryCache">The built in MemoryCache.</param>
         public TextAppSI(
             IOptions<AppSettings> settings,
             IOptions<PlatformSettings> platformSettings,
@@ -55,8 +57,8 @@ namespace Altinn.App.Services.Implementation
             _memoryCache = memoryCache;
             cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetPriority(CacheItemPriority.High)
-                .SetAbsoluteExpiration(new TimeSpan(0, 0, settings.Value.CacheResourceLifeTimeInSeconds));
-
+                .SetAbsoluteExpiration(
+                    new TimeSpan(0, 0, settings.Value.CacheResourceLifeTimeInSeconds));
         }
 
         /// <inheritdoc />

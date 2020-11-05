@@ -35,6 +35,7 @@ namespace Altinn.App.Services.Implementation
         /// <param name="settings">The app repository settings.</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
+        /// <param name="logger">A logger from the built in logger factory.</param>
         public AppResourcesSI(
             IOptions<AppSettings> settings,
             IHttpContextAccessor httpContextAccessor,
@@ -239,14 +240,13 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc />
         public List<AppOption> GetOptions(string optionId)
         {
-            string filedata = string.Empty;
-            string filename = _settings.AppBasePath + _settings.OptionsFolder + optionId+".json";
+            string filename = _settings.AppBasePath + _settings.OptionsFolder + optionId + ".json";
             try
             {
                 if (File.Exists(filename))
                 {
-                    filedata = File.ReadAllText(filename, Encoding.UTF8);
-                    List<AppOption> options = JsonConvert.DeserializeObject<List<AppOption>>(filedata);
+                    string fileData = File.ReadAllText(filename, Encoding.UTF8);
+                    List<AppOption> options = JsonConvert.DeserializeObject<List<AppOption>>(fileData);
                     return options;
                 }
 
@@ -265,19 +265,18 @@ namespace Altinn.App.Services.Implementation
           Dictionary<string, object> layouts = new Dictionary<string, object>();
 
           // Get FormLayout.json if it exists and return it (for backwards compatibility)
-          string filedata = string.Empty;
           string fileName = _settings.AppBasePath + _settings.UiFolder + "FormLayout.json";
           if (File.Exists(fileName))
           {
-            filedata = File.ReadAllText(fileName, Encoding.UTF8);
-            layouts.Add("FormLayout", JsonConvert.DeserializeObject<object>(filedata));
+            string fileData = File.ReadAllText(fileName, Encoding.UTF8);
+            layouts.Add("FormLayout", JsonConvert.DeserializeObject<object>(fileData));
             return JsonConvert.SerializeObject(layouts);
           }
 
           string layoutsPath = _settings.AppBasePath + _settings.UiFolder + "layouts/";
           if (Directory.Exists(layoutsPath))
           {
-            foreach(string file in Directory.GetFiles(layoutsPath))
+            foreach (string file in Directory.GetFiles(layoutsPath))
             {
               string data = File.ReadAllText(file, Encoding.UTF8);
               string name = file.Replace(layoutsPath, string.Empty).Replace(".json", string.Empty);

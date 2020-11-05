@@ -23,6 +23,5 @@ namespace Altinn.App.Services.Models.Validation
         /// Gets or sets a list of parties the user represents that can instantiate
         /// </summary>
         public List<Party> ValidParties { get; set; }
-
     }
 }

@@ -11,7 +11,7 @@ namespace Altinn.App.Services.Models
     /// <summary>
     /// Represents a collection of all data required to generate a PDF
     /// </summary>
-    class PDFContext
+    public class PDFContext
     {
         /// <summary>
         /// Gets or sets the instance
@@ -59,6 +59,6 @@ namespace Altinn.App.Services.Models
         /// Gets or sets the user profile
         /// </summary>
         [JsonProperty(PropertyName = "userProfile")]
-        public UserProfile UserProfile {get; set; }
+        public UserProfile UserProfile { get; set; }
     }
 }

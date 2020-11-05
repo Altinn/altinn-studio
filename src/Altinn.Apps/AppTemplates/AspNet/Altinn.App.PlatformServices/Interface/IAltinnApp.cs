@@ -83,8 +83,8 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Is called to run custom task validation events defined by app developer.
         /// </summary>
-        ///<param name="instance">Instance to be validated.</param>
-        ///<param name="taskId">Task id for the current process task.</param>
+        /// <param name="instance">Instance to be validated.</param>
+        /// <param name="taskId">Task id for the current process task.</param>
         /// <param name="validationResults">Object containing any validation errors/warnings</param>
         /// <returns>Task to indicate when validation is completed</returns>
         Task RunTaskValidation(Instance instance, string taskId, ModelStateDictionary validationResults);

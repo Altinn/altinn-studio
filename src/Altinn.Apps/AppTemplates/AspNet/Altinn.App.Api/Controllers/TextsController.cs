@@ -31,6 +31,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="language">The text language to use.</param>
         /// <returns>The text resource file content or 404</returns>
         [HttpGet]
         public async Task<ActionResult<TextResource>> Get(string org, string app, [FromRoute] string language)
@@ -49,7 +50,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // using default language if requested language doesn't exist
-            textResource = await  _text.GetText(org, app, "nb");
+            textResource = await _text.GetText(org, app, "nb");
             if (textResource != null)
             {
                 return textResource;

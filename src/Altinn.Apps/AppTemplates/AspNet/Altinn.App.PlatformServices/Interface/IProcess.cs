@@ -25,7 +25,8 @@ namespace Altinn.App.Services.Interface
         /// </summary>
         /// <param name="instance">instance to start process on</param>
         /// <param name="proposedStartEvent">valid start event identifier</param>
-        /// <returns>process state change containg prev process state, current state and events</returns>
+        /// <param name="user">The current <see cref="ClaimsPrincipal"/>.</param>
+        /// <returns>process state change contain prev process state, current state and events</returns>
         ProcessStateChange ProcessStart(Instance instance, string proposedStartEvent, ClaimsPrincipal user);
 
         /// <summary>
@@ -58,6 +59,5 @@ namespace Altinn.App.Services.Interface
         /// Gets the instance process events related to the instance matching the instance id. 
         /// </summary>
         Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId);
-
     }
 }

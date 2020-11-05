@@ -41,8 +41,8 @@ namespace Altinn.App.Services.Implementation
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="logger">the logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
-        /// <param name="cookieOptions">The cookie options </param>
-        /// <param name="httpClientAccessor">The http client accessor </param>
+        /// <param name="settings">The current app settings.</param>
+        /// <param name="httpClient">A HttpClient from the built in HttpClient factory.</param>
         public DataAppSI(
             IOptions<PlatformSettings> platformSettings,
             ILogger<DataAppSI> logger,
@@ -357,8 +357,7 @@ namespace Altinn.App.Services.Implementation
                 return result;
             }
 
-           throw await PlatformHttpException.CreateAsync(response);
+            throw await PlatformHttpException.CreateAsync(response);
         }
-
     }
 }

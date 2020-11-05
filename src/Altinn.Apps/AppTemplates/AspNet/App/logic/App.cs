@@ -135,6 +135,7 @@ namespace Altinn.App.AppLogic
         /// Is called to run data creation (custom prefill) defined by app developer.
         /// </summary>
         /// <param name="instance">The data to perform data creation on</param>
+        /// <param name="data">The data object being created</param>
         public override async Task RunDataCreation(Instance instance, object data)
         {
            await _instantiationHandler.DataCreation(instance, data);

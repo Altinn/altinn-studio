@@ -73,7 +73,7 @@ namespace Altinn.App.Services.Configuration
         /// <summary>
         /// Gets or sets the name of the layout setting file name
         /// </summary>
-        public string FormLayoutSettingsFileName {get; set; } = "Settings.json";
+        public string FormLayoutSettingsFileName { get; set; } = "Settings.json";
 
         /// <summary>
         /// Gets or sets The name of the rule configuration json file Name

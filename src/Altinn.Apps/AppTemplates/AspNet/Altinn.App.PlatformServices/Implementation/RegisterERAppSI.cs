@@ -31,12 +31,12 @@ namespace Altinn.App.Services.Implementation
         /// Initializes a new instance of the <see cref="RegisterERAppSI"/> class
         /// </summary>
         /// <param name="logger">the logger</param>
-        ///<param name="platformSettings">the platform settings</param>
+        /// <param name="platformSettings">the platform settings</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
-        ///<param name="settings">The app settings</param>
-        ///<param name="httpClient">The http client</param>
-        ///<param name="appResources">The app resources service</param>
-        ///<param name="accessTokenGenerator">The platform access token generator</param>
+        /// <param name="settings">The app settings</param>
+        /// <param name="httpClient">The http client</param>
+        /// <param name="appResources">The app resources service</param>
+        /// <param name="accessTokenGenerator">The platform access token generator</param>
         public RegisterERAppSI(
             IOptions<PlatformSettings> platformSettings,
             ILogger<RegisterERAppSI> logger,

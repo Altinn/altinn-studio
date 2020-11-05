@@ -43,9 +43,10 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="logger">logger</param>
         /// <param name="instanceService">instance service to store instances</param>
-        /// <param name="dataService">dataservice</param>
+        /// <param name="dataService">A service with access to data storage.</param>
         /// <param name="altinnApp">The app logic for current service</param>
         /// <param name="appResourcesService">The apps resource service</param>
+        /// <param name="prefillService">A service with prefill related logic.</param>
         public DataController(
             ILogger<DataController> logger,
             IInstance instanceService,
