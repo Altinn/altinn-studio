@@ -124,13 +124,8 @@ test("User cannot clone an app that does not have a data model", async () => {
 test('Configure and delete rules', async () => {
   var appName = config[environment].rulesApp;
   await t
-    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
-  if (!await designer.appLogicmenu.exists) {
-    await t.click(designer.openAppLogicmenu)
-  }
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor");
   await t
-    .expect(designer.appLogicmenu.exists).ok({ timeout: 5000 })
-    .click(designer.dynamicsGroup)
     .expect(designer.connectRulesButton.exists).ok()
     .click(designer.connectRulesButton)
     .expect(designer.rulesConnectionModal.exists).ok({ timeout: 10000 })
@@ -142,38 +137,23 @@ test('Configure and delete rules', async () => {
     .expect(designer.addedRules.withExactText('sum').exists).ok()
     .click(designer.addedRules.withExactText('sum'))
     .expect(designer.deleteRulesButton.exists).ok()
-    .click(designer.deleteRulesButton)
+    .click(designer.deleteRulesButton);
 });
 
 test('Links in App Logic menu', async () => {
   var appName = config[environment].rulesApp;
   await t
-    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
-  if (!await designer.appLogicmenu.exists) {
-    await t.click(designer.openAppLogicmenu)
-  }
-  await t
-    .expect(designer.appLogicmenu.exists).ok({ timeout: 5000 })
-    .expect(designer.validationsGroup.exists).ok({ timeout: 5000 })
-    .expect(designer.validationsGroup.visible).ok()
-    .click(designer.validationsGroup)
-    .expect(designer.editValidations.exists).ok()
-    .click(designer.dynamicsGroup)
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor");
+  await t    
     .expect(designer.editDynamic.exists).ok()
-    .click(designer.calculationsGroup)
-    .expect(designer.editCalculations.exists).ok()
+    .expect(designer.editDynamic.visible).ok();    
 });
 
 test('Add and delete conditional rendering connections', async () => {
   var appName = config[environment].rulesApp;
   await t
-    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor")
-  if (!await designer.appLogicmenu.exists) {
-    await t.click(designer.openAppLogicmenu)
-  }
+    .navigateTo(app.baseUrl + "designer/" + appName + "#/ui-editor");
   await t
-    .expect(designer.appLogicmenu.exists).ok({ timeout: 5000 })
-    .click(designer.dynamicsGroup)
     .expect(designer.connectConditionalRendering.exists).ok()
     .click(designer.connectConditionalRendering)
     .expect(designer.renderingConnectionModal.exists).ok({ timeout: 10000 })
@@ -184,7 +164,7 @@ test('Add and delete conditional rendering connections', async () => {
     .expect(designer.addedRules.withExactText('biggerThan10').exists).ok()
     .click(designer.addedRules.withExactText('biggerThan10'))
     .expect(designer.deleteRulesButton.exists).ok()
-    .click(designer.deleteRulesButton)
+    .click(designer.deleteRulesButton);
 });
 
 test('Clone modal functionality', async () => {
