@@ -42,7 +42,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="app">the model repos</param>
-        /// <param name="filepath">The datamodel id</param>
+        /// <param name="filepath">The path to the data model (without file ending)</param>
         [HttpPut]
         [Route("/designer/api/{org}/{app}/datamodels/[Action]")]
         public async Task<IActionResult> UpdateDatamodel(string org, string app, string filepath)
@@ -61,7 +61,7 @@ namespace Altinn.Studio.Designer.Controllers
                 JsonValue toar = serializer.Serialize(jsonSchemas);
                 byte[] byteArray = Encoding.UTF8.GetBytes(toar.ToString());
                 MemoryStream jsonstream = new MemoryStream(byteArray);
-                await _repository.WriteData(org, app, filepath, jsonstream);
+                await _repository.WriteData(org, app, $"{filepath}.schema.json", jsonstream);
 
                 // Convert to XML Schema and store in repository
                 JsonSchemaToXsd jsonSchemaToXsd = new JsonSchemaToXsd();
@@ -71,7 +71,7 @@ namespace Altinn.Studio.Designer.Controllers
                 xwriter.Formatting = Formatting.Indented;
                 xwriter.WriteStartDocument(false);
                 xmlschema.Write(xsdStream);
-                await _repository.WriteData(org, app, filepath, xsdStream);
+                await _repository.WriteData(org, app, $"{filepath}.xsd", xsdStream);
             }
 
             return Ok();
