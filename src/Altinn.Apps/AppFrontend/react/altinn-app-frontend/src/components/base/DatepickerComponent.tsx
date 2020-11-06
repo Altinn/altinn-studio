@@ -119,7 +119,7 @@ function DatepickerComponent(props: IDatePickerProps) {
   };
 
   React.useEffect(() => {
-    const dateValue = moment(props.formData || '');
+    const dateValue = props.formData ? moment(props.formData) : null;
     setDate(dateValue);
   }, [props.formData]);
 
@@ -135,8 +135,14 @@ function DatepickerComponent(props: IDatePickerProps) {
     if (dateValue && dateValue.isValid()) {
       const dateString = props.timeStamp === false ? dateValue.format(DatePickerSaveFormatNoTimestamp)
         : dateValue?.toISOString(true);
-      props.handleDataChange(dateString);
       setValidDate(isValidDate(dateValue)); // the date can have a valid format but not pass min/max validation
+      if (isValidDate) {
+        props.handleDataChange(dateString);
+      }
+    } else if (!dateValue) {
+      setDate(null);
+      setValidDate(true);
+      props.handleDataChange('');
     }
   };
 
@@ -148,12 +154,18 @@ function DatepickerComponent(props: IDatePickerProps) {
   };
 
   const handleOnBlur = () => {
-    setValidDate(isValidDate(date));
+    if (date) {
+      setValidDate(isValidDate(date));
+    } else {
+      setValidDate(true);
+    }
     setValidationMessages(getValidationMessages());
-    const dateString = (props.timeStamp === false) ?
-      date.format(DatePickerSaveFormatNoTimestamp) : date?.toISOString(true);
-    const saveDate = isDateEmpty() ? '' : dateString;
-    props.handleDataChange(saveDate);
+    if (validDate) {
+      const dateString = (props.timeStamp === false) ?
+        date?.format(DatePickerSaveFormatNoTimestamp) : date?.toISOString(true);
+      const saveDate = isDateEmpty() ? '' : dateString;
+      props.handleDataChange(saveDate);
+    }
   };
 
   return (
@@ -190,7 +202,7 @@ function DatepickerComponent(props: IDatePickerProps) {
               'aria-describedby': `description-${props.id}`,
               error: (!props.isValid || !validDate),
               classes: {
-                root: classes.root + ((!props.isValid || !validDate) ? ` ${classes.invalid}` : ''),
+                root: classes.root + ((validationMessages?.errors?.length || !validDate) ? ` ${classes.invalid}` : ''),
                 input: classes.input,
               },
             }}
