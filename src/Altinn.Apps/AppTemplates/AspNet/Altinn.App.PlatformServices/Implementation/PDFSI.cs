@@ -110,7 +110,7 @@ namespace Altinn.App.Services.Implementation
             {
                 Data = encodedXml,
                 FormLayouts = JsonConvert.DeserializeObject<Dictionary<string, object>>(formLayoutsString),
-                LayoutSettings = JsonConvert.DeserializeObject<object>(layoutSettings),
+                LayoutSettings = (layoutSettings != null) ? JsonConvert.DeserializeObject<object>(layoutSettings): null,
                 TextResources = JsonConvert.DeserializeObject(textResourcesString),
                 Party = await _registerService.GetParty(instanceOwnerId),
                 Instance = instance,
