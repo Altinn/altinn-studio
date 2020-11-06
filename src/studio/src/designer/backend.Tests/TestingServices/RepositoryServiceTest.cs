@@ -22,9 +22,9 @@ namespace Designer.Tests.TestingServices
     public class RepositoryServiceTest
     {
         [Fact]
-        public void Tc1()
+        public void GetContents_FindsFolder_ReturnsListOfFileSystemObjects()
         {
-            //Arrange
+            // Arrange
             List<FileSystemObject> expected = new List<FileSystemObject>
             {
                 new FileSystemObject
@@ -33,7 +33,7 @@ namespace Designer.Tests.TestingServices
                     Type = FileSystemObjectType.Dir.ToString(),
                     Path = "App"
                 },
-                   new FileSystemObject
+               new FileSystemObject
                 {
                     Name = "App.sln",
                     Type = FileSystemObjectType.File.ToString(),
@@ -41,6 +41,8 @@ namespace Designer.Tests.TestingServices
                     Encoding = "Unicode (UTF-8)"
                 },
             };
+
+            int expectedCount = 2;
 
             HttpContext httpContext = GetHttpContextForTestUser("testUser");
             Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
@@ -53,6 +55,55 @@ namespace Designer.Tests.TestingServices
 
             // Assert
             Assert.Equal(expected.First().Type, actual.First().Type);
+            Assert.Equal(expectedCount, actual.Count);
+        }
+
+        [Fact]
+        public void GetContents_FindsFile_ReturnsOneFileSystemObject()
+        {
+            // Arrange
+            List<FileSystemObject> expected = new List<FileSystemObject>
+            {
+               new FileSystemObject
+                {
+                    Name = "appsettings.json",
+                    Type = FileSystemObjectType.File.ToString(),
+                    Path = "App/appsettings.json",
+                    Encoding = "Unicode (UTF-8)"
+                },
+            };
+
+            int expectedCount = 1;
+
+            HttpContext httpContext = GetHttpContextForTestUser("testUser");
+            Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            httpContextAccessorMock.Setup(s => s.HttpContext).Returns(httpContext);
+
+            RepositorySI sut = GetServiceForTest(httpContextAccessorMock);
+
+            // Act
+            List<FileSystemObject> actual = sut.GetContents("ttd", "apps-test", "App/appsettings.json");
+
+            // Assert
+            Assert.Equal(expected.First().Type, actual.First().Type);
+            Assert.Equal(expectedCount, actual.Count);
+        }
+
+        [Fact]
+        public void GetContents_LocalCloneOfRepositoryNotAvailable_ReturnsNull()
+        {
+            // Arrange
+            HttpContext httpContext = GetHttpContextForTestUser("testUser");
+            Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            httpContextAccessorMock.Setup(s => s.HttpContext).Returns(httpContext);
+
+            RepositorySI sut = GetServiceForTest(httpContextAccessorMock);
+
+            // Act
+            List<FileSystemObject> actual = sut.GetContents("ttd", "test-apps");
+
+            // Assert
+            Assert.Null(actual);
         }
 
         private HttpContext GetHttpContextForTestUser(string userName)
