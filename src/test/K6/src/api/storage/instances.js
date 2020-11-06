@@ -62,7 +62,6 @@ export function getArchivedInstancesByOrgAndApp(altinnStudioRuntimeCookie, appOw
     //find archived instances of the app that has created date > createdDateTime
     var endpoint = config.platformStorage["instances"] + "?created=gt:" + createdDateTime + "&org=" + appOwner + "&appId=" + appOwner + "/" + appName + "&process.isComplete=" + isArchived;
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "platform");
-    params.timeout = 120000;
     return http.get(endpoint, params);
 };
 

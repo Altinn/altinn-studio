@@ -30,10 +30,13 @@ import * as setUpData from "../../setup.js";
 const appOwner = __ENV.org;
 const appName = __ENV.level2app;
 const environment = (__ENV.env).toLowerCase();
-const waitBeforeArchiving = __ENV.wait;
+const waitBeforeArchiving = parseInt(__ENV.wait);
 const fileName = "users_" + environment + ".json";
 const maskinPortenToken = __ENV.maskinporten;
+
 let instanceFormDataXml = open("../../data/" + appName + ".xml");
+let attachmentXml1 = open("../../data/xml1.xml", "b");
+let attachmentXml2 = open("../../data/xml2.xml", "b");
 let pdfAttachment = open("../../data/test_file_pdf.pdf", "b");
 let users = JSON.parse(open("../../data/" + fileName));
 const usersCount = users.length;
@@ -100,13 +103,21 @@ export default function (data) {
     addErrorCount(success);
     printResponseToConsole("Edit Form Data by Id:", success, res);
 
-    //upload a upload attachment to an instance with App API
-    res = appData.postData(userRuntimeToken, partyId, instanceId, attachmentDataType, pdfAttachment, appOwner, appName);
+    //upload an XML attachment 1 to an instance with App API
+    res = appData.postData(userRuntimeToken, partyId, instanceId, attachmentDataType, attachmentXml1, appOwner, appName);
     success = check(res, {
-        "Upload attachment in data stage status is 201:": (r) => r.status === 201
+        "Upload attachment 1 in data stage status is 201:": (r) => r.status === 201
     });
     addErrorCount(success);
-    printResponseToConsole("Upload attachment in data stage:", success, res);
+    printResponseToConsole("Upload attachment 1 in data stage:", success, res);
+
+    //upload an XML attachment 2 to an instance with App API
+    res = appData.postData(userRuntimeToken, partyId, instanceId, attachmentDataType, attachmentXml2, appOwner, appName);
+    success = check(res, {
+        "Upload attachment 2 in data stage status is 201:": (r) => r.status === 201
+    });
+    addErrorCount(success);
+    printResponseToConsole("Upload attachment 2 in data stage:", success, res);
 
     //Test to get validate instance and verify that validation of instance is ok
     res = appInstances.getValidateInstance(userRuntimeToken, partyId, instanceId, appOwner, appName);
