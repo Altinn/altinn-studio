@@ -1,179 +1,72 @@
+import { ItemType } from "./features/editor/schemaEditorSlice";
+
 const JsonPointer = require('jsonpointer');
 
-export function generateUiSchema(
-  schema: any,
-  mainSchema: any,
-  path: string,
-  uiPath: string,
-) {
-  const result: any[] = [];
-  const required: string[] = schema.required || [];
-
-  // Loop through all properties of root node
-  Object.keys(schema.properties).forEach((key) => {
-    let value: any;
-    const refPath = schema.properties[key].$ref;
-    if (refPath) {
-      const subSchemaKey = refPath.replace('#/definitions/', '');
-      value = generateUiSchemaFromRef(mainSchema, refPath, subSchemaKey, `${uiPath}/${subSchemaKey}`);
-    } else if (typeof schema.properties[key] === 'object' && schema.properties[key] !== null) {
-      value = generateUiSchemaFromType(schema.properties[key], `${path}/${key}`, `${uiPath}/${key}`);
-    } else {
-      value = schema.properties[key];
-    }
-
-    const uiItem: any = {
-      id: key,
-      schemaPath: `${path}/properties/${key}`,
-      uiPath: `${uiPath}/${key}`,
-      $ref: refPath,
-      requiredPath: required.find((k) => k === key) ? `${path}/required` : undefined,
-      value: value,
-    };
-    result.push(uiItem);
-  });
-
-  return result;
-}
-
-export function generateUiSchemaFromRef(
-  mainSchema: any,
-  ref: string,
-  currentKey: string,
-  uiPath: string,
-) {
-  const result: any[] = [];
-  const schema: any = JsonPointer.get(mainSchema, ref.replace('#', ''));
-  console.log(`Schema for ${currentKey}: `, schema);
-  let value;
-  if (schema.properties) {
-    value = generateUiSchema(schema, mainSchema, ref.replace('#', ''), `${uiPath}/${currentKey}`);
-  } else if (schema.$ref) {
-    value = generateUiSchemaFromRef(mainSchema, schema.$ref, schema.$ref.replace('#/definitions/', ''), `${uiPath}/${currentKey}`);
-  } else {
-    value = generateUiSchemaFromType(schema, `${ref.replace('#', '')}`, `${uiPath}/${currentKey}`)
+export function getUiSchemaItem(schema: any[], path: string, itemType: ItemType, key?: string): any {
+  let propertyId: string;
+  if (itemType === ItemType.Property) {
+    [path, propertyId] = path.split('/properties/');
   }
 
-  result.push({
-    id: currentKey,
-    schemaPath: `${ref.replace('#', '')}`,
-    uiPath,
-    value,
-  });
+  let item: any = schema.find((item) => item.id === path);
+  if (itemType === ItemType.Property) {
+    item = item.properties.find((item: any) => item.id === `${path}/properties/${propertyId}`);
+  }
 
-  return result;
-}
-
-export function generateUiSchemaFromType(
-  schema: any,
-  schemaPath: string,
-  uiPath: string,
-) {
-  return Object.keys(schema).map((key) => {
-    return {
-      id: key,
-      schemaPath: `${schemaPath}/${key}`,
-      uiPath,
-      value: schema[key],
-    };
-  });
-}
-
-export function createDataArray(
-  schema: any,
-  schemaPath: string,
-  uiPath: string,
-  mainSchema?: any,
-  requiredArray?: string[]
-): any[] {
-  const result: any[] = [];
-  mainSchema = mainSchema || schema;
-  let path = schemaPath.startsWith('#') ? schemaPath.substr(1) : schemaPath;
-  const required = requiredArray || schema.required;
-  Object.keys(schema).forEach((key) => {
-    if (typeof schema[key] === 'object' && schema[key] !== null) {
-      if (key === 'properties') {
-        const propArray = createDataArray(
-          schema[key], `${schemaPath}/${key}`, uiPath, mainSchema, required);
-        propArray.forEach((property) => {
-          result.push(property);
-        })
-      } else if (key !== 'definitions' && key !== 'required') {
-        result.push({
-          id: key,
-          uiPath,
-          schemaPath: path || '/',
-          value: createDataArray(
-            schema[key], `${schemaPath}/${key}`, `${uiPath}/${key}`, mainSchema),
-          $ref: schema[key].$ref || undefined,
-          requiredPath: required && required.find((k: string) => k === key) ?
-          schemaPath.replace('properties', 'required') : undefined,
-        });
-      }
-    } else {
-      if (key === '$ref') {
-        const refPath = schema[key].startsWith('#') ? schema[key].substr(1) : schema[key];
-        const subSchema = JsonPointer.get(mainSchema, refPath);
-        const content = createDataArray(subSchema, schema[key], uiPath, mainSchema);
-        result.push({
-          id: schema.$ref.replace('#/definitions/', ''),
-          displayText: `Type: ${schema.$ref.replace('#/definitions/', '')}`,
-          uiPath,
-          schemaPath: schema.$ref.replace('#', ''),
-          $ref: subSchema.$ref,
-          requiredPath: required && required.find((k: string) => k === key) ?
-          schemaPath.replace('properties', 'required') : undefined,
-          value: content,
-        });
-        // content.forEach((item) => {
-        //   result.push(item);
-        // });
-      } else {
-        result.push({
-          id: key,
-          uiPath,
-          schemaPath: path || '/',
-          value: schema[key],
-        });
-      }
-    }
-  });
-
-  return result;
-}
-
-export function getUiSchemaItem(schema: any[], pathArray: string[], index: number): any {
-  const pathSegment = pathArray[index];
-  const item = schema.find((schemaItem) => schemaItem.id === pathSegment);
-  if (item && Array.isArray(item.value) && index < pathArray.length - 1) {
-    return getUiSchemaItem(item.value, pathArray, ++index);
+  if (key) {
+    item = item.value.find((item: any) => item.key === key);
   }
 
   return item;
 }
 
-export function buildJsonSchema(uiSchema: any[], result: any): any {
-  uiSchema.forEach((item) => {
-    console.log(item.id);
-    const path = item.schemaPath.endsWith('/') ? `${item.schemaPath}${item.id}` : `${item.schemaPath}/${item.id}`;
-    let itemToSet: any;
-    if (item.$ref) {
-      itemToSet = {
-        $ref: item.$ref
+export function buildJsonSchema(uiSchema: any[]): any {
+  const result: any = {};
+  uiSchema.forEach((uiItem) => {
+    const item = createJsonSchemaItem(uiItem);
+    JsonPointer.set(result, uiItem.id.replace(/^#/, ''), item);
+  });
+
+  return result;
+}
+
+export function createJsonSchemaItem(uiSchemaItem: any): any {
+  if (uiSchemaItem.$ref) {
+    return { $ref: uiSchemaItem.$ref };
+  }
+
+  const item: any = {};
+  Object.keys(uiSchemaItem).forEach((key) => {
+    switch(key) {
+      case 'properties':{
+        const properties: any = {};
+        item.properties = properties;
+        uiSchemaItem.properties.forEach((property: any) => {
+          item.properties[property.name] = createJsonSchemaItem(property);
+        });
+        break;
       }
-      JsonPointer.set(result, path, itemToSet);
-    }
-
-    if (item.requiredPath) {
-      JsonPointer.set(result, `/${item.requiredPath.substr(1)}/-`, item.id);
-    }
-
-    if (Array.isArray(item.value)) {
-      buildJsonSchema(item.value, result);
-    } else {
-      JsonPointer.set(result, path, item.value);
+      case 'value': {
+        if (Array.isArray(uiSchemaItem.value)) {
+          uiSchemaItem.value.forEach((valueItem: any) => {
+            item[valueItem.key] = valueItem.value;
+          });
+        } 
+        break;
+      }
+      case 'required': {
+        item.required = uiSchemaItem.required;
+        break;
+      }
+      case 'id':
+      case 'name':
+        break;
+      default:
+        item[key] = uiSchemaItem[key];
+        break;
     }
   });
+  return item;
 }
 
 export function buildUISchema(schema: any, rootPath: string,) {
@@ -216,7 +109,7 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string) {
     const currentProperty = schema.properties[key];
     const item: any = {
       id: `${name}/properties/${key}`,
-      displayText: key,
+      name: key,
     };
 
     if (currentProperty.$ref) {
@@ -234,9 +127,18 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string) {
     properties.push(item);
   });
 
+  const rest: any = {};
+  Object.keys(schema).forEach((key) => {
+    if (key === 'properties') {
+      return;
+    }
+    rest[key] = schema[key];
+  })
+
   return {
     id: name,
     properties,
     required: schema.required,
+    ...rest,
   };
 }

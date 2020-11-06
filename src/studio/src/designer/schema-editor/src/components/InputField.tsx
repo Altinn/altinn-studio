@@ -26,7 +26,7 @@ export interface IInputFieldProps {
   value: string;
   label: string;
   fullPath: string;
-  onChangeValue: (path: string, value: string, key?: string) => void;
+  onChangeValue: (path: string, value: any, key?: string) => void;
   onChangeKey: (path: string, oldKey: string, newKey: string) => void;
 }
 
@@ -42,7 +42,11 @@ export function InputField(props: IInputFieldProps) {
 
   const onChangeValue = (e: any) => {
     setValue(e.target.value);
-    props.onChangeValue(props.fullPath, e.target.value, props.label);
+    let value = e.target.value;
+    if (props.label === 'enum') {
+      value = e.target.value.split(',');
+    }
+    props.onChangeValue(props.fullPath, value, props.label);
   }
 
   const onChangeKey = (e: any) => {

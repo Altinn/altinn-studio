@@ -60,11 +60,16 @@ function SchemaItem(props: StyledTreeItemProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const {item, ...other} = props;
-  const { id, $ref, value, properties } = item;
+  let { id, $ref, value, properties } = item;
 
   const refItem = useSelector((state: ISchemaState) => state.uiSchema.find((i) => i.id === $ref));
   //const propertyItems: any[] = useSelector((state: ISchemaState) => state.uiSchema.filter((i) => properties.find((p: any) => p.id === i.id) !== undefined));
 
+  // React.useEffect(() => {
+  //   if (refItem) {
+  //     {properties}
+  //   }
+  // }, [refItem]);
   const onAddPropertyClick = (event: any) => {
     dispatch(addProperty({
       path: id,
@@ -82,7 +87,12 @@ function SchemaItem(props: StyledTreeItemProps) {
   }
 
   const onChangeValue = (path: string, value: any, key?: string) => {
-    dispatch(setValue({path, value, key}));
+    const data = {
+      path, 
+      value,
+      key,
+    }
+    dispatch(setValue(data));
   }
 
   const onChangeKey = (path: string, oldKey: string, newKey: string) => {
@@ -96,13 +106,8 @@ function SchemaItem(props: StyledTreeItemProps) {
       label={
         <div className={classes.labelRoot}>
           <Typography className={classes.label} variant='body1'>
-            {props.item.displayText || id}
+            {props.item.name || id}
           </Typography>
-          {/* {props.typeRef &&
-            <Typography className={classes.typeRef} variant='body1'>
-              {` :  ${props.typeRef.replace('#/definitions/', '')}`}
-            </Typography>
-          } */}
           {!refItem && 
           <>
             <Typography className={classes.buttonRoot} variant="button" color="inherit">
