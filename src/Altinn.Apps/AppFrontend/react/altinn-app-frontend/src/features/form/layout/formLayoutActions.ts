@@ -1,5 +1,5 @@
-import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { INavigationConfig } from 'src/types';
+import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { ILayoutSettings, INavigationConfig } from 'src/types';
 import { store } from '../../../store';
 import * as FetchForm from './fetch/fetchFormLayoutActions';
 import * as UpdateFormLayout from './update/updateFormLayoutActions';
@@ -10,6 +10,9 @@ export interface IFormLayoutActions extends ActionCreatorsMapObject {
   fetchFormLayoutFulfilled: (layouts: ILayouts, navigationConfig: INavigationConfig)
     => FetchForm.IFetchFormLayoutFulfilled;
   fetchFormLayoutRejected: (error: Error) => FetchForm.IFetchFormLayoutRejected;
+  fetchFormLayoutSettings: () => Action;
+  fetchFormLayoutSettingsFulfilled: (settings: ILayoutSettings) => FetchForm.IFetchFormLayoutSettingsFulfilled;
+  fetchFormLayoutSettingsRejected: (error: Error) => FetchForm.IFetchFormLayoutSettingsRejected;
   updateFocus: (currentComponentId: string, step?: number) => UpdateFormLayout.IUpdateFocus;
   updateFocusFulfilled: (focusComponentId: string) => UpdateFormLayout.IUpdateFocusFulfilled;
   updateFocusRejected: (error: Error) => UpdateFormLayout.IUpdateFocusRejected;
@@ -30,6 +33,9 @@ const actions: IFormLayoutActions = {
   fetchFormLayout: FetchForm.fetchFormLayout,
   fetchFormLayoutFulfilled: FetchForm.fetchFormLayoutFulfilled,
   fetchFormLayoutRejected: FetchForm.fetchFormLayoutRejected,
+  fetchFormLayoutSettings: FetchForm.fetchFormLayoutSettings,
+  fetchFormLayoutSettingsFulfilled: FetchForm.fetchFormLayoutSettingsFulfilled,
+  fetchFormLayoutSettingsRejected: FetchForm.fetchFormLayoutSettingsRejected,
   updateFocus: UpdateFormLayout.updateFocus,
   updateFocusFulfilled: UpdateFormLayout.updateFocusFulfilled,
   updateFocusRejected: UpdateFormLayout.updateFocusRejected,

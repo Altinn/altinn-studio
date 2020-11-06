@@ -269,36 +269,7 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                 Assert.Equal(expected, actual);
             }
-
-            /// <summary>
-            /// Scenario:
-            ///   Get events without defined party, unit or person
-            /// Expected result:
-            ///   Returns HttpStatus BadRequest.
-            /// Success criteria:
-            ///   The response has correct status.
-            /// </summary>
-            [Fact]
-            public async void GetForOrg_MissingRequiredSubjectParam_ReturnsBadRequest()
-            {
-                // Arrange
-                string expected = "\"Subject must be specified using either query params party or unit or header value person.\"";
-
-                string requestUri = $"{BasePath}/app/ttd/endring-av-navn-v2?from=2020-01-01&size=5";
-                HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetOrgToken("ttd"));
-
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-
-                // Act
-                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-                string actual = await response.Content.ReadAsStringAsync();
-
-                // Assert
-                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-                Assert.Equal(expected, actual);
-            }
-
+          
             /// <summary>
             /// Scenario:
             ///   Get events with negative size.
@@ -515,35 +486,6 @@ namespace Altinn.Platform.Events.Tests.TestingControllers
                 // Arrange
                 string requestUri = $"{BasePath}/app/party?from=2020-01-01&size=5";
                 string expected = "\"Subject must be specified using either query params party or unit or header value person.\"";
-
-                HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));
-
-                HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
-
-                // Act
-                HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-                string actual = await response.Content.ReadAsStringAsync();
-
-                // Assert
-                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-                Assert.Equal(expected, actual);
-            }
-
-            /// <summary>
-            /// Scenario:
-            ///   Get events without org when app is defined.
-            /// Expected result:
-            ///   Returns HttpStatus BadRequest.
-            /// Success criteria:
-            ///   The response has correct status.
-            /// </summary>
-            [Fact]
-            public async void GetForParty_MissingOrgWhenAppIsDefined_ReturnsBadRequest()
-            {
-                // Arrange
-                string requestUri = $"{BasePath}/app/party?from=2020-01-01&party=1337&app=apps-test&size=5";
-                string expected = "\"Query param org must be defined when query parameter app is defined.\"";
 
                 HttpClient client = GetTestClient(new Mock<IEventsService>().Object);
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PrincipalUtil.GetToken(1));

@@ -2,7 +2,6 @@
 import 'jest';
 import { convertFromLayoutToInternalFormat,
   convertInternalToLayoutFormat,
-  getParentContainerId,
   extractChildrenFromGroup } from '../../../utils/formLayout';
 
 describe('>>> utils/formLayout', () => {
@@ -114,11 +113,11 @@ describe('>>> utils/formLayout', () => {
 
     expect(convertedLayout.components).toEqual(mockResult.components);
   });
-  it('+++ convertFromLayoutToInternalFormat should return empty IFormDesignerLayout if no formLayout', () => {
+  it('+++ convertFromLayoutToInternalFormat should initiate an form layout with a base container', () => {
     const convertedLayout = convertFromLayoutToInternalFormat(null);
-    expect(convertedLayout).toEqual({
-      containers: {}, components: {}, order: {},
-    });
+    expect(Object.keys(convertedLayout.containers).length).toEqual(1);
+    expect(Object.keys(convertedLayout.components).length).toEqual(0);
+    expect(Object.keys(convertedLayout.order).length).toEqual(1);
   });
   it('+++ convertInternalToLayoutFormat should convert to correct format', () => {
     const convertedLayout = convertInternalToLayoutFormat(mockInternal);
@@ -153,11 +152,6 @@ describe('>>> utils/formLayout', () => {
     ];
     expect(Array.isArray(convertedLayout)).toBe(true);
     expect(convertedLayout).toEqual(mockResult);
-  });
-
-  it('+++ getParentContainerId should return correct parent container id', () => {
-    const result = getParentContainerId('46882e2b-8097-4170-ad4c-32cdc156634e', { layout: mockInternal });
-    expect(result).toBe('f35e6f67-7d3a-4e20-a538-90d94e6c29a1');
   });
 
   it('+++ extractChildrenFromGroup should return all children from a container', () => {

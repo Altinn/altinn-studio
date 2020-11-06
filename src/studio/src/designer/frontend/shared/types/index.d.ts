@@ -147,3 +147,11 @@ export interface IParty {
   organisation?: IOrganisation;
   childParties: IParty[];
 }
+
+export interface ILayoutSettings {
+  pages: IPagesSettings;
+}
+
+export interface IPagesSettings {
+  order: [];
+}

@@ -48,6 +48,15 @@ public class PdfContext {
   @Nullable
   private UserProfile userProfile;
 
+  @Nullable
+  public LayoutSettings getLayoutSettings() { return layoutSettings; }
+
+  public void setLayoutSettings(@Nullable LayoutSettings layoutSettings) { this.layoutSettings = layoutSettings; }
+
+  @ApiModelProperty(notes = "The layout settings")
+  @Nullable
+  private LayoutSettings layoutSettings;
+
   public Party getUserParty() { return userParty; }
 
   public void setUserParty(Party userParty) { this.userParty = userParty; }

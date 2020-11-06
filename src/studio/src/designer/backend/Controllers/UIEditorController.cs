@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
@@ -51,7 +52,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         public ActionResult GetFormLayout(string org, string app)
         {
-            return Content(_repository.GetJsonFormLayout(org, app), "text/plain", Encoding.UTF8);
+            return Content(_repository.GetJsonFormLayouts(org, app), "text/plain", Encoding.UTF8);
         }
 
         /// <summary>
@@ -98,17 +99,90 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="jsonData">The code list data to save</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="id">The name of the form layout to be saved.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        public ActionResult SaveFormLayout([FromBody] dynamic jsonData, string org, string app)
+        public ActionResult SaveFormLayout([FromBody] dynamic jsonData, string org, string app, string id)
         {
-            _repository.SaveJsonFormLayout(org, app, jsonData.ToString());
+            _repository.SaveFormLayout(org, app, id, jsonData.ToString());
 
             return Json(new
             {
                 Success = true,
                 Message = "Skjema lagret",
             });
+        }
+
+        /// <summary>
+        /// Delete a form layout
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="id">The form layout to be deleted</param>
+        /// <returns>A success message if the save was successful</returns>
+        [HttpDelete]
+        public ActionResult DeleteFormLayout(string org, string app, string id)
+        {
+            if (_repository.DeleteFormLayout(org, app, id))
+            {
+                return Json(new
+                {
+                    Success = true,
+                    Message = "Skjema slettet",
+                });
+            }
+
+            return Json(new
+            {
+                Success = false,
+                Message = "Ikke slettet",
+            });
+        }
+
+        /// <summary>
+        /// Update a form layout name
+        /// </summary>
+        /// <param name="newName">The new name of the form layout.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="id">The current name of the form layuout</param>
+        /// <returns>A success message if the save was successful</returns>
+        [HttpPost]
+        public ActionResult UpdateFormLayoutName([FromBody] string newName, string org, string app, string id)
+        {
+            bool success = _repository.UpdateFormLayoutName(org, app, id, newName);
+            return Json(new
+            {
+                Success = success,
+            });
+        }
+
+        /// <summary>
+        /// Saves the layout settings
+        /// </summary>
+        /// <param name="jsonData">The data to be saved</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>A success message if the save was successful</returns>
+        public ActionResult SaveLayoutSettings([FromBody] dynamic jsonData, string org, string app)
+        {
+            _repository.SaveLayoutSettings(org, app, jsonData.ToString());
+            return Json(new
+            {
+                Success = true,
+                Message = "Setting lagret",
+            });
+        }
+
+        /// <summary>
+        /// Gets the layout settings
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The content of the settings file</returns>
+        public ActionResult GetLayoutSettings(string org, string app)
+        {
+            return Content(_repository.GetLayoutSettings(org, app), "application/json", Encoding.UTF8);
         }
 
         /// <summary>

@@ -134,5 +134,13 @@ namespace Altinn.App.Api.Controllers
           string layouts = _appResourceService.GetLayouts();
           return Ok(layouts);
         }
+
+        [HttpGet]
+        [Route("{org}/{app}/api/layoutsettings")]
+        public ActionResult LayoutSettings(string org, string app)
+        {
+            string settings = _appResourceService.GetLayoutSettings();
+            return Ok(settings);
+        }
     }
 }

@@ -21,6 +21,12 @@ namespace Altinn.App.Services.Models
         public Dictionary<string, object> FormLayouts { get; set; }
 
         /// <summary>
+        /// Gets or sets the layout settings
+        /// </summary>
+        [JsonProperty(PropertyName = "layoutSettings")]
+        public object LayoutSettings { get; set; } 
+
+        /// <summary>
         /// Gets or sets the text resources
         /// </summary>
         [JsonProperty(PropertyName = "textResources")]

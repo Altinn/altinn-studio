@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Newtonsoft.Json;
@@ -24,7 +25,12 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Constant for the location of language resource files
         /// </summary>
-        public const string FORMLAYOUT_RESOURCE_FOLDER_NAME = "App/ui/";
+        public const string UI_RESOURCE_FOLDER_NAME = "App/ui/";
+
+        /// <summary>
+        /// Constant for the location of form layouts
+        /// </summary>
+        public const string FORMLAYOUTS_RESOURCE_FOLDER_NAME = "layouts/";
 
         /// <summary>
         /// Constant for the location of language resource files
@@ -60,6 +66,11 @@ namespace Altinn.Studio.Designer.Configuration
         /// Constant for the name of rule configuration file
         /// </summary>
         public const string RULE_CONFIG_FILE_NAME = "RuleConfiguration.json";
+
+        /// <summary>
+        /// Constant for the name of the layout setting file
+        /// </summary>
+        public const string LAYOUT_SETTING_FILE = "Settings.json";
 
         /// <summary>
         /// Constant for the location of app logic files
@@ -183,7 +194,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Gets or sets The name of the FormLayout json file Name
         /// </summary>
-        public string FormLayoutJSONFileName { get; set; } = FORMLAYOUT_RESOURCE_FOLDER_NAME + "FormLayout.json";
+        public string FormLayoutJSONFileName { get; set; } = UI_RESOURCE_FOLDER_NAME + "FormLayout.json";
 
         /// <summary>
         /// Gets or sets The name of the ThirdPartyComponents json file Name
@@ -383,7 +394,39 @@ namespace Altinn.Studio.Designer.Configuration
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="developer">The current developer</param>
         /// <returns>The full path, ending with "/"</returns>
+        [Obsolete("GetFormLayoutPath gets the path of the old form layout (ui/FormLayout.json). Use GetFormLayoutPath(org, app, developer, formLayout) for new structure.")]
         public string GetFormLayoutPath(string org, string app, string developer)
+        {
+            org = org.AsFileName();
+            app = app.AsFileName();
+            developer = developer.AsFileName();
+            return Path.Join(RepositoryLocation, developer, org, app, FormLayoutJSONFileName);
+        }
+
+        /// <summary>
+        /// Method that returns the path to the a specific form layout
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="formLayout">The form layout name</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetFormLayoutPath(string org, string app, string developer, string formLayout)
+        {
+            org = org.AsFileName();
+            app = app.AsFileName();
+            developer = developer.AsFileName();
+            return Path.Join(RepositoryLocation, developer, org, app, UI_RESOURCE_FOLDER_NAME, FORMLAYOUTS_RESOURCE_FOLDER_NAME, formLayout + ".json");
+        }
+
+        /// <summary>
+        /// Method that returns the path to the form layouts folder
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">The current developer</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetFormLayoutsPath(string org, string app, string developer)
         {
             org = org.AsFileName();
             app = app.AsFileName();
@@ -394,7 +437,7 @@ namespace Altinn.Studio.Designer.Configuration
                 developer += "/";
             }
 
-            return $"{RepositoryLocation}/{developer}{org}/{app}/{FormLayoutJSONFileName}";
+            return $"{RepositoryLocation}/{developer}{org}/{app}/{UI_RESOURCE_FOLDER_NAME}/{FORMLAYOUTS_RESOURCE_FOLDER_NAME}/";
         }
 
         /// <summary>
@@ -427,7 +470,19 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetRuleHandlerPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + FORMLAYOUT_RESOURCE_FOLDER_NAME + RuleHandlerFileName;
+            return Path.Join(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, RuleHandlerFileName);
+        }
+
+        /// <summary>
+        /// Get the path to the layout setttings file
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
+        /// <returns>The full path</returns>
+        public string GetLayoutSettingPath(string org, string app, string developer)
+        {
+            return Path.Join(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, LAYOUT_SETTING_FILE);
         }
         
         /// <summary>
@@ -484,7 +539,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetRuleConfigPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + FORMLAYOUT_RESOURCE_FOLDER_NAME + RULE_CONFIG_FILE_NAME;
+            return GetServicePath(org, app, developer) + UI_RESOURCE_FOLDER_NAME + RULE_CONFIG_FILE_NAME;
         }
 
         /// <summary>

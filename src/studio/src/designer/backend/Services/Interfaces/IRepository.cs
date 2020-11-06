@@ -349,12 +349,12 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         byte[] GetServiceResource(string org, string app, string resource);
 
         /// <summary>
-        /// Get the Json form model from disk
+        /// Get the form layouts from disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>Returns the json object as a string</returns>
-        string GetJsonFormLayout(string org, string app);
+        string GetJsonFormLayouts(string org, string app);
 
         /// <summary>
         /// Get the Json third party components from disk
@@ -377,9 +377,46 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resource">The content of the resource file</param>
+        /// <param name="formLayout">The form layout name</param>
+        /// <param name="content">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        bool SaveJsonFormLayout(string org, string app, string resource);
+        bool SaveFormLayout(string org, string app, string formLayout, string content);
+
+        /// <summary>
+        /// Updates a formlayout json name
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="currentName">Current form layout name</param>
+        /// <param name="newName">The new form layout name</param>
+        /// <returns>A boolean indicating if updating was ok</returns>
+        bool UpdateFormLayoutName(string org, string app, string currentName, string newName);
+
+        /// <summary>
+        /// Removes a form layout from disk
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="formLayout">The form layout to be deleted</param>
+        /// <returns>A boolean indicating if deleting was ok</returns>
+        bool DeleteFormLayout(string org, string app, string formLayout);
+
+        /// <summary>
+        /// Saves a layout setting file on disk
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="setting">The content of the setting file</param>
+        /// <returns>A boolean indicating if save was ok</returns>
+        bool SaveLayoutSettings(string org, string app, string setting);
+
+        /// <summary>
+        /// Gets the layout settings
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The content as string</returns>
+        string GetLayoutSettings(string org, string app);
 
         /// <summary>
         /// Save the JSON third party components to disk

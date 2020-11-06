@@ -1,3 +1,5 @@
+import { IOption, Triggers } from '../../../types';
+
 export interface ILayouts {
   [id: string]: ILayout;
 }
@@ -23,7 +25,7 @@ export interface ILayoutComponent extends ILayoutEntry {
   disabled?: boolean;
   required: boolean;
   textResourceBindings: ITextResourceBindings;
-  triggerValidation?: boolean;
+  triggers?: Triggers[];
 }
 export interface IDataModelBindings {
   [id: string]: string;
@@ -35,21 +37,12 @@ export interface ITextResourceBindings {
 
 export type ILayout = Array<ILayoutComponent | ILayoutGroup>;
 
-export interface IComponentOptions {
-  label: string;
-  value: string;
-}
-
-export interface ICheckboxProps extends ILayoutComponent {
-  options: IComponentOptions[];
-  preSelectedOptionIndex: number;
+export interface ISelectionComponentProps extends ILayoutComponent {
+  options?: IOption[];
+  optionsId?: string;
 }
 
 export interface IDatepickerProps extends ILayoutComponent { }
-
-export interface IDropdownProps extends ILayoutComponent {
-  options: IComponentOptions[];
-}
 
 export interface IFileuploadProps extends ILayoutComponent {
   maxNumberOfAttachments: number;
@@ -87,7 +80,7 @@ export interface INavigationButtonProps extends ILayoutComponent {
 export interface IParagraphProps extends ILayoutComponent { }
 
 export interface IRadioButtonsProps extends ILayoutComponent {
-  options: IComponentOptions[];
+  options: IOption[];
   preselectedOptionIndex: number;
 }
 

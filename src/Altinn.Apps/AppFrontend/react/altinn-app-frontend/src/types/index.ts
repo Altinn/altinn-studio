@@ -132,6 +132,14 @@ export interface IFormRadioButtonComponent extends IFormComponent {
 
 export interface IFormTextAreaComponent extends IFormComponent { }
 
+export interface ILayoutSettings {
+  pages: IPagesSettings;
+}
+
+export interface IPagesSettings {
+  order: string[];
+}
+
 export interface ILayoutNavigation {
   next?: string;
   previous?: string;
@@ -227,6 +235,7 @@ export interface IUiConfig {
   hiddenFields: string[];
   repeatingGroups?: IRepeatingGroups;
   navigationConfig?: INavigationConfig;
+  layoutOrder: string[];
 }
 
 export interface IValidationResult {
@@ -256,4 +265,8 @@ export enum Severity {
   Error = 1,
   Warning = 2,
   Informational = 3,
+}
+
+export enum Triggers {
+  Validation = 'validation',
 }

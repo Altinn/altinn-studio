@@ -63,6 +63,9 @@ export function getComponentTitleByComponentType(componentType: ComponentTypes, 
     case ComponentTypes.Group: {
       return language.ux_editor.component_group;
     }
+    case ComponentTypes.NavigationButtons: {
+      return language.ux_editor.component_navigation_buttons;
+    }
     default: {
       return '';
     }

@@ -12,17 +12,17 @@
 */
 
 import { check } from "k6";
-import { addErrorCount } from "../../../../errorcounter.js";
-import { convertMaskinPortenToken } from "../../../../api/platform/authentication.js"
-import * as instances from "../../../../api/storage/instances.js"
-import * as setUpData from "../../../../setup.js";
+import { addErrorCount } from "../../../errorcounter.js";
+import { convertMaskinPortenToken } from "../../../api/platform/authentication.js"
+import * as instances from "../../../api/storage/instances.js"
+import * as setUpData from "../../../setup.js";
 
 const userName = __ENV.username;
 const userPassword = __ENV.userpwd;
 const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
 const maskinPortenToken = __ENV.maskinporten;
-let instanceJson = open("../../../../data/instance.json");
+let instanceJson = open("../../../data/instance.json");
 
 export const options = {
     thresholds: {

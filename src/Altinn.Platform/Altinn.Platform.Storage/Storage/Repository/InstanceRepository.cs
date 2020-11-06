@@ -157,7 +157,7 @@ namespace Altinn.Platform.Storage.Repository
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError("error: {e}");
+                    _logger.LogError(e, "Exception querying CosmosDB for instances");
                     queryResponse.Exception = e.Message;
                     break;
                 }
@@ -234,6 +234,9 @@ namespace Altinn.Platform.Storage.Repository
                             queryBuilder = QueryBuilderForEnded(queryBuilder, queryValue);
                             break;
 
+                        case "excludeConfirmedBy":
+                            queryBuilder = QueryBuilderExcludeConfirmedBy(queryBuilder, queryValue);
+                            break;
                         default:
                             throw new ArgumentException($"Unknown query parameter: {queryParameter}");
                     }
@@ -358,6 +361,14 @@ namespace Altinn.Platform.Storage.Repository
 
             dateValue = ParseDateTimeIntoUtc(queryValue);
             return queryBuilder.Where(i => i.Process.Ended == dateValue);
+        }
+
+        private IQueryable<Instance> QueryBuilderExcludeConfirmedBy(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            return queryBuilder.Where(i =>
+
+                // A slightly more readable variant would be to use All( != ), but All() isn't supported.
+                !i.CompleteConfirmations.Any(cc => cc.StakeholderId == queryValue));
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods

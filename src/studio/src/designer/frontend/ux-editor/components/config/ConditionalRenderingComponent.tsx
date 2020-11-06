@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import * as uuid from 'uuid/v1'; // time
+import { makeGetAllLayoutComponents, makeGetALlLayoutContainers, makeGetFullOrder } from '../../selectors/getLayoutData';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 
 export interface IConditionalRenderingComponentProps {
@@ -213,11 +214,16 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
   }
 
   public renderCondtionalRenderingTargetOptions = (): JSX.Element[] => {
-    const baseContainerKey = Object.keys(this.props.order)[0];
-    if (!baseContainerKey) {
-      return null;
-    }
-    return this.renderCondtionalRenderingTargetContainerOptions(baseContainerKey, true);
+    const options: JSX.Element[] = [];
+    Object.keys(this.props.order).forEach((key) => {
+      const containerKey = Object.keys(this.props.order)[0];
+      const isBaseContainer = this.props.formLayoutContainers[containerKey]?.Type !== 'Group';
+      const containerOptions = this.renderCondtionalRenderingTargetContainerOptions(key, isBaseContainer);
+      containerOptions.forEach((option) => {
+        options.push(option);
+      });
+    });
+    return options;
   }
 
   public render(): JSX.Element {
@@ -401,13 +407,16 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
 }
 
 const mapStateToProps = (state: IAppState, props: any): any => {
+  const getAllContainers = makeGetALlLayoutContainers();
+  const getAllComponents = makeGetAllLayoutComponents();
+  const getFullOrder = makeGetFullOrder();
   return {
     ruleModelElements: state.appData.ruleModel.model.filter((key: any) => key.type === 'condition'),
     conditionalRendering: state.serviceConfigurations.conditionalRendering,
     selectedFunction: props.selectedFunction,
-    formLayoutComponents: state.formDesigner.layout.components,
-    formLayoutContainers: state.formDesigner.layout.containers,
-    order: state.formDesigner.layout.order,
+    formLayoutComponents: getAllComponents(state),
+    formLayoutContainers: getAllContainers(state),
+    order: getFullOrder(state),
     language: state.appData.language.language,
   };
 };
