@@ -19,8 +19,7 @@ export function getSblInstanceByParty(altinnStudioRuntimeCookie, partyId) {
 //Api call to Storage:SBL instances to get an instance by id and return response
 export function deleteSblInstance(altinnStudioRuntimeCookie, partyId, instanceId, hardDelete) {
     var endpoint = config.buildStorageUrls(partyId, instanceId, "", "sblinstanceid") + "?hard=" + hardDelete;
-    var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, "platform");
-    params.timeout = 120000;
+    var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, "platform");    
     return http.del(endpoint, "", params);
 };
 

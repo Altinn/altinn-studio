@@ -11,8 +11,7 @@ export function buildHeadersForData(isBinaryAttachment, altinnStudioRuntimeCooki
                 "Authorization": "Bearer " + altinnStudioRuntimeCookie,
                 "Content-Type": "application/octet-stream",
                 "Content-Disposition": "attachment; filename=test.pdf"
-            },
-            timeout: 300000
+            }            
         };
     }
     else {
