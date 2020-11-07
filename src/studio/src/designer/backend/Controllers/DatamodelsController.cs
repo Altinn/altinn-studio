@@ -76,5 +76,22 @@ namespace Altinn.Studio.Designer.Controllers
 
             return Ok();
         }
+
+        /// <summary>
+        /// Returns datamodel
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="app"></param>
+        /// <param name="filepath"></param>
+        /// <returns></returns>
+        [HttpPut]
+        [Route("/designer/api/{org}/{app}/datamodels/[Action]")]
+        public async Task<IActionResult> GetDatamodel(string org, string app, string filepath)
+        {
+           Stream dataStream = await _repository.ReadData(org, app, filepath);
+           TextReader textReader = new StreamReader(dataStream);
+           JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
+           return Ok(jsonValue);
+        }
     }
 }
