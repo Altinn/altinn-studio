@@ -9,7 +9,7 @@
     }
   ]
   example: k6 run -i 20 --duration 1m --logformat raw --console-output=./src/data/instances.csv src/tests/app/e2erf0002.js 
-  -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e archive=true -e delete=true
+  -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e archive=true -e delete=true -e harddelete=true
 */
 
 import { check } from "k6";
@@ -27,6 +27,7 @@ const environment = (__ENV.env).toLowerCase();
 const fileName = "users_" + environment + ".json";
 const toArchive = (__ENV.archive) ? (__ENV.archive).toLowerCase() : "true";
 const toDelete = (__ENV.delete) ? (__ENV.delete).toLowerCase() : "true";
+const hardDelete = (__ENV.harddelete) ? (__ENV.harddelete).toLowerCase() : "true";
 
 let instanceFormDataXml = open("../../data/" + level2App + ".xml");
 let users = JSON.parse(open("../../data/" + fileName));
@@ -111,10 +112,11 @@ export default function () {
         });
         addErrorCount(success);
         printResponseToConsole("E2E App Instance is not archived:", success, res);
-
-        if (toDelete == "true")
-            deleteSblInstance(runtimeToken, partyId, instanceId, "true");
     };
+
+    //hard delete or soft delete an instance if delete flag is set  
+    if (toDelete == "true")
+        deleteSblInstance(runtimeToken, partyId, instanceId, hardDelete);
 
     /* write the instance id to console which can be written to a file using --console-output and logformat raw
     for appowner tests. */

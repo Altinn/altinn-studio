@@ -9,9 +9,12 @@ export function getSblInstanceById(altinnStudioRuntimeCookie, partyId, instanceI
     return http.get(endpoint, params);
 };
 
-//Api call to Storage:SBL instances to get an instance for a partyid and return response
-export function getSblInstanceByParty(altinnStudioRuntimeCookie, partyId) {
-    var endpoint = config.platformStorage["messageBoxInstances"] + "/" + partyId + "?state=active&language=nb";
+/**
+ * Api call to Storage:SBL instances to get an instance for a partyid and return response  
+ * @param {*} state the instance state; active, archived or deleted
+ */
+export function getSblInstanceByParty(altinnStudioRuntimeCookie, partyId, state) {
+    var endpoint = config.platformStorage["messageBoxInstances"] + "/" + partyId + "?state=" + state + "&language=nb";
     var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, "platform");
     return http.get(endpoint, params);
 };
@@ -19,7 +22,7 @@ export function getSblInstanceByParty(altinnStudioRuntimeCookie, partyId) {
 //Api call to Storage:SBL instances to get an instance by id and return response
 export function deleteSblInstance(altinnStudioRuntimeCookie, partyId, instanceId, hardDelete) {
     var endpoint = config.buildStorageUrls(partyId, instanceId, "", "sblinstanceid") + "?hard=" + hardDelete;
-    var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, "platform");    
+    var params = header.buildHearderWithRuntimeforSbl(altinnStudioRuntimeCookie, "platform");
     return http.del(endpoint, "", params);
 };
 
@@ -39,20 +42,20 @@ export function getSblInstanceEvents(altinnStudioRuntimeCookie, partyId, instanc
 
 //Function to hard delete all instances that is passed into the function
 export function hardDeleteManyInstances(altinnStudioRuntimeCookie, instances) {
-    for (var i = 0; i < instances.length; i++) {        
+    for (var i = 0; i < instances.length; i++) {
         var instanceIdSplit = instances[i].split("/");
         var partyId = instanceIdSplit[0];
-        var instanceId = instanceIdSplit[1];        
+        var instanceId = instanceIdSplit[1];
         deleteSblInstance(altinnStudioRuntimeCookie, partyId, instanceId, "true");
     };
 }
 
 //Function to filter app instances based on appName and return instances as an array
 export function filterInstancesByAppName(appNames, responseJson) {
-    responseJson = JSON.parse(responseJson);    
+    responseJson = JSON.parse(responseJson);
     var instances = [];
     for (var i = 0; i < responseJson.length; i++) {
-        if (appNames.includes(responseJson[i].appName)) {            
+        if (appNames.includes(responseJson[i].appName)) {
             instances.push(responseJson[i].instanceOwnerId + "/" + responseJson[i].id)
         }
     }
