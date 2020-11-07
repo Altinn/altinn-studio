@@ -516,5 +516,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repo">The repository</param>
         /// <param name="path">Path to the file to delete.</param>
         void DeleteData(string org, string repo, string path);
+
+        /// <summary>
+        /// Lists the content of a repository
+        /// </summary>
+        List<FileSystemObject> GetContents(string org, string repository, string path = "");
     }
 }
