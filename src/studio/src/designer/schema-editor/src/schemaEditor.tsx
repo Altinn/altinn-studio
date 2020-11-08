@@ -44,7 +44,7 @@ export const SchemaEditor = ({ setValue }: any) => {
     <>
     {rootItem &&
     <div className={classes.root}>
-      <button onClick={onClickSetJsonSchema}>CLICK ME</button>
+      <button onClick={onClickSetJsonSchema}>Save data model</button>
     <TreeView
       className={classes.root}
       defaultExpanded={['1']}

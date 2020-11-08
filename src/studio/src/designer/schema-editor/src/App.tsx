@@ -4,12 +4,10 @@ import './App.css';
 import SchemaEditor from './schemaEditor';
 import { store } from './redux/store';
 
-function App() {
+export function App() {
   return (
     <Provider store={store}>
       <SchemaEditor />
     </Provider>
   );
 }
-
-export default App;

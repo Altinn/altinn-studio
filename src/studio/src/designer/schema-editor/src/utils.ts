@@ -69,7 +69,7 @@ export function createJsonSchemaItem(uiSchemaItem: any): any {
   return item;
 }
 
-export function buildUISchema(schema: any, rootPath: string,) {
+export function buildUISchema(schema: any, rootPath: string) {
   const result : any[] = [];
   Object.keys(schema).forEach((key) => {
     const item = schema[key];

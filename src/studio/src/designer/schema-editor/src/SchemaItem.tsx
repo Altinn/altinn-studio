@@ -56,13 +56,30 @@ const useStyles = makeStyles({
   }
 });
 
+const getRefItems = (schema: any[], id: string): any[] => {
+  let result: any[] = [];
+  if (!id) {
+    return result;
+  }
+
+  const refItem = schema.find((item) => item.id === id);
+  if (refItem) {
+    result.push(refItem);
+    if (refItem.$ref) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      result = result.concat(getRefItems(schema, refItem.$ref));
+    }
+  }
+  return result;
+}
+
 function SchemaItem(props: StyledTreeItemProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const {item, ...other} = props;
   let { id, $ref, value, properties } = item;
 
-  const refItem = useSelector((state: ISchemaState) => state.uiSchema.find((i) => i.id === $ref));
+  const refItems: any[] = useSelector((state: ISchemaState) => getRefItems(state.uiSchema, $ref));
   //const propertyItems: any[] = useSelector((state: ISchemaState) => state.uiSchema.filter((i) => properties.find((p: any) => p.id === i.id) !== undefined));
 
   // React.useEffect(() => {
@@ -70,6 +87,7 @@ function SchemaItem(props: StyledTreeItemProps) {
   //     {properties}
   //   }
   // }, [refItem]);
+
   const onAddPropertyClick = (event: any) => {
     dispatch(addProperty({
       path: id,
@@ -99,7 +117,57 @@ function SchemaItem(props: StyledTreeItemProps) {
     dispatch(setKey({path, oldKey, newKey}))
   }
 
-  console.log(`ID: ${id}, ref: `, $ref, refItem)
+  const RenderProperties = (properties: any[]) => {
+    if (properties && properties.length > 0)
+    {
+      return (
+        properties.map((property: any) => {
+          return (
+            <SchemaItem
+              item={property}
+              nodeId={property.id}
+            />
+          )
+        })
+      );
+    }
+    return null;
+  }
+
+  const RenderValue = (value: any[], path: string) => {
+    console.log('VALUE: ', value);
+    if (value && value.length > 0) {
+      return (value.map((item) => {
+        return (
+          <InputField
+            value={item.value}
+            label={item.key}
+            fullPath={path}
+            onChangeValue={onChangeValue}
+            onChangeKey={onChangeKey}
+          />
+        );
+      }));
+    }
+    return null;
+  }
+
+  const RenderRefItems = () => {
+    if (refItems && refItems.length > 0) {
+      const renderItem = refItems[refItems.length - 1];
+      return (
+        <>
+          {refItems.map((refItem) => {
+            return <Typography>Type: {refItem.id.replace('#/definitions/', '')}</Typography>
+          })}
+          {RenderProperties(renderItem.properties)}
+          {RenderValue(renderItem.value, renderItem.id)}
+        </>
+      )
+    }
+  }
+
+  console.log(`ID: ${id}, ref: `, $ref, refItems)
 
   return (
     <TreeItem
@@ -108,13 +176,10 @@ function SchemaItem(props: StyledTreeItemProps) {
           <Typography className={classes.label} variant='body1'>
             {props.item.name || id}
           </Typography>
-          {!refItem && 
+          {(!refItems || refItems.length === 0) &&
           <>
             <Typography className={classes.buttonRoot} variant="button" color="inherit">
             <button className={classes.button} title='Add' onClick={onAddPropertyClick}>Add property</button>
-          </Typography>
-          <Typography className={classes.buttonRoot} variant="button" color="inherit">
-            <button className={classes.button} title='AddSib' onClick={onAddFieldClick}>Add field</button>
           </Typography>
           </>
           }
@@ -122,33 +187,12 @@ function SchemaItem(props: StyledTreeItemProps) {
       }
       {...other}
     >
-      {refItem && 
-        <SchemaItem
-          item={refItem}
-          nodeId={refItem.id}
-        />
-      }
-      {properties && properties.length > 0 && properties.map((property: any) => {
-        return (
-          <SchemaItem
-            item={property}
-            nodeId={property.id}
-          />
-        )
-      })
-
-      }
-      {value && Array.isArray(value) && value.map((item: any) => {
-        return (
-          <InputField
-            value={item.value}
-            label={item.key}
-            fullPath={`${id}`}
-            onChangeValue={onChangeValue}
-            onChangeKey={onChangeKey}
-          />
-        );
-      })}
+      {RenderRefItems()}
+      {RenderProperties(properties)}
+      {RenderValue(value, id)}
+      {value && <Typography className={classes.buttonRoot} variant="button" color="inherit">
+            <button className={classes.button} title='AddSib' onClick={onAddFieldClick}>Add field</button>
+          </Typography>}
     </TreeItem>
   );
 }
