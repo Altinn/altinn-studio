@@ -6,7 +6,6 @@ import * as header from "../../buildrequestheaders.js"
 export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, appName) {
     var endpoint = config.appApiBaseUrl(appOwner, appName) + "/instances?instanceOwnerPartyId=" + partyId;
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
-    params.timeout = 120000;
     return http.post(endpoint, null, params);
 };
 
@@ -14,7 +13,6 @@ export function postInstance(altinnStudioRuntimeCookie, partyId, appOwner, appNa
 export function getInstanceById(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName) {
     var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, "", "instanceid");
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
-    params.timeout = 120000;
     return http.get(endpoint, params);
 };
 
@@ -22,7 +20,6 @@ export function getInstanceById(altinnStudioRuntimeCookie, partyId, instanceId, 
 export function getValidateInstance(altinnStudioRuntimeCookie, partyId, instanceId, appOwner, appName) {
     var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instanceId, "", "instanceid") + "/validate";
     var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, "app");
-    params.timeout = 120000;
     return http.get(endpoint, params);
 };
 
@@ -39,7 +36,6 @@ export function postCreateInstanceWithSsnOrOrg(altinnStudioRuntimeCookie, userTy
         requestBody.instanceOwner.organisationNumber = value;
     };
     requestBody = JSON.stringify(requestBody);
-    params.timeout = 120000;
     return http.post(endpoint, requestBody, params);
 };
 
