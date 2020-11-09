@@ -6,11 +6,17 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using Altinn.Studio.Designer;
+using Altinn.Studio.Designer.Configuration;
+using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Tests.Mocks;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Xunit;
 
 namespace Designer.Tests.TestingControllers
@@ -18,19 +24,30 @@ namespace Designer.Tests.TestingControllers
     public class DatamodelsControllerTests : IClassFixture<WebApplicationFactory<Startup>>
     {
         private readonly WebApplicationFactory<Startup> _factory;
-        private readonly string _versionPrefix = "/designer/api/v1";
+        private readonly string _versionPrefix = "/designer/api";
 
         public DatamodelsControllerTests(WebApplicationFactory<Startup> factory)
         {
             _factory = factory;
         }
 
+        /// <summary>
+        /// Scenario: Post a Json Schema
+        /// </summary>
         [Fact]
-        public async void Post_Updatemodel_Ok()
-        { 
-            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?id=rf0002&version=2020";
-            HttpContent content = new StringContent("This is a blob file");
+        public async void Put_Updatemodel_Ok()
+        {
+            string loginUrl = $"/Login";
             HttpClient client = GetTestClient();
+
+            HttpRequestMessage httpRequestMessageLogin = new HttpRequestMessage(HttpMethod.Get, loginUrl)
+            {
+            };
+
+            HttpResponseMessage loginResponse = await client.SendAsync(httpRequestMessageLogin);
+            IEnumerable<string> cookies = loginResponse.Headers.GetValues("Set-Cookie");
+
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/UpdateDatamodel?filepath=5245/41111/41111";
 
             JsonSchema testData = LoadTestData("Designer.Tests._TestData.Model.JsonSchema.melding-1603-12392.json");
 
@@ -38,24 +55,67 @@ namespace Designer.Tests.TestingControllers
             JsonValue toar = serializer.Serialize(testData);
 
             string requestBody = toar.ToString();
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData)
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData)
             {
                 Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
             };
 
+            SetAltinnStudiCookieFromResponseHeader(httpRequestMessage, cookies);
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Get_Updatemodel_Ok()
+        {
+            string loginUrl = $"/Login";
+            HttpClient client = GetTestClient();
+
+            HttpRequestMessage httpRequestMessageLogin = new HttpRequestMessage(HttpMethod.Get, loginUrl)
+            {
+            };
+    
+            HttpResponseMessage loginResponse = await client.SendAsync(httpRequestMessageLogin);
+            IEnumerable<string> cookies = loginResponse.Headers.GetValues("Set-Cookie");
+ 
+            string dataPathWithData = $"{_versionPrefix}/ttd/ttd-datamodels/Datamodels/GetDatamodel?filepath=5245/41111/41111";
+   
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData)
+            {
+            };
+
+            SetAltinnStudiCookieFromResponseHeader(httpRequestMessage, cookies);
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responsestring = await response.Content.ReadAsStringAsync();
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         private HttpClient GetTestClient()
         {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.CodeBase).LocalPath);
+
             Program.ConfigureSetupLogging();
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
+                builder.ConfigureAppConfiguration((context, conf) =>
+                {
+                    conf.AddJsonFile("appsettings.json");
+                });
+
+                var configuration = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+
+                configuration.GetSection("ServiceRepositorySettings:RepositoryLocation").Value = Path.Combine(unitTestFolder, @"..\..\..\_TestData\Repositories\");
+
+                IConfigurationSection serviceRepositorySettingSection = configuration.GetSection("ServiceRepositorySettings");
+
                 builder.ConfigureTestServices(services =>
                 {
+                    services.Configure<ServiceRepositorySettings>(serviceRepositorySettingSection);
+                    services.AddSingleton<IGitea, IGiteaMock>();
                 });
-            }).CreateClient();
+            }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
             return client;
         }
 
@@ -72,6 +132,33 @@ namespace Designer.Tests.TestingControllers
             using StreamReader streamReader = new StreamReader(resource);
             JsonValue jsonValue = JsonValue.Parse(streamReader);
             return new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
+        }
+
+        private void SetAltinnStudiCookieFromResponseHeader(HttpRequestMessage requestMessage, IEnumerable<string> setCookieHeader)
+        {
+            foreach (string singleCookieHeader in setCookieHeader)
+            {
+                string[] cookies = singleCookieHeader.Split(',');
+
+                foreach (string cookie in cookies)
+                {
+                    string[] cookieSettings = cookie.Split(";");
+
+                    if (cookieSettings[0].StartsWith(Altinn.Studio.Designer.Constants.General.DesignerCookieName))
+                    {
+                        AddAuthCookie(requestMessage, cookieSettings[0].Replace(Altinn.Studio.Designer.Constants.General.DesignerCookieName + "=", string.Empty));
+                    }
+                }
+            }
+        }
+
+        private void AddAuthCookie(HttpRequestMessage requestMessage, string token, string xsrfToken = null)
+        {
+            requestMessage.Headers.Add("Cookie", Altinn.Studio.Designer.Constants.General.DesignerCookieName + "=" + token);
+            if (xsrfToken != null)
+            {
+                requestMessage.Headers.Add("X-XSRF-TOKEN", xsrfToken);
+            }
         }
     }
 }

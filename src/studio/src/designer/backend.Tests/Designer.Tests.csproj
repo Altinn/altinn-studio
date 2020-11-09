@@ -45,7 +45,10 @@
     <EmbeddedResource Include="_TestData\**\*.*" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Mocks\" />
+    <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\5245\41111\41111.schema.json" />
+    <None Remove="_TestData\Repositories\testUser\ttd\ttd-datamodels\5245\41111\41111.xsd" />
+  </ItemGroup>
+  <ItemGroup>
     <Folder Include="_TestData\Repositories\testUser\ttd\apps-test\" />
   </ItemGroup>
 </Project>

@@ -43,6 +43,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">the org owning the models repo</param>
         /// <param name="app">the model repos</param>
         /// <param name="filepath">The path to the data model (without file ending)</param>
+        [Authorize]
         [HttpPut]
         [Route("/designer/api/{org}/{app}/datamodels/[Action]")]
         public async Task<IActionResult> UpdateDatamodel(string org, string app, string filepath)
@@ -81,17 +82,25 @@ namespace Altinn.Studio.Designer.Controllers
         /// Returns datamodel
         /// </summary>
         /// <param name="org">The org</param>
-        /// <param name="app"></param>
-        /// <param name="filepath"></param>
+        /// <param name="repository">the repository</param>
+        /// <param name="filepath">the path to datamodel </param>
         /// <returns></returns>
-        [HttpPut]
-        [Route("/designer/api/{org}/{app}/datamodels/[Action]")]
-        public async Task<IActionResult> GetDatamodel(string org, string app, string filepath)
+        [Authorize]
+        [HttpGet]
+        [Route("/designer/api/{org}/{repository}/datamodels/[Action]")]
+        public async Task<IActionResult> GetDatamodel(string org, string repository, string filepath)
         {
-           Stream dataStream = await _repository.ReadData(org, app, filepath);
-           TextReader textReader = new StreamReader(dataStream);
-           JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
-           return Ok(jsonValue);
+            try
+            {
+                Stream dataStream = await _repository.ReadData(org, repository, $"{filepath}.schema.json");
+                TextReader textReader = new StreamReader(dataStream);
+                JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
+                return Ok(jsonValue.ToString());
+            }
+            catch (Exception ex)
+            {
+                return NotFound();
+            }
         }
     }
 }
