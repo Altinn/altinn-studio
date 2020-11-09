@@ -9,7 +9,7 @@ namespace Altinn.Platform.Register.Controllers
     [ApiController]
     [ApiExplorerSettings(IgnoreApi = true)]
     [AllowAnonymous]
-    [Route("receipt/api/v1")]
+    [Route("register/api/v1")]
     public class ErrorController : ControllerBase
     {
         /// <summary>
