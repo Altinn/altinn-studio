@@ -1,5 +1,6 @@
 /* 
-    Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and deployed RF-0002 app
+    Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and 
+    instances created using RF-0002 script
   [
     {
         "username": "",
