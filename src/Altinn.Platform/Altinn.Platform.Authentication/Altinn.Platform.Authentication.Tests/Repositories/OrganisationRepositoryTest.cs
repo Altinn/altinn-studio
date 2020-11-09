@@ -45,20 +45,45 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
         /// Tests harvest orgs.
         /// </summary>
         [Fact]
-        public async Task TestHarvestOrgs_OK()
+        public async Task LookupOrg_NoCache_CacheSuccessfullyPopulated()
         {
             // Arrange
+            string expectedOrgNoKey = "org-974760223";
+            string expectedOrgNameKey = "org-dibk";
+            _memoryCache.Remove(expectedOrgNoKey);
+            _memoryCache.Remove(expectedOrgNameKey);
+
             HttpClient httpClient = GetTestHttpClient();
             OrganisationRepository orgRepo = new OrganisationRepository(httpClient, _memoryCache, _loggerMock.Object, _optionsMock.Object);
 
             // Act 
             string org = await orgRepo.LookupOrg("974760223");
 
+            // Assert
             Assert.Equal("dibk", org);
+            Assert.True(_memoryCache.TryGetValue(expectedOrgNoKey, out _));
+            Assert.True(_memoryCache.TryGetValue(expectedOrgNameKey, out _));
+        }
 
-            string orgNumber = await orgRepo.LookupOrgNumber("brg");
+        [Fact]
+        public async Task LookupOrgNumber_NoCache_CacheSuccessfullyPopulated()
+        {
+            // Arrange
+            string expectedOrgNoKey = "org-974760673";
+            string expectedOrgNameKey = "org-brg";
+            _memoryCache.Remove(expectedOrgNoKey);
+            _memoryCache.Remove(expectedOrgNameKey);
 
-            Assert.Equal("974760673", orgNumber);           
+            HttpClient httpClient = GetTestHttpClient();
+            OrganisationRepository orgRepo = new OrganisationRepository(httpClient, _memoryCache, _loggerMock.Object, _optionsMock.Object);
+
+            // Act
+            Organisation actual = await orgRepo.GetOrganisationByOrgNumber("974760673");
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.True(_memoryCache.TryGetValue(expectedOrgNoKey, out _));
+            Assert.True(_memoryCache.TryGetValue(expectedOrgNameKey, out _));
         }
 
         [Fact]
@@ -112,7 +137,7 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
         public async Task GetOrganisationByOrgNumber_NoCache_CacheSuccessfullyPopulated()
         {
             // Arrange
-            string expectedOrgNoKey = "org-974760673";
+            string expectedOrgNoKey = "org-976029100";
             string expectedOrgNameKey = "org-nbib";
             _memoryCache.Remove(expectedOrgNoKey);
             _memoryCache.Remove(expectedOrgNameKey);
@@ -121,7 +146,7 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
             OrganisationRepository orgRepo = new OrganisationRepository(httpClient, _memoryCache, _loggerMock.Object, _optionsMock.Object);
 
             // Act
-            Organisation actual = await orgRepo.GetOrganisationByOrgNumber("974760673");
+            Organisation actual = await orgRepo.GetOrganisationByOrgNumber("976029100");
 
             // Assert
             Assert.NotNull(actual);
@@ -131,7 +156,7 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
 
         private HttpClient GetTestHttpClient()
         {
-            Dictionary<string, Organisation> response = new Dictionary<string, Organisation>
+            Dictionary<string, Organisation> organisations = new Dictionary<string, Organisation>
             {
                 ["dibk"] = new Organisation { Org = "dibk", OrgNumber = "974760223" },
                 ["nbib"] = new Organisation
@@ -150,7 +175,7 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
             HttpResponseMessage orgsResponseMessage = new HttpResponseMessage
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent($"{{\"orgs\": {JsonConvert.SerializeObject(response)} }}", Encoding.UTF8, "application/json")
+                Content = new StringContent($"{{\"orgs\": {JsonConvert.SerializeObject(organisations)} }}", Encoding.UTF8, "application/json")
             };
 
             Mock<HttpMessageHandler> handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
