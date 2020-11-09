@@ -4,19 +4,19 @@ import { getTextResourceByKey } from './language';
 export const mapInstanceAttachments = (data: IData[], defaultElementId: string, platform?: boolean): IAttachment[] => {
   if (!data) {
     return [];
-  } else {
-    const tempAttachments: IAttachment[] = [];
-    data.forEach((dataElement: IData) => {
-      if (dataElement.id !== defaultElementId) {
-        tempAttachments.push({
+  }
+  const tempAttachments: IAttachment[] = [];
+  data.forEach((dataElement: IData) => {
+    if (dataElement.id !== defaultElementId && dataElement.dataType !== 'ref-data-as-pdf') {
+      tempAttachments.push({
         name: dataElement.filename,
         url: platform ? dataElement.selfLinks.platform : dataElement.selfLinks.apps,
         iconClass: 'reg reg-attachment',
-        dataType: dataElement.dataType });
-      }
-    });
-    return tempAttachments;
-  }
+        dataType: dataElement.dataType,
+      });
+    }
+  });
+  return tempAttachments;
 };
 
 export const getInstancePdf = (data: IData[], platform?: boolean): IAttachment => {
@@ -36,7 +36,7 @@ export const getInstancePdf = (data: IData[], platform?: boolean): IAttachment =
     name: pdfElement.filename,
     url: pdfUrl,
     iconClass: 'reg reg-attachment',
-    dataType: pdfElement.dataType
+    dataType: pdfElement.dataType,
   };
 };
 
@@ -49,11 +49,11 @@ export const getInstancePdf = (data: IData[], platform?: boolean): IAttachment =
 export const getAttachmentGroupings = (
   attachments: IAttachment[],
   applicationMetadata: IApplication,
-  textResources: ITextResource[]): IAttachmentGrouping => {
+  textResources: ITextResource[],
+): IAttachmentGrouping => {
   const attachmentGroupings: IAttachmentGrouping = {};
 
-  if (!attachments || !applicationMetadata || !textResources)
-  {
+  if (!attachments || !applicationMetadata || !textResources) {
     return attachmentGroupings;
   }
 
@@ -67,8 +67,7 @@ export const getAttachmentGroupings = (
   });
 
   return attachmentGroupings;
-
-}
+};
 
 /**
  * Gets the grouping for a specific attachment
@@ -77,17 +76,19 @@ export const getAttachmentGroupings = (
  */
 export const getGroupingForAttachment = (
   attachment: IAttachment,
-  applicationMetadata: IApplication): string => {
-
+  applicationMetadata: IApplication,
+): string => {
   if (!applicationMetadata || !applicationMetadata.dataTypes || !attachment) {
     return null;
   }
 
-  const attachmentType = applicationMetadata.dataTypes.find((dataType: IDataType) => dataType.id === attachment.dataType);
+  const attachmentType = applicationMetadata.dataTypes.find(
+    (dataType: IDataType) => dataType.id === attachment.dataType,
+  );
 
   if (!attachmentType || !attachmentType.grouping) {
     return null;
   }
 
   return attachmentType.grouping;
-}
+};

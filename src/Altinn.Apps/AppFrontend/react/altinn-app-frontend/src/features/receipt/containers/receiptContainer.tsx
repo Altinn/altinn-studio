@@ -5,13 +5,13 @@ import moment from 'moment';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { RouteChildrenProps, withRouter } from 'react-router';
 import { AltinnContentIconReceipt, AltinnContentLoader, AltinnReceipt as ReceiptComponent } from 'altinn-shared/components';
-import { IInstance, IParty, ITextResource, IProfile } from 'altinn-shared/types';
+import { IInstance, IParty, ITextResource, IProfile, IAttachment } from 'altinn-shared/types';
 import { getCurrentTaskData,
   mapInstanceAttachments,
   getLanguageFromKey,
   returnUrlToMessagebox,
   getTextResourceByKey } from 'altinn-shared/utils';
-import { getAttachmentGroupings } from 'altinn-shared/utils/attachmentsUtils';
+import { getAttachmentGroupings, getInstancePdf } from 'altinn-shared/utils/attachmentsUtils';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from '../../../shared/resources/orgs/orgsActions';
 import { IRuntimeState } from '../../../types';
@@ -54,6 +54,7 @@ export const returnInstanceMetaDataObject = (
 
 const ReceiptContainer = (props: IReceiptContainerProps) => {
   const [attachments, setAttachments] = useState([]);
+  const [pdf, setPdf] = React.useState<IAttachment>(null);
   const [lastChangedDateTime, setLastChangedDateTime] = useState('');
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
   const [userLanguage, setUserLanguage] = React.useState('nb');
@@ -115,6 +116,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
 
       const attachmentsResult = mapInstanceAttachments(instance.data, defaultElement.id);
       setAttachments(attachmentsResult);
+      setPdf(getInstancePdf(instance.data));
 
       const defaultDataElementLastChangedDateTime = defaultElement ? defaultElement.lastChanged : null;
       if (defaultDataElementLastChangedDateTime) {
@@ -140,6 +142,7 @@ const ReceiptContainer = (props: IReceiptContainerProps) => {
           subtitleurl={returnUrlToMessagebox(origin)}
           title={`${getTextResourceByKey('ServiceName', textResources)} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
           titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
+          pdf={pdf ? [pdf] : null}
         />
       }
     </>

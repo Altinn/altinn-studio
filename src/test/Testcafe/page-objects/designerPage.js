@@ -58,7 +58,7 @@ export default class DesignerPage {
     this.languageNavigationTab = Selector('div').withExactText('Språk');
     this.languageLeftMenuItems = [
       this.leftMenuList.child('a').withAttribute('href', '#/texts').child('div').withExactText('Tekster')
-    ];    
+    ];
 
     //"Deploy" navigation tab selectors
     this.deployNavigationTab = Selector('div > a').withExactText('Deploy');
@@ -100,18 +100,12 @@ export default class DesignerPage {
     this.readMoreAltinnDocs = Selector('a').withExactText('Lær mer på Altinn Studio docs');
     this.dataModellLink = Selector('a').withExactText('Gå til datamodell side');
 
-    //App Logic menu
-    this.openAppLogicmenu = Selector('#serviceLogicmenu').find('button');
-    this.appLogicmenu = Selector('#serviceLogicmenu');
-    this.connectRulesButton = Selector('p').withExactText('Regler').nextSibling('button');
-    this.connectConditionalRendering = Selector('p').withExactText('Betingede renderingstilkoblinger').nextSibling('button');
-    this.addedRules = Selector('.a-topTasks').find('button');
-    this.validationsGroup = Selector('span').withExactText('Valideringer');
+    //App Logic menu        
+    this.connectRulesButton = Selector('.fa-plus').parent("button[aria-label*='regel for beregninger']");
+    this.connectConditionalRendering = Selector('.fa-plus').parent("button[aria-label*='vis/skjul felt']");
+    this.addedRules = Selector('.MuiGrid-container > .MuiGrid-item').find('button');
     this.editValidations = Selector('span').withExactText('Rediger valideringer');
-    this.dynamicsGroup = Selector('span').withExactText('Dynamikk');
     this.editDynamic = Selector('span').withExactText('Rediger dynamikk');
-    this.calculationsGroup = Selector('span').withExactText('Kalkuleringer');
-    this.editCalculations = Selector('span').withExactText('Rediger kalkuleringer');
 
     //rulesmodal
     this.rulesConnectionModal = Selector('span').withExactText('Konfigurer regler');
@@ -138,11 +132,11 @@ export default class DesignerPage {
     var numberOfComponents = await addedUIComponents.count;
     if (numberOfComponents > 0 && !await addedUIComponents.withText('Tomt').exists) {
       for (var i = 0; i < numberOfComponents; i++) {
-        await t.hover(addedUIComponents.nth(i));
-        await t.click(addedUIComponents.nth(i));
+        await t.hover(addedUIComponents.nth(0));
+        await t.click(addedUIComponents.nth(0));
+        await t.hover(this.removeComponentsButton.parent('button'));
+        await t.click(this.removeComponentsButton.parent('button'));
       }
-      await t.hover(this.removeComponentsButton.parent('button'));
-      await t.click(this.removeComponentsButton.parent('button'));
     }
   };
 

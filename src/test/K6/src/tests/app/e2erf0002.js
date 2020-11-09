@@ -2,14 +2,14 @@
   Create and archive instances of RF-0002 without attachments
   Test data: a json file named as ex: users_prod.json with user data in below format in the K6/src/data folder and deployed RF-0002 app
   [
-	{
-		"username": "",
-		"password": "",
-		"partyid": ""
+    {
+        "username": "",
+        "password": "",
+        "partyid": ""
     }
   ]
   example: k6 run -i 20 --duration 1m --logformat raw --console-output=./src/data/instances.csv src/tests/app/e2erf0002.js 
-  -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=***
+  -e env=test -e org=ttd -e level2app=rf-0002 -e subskey=*** -e archive=true -e delete=true
 */
 
 import { check } from "k6";
@@ -25,6 +25,8 @@ const appOwner = __ENV.org;
 const level2App = __ENV.level2app;
 const environment = (__ENV.env).toLowerCase();
 const fileName = "users_" + environment + ".json";
+const toArchive = (__ENV.archive) ? (__ENV.archive).toLowerCase() : "true";
+const toDelete = (__ENV.delete) ? (__ENV.delete).toLowerCase() : "true";
 
 let instanceFormDataXml = open("../../data/" + level2App + ".xml");
 let users = JSON.parse(open("../../data/" + fileName));
@@ -84,32 +86,35 @@ export default function () {
     addErrorCount(success);
     printResponseToConsole("E2E App GET Validate Instance is not OK:", success, res);
 
-    //Test to get next process of an app instance again and verify response code  to be 200
-    res = appProcess.getNextProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
-    success = check(res, {
-        "E2E App GET Next process element id:": (r) => r.status === 200
-    });
-    addErrorCount(success);
-    printResponseToConsole("Unable to get next element id:", success, res);
-    var nextElement = (JSON.parse(res.body))[0];
+    if (toArchive == "true") {
+        //Test to get next process of an app instance again and verify response code  to be 200
+        res = appProcess.getNextProcess(runtimeToken, partyId, instanceId, appOwner, level2App);
+        success = check(res, {
+            "E2E App GET Next process element id:": (r) => r.status === 200
+        });
+        addErrorCount(success);
+        printResponseToConsole("Unable to get next element id:", success, res);
+        var nextElement = (JSON.parse(res.body))[0];
 
-    //Test to move the process of an app instance to the next process element and verify response code to be 200
-    res = appProcess.putNextProcess(runtimeToken, partyId, instanceId, nextElement, appOwner, level2App);
-    success = check(res, {
-        "E2E App PUT Move process to Next element status is 200:": (r) => r.status === 200
-    });
-    addErrorCount(success);
-    printResponseToConsole("E2E App PUT Move process to Next element:", success, res);
+        //Test to move the process of an app instance to the next process element and verify response code to be 200
+        res = appProcess.putNextProcess(runtimeToken, partyId, instanceId, nextElement, appOwner, level2App);
+        success = check(res, {
+            "E2E App PUT Move process to Next element status is 200:": (r) => r.status === 200
+        });
+        addErrorCount(success);
+        printResponseToConsole("E2E App PUT Move process to Next element:", success, res);
 
-    //Test to call get instance details and verify the presence of archived date
-    res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);
-    success = check(res, {
-        "E2E App Instance is archived:": (r) => r.body.length > 0 && (JSON.parse(r.body)).status.archived != null
-    });
-    addErrorCount(success);
-    printResponseToConsole("E2E App Instance is not archived:", success, res);
+        //Test to call get instance details and verify the presence of archived date
+        res = appInstances.getInstanceById(runtimeToken, partyId, instanceId, appOwner, level2App);
+        success = check(res, {
+            "E2E App Instance is archived:": (r) => r.body.length > 0 && (JSON.parse(r.body)).status.archived != null
+        });
+        addErrorCount(success);
+        printResponseToConsole("E2E App Instance is not archived:", success, res);
 
-    deleteSblInstance(runtimeToken, partyId, instanceId, "true");
+        if (toDelete == "true")
+            deleteSblInstance(runtimeToken, partyId, instanceId, "true");
+    };
 
     /* write the instance id to console which can be written to a file using --console-output and logformat raw
     for appowner tests. */
