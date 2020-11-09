@@ -21,6 +21,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// Controller containing all actions related to data modeling
     /// </summary>
+    [AutoValidateAntiforgeryToken]
     public class DatamodelsController : ControllerBase
     {
         private readonly IRepository _repository;

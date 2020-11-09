@@ -128,8 +128,7 @@
   </xsd:complexType>
   <xsd:simpleType name="BelopHeltall15-repformat-37">
     <xsd:restriction base="xsd:integer">
-      <xsd:minInclusive value="-999999999999999" />
-      <xsd:maxInclusive value="999999999999999" />
+      <xsd:totalDigits value="15" />
     </xsd:restriction>
   </xsd:simpleType>
   <xsd:complexType name="SkattemeldingEndringEtterFristNyttBelop-datadef-37132">

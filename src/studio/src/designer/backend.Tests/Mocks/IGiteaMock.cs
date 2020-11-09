@@ -27,7 +27,7 @@ namespace Designer.Tests.Mocks
 
         public Task<User> GetCurrentUser()
         {
-            throw new NotImplementedException();
+           return Task.FromResult(new User());
         }
 
         public Task<List<FileSystemObject>> GetDirectoryAsync(string org, string app, string directoryPath, string shortCommitId)
