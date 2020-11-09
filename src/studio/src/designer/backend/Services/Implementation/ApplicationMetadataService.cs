@@ -74,7 +74,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task<Application> GetApplicationMetadataFileFromRepository()
         {
             string filePath = GetApplicationMetadataFilePath();
-            GiteaFileContent file = await _giteaApiWrapper.GetFileAsync(_org, _app, filePath, _shortCommitId);
+            FileSystemObject file = await _giteaApiWrapper.GetFileAsync(_org, _app, filePath, _shortCommitId);
             if (string.IsNullOrEmpty(file.Content))
             {
                 throw new NotFoundHttpRequestException($"There is no file in {filePath}.");

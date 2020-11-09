@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using Altinn.Studio.Designer.Factories.ModelFactory;
@@ -18,10 +19,10 @@ namespace Designer.Tests.Factories.ModelFactory
     public class TwoWayXsdToJsonSchemaConversionTests
     {
         [Fact]
-        public void ConvertXsdToJsonSchemaAndBack_CorrectNumberOfPropertiesAndDefinitions()
+        public async void ConvertXsdToJsonSchemaAndBack_CorrectNumberOfPropertiesAndDefinitions()
         {
-            // string xsdName = "Designer.Tests._TestData.xsd.schema_3451_8_forms_4106_35721.xsd";
-            string xsdName = "Designer.Tests._TestData.xsd.schema_4581_100_forms_5245_41111.xsd";
+            // string xsdName = "Designer.Tests._TestData.Model.Xsd.schema_3451_8_forms_4106_35721.xsd";
+            string xsdName = "Designer.Tests._TestData.Model.Xsd.schema_4581_100_forms_5245_41111.xsd";
 
             // Arrange
             XmlReader xsdReader = XmlReader.Create(LoadTestData(xsdName));
@@ -32,21 +33,23 @@ namespace Designer.Tests.Factories.ModelFactory
 
             var serializer = new JsonSerializer();
             JsonValue toar = serializer.Serialize(actual);
+            byte[] byteArray = Encoding.UTF8.GetBytes(toar.ToString());
+            MemoryStream jsonstream = new MemoryStream(byteArray);
+            await WriteData(xsdName + ".json", jsonstream);
 
             File.WriteAllText(xsdName + ".json", toar.ToString());
 
             JsonSchemaToXsd jsonSchemaToXsd = new JsonSchemaToXsd();
 
             XmlSchema xmlschema = jsonSchemaToXsd.CreateXsd(actual);
-
-            FileStream file = new FileStream(xsdName + ".new", FileMode.Create, FileAccess.ReadWrite);
-            XmlTextWriter xwriter = new XmlTextWriter(file, new UpperCaseUTF8Encoding());
+            MemoryStream xmlStream = new MemoryStream();
+            XmlTextWriter xwriter = new XmlTextWriter(xmlStream, new UpperCaseUTF8Encoding());
             xwriter.Formatting = Formatting.Indented;
             xwriter.WriteStartDocument(false);
-         
-            xmlschema.Write(xwriter);
+            xmlschema.Write(xmlStream);
+    
+            await WriteData(xsdName + ".new", xmlStream);
 
-            // Assert
             Assert.NotNull(actual);
         }
 
@@ -61,6 +64,16 @@ namespace Designer.Tests.Factories.ModelFactory
             }
 
             return resource;
+        }
+
+        public async Task WriteData(string filepath, Stream stream)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+            using (FileStream outputFileStream = new FileStream(filepath, FileMode.Create))
+            {
+                await stream.CopyToAsync(outputFileStream);
+                await outputFileStream.FlushAsync();
+            }
         }
     }
 }
