@@ -86,7 +86,7 @@ namespace Altinn.Platform.Authentication.Repositories
                 _memoryCache.TryGetValue(cacheKey, out organisation);
             }
 
-            return organisation.Org;
+            return organisation?.Org;
         }
 
         /// <inheritdoc/>
@@ -101,7 +101,7 @@ namespace Altinn.Platform.Authentication.Repositories
                 _memoryCache.TryGetValue(cacheKey, out organisation);
             }
 
-            return organisation.OrgNumber;
+            return organisation?.OrgNumber;
         }
 
         /// <inheritdoc/>
