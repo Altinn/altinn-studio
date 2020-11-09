@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -17,82 +17,99 @@ namespace Altinn.Platform.Authentication.Repositories
     /// </summary>
     public class OrganisationRepository : IOrganisationRepository
     {
-        private Dictionary<string, Organisation> orgNumberToOrganisation = new Dictionary<string, Organisation>();
-        private Dictionary<string, Organisation> orgToOrganisation = new Dictionary<string, Organisation>();
-        private DateTime dictionaryLastUpdated = DateTime.MinValue;
+        private readonly IMemoryCache _memoryCache;
+        private readonly MemoryCacheEntryOptions _cacheEntryOptions;
 
-        private readonly HttpClient _httpClient = new HttpClient();
-        private readonly ILogger logger;
+        private readonly HttpClient _httpClient;
+        private readonly ILogger _logger;
 
-        private readonly Uri organisationListLocation;
+        private readonly Uri _organisationListLocation;
 
         /// <summary>
         /// Instantiates the class.
         /// </summary>
+        /// <param name="httpClient">the http client</param>
+        /// <param name="memoryCache">the memory cache</param>
         /// <param name="logger">the logger</param>
         /// <param name="generalSettings">the settings which contains the url to the json organisation file</param>
-        public OrganisationRepository(ILogger<OrganisationRepository> logger, IOptions<GeneralSettings> generalSettings)
+        public OrganisationRepository(HttpClient httpClient, IMemoryCache memoryCache, ILogger<OrganisationRepository> logger, IOptions<GeneralSettings> generalSettings)
         {
-            this.logger = logger;
-            organisationListLocation = new Uri(generalSettings.Value.GetOrganisationRepositoryLocation);
+            _httpClient = httpClient;
+            _logger = logger;
+            _organisationListLocation = new Uri(generalSettings.Value.GetOrganisationRepositoryLocation);
+
+            _memoryCache = memoryCache;
+            _cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetPriority(CacheItemPriority.Normal)
+                .SetAbsoluteExpiration(new TimeSpan(1, 0, 0));
         }
 
         /// <inheritdoc/>
         public async Task<Organisation> GetOrganisationByOrgNumber(string orgNumber)
         {
-            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
+            string cacheKey = $"org-{orgNumber}";
+            Organisation organisation;
 
-            return orgNumberToOrganisation.GetValueOrDefault(orgNumber, null);
+            if (!_memoryCache.TryGetValue(cacheKey, out organisation))
+            {
+                await HarvestOrgs();
+                _memoryCache.TryGetValue(cacheKey, out organisation);
+            }
+
+            return organisation;
         }
 
         /// <inheritdoc/>
         public async Task<Organisation> GetOrganisationByOrg(string org)
         {
-            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
+            string cacheKey = $"org-{org}";
+            Organisation organisation;
 
-            return orgToOrganisation.GetValueOrDefault(org, null);
+            if (!_memoryCache.TryGetValue(cacheKey, out organisation))
+            {
+                await HarvestOrgs();
+                _memoryCache.TryGetValue(cacheKey, out organisation);
+            }
+
+            return organisation;
         }
 
         /// <inheritdoc/>
         public async Task<string> LookupOrg(string orgNumber)
         {
-            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
+            string cacheKey = $"org-{orgNumber}";
+            Organisation organisation;
 
-            Organisation organisation = orgNumberToOrganisation.GetValueOrDefault(orgNumber, null);
+            if (!_memoryCache.TryGetValue(cacheKey, out organisation))
+            {
+                await HarvestOrgs();
+                _memoryCache.TryGetValue(cacheKey, out organisation);
+            }
 
-            return organisation?.Org;
+            return organisation.Org;
         }
 
         /// <inheritdoc/>
         public async Task<string> LookupOrgNumber(string org)
         {
-            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
+            string cacheKey = $"org-{org}";
+            Organisation organisation;
 
-            Organisation organisation = orgToOrganisation.GetValueOrDefault(org, null);
-
-            return organisation?.OrgNumber;
-        }
-
-        private async Task HarvestOrgsIfCacheIsMoreThanOneHourOld()
-        {
-            DateTime timestamp = DateTime.Now;
-            timestamp = timestamp.AddHours(-1);
-
-            if (dictionaryLastUpdated < timestamp || orgNumberToOrganisation.Count == 0)
+            if (!_memoryCache.TryGetValue(cacheKey, out organisation))
             {
-               await HarvestOrgs();
+                await HarvestOrgs();
+                _memoryCache.TryGetValue(cacheKey, out organisation);
             }
+
+            return organisation.OrgNumber;
         }
 
         /// <inheritdoc/>
         public async Task HarvestOrgs()
         {
-            logger.LogInformation($"Authentication harvest of organisation from '{organisationListLocation}' starts.");
-
-            Dictionary<string, Organisation> organisationHarvest = null;
             try
             {
-                HttpResponseMessage response = await _httpClient.GetAsync(organisationListLocation);
+                HttpResponseMessage response = await _httpClient.GetAsync(_organisationListLocation);
 
                 response.EnsureSuccessStatusCode();
 
@@ -100,17 +117,12 @@ namespace Altinn.Platform.Authentication.Repositories
 
                 orgs = (JObject)orgs.GetValue("orgs");
 
-                organisationHarvest = JsonConvert.DeserializeObject<Dictionary<string, Organisation>>(orgs.ToString());
+                Dictionary<string, Organisation> organisationHarvest = JsonConvert.DeserializeObject<Dictionary<string, Organisation>>(orgs.ToString());
 
                 if (organisationHarvest.Count == 0)
                 {
                     throw new OrganisationHarvestException($"Organisation list is empty!");
                 }
-
-                logger.LogInformation($"Found {organisationHarvest.Count} organisations which replaces current cache wich contained {orgToOrganisation.Count} organisations.");
-
-                orgToOrganisation.Clear();
-                orgNumberToOrganisation.Clear();
 
                 foreach (KeyValuePair<string, Organisation> element in organisationHarvest)
                 {
@@ -122,38 +134,29 @@ namespace Altinn.Platform.Authentication.Repositories
 
                     if (string.IsNullOrEmpty(org))
                     {
-                        logger.LogWarning($"Organisation {candidateOrganisation.ToString()} is missing org value and will not be part of orgToOrganisation map!");
+                        _logger.LogWarning($"Organisation {candidateOrganisation.ToString()} is missing org value and will not be part of orgToOrganisation map!");
                     }
                     else
                     {
-                        orgToOrganisation.Add(org, candidateOrganisation);
+                        _memoryCache.Set($"org-{org}", candidateOrganisation, _cacheEntryOptions);
                     }
-                    
+
                     if (string.IsNullOrEmpty(orgNumber))
                     {
-                        logger.LogWarning($"Organisation {candidateOrganisation.ToString()} is missing orgNumber and will not be part of orgNumberToOrganisation map!");                        
+                        _logger.LogWarning($"Organisation {candidateOrganisation.ToString()} is missing orgNumber and will not be part of orgNumberToOrganisation map!");
                     }
                     else
                     {
-                        orgNumberToOrganisation.Add(orgNumber, candidateOrganisation);
+                        _memoryCache.Set($"org-{orgNumber}", candidateOrganisation, _cacheEntryOptions);
                     }
                 }
-
-                dictionaryLastUpdated = DateTime.UtcNow;
             }
             catch (Exception ex)
             {
-                logger.LogError($"Unable to harvest organisation data due to {ex}");
-                if (orgNumberToOrganisation.Count > 0)
-                {
-                    logger.LogWarning($"Managed to harvest {orgNumberToOrganisation.Count} organisations of total {organisationHarvest?.Count} in file.");
-                    return;
-                }
+                _logger.LogError($"Unable to harvest organisation data due to {ex}");
 
-                throw new OrganisationHarvestException($"Unable to harvest organisations from {organisationListLocation}.", ex);
+                throw new OrganisationHarvestException($"Unable to harvest organisations from {_organisationListLocation}.", ex);
             }
-
-            logger.LogInformation($"Authentication harvest of organisations finished. Resulting in {orgNumberToOrganisation.Count} organisations in cache.");
         }
     }
 }
