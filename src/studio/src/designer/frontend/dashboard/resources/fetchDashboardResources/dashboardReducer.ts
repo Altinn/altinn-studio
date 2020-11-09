@@ -1,10 +1,11 @@
+import { IRepository } from 'app-shared/types';
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import * as FetchDashboardActions from './fetchDashboardActions';
 import * as FetchDashboardActionTypes from './fetchDashboardActionTypes';
 
 export interface IDashboardState {
-  services: any;
+  services: IRepository[];
   user: any;
   organisations: any;
 }
