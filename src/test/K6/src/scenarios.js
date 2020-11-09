@@ -17,7 +17,7 @@ export function k6scenarios(type, vus, iterations, maxDuration, stages) {
         case "sharediter":
             sharedIterations.vus = vus;
             sharedIterations.iterations = iterations;
-            sharedIterations.iterations = iterations;
+            sharedIterations.maxDuration = maxDuration;
             scenario.sharedIter = sharedIterations;
             break;
         case "ramp":

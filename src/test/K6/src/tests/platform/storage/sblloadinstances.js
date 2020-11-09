@@ -9,9 +9,14 @@
   ]
     Command: docker-compose run k6 run src/tests/platform/storage/sblloadinstances.js
     -e env=*** -e executor=constantvus -e vus=5 -e iter=10 -e duration=10m -e stages="10s:1,40s:5"
+    Executor type and required params
+    type: constantvus params: vus, duration
+    type: sharediter params: vus, iter, duration
+    type: ramp params: stages
 */
 
 import { check } from "k6";
+import { Trend, Counter } from 'k6/metrics';
 import * as sbl from "../../../api/storage/messageboxinstances.js"
 import * as setUpData from "../../../setup.js";
 import { addErrorCount } from "../../../errorcounter.js";
@@ -29,14 +34,16 @@ const stages = (__ENV.stages) ? __ENV.stages : "10s:1";
 
 const scenario = k6scenarios(executor, vus, iterations, maxDuration, stages)
 
+export let TrendRTT = new Trend('LoadInstances');
+let SlowResponse = new Counter("SlowResponses");
+
 export const options = {
     thresholds: {
-        "errors": ["count<1"]
+        "errors": ["count<100"],
+        LoadInstances: ['p(95)<2000', 'avg<1500']
     },
-    scenarios: scenario    
+    scenarios: scenario
 };
-
-console.log(JSON.stringify(options));
 
 //Load test for SBL
 export default function () {
@@ -60,19 +67,8 @@ export default function () {
     success = check(res, {
         "GET active Instance by Party status is 200:": (r) => r.status === 200
     });
+    TrendRTT.add(res.timings.duration);
+    SlowResponse.add(!(res.timings.duration < 2000));
     addErrorCount(success);
 
-    //Test to get archived instances for a party from storage: SBL and validate the response
-    res = sbl.getSblInstanceByParty(runtimeToken, partyId, "archived");
-    success = check(res, {
-        "GET archived Instances by Party status is 200:": (r) => r.status === 200
-    });
-    addErrorCount(success);
-
-    //Test to get deleted instances for a party from storage: SBL and validate the response
-    res = sbl.getSblInstanceByParty(runtimeToken, partyId, "deleted");
-    success = check(res, {
-        "GET deleted Instances by Party status is 200:": (r) => r.status === 200
-    });
-    addErrorCount(success);
 };
