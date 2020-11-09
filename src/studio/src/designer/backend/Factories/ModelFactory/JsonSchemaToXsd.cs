@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
-using System.Xml.Linq;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
@@ -701,46 +700,58 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 }
             }
 
-            if (minValue != null || minExclusiveValue != null)
-            {
-                if (minValue != null)
-                {
-                    XmlSchemaMinInclusiveFacet facet = new XmlSchemaMinInclusiveFacet
-                    {
-                        Value = FormatDouble((double)minValue),
-                    };
-                    content.Facets.Add(facet);
-                }
-                else
-                {
-                    XmlSchemaMinExclusiveFacet facet = new XmlSchemaMinExclusiveFacet
-                    {
-                        Value = FormatDouble((double)minExclusiveValue),
-                    };
-                    content.Facets.Add(facet);
-                }
-            }
-
             double? maxValue = GetterExtensions.Maximum(jSchema);
             double? maxExclusiveValue = GetterExtensions.ExclusiveMaximum(jSchema);
 
-            if (maxValue != null || maxExclusiveValue != null)
+            Regex regex = new Regex("^[9]+$");
+            if ((minValue != null && maxValue != null) && Math.Abs((double)minValue).Equals(maxValue) && regex.IsMatch(maxValue.ToString()))
             {
-                if (maxValue != null)
+                XmlSchemaTotalDigitsFacet facet = new XmlSchemaTotalDigitsFacet
                 {
-                    XmlSchemaMaxInclusiveFacet maxInclusiveFacet = new XmlSchemaMaxInclusiveFacet
+                    Value = FormatDouble(maxValue.ToString().Length),
+                };
+                content.Facets.Add(facet);
+            }
+            else
+            {
+                if (minValue != null || minExclusiveValue != null)
+                {
+                    if (minValue != null)
                     {
-                        Value = FormatDouble((double)maxValue),
-                    };
-                    content.Facets.Add(maxInclusiveFacet);
+                        XmlSchemaMinInclusiveFacet facet = new XmlSchemaMinInclusiveFacet
+                        {
+                            Value = FormatDouble((double)minValue),
+                        };
+                        content.Facets.Add(facet);
+                    }
+                    else
+                    {
+                        XmlSchemaMinExclusiveFacet facet = new XmlSchemaMinExclusiveFacet
+                        {
+                            Value = FormatDouble((double)minExclusiveValue),
+                        };
+                        content.Facets.Add(facet);
+                    }
                 }
-                else
+
+                if (maxValue != null || maxExclusiveValue != null)
                 {
-                    XmlSchemaMaxExclusiveFacet maxExclusiveFacet = new XmlSchemaMaxExclusiveFacet
+                    if (maxValue != null)
                     {
-                        Value = FormatDouble((double)maxExclusiveValue),
-                    };
-                    content.Facets.Add(maxExclusiveFacet);
+                        XmlSchemaMaxInclusiveFacet maxInclusiveFacet = new XmlSchemaMaxInclusiveFacet
+                        {
+                            Value = FormatDouble((double)maxValue),
+                        };
+                        content.Facets.Add(maxInclusiveFacet);
+                    }
+                    else
+                    {
+                        XmlSchemaMaxExclusiveFacet maxExclusiveFacet = new XmlSchemaMaxExclusiveFacet
+                        {
+                            Value = FormatDouble((double)maxExclusiveValue),
+                        };
+                        content.Facets.Add(maxExclusiveFacet);
+                    }
                 }
             }
 

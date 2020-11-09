@@ -361,6 +361,16 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 AppendAnnotated(item, appendToSchema);
             }
 
+            if (item.UnhandledAttributes != null) 
+            {
+                int sequence = 1;
+                foreach (XmlAttribute attribute in item.UnhandledAttributes) 
+                {
+                    TagUnhandledAttribute(appendToSchema, attribute, sequence);
+                    sequence++;
+                }
+            }
+
             if (item.BaseXmlSchemaType != null)
             {
                 throw new NotImplementedException();
