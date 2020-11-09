@@ -82,8 +82,8 @@ namespace Altinn.App.AppLogic
         /// <param name="appEvent">The app event type</param>
         /// <param name="model">The service model</param>
         /// <param name="modelState">The model state</param>
-        /// <returns></returns>
-        public override async Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState)
+        /// <returns>True if the event was handled</returns>
+        public override async Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null)
         {
             _logger.LogInformation($"RunAppEvent {appEvent}");
 
@@ -152,7 +152,7 @@ namespace Altinn.App.AppLogic
         /// </summary>
         /// <param name="taskId">The current TaskId</param>
         /// <param name="instance">The instance where task is ended</param>
-        /// <returns></returns>
+        /// <returns>A task supporting the async await pattern.</returns>
         public override async Task RunProcessTaskEnd(string taskId, Instance instance)
         {
             await Task.CompletedTask;
