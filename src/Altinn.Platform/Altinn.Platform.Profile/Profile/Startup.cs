@@ -21,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -139,11 +140,16 @@ namespace Altinn.Platform.Profile
 
             if (env.IsDevelopment() || env.IsStaging())
             {
+                _logger.LogInformation("IsDevelopment || IsStaging");
+
                 app.UseDeveloperExceptionPage();
+
+                // Enable higher level of detail in exceptions related to JWT validation
+                IdentityModelEventSource.ShowPII = true;
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                app.UseExceptionHandler("/profile/api/v1/error");
             }
 
             app.UseSwagger(o => o.RouteTemplate = "profile/swagger/{documentName}/swagger.json");

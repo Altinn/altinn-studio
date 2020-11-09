@@ -21,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -171,12 +172,16 @@ namespace Altinn.Platform.Register
 
             if (env.IsDevelopment() || env.IsStaging())
             {
-                app.UseDeveloperExceptionPage();
                 _logger.LogInformation("IsDevelopment || IsStaging");
+
+                app.UseDeveloperExceptionPage();
+
+                // Enable higher level of detail in exceptions related to JWT validation
+                IdentityModelEventSource.ShowPII = true;
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                app.UseExceptionHandler("/register/api/v1/error");
             }
 
             app.UseSwagger(o => o.RouteTemplate = "register/swagger/{documentName}/swagger.json");
