@@ -10,6 +10,7 @@ using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
+using Designer.Tests.Utils;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -53,7 +54,7 @@ namespace Designer.Tests.TestingControllers
                 Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
             };
 
-            await AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
@@ -69,7 +70,7 @@ namespace Designer.Tests.TestingControllers
             {
             };
 
-            await AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responsestring = await response.Content.ReadAsStringAsync();
@@ -118,76 +119,6 @@ namespace Designer.Tests.TestingControllers
             using StreamReader streamReader = new StreamReader(resource);
             JsonValue jsonValue = JsonValue.Parse(streamReader);
             return new JsonSerializer().Deserialize<JsonSchema>(jsonValue);
-        }
-
-        private async Task AddAuthenticateAndAuthAndXsrFCookieToRequest(HttpClient client, HttpRequestMessage message)
-        {
-            string loginUrl = $"/Login";
-            HttpRequestMessage httpRequestMessageLogin = new HttpRequestMessage(HttpMethod.Get, loginUrl)
-            {
-            };
-
-            HttpResponseMessage loginResponse = await client.SendAsync(httpRequestMessageLogin);
-            IEnumerable<string> cookies = loginResponse.Headers.GetValues("Set-Cookie");
-
-            string xsrfUrl = $"/User/Current";
-            HttpRequestMessage httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl)
-            {
-            };
-            SetAltinnStudiCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
-
-            HttpResponseMessage xsrfResponse = await client.SendAsync(httpRequestMessageXsrf);
-
-            IEnumerable<string> xsrfcookies = xsrfResponse.Headers.GetValues("Set-Cookie");
-            string xsrfToken = GetXsrfTokenFromCookie(xsrfcookies);
-            SetAltinnStudiCookieFromResponseHeader(message, cookies, xsrfToken);
-        }
-
-        private string GetXsrfTokenFromCookie(IEnumerable<string> setCookieHeader)
-        {
-            foreach (string singleCookieHeader in setCookieHeader)
-            {
-                string[] cookies = singleCookieHeader.Split(',');
-
-                foreach (string cookie in cookies)
-                {
-                    string[] cookieSettings = cookie.Split(";");
-
-                    if (cookieSettings[0].StartsWith("XSRF-TOKEN"))
-                    {
-                       return cookieSettings[0].Replace("XSRF-TOKEN" + "=", string.Empty);
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private void SetAltinnStudiCookieFromResponseHeader(HttpRequestMessage requestMessage, IEnumerable<string> setCookieHeader, string xsrfToken = null)
-        {
-            foreach (string singleCookieHeader in setCookieHeader)
-            {
-                string[] cookies = singleCookieHeader.Split(',');
-
-                foreach (string cookie in cookies)
-                {
-                    string[] cookieSettings = cookie.Split(";");
-
-                    if (cookieSettings[0].StartsWith(Altinn.Studio.Designer.Constants.General.DesignerCookieName))
-                    {
-                        AddAuthCookie(requestMessage, cookieSettings[0].Replace(Altinn.Studio.Designer.Constants.General.DesignerCookieName + "=", string.Empty), xsrfToken);
-                    }
-                }
-            }
-        }
-
-        private void AddAuthCookie(HttpRequestMessage requestMessage, string token, string xsrfToken = null)
-        {
-            requestMessage.Headers.Add("Cookie", Altinn.Studio.Designer.Constants.General.DesignerCookieName + "=" + token);
-            if (xsrfToken != null)
-            {
-                requestMessage.Headers.Add("X-XSRF-TOKEN", xsrfToken);
-            }
         }
     }
 }
