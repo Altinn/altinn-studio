@@ -84,6 +84,12 @@ namespace LocalTest.Services.Storage.Implementation
             string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
             Directory.CreateDirectory(GetDataCollectionFolder());
             Directory.CreateDirectory(GetDataForInstanceFolder(dataElement.InstanceGuid));
+
+            using (StreamWriter sw = new StreamWriter(path, false))
+            {
+                sw.Write(dataElement.ToString());
+            }
+
             File.WriteAllText(path, dataElement.ToString());
             return Task.FromResult(dataElement);
         }
@@ -120,7 +126,7 @@ namespace LocalTest.Services.Storage.Implementation
 
         private string GetDataForInstanceFolder(string instanceId)
         {
-            return Path.Combine(GetDataCollectionFolder() + instanceId.Replace("/", "_") + "/"); 
+            return Path.Combine(GetDataCollectionFolder() + instanceId.Replace("/", "_") + "/");
         }
 
 
