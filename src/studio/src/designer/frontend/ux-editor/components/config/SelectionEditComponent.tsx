@@ -226,7 +226,7 @@ export class SelectionEditComponent
                           this.props.handleUpdateOptionLabel.bind(this, index),
                           this.props.textResources,
                           this.props.language,
-                          option.label)}
+                          getLanguageFromKey('general.text', this.props.language))}
                       </Grid>
                       <Grid item={true}>
                         <Typography classes={{ root: this.props.classes.text }}>
@@ -239,6 +239,7 @@ export class SelectionEditComponent
                           fullWidth={true}
                           onChange={this.props.handleUpdateOptionValue.bind(this, index)}
                           value={option.value}
+                          placeholder={getLanguageFromKey('general.value', this.props.language)}
                         />
                       </Grid>
                     </Grid>
