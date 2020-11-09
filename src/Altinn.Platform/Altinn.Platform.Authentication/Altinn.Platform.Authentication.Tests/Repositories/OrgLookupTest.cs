@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authentication.Repositories;
+
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
