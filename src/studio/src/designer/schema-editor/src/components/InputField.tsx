@@ -2,7 +2,6 @@ import React from 'react';
 import { makeStyles,
   FormControl,
   Input,
-  InputLabel,
   InputAdornment,
   IconButton } from '@material-ui/core';
 import {CreateOutlined, DoneOutlined} from '@material-ui/icons';
@@ -63,7 +62,7 @@ export function InputField(props: IInputFieldProps) {
       <div>
         <FormControl>
           <Input
-            id={`input-${props.fullPath}-key`}
+            id={`input-${props.fullPath}-key-${label}`}
             value={label}
             onChange={onChangeKey}
             disabled={!editLabel}

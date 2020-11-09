@@ -1,13 +1,19 @@
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import './App.css';
-import SchemaEditor from './schemaEditor';
+import SchemaEditor from './components/schemaEditor';
 import { store } from './redux/store';
 
-export function App() {
+export interface IAppProps {
+  saveUrl: string;
+}
+
+function App(props: IAppProps) {
   return (
     <Provider store={store}>
-      <SchemaEditor />
+      <SchemaEditor saveUrl={props?.saveUrl} />
     </Provider>
   );
 }
+
+export default App;
