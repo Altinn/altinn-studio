@@ -90,7 +90,6 @@ namespace LocalTest.Services.Storage.Implementation
                 sw.Write(dataElement.ToString());
             }
 
-            File.WriteAllText(path, dataElement.ToString());
             return Task.FromResult(dataElement);
         }
 
