@@ -59,7 +59,6 @@ declare global {
 
   export interface ICreateFormComponent {
     component?: string;
-    componentType: ComponentTypes;
     itemType?: string;
     type?: string;
     name?: string;

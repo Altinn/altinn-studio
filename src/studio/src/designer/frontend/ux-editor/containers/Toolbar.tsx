@@ -16,8 +16,6 @@ import { ToolbarItem } from './ToolbarItem';
 
 import '../styles/toolBar.css';
 
-const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
-
 export interface IToolbarElement {
   label: string;
   icon?: string;
@@ -115,38 +113,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           this.updateActiveListOrder();
         },
     } as IToolbarElement;
-  }
-
-  public getThirdPartyComponents = (): IToolbarElement[] => {
-    const { thirdPartyComponents } = this.props;
-    if (!thirdPartyComponents) {
-      return [];
-    }
-    const thirdPartyComponentArray: IToolbarElement[] = [];
-    for (const packageName in thirdPartyComponents) {
-      if (thirdPartyComponents.hasOwnProperty(packageName)) {
-        for (const componentName in thirdPartyComponents[packageName]) {
-          if (thirdPartyComponents[packageName].hasOwnProperty(componentName)) {
-            thirdPartyComponentArray.push({
-              label: `${packageName} - ${componentName}`,
-              componentType: null,
-              actionMethod: (containerId: string, position: number) => FormDesignerActionDispatchers.addFormComponent({
-                type: THIRD_PARTY_COMPONENT,
-                itemType: LayoutItemType.Component,
-                textResourceBindings: {
-                  title: `${packageName} - ${componentName}`,
-                },
-                dataModelBindings: {},
-                ...JSON.parse(JSON.stringify({})),
-              },
-              position,
-              containerId),
-            });
-          }
-        }
-      }
-    }
-    return thirdPartyComponentArray;
   }
 
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
