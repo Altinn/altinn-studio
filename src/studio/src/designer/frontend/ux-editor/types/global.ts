@@ -1,4 +1,3 @@
-import { ComponentTypes } from '../components';
 import { IAppDataState } from '../reducers/appDataReducer';
 import { IErrorState } from '../reducers/errorReducer';
 import { IFormDesignerState } from '../reducers/formDesignerReducer';
