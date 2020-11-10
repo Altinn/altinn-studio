@@ -65,6 +65,12 @@ namespace Altinn.Platform.Storage.Interface.Models
         [JsonProperty(PropertyName = "partyTypesAllowed")]
         public PartyTypesAllowed PartyTypesAllowed { get; set; }
 
+        /// <summary>
+        /// Gets or sets a property indicating if application instance should be automatically marked for hard deletion on process end.
+        /// </summary>
+        [JsonProperty(PropertyName = "autoDeleteOnProcessEnd")]
+        public bool AutoDeleteOnProcessEnd { get; set; }
+
         /// <inheritdoc/>
         public override string ToString()
         {
