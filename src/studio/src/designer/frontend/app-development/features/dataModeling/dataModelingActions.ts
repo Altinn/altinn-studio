@@ -49,7 +49,7 @@ export function fetchDataModelRejectedAction(error: Error): IFetchDataModelRejec
 
 export function saveDataModelAction(url: string, schema: any): ISaveDataModelAction {
   return {
-    type: ActionTypes.FETCH_DATA_MODEL,
+    type: ActionTypes.SAVE_DATA_MODEL,
     url,
     schema,
   };
@@ -57,13 +57,13 @@ export function saveDataModelAction(url: string, schema: any): ISaveDataModelAct
 
 export function saveDataModelFulfilledAction(): Action {
   return {
-    type: ActionTypes.FETCH_DATA_MODEL_FULFILLED,
+    type: ActionTypes.SAVE_DATA_MODEL_FULFILLED,
   };
 }
 
 export function saveDataModelRejectedAction(error: Error): ISaveDataModelRejected {
   return {
-    type: ActionTypes.FETCH_DATA_MODEL_REJECTED,
+    type: ActionTypes.SAVE_DATA_MODEL_REJECTED,
     error,
   };
 }

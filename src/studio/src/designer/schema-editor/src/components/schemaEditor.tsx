@@ -36,7 +36,7 @@ export const SchemaEditor = ({ schema, onSaveSchema }: ISchemaEditor) => {
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   
   React.useEffect(() => {
-    if (jsonSchema) {
+    if (jsonSchema && Object.keys(jsonSchema).length > 0) {
       dispatch(setUiSchema({}));
     }
   }, [dispatch, jsonSchema]);

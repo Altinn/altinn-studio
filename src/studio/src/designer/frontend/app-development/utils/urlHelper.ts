@@ -30,5 +30,9 @@ export const getAppDeploymentsUrl = () => {
 };
 
 export const getDataModelUrl = (filePath: string) => {
-  return `${origin}/designer/api/v1/${org}/${app}/datamodels/GetDataModel?filePath=${encodeURIComponent(filePath)}`;
+  return `${origin}/designer/api/${org}/${app}/datamodels/GetDatamodel?filePath=${encodeURIComponent(filePath)}`;
+};
+
+export const saveDataModelUrl = (filePath: string) => {
+  return `${origin}/designer/api/${org}/${app}/datamodels/UpdateDatamodel?filePath=${encodeURIComponent(filePath)}`;
 };

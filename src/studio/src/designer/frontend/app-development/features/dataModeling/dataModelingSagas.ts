@@ -2,19 +2,19 @@ import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 import { get, put } from 'app-shared/utils/networking';
 import { IFetchDataModelAction, ISaveDataModelAction } from './dataModelingActions';
-import DataModelingDispatcher from './dataModelingDispatcher';
 import { FETCH_DATA_MODEL, SAVE_DATA_MODEL } from './dataModelingActionTypes';
-import DatamodelingDispatchers from './dataModelingDispatcher';
+import DataModelingDispatchers from './dataModelingDispatcher';
 
 export function* fetchDataModelSaga({
   url,
 }: IFetchDataModelAction): SagaIterator {
   try {
     const result = yield call(get, url);
+    console.log('result: ', result);
 
-    yield call(DataModelingDispatcher.fetchServiceFulfilled, result);
+    yield call(DataModelingDispatchers.fetchDataModelFulfilled, result);
   } catch (err) {
-    yield call(DataModelingDispatcher.fetchServiceRejected, err);
+    yield call(DataModelingDispatchers.fetchDataModelRejected, err);
   }
 }
 
@@ -25,9 +25,9 @@ export function* watchFetchDataModelSaga(): SagaIterator {
 export function* saveDatamodelSaga({ url, schema }: ISaveDataModelAction) {
   try {
     yield put(url, schema);
-    yield call(DatamodelingDispatchers.saveDataModelFulfilled);
+    yield call(DataModelingDispatchers.saveDataModelFulfilled);
   } catch (err) {
-    yield call(DatamodelingDispatchers.saveDataModelRejected, err);
+    yield call(DataModelingDispatchers.saveDataModelRejected, err);
   }
 }
 
