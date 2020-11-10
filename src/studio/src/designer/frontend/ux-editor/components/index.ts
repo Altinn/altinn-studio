@@ -4,7 +4,6 @@ export interface IComponentIcon {
 
 export interface IComponent {
   name: string;
-  Type: ComponentTypes;
   customProperties?: any;
   Icon: string;
 }
@@ -12,20 +11,19 @@ export interface IComponent {
 // The order here should be the same as
 // the exported 'components' list (drag and drop)
 export enum ComponentTypes {
-  Header,
-  Paragraph,
-  Input,
-  Datepicker,
-  DropDown,
-  CheckBox,
-  RadioButton,
-  TextArea,
-  FileUpload,
-  Button,
-  Container,
-  AddressComponent,
-  Group,
-  NavigationButtons,
+  Header = 'Header',
+  Paragraph = 'Paragraph',
+  Input = 'Input',
+  Datepicker = 'Datepicker',
+  Dropdown = 'Dropdown',
+  Checkboxes = 'Checkboxes',
+  RadioButtons = 'RadioButtons',
+  TextArea = 'TextArea',
+  FileUpload = 'FileUpload',
+  Button = 'Button',
+  AddressComponent = 'AddressComponent',
+  Group = 'Group',
+  NavigationButtons = 'NavigationButtons'
 }
 
 export const componentIcons: IComponentIcon = {
@@ -46,21 +44,18 @@ export const componentIcons: IComponentIcon = {
 
 export const textComponents: IComponent[] = [
   {
-    name: 'Header',
-    Type: ComponentTypes.Header,
+    name: ComponentTypes.Header,
     Icon: componentIcons.Header,
   },
   {
-    name: 'Paragraph',
-    Type: ComponentTypes.Paragraph,
+    name: ComponentTypes.Paragraph,
     Icon: componentIcons.Paragraph,
   },
 ];
 
 export const schemaComponents: IComponent[] = [
   {
-    name: 'Input',
-    Type: ComponentTypes.Input,
+    name: ComponentTypes.Input,
     customProperties: {
       required: true,
       readOnly: false,
@@ -68,8 +63,7 @@ export const schemaComponents: IComponent[] = [
     Icon: componentIcons.Input,
   },
   {
-    name: 'TextArea',
-    Type: ComponentTypes.TextArea,
+    name: ComponentTypes.TextArea,
     customProperties: {
       required: true,
       readOnly: false,
@@ -77,8 +71,7 @@ export const schemaComponents: IComponent[] = [
     Icon: componentIcons.TextArea,
   },
   {
-    name: 'Checkboxes',
-    Type: ComponentTypes.CheckBox,
+    name: ComponentTypes.Checkboxes,
     Icon: componentIcons.Checkboxes,
     customProperties: {
       options: [],
@@ -86,8 +79,7 @@ export const schemaComponents: IComponent[] = [
     },
   },
   {
-    name: 'RadioButtons',
-    Type: ComponentTypes.RadioButton,
+    name: ComponentTypes.RadioButtons,
     Icon: componentIcons.RadioButtons,
     customProperties: {
       options: [],
@@ -95,13 +87,11 @@ export const schemaComponents: IComponent[] = [
     },
   },
   {
-    name: 'Dropdown',
-    Type: ComponentTypes.DropDown,
+    name: ComponentTypes.Dropdown,
     Icon: componentIcons.Dropdown,
   },
   {
-    name: 'FileUpload',
-    Type: ComponentTypes.FileUpload,
+    name: ComponentTypes.FileUpload,
     Icon: componentIcons.FileUpload,
     customProperties: {
       maxFileSizeInMB: 25,
@@ -112,8 +102,7 @@ export const schemaComponents: IComponent[] = [
     },
   },
   {
-    name: 'Datepicker',
-    Type: ComponentTypes.Datepicker,
+    name: ComponentTypes.Datepicker,
     customProperties: {
       readOnly: false,
       minDate: '1900-01-01T12:00:00.000Z',
@@ -122,20 +111,14 @@ export const schemaComponents: IComponent[] = [
     Icon: componentIcons.Datepicker,
   },
   {
-    name: 'Button',
-    Type: ComponentTypes.Button,
+    name: ComponentTypes.Button,
     Icon: componentIcons.Button,
-    customProperties: {
-      textResourceId: 'Standard.Button.Button',
-      customType: 'Standard',
-    },
   },
 ];
 
 export const advancedComponents: IComponent[] = [
   {
-    name: 'AddressComponent',
-    Type: ComponentTypes.AddressComponent,
+    name: ComponentTypes.AddressComponent,
     Icon: componentIcons.AddressComponent,
     customProperties: {
       simplified: true,
@@ -143,8 +126,7 @@ export const advancedComponents: IComponent[] = [
     },
   },
   {
-    name: 'Group',
-    Type: ComponentTypes.Group,
+    name: ComponentTypes.Group,
     Icon: componentIcons.Group,
     customProperties: {
       maxCount: 0,

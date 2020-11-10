@@ -1,18 +1,19 @@
+/* eslint-disable import/no-cycle */
 import { ComponentTypes } from '../components';
 import { CollapsableMenus } from '../containers/Toolbar';
 
-export function getComponentHelperTextByComponentType(componentType: ComponentTypes, language: any): string {
-  switch (componentType) {
+export function getComponentHelperTextByComponentType(type: string, language: any): string {
+  switch (type) {
     case ComponentTypes.Header: {
       return language.ux_editor.helper_text_for_header;
     }
     case ComponentTypes.Input: {
       return language.ux_editor.helper_text_for_input;
     }
-    case ComponentTypes.CheckBox: {
+    case ComponentTypes.Checkboxes: {
       return language.ux_editor.helper_text_for_check_box;
     }
-    case ComponentTypes.RadioButton: {
+    case ComponentTypes.RadioButtons: {
       return language.ux_editor.helper_text_for_radio_button;
     }
     default: {
@@ -22,15 +23,12 @@ export function getComponentHelperTextByComponentType(componentType: ComponentTy
   }
 }
 
-export function getComponentTitleByComponentType(componentType: ComponentTypes, language: any): string {
-  switch (componentType) {
-    case ComponentTypes.CheckBox: {
+export function getComponentTitleByComponentType(type: string, language: any): string {
+  switch (type) {
+    case ComponentTypes.Checkboxes: {
       return language.ux_editor.component_checkbox;
     }
-    case ComponentTypes.Container: {
-      return language.ux_editor.component_container;
-    }
-    case ComponentTypes.DropDown: {
+    case ComponentTypes.Dropdown: {
       return language.ux_editor.component_dropdown;
     }
     case ComponentTypes.FileUpload: {
@@ -51,7 +49,7 @@ export function getComponentTitleByComponentType(componentType: ComponentTypes, 
     case ComponentTypes.TextArea: {
       return language.ux_editor.component_text_area;
     }
-    case ComponentTypes.RadioButton: {
+    case ComponentTypes.RadioButtons: {
       return language.ux_editor.component_radio_button;
     }
     case ComponentTypes.Paragraph: {
