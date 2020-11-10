@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
@@ -156,8 +157,8 @@ namespace LocalTest.Services.Storage.Implementation
 
         private async Task WriteToFile(string path, string content)
         {
-            MemoryStream stream = new MemoryStream();
-            StreamWriter writer = new StreamWriter(stream);
+            await using MemoryStream stream = new MemoryStream();
+            await using StreamWriter writer = new StreamWriter(stream, Encoding.Default);
             writer.Write(content);
             writer.Flush();
             stream.Position = 0;
@@ -187,6 +188,10 @@ namespace LocalTest.Services.Storage.Implementation
                 }
 
                 throw;
+            }
+            finally
+            {
+                await memStream.DisposeAsync();
             }
         }
 
