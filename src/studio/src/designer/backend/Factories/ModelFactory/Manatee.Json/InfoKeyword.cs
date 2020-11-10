@@ -34,7 +34,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json
         /// Gets schema vocabulary. Not implemented.
         /// </summary>
         /// <returns>SchemaVocabulary</returns>
-        public SchemaVocabulary Vocabulary => throw new NotImplementedException();
+        public SchemaVocabulary Vocabulary => SchemaVocabularies.Validation;
 
         /// <summary>
         /// Provides the validation logic for this keyword.
@@ -54,7 +54,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json
         /// serialization of values.</param>
         public void FromJson(JsonValue json, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            foreach (var kvp in json.Object)
+            {
+                this[kvp.Key] = kvp.Value.String;
+            }
         }
 
         /// <summary>

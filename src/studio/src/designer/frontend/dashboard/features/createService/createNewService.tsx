@@ -120,7 +120,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
   }
 
   public validateRepoName = (repoName: string) => {
-    return /^[a-z]+[a-z0-9\-]+[a-z0-9]$/.test(repoName);
+    return /^(?!datamodels$).[a-z]+[a-z0-9\-]+[a-z0-9]$/.test(repoName);
   }
 
   public validateService = () => {

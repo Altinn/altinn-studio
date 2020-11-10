@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using Altinn.Studio.Designer.Factories.ModelFactory;
+using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -51,6 +52,56 @@ namespace Designer.Tests.Factories.ModelFactory
             await WriteData(xsdName + ".new", xmlStream);
 
             Assert.NotNull(actual);
+        }
+
+        [Fact]
+        public async void ConvertXsdToJsonSchemaAndBackViaString_CorrectNumberOfPropertiesAndDefinitions()
+        {
+            // string xsdName = "Designer.Tests._TestData.Model.Xsd.schema_3451_8_forms_4106_35721.xsd";
+            string xsdName = "Designer.Tests._TestData.Model.Xsd.schema_4581_100_forms_5245_41111.xsd";
+
+            SchemaKeywordCatalog.Add<InfoKeyword>();
+
+            // Arrange
+            XmlReader xsdReader = XmlReader.Create(LoadTestData(xsdName));
+            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xsdReader);
+
+            // Act
+            JsonSchema convertedSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+            JsonSerializer serializer = new JsonSerializer();
+            JsonValue serializedConvertedSchema = serializer.Serialize(convertedSchema);
+            byte[] byteArray = Encoding.UTF8.GetBytes(serializedConvertedSchema.ToString());
+            MemoryStream jsonstream = new MemoryStream(byteArray);
+            await WriteData(xsdName + ".json", jsonstream);
+            File.WriteAllText(xsdName + ".json", serializedConvertedSchema.ToString());
+
+            string savedJsonSchemaFileTextContent = File.ReadAllText(xsdName + ".json");
+            TextReader textReader = new StringReader(savedJsonSchemaFileTextContent);
+            JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
+            JsonSchema jsonSchemaFromFile = new Manatee.Json.Serialization.JsonSerializer().Deserialize<JsonSchema>(jsonValue);
+
+            JsonSchemaToXsd jsonSchemaToXsd = new JsonSchemaToXsd();
+
+            XmlSchema xmlschema = jsonSchemaToXsd.CreateXsd(convertedSchema);
+            MemoryStream xmlStream = new MemoryStream();
+            XmlTextWriter xwriter = new XmlTextWriter(xmlStream, new UpperCaseUTF8Encoding());
+            xwriter.Formatting = Formatting.Indented;
+            xwriter.WriteStartDocument(false);
+            xmlschema.Write(xmlStream);
+
+            await WriteData(xsdName + ".new", xmlStream);
+
+            XmlSchema xmlschemaFromFile = jsonSchemaToXsd.CreateXsd(jsonSchemaFromFile);
+            MemoryStream xmlStreamFile = new MemoryStream();
+            XmlTextWriter xwriterFile = new XmlTextWriter(xmlStreamFile, new UpperCaseUTF8Encoding());
+            xwriterFile.Formatting = Formatting.Indented;
+            xwriterFile.WriteStartDocument(false);
+            xmlschemaFromFile.Write(xmlStreamFile);
+
+            await WriteData(xsdName + ".newfile", xmlStreamFile);
+
+            Assert.NotNull(convertedSchema);
         }
 
         private Stream LoadTestData(string resourceName)

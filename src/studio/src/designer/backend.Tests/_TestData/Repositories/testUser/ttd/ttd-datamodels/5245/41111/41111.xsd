@@ -1,0 +1,154 @@
+<?xml version="1.0"?>
+<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:element name="Skjema" type="Skjema" />
+  <xsd:element name="Endringsmelding-grp-9786" type="Endringsmelding-grp-9786" />
+  <xsd:element name="Avgiver-grp-9787" type="Avgiver-grp-9787" />
+  <xsd:element name="OppgavegiverNavn-datadef-68" type="OppgavegiverNavn-datadef-68" />
+  <xsd:element name="OppgavegiverFodselsnummer-datadef-26" type="OppgavegiverFodselsnummer-datadef-26" />
+  <xsd:element name="KontaktpersonEPost-datadef-27688" type="KontaktpersonEPost-datadef-27688" />
+  <xsd:element name="KontaktpersonTelefonnummer-datadef-3" type="KontaktpersonTelefonnummer-datadef-3" />
+  <xsd:element name="OversiktOverEndringene-grp-9788" type="OversiktOverEndringene-grp-9788" />
+  <xsd:element name="SkattemeldingEndringEtterFristPost-datadef-37130" type="SkattemeldingEndringEtterFristPost-datadef-37130" />
+  <xsd:element name="SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131" type="SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131" />
+  <xsd:element name="SkattemeldingEndringEtterFristNyttBelop-datadef-37132" type="SkattemeldingEndringEtterFristNyttBelop-datadef-37132" />
+  <xsd:element name="SkattemeldingEndringEtterFristKommentar-datadef-37133" type="SkattemeldingEndringEtterFristKommentar-datadef-37133" />
+  <xsd:complexType name="Skjema">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Endringsmelding-grp-9786" nillable="true" type="Endringsmelding-grp-9786" />
+    </xsd:sequence>
+    <xsd:attribute fixed="1603" name="skjemanummer" type="xsd:integer" use="required" />
+    <xsd:attribute fixed="12392" name="spesifikasjonsnummer" type="xsd:integer" use="required" />
+    <xsd:attribute fixed="RF-1366" name="blankettnummer" type="xsd:string" />
+    <xsd:attribute fixed="Endringsmelding" name="tittel" type="xsd:string" />
+    <xsd:attribute fixed="9785" name="gruppeid" type="xsd:integer" />
+    <xsd:attribute name="etatid">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="974761076" />
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:anyAttribute namespace="##targetNamespace" />
+  </xsd:complexType>
+  <xsd:complexType name="Endringsmelding-grp-9786">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="Avgiver-grp-9787" nillable="true" type="Avgiver-grp-9787" />
+      <xsd:element minOccurs="0" maxOccurs="999" name="OversiktOverEndringene-grp-9788" nillable="true" type="OversiktOverEndringene-grp-9788" />
+    </xsd:sequence>
+    <xsd:attribute fixed="9786" name="gruppeid" type="xsd:integer" use="required" />
+  </xsd:complexType>
+  <xsd:complexType name="Avgiver-grp-9787">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="OppgavegiverNavn-datadef-68" nillable="true" type="OppgavegiverNavn-datadef-68" />
+      <xsd:element minOccurs="0" name="OppgavegiverFodselsnummer-datadef-26" nillable="true" type="OppgavegiverFodselsnummer-datadef-26" />
+      <xsd:element minOccurs="0" name="KontaktpersonEPost-datadef-27688" nillable="true" type="KontaktpersonEPost-datadef-27688" />
+      <xsd:element minOccurs="0" name="KontaktpersonTelefonnummer-datadef-3" nillable="true" type="KontaktpersonTelefonnummer-datadef-3" />
+    </xsd:sequence>
+    <xsd:attribute fixed="9787" name="gruppeid" type="xsd:integer" use="required" />
+  </xsd:complexType>
+  <xsd:complexType name="OppgavegiverNavn-datadef-68">
+    <xsd:simpleContent>
+      <xsd:extension base="Tekst175-repformat-8">
+        <xsd:attribute fixed="68" name="orid" type="xsd:integer" use="required" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst175-repformat-8">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="175" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="OppgavegiverFodselsnummer-datadef-26">
+    <xsd:simpleContent>
+      <xsd:extension base="Tekst1111Modulus11-repformat-18">
+        <xsd:attribute fixed="26" name="orid" type="xsd:integer" use="required" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst1111Modulus11-repformat-18">
+    <xsd:restriction base="xsd:string">
+      <xsd:length value="11" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="KontaktpersonEPost-datadef-27688">
+    <xsd:simpleContent>
+      <xsd:extension base="Tekst45-repformat-150">
+        <xsd:attribute fixed="27688" name="orid" type="xsd:integer" use="required" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst45-repformat-150">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="45" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="KontaktpersonTelefonnummer-datadef-3">
+    <xsd:simpleContent>
+      <xsd:extension base="Tekst13-repformat-12">
+        <xsd:attribute fixed="3" name="orid" type="xsd:integer" use="required" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst13-repformat-12">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="13" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="OversiktOverEndringene-grp-9788">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="SkattemeldingEndringEtterFristPost-datadef-37130" nillable="true" type="SkattemeldingEndringEtterFristPost-datadef-37130" />
+      <xsd:element minOccurs="0" name="SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131" nillable="true" type="SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131" />
+      <xsd:element minOccurs="0" name="SkattemeldingEndringEtterFristNyttBelop-datadef-37132" nillable="true" type="SkattemeldingEndringEtterFristNyttBelop-datadef-37132" />
+      <xsd:element minOccurs="0" name="SkattemeldingEndringEtterFristKommentar-datadef-37133" nillable="true" type="SkattemeldingEndringEtterFristKommentar-datadef-37133" />
+    </xsd:sequence>
+    <xsd:attribute fixed="9788" name="gruppeid" type="xsd:integer" use="required" />
+  </xsd:complexType>
+  <xsd:complexType name="SkattemeldingEndringEtterFristPost-datadef-37130">
+    <xsd:simpleContent>
+      <xsd:extension base="Tekst35-repformat-3">
+        <xsd:attribute fixed="37130" name="orid" type="xsd:integer" use="required" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst35-repformat-3">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="35" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131">
+    <xsd:simpleContent>
+      <xsd:extension base="BelopHeltall15-repformat-37">
+        <xsd:attribute fixed="37131" name="orid" type="xsd:integer" use="required" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:simpleType name="BelopHeltall15-repformat-37">
+    <xsd:restriction base="xsd:integer">
+      <xsd:totalDigits value="15" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="SkattemeldingEndringEtterFristNyttBelop-datadef-37132">
+    <xsd:simpleContent>
+      <xsd:extension base="BelopHeltall15-repformat-37">
+        <xsd:attribute fixed="37132" name="orid" type="xsd:integer" use="required" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="SkattemeldingEndringEtterFristKommentar-datadef-37133">
+    <xsd:simpleContent>
+      <xsd:extension base="Tekst500-repformat-166">
+        <xsd:attribute fixed="37133" name="orid" type="xsd:integer" use="required" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst500-repformat-166">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="500" />
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

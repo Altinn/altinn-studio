@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using Altinn.Studio.Designer.Factories.ModelFactory;
+using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Manatee.Json;
@@ -21,6 +22,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// Controller containing all actions related to data modeling
     /// </summary>
+    [AutoValidateAntiforgeryToken]
     public class DatamodelsController : ControllerBase
     {
         private readonly IRepository _repository;
@@ -43,10 +45,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">the org owning the models repo</param>
         /// <param name="app">the model repos</param>
         /// <param name="filepath">The path to the data model (without file ending)</param>
+        [Authorize]
         [HttpPut]
         [Route("/designer/api/{org}/{app}/datamodels/[Action]")]
         public async Task<IActionResult> UpdateDatamodel(string org, string app, string filepath)
         {
+            SchemaKeywordCatalog.Add<InfoKeyword>();
+
             using (Stream resource = Request.Body)
             {
                 // Read the request body and deserialize to Json Schema
@@ -75,6 +80,31 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return Ok();
+        }
+
+        /// <summary>
+        /// Returns datamodel
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="repository">the repository</param>
+        /// <param name="filepath">the path to datamodel </param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet]
+        [Route("/designer/api/{org}/{repository}/datamodels/[Action]")]
+        public async Task<IActionResult> GetDatamodel(string org, string repository, string filepath)
+        {
+            try
+            {
+                Stream dataStream = await _repository.ReadData(org, repository, $"{filepath}.schema.json");
+                TextReader textReader = new StreamReader(dataStream);
+                JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
+                return Ok(jsonValue.ToString());
+            }
+            catch (Exception ex)
+            {
+                return NotFound();
+            }
         }
     }
 }
