@@ -30,10 +30,6 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
 
         public OrganisationRepositoryTest()
         {
-            var services = new ServiceCollection();
-            services.AddMemoryCache();
-            var serviceProvider = services.BuildServiceProvider();
-
             _optionsMock = new Mock<IOptions<GeneralSettings>>();
             GeneralSettings generalSettings = new GeneralSettings { OrganisationRepositoryLocation = "https://mock.com/altinn-orgs.json" };
             _optionsMock.Setup(o => o.Value).Returns(generalSettings);
@@ -50,8 +46,6 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
             // Arrange
             string expectedOrgNoKey = "org-974760223";
             string expectedOrgNameKey = "org-dibk";
-            _memoryCache.Remove(expectedOrgNoKey);
-            _memoryCache.Remove(expectedOrgNameKey);
 
             HttpClient httpClient = GetTestHttpClient();
             OrganisationRepository orgRepo = new OrganisationRepository(httpClient, _memoryCache, _loggerMock.Object, _optionsMock.Object);
