@@ -1,14 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { dataMock } from '../../mockData';
 import { buildJsonSchema, buildUISchema, getUiSchemaItem } from '../../utils';
-import { put } from '../../networking';
-
-export interface ISchemaState {
-  schema: any;
-  uiSchema: any[];
-  rootName: string;
-  saveSchemaUrl: string;
-}
+import { ISchemaState, ISetValueAction, ItemType } from '../../types';
 
 const initialState: ISchemaState = {
   schema: dataMock,
@@ -17,65 +10,21 @@ const initialState: ISchemaState = {
   saveSchemaUrl: '',
 }
 
-export enum ItemType {
-  Property,
-  Value,
-  Ref,
-};
-
-export interface ISetValueAction {
-  path: string,
-  value: any,
-  key?: string,
-}
-
 const schemaEditorSlice = createSlice({
   name: 'schemaEditor',
   initialState,
   reducers: {
-    setValue(state, action) {
-      let { path, value, key }: ISetValueAction = action.payload;
-      console.log(`SET VALUE. path: ${path}, value: ${value}`);
-
-      const itemType = path.includes('/properties/')
-      ? ItemType.Property : (key ? ItemType.Value : ItemType.Ref);
-      const schemaItem = getUiSchemaItem(state.uiSchema, path, itemType, key);
-      schemaItem.value = value;
-      
-    },
-    setKey(state, action) {
-      let {path, oldKey, newKey} = action.payload;
-      console.log(`SET KEY. path: ${path}, oldKey: ${oldKey}, newKey: ${newKey}`);
-
-      const itemType = path.includes('/properties/') ? ItemType.Property : ItemType.Value;      
-      const schemaItem = getUiSchemaItem(state.uiSchema, path, itemType, oldKey);
-      schemaItem.key = newKey;
-    },
-    setUiSchema(state, action) {
-      const rootElementPath = state.schema.properties.melding.$ref.substr(1);
-      state.uiSchema =  buildUISchema(state.schema.definitions, '#/definitions');
-      state.rootName = rootElementPath.replace('/definitions/', '');
-    },
-    setSaveSchemaUrl(state, action) {
-      state.saveSchemaUrl = action.payload.saveUrl;
-    },
-    setJsonSchema(state, action) {
-      state.schema.definitions = buildJsonSchema(state.uiSchema).definitions;
-      console.log('save url: ', state.saveSchemaUrl);
-      if (state.saveSchemaUrl) {
-        put(state.saveSchemaUrl, state.schema);
+    addField(state, action) {
+      const {path, key, value} = action.payload;
+      const addToItem = state.uiSchema.find((item) => item.id === path);
+      const itemToAdd = { key, value };
+      if (addToItem.fields) {
+        addToItem.fields.push(itemToAdd);
+      } else {
+        addToItem.fields = [itemToAdd];
       }
-      
-      // console.log('TEST: ', test);
-      // state.schema.definitions = test.definitions;
-      // console.log(stringify(state.schema));
-      // const http = new XMLHttpRequest();
-      // const url = 'https://postman-echo.com/post';
-      // http.open("POST", url);
-      // http.send(JSON.stringify(state.schema));
     },
     addProperty(state, action) {
-      console.log('ADD PROPERTY');
       const {path, newKey} = action.payload;
       const addToItem = state.uiSchema.find((item) => item.id === path);
       const itemToAdd = {
@@ -93,16 +42,12 @@ const schemaEditorSlice = createSlice({
         id: `#/definitions/${newKey}`,
       });
     },
-    addField(state, action) {
-      console.log('ADD FIELD');
-      const {path, key, value} = action.payload;
-      const addToItem = state.uiSchema.find((item) => item.id === path);
-      const itemToAdd = { key, value };
-      if (addToItem.value) {
-        addToItem.value.push(itemToAdd);
-      } else {
-        addToItem.value = [itemToAdd];
-      }
+    deleteField(state, action) {
+      const {path, key} = action.payload;
+      const removeFromItem = state.uiSchema.find((item) => item.id === path);
+      const removeIndex = removeFromItem.fields.findIndex((v: any) => v.key === key);
+      const newValue = removeFromItem.fields.slice(0, removeIndex).concat(removeFromItem.fields.slice(removeIndex + 1));
+      removeFromItem.fields = newValue;
     },
     deleteProperty(state, action) {
       const {path} = action.payload;
@@ -114,8 +59,34 @@ const schemaEditorSlice = createSlice({
         removeFromItem.properties = newProperties;
       }
     },
+    setFieldValue(state, action) {
+      let { path, value, key }: ISetValueAction = action.payload;
+      const itemType = path.includes('/properties/') ? ItemType.Property : (key ? ItemType.Value : ItemType.Ref);
+      const schemaItem = getUiSchemaItem(state.uiSchema, path, itemType);
+      if (schemaItem.fields) {
+        const fieldItem = schemaItem.fields.find((field) => field.key === key);
+        if (fieldItem) {
+          fieldItem.value = value;
+        }
+      }
+    },
+    setKey(state, action) {
+      let {path, oldKey, newKey} = action.payload;
+      const itemType = path.includes('/properties/') ? ItemType.Property : ItemType.Value;      
+      const schemaItem = getUiSchemaItem(state.uiSchema, path, itemType);
+      if (schemaItem.fields) {
+        const fieldItem = schemaItem.fields.find((field) => field.key === oldKey);
+        if (fieldItem) {
+          fieldItem.key = newKey;
+        }
+      }
+    },
+    setJsonSchema(state, action) {
+      const {schema} = action.payload;
+      console.log('set schema: ', schema);
+      state.schema = schema;
+    },
     setPropertyName(state, action) {
-      console.log('SET PROPERTY NAME');
       const {path, name} = action.payload;
       const [rootPath, propertyName] = path.split('/properties/');
       if (rootPath && propertyName) {
@@ -124,6 +95,21 @@ const schemaEditorSlice = createSlice({
         propertyItem.name = name;
         propertyItem.id = `${rootPath}/properties/${name}`;
       }
+    },
+    setSaveSchemaUrl(state, action) {
+      state.saveSchemaUrl = action.payload.saveUrl;
+    },
+    setUiSchema(state, action) {
+      const rootElementPath = state.schema.properties.melding.$ref;
+      state.uiSchema =  buildUISchema(state.schema.definitions, '#/definitions');
+      state.rootName = rootElementPath;
+    },
+    updateJsonSchema(state, action) {
+      const {onSaveSchema} = action.payload;
+      state.schema.definitions = buildJsonSchema(state.uiSchema).definitions;
+      if (onSaveSchema) {
+        onSaveSchema(state.schema);
+      }
     }
   }
 });
@@ -131,13 +117,15 @@ const schemaEditorSlice = createSlice({
 export const {
   addField,
   addProperty,
+  deleteField,
   deleteProperty,
-  setJsonSchema,
+  setFieldValue,
   setKey,
+  setJsonSchema,
   setPropertyName,
   setSaveSchemaUrl,
-  setValue,
   setUiSchema,
+  updateJsonSchema,
 } = schemaEditorSlice.actions;
 
 export default schemaEditorSlice.reducer;

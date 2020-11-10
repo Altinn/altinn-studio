@@ -5,15 +5,16 @@ import SchemaEditor from './components/schemaEditor';
 import { store } from './redux/store';
 
 export interface IAppProps {
-  saveUrl: string;
+  schema: any;
+  onSaveSchema: (payload: any) => void;
 }
 
-function App(props: IAppProps) {
+function SchemaEditorApp(props: IAppProps) {
   return (
     <Provider store={store}>
-      <SchemaEditor saveUrl={props?.saveUrl} />
+      <SchemaEditor schema={props.schema} onSaveSchema={props.onSaveSchema} />
     </Provider>
   );
 }
 
-export default App;
+export default SchemaEditorApp;

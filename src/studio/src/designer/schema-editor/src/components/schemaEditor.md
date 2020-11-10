@@ -1,14 +1,19 @@
 Schema editor example
 
-```js
+```tsx
 import { Provider } from 'react-redux';
 import '../App.css';
 import SchemaEditor from './schemaEditor';
 import { store } from '../redux/store';
+import { dataMock } from '../mockData';
 
-<div style={{height: 1200}}>
+function saveSchema(schema) {
+  alert('Saved schema');
+};
+
+<div style={{minHeight: 1350, flex: '1 1 auto'}}>
   <Provider store={store}>
-    <SchemaEditor saveUrl={''} />
+    <SchemaEditor schema={dataMock} onSaveSchema={saveSchema} />
   </Provider>
 </div>
 ```

@@ -4,7 +4,8 @@ import { makeStyles,
   Input,
   InputAdornment,
   IconButton } from '@material-ui/core';
-import {CreateOutlined, DoneOutlined} from '@material-ui/icons';
+import {CreateOutlined, DeleteOutline, DoneOutlined} from '@material-ui/icons';
+import { TypeSelect } from './TypeSelect';
 
 const useStyles = makeStyles({
   root: {
@@ -18,6 +19,16 @@ const useStyles = makeStyles({
   },
   label: {
     margin: 12,
+  },
+  inputs: {
+    flexGrow: 1,
+  },
+  container: {
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  delete: {
+    flex: '0 0 auto',
   }
 });
 
@@ -27,6 +38,7 @@ export interface IInputFieldProps {
   fullPath: string;
   onChangeValue: (path: string, value: any, key?: string) => void;
   onChangeKey: (path: string, oldKey: string, newKey: string) => void;
+  onDeleteField: (path: string, key: string) => void;
 }
 
 export function InputField(props: IInputFieldProps) {
@@ -39,6 +51,10 @@ export function InputField(props: IInputFieldProps) {
     setValue(props.value);
   }, [props.value]);
 
+  React.useEffect(() => {
+    setLabel(props.label);
+  }, [props.label]);
+
   const onChangeValue = (e: any) => {
     setValue(e.target.value);
     let value = e.target.value;
@@ -46,43 +62,67 @@ export function InputField(props: IInputFieldProps) {
       value = e.target.value.split(',');
     }
     props.onChangeValue(props.fullPath, value, props.label);
-  }
+  };
+
+  const onChangeType = (id: string, value: string) => {
+    props.onChangeValue(props.fullPath, value, id);
+  };
 
   const onChangeKey = (e: any) => {
     const oldLabel = label;
     setLabel(e.target.value);
     props.onChangeKey(props.fullPath, oldLabel, e.target.value);
-  }
+  };
+
+  const onClickDelete = () => {
+    props.onDeleteField(props.fullPath, props.label);
+  };
 
   const toggleEditLabel = (e: any) => {
     setEditLabel(!editLabel);
-  }
+  };
 
   return (
       <div>
-        <FormControl>
-          <Input
-            id={`input-${props.fullPath}-key-${label}`}
-            value={label}
-            onChange={onChangeKey}
-            disabled={!editLabel}
-            className={classes.rootKey}
-            endAdornment={
-              <InputAdornment position='end'>
-                <IconButton onClick={toggleEditLabel}>
-                  {editLabel ? <DoneOutlined /> : <CreateOutlined />}
-                </IconButton>
-              </InputAdornment>
-            }
-          />
-        </FormControl>
-        <FormControl>
-          <Input
-            value={value}
-            onChange={onChangeValue}
-            className={classes.root}
-          />
-        </FormControl>
+        <span className={classes.inputs}>
+          <FormControl>
+            <Input
+              id={`input-${props.fullPath}-key-${label}`}
+              value={label}
+              onChange={onChangeKey}
+              disabled={!editLabel}
+              className={classes.rootKey}
+              endAdornment={
+                <InputAdornment position='end'>
+                  <IconButton onClick={toggleEditLabel}>
+                    {editLabel ? <DoneOutlined /> : <CreateOutlined />}
+                  </IconButton>
+                </InputAdornment>
+              }
+            />
+          </FormControl>
+          <FormControl>
+            {label === 'type' ? 
+              <TypeSelect 
+                itemType={value}
+                id={label}
+                onChange={onChangeType}
+              />
+            :
+              <Input
+                value={value}
+                onChange={onChangeValue}
+                className={classes.root}
+              />
+          }
+          </FormControl>
+        </span>
+        <IconButton
+            aria-label='Delete field'
+            onClick={onClickDelete}
+          >
+            <DeleteOutline/>
+          </IconButton>
       </div>
   )
 }

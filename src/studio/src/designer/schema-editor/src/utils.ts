@@ -1,23 +1,19 @@
-import { ItemType } from "./features/editor/schemaEditorSlice";
+import { ItemType, UiSchemaItem } from './types';
 
 const JsonPointer = require('jsonpointer');
 
-export function getUiSchemaItem(schema: any[], path: string, itemType: ItemType, key?: string): any {
+export function getUiSchemaItem(schema: UiSchemaItem[], path: string, itemType: ItemType): UiSchemaItem {
   let propertyId: string;
   if (itemType === ItemType.Property) {
     [path, propertyId] = path.split('/properties/');
   }
 
-  let item: any = schema.find((item) => item.id === path);
-  if (itemType === ItemType.Property) {
-    item = item.properties.find((item: any) => item.id === `${path}/properties/${propertyId}`);
+  let schemaItem: UiSchemaItem = schema.find((item) => item.id === path) || {} as UiSchemaItem;
+  if (schemaItem.properties) {
+    schemaItem = schemaItem.properties.find((item: any) => item.id === `${path}/properties/${propertyId}`) || {} as UiSchemaItem;
   }
 
-  if (key) {
-    item = item.value.find((item: any) => item.key === key);
-  }
-
-  return item;
+  return schemaItem;
 }
 
 export function buildJsonSchema(uiSchema: any[]): any {
@@ -46,12 +42,10 @@ export function createJsonSchemaItem(uiSchemaItem: any): any {
         });
         break;
       }
-      case 'value': {
-        if (Array.isArray(uiSchemaItem.value)) {
-          uiSchemaItem.value.forEach((valueItem: any) => {
-            item[valueItem.key] = valueItem.value;
-          });
-        } 
+      case 'fields': {
+        uiSchemaItem.fields.forEach((field: any) => {
+          item[field.key] = field.value;
+        });
         break;
       }
       case 'required': {
@@ -73,6 +67,7 @@ export function buildUISchema(schema: any, rootPath: string) {
   const result : any[] = [];
   Object.keys(schema).forEach((key) => {
     const item = schema[key];
+    console.log('key: ', key);
     const id = `${rootPath}/${key}`;
     if (item.properties) {
       result.push(buildUiSchemaForItemWithProperties(item, id));
@@ -84,7 +79,7 @@ export function buildUISchema(schema: any, rootPath: string) {
     } else if (typeof item === 'object' && item !== null) {
       result.push({
         id,
-        value: Object.keys(item).map((itemKey) => {
+        fields: Object.keys(item).map((itemKey) => {
           return {
             key: itemKey,
             value: item[itemKey],
@@ -115,7 +110,7 @@ export function buildUiSchemaForItemWithProperties(schema: any, name: string) {
     if (currentProperty.$ref) {
       item.$ref = currentProperty.$ref;
     } else if (typeof currentProperty === 'object' && currentProperty !== null) {
-      item.value = Object.keys(currentProperty).map((itemKey) => {
+      item.fields = Object.keys(currentProperty).map((itemKey) => {
         return {
           key: itemKey,
           value: currentProperty[itemKey],

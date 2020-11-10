@@ -4,8 +4,8 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import { TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
-import { ISchemaState } from '../features/editor/schemaEditorSlice';
-import { setUiSchema, setJsonSchema, setSaveSchemaUrl } from '../features/editor/schemaEditorSlice';
+import { ISchemaState } from '../types';
+import { setUiSchema, setJsonSchema, updateJsonSchema } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 
 const useStyles = makeStyles(
@@ -23,29 +23,37 @@ const useStyles = makeStyles(
   }),
 );
 
-export const SchemaEditor = ({ saveUrl }: any) => {
+export interface ISchemaEditor {
+  schema: any;
+  onSaveSchema: (payload: any) => void;
+}
+
+export const SchemaEditor = ({ schema, onSaveSchema }: ISchemaEditor) => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
   const rootItem = useSelector((state: ISchemaState) => state.uiSchema[0]);
+  const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   
   React.useEffect(() => {
-    dispatch(setUiSchema({}));
-  }, [dispatch]);
+    if (jsonSchema) {
+      dispatch(setUiSchema({}));
+    }
+  }, [dispatch, jsonSchema]);
 
   React.useEffect(() => {
-    dispatch(setSaveSchemaUrl({saveUrl}));
-  }, [dispatch, saveUrl]);
+    dispatch(setJsonSchema({schema}));
+  }, [dispatch, schema]);
 
-  const onClickSetJsonSchema = () => {
-    dispatch(setJsonSchema({}));
+  const onClickSaveJsonSchema = () => {
+    dispatch(updateJsonSchema({onSaveSchema}));
   }
 
   return (
     <>
     {rootItem &&
     <div className={classes.root}>
-      <button className={classes.button} onClick={onClickSetJsonSchema}>Save data model</button>
+      <button className={classes.button} onClick={onClickSaveJsonSchema}>Save data model</button>
       <TreeView
         className={classes.root}
         defaultExpanded={['1']}

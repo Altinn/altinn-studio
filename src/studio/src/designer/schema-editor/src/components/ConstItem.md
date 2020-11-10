@@ -4,7 +4,7 @@ import ConstItem from './ConstItem';
 const item = {
   name: 'dataFormatProvider',
   id: '#/definitions/root/properties/dataFormatProvider',
-  value: [
+  fields: [
     {key: 'const', value: 'SERES'},
     {key: 'type', value: 'string'},
     {key: '@xsdType', value: 'XmlAttribute'},

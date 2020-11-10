@@ -1,3 +1,3 @@
-import App from './App';
+import SchemaEditorApp from './SchemaEditorApp';
 
-export { App };
+export { SchemaEditorApp };

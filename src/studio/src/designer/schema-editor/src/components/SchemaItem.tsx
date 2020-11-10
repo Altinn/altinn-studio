@@ -3,18 +3,18 @@ import { makeStyles } from '@material-ui/core/styles';
 import TreeItem, { TreeItemProps } from '@material-ui/lab/TreeItem';
 import Typography from '@material-ui/core/Typography';
 import { InputField } from './InputField';
-import { setKey, setValue, addField, addProperty, deleteProperty, ISchemaState, setPropertyName } from '../features/editor/schemaEditorSlice';
+import { setKey,
+  setFieldValue,
+  addField,
+  addProperty,
+  deleteProperty,
+  setPropertyName, 
+  deleteField} from '../features/editor/schemaEditorSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import ConstItem from './ConstItem';
-import { IconButton, MenuItem, Select, TextField } from '@material-ui/core';
+import { IconButton, TextField } from '@material-ui/core';
 import { AddCircleOutline, CreateOutlined, DeleteOutline, DoneOutlined } from '@material-ui/icons';
-
-declare module 'csstype' {
-  interface Properties {
-    '--tree-view-color'?: string;
-    '--tree-view-bg-color'?: string;
-  }
-}
+import { Field, ISchemaState } from '../types';
 
 type StyledTreeItemProps = TreeItemProps & {
   item: any
@@ -28,13 +28,14 @@ const useStyles = makeStyles({
   },
   labelRoot: {
     display: 'flex',
-    alignItems: 'left',
+    alignItems: 'center',
     padding: 12,
   },
   label: {
     fontSize: '1.2em',
     paddingRight: 12,
     lineHeight: 2.4,
+    flexGrow: 1,
   },
   typeRef: {
     fontSize: '1.6em',
@@ -80,28 +81,24 @@ function SchemaItem(props: StyledTreeItemProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const {item, ...other} = props;
-  let { id, $ref, value, properties } = item;
+  let { id, $ref, fields, properties } = item;
 
   const [constItem, setConstItem] = React.useState<boolean>(false);
-  const [itemType, setItemType] = React.useState<string>('');
-  const [definitionItem, setDefinitionItem] = React.useState<any>(null);
+  const [definitionItem, setDefinitionItem] = React.useState<any>(item);
   const [editLabel, setEditLabel] = React.useState<boolean>(false);
   const [label, setLabel] = React.useState<string>(item.name || id.replace('#/definitions/'));
 
   const refItems: any[] = useSelector((state: ISchemaState) => getRefItems(state.uiSchema, $ref));
 
   React.useEffect(() => {
-    if (item.value && item.value.find((v: any) => v.key === 'const')) {
+    if (fields  && fields.find((v: any) => v.key === 'const')) {
       setConstItem(true);
     }
     if (refItems && refItems.length > 0) {
       const refItem = refItems[refItems.length - 1];
       setDefinitionItem(refItem);
-      if (refItem.value) {
-        setItemType(refItem.value.find((v: any) => v.key === 'type')?.value);
-      }
     }
-  }, [item, refItems]);
+  }, [fields, refItems]);
 
   const onAddPropertyClick = (event: any) => {
     const path = definitionItem?.id || id;
@@ -125,20 +122,25 @@ function SchemaItem(props: StyledTreeItemProps) {
     dispatch(deleteProperty({path: id}));
   }
 
-  const onDeleteFieldClick = (event: any) => {
-    console.log('DELETE FIELD')
+  const onDeleteFieldClick = (path: string, key: string) => {
+    dispatch(deleteField({path, key}));
   }
 
-  const onToggleEditLabel = () => {
+  const onToggleEditLabel = (event: any) => {
     if (editLabel) {
-      setPropertyName({path: id, name: label});
+      dispatch(setPropertyName({path: id, name: label}));
     }
     setEditLabel(!editLabel);
+    event.stopPropagation();
+  }
+
+  const onClickEditLabel = (event: any) => {
+    event.stopPropagation();
   }
 
   const onChangeLabel = (event: any) => {
     setLabel(event.target.value);
-    event.preventDefault();
+    event.stopPropagation();
   }
 
   const onChangeValue = (path: string, value: any, key?: string) => {
@@ -147,7 +149,7 @@ function SchemaItem(props: StyledTreeItemProps) {
       value,
       key,
     }
-    dispatch(setValue(data));
+    dispatch(setFieldValue(data));
   }
 
   const onChangeKey = (path: string, oldKey: string, newKey: string) => {
@@ -171,18 +173,20 @@ function SchemaItem(props: StyledTreeItemProps) {
     return null;
   }
 
-  const RenderValue = (value: any[], path: string) => {
-    if (value && value.length > 0) {
+  const RenderFields = (fields: Field[], path: string) => {
+
+    if (fields && fields.length > 0) {
       return (
         <div>
-          {value.map((item) => {
+          {fields.map((field) => {
               return (
                 <InputField
-                  value={item.value}
-                  label={item.key}
+                  value={field.value}
+                  label={field.key}
                   fullPath={path}
                   onChangeValue={onChangeValue}
                   onChangeKey={onChangeKey}
+                  onDeleteField={onDeleteFieldClick}
                 />
               );
             })
@@ -195,33 +199,18 @@ function SchemaItem(props: StyledTreeItemProps) {
 
   const RenderRefItems = () => {
     if (refItems && refItems.length > 0) {
+      let typeStr = '';
+      refItems.forEach((refItem, index) => {
+        typeStr = `${typeStr} ${refItem.id.replace('#/definitions/', '')} ${index < refItems.length - 1 ? '-->' : ''}`
+      })
       return (
         <>
-          {/* {refItems.map((refItem) => {
-            return <Typography>Type: {refItem.id.replace('#/definitions/', '')}</Typography>
-          })} */}
+          <Typography>Type: {typeStr}</Typography>
           {RenderProperties(definitionItem?.properties)}
-          {RenderValue(definitionItem?.value, definitionItem?.id)}
+          {RenderFields(definitionItem?.fields, definitionItem?.id)}
         </>
       )
     }
-  }
-
-  const TypeSelect = () => {
-    return (
-      <Select
-        id={`type-select-${item.id}`}
-        value={itemType}
-      >
-        <MenuItem value='string'>string</MenuItem>
-        <MenuItem value='integer'>integer</MenuItem>
-        <MenuItem value='number'>number</MenuItem>
-        <MenuItem value='boolean'>boolean</MenuItem>
-        <MenuItem value='array'>array</MenuItem>
-        <MenuItem value='enum'>enum</MenuItem>
-        <MenuItem value='object'>object</MenuItem>
-      </Select>
-    )
   }
 
   const RenderLabel = () => {
@@ -232,6 +221,8 @@ function SchemaItem(props: StyledTreeItemProps) {
           className={classes.label}
           value={label}
           onChange={onChangeLabel}
+          onClick={onClickEditLabel}
+          autoFocus={true}
         />
         : <Typography className={classes.label} variant='body1'>
           {props.item.name || id.replace('#/definitions/', '')}
@@ -239,16 +230,8 @@ function SchemaItem(props: StyledTreeItemProps) {
         <IconButton onClick={onToggleEditLabel}>
           {editLabel ? <DoneOutlined /> : <CreateOutlined />}
         </IconButton>
-        {/* {itemType &&
-        <>
-          <TypeSelect/>
-        </>
-        } */}
         {(definitionItem && definitionItem.properties) &&
         <>
-          {/* <Typography className={classes.buttonRoot} variant="button" color="inherit">
-          <button className={classes.button} title='Add' onClick={onAddPropertyClick}>Add property</button>
-        </Typography> */}
           <IconButton
             aria-label='Add property'
             onClick={onAddPropertyClick}
@@ -257,7 +240,7 @@ function SchemaItem(props: StyledTreeItemProps) {
           </IconButton>
         </>
         }
-        <IconButton
+          <IconButton
             aria-label='Delete object'
             onClick={onDeleteObjectClick}
           >
@@ -285,7 +268,7 @@ function SchemaItem(props: StyledTreeItemProps) {
     >
       {RenderRefItems()}
       {RenderProperties(properties)}
-      {RenderValue(value, id)}
+      {RenderFields(fields, id)}
       <Typography className={classes.buttonRoot} variant="button" color="inherit">
         <button className={classes.button} title='AddSib' onClick={onAddFieldClick}>Add field</button>
       </Typography>

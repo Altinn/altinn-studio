@@ -4,7 +4,7 @@ import {Typography} from '@material-ui/core';
 function ConstItem({item}: any) {
   return (
     <div>
-      <Typography>{item.name || item.id}: {item.value.find((v: any) => v.key === 'const').value}</Typography>
+      <Typography>{item.name || item.id}: {item.fields.find((v: any) => v.key === 'const').value}</Typography>
     </div>
   )
 }

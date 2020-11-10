@@ -1,9 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import App from './App';
+import SchemaEditorApp from './SchemaEditorApp';
 
 test('renders learn react link', () => {
-  render(<App saveUrl='' />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  render(<SchemaEditorApp schema={{}} onSaveSchema={() => {}} />);
 });
