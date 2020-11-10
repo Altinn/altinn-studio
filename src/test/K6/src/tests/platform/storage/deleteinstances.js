@@ -48,7 +48,7 @@ export default function (data) {
 
     do {
         //Find active instances under the party id to be deleted.
-        res = sbl.getSblInstanceByParty(runtimeToken, partyId);
+        res = sbl.getSblInstanceByParty(runtimeToken, partyId, "active");
         success = check(res, {
             "GET SBL Instance by Party status is 200:": (r) => r.status === 200
         });
@@ -63,7 +63,7 @@ export default function (data) {
             sbl.hardDeleteManyInstances(runtimeToken, instances);
 
             //Find more instances to loop through
-            res = sbl.getSblInstanceByParty(runtimeToken, partyId);
+            res = sbl.getSblInstanceByParty(runtimeToken, partyId, "active");
             success = check(res, {
                 "GET SBL Instance by Party status is 200:": (r) => r.status === 200
             });
