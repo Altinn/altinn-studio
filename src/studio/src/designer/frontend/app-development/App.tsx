@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 /* tslint:disable:jsx-no-lambda */
 // https://github.com/facebook/create-react-app/issues/4801#issuecomment-409553780
 // Disabled for React Router rendering
@@ -21,7 +22,7 @@ import postMessages from 'app-shared/utils/postMessages';
 import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
 import { redirects } from './config/redirects';
-import { routes } from './config/routes';
+import routes from './config/routes';
 import handleServiceInformationActionDispatchers from './features/administration/handleServiceInformationDispatcher';
 import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConflictContainer';
 import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';
@@ -109,6 +110,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   public render() {
     const { classes, repoStatus } = this.props;
     const { org, app } = window as Window as IAltinnWindow;
+    console.log('ROUTE: ', routes);
 
     return (
       <React.Fragment>
@@ -192,18 +194,21 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                       </div>
                       :
                       <div className={classes.subApp}>
-                        {routes.map((route, index) => (
-                          <Route
-                            key={index}
-                            path={route.path}
-                            exact={route.exact}
-                            render={(props) => <route.subapp
-                              {...props}
-                              {...route.props}
-                              language={this.props.language}
-                            />}
-                          />
-                        ))}
+                        {routes.map((route, index) => {
+                          return (
+                            <Route
+                              key={index}
+                              path={route.path}
+                              exact={route.exact}
+                              component={(props: any) => <route.subapp
+                                {...props}
+                                {...route.props}
+                                language={this.props.language}
+                              />}
+                            />
+                          );
+                        })
+                        }
                       </div>
                   }
                 </Grid>

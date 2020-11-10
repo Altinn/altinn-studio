@@ -28,3 +28,7 @@ export const getEnvironmentsConfigUrl = (): string => {
 export const getAppDeploymentsUrl = () => {
   return `${origin}/designer/api/v1/${org}/${app}/Deployments`;
 };
+
+export const getDataModelUrl = (filePath: string) => {
+  return `${origin}/designer/api/v1/${org}/${app}/datamodels/GetDataModel?filePath=${encodeURIComponent(filePath)}`;
+};

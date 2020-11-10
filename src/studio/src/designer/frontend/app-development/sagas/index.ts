@@ -8,9 +8,10 @@ import { appDeploymentSagas } from '../sharedResources/appDeployment/appDeployme
 import { applicationMetadataSagas } from '../sharedResources/applicationMetadata/applicationMetadataSagas';
 import { appReleaseSagas } from '../sharedResources/appRelease/appReleaseSagas';
 import languageSagas from '../utils/fetchLanguage/languageSagas';
-import { appClusterSagas } from './../sharedResources/appCluster/appClusterSagas';
-import { configurationSagas } from './../sharedResources/configuration/configurationSagas';
-import { repoStatusSagas } from './../sharedResources/repoStatus/repoStatusSagas';
+import { appClusterSagas } from '../sharedResources/appCluster/appClusterSagas';
+import { configurationSagas } from '../sharedResources/configuration/configurationSagas';
+import { repoStatusSagas } from '../sharedResources/repoStatus/repoStatusSagas';
+import { watchFetchDataModelSaga, watchSaveDataModelSaga } from '../features/dataModeling/dataModelingSagas';
 
 function* root(): SagaIterator {
   yield fork(languageSagas);
@@ -27,6 +28,8 @@ function* root(): SagaIterator {
   yield fork(appReleaseSagas);
   yield fork(appDeploymentSagas);
   yield fork(configurationSagas);
+  yield fork(watchFetchDataModelSaga);
+  yield fork(watchSaveDataModelSaga);
 }
 
 export const run: () => Task = () => sagaMiddleware.run(root);
