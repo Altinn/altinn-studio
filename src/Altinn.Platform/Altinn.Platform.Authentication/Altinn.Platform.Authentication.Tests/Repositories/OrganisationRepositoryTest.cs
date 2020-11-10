@@ -38,7 +38,7 @@ namespace Altinn.Platform.Authentication.Tests.Repositories
             GeneralSettings generalSettings = new GeneralSettings { OrganisationRepositoryLocation = "https://mock.com/altinn-orgs.json" };
             _optionsMock.Setup(o => o.Value).Returns(generalSettings);
             _loggerMock = new Mock<ILogger<OrganisationRepository>>();
-            _memoryCache = serviceProvider.GetService<IMemoryCache>();
+            _memoryCache = new MemoryCache(new MemoryCacheOptions());
         }
 
         /// <summary>
