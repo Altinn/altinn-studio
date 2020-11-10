@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using Altinn.Studio.Designer.Factories.ModelFactory;
+using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Manatee.Json;
@@ -49,6 +50,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/designer/api/{org}/{app}/datamodels/[Action]")]
         public async Task<IActionResult> UpdateDatamodel(string org, string app, string filepath)
         {
+            SchemaKeywordCatalog.Add<InfoKeyword>();
+
             using (Stream resource = Request.Body)
             {
                 // Read the request body and deserialize to Json Schema

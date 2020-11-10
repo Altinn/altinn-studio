@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using Altinn.Studio.Designer.Factories.ModelFactory;
+using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -58,6 +59,8 @@ namespace Designer.Tests.Factories.ModelFactory
         {
             // string xsdName = "Designer.Tests._TestData.Model.Xsd.schema_3451_8_forms_4106_35721.xsd";
             string xsdName = "Designer.Tests._TestData.Model.Xsd.schema_4581_100_forms_5245_41111.xsd";
+
+            SchemaKeywordCatalog.Add<InfoKeyword>();
 
             // Arrange
             XmlReader xsdReader = XmlReader.Create(LoadTestData(xsdName));
