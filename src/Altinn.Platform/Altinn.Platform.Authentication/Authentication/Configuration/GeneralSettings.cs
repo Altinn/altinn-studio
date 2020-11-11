@@ -171,10 +171,5 @@ namespace Altinn.Platform.Authentication.Configuration
         /// Take care not to upload "old" certificates.
         /// </remarks>
         public int JwtSigningCertificateRolloverDelayHours { get; set; }
-
-        /// <summary>
-        /// Gets or sets the initial organisation harvest date time.
-        /// </summary>
-        public DateTime InitialHarvestDateTime { get; set; } = DateTime.MinValue;
     }
 }

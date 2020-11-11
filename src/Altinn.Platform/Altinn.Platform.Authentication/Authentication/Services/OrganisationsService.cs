@@ -3,19 +3,21 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Authentication.Configuration;
+using Altinn.Platform.Authentication.Exceptions;
 using Altinn.Platform.Authentication.Model;
+using Altinn.Platform.Authentication.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Altinn.Platform.Authentication.Repositories
+namespace Altinn.Platform.Authentication.Services
 {
     /// <summary>
     /// Responsible for looking up the valid organisation list and returning the org identifier. See LookupOrg method.
     /// </summary>
-    public class OrganisationRepository : IOrganisationRepository
+    public class OrganisationsService : IOrganisationsService
     {
         private readonly IMemoryCache _memoryCache;
         private readonly MemoryCacheEntryOptions _cacheEntryOptions;
@@ -25,7 +27,7 @@ namespace Altinn.Platform.Authentication.Repositories
 
         private readonly Uri _organisationListLocation;
 
-        private DateTime _lastHarvest;
+        private readonly string _orgDictionaryCacheKey = "organisationDictionary";
 
         /// <summary>
         /// Instantiates the class.
@@ -34,7 +36,7 @@ namespace Altinn.Platform.Authentication.Repositories
         /// <param name="memoryCache">the memory cache</param>
         /// <param name="logger">the logger</param>
         /// <param name="generalSettings">the settings which contains the url to the json organisation file</param>
-        public OrganisationRepository(HttpClient httpClient, IMemoryCache memoryCache, ILogger<OrganisationRepository> logger, IOptions<GeneralSettings> generalSettings)
+        public OrganisationsService(HttpClient httpClient, IMemoryCache memoryCache, ILogger<OrganisationsService> logger, IOptions<GeneralSettings> generalSettings)
         {
             _httpClient = httpClient;
             _logger = logger;
@@ -44,68 +46,20 @@ namespace Altinn.Platform.Authentication.Repositories
             _cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetPriority(CacheItemPriority.Normal)
                 .SetAbsoluteExpiration(new TimeSpan(1, 0, 0));
-
-            _lastHarvest = generalSettings.Value.InitialHarvestDateTime;
-        }
-
-        /// <inheritdoc/>
-        public async Task<Organisation> GetOrganisationByOrgNumber(string orgNumber)
-        {
-            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
-
-            string cacheKey = $"org-{orgNumber}";
-            Organisation organisation;
-
-            _memoryCache.TryGetValue(cacheKey, out organisation);
-
-            return organisation;
-        }
-
-        /// <inheritdoc/>
-        public async Task<Organisation> GetOrganisationByOrg(string org)
-        {
-            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
-
-            string cacheKey = $"org-{org}";
-            Organisation organisation;
-
-            _memoryCache.TryGetValue(cacheKey, out organisation);
-
-            return organisation;
         }
 
         /// <inheritdoc/>
         public async Task<string> LookupOrg(string orgNumber)
         {
-            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
-
-            string cacheKey = $"org-{orgNumber}";
-            Organisation organisation;
-
-            _memoryCache.TryGetValue(cacheKey, out organisation);
-
-            return organisation?.Org;
-        }
-
-        /// <inheritdoc/>
-        public async Task<string> LookupOrgNumber(string org)
-        {
-            await HarvestOrgsIfCacheIsMoreThanOneHourOld();
-
-            string cacheKey = $"org-{org}";
-            Organisation organisation;
-
-            _memoryCache.TryGetValue(cacheKey, out organisation);
-
-            return organisation?.OrgNumber;
-        }
-
-        private async Task HarvestOrgsIfCacheIsMoreThanOneHourOld()
-        {
-            if (_lastHarvest < DateTime.UtcNow.AddHours(-0.9))
+            if (!_memoryCache.TryGetValue(_orgDictionaryCacheKey, out Dictionary<string, Organisation> organisationDictionary))
             {
                 await HarvestOrgs();
             }
+
+            _memoryCache.TryGetValue(_orgDictionaryCacheKey, out organisationDictionary);
+            organisationDictionary.TryGetValue(orgNumber, out Organisation organisation);
+
+            return organisation?.Org;
         }
 
         private async Task HarvestOrgs()
@@ -127,6 +81,8 @@ namespace Altinn.Platform.Authentication.Repositories
                     throw new OrganisationHarvestException($"Organisation list is empty!");
                 }
 
+                Dictionary<string, Organisation> organisationDictionary = new Dictionary<string, Organisation>();
+
                 foreach (KeyValuePair<string, Organisation> element in organisationHarvest)
                 {
                     Organisation candidateOrganisation = element.Value;
@@ -135,26 +91,16 @@ namespace Altinn.Platform.Authentication.Repositories
                     string orgNumber = candidateOrganisation.OrgNumber;
                     string org = candidateOrganisation.Org;
 
-                    if (string.IsNullOrEmpty(org))
-                    {
-                        _logger.LogWarning($"Organisation {candidateOrganisation.ToString()} is missing org value and will not be part of orgToOrganisation map!");
-                    }
-                    else
-                    {
-                        _memoryCache.Set($"org-{org}", candidateOrganisation, _cacheEntryOptions);
-                    }
-
                     if (string.IsNullOrEmpty(orgNumber))
                     {
                         _logger.LogWarning($"Organisation {candidateOrganisation.ToString()} is missing orgNumber and will not be part of orgNumberToOrganisation map!");
+                        throw new OrganisationHarvestException($"Unable to harvest org number for organisation {candidateOrganisation.Org}");
                     }
-                    else
-                    {
-                        _memoryCache.Set($"org-{orgNumber}", candidateOrganisation, _cacheEntryOptions);
-                    }
+
+                    organisationDictionary.Add(orgNumber, candidateOrganisation);
                 }
 
-                _lastHarvest = DateTime.UtcNow;
+                _memoryCache.Set(_orgDictionaryCacheKey, organisationDictionary, _cacheEntryOptions);
             }
             catch (Exception ex)
             {

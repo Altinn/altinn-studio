@@ -1,6 +1,6 @@
 using System;
 
-namespace Altinn.Platform.Authentication.Repositories
+namespace Altinn.Platform.Authentication.Exceptions
 {
     /// <summary>
     /// Exception for harvest exception.
