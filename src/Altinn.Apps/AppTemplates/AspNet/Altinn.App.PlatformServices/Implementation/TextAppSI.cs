@@ -17,6 +17,9 @@ using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Services.Implementation
 {
+    /// <summary>
+    /// Represents a service that provide access to text resources.
+    /// </summary>
     public class TextAppSI : IText
     {
         private readonly ILogger _logger;
@@ -30,9 +33,14 @@ namespace Altinn.App.Services.Implementation
         /// Initializes a new instance of the <see cref="TextAppSI"/> class.
         /// </summary>
         /// <param name="settings">The app repository settings.</param>
+        /// <param name="platformSettings">The platform settings object from configuration.</param>
+        /// <param name="logger">A logger from the built in logger factory.</param>
+        /// <param name="httpContextAccessor">An object with access to the http context.</param>
+        /// <param name="httpClient">A HttpClient provided by the built in HttpClientFactory.</param>
+        /// <param name="memoryCache">The built in MemoryCache.</param>
         public TextAppSI(
             IOptions<AppSettings> settings,
-              IOptions<PlatformSettings> platformSettings,
+            IOptions<PlatformSettings> platformSettings,
             ILogger<TextAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             HttpClient httpClient,
@@ -49,8 +57,8 @@ namespace Altinn.App.Services.Implementation
             _memoryCache = memoryCache;
             cacheEntryOptions = new MemoryCacheEntryOptions()
                 .SetPriority(CacheItemPriority.High)
-                .SetAbsoluteExpiration(new TimeSpan(0, 0, settings.Value.CacheResourceLifeTimeInSeconds));
-
+                .SetAbsoluteExpiration(
+                    new TimeSpan(0, 0, settings.Value.CacheResourceLifeTimeInSeconds));
         }
 
         /// <inheritdoc />

@@ -155,10 +155,10 @@ namespace Altinn.App.Services.Helpers
                 else if (party.ChildParties != null && party.ChildParties.Count > 0)
                 {
                     Party validChildParty = party.ChildParties.Find(cp => cp.PartyId == partyId);
-                    if (validChildParty != null) {
+                    if (validChildParty != null)
+                    {
                       validParty = validChildParty;
                     }
-                    
                 }
             }
 

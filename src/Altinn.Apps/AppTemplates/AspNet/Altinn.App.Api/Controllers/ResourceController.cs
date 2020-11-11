@@ -33,9 +33,11 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/resource/{id}")]
         public IActionResult Index(string org, string app, string id)
         {
-            if (id == "FormLayout.json") {
+            if (id == "FormLayout.json")
+            {
                 return Layouts(org, app);
             }
+
             byte[] fileContent = _appResourceService.GetAppResource(org, app, id);
 
             if (fileContent != null)
@@ -120,7 +122,6 @@ namespace Altinn.App.Api.Controllers
             return Ok(schema);
         }
 
-        
         /// <summary>
         /// Get the form layout
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -135,6 +136,12 @@ namespace Altinn.App.Api.Controllers
           return Ok(layouts);
         }
 
+        /// <summary>
+        /// Get the layout settings.
+        /// </summary>
+        /// <param name="org">The application owner short name</param>
+        /// <param name="app">The application name</param>
+        /// <returns>The settings in the form of a string.</returns>
         [HttpGet]
         [Route("{org}/{app}/api/layoutsettings")]
         public ActionResult LayoutSettings(string org, string app)

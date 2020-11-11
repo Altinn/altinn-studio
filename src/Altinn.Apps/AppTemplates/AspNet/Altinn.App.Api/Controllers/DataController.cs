@@ -43,9 +43,10 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="logger">logger</param>
         /// <param name="instanceService">instance service to store instances</param>
-        /// <param name="dataService">dataservice</param>
+        /// <param name="dataService">A service with access to data storage.</param>
         /// <param name="altinnApp">The app logic for current service</param>
         /// <param name="appResourcesService">The apps resource service</param>
+        /// <param name="prefillService">A service with prefill related logic.</param>
         public DataController(
             ILogger<DataController> logger,
             IInstance instanceService,
@@ -402,7 +403,6 @@ namespace Altinn.App.Api.Controllers
             return Created(dataElement.SelfLinks.Apps, dataElement);
         }
 
-
         /// <summary>
         /// Gets a data element from storage.
         /// </summary>
@@ -478,7 +478,6 @@ namespace Altinn.App.Api.Controllers
         Guid dataGuid,
         string dataType)
         {
-
             string appModelclassRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
             // Get Form Data from data service. Assumes that the data element is form data.
@@ -494,7 +493,6 @@ namespace Altinn.App.Api.Controllers
             {
                 return BadRequest($"Did not find form data for data element {dataGuid}");
             }
-
 
             // Trigger application business logic
             await _altinnApp.RunCalculation(appModel);
@@ -520,8 +518,7 @@ namespace Altinn.App.Api.Controllers
         {
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-
-
+            
             ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
             object serviceModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
@@ -611,12 +608,14 @@ namespace Altinn.App.Api.Controllers
                         {
                             return true;
                         }
+
                         break;
                     case "orgno":
                         if (value.Equals(user.GetOrgNumber().ToString()))
                         {
                             return true;
                         }
+
                         break;
                     default:
                         break;
@@ -626,12 +625,6 @@ namespace Altinn.App.Api.Controllers
             return false;
         }
 
-        /// <summary>
-        /// Validated that the request 
-        /// </summary>
-        /// <param name="dataType"></param>
-        /// <param name="errorMessage"></param>
-        /// <returns></returns>
         private bool CompliesWithDataRestrictions(DataType dataType, out string errorMessage)
         {
             errorMessage = string.Empty;
@@ -685,7 +678,7 @@ namespace Altinn.App.Api.Controllers
             // Verify that file mime type is an allowed content-type
             if (!dataType.AllowedContentTypes.Contains(mimeType, StringComparer.InvariantCultureIgnoreCase) && !dataType.AllowedContentTypes.Contains("application/octet-stream"))
             {
-                errorMessage = $"Invalid content type: {mimeType}. Please try another file. Permitted content types include: {String.Join(", ", dataType.AllowedContentTypes)}";
+                errorMessage = $"Invalid content type: {mimeType}. Please try another file. Permitted content types include: {string.Join(", ", dataType.AllowedContentTypes)}";
                 return false;
             }
 

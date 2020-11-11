@@ -15,7 +15,7 @@ namespace Altinn.App.Services.Interface
     {
         /// <summary>
         /// Returns a stream that contains the process definition.
-        /// </summary>        
+        /// </summary>
         /// <returns>the stream</returns>
         Stream GetProcessDefinition();
 
@@ -25,7 +25,8 @@ namespace Altinn.App.Services.Interface
         /// </summary>
         /// <param name="instance">instance to start process on</param>
         /// <param name="proposedStartEvent">valid start event identifier</param>
-        /// <returns>process state change containg prev process state, current state and events</returns>
+        /// <param name="user">The current <see cref="ClaimsPrincipal"/>.</param>
+        /// <returns>process state change contain prev process state, current state and events</returns>
         ProcessStateChange ProcessStart(Instance instance, string proposedStartEvent, ClaimsPrincipal user);
 
         /// <summary>
@@ -43,9 +44,6 @@ namespace Altinn.App.Services.Interface
         /// Updates the process to the next element id (can be a task or end event).
         /// Instance object gets new process state.
         /// </summary>
-        /// <param name="instance">instance to update</param>
-        /// <param name="nextElementId">valid next element id</param>
-        /// <param name="processModel">the process model to get info</param>
         /// <returns>The state change</returns>
         ProcessStateChange ProcessNext(Instance instance, string nextElementId, ClaimsPrincipal user);
 
@@ -61,6 +59,5 @@ namespace Altinn.App.Services.Interface
         /// Gets the instance process events related to the instance matching the instance id. 
         /// </summary>
         Task<ProcessHistoryList> GetProcessHistory(string instanceGuid, string instanceOwnerPartyId);
-
     }
 }

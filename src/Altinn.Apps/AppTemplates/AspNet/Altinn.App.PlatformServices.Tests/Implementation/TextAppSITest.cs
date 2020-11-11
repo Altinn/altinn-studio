@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -92,11 +91,10 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
         }
 
         [Fact]
-        public async Task GetAppTextNb_StorageRetunsError()
+        public async Task GetAppTextNb_StorageReturnsError()
         {
             // Arrange
             memoryCache.Remove("org-app-nb");
-            TextResource texts = new TextResource { Language = "nb" };
 
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage
             {
@@ -125,7 +123,9 @@ namespace Altinn.App.PlatformServices.Tests.Implementation
             contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
 
             handlerMock.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart)),
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart)),
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(httpResponseMessage)
                 .Verifiable();

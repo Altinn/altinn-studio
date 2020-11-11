@@ -198,7 +198,6 @@ namespace Altinn.App.Services.Implementation
 
             _logger.LogError($"Could not update read status for instance {instanceOwnerPartyId}/{instanceGuid}. Request failed with status code {response.StatusCode}");
             return null;
-
         }
 
         /// <inheritdoc/>
@@ -219,6 +218,7 @@ namespace Altinn.App.Services.Implementation
             throw await PlatformHttpException.CreateAsync(response);
         }
 
+        /// <inheritdoc />
         public async Task<Instance> DeleteInstance(int instanceOwnerPartyId, Guid instanceGuid, bool hard)
         {
             string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}?hard={hard}";
