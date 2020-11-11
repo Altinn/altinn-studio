@@ -11,7 +11,7 @@
     "styleguide:build": "styleguidist build"
   },
   "resolutions": {
-    "@types/react": "16.9.56"
+    "@types/react": "16.9.43"
   },
   "dependencies": {
     "@babel/polyfill": "~7.12.1",
@@ -42,7 +42,7 @@
     "@types/jest": "~26.0.15",
     "@types/jsdom": "~16.2.5",
     "@types/marked": "~1.1.0",
-    "@types/react": "~16.9.56",
+    "@types/react": "~16.9.55",
     "@types/react-html-parser": "~2.0.1",
     "@types/react-router-dom": "~5.1.6",
     "@types/react-test-renderer": "~16.9.3",
@@ -57,9 +57,9 @@
     "jest-junit": "~12.0.0",
     "jsdom": "~16.4.0",
     "parse5": "6.0.1",
-    "react": "~17.0.1",
+    "react": "~16.13.1",
     "react-docgen-typescript": "~1.20.5",
-    "react-dom": "~17.0.1",
+    "react-dom": "~16.13.1",
     "react-styleguidist": "~11.1.1",
     "react-test-renderer": "~16.13.1",
     "ts-jest": "~26.4.3"
