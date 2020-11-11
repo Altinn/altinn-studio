@@ -169,7 +169,7 @@ namespace LocalTest.Services.Storage.Implementation
         {
             if (!(stream is MemoryStream memStream))
             {
-                memStream = new MemoryStream();
+                memStream = new MemoryStream(); // lgtm [cs/local-not-disposed]
                 await stream.CopyToAsync(memStream);
                 memStream.Position = 0;
             }
@@ -191,7 +191,7 @@ namespace LocalTest.Services.Storage.Implementation
             }
             finally
             {
-                memStream.Dispose();
+                await memStream.DisposeAsync();
             }
         }
 
