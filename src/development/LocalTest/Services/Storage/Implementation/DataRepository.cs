@@ -191,7 +191,7 @@ namespace LocalTest.Services.Storage.Implementation
             }
             finally
             {
-                await memStream.DisposeAsync();
+                memStream.Dispose();
             }
         }
 
