@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
@@ -23,13 +24,16 @@ namespace LocalTest.Services.Storage.Implementation
             _localPlatformSettings = localPlatformSettings.Value;
         }
 
-        public Task<DataElement> Create(DataElement dataElement)
+        public async Task<DataElement> Create(DataElement dataElement)
         {
             string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
+
             Directory.CreateDirectory(GetDataCollectionFolder());
             Directory.CreateDirectory(GetDataForInstanceFolder(dataElement.InstanceGuid));
-            File.WriteAllText(path, dataElement.ToString());
-            return Task.FromResult(dataElement);
+
+            await WriteToFile(path, dataElement.ToString());
+
+            return dataElement;
         }
 
         public Task<bool> Delete(DataElement dataElement)
@@ -46,46 +50,48 @@ namespace LocalTest.Services.Storage.Implementation
             return Task.FromResult(true);
         }
 
-        public Task<DataElement> Read(Guid instanceGuid, Guid dataElementId)
+        public async Task<DataElement> Read(Guid instanceGuid, Guid dataElementId)
         {
             string dataPath = GetDataPath(instanceGuid.ToString(), dataElementId.ToString());
-            string content = File.ReadAllText(dataPath);
+            string content = await ReadFileAsString(dataPath);
             DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
-            return Task.FromResult(dataElement);
+            return dataElement;
         }
 
-        public Task<List<DataElement>> ReadAll(Guid instanceGuid)
+        public async Task<List<DataElement>> ReadAll(Guid instanceGuid)
         {
             List<DataElement> dataElements = new List<DataElement>();
             string path = GetDataForInstanceFolder(instanceGuid.ToString());
             if (Directory.Exists(path))
             {
                 string[] files = Directory.GetFiles(path);
-                for (int i = 0; i < files.Length; i++)
+                foreach (string filePath in files)
                 {
-                    string content = File.ReadAllText(files[i]);
+                    string content = await ReadFileAsString(filePath);
                     DataElement instance = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
                     dataElements.Add(instance);
                 }
             }
-            return Task.FromResult(dataElements);
+            return dataElements;
         }
 
-        public Task<Stream> ReadDataFromStorage(string org, string blobStoragePath)
+        public async Task<Stream> ReadDataFromStorage(string org, string blobStoragePath)
         {
             string filePath = GetFilePath(blobStoragePath);
-            Stream fs = File.OpenRead(filePath);
 
-            return Task.FromResult(fs);
+            return await ReadFileAsStream(filePath);
         }
 
-        public Task<DataElement> Update(DataElement dataElement)
+        public async Task<DataElement> Update(DataElement dataElement)
         {
             string path = GetDataPath(dataElement.InstanceGuid, dataElement.Id);
+
             Directory.CreateDirectory(GetDataCollectionFolder());
             Directory.CreateDirectory(GetDataForInstanceFolder(dataElement.InstanceGuid));
-            File.WriteAllText(path, dataElement.ToString());
-            return Task.FromResult(dataElement);
+
+            await WriteToFile(path, dataElement.ToString());
+
+            return dataElement;
         }
 
         public async Task<long> WriteDataToStorage(string org, Stream stream, string blobStoragePath)
@@ -96,16 +102,7 @@ namespace LocalTest.Services.Storage.Implementation
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
             }
 
-            long fileSize;
-
-            using (Stream streamToWriteTo = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
-            {
-                await stream.CopyToAsync(streamToWriteTo);
-                streamToWriteTo.Flush();
-                fileSize = streamToWriteTo.Length;
-            }
-
-            return fileSize;
+            return await WriteToFile(filePath, stream);
         }
 
         private string GetFilePath(string fileName)
@@ -123,10 +120,92 @@ namespace LocalTest.Services.Storage.Implementation
             return Path.Combine(GetDataCollectionFolder() + instanceId.Replace("/", "_") + "/"); 
         }
 
-
         private string GetDataCollectionFolder()
         {
             return this._localPlatformSettings.LocalTestingStorageBasePath + this._localPlatformSettings.DocumentDbFolder + this._localPlatformSettings.DataCollectionFolder;
+        }
+
+        private async Task<string> ReadFileAsString(string path)
+        {
+            Stream stream = await ReadFileAsStream(path);
+            using StreamReader reader = new StreamReader(stream);
+            return await reader.ReadToEndAsync();
+        }
+
+        private async Task<Stream> ReadFileAsStream(string path)
+        {
+            try
+            {
+                return ReadFileAsStreamInternal(path);
+            }
+            catch (IOException ioException)
+            {
+                if (ioException.Message.Contains("used by another process"))
+                {
+                    await Task.Delay(400);
+                    return ReadFileAsStreamInternal(path);
+                }
+
+                throw;
+            }
+        }
+
+        private Stream ReadFileAsStreamInternal(string path)
+        {
+            return new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
+
+        private async Task WriteToFile(string path, string content)
+        {
+            await using MemoryStream stream = new MemoryStream();
+            await using StreamWriter writer = new StreamWriter(stream, Encoding.Default);
+            writer.Write(content);
+            writer.Flush();
+            stream.Position = 0;
+            await WriteToFile(path, stream);
+        }
+
+        private async Task<long> WriteToFile(string path, Stream stream)
+        {
+            if (!(stream is MemoryStream memStream))
+            {
+                memStream = new MemoryStream(); // lgtm [cs/local-not-disposed]
+                await stream.CopyToAsync(memStream);
+                memStream.Position = 0;
+            }
+
+            try
+            {
+                return await WriteToFileInternal(path, memStream);
+            }
+            catch (IOException ioException)
+            {
+                if (ioException.Message.Contains("used by another process"))
+                {
+                    await Task.Delay(400);
+                    memStream.Position = 0;
+                    return await WriteToFileInternal(path, memStream);
+                }
+
+                throw;
+            }
+            finally
+            {
+                await memStream.DisposeAsync();
+            }
+        }
+
+        private async Task<long> WriteToFileInternal(string path, MemoryStream stream)
+        {
+            long fileSize;
+            await using (FileStream streamToWriteTo = File.Open(path, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+            {
+                await stream.CopyToAsync(streamToWriteTo);
+                streamToWriteTo.Flush();
+                fileSize = streamToWriteTo.Length;
+            }
+
+            return fileSize;
         }
     }
 }
