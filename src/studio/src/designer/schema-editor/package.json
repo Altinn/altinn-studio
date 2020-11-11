@@ -18,8 +18,8 @@
     "web-vitals": "^0.2.4"
   },
   "peerDependencies": {
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react": "~16.13.1",
+    "react-dom": "~16.13.1"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^16.0.0",

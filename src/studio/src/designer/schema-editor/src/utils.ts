@@ -27,11 +27,7 @@ export function buildJsonSchema(uiSchema: any[]): any {
 }
 
 export function createJsonSchemaItem(uiSchemaItem: any): any {
-  if (uiSchemaItem.$ref) {
-    return { $ref: uiSchemaItem.$ref };
-  }
-
-  const item: any = {};
+  let item: any = {};
   Object.keys(uiSchemaItem).forEach((key) => {
     switch(key) {
       case 'properties':{
@@ -52,6 +48,10 @@ export function createJsonSchemaItem(uiSchemaItem: any): any {
         item.required = uiSchemaItem.required;
         break;
       }
+      case 'value': {
+        item = uiSchemaItem.value;
+        break;
+      }
       case 'id':
       case 'name':
         break;
@@ -65,9 +65,15 @@ export function createJsonSchemaItem(uiSchemaItem: any): any {
 
 export function buildUISchema(schema: any, rootPath: string) {
   const result : any[] = [];
+  if (typeof schema !== 'object') {
+    return {
+      id: rootPath,
+      value: schema,
+    };
+  }
+
   Object.keys(schema).forEach((key) => {
     const item = schema[key];
-    console.log('key: ', key);
     const id = `${rootPath}/${key}`;
     if (item.properties) {
       result.push(buildUiSchemaForItemWithProperties(item, id));

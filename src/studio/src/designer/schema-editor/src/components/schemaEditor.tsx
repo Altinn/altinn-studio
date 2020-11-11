@@ -4,7 +4,7 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 import { TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
-import { ISchemaState } from '../types';
+import { ISchemaState, UiSchemaItem } from '../types';
 import { setUiSchema, setJsonSchema, updateJsonSchema } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 
@@ -26,14 +26,42 @@ const useStyles = makeStyles(
 export interface ISchemaEditor {
   schema: any;
   onSaveSchema: (payload: any) => void;
+  rootItemId?: string;
 }
 
-export const SchemaEditor = ({ schema, onSaveSchema }: ISchemaEditor) => {
+export const SchemaEditor = ({ schema, onSaveSchema, rootItemId }: ISchemaEditor) => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  const rootItem = useSelector((state: ISchemaState) => state.uiSchema[0]);
+  const [rootItem, setRootItem] = React.useState<UiSchemaItem>(undefined as unknown as UiSchemaItem);
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
+  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
+
+  React.useEffect(() => {
+    if (rootItemId && uiSchema && Object.keys(uiSchema).length > 0) {
+      const item = uiSchema.find((i) => i.id === rootItemId);
+      setRootItem(item);
+    }
+  }, [rootItemId, uiSchema]);
+
+  // React.useEffect(() => {
+  //   const getRootItems = () => {
+  //     const result: UiSchemaItem[] = [];
+  //     const ids: string[] = Object.keys(jsonSchema);
+  //     ids.forEach((id) => {
+  //       const uiSchemaItem = uiSchema.find((item) => item.id === `#/${id}`);
+  //       if (uiSchemaItem) {
+  //         result.push(uiSchemaItem);
+  //       }
+  //     });
+  
+  //     return result;
+  //   }
+
+  //   if (jsonSchema && Object.keys(jsonSchema).length > 0 && uiSchema && Object.keys(uiSchema).length > 0) {
+  //     setRootItems(getRootItems())
+  //   }
+  // }, [jsonSchema, uiSchema]);
   
   React.useEffect(() => {
     if (jsonSchema && Object.keys(jsonSchema).length > 0) {
@@ -51,7 +79,7 @@ export const SchemaEditor = ({ schema, onSaveSchema }: ISchemaEditor) => {
 
   return (
     <>
-    {rootItem &&
+    {uiSchema && uiSchema.length > 0 &&
     <div className={classes.root}>
       <button className={classes.button} onClick={onClickSaveJsonSchema}>Save data model</button>
       <TreeView
@@ -60,10 +88,20 @@ export const SchemaEditor = ({ schema, onSaveSchema }: ISchemaEditor) => {
         defaultCollapseIcon={<ArrowDropDownIcon />}
         defaultExpandIcon={<ArrowRightIcon />}
       >
-        <SchemaItem
-          item={rootItem}
-          nodeId={rootItem.id}
-        />
+        {rootItem ? 
+          <SchemaItem
+            item={rootItem}
+            nodeId={rootItem.id}
+          />
+        :
+        uiSchema.map((item) => {
+          return (
+            <SchemaItem
+              item={item}
+              nodeId={item.id}
+            />
+          );
+        })}
       </TreeView>
     </div>}
     </>

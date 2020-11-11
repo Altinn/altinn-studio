@@ -179,6 +179,9 @@ function SchemaItem(props: StyledTreeItemProps) {
       return (
         <div>
           {fields.map((field) => {
+            if (field.key.startsWith('@xsd')) {
+              return null;
+            }
               return (
                 <InputField
                   value={field.value}
@@ -250,7 +253,7 @@ function SchemaItem(props: StyledTreeItemProps) {
     );
   }
 
-  if (constItem) {
+  if (constItem || item.value) {
     return (
       <TreeItem 
         label={

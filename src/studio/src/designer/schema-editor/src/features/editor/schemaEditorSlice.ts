@@ -83,7 +83,6 @@ const schemaEditorSlice = createSlice({
     },
     setJsonSchema(state, action) {
       const {schema} = action.payload;
-      console.log('set schema: ', schema);
       state.schema = schema;
     },
     setPropertyName(state, action) {
@@ -101,12 +100,18 @@ const schemaEditorSlice = createSlice({
     },
     setUiSchema(state, action) {
       const rootElementPath = state.schema.properties.melding.$ref;
-      state.uiSchema =  buildUISchema(state.schema.definitions, '#/definitions');
+      let uiSchema: any[] = [];
+      Object.keys(state.schema).forEach((key) => {
+        const uiSchemaPart = buildUISchema(state.schema[key], `#/${key}`);
+        uiSchema = uiSchema.concat(uiSchemaPart);
+      })
+      state.uiSchema =  uiSchema;
       state.rootName = rootElementPath;
     },
     updateJsonSchema(state, action) {
       const {onSaveSchema} = action.payload;
-      state.schema.definitions = buildJsonSchema(state.uiSchema).definitions;
+      const updatedSchema = buildJsonSchema(state.uiSchema);
+      state.schema = updatedSchema;
       if (onSaveSchema) {
         onSaveSchema(state.schema);
       }
