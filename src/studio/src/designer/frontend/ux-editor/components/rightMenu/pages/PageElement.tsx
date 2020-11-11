@@ -92,6 +92,7 @@ export default function PageElement({
   }
 
   function handleOnChange(event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
+    const nameRegex = new RegExp('^[a-zA-Z0-9_\\-\\.]*$');
     const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
     if (pageNameExists(newNameCandidate)) {
       setErrorMessage(getLanguageFromKey('right_menu.pages_error_unique', language));
@@ -99,6 +100,8 @@ export default function PageElement({
       setErrorMessage(getLanguageFromKey('right_menu.pages_error_empty', language));
     } else if (newNameCandidate.length >= 30) {
       setErrorMessage(getLanguageFromKey('right_menu.pages_error_length', language));
+    } else if (!newNameCandidate.match(nameRegex)) {
+      setErrorMessage(getLanguageFromKey('right_menu.pages_error_format', language));
     } else {
       setErrorMessage('');
       setNewName(newNameCandidate);
