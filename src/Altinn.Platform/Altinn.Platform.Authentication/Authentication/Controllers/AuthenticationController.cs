@@ -501,6 +501,9 @@ namespace Altinn.Platform.Authentication.Controllers
         {
             List<X509Certificate2> certificates = await _certificateProvider.GetCertificates();
 
+            X509Certificate2 certificate = GetLatestCertificateWithRolloverDelay(
+                certificates, _generalSettings.JwtSigningCertificateRolloverDelayHours);
+
             TimeSpan tokenExpiry = new TimeSpan(0, _generalSettings.JwtValidityMinutes, 0);
 
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
@@ -508,13 +511,33 @@ namespace Altinn.Platform.Authentication.Controllers
             {
                 Subject = new ClaimsIdentity(principal.Identity),
                 Expires = DateTime.UtcNow.AddSeconds(tokenExpiry.TotalSeconds),
-                SigningCredentials = new X509SigningCredentials(certificates[0])
+                SigningCredentials = new X509SigningCredentials(certificate)
             };
 
             SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
             string serializedToken = tokenHandler.WriteToken(token);
 
             return serializedToken;
+        }
+        
+        private X509Certificate2 GetLatestCertificateWithRolloverDelay(
+            List<X509Certificate2> certificates, int rolloverDelayHours)
+        {
+            // First limit the search to just those certificates that have existed longer than the rollover delay.
+            var rolloverCutoff = DateTime.Now.AddHours(-rolloverDelayHours);
+            var potentialCerts =
+                certificates.Where(c => c.NotBefore < rolloverCutoff).ToList();
+
+            // If no certs could be found, then widen the search to any usable certificate.
+            if (!potentialCerts.Any())
+            {
+                potentialCerts = certificates.Where(c => c.NotBefore < DateTime.Now).ToList();
+            }
+
+            // Of the potential certs, return the newest one.
+            return potentialCerts
+                .OrderByDescending(c => c.NotBefore)
+                .FirstOrDefault();
         }
     }
 }
