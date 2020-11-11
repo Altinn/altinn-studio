@@ -162,10 +162,6 @@ namespace Altinn.Platform.Authentication.Configuration
         public string OpenIdWellKnownEndpoint { get; set; }
 
         /// <summary>
-        /// Gets or sets the initial organisation harvest date time.
-        /// </summary>
-        public DateTime InitialHarvestDateTime { get; set; } = new DateTime(0);
-
         /// Gets or sets the number of hours to wait before a new certificate is being used to
         /// sign new JSON Web tokens.
         /// </summary>
@@ -175,5 +171,10 @@ namespace Altinn.Platform.Authentication.Configuration
         /// Take care not to upload "old" certificates.
         /// </remarks>
         public int JwtSigningCertificateRolloverDelayHours { get; set; }
+
+        /// <summary>
+        /// Gets or sets the initial organisation harvest date time.
+        /// </summary>
+        public DateTime InitialHarvestDateTime { get; set; } = new DateTime(0);
     }
 }
