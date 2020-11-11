@@ -36,10 +36,5 @@ namespace Altinn.Platform.Authentication.Repositories
         /// <param name="orgNumber">organisation number</param>
         /// <returns>the organisation or null if not found</returns>
         public Task<Organisation> GetOrganisationByOrgNumber(string orgNumber);
-
-        /// <summary>
-        /// Trigger harvest of organisation repository.
-        /// </summary>
-        public Task HarvestOrgs();
     }
 }

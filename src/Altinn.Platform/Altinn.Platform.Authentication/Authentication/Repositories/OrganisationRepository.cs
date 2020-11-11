@@ -104,8 +104,7 @@ namespace Altinn.Platform.Authentication.Repositories
             return organisation?.OrgNumber;
         }
 
-        /// <inheritdoc/>
-        public async Task HarvestOrgs()
+        private async Task HarvestOrgs()
         {
             try
             {
