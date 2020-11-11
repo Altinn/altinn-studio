@@ -51,18 +51,19 @@ namespace Altinn.Platform.Authentication.Services
         /// <inheritdoc/>
         public async Task<string> LookupOrg(string orgNumber)
         {
+            Organisation organisation;
+
             if (!_memoryCache.TryGetValue(_orgDictionaryCacheKey, out Dictionary<string, Organisation> organisationDictionary))
             {
-                await HarvestOrgs();
+                organisationDictionary = await HarvestOrgs();
             }
 
-            _memoryCache.TryGetValue(_orgDictionaryCacheKey, out organisationDictionary);
-            organisationDictionary.TryGetValue(orgNumber, out Organisation organisation);
+            organisationDictionary.TryGetValue(orgNumber, out organisation);
 
             return organisation?.Org;
         }
 
-        private async Task HarvestOrgs()
+        private async Task<Dictionary<string, Organisation>> HarvestOrgs()
         {
             try
             {
@@ -101,6 +102,7 @@ namespace Altinn.Platform.Authentication.Services
                 }
 
                 _memoryCache.Set(_orgDictionaryCacheKey, organisationDictionary, _cacheEntryOptions);
+                return organisationDictionary;
             }
             catch (Exception ex)
             {
