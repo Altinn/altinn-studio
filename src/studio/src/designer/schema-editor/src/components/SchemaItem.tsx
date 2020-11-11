@@ -146,7 +146,7 @@ function SchemaItem(props: StyledTreeItemProps) {
   const onChangeValue = (path: string, value: any, key?: string) => {
     const data = {
       path, 
-      value,
+      value: isNaN(value) ? value : +value,
       key,
     }
     dispatch(setFieldValue(data));
