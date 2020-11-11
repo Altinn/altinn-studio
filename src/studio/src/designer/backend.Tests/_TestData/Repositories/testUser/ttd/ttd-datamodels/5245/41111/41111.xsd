@@ -1,154 +1,71 @@
 <?xml version="1.0"?>
-<xsd:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <xsd:element name="Skjema" type="Skjema" />
-  <xsd:element name="Endringsmelding-grp-9786" type="Endringsmelding-grp-9786" />
-  <xsd:element name="Avgiver-grp-9787" type="Avgiver-grp-9787" />
-  <xsd:element name="OppgavegiverNavn-datadef-68" type="OppgavegiverNavn-datadef-68" />
-  <xsd:element name="OppgavegiverFodselsnummer-datadef-26" type="OppgavegiverFodselsnummer-datadef-26" />
-  <xsd:element name="KontaktpersonEPost-datadef-27688" type="KontaktpersonEPost-datadef-27688" />
-  <xsd:element name="KontaktpersonTelefonnummer-datadef-3" type="KontaktpersonTelefonnummer-datadef-3" />
-  <xsd:element name="OversiktOverEndringene-grp-9788" type="OversiktOverEndringene-grp-9788" />
-  <xsd:element name="SkattemeldingEndringEtterFristPost-datadef-37130" type="SkattemeldingEndringEtterFristPost-datadef-37130" />
-  <xsd:element name="SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131" type="SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131" />
-  <xsd:element name="SkattemeldingEndringEtterFristNyttBelop-datadef-37132" type="SkattemeldingEndringEtterFristNyttBelop-datadef-37132" />
-  <xsd:element name="SkattemeldingEndringEtterFristKommentar-datadef-37133" type="SkattemeldingEndringEtterFristKommentar-datadef-37133" />
-  <xsd:complexType name="Skjema">
+<xsd:schema xmlns:seres="http://seres.no/xsd/forvaltningsdata" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />
+      <xsd:attribute name="XSD-generatorversjon" fixed="2.0.17" />
+      <xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" />
+      <xsd:attribute name="generert" fixed="2016-07-25T10:15:33.986+02:00" />
+      <xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" />
+      <xsd:attribute name="namespace" fixed="http://seres.no/xsd/NKR/Kontrakt_M/2016" />
+      <xsd:attribute name="meldingsnavn" fixed="melding" />
+      <xsd:attribute name="domenenavn" fixed="NKR" />
+      <xsd:attribute name="modellnavn" fixed="Kontrakt_M" />
+      <xsd:attribute name="metamodellversjon" fixed="1.2" />
+      <xsd:attribute name="guid" fixed="true" />
+      <xsd:attribute name="orid" fixed="false" />
+      <xsd:attribute name="nillable" fixed="true" />
+      <xsd:attribute name="tillat-gjenbruk" fixed="true" />
+      <xsd:attribute name="elementtype" fixed="true" />
+      <xsd:attribute name="forvaltningsdata" fixed="true" />
+      <xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" />
+      <xsd:attribute name="saernorske-bokstaver-i-navn" fixed="false" />
+      <xsd:attribute name="ft_guid_som_attributt" fixed="false" />
+      <xsd:attribute name="sem-ref" fixed="false" />
+      <xsd:attribute name="kodebibliotek" fixed="false" />
+      <xsd:attribute name="spraak" fixed="" />
+      <xsd:attribute name="XSD-variant" fixed="Altinn 1.3.1" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="melding" type="Kontrakt_M" />
+  <xsd:complexType seres:elementtype="Meldingsmodell" seres:guid="http://seres.no/guid/NKR/Meldingsmodell/Kontrakt_M/626432" name="Kontrakt_M">
     <xsd:sequence>
-      <xsd:element minOccurs="0" name="Endringsmelding-grp-9786" nillable="true" type="Endringsmelding-grp-9786" />
+      <xsd:element seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/NKR/Meldingsdel/InnsendteData/626430" name="InnsendteData" type="InnsendteData" />
     </xsd:sequence>
-    <xsd:attribute fixed="1603" name="skjemanummer" type="xsd:integer" use="required" />
-    <xsd:attribute fixed="12392" name="spesifikasjonsnummer" type="xsd:integer" use="required" />
-    <xsd:attribute fixed="RF-1366" name="blankettnummer" type="xsd:string" />
-    <xsd:attribute fixed="Endringsmelding" name="tittel" type="xsd:string" />
-    <xsd:attribute fixed="9785" name="gruppeid" type="xsd:integer" />
-    <xsd:attribute name="etatid">
-      <xsd:simpleType>
-        <xsd:restriction base="xsd:string">
-          <xsd:enumeration value="974761076" />
-        </xsd:restriction>
-      </xsd:simpleType>
-    </xsd:attribute>
+    <xsd:attribute fixed="SERES" name="dataFormatProvider" type="xsd:string" use="required" />
+    <xsd:attribute fixed="5245" name="dataFormatId" type="xsd:string" use="required" />
+    <xsd:attribute fixed="41111" name="dataFormatVersion" type="xsd:string" use="required" />
     <xsd:anyAttribute namespace="##targetNamespace" />
   </xsd:complexType>
-  <xsd:complexType name="Endringsmelding-grp-9786">
+  <xsd:complexType seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/NKR/Meldingsdel/InnsendteData/626430" name="InnsendteData">
     <xsd:sequence>
-      <xsd:element minOccurs="0" name="Avgiver-grp-9787" nillable="true" type="Avgiver-grp-9787" />
-      <xsd:element minOccurs="0" maxOccurs="999" name="OversiktOverEndringene-grp-9788" nillable="true" type="OversiktOverEndringene-grp-9788" />
+      <xsd:element seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/NKR/Relasjonsegenskap/kontrakt/626429" minOccurs="0" name="kontrakt" nillable="true" type="Kontrakt" />
     </xsd:sequence>
-    <xsd:attribute fixed="9786" name="gruppeid" type="xsd:integer" use="required" />
   </xsd:complexType>
-  <xsd:complexType name="Avgiver-grp-9787">
+  <xsd:complexType seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/NKR/Dataobjekttype/Kontrakt/626450" name="Kontrakt">
     <xsd:sequence>
-      <xsd:element minOccurs="0" name="OppgavegiverNavn-datadef-68" nillable="true" type="OppgavegiverNavn-datadef-68" />
-      <xsd:element minOccurs="0" name="OppgavegiverFodselsnummer-datadef-26" nillable="true" type="OppgavegiverFodselsnummer-datadef-26" />
-      <xsd:element minOccurs="0" name="KontaktpersonEPost-datadef-27688" nillable="true" type="KontaktpersonEPost-datadef-27688" />
-      <xsd:element minOccurs="0" name="KontaktpersonTelefonnummer-datadef-3" nillable="true" type="KontaktpersonTelefonnummer-datadef-3" />
+      <xsd:element seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/prosjektnummer/626449" name="prosjektnummer" type="Tekst" />
+      <xsd:element seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/soker/626448" minOccurs="0" name="soker" nillable="true" type="Tekst" />
+      <xsd:element seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/kontaktperson/626447" minOccurs="0" name="kontaktperson" nillable="true" type="Tekst" />
+      <xsd:element seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/tilskuddsordning/626446" minOccurs="0" name="tilskuddsordning" nillable="true" type="Tekst" />
+      <xsd:element seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/sendt/626445" minOccurs="0" name="sendt" nillable="true" type="Dato" />
+      <xsd:element seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/svarfrist/626444" minOccurs="0" name="svarfrist" nillable="true" type="Dato" />
+      <xsd:element seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/svar/626442" minOccurs="0" name="svar" nillable="true" type="Tekst" />
+      <xsd:element seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/tilbakemelding/626441" minOccurs="0" name="tilbakemelding" nillable="true" type="Tekst" />
+      <xsd:element seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/swiftKode/626440" minOccurs="0" name="swiftKode" nillable="true" type="Tekst" />
+      <xsd:element seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/bankkontonummer/626439" minOccurs="0" name="bankkontonummer" nillable="true" type="Tekst" />
+      <xsd:element seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/NKR/Dataegenskap/utbetalingMerkesMed/626438" minOccurs="0" name="utbetalingMerkesMed" nillable="true" type="Tekst" />
     </xsd:sequence>
-    <xsd:attribute fixed="9787" name="gruppeid" type="xsd:integer" use="required" />
   </xsd:complexType>
-  <xsd:complexType name="OppgavegiverNavn-datadef-68">
-    <xsd:simpleContent>
-      <xsd:extension base="Tekst175-repformat-8">
-        <xsd:attribute fixed="68" name="orid" type="xsd:integer" use="required" />
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
-  <xsd:simpleType name="Tekst175-repformat-8">
+  <xsd:simpleType name="Tekst">
+    <xsd:restriction base="RestriksjonTekst10000Tegn" />
+  </xsd:simpleType>
+  <xsd:simpleType seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/NKR/Tegnrestriksjon/RestriksjonTekst400Tegn/621114" name="RestriksjonTekst10000Tegn">
     <xsd:restriction base="xsd:string">
-      <xsd:minLength value="1" />
-      <xsd:maxLength value="175" />
+      <xsd:maxLength value="10000" />
     </xsd:restriction>
   </xsd:simpleType>
-  <xsd:complexType name="OppgavegiverFodselsnummer-datadef-26">
-    <xsd:simpleContent>
-      <xsd:extension base="Tekst1111Modulus11-repformat-18">
-        <xsd:attribute fixed="26" name="orid" type="xsd:integer" use="required" />
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
-  <xsd:simpleType name="Tekst1111Modulus11-repformat-18">
-    <xsd:restriction base="xsd:string">
-      <xsd:length value="11" />
-    </xsd:restriction>
-  </xsd:simpleType>
-  <xsd:complexType name="KontaktpersonEPost-datadef-27688">
-    <xsd:simpleContent>
-      <xsd:extension base="Tekst45-repformat-150">
-        <xsd:attribute fixed="27688" name="orid" type="xsd:integer" use="required" />
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
-  <xsd:simpleType name="Tekst45-repformat-150">
-    <xsd:restriction base="xsd:string">
-      <xsd:minLength value="1" />
-      <xsd:maxLength value="45" />
-    </xsd:restriction>
-  </xsd:simpleType>
-  <xsd:complexType name="KontaktpersonTelefonnummer-datadef-3">
-    <xsd:simpleContent>
-      <xsd:extension base="Tekst13-repformat-12">
-        <xsd:attribute fixed="3" name="orid" type="xsd:integer" use="required" />
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
-  <xsd:simpleType name="Tekst13-repformat-12">
-    <xsd:restriction base="xsd:string">
-      <xsd:minLength value="1" />
-      <xsd:maxLength value="13" />
-    </xsd:restriction>
-  </xsd:simpleType>
-  <xsd:complexType name="OversiktOverEndringene-grp-9788">
-    <xsd:sequence>
-      <xsd:element minOccurs="0" name="SkattemeldingEndringEtterFristPost-datadef-37130" nillable="true" type="SkattemeldingEndringEtterFristPost-datadef-37130" />
-      <xsd:element minOccurs="0" name="SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131" nillable="true" type="SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131" />
-      <xsd:element minOccurs="0" name="SkattemeldingEndringEtterFristNyttBelop-datadef-37132" nillable="true" type="SkattemeldingEndringEtterFristNyttBelop-datadef-37132" />
-      <xsd:element minOccurs="0" name="SkattemeldingEndringEtterFristKommentar-datadef-37133" nillable="true" type="SkattemeldingEndringEtterFristKommentar-datadef-37133" />
-    </xsd:sequence>
-    <xsd:attribute fixed="9788" name="gruppeid" type="xsd:integer" use="required" />
-  </xsd:complexType>
-  <xsd:complexType name="SkattemeldingEndringEtterFristPost-datadef-37130">
-    <xsd:simpleContent>
-      <xsd:extension base="Tekst35-repformat-3">
-        <xsd:attribute fixed="37130" name="orid" type="xsd:integer" use="required" />
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
-  <xsd:simpleType name="Tekst35-repformat-3">
-    <xsd:restriction base="xsd:string">
-      <xsd:minLength value="1" />
-      <xsd:maxLength value="35" />
-    </xsd:restriction>
-  </xsd:simpleType>
-  <xsd:complexType name="SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131">
-    <xsd:simpleContent>
-      <xsd:extension base="BelopHeltall15-repformat-37">
-        <xsd:attribute fixed="37131" name="orid" type="xsd:integer" use="required" />
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
-  <xsd:simpleType name="BelopHeltall15-repformat-37">
-    <xsd:restriction base="xsd:integer">
-      <xsd:totalDigits value="15" />
-    </xsd:restriction>
-  </xsd:simpleType>
-  <xsd:complexType name="SkattemeldingEndringEtterFristNyttBelop-datadef-37132">
-    <xsd:simpleContent>
-      <xsd:extension base="BelopHeltall15-repformat-37">
-        <xsd:attribute fixed="37132" name="orid" type="xsd:integer" use="required" />
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
-  <xsd:complexType name="SkattemeldingEndringEtterFristKommentar-datadef-37133">
-    <xsd:simpleContent>
-      <xsd:extension base="Tekst500-repformat-166">
-        <xsd:attribute fixed="37133" name="orid" type="xsd:integer" use="required" />
-      </xsd:extension>
-    </xsd:simpleContent>
-  </xsd:complexType>
-  <xsd:simpleType name="Tekst500-repformat-166">
-    <xsd:restriction base="xsd:string">
-      <xsd:minLength value="1" />
-      <xsd:maxLength value="500" />
-    </xsd:restriction>
+  <xsd:simpleType seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/NKR/Dataenkeltype/Dato/616182" name="Dato">
+    <xsd:restriction base="xsd:date" />
   </xsd:simpleType>
 </xsd:schema>
