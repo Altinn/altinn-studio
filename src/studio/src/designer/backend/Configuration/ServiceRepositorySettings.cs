@@ -416,6 +416,7 @@ namespace Altinn.Studio.Designer.Configuration
             org = org.AsFileName();
             app = app.AsFileName();
             developer = developer.AsFileName();
+            formLayout = formLayout.AsFileName();
             return Path.Join(RepositoryLocation, developer, org, app, UI_RESOURCE_FOLDER_NAME, FORMLAYOUTS_RESOURCE_FOLDER_NAME, formLayout + ".json");
         }
 
